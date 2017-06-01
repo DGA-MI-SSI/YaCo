@@ -1,0 +1,5 @@
+#!/bin/sh
+builddir=`dirname $0`
+SWIG_LIB=@SWIG_LIB_PREINST@
+export SWIG_LIB
+exec "$builddir/swig" "$@"

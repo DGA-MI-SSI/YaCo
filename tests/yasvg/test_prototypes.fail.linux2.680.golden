@@ -1,0 +1,4 @@
+func:6604ea20: int __usercall@<eax> sub(size_t DstSize@<ecx>, void *DstBuf)
+func:6604eae0:
+    got  struct _TEB *sub()
+    want struct _TEB *__cdecl sub()

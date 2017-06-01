@@ -1,0 +1,9 @@
+*.pyc
+.cproject
+.idea
+.project
+bin/
+gmon.out
+out/
+testdata/
+tmp/*

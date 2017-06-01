@@ -1,0 +1,160 @@
+namespace yadb;
+
+file_identifier "YADB";
+file_extension  "yadb";
+
+enum HashType : byte {
+    Unknown = 0,
+    None,
+    Crc32,
+    Md5,
+}
+
+enum SignatureMethod : byte {
+    Unknown = 0,
+    FirstByte,
+    Full,
+    Invariants,
+    OpCode,
+    IntraGraph,
+    String,
+}
+
+enum CommentType : byte {
+    Unknown = 0,
+    Repeatable,
+    NonRepeatable,
+    Anterior,
+    Posterior,
+    Bookmark,
+}
+
+enum ObjectType : byte {
+    Unknown = 0,
+    Binary,
+    Data,
+    Code,
+    Function,
+    Struct,
+    Enum,
+    EnumMember,
+    BasicBlock,
+    Segment,
+    SegmentChunk,
+    StructMember,
+    StackFrame,
+    StackFrameMember,
+    ReferenceInfo,
+}
+
+struct Comment {
+    offset: ulong;
+    value:  uint;
+    type:   CommentType;
+}
+
+struct ValueView {
+    offset:     ulong;
+    value:      uint;
+    operand:    ubyte;
+}
+
+struct RegisterView {
+    offset:             ulong;
+    end_offset:         ulong;
+    register_name:      uint;
+    register_new_name:  uint;
+}
+
+struct HiddenArea {
+    offset:     ulong;
+    area_size:  ulong;
+    value:      uint;
+}
+
+struct UserName {
+    flags:  uint;
+    value:  uint;
+}
+
+struct Attribute {
+    key:    uint;
+    value:  uint;
+}
+
+table Blob {
+    offset: ulong;
+    data:   [ubyte];
+}
+
+struct Offset {
+    offset:         ulong;
+    system_idx:     uint;
+}
+
+table Xref {
+    offset:         ulong;
+    id:             ulong;
+    operand:        ubyte;
+    attributes:     [Attribute];
+}
+
+struct Signature {
+    value:          uint;
+    type:           HashType;
+    method:         SignatureMethod;
+}
+
+table Version {
+    object_id:                      ulong;
+    parent_id:                      ulong;
+    address:                        ulong;
+    flags:                          uint;
+    prototype:                      uint;
+    size:                           uint;
+    username:                       UserName;
+    header_comment_repeatable:      uint;
+    header_comment_nonrepeatable:   uint;
+    string_type:                    ubyte;
+    attributes:                     [Attribute];
+    blobs:                          [Blob];
+    comments:                       [Comment];
+    valueviews:                     [ValueView];
+    registerviews:                  [RegisterView];
+    hiddenareas:                    [HiddenArea];
+    offsets:                        [Offset];
+    xrefs:                          [Xref];
+    signatures:                     [Signature];
+}
+
+struct System {
+    equipment:  uint;
+    os:         uint;
+}
+
+struct Object {
+    id:     ulong;
+    type:   ObjectType;
+}
+
+table Root {
+    objects:            [Object];
+    systems:            [System];
+    binaries:           [Version];
+    structs:            [Version];
+    struct_members:     [Version];
+    enums:              [Version];
+    enum_members:       [Version];
+    segments:           [Version];
+    segment_chunks:     [Version];
+    functions:          [Version];
+    stackframes:        [Version];
+    stackframe_members: [Version];
+    reference_infos:    [Version];
+    codes:              [Version];
+    datas:              [Version];
+    basic_blocks:       [Version];
+    strings:            [string];
+}
+
+root_type Root;
