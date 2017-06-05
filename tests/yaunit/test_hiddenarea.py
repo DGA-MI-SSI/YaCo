@@ -40,7 +40,6 @@ class Fixture(unittest.TestCase):
             self.assertTrue(False)
         self.assertEqual(hidden_area.description, bookmark)
 
-    @unittest.skip("not implemented")
     def yacheck_hiddenareas(self):
         addrs = yaunit.load('hiddenarea')
         for i in range(0, 3):
