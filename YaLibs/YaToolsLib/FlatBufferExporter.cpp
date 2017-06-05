@@ -521,7 +521,7 @@ void FBExporter::visit_offset_valueview(offset_t offset, operand_t operand,
     value_views_.emplace_back(
         offset,
         index_string(*this, view_value),
-        operand
+        static_cast<uint8_t>(operand)
     );
 }
 
