@@ -804,3 +804,27 @@ void IDANativeExporter::analyze_function(ea_t ea)
             LOG(ERROR, "analyze_function: 0x" EA_FMT " unable to analyze area " EA_FMT "-" EA_FMT "\n", ea, start, end);
     });
 }
+
+void IDANativeExporter::clear_function(std::shared_ptr<YaToolObjectVersion> version, ea_t ea)
+{
+    for(const auto& it : version->get_xrefed_id_map())
+        for(const auto& ju : it.second)
+        {
+            const auto itsize = ju.attributes.find("size");
+            if(itsize == ju.attributes.end())
+                continue;
+
+            const auto size = to_ea(itsize->second.data());
+            const auto xref_ea = static_cast<ea_t>(ea + it.first.first);
+            const auto func = get_func(xref_ea);
+            if(!func)
+                continue;
+            if(func->startEA == ea)
+                continue;
+
+            const auto ok = remove_func_tail(func, ea);
+            if(!ok)
+                LOG(ERROR, "clear_function: 0x" EA_FMT " unable to remove func tail at " EA_FMT "\n", ea, xref_ea);
+            // FIXME check if we need for i in xrange(ea, ea + size): idc.MakeUnkn(i)
+        }
+}

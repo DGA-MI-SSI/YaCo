@@ -43,6 +43,7 @@ struct IDANativeExporter
     void set_struct_id(YaToolObjectId id, uint64_t struct_id);
 
     void analyze_function(ea_t ea);
+    void clear_function(std::shared_ptr<YaToolObjectVersion> version, ea_t ea);
 
 #ifndef SWIG
     std::string patch_prototype(const std::string& prototype, ea_t ea);

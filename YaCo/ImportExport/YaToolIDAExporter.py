@@ -668,31 +668,8 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
         # apply hidden area
         self.make_hidden_area(object_version, address)
 
-    def clear_function(self, object_version, address):
-
-        for ((xref_offset, operand), xref_list) in object_version.get_xrefed_id_map().iteritems():
-            for (xref_value, xref_attributes) in xref_list:
-                size = None
-                try:
-                    size = self.yatools.hex_string_to_address(xref_attributes["size"])
-                except:
-                    pass
-                if size is not None:
-                    ea = address + xref_offset
-                    # sometime, another function might have taken that piece of code for her
-                    func_at_ea = idaapi.get_func(ea)
-                    if func_at_ea is not None:
-                        logger.debug("type(address) = %s, type(func) = %s, type(startEA) = %s" %
-                                     (type(address), type(func_at_ea), type(func_at_ea.startEA)))
-                        logger.debug("looking for tail : %s %r, address=0x%08X" %
-                                     (func_at_ea, func_at_ea.startEA, address))
-                        if func_at_ea.startEA != address:
-                            logger.warning("Removing func tail 0x%08X from func 0x%08X" % (address, func_at_ea.startEA))
-                            idaapi.remove_func_tail(func_at_ea, address)
-                            # for i in xrange(ea, ea + size):
-                            #    #logger.debug("MakeUnkn(0x%016X, idc.DOUNK_DELNAMES |"
-                            #                  " idc.DOUNK_EXPAND | idaapi.DOUNK_NOTRUNC)" % (i))
-                            #    idc.MakeUnkn(i, idc.DOUNK_DELNAMES | idc.DOUNK_EXPAND | idaapi.DOUNK_NOTRUNC)
+    def clear_function(self, version, ea):
+        _yatools_ida_exporter.clear_function(version, ea)
 
     def analyze_function(self, ea):
         _yatools_ida_exporter.analyze_function(ea)
