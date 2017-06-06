@@ -87,7 +87,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
                     return
 
                 if obj_type == ya.OBJECT_TYPE_CODE:
-                    self.make_code(object_version, address)
+                    _yatools_ida_exporter.make_code(object_version, address)
 
                 # create function
                 elif obj_type == ya.OBJECT_TYPE_FUNCTION:
@@ -598,24 +598,6 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
         if object_version.get_type() == ya.OBJECT_TYPE_STRUCT_MEMBER:
             self.strucmember_ids[object_version.get_id()] = member_id
 
-    def make_view(self, object_version, address):
-        _yatools_ida_exporter.make_views(object_version, address)
-
-    def make_code(self, object_version, address):
-        # delete function if previously defined
-        idc.DelFunction(address)
-
-        # make code if not already exist
-        idc.MakeCode(address)
-
-        # code label name
-        _yatools_ida_exporter.make_name(object_version, address, False)
-
-        # apply view
-        self.make_view(object_version, address)
-
-        _yatools_ida_exporter.make_hiddenareas(object_version, address)
-
     def make_function(self, object_version, address):
         self.arch_plugin.make_function_prehook(object_version, address)
         _yatools_ida_exporter.make_function(object_version, address)
@@ -701,8 +683,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
         _yatools_ida_exporter.make_name(object_version, address, True)
 
         # apply view
-        self.make_view(object_version, address)
-
+        _yatools_ida_exporter.make_views(object_version, address)
         _yatools_ida_exporter.make_hiddenareas(object_version, address)
 
         for ((xref_offset, operand), xref_list) in object_version.get_xrefed_id_map().iteritems():
