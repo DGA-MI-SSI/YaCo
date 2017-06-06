@@ -25,6 +25,14 @@
 
 #include <regex>
 
+#ifdef _MSC_VER
+#   include <optional.hpp>
+using namespace nonstd;
+#else
+#   include <experimental/optional>
+using namespace std::experimental;
+
+#endif
 #define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("IDANativeModel", (FMT), ## __VA_ARGS__)
 
 #ifdef __EA64__
@@ -203,6 +211,20 @@ namespace
         std::stringstream ss;
         ss << "0x" << std::hex << value << "L";
         return ss.str();
+    }
+
+    template<typename T>
+    optional<size_t> read_string_from(qstring& buffer, const T& read)
+    {
+        while(true)
+        {
+            const auto n = read();
+            if(n < 0)
+                return nullopt;
+            if(n + 1 < static_cast<ssize_t>(buffer.size()))
+                return n;
+            buffer.resize(buffer.size() * 2);
+        }
     }
 
     template<typename T>
