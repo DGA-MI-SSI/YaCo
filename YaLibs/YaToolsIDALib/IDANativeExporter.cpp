@@ -805,9 +805,9 @@ void IDANativeExporter::analyze_function(ea_t ea)
     });
 }
 
-void IDANativeExporter::clear_function(std::shared_ptr<YaToolObjectVersion> version, ea_t ea)
+static void clear_function(const YaToolObjectVersion& version, ea_t ea)
 {
-    for(const auto& it : version->get_xrefed_id_map())
+    for(const auto& it : version.get_xrefed_id_map())
         for(const auto& ju : it.second)
         {
             const auto itsize = ju.attributes.find("size");
@@ -827,4 +827,56 @@ void IDANativeExporter::clear_function(std::shared_ptr<YaToolObjectVersion> vers
                 LOG(ERROR, "clear_function: 0x" EA_FMT " unable to remove func tail at " EA_FMT "\n", ea, xref_ea);
             // FIXME check if we need for i in xrange(ea, ea + size): idc.MakeUnkn(i)
         }
+}
+
+static bool set_function_flags(ea_t ea, ObjectVersionFlag_T flags)
+{
+    auto func = get_func(ea);
+    if(!func)
+        return false;
+    func->flags = static_cast<ushort>(flags);
+    return update_func(func);
+}
+
+static bool add_function(ea_t ea, const YaToolObjectVersion& version)
+{
+    const auto flags = getFlags(ea);
+    const auto func = get_func(ea);
+    if(isFunc(flags) && func && func->startEA == ea)
+        return true;
+
+    LOG(DEBUG, "make_function: 0x" EA_FMT " flags 0x%08X current flags 0x%08x\n", ea, version.get_object_flags(), flags);
+    if(func)
+        LOG(DEBUG, "make_function: 0x" EA_FMT " func [0x" EA_FMT ", 0x" EA_FMT "] size 0x%08llX\n", ea, func->startEA, func->endEA, version.get_size());
+
+    auto ok = add_func(ea, BADADDR);
+    if(ok)
+        return true;
+
+    if(!hasValue(flags))
+    {
+        LOG(ERROR, "make_function: 0x" EA_FMT " unable to add function, missing data\n", ea);
+        return false;
+    }
+
+    clear_function(version, ea);
+    return add_func(ea, BADADDR);
+}
+
+void IDANativeExporter::make_function(std::shared_ptr<YaToolObjectVersion> version, ea_t ea)
+{
+    auto ok = add_function(ea, *version);
+    if(!ok)
+        LOG(ERROR, "make_function: 0x" EA_FMT " unable to add function\n", ea);
+
+    ok = !!analyze_area(ea, ea + 1);
+    if(!ok)
+        LOG(ERROR, "make_function: 0x" EA_FMT " unable to analyze area\n", ea);
+
+    const auto flags = version->get_object_flags();
+    if(flags)
+        if(!set_function_flags(ea, flags))
+            LOG(ERROR, "make_function: 0x" EA_FMT " unable to set function flags 0x%08x\n", ea, flags);
+
+    set_type(ea, version->get_prototype());
 }

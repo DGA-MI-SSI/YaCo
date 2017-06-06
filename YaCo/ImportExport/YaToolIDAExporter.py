@@ -662,52 +662,8 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
         _yatools_ida_exporter.make_hiddenareas(object_version, address)
 
     def make_function(self, object_version, address):
-        #
-        # call the architecture dependent plugin  ###########
-        #
         self.arch_plugin.make_function_prehook(object_version, address)
-
-        flags = object_version.get_object_flags()
-        size = object_version.get_size()
-        # create function if not already exist
-
-        current_flags = idc.GetFlags(address)
-        # if ea is func
-        func = idaapi.get_func(address)
-        if not idaapi.isFunc(current_flags) or (func is not None and (func.startEA != address)):
-            logger.debug("MakeFunction at 0x%08X : flags=0x%08X, current_flags=0x%08X" %
-                         (address, flags, current_flags))
-
-            if func is not None:
-                logger.debug(
-                    "                                       "
-                    "func.startEA[0x%08X]!=address func.endEA[0x%08X]!=(address+size[0x%08X])  " % (
-                        func.startEA, func.endEA, size))
-            if not idc.MakeFunction(address):
-                if not idc.isLoaded(address):
-                    logger.error("Failed at idc.MakeFunction at 0x%08X : data not loaded" % address)
-                else:
-                    logger.error("Failed at idc.MakeFunction at 0x%08X" % address)
-                    _yatools_ida_exporter.clear_function(object_version, address)
-                    if not idc.MakeFunction(address):
-                        logger.error("Failed at idc.MakeFunction at 0x%08X" % address)
-
-                        #             idc.MakeUnknown(address, size, DOUNK_SIMPLE)
-            if idc.AnalyzeArea(address, address + 1) != 1:
-                logger.error("[0x%08X] idc.AnalyzeArea failed" % address)
-
-                #             if(idc.AnalyzeArea(address, address+size) != 1):
-                #                 logger.error("[0x%08X] idc.AnalyzeArea failed" % address)
-                #             if(address == 0x0000000000411558):
-                #                 raise Exception()
-        if flags is not None:
-            idc.SetFunctionFlags(address, flags)
-
-        _yatools_ida_exporter.set_type(address, object_version.get_prototype())
-
-        #
-        # call the architecture dependent plugin  ###########
-        #
+        _yatools_ida_exporter.make_function(object_version, address)
         self.arch_plugin.make_function_posthook(object_version, address)
 
     def make_stackframe(self, object_version, address):
