@@ -110,20 +110,19 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
                     self.make_data(object_version, address)
 
                 elif obj_type == ya.OBJECT_TYPE_SEGMENT:
-                    self.make_segment(object_version, address)
+                    _yatools_ida_exporter.make_segment(object_version, address)
 
                 elif obj_type == ya.OBJECT_TYPE_SEGMENT_CHUNK:
-                    self.make_segment_chunk(object_version, address)
+                    _yatools_ida_exporter.make_segment_chunk(object_version, address)
 
                 else:
                     pass
 
-            # add header comment
-            self.make_header_comment(object_version, address)
+            _yatools_ida_exporter.make_header_comments(object_version, address)
 
             # add comments
             if obj_type in YaToolIDATools.OBJECT_WITH_COMMENTS:
-                self.make_comments(object_version, address)
+                _yatools_ida_exporter.make_comments(object_version, address)
         except Exception as e:
             logger.error("error : %r " % e)
             logger.error(traceback.format_exc())
@@ -205,9 +204,8 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
             else:
                 idc.MakeData(address, idc.FF_BYTE, size, 0)
 
-        self.make_name(object_version, address, False)
-
-        self.set_type(object_version, address)
+        _yatools_ida_exporter.make_name(object_version, address, False)
+        _yatools_ida_exporter.set_type(address, object_version.get_prototype())
 
     def make_enum(self, object_version, address):
         enum_name = object_version.get_name()
@@ -596,8 +594,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
             pass
 
         member_id = idc.GetMemberId(struc_id, offset)
-
-        self.set_struct_member_type(object_version, member_id)
+        _yatools_ida_exporter.set_struct_member_type(member_id, object_version.get_prototype())
         if object_version.get_type() == ya.OBJECT_TYPE_STRUCT_MEMBER:
             self.strucmember_ids[object_version.get_id()] = member_id
 
@@ -649,9 +646,6 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
                 logger.warning("make register_view failed: func=0x%08X, 0x%08X->0x%08X  %s->%s, error=%d" %
                                (funcEA, funcEA + register_offset, funcEA + end_offset, register_name, new_name, ret))
 
-    def make_hidden_area(self, version, ea):
-        _yatools_ida_exporter.make_hiddenareas(version, ea)
-
     def make_code(self, object_version, address):
         # delete function if previously defined
         idc.DelFunction(address)
@@ -660,19 +654,12 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
         idc.MakeCode(address)
 
         # code label name
-        self.make_name(object_version, address, False)
+        _yatools_ida_exporter.make_name(object_version, address, False)
 
         # apply view
         self.make_view(object_version, address)
 
-        # apply hidden area
-        self.make_hidden_area(object_version, address)
-
-    def clear_function(self, version, ea):
-        _yatools_ida_exporter.clear_function(version, ea)
-
-    def analyze_function(self, ea):
-        _yatools_ida_exporter.analyze_function(ea)
+        _yatools_ida_exporter.make_hiddenareas(object_version, address)
 
     def make_function(self, object_version, address):
         #
@@ -701,7 +688,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
                     logger.error("Failed at idc.MakeFunction at 0x%08X : data not loaded" % address)
                 else:
                     logger.error("Failed at idc.MakeFunction at 0x%08X" % address)
-                    self.clear_function(object_version, address)
+                    _yatools_ida_exporter.clear_function(object_version, address)
                     if not idc.MakeFunction(address):
                         logger.error("Failed at idc.MakeFunction at 0x%08X" % address)
 
@@ -716,18 +703,12 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
         if flags is not None:
             idc.SetFunctionFlags(address, flags)
 
-        self.set_type(object_version, address)
+        _yatools_ida_exporter.set_type(address, object_version.get_prototype())
 
         #
         # call the architecture dependent plugin  ###########
         #
         self.arch_plugin.make_function_posthook(object_version, address)
-
-    def set_type(self, version, address):
-        _yatools_ida_exporter.set_type(address, version.get_prototype())
-
-    def set_struct_member_type(self, version, mid):
-        _yatools_ida_exporter.set_struct_member_type(mid, version.get_prototype())
 
     def make_stackframe(self, object_version, address):
         object_id = object_version.get_id()
@@ -755,7 +736,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
         if stack_frame is None:
             logger.error("No function found for stackframe[%s] at 0x%08X" % (
                 self.hash_provider.hash_to_string(object_id), eaFunc))
-            self.analyze_function(eaFunc)
+            _yatools_ida_exporter.analyze_function(eaFunc)
             stack_frame = idaapi.get_frame(eaFunc)
 
         if stack_frame is None:
@@ -806,13 +787,12 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
         self.arch_plugin.make_basic_block_prehook(object_version, address)
 
         # create basic block name
-        self.make_name(object_version, address, True)
+        _yatools_ida_exporter.make_name(object_version, address, True)
 
         # apply view
         self.make_view(object_version, address)
 
-        # apply hidden area
-        self.make_hidden_area(object_version, address)
+        _yatools_ida_exporter.make_hiddenareas(object_version, address)
 
         for ((xref_offset, operand), xref_list) in object_version.get_xrefed_id_map().iteritems():
             struc_path = {}
@@ -924,23 +904,8 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
         #
         self.arch_plugin.make_basic_block_posthook(object_version, address)
 
-    def make_segment(self, object_version, address):
-        _yatools_ida_exporter.make_segment(object_version, address)
-
-    def make_segment_chunk(self, object_version, address):
-        _yatools_ida_exporter.make_segment_chunk(object_version, address)
-
-    def make_name(self, object_version, address, is_in_func):
-        _yatools_ida_exporter.make_name(object_version, address, is_in_func)
-
-    def make_comments(self, object_version, address):
-        _yatools_ida_exporter.make_comments(object_version, address)
-
     def sanitize_comment_to_ascii(self, comment):
         try:
             return comment.encode("ascii", "replace")
         except UnicodeDecodeError:
             return comment.decode("ascii", "replace").encode("ascii", "replace")
-
-    def make_header_comment(self, version, ea):
-        _yatools_ida_exporter.make_header_comments(version, ea)
