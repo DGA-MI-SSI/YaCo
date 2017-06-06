@@ -326,6 +326,7 @@ class YaCo:
     ]
 
     def start(self):
+        logger.info("YaCo.start()")
         self.YaCoUI.hook()
 
         try:
@@ -407,7 +408,6 @@ def start(init_logging=True):
 
     yaco_starting = True
     if yaco is None:
-        print("Starting YaCo")
         yaco = YaCo()
         yaco.start()
         yaco_starting = False

@@ -1115,13 +1115,6 @@ class YaToolIDAModel(YaToolObjectVersionElement):
 
         visitor.visit_segments_end()
 
-    def accept_attribute(self, visitor, attr_name, attr_value):
-        visitor.visit_attribute(attr_name, attr_value)
-
-    def accept_attributes(self, visitor, attributes):
-        for (attr_name, attr_value) in attributes.iteritems():
-            self.accept_attribute(visitor, attr_name, str(attr_value))
-
     def accept_segment(self, visitor, parent_id, seg_ea_start, seg_ea_end=None, export_chunks=False, chunk_eas=None,
                        export_eas=None):
 
@@ -1140,11 +1133,6 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         segment_object_id = self.hash_provider.get_segment_id(name, seg_ea_start)
         self.exported_segment_ids[seg_ea_start] = segment_object_id
 
-        seg_attributes = {}
-        for (attr_name, attr_key) in YaToolIDATools.SEGATTR_MAP.iteritems():
-            value = idc.GetSegmentAttr(seg_ea_start, attr_key)
-            seg_attributes[attr_name] = value
-
         _yatools_ida_model.start_object(visitor, ya.OBJECT_TYPE_SEGMENT, segment_object_id, parent_id, seg_ea_start)
         visitor.visit_size(seg_ea_end - seg_ea_start)
         visitor.visit_name(name, DEFAULT_NAME_FLAGS)
@@ -1159,8 +1147,9 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             visitor.visit_end_xref()
         visitor.visit_end_xrefs()
 
-
-        self.accept_attributes(visitor, seg_attributes)
+        for (attr_name, attr_key) in YaToolIDATools.SEGATTR_MAP.iteritems():
+            value = idc.GetSegmentAttr(seg_ea_start, attr_key)
+            visitor.visit_attribute(attr_name, str(value))
 
         # TODO: add offsets for all elements inside segment
         _yatools_ida_model.finish_object(visitor, seg_ea_start - idaapi.get_imagebase())
