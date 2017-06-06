@@ -314,7 +314,7 @@ std::map<ea_t, std::vector<std::pair<CommentType_e, std::string>>> YaToolsIDANat
 
 void YaToolsIDANativeLib::delete_comment_at_ea(ea_t ea, CommentType_e comment_type)
 {
-    LOG(INFO, "Deleting comment at 0x%08" PRIXEA " / %d\n", ea, comment_type);
+    LOG(DEBUG, "delete_comment: 0x%" PRIXEA " %s\n", ea, get_comment_type_string(comment_type));
     switch(comment_type)
     {
         case COMMENT_REPEATABLE:
@@ -342,7 +342,7 @@ void YaToolsIDANativeLib::delete_comment_at_ea(ea_t ea, CommentType_e comment_ty
             break;
 
         default:
-            LOG(ERROR, "Unknown comment type %d at %08" PRIXEA " : cannot delete\n", comment_type, ea);
+            LOG(ERROR, "delete_comment: 0x%" PRIXEA " unhandled comment type %d %s\n", ea, comment_type, get_comment_type_string(comment_type));
             break;
     }
 }
