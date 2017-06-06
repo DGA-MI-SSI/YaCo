@@ -991,3 +991,71 @@ void IDANativeExporter::make_code(std::shared_ptr<YaToolObjectVersion> version, 
     make_name(version, ea, false);
     make_views(version, ea);
 }
+
+static void set_data_type(ea_t ea, YaToolObjectVersion& version, const IDANativeExporter::StructIdMap& struct_ids)
+{
+    const auto size = static_cast<size_t>(version.get_size());
+    if(!size)
+    {
+        const auto ok = do_unknown(ea, DOUNK_EXPAND);
+        if(!ok)
+            LOG(ERROR, "make_data: 0x" EA_FMT " unable to set unknown\n", ea);
+        return;
+    }
+
+    const auto flags = version.get_object_flags();
+    if(!flags)
+    {
+        const auto ok = do_data_ex(ea, FF_BYTE, size, 0);
+        if(!ok)
+            LOG(ERROR, "make_data: 0x" EA_FMT " unable to set data size %zd\n", ea, size);
+        return;
+    }
+
+    if(isASCII(flags))
+    {
+        const auto strtype = version.get_string_type();
+        auto ok = make_ascii_string(ea, size, strtype);
+        if(!ok)
+            LOG(ERROR, "make_data: 0x" EA_FMT " unable to make ascii string size %zd type %d\n", ea, size, strtype);
+        setFlags(ea, flags);
+        return;
+    }
+
+    if(isStruct(flags))
+    {
+        bool found = false;
+        for(const auto& it : version.get_xrefed_id_map())
+            for(const auto& xref : it.second)
+            {
+                const auto fi = struct_ids.find(xref.object_id);
+                if(fi == struct_ids.end())
+                    continue;
+
+                do_unknown_range(ea, size, DOUNK_DELNAMES);
+                const auto prev = inf.s_auto;
+                inf.s_auto = true;
+                autoWait();
+                auto ok = doStruct(ea, size, static_cast<tid_t>(fi->second));
+                inf.s_auto = prev;
+                if(!ok)
+                    LOG(ERROR, "make_data: 0x" EA_FMT " unable to set struct %016llx size %d\n", ea, xref.object_id, size);
+                found = true;
+            }
+        if(!found)
+            LOG(ERROR, "make_data: 0x" EA_FMT " unknown struct %016llx %s\n", ea, version.get_id(), version.get_name().data());
+        return;
+    }
+
+    const auto type_flags = flags & (DT_TYPE | MS_0TYPE);
+    const auto ok = do_data_ex(ea, type_flags, size, 0);
+    if(!ok)
+        LOG(ERROR, "make_data: 0x" EA_FMT " unable to set data type 0x%08x size %d\n", ea, type_flags, size);
+}
+
+void IDANativeExporter::make_data(std::shared_ptr<YaToolObjectVersion> version, ea_t ea)
+{
+    set_data_type(ea, *version, struct_ids);
+    make_name(version, ea, false);
+    set_type(ea, version->get_prototype());
+}
