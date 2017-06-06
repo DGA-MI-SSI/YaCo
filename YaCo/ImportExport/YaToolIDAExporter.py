@@ -43,11 +43,9 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
         self.struc_ids = {}
         self.union_ids = set()
         self.strucmember_ids = {}
-        self.enum_member_ids = {}
         self.stackframes_functions = {}
         self.stackframemembers_stackframes = {}
         self.arch_plugin = yatools.get_arch_plugin().get_ida_visitor_plugin()
-        self.enum_ids = {}
         self.reference_infos = {}
         self.hash_provider = hash_provider
         self.use_stackframes = use_stackframes
@@ -73,7 +71,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
             elif self.use_stackframes and obj_type == ya.OBJECT_TYPE_STACKFRAME:
                 self.make_stackframe(object_version, address)
             elif obj_type == ya.OBJECT_TYPE_ENUM:
-                self.make_enum(object_version, address)
+                _yatools_ida_exporter.make_enum(self.hash_provider, object_version, address)
 
             else:
 
@@ -101,7 +99,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
                     self.make_struc_member(object_version, address)
 
                 elif obj_type == ya.OBJECT_TYPE_ENUM_MEMBER:
-                    self.make_enum_member(object_version, address)
+                    _yatools_ida_exporter.make_enum_member(self.hash_provider, object_version, address)
 
                 elif self.use_stackframes and obj_type == ya.OBJECT_TYPE_STACKFRAME_MEMBER:
                     self.make_stackframe_member(object_version, address)
@@ -131,7 +129,6 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
 
     def make_enum(self, object_version, address):
         enum_name = object_version.get_name()
-        object_id = object_version.get_id()
 
         # build flags
         bitfield = False
@@ -434,7 +431,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
             # an enum is applied here
             try:
                 sub_enum_object_id = object_version.getXRefIdsAt(0, 0)[0]
-                sub_enum_id = self.enum_ids[sub_enum_object_id]
+                sub_enum_id = _yatools_ida_exporter.get_enum_id(sub_enum_object_id)
 
                 name_ok = idc.SetMemberName(struc_id, offset, member_name)
                 if name_ok is not True:
@@ -654,7 +651,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
                 # apply enums     ###################
                 #
                 try:
-                    enum_id = self.enum_ids[xref_value]
+                    enum_id = _yatools_ida_exporter.get_enum_id(xref_value)
                     idaapi.op_enum(address + xref_offset, operand, enum_id, 0)
                 except KeyError:
                     pass

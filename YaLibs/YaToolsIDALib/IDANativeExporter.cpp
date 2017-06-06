@@ -17,6 +17,7 @@
 #include "Ida.h"
 
 #include "IDANativeExporter.hpp"
+#include "YaToolsHashProvider.hpp"
 
 #include <YaToolObjectVersion.hpp>
 #include <MultiplexerDelegatingVisitor.hpp>
@@ -742,7 +743,7 @@ static bool set_function_comment(ea_t ea, const char* comment, bool repeatable)
     return set_func_cmt(func, comment, repeatable);
 }
 
-static bool set_struct_comment(const IDANativeExporter::StructIdMap& struct_ids, YaToolObjectId id, const char* comment, bool repeatable)
+static bool set_struct_comment(const IDANativeExporter::IdMap& struct_ids, YaToolObjectId id, const char* comment, bool repeatable)
 {
     const auto it = struct_ids.find(id);
     if(it == struct_ids.end())
@@ -975,7 +976,7 @@ void IDANativeExporter::make_code(std::shared_ptr<YaToolObjectVersion> version, 
     make_views(version, ea);
 }
 
-static void set_data_type(ea_t ea, YaToolObjectVersion& version, const IDANativeExporter::StructIdMap& struct_ids)
+static void set_data_type(ea_t ea, YaToolObjectVersion& version, const IDANativeExporter::IdMap& struct_ids)
 {
     const auto size = static_cast<size_t>(version.get_size());
     if(!size)
@@ -1041,4 +1042,95 @@ void IDANativeExporter::make_data(std::shared_ptr<YaToolObjectVersion> version, 
     set_data_type(ea, *version, struct_ids);
     make_name(version, ea, false);
     set_type(ea, version->get_prototype());
+}
+
+template<typename T>
+static void walk_enum_members_with_bmask(enum_t eid, bmask_t bmask, const T& operand)
+{
+    const_t first_cid;
+    uchar serial;
+    for(auto value = get_first_enum_member(eid, bmask); value != BADADDR; value = get_next_enum_member(eid, value, bmask))
+        for(auto cid = first_cid = get_first_serial_enum_member(eid, value, &serial, bmask); cid != BADADDR; cid = get_next_serial_enum_member(first_cid, &serial))
+            operand(cid, value, bmask);
+}
+
+template<typename T>
+static void walk_enum_members(enum_t eid, const T& operand)
+{
+    walk_enum_members_with_bmask(eid, DEFMASK, operand);
+    for(auto fmask = get_first_bmask(eid); fmask != BADADDR; fmask = get_next_bmask(eid, fmask))
+        walk_enum_members_with_bmask(eid, fmask, operand);
+}
+
+void IDANativeExporter::make_enum(YaToolsHashProvider* provider, std::shared_ptr<YaToolObjectVersion> version, ea_t ea)
+{
+    const auto name = version->get_name();
+    const auto flags = version->get_object_flags();
+    auto eid = get_enum(name.data());
+    if(eid == BADADDR)
+        eid = add_enum(~0u, name.data(), flags & ~ENUM_FLAGS_IS_BF);
+
+    // FIXME find & delete invalid members
+
+    if(!set_enum_bf(eid, flags & ENUM_FLAGS_IS_BF))
+        LOG(ERROR, "make_enum: 0x" EA_FMT " unable to set as bitfield\n", ea);
+
+    const auto width = version->get_size();
+    if(width)
+        if(!set_enum_width(eid, static_cast<int>(width)))
+            LOG(ERROR, "make_enum: 0x" EA_FMT " unable to set width %lld\n", ea, width);
+
+    for(const auto rpt : {false, true})
+        if(!set_enum_cmt(eid, sanitize_comment_to_ascii(version->get_header_comment(rpt)).data(), rpt))
+        {
+            LOG(ERROR, "make_enum: 0x" EA_FMT " unable to set %s comment to %s\n", ea, rpt ? "repeatable" : "non-repeatable", version->get_header_comment(rpt).data());
+        }
+
+    const auto id = version->get_id();
+    enum_ids[id] = eid;
+    provider->put_hash_struc_or_enum(eid, id, false);
+}
+
+void IDANativeExporter::make_enum_member(YaToolsHashProvider* provider, std::shared_ptr<YaToolObjectVersion> version, ea_t ea)
+{
+    const auto parent_id = version->get_parent_object_id();
+    const auto it = enum_ids.find(parent_id);
+    if(it == enum_ids.end())
+    {
+        LOG(ERROR, "make_enum_member: 0x" EA_FMT " unable to find parent enum %016llx\n", ea, parent_id);
+        return;
+    }
+
+    const auto eid = static_cast<tid_t>(it->second);
+    const auto ename = get_enum_name(eid);
+    const auto name = version->get_name();
+    const auto id = version->get_id();
+    provider->put_hash_enum_member(ya::to_string_ref(ename), make_string_ref(name), ea, id, false);
+
+    const auto bmask = is_bf(eid) ? version->get_object_flags() : DEFMASK;
+    auto mid = get_enum_member(eid, ea, 0, bmask);
+    if(mid == BADADDR)
+    {
+        const auto err = add_enum_member(eid, name.data(), ea, bmask);
+        if(err)
+            LOG(ERROR, "make_enum_member: 0x" EA_FMT " unable to add enum member %s bmask 0x" EA_FMT "\n", ea, name.data(), bmask);
+        mid = get_enum_member(eid, ea, 0, bmask);
+    }
+
+    if(!set_enum_member_name(mid, name.data()))
+        LOG(ERROR, "make_enum_member: 0x" EA_FMT " unable to set enum member name to %s\n", ea, name.data());
+
+    for(const auto rpt : {false, true})
+        if(!set_enum_member_cmt(mid, sanitize_comment_to_ascii(version->get_header_comment(rpt)).data(), rpt))
+        {
+            LOG(ERROR, "make_enum_member: 0x" EA_FMT " unable to set %s comment to %s\n", ea, rpt ? "repeatable" : "non-repeatable", version->get_header_comment(rpt).data());
+        }
+}
+
+uint64_t IDANativeExporter::get_enum_id(YaToolObjectId id)
+{
+    const auto it = enum_ids.find(id);
+    if(it == enum_ids.end())
+        return ~0u;
+    return it->second;
 }
