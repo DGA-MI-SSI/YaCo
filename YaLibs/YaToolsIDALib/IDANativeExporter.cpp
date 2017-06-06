@@ -79,20 +79,15 @@ void IDANativeExporter::make_posterior_comment(ea_t address, const char* comment
 void add_bookmark(ea_t ea, std::string comment_text)
 {
     char buffer[1024];
-    curloc loc;
-    for(int i = 1; i < 1024; ++i)
+    ya::walk_bookmarks([&](int i, ea_t locea, curloc loc)
     {
-        const auto locea = loc.markedpos(&i);
-        if(locea == BADADDR)
-            break;
-
         LOG(DEBUG, "add_bookmark: 0x" EA_FMT " found bookmark[%d]\n", ea, i);
         if(locea != ea)
-            continue;
+            return;
 
         loc.markdesc(i, buffer, sizeof buffer);
         if(comment_text == buffer)
-            continue;
+            return;
 
         LOG(DEBUG, "add_bookmark: 0x" EA_FMT " bookmark[%d] = %s\n", ea, i, comment_text.data());
         loc.ea = ea;
@@ -100,7 +95,7 @@ void add_bookmark(ea_t ea, std::string comment_text)
         loc.y = 0;
         loc.lnnum = 0;
         loc.mark(i, comment_text.data(), comment_text.data());
-    }
+    });
 }
 
 namespace
@@ -821,11 +816,13 @@ void IDANativeExporter::make_header_comments(std::shared_ptr<YaToolObjectVersion
 
 void IDANativeExporter::analyze_function(ea_t ea)
 {
-    ya::walk_function_chunks(ea, [=](area_t chunk)
+    const auto ok = ya::walk_function_chunks(ea, [=](area_t area)
     {
-        if(!analyze_area(chunk.startEA, chunk.endEA))
-            LOG(ERROR, "analyze_function: 0x" EA_FMT " unable to analyze area " EA_FMT "-" EA_FMT "\n", ea, chunk.startEA, chunk.endEA);
+        if(!analyze_area(area.startEA, area.endEA))
+            LOG(ERROR, "analyze_function: 0x" EA_FMT " unable to analyze area " EA_FMT "-" EA_FMT "\n", ea, area.startEA, area.endEA);
     });
+    if(!ok)
+        LOG(ERROR, "analyze_function: 0x" EA_FMT " missing function\n", ea);
 }
 
 static void clear_function(const YaToolObjectVersion& version, ea_t ea)
@@ -1106,24 +1103,6 @@ void IDANativeExporter::make_data(std::shared_ptr<YaToolObjectVersion> version, 
     set_type(ea, version->get_prototype());
 }
 
-template<typename T>
-static void walk_enum_members_with_bmask(enum_t eid, bmask_t bmask, const T& operand)
-{
-    const_t first_cid;
-    uchar serial;
-    for(auto value = get_first_enum_member(eid, bmask); value != BADADDR; value = get_next_enum_member(eid, value, bmask))
-        for(auto cid = first_cid = get_first_serial_enum_member(eid, value, &serial, bmask); cid != BADADDR; cid = get_next_serial_enum_member(first_cid, &serial))
-            operand(cid, value, serial, bmask);
-}
-
-template<typename T>
-static void walk_enum_members(enum_t eid, const T& operand)
-{
-    walk_enum_members_with_bmask(eid, DEFMASK, operand);
-    for(auto fmask = get_first_bmask(eid); fmask != BADADDR; fmask = get_next_bmask(eid, fmask))
-        walk_enum_members_with_bmask(eid, fmask, operand);
-}
-
 void IDANativeExporter::make_enum(YaToolsHashProvider* provider, std::shared_ptr<YaToolObjectVersion> version, ea_t ea)
 {
     const auto name = version->get_name();
@@ -1150,7 +1129,7 @@ void IDANativeExporter::make_enum(YaToolsHashProvider* provider, std::shared_ptr
 
     const auto xref_ids = version->get_xrefed_ids();
     qstring const_name;
-    walk_enum_members(eid, [&](const_t cid, uval_t value, uchar serial, bmask_t bmask)
+    ya::walk_enum_members(eid, [&](const_t cid, uval_t value, uchar serial, bmask_t bmask)
     {
         const auto it = enum_members.find(cid);
         if(it != enum_members.end() && it->second == eid)
