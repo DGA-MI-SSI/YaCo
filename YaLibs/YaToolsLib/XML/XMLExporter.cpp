@@ -91,11 +91,11 @@ public:
     void visit_flags(flags_t flags) override;
 
 protected:
-    YaToolObjectType_e              object_type_;
-    bool                            delete_file_;
     std::shared_ptr<xmlTextWriter>  writer_;
     std::shared_ptr<xmlDoc>         doc_;
     std::string                     tmp_value_;
+    YaToolObjectType_e              object_type_;
+    bool                            delete_file_;
 };
 
 class XMLExporter : public XMLExporter_common
@@ -162,7 +162,6 @@ XMLExporter::XMLExporter(const std::string& path)
 XMLExporter_common::XMLExporter_common()
     : object_type_  (OBJECT_TYPE_DATA)
     , delete_file_  (false)
-    , doc_          (nullptr)
 {
 }
 
