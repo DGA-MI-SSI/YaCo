@@ -968,25 +968,5 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
         except UnicodeDecodeError:
             return comment.decode("ascii", "replace").encode("ascii", "replace")
 
-    def make_header_comment(self, object_version, address):
-        try:
-            repeatable_headercomment = self.sanitize_comment_to_ascii(object_version.get_header_comment(True))
-            obj_type = object_version.get_type()
-            if obj_type == ya.OBJECT_TYPE_FUNCTION:
-                idc.SetFunctionCmt(address, repeatable_headercomment, 1)
-            elif obj_type == ya.OBJECT_TYPE_STRUCT:
-                struc_id = self.struc_ids[object_version.get_id()]
-                idc.SetStrucComment(struc_id, repeatable_headercomment, 1)
-        except KeyError:
-            pass
-
-        try:
-            nonrepeatable_headercomment = self.sanitize_comment_to_ascii(object_version.get_header_comment(False))
-            obj_type = object_version.get_type()
-            if obj_type == ya.OBJECT_TYPE_FUNCTION:
-                idc.SetFunctionCmt(address, nonrepeatable_headercomment, 0)
-            elif obj_type == ya.OBJECT_TYPE_STRUCT:
-                struc_id = self.struc_ids[object_version.get_id()]
-                idc.SetStrucComment(struc_id, nonrepeatable_headercomment, 0)
-        except KeyError:
-            pass
+    def make_header_comment(self, version, ea):
+        _yatools_ida_exporter.make_header_comments(version, ea)

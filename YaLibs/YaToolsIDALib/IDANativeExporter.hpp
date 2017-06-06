@@ -33,6 +33,8 @@ struct IDANativeExporter
 
     void make_hiddenareas(std::shared_ptr<YaToolObjectVersion>& object_version, ea_t address);
 
+    void make_header_comments(std::shared_ptr<YaToolObjectVersion>& object_version, ea_t ea);
+
     void make_segment(std::shared_ptr<YaToolObjectVersion> object_version, ea_t address);
     void make_segment_chunk(std::shared_ptr<YaToolObjectVersion> object_version, ea_t address);
     bool set_type(ea_t ea, const std::string& prototype);
@@ -42,10 +44,12 @@ struct IDANativeExporter
 
 #ifndef SWIG
     std::string patch_prototype(const std::string& prototype, ea_t ea);
-#endif
+
+    using StructIdMap = std::unordered_map<YaToolObjectId, uint64_t>;
 
 private:
-    std::unordered_map<YaToolObjectId, uint64_t> struct_ids;
+    StructIdMap struct_ids;
     YaToolsIDANativeLib tools;
+#endif
 };
 
