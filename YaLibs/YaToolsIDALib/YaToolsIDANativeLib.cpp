@@ -205,31 +205,33 @@ std::vector<ea_t> YaToolsIDANativeLib::address_range_get_items(ea_t ea_start, ea
     return items;
 }
 
+static const int MAX_COMMENT_SIZE = 1024;
 
-void YaToolsIDANativeLib::update_bookmarks()
+template<typename T>
+static void walk_bookmarks(const T& operand)
 {
-    // parse marked position
-
-    bookmarks.clear();
-    int i;
-
     curloc loc;
-    const int max_bookmark_size = 1024;
-    char bookmark_buf[max_bookmark_size ];
-    for(i=1; i< 1024; i++)
+    for(int i = 1; i < 1024; ++i)
     {
-        ea_t ea = loc.markedpos(&i);
-        if (ea == BADADDR)
-            break;
-
-        loc.markdesc(i, bookmark_buf, max_bookmark_size);
-        bookmarks[ea] = std::string(bookmark_buf);
+        const auto ea = loc.markedpos(&i);
+        if(ea == BADADDR)
+            return;
+        operand(i, ea, loc);
     }
 }
 
-#define MAX_COMMENT_SIZE 1024
+void YaToolsIDANativeLib::update_bookmarks()
+{
+    bookmarks.clear();
+    char bookmark_buf[MAX_COMMENT_SIZE];
+    walk_bookmarks([&](int i, ea_t ea, curloc& loc)
+    {
+        loc.markdesc(i, bookmark_buf, sizeof bookmark_buf);
+        bookmarks[ea] = bookmark_buf;
+    });
+}
 
-std::string get_extra_comment(ea_t ea, int from)
+static std::string get_extra_comment(ea_t ea, int from)
 {
     std::string comment;
     int idx = get_first_free_extra_cmtidx(ea, from);
@@ -267,81 +269,45 @@ void YaToolsIDANativeLib::make_extra_comment(ea_t ea, const char* comment, int f
     setFlbits(ea, FF_LINE);
 }
 
-
-
 std::vector<std::pair<CommentType_e, std::string>> YaToolsIDANativeLib::get_comments_at_ea(ea_t ea)
 {
-    // comments
     std::vector<std::pair<CommentType_e, std::string>> line_comments;
-    char tmp[MAX_COMMENT_SIZE];
-    ssize_t val;
-    val = get_cmt(ea, true, tmp, MAX_COMMENT_SIZE);
-    if (val > 0 && strlen(tmp) > 0)
-    {
-        line_comments.push_back(std::make_pair(COMMENT_REPEATABLE, std::string(tmp)));
-    }
 
-    val = get_cmt(ea, false, tmp, MAX_COMMENT_SIZE);
-    if (val > 0 && strlen(tmp) > 0)
-    {
-        line_comments.push_back(std::make_pair(COMMENT_NON_REPEATABLE, std::string(tmp)));
-    }
+    char tmp[MAX_COMMENT_SIZE];
+    for(const auto rpt : {false, true})
+        if(get_cmt(ea, rpt, tmp, sizeof tmp) > 0)
+            line_comments.emplace_back(rpt ? COMMENT_REPEATABLE : COMMENT_NON_REPEATABLE, tmp);
 
     // check if anterior/posterior comment exists
-    flags_t fl = getFlags(ea);
-    if (hasExtra(fl))
+    const auto flags = getFlags(ea);
+    if(hasExtra(flags))
     {
         // anterior comments
         std::string comment;
         comment = get_extra_comment(ea, E_PREV);
         if(!comment.empty())
-            line_comments.push_back(std::make_pair(COMMENT_ANTERIOR, comment));
+            line_comments.emplace_back(COMMENT_ANTERIOR, comment);
 
         comment = get_extra_comment(ea, E_NEXT);
         if(!comment.empty())
-            line_comments.push_back(std::make_pair(COMMENT_POSTERIOR, comment));
+            line_comments.emplace_back(COMMENT_POSTERIOR, comment);
     }
 
-    auto it = bookmarks.find(ea);
-    if(it!=bookmarks.end())
-    {
-        line_comments.push_back(std::make_pair(COMMENT_BOOKMARK, (*it).second));
-    }
+    const auto it = bookmarks.find(ea);
+    if(it != bookmarks.end())
+        line_comments.emplace_back(COMMENT_BOOKMARK, it->second);
 
     return line_comments;
-            /*
-    # parse marked position
-    try:
-        comment = bookmarks[ea]
-        line_comment.append((ya.COMMENT_BOOKMARK, comment))
-    except KeyError:
-        pass
-
-    if(len(line_comment) > 0):
-        comments[ea - base_address] = line_comment
-
-     */
 }
-
-//
-//def add_comments_at_ea(base_address, ea, comments):
-//    line_comment = get_comments_at_ea(ea)
-//    if len(line_comment) > 0:
-//        comments[ea - base_address] = line_comment
-
 
 std::map<ea_t, std::vector<std::pair<CommentType_e, std::string>>> YaToolsIDANativeLib::get_comments_in_area(ea_t ea_start, ea_t ea_end)
 {
-    ea_t ea = ea_start;
     std::map<ea_t, std::vector<std::pair<CommentType_e, std::string>>> comments;
-    while(ea != BADADDR && ea < ea_end)
+    for(auto ea = ea_start; ea != BADADDR && ea < ea_end; ea = get_item_end(ea))
     {
         auto v = get_comments_at_ea(ea);
         if(!v.empty())
-        {
             comments[ea] = v;
-        }
-        ea = get_item_end(ea);
     }
     return comments;
 }
@@ -352,45 +318,31 @@ void YaToolsIDANativeLib::delete_comment_at_ea(ea_t ea, CommentType_e comment_ty
     switch(comment_type)
     {
         case COMMENT_REPEATABLE:
-        {
             set_cmt(ea, "", 1);
             break;
-        }
+
         case COMMENT_NON_REPEATABLE:
-        {
             set_cmt(ea, "", 0);
             break;
-        }
+
         case COMMENT_ANTERIOR:
-        {
             clear_extra_comment(ea, E_PREV);
             break;
-        }
+
         case COMMENT_POSTERIOR:
-        {
             clear_extra_comment(ea, E_NEXT);
             break;
-        }
+
         case COMMENT_BOOKMARK:
-        {
-            int i;
-            curloc loc;
-            for(i=1; i< 1024; i++)
+            walk_bookmarks([&](int i, ea_t locea, curloc& loc)
             {
-                ea_t locea = loc.markedpos(&i);
-                if (ea == BADADDR)
-                    break;
-                if (locea == ea)
-                {
+                if(locea == ea)
                     loc.mark(i, "", "");
-                }
-            }
+            });
             break;
-        }
+
         default:
-        {
             LOG(ERROR, "Unknown comment type %d at %08" PRIXEA " : cannot delete\n", comment_type, ea);
             break;
-        }
     }
 }
