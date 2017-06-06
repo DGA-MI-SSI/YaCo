@@ -30,9 +30,6 @@ struct IDANativeExporter
     void make_posterior_comment(ea_t address, const char* comment);
 
     void make_comments(std::shared_ptr<YaToolObjectVersion> object_version, ea_t address);
-
-    void make_hiddenareas(std::shared_ptr<YaToolObjectVersion>& object_version, ea_t address);
-
     void make_header_comments(std::shared_ptr<YaToolObjectVersion>& object_version, ea_t ea);
 
     void make_segment(std::shared_ptr<YaToolObjectVersion> object_version, ea_t address);
