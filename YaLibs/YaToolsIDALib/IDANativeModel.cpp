@@ -155,6 +155,16 @@ std::string IDANativeModel::get_type(ea_t ea)
     return type;
 }
 
+void IDANativeModel::start_object(IModelVisitor& v, YaToolObjectType_e type, YaToolObjectId id, YaToolObjectId parent, ea_t ea)
+{
+    v.visit_start_reference_object(type);
+    v.visit_id(id);
+    v.visit_start_object_version();
+    if(parent)
+        v.visit_parent_id(parent);
+    v.visit_address(ea);
+}
+
 namespace
 {
     const char               gEq[] = "equipment";

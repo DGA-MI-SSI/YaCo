@@ -25,5 +25,6 @@ struct IDANativeModel
 {
     std::string get_type(ea_t ea);
 
+    void start_object(IModelVisitor& visitor, YaToolObjectType_e type, YaToolObjectId id, YaToolObjectId parent, ea_t ea);
     void visit_system(IModelVisitor& visitor, ea_t ea, const const_string_ref& eq, const const_string_ref& os);
 };
