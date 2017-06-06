@@ -125,42 +125,6 @@ namespace std
 }
 
 
-//get_offset_comments
-%typemap(out) std::map< std::pair< unsigned long long,CommentType_e >,std::string,std::less< std::pair< unsigned long long,CommentType_e > >,std::allocator< std::pair< std::pair< unsigned long long,CommentType_e > const,std::string > > > const&
-{
-    $result = PyDict_New();
-    for(const auto& it : *$1)
-    {
-    	offset_t ea = (it).first.first;
-    	CommentType_e ct = (CommentType_e) ((it).first.second);
-    	std::string value = (it).second;
-    	auto tuple = PyTuple_New(2);
-       PyTuple_SetItem(tuple, 0, PyLong_FromUnsignedLongLong(ea));
-    	PyTuple_SetItem(tuple, 1, PyInt_FromLong(ct));
-    	PyDict_SetItem($result, tuple, SWIG_From_std_string(value));
-    }
-}                       
-
- //get_offset_registerviews
-%typemap(out) std::map< std::pair< offset_t,std::string >,std::pair< offset_t,std::string >,std::less< std::pair< offset_t,std::string > >,std::allocator< std::pair< std::pair< offset_t,std::string > const,std::pair< offset_t,std::string > > > > const &
-{
-    $result = PyDict_New();
-    for(const auto& it : *$1)
-    {
-    	offset_t ea_start = (it).first.first;
-    	std::string reg_from = (it).first.second;
-    	offset_t ea_end = (it).second.first;
-    	std::string reg_to = (it).second.second;
-    	auto tuple_key = PyTuple_New(2);
-    	auto tuple_val = PyTuple_New(2);
-        PyTuple_SetItem(tuple_key, 0, PyLong_FromUnsignedLongLong(ea_start));
-        PyTuple_SetItem(tuple_val, 0, PyLong_FromUnsignedLongLong(ea_end));
-    	PyTuple_SetItem(tuple_key, 1, SWIG_From_std_string(reg_from));
-    	PyTuple_SetItem(tuple_val, 1, SWIG_From_std_string(reg_to));
-    	PyDict_SetItem($result, tuple_key, tuple_val);
-    }
-} 
-
 //get_xrefed_id_map
 %typemap(out) std::map< std::pair< offset_t,operand_t >,std::vector< XrefedId_T,std::allocator< XrefedId_T > >,std::less< std::pair< offset_t,operand_t > >,std::allocator< std::pair< std::pair< offset_t,operand_t > const,std::vector< XrefedId_T,std::allocator< XrefedId_T > > > > > const & 
 {
