@@ -43,11 +43,9 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
         self.struc_ids = {}
         self.union_ids = set()
         self.strucmember_ids = {}
-        self.enum_member_ids = {}
         self.stackframes_functions = {}
         self.stackframemembers_stackframes = {}
         self.arch_plugin = yatools.get_arch_plugin().get_ida_visitor_plugin()
-        self.enum_ids = {}
         self.reference_infos = {}
         self.hash_provider = hash_provider
         self.use_stackframes = use_stackframes
@@ -73,7 +71,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
             elif self.use_stackframes and obj_type == ya.OBJECT_TYPE_STACKFRAME:
                 self.make_stackframe(object_version, address)
             elif obj_type == ya.OBJECT_TYPE_ENUM:
-                self.make_enum(object_version, address)
+                _yatools_ida_exporter.make_enum(self.hash_provider, object_version, address)
 
             else:
 
@@ -87,7 +85,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
                     return
 
                 if obj_type == ya.OBJECT_TYPE_CODE:
-                    self.make_code(object_version, address)
+                    _yatools_ida_exporter.make_code(object_version, address)
 
                 # create function
                 elif obj_type == ya.OBJECT_TYPE_FUNCTION:
@@ -101,226 +99,33 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
                     self.make_struc_member(object_version, address)
 
                 elif obj_type == ya.OBJECT_TYPE_ENUM_MEMBER:
-                    self.make_enum_member(object_version, address)
+                    _yatools_ida_exporter.make_enum_member(self.hash_provider, object_version, address)
 
                 elif self.use_stackframes and obj_type == ya.OBJECT_TYPE_STACKFRAME_MEMBER:
                     self.make_stackframe_member(object_version, address)
 
                 elif obj_type == ya.OBJECT_TYPE_DATA:
-                    self.make_data(object_version, address)
+                    _yatools_ida_exporter.make_data(object_version, address)
 
                 elif obj_type == ya.OBJECT_TYPE_SEGMENT:
-                    self.make_segment(object_version, address)
+                    _yatools_ida_exporter.make_segment(object_version, address)
 
                 elif obj_type == ya.OBJECT_TYPE_SEGMENT_CHUNK:
-                    self.make_segment_chunk(object_version, address)
+                    _yatools_ida_exporter.make_segment_chunk(object_version, address)
 
                 else:
                     pass
 
-            # add header comment
-            self.make_header_comment(object_version, address)
+            _yatools_ida_exporter.make_header_comments(object_version, address)
 
             # add comments
             if obj_type in YaToolIDATools.OBJECT_WITH_COMMENTS:
-                self.make_comments(object_version, address)
+                _yatools_ida_exporter.make_comments(object_version, address)
         except Exception as e:
             logger.error("error : %r " % e)
             logger.error(traceback.format_exc())
             traceback.print_exc()
             raise e
-
-    def make_data(self, object_version, address):
-        size = 0
-        try:
-            size = object_version.get_size()
-        except KeyError:
-            pass
-        flags = None
-        try:
-            flags = object_version.get_object_flags()
-        except KeyError:
-            pass
-
-        if size == 0:
-            idc.MakeUnkn(address, idc.DOUNK_EXPAND)
-        else:
-            if flags is not None:
-                if idc.isASCII(flags):
-                    try:
-                        str_type = object_version.get_string_type()
-                        YaToolIDATools.check_and_set_str_type(str_type)
-                    except KeyError:
-                        pass
-                    idc.MakeStr(address, address + size)
-                    idc.SetFlags(address, flags)
-
-                if idc.isStruct(flags):
-                    found = False
-                    for xref_offset_operand, xref_id_attr in object_version.get_xrefed_id_map().iteritems():
-                        (xref_offset, xref_operand) = xref_offset_operand
-                        for xref_hash, xref_attrs in xref_id_attr:
-
-                            if xref_hash in self.struc_ids:
-                                struc_id = self.struc_ids[xref_hash]
-                                if DEBUG_EXPORTER:
-                                    logger.debug("making unknown from 0x%08X to 0x%08X" % (address, address + size))
-                                idaapi.do_unknown_range(address, size, idc.DOUNK_DELNAMES)
-
-                                #   idc.MakeUnkn(address, DOUNK_SIMPLE | idc.DOUNK_DELNAMES)
-                                #   for i in xrange(1, size):
-                                #       MakeName(address + i, "")
-                                #       idc.MakeUnkn(address + i, DOUNK_SIMPLE | idc.DOUNK_DELNAMES)
-                                # idc.MakeStructEx uses idaapi.doStruct (but asks for name while
-                                # we already have the struc id)
-                                if DEBUG_EXPORTER:
-                                    logger.debug(
-                                        "Making struc at %s : %s (sizeof(%s)=0x%08X, size=0x%08X, flags=0x%08X" %
-                                        (
-                                            self.yatools.address_to_hex_string(address),
-                                            self.yatools.address_to_hex_string(struc_id),
-                                            idaapi.get_struc_name(struc_id),
-                                            idc.GetStrucSize(struc_id), size,
-                                            flags
-                                        ))
-                                idc.SetCharPrm(idc.INF_AUTO, True)
-                                idc.Wait()
-                                if idaapi.doStruct(address, size, struc_id) == 0:
-                                    if DEBUG_EXPORTER:
-                                        logger.warning("Making struc failed")
-                                idc.SetCharPrm(idc.INF_AUTO, False)
-                                #                                     idc.SetFlags(address, flags)
-                                found = True
-                    else:
-                        logger.error("bad struc flags : idc.isStruct is true but no xref available for object %s" %
-                                     self.hash_provider.hash_to_string(object_version.get_id()))
-                    if not found:
-                        logger.error("bad struc flags : idc.isStruct is true "
-                                     "but no struc available for object %s (%s)" %
-                                     (self.hash_provider.hash_to_string(object_version.get_id()),
-                                      object_version.get_name()))
-                else:
-                    idc.MakeData(address, flags & (idc.DT_TYPE | idc.MS_0TYPE), size, 0)
-
-            else:
-                idc.MakeData(address, idc.FF_BYTE, size, 0)
-
-        self.make_name(object_version, address, False)
-
-        self.set_type(object_version, address)
-
-    def make_enum(self, object_version, address):
-        enum_name = object_version.get_name()
-        object_id = object_version.get_id()
-
-        # build flags
-        bitfield = False
-        flags = object_version.get_object_flags()
-        if flags & 0x1 == 0x1:
-            bitfield = True
-        flags = flags & ~0x1
-
-        try:
-            enum_width = object_version.get_size()
-        except KeyError:
-            enum_width = None
-
-        # check if enum already exists
-        enum_id = idc.GetEnum(enum_name)
-        enum_xrefs_ids = object_version.get_xrefed_ids()
-        logger.debug("%s:%d : Check here that enum_xrefs_ids is a set(YaToolObjectId) and correctly used" %
-                     (__file__, inspect.currentframe().f_lineno))
-        if enum_id != idc.BADADDR:
-            # enum already exists, deleting all members
-            for (const_id, const_value, bmask) in YaToolIDATools.enum_member_iterate_all(enum_id):
-                if bmask == idc.BADADDR:
-                    bmask = -1
-                const_name = idc.GetConstName(const_id)
-
-                if (enum_name, const_name, const_value) not in self.enum_member_ids:
-                    idc.DelConstEx(enum_id, const_value, 0, bmask)
-                elif self.hash_provider.get_enum_member_id(enum_id, enum_name, const_id, const_name,
-                                                           const_value) not in enum_xrefs_ids:
-                    logger.debug("deleting not found constant : %s/%s" % (enum_name, const_name))
-                    idc.DelConstEx(enum_id, const_value, 0, bmask)
-
-            """
-            if the enum "bitfield" state has changed : change it!
-            We can't access the functions
-            """
-            if idc.IsBitfield(enum_id) != bitfield:
-                idaapi.set_enum_bf(enum_id, bitfield)
-        else:
-            # create enum
-            # SetEnumFlag return "'module' object has no attribute 'set_enum_flag'".
-            enum_id = idc.AddEnum(address, enum_name, flags)
-
-        if enum_width is not None:
-            idc.SetEnumWidth(enum_id, enum_width)
-
-        if bitfield:
-            idc.SetEnumBf(enum_id, 1)
-
-        # process comment
-        try:
-            repeatable_headercomment = self.sanitize_comment_to_ascii(object_version.get_header_comment(True))
-            idc.SetEnumCmt(enum_id, repeatable_headercomment, 1)
-        except KeyError:
-            pass
-        try:
-            nonrepeatable_headercomment = self.sanitize_comment_to_ascii(object_version.get_header_comment(False))
-            idc.SetEnumCmt(enum_id, nonrepeatable_headercomment, 0)
-        except KeyError:
-            pass
-
-        self.enum_ids[object_id] = enum_id
-
-        self.hash_provider.put_hash_struc_or_enum(enum_id, object_id)
-
-        logger.debug("adding enum id %s : '0x%.016X'" % (self.hash_provider.hash_to_string(object_id), enum_id))
-
-    def make_enum_member(self, object_version, value):
-        name = object_version.get_name()
-        object_id = object_version.get_id()
-
-        enum_object_id = object_version.get_parent_object_id()
-
-        enum_id = 0
-        try:
-            enum_id = self.enum_ids[enum_object_id]
-        except:
-            return
-
-        self.hash_provider.put_hash_enum_member(idc.GetEnumName(enum_id), name, value, object_id)
-
-        # create member
-        if not idc.IsBitfield(enum_id):
-            bmask = -1
-        else:
-            bmask = object_version.get_object_flags()
-
-        member_id = idc.GetConstEx(enum_id, value, 0, bmask)
-        if member_id == idc.BADADDR:
-            idc.AddConstEx(enum_id, name, value, bmask)
-            member_id = idc.GetConstEx(enum_id, value, 0, bmask)
-        else:
-            if idc.SetConstName(member_id, name) == 0:
-                logger.error("Failed to set const name for enum_id")
-
-        # apply comments
-        try:
-            repeatable_headercomment = self.sanitize_comment_to_ascii(object_version.get_header_comment(True))
-            idc.SetConstCmt(member_id, repeatable_headercomment, 1)
-        except KeyError:
-            pass
-
-        try:
-            nonrepeatable_headercomment = self.sanitize_comment_to_ascii(object_version.get_header_comment(True))
-            idc.SetConstCmt(member_id, nonrepeatable_headercomment, 0)
-        except KeyError:
-            pass
-
-        self.enum_member_ids[(idc.GetEnumName(enum_id), name, value)] = (member_id, object_id)
 
     def clear_struc_fields(self, struc_id, struc_size, xref_keys, is_union=False,
                            member_type=ya.OBJECT_TYPE_STRUCT_MEMBER, name_offset=0):
@@ -454,7 +259,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
             logger.debug("adding struc id %s : '0x%.016X' (%s)" %
                          (self.hash_provider.hash_to_string(object_id), struc_id, name))
         self.struc_ids[object_id] = struc_id
-        _yatools_ida_exporter.set_struct_id(object_id, struc_id)
+        _yatools_ida_exporter.set_tid(object_id, struc_id)
 
         self.hash_provider.put_hash_struc_or_enum(struc_id, object_id)
 
@@ -524,7 +329,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
             # an enum is applied here
             try:
                 sub_enum_object_id = object_version.getXRefIdsAt(0, 0)[0]
-                sub_enum_id = self.enum_ids[sub_enum_object_id]
+                sub_enum_id = _yatools_ida_exporter.get_tid(sub_enum_object_id)
 
                 name_ok = idc.SetMemberName(struc_id, offset, member_name)
                 if name_ok is not True:
@@ -596,167 +401,16 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
             pass
 
         member_id = idc.GetMemberId(struc_id, offset)
-
-        self.set_struct_member_type(object_version, member_id)
+        _yatools_ida_exporter.set_struct_member_type(member_id, object_version.get_prototype())
         if object_version.get_type() == ya.OBJECT_TYPE_STRUCT_MEMBER:
-            self.strucmember_ids[object_version.get_id()] = member_id
-
-    def make_view(self, object_version, address):
-        # apply view
-        ri = idaapi.refinfo_t()
-        ri.target = idc.BADADDR
-        ri.base = 0
-        ri.tdelta = 0
-        for ((view_offset, operand), view_value) in object_version.get_offset_valueviews().iteritems():
-            if view_value == 'signeddecimal':
-                if not (idaapi.is_invsign(address + view_offset, idaapi.getFlags(address + view_offset), operand)):
-                    idaapi.op_dec(address + view_offset, operand)
-                    # we assume defaut operand is unsigned !
-                    idaapi.toggle_sign(address + view_offset, operand)
-            elif view_value == 'unsigneddecimal':
-                idaapi.op_dec(address + view_offset, operand)
-            elif view_value == 'signedhexadecimal':
-                idaapi.op_hex(address + view_offset, operand)
-                if not (idaapi.is_invsign(address + view_offset, idaapi.getFlags(address + view_offset), operand)):
-                    idaapi.toggle_sign(address + view_offset, operand)
-            elif view_value == 'unsignedhexadecimal':
-                idaapi.op_hex(address + view_offset, operand)
-                if idaapi.is_invsign(address + view_offset, idaapi.getFlags(address + view_offset), operand):
-                    idaapi.toggle_sign(address + view_offset, operand)
-            elif view_value.startswith('offset'):
-                dash = view_value.find("-")
-                if dash != -1:
-                    op_type_str = view_value[dash + 1:]
-                    op_type = YaToolIDATools.OFFSET_TYPE_MAP[op_type_str]
-                else:
-                    op_type = idc.REF_OFF32
-                ri.flags = op_type
-                idaapi.op_offset_ex(address + view_offset, 1, ri)
-            #                 idaapi.set_op_type(address + view_offset, idaapi.offflag(), operand)
-            elif view_value == 'char':
-                idaapi.op_chr(address + view_offset, operand)
-            elif view_value == 'binary':
-                idaapi.op_bin(address + view_offset, operand)
-            elif view_value == 'octal':
-                idaapi.op_oct(address + view_offset, operand)
-
-        for ((register_offset, register_name),
-             (end_offset, new_name)) in object_version.get_offset_registerviews().iteritems():
-            func = idaapi.get_func(address)
-            funcEA = func.startEA
-            ret = idaapi.add_regvar(func, funcEA + register_offset, funcEA + end_offset, register_name, new_name, None)
-            if ret != REGVAR_ERROR_OK:
-                logger.warning("make register_view failed: func=0x%08X, 0x%08X->0x%08X  %s->%s, error=%d" %
-                               (funcEA, funcEA + register_offset, funcEA + end_offset, register_name, new_name, ret))
-
-    def make_hidden_area(self, object_version, address):
-        # create hidden area
-        for ((hidden_area_offset, size), hidden_area_value) in object_version.get_offset_hiddenareas().iteritems():
-            idaapi.add_hidden_area(address + hidden_area_offset, address + hidden_area_offset +
-                                   size, hidden_area_value, None, None, 0xffffffff)  # 0xffffffff -> no color
-
-    def make_code(self, object_version, address):
-        # delete function if previously defined
-        idc.DelFunction(address)
-
-        # make code if not already exist
-        idc.MakeCode(address)
-
-        # code label name
-        self.make_name(object_version, address, False)
-
-        # apply view
-        self.make_view(object_version, address)
-
-        # apply hidden area
-        self.make_hidden_area(object_version, address)
-
-    def clear_function(self, object_version, address):
-
-        for ((xref_offset, operand), xref_list) in object_version.get_xrefed_id_map().iteritems():
-            for (xref_value, xref_attributes) in xref_list:
-                size = None
-                try:
-                    size = self.yatools.hex_string_to_address(xref_attributes["size"])
-                except:
-                    pass
-                if size is not None:
-                    ea = address + xref_offset
-                    # sometime, another function might have taken that piece of code for her
-                    func_at_ea = idaapi.get_func(ea)
-                    if func_at_ea is not None:
-                        logger.debug("type(address) = %s, type(func) = %s, type(startEA) = %s" %
-                                     (type(address), type(func_at_ea), type(func_at_ea.startEA)))
-                        logger.debug("looking for tail : %s %r, address=0x%08X" %
-                                     (func_at_ea, func_at_ea.startEA, address))
-                        if func_at_ea.startEA != address:
-                            logger.warning("Removing func tail 0x%08X from func 0x%08X" % (address, func_at_ea.startEA))
-                            idaapi.remove_func_tail(func_at_ea, address)
-                            # for i in xrange(ea, ea + size):
-                            #    #logger.debug("MakeUnkn(0x%016X, idc.DOUNK_DELNAMES |"
-                            #                  " idc.DOUNK_EXPAND | idaapi.DOUNK_NOTRUNC)" % (i))
-                            #    idc.MakeUnkn(i, idc.DOUNK_DELNAMES | idc.DOUNK_EXPAND | idaapi.DOUNK_NOTRUNC)
-
-    def analyze_function(self, address):
-        chunks = YaToolIDATools.get_function_chunks(address)
-        for (ch_start, ch_end) in chunks:
-            if idc.AnalyzeArea(ch_start, ch_end) != 1:
-                logger.error("[0x%08X] idc.AnalyzeArea failed [0x%08X->0x%08X" % (address, ch_start, ch_end))
+            id = object_version.get_id()
+            self.strucmember_ids[id] = member_id
+            _yatools_ida_exporter.set_tid(id, member_id)
 
     def make_function(self, object_version, address):
-        #
-        # call the architecture dependent plugin  ###########
-        #
         self.arch_plugin.make_function_prehook(object_version, address)
-
-        flags = object_version.get_object_flags()
-        size = object_version.get_size()
-        # create function if not already exist
-
-        current_flags = idc.GetFlags(address)
-        # if ea is func
-        func = idaapi.get_func(address)
-        if not idaapi.isFunc(current_flags) or (func is not None and (func.startEA != address)):
-            logger.debug("MakeFunction at 0x%08X : flags=0x%08X, current_flags=0x%08X" %
-                         (address, flags, current_flags))
-
-            if func is not None:
-                logger.debug(
-                    "                                       "
-                    "func.startEA[0x%08X]!=address func.endEA[0x%08X]!=(address+size[0x%08X])  " % (
-                        func.startEA, func.endEA, size))
-            if not idc.MakeFunction(address):
-                if not idc.isLoaded(address):
-                    logger.error("Failed at idc.MakeFunction at 0x%08X : data not loaded" % address)
-                else:
-                    logger.error("Failed at idc.MakeFunction at 0x%08X" % address)
-                    self.clear_function(object_version, address)
-                    if not idc.MakeFunction(address):
-                        logger.error("Failed at idc.MakeFunction at 0x%08X" % address)
-
-                        #             idc.MakeUnknown(address, size, DOUNK_SIMPLE)
-            if idc.AnalyzeArea(address, address + 1) != 1:
-                logger.error("[0x%08X] idc.AnalyzeArea failed" % address)
-
-                #             if(idc.AnalyzeArea(address, address+size) != 1):
-                #                 logger.error("[0x%08X] idc.AnalyzeArea failed" % address)
-                #             if(address == 0x0000000000411558):
-                #                 raise Exception()
-        if flags is not None:
-            idc.SetFunctionFlags(address, flags)
-
-        self.set_type(object_version, address)
-
-        #
-        # call the architecture dependent plugin  ###########
-        #
+        _yatools_ida_exporter.make_function(object_version, address)
         self.arch_plugin.make_function_posthook(object_version, address)
-
-    def set_type(self, version, address):
-        _yatools_ida_exporter.set_type(address, version.get_prototype())
-
-    def set_struct_member_type(self, version, mid):
-        _yatools_ida_exporter.set_struct_member_type(mid, version.get_prototype())
 
     def make_stackframe(self, object_version, address):
         object_id = object_version.get_id()
@@ -784,7 +438,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
         if stack_frame is None:
             logger.error("No function found for stackframe[%s] at 0x%08X" % (
                 self.hash_provider.hash_to_string(object_id), eaFunc))
-            self.analyze_function(eaFunc)
+            _yatools_ida_exporter.analyze_function(eaFunc)
             stack_frame = idaapi.get_frame(eaFunc)
 
         if stack_frame is None:
@@ -806,7 +460,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
                 self.hash_provider.hash_to_string(object_id), eaFunc))
         else:
             self.struc_ids[object_id] = stack_frame.id
-            _yatools_ida_exporter.set_struct_id(object_id, stack_frame.id)
+            _yatools_ida_exporter.set_tid(object_id, stack_frame.id)
             stack_lvars = None
             try:
                 stack_lvars = self.yatools.hex_string_to_address(object_version.get_attributes()["stack_lvars"])
@@ -835,13 +489,10 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
         self.arch_plugin.make_basic_block_prehook(object_version, address)
 
         # create basic block name
-        self.make_name(object_version, address, True)
+        _yatools_ida_exporter.make_name(object_version, address, True)
 
         # apply view
-        self.make_view(object_version, address)
-
-        # apply hidden area
-        self.make_hidden_area(object_version, address)
+        _yatools_ida_exporter.make_views(object_version, address)
 
         for ((xref_offset, operand), xref_list) in object_version.get_xrefed_id_map().iteritems():
             struc_path = {}
@@ -900,7 +551,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
                 # apply enums     ###################
                 #
                 try:
-                    enum_id = self.enum_ids[xref_value]
+                    enum_id = _yatools_ida_exporter.get_tid(xref_value)
                     idaapi.op_enum(address + xref_offset, operand, enum_id, 0)
                 except KeyError:
                     pass
@@ -953,43 +604,8 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
         #
         self.arch_plugin.make_basic_block_posthook(object_version, address)
 
-    def make_segment(self, object_version, address):
-        _yatools_ida_exporter.make_segment(object_version, address)
-
-    def make_segment_chunk(self, object_version, address):
-        _yatools_ida_exporter.make_segment_chunk(object_version, address)
-
-    def make_name(self, object_version, address, is_in_func):
-        _yatools_ida_exporter.make_name(object_version, address, is_in_func)
-
-    def make_comments(self, object_version, address):
-        _yatools_ida_exporter.make_comments(object_version, address)
-
     def sanitize_comment_to_ascii(self, comment):
         try:
             return comment.encode("ascii", "replace")
         except UnicodeDecodeError:
             return comment.decode("ascii", "replace").encode("ascii", "replace")
-
-    def make_header_comment(self, object_version, address):
-        try:
-            repeatable_headercomment = self.sanitize_comment_to_ascii(object_version.get_header_comment(True))
-            obj_type = object_version.get_type()
-            if obj_type == ya.OBJECT_TYPE_FUNCTION:
-                idc.SetFunctionCmt(address, repeatable_headercomment, 1)
-            elif obj_type == ya.OBJECT_TYPE_STRUCT:
-                struc_id = self.struc_ids[object_version.get_id()]
-                idc.SetStrucComment(struc_id, repeatable_headercomment, 1)
-        except KeyError:
-            pass
-
-        try:
-            nonrepeatable_headercomment = self.sanitize_comment_to_ascii(object_version.get_header_comment(False))
-            obj_type = object_version.get_type()
-            if obj_type == ya.OBJECT_TYPE_FUNCTION:
-                idc.SetFunctionCmt(address, nonrepeatable_headercomment, 0)
-            elif obj_type == ya.OBJECT_TYPE_STRUCT:
-                struc_id = self.struc_ids[object_version.get_id()]
-                idc.SetStrucComment(struc_id, nonrepeatable_headercomment, 0)
-        except KeyError:
-            pass

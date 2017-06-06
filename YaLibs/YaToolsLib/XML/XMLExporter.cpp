@@ -46,13 +46,6 @@ using namespace std::experimental;
 
 namespace
 {
-typedef struct _xmlTextWriter xmlTextWriter;
-typedef xmlTextWriter* xmlTextWriterPtr;
-typedef struct _xmlDoc xmlDoc;
-typedef xmlDoc* xmlDocPtr;
-typedef struct _xmlBuffer xmlBuffer;
-typedef xmlBuffer *xmlBufferPtr;
-
 #define XML_ENCODING "iso-8859-15"
 #define INDENT_STRING "  "
 
@@ -98,11 +91,11 @@ public:
     void visit_flags(flags_t flags) override;
 
 protected:
-    YaToolObjectType_e              object_type_;
-    bool                            delete_file_;
     std::shared_ptr<xmlTextWriter>  writer_;
     std::shared_ptr<xmlDoc>         doc_;
     std::string                     tmp_value_;
+    YaToolObjectType_e              object_type_;
+    bool                            delete_file_;
 };
 
 class XMLExporter : public XMLExporter_common
@@ -169,7 +162,6 @@ XMLExporter::XMLExporter(const std::string& path)
 XMLExporter_common::XMLExporter_common()
     : object_type_  (OBJECT_TYPE_DATA)
     , delete_file_  (false)
-    , doc_          (nullptr)
 {
 }
 
@@ -224,6 +216,44 @@ void XMLExporter_common::visit_start_object(YaToolObjectType_e object_type)
     UNUSED(object_type);
 }
 
+namespace
+{
+void start_element(xmlTextWriter& xml, const char* name)
+{
+    const auto err = xmlTextWriterStartElement(&xml, BAD_CAST name);
+    if(err < 0)
+        throw std::runtime_error(std::string("unable to start element ") + name);
+}
+
+void add_element(xmlTextWriter& xml, const char* name, const char* content)
+{
+    const auto err = xmlTextWriterWriteElement(&xml, BAD_CAST name, BAD_CAST content);
+    if(err < 0)
+        throw std::runtime_error(std::string("unable to add element ") + name + ": " + content);
+}
+
+void end_element(xmlTextWriter& xml, const char* name)
+{
+    const auto err = xmlTextWriterEndElement(&xml);
+    if(err < 0)
+        throw std::runtime_error(std::string("unable to end element ") + name);
+}
+
+void add_attribute(xmlTextWriter& xml, const char* key, const char* value)
+{
+    const auto err = xmlTextWriterWriteAttribute(&xml, BAD_CAST key, BAD_CAST value);
+    if(err < 0)
+        throw std::runtime_error(std::string("unable to write attribute ") + key + ": " + value);
+}
+
+void write_string(xmlTextWriter& xml, const char* content)
+{
+    const auto err = xmlTextWriterWriteString(&xml, BAD_CAST content);
+    if(err < 0)
+        throw std::runtime_error(std::string("unable to write string ") + content);
+}
+}
+
 void XMLExporter::visit_start_reference_object(YaToolObjectType_e object_type)
 {
     delete_file_ = false;
@@ -246,17 +276,9 @@ void XMLExporter::visit_start_reference_object(YaToolObjectType_e object_type)
         throw "could not start xml document";
     }
 
-    rc = xmlTextWriterStartElement(writer_.get(), BAD_CAST "sigfile");
-    if (rc < 0)
-    {
-        throw "could not start xml element sigfile";
-    }
+    start_element(*writer_, "sigfile");
+    start_element(*writer_, get_object_type_string(object_type));
 
-    rc = xmlTextWriterStartElement(writer_.get(), BAD_CAST get_object_type_string(object_type));
-    if (rc < 0)
-    {
-        throw "could not start xml element sigfile";
-    }
     filesystem::path tmp_path(path_);
     tmp_path /= get_object_type_string(object_type);
 
@@ -270,11 +292,7 @@ void FileXMLExporter::visit_start_reference_object(YaToolObjectType_e object_typ
     writer_.reset(xmlNewTextWriterMemory(buffer_.get(), 0), xmlFreeTextWriter);
     xmlTextWriterSetIndentString(writer_.get(), BAD_CAST INDENT_STRING);
     xmlTextWriterSetIndent(writer_.get(), 1);
-    int rc = xmlTextWriterStartElement(writer_.get(), BAD_CAST get_object_type_string(object_type));
-    if (rc < 0)
-    {
-        throw "could not start xml element sigfile";
-    }
+    start_element(*writer_, get_object_type_string(object_type));
 }
 
 void XMLExporter::visit_start_deleted_object(YaToolObjectType_e object_type)
@@ -340,19 +358,9 @@ void FileXMLExporter::visit_end_default_object()
 void XMLExporter::visit_end_reference_object()
 {
     int rc = 0;
-    // close object_type
-    rc = xmlTextWriterEndElement(writer_.get());
-    if (rc < 0)
-    {
-        throw "could not end object_type element";
-    }
 
-    //close sigfile
-    rc = xmlTextWriterEndElement(writer_.get());
-    if (rc < 0)
-    {
-        throw "could not end sigfile element";
-    }
+    end_element(*writer_, "object_type");
+    end_element(*writer_, "sigfile");
 
     rc = xmlTextWriterEndDocument(writer_.get());
     if (rc < 0)
@@ -364,13 +372,10 @@ void XMLExporter::visit_end_reference_object()
     rc = xmlSaveFormatFileEnc((char*)current_xml_file_path_.c_str(), &*doc_, XML_ENCODING, 1);
     doc_.reset();
 }
-void FileXMLExporter::visit_end_reference_object() {
 
-    int rc = 0;
-    // close object_type
-    rc = xmlTextWriterEndElement(writer_.get());
-    if (rc < 0)
-        throw "could not end object_type element";
+void FileXMLExporter::visit_end_reference_object()
+{
+    end_element(*writer_, "object_type");
 
     writer_.reset();
     doc_.reset();
@@ -382,47 +387,32 @@ void FileXMLExporter::visit_end_reference_object() {
 
 void XMLExporter::visit_id(YaToolObjectId object_id)
 {
-    filesystem::path tmp_path(current_xml_file_path_);
-    char id_str[YATOOL_OBJECT_ID_STR_LEN+1];
-    YaToolObjectId_To_String(id_str, YATOOL_OBJECT_ID_STR_LEN+1, object_id);
-    tmp_path /= string(id_str) + ".xml";
+    char id_str[YATOOL_OBJECT_ID_STR_LEN + 1];
+    YaToolObjectId_To_String(id_str, YATOOL_OBJECT_ID_STR_LEN + 1, object_id);
 
+    filesystem::path tmp_path(current_xml_file_path_);
+    tmp_path /= string(id_str) + ".xml";
     current_xml_file_path_ = tmp_path.string();
 
-    if(delete_file_ == false)
-    {
-        int rc = xmlTextWriterWriteElement(writer_.get(), BAD_CAST"id", BAD_CAST id_str);
-        if (rc < 0)
-        {
-            throw "could not write id";
-        }
-    }
+    if(delete_file_)
+        return;
+
+    add_element(*writer_, "id", id_str);
 }
 
 void FileXMLExporter::visit_id(YaToolObjectId object_id)
 {
-    if(delete_file_ == false)
-    {
-        char id_str[YATOOL_OBJECT_ID_STR_LEN+1];
-        YaToolObjectId_To_String(id_str, YATOOL_OBJECT_ID_STR_LEN+1, object_id);
+    if(delete_file_)
+        return;
 
-        int rc = xmlTextWriterWriteElement(writer_.get(), BAD_CAST"id", BAD_CAST id_str);
-        if (rc < 0)
-        {
-            throw "could not write id";
-        }
-    }
-
+    char id_str[YATOOL_OBJECT_ID_STR_LEN+1];
+    YaToolObjectId_To_String(id_str, YATOOL_OBJECT_ID_STR_LEN+1, object_id);
+    add_element(*writer_, "id", id_str);
 }
 
 void XMLExporter_common::visit_start_object_version()
 {
-    int rc = 0;
-    rc = xmlTextWriterStartElement(writer_.get(), BAD_CAST"version");
-    if (rc < 0)
-    {
-        throw "could not write version";
-    }
+    start_element(*writer_, "version");
 }
 
 void XMLExporter_common::visit_parent_id(YaToolObjectId object_id)
@@ -433,10 +423,7 @@ void XMLExporter_common::visit_parent_id(YaToolObjectId object_id)
 
     memset(buffer, 0, sizeof buffer);
     sprintf(buffer, "%016" PRIXOFFSET, object_id);
-    if(xmlTextWriterWriteElement(writer_.get(), BAD_CAST "parent_id", BAD_CAST buffer) < 0)
-    {
-        throw "could not add parent_id element";
-    }
+    add_element(*writer_, "parent_id", buffer);
 }
 
 void XMLExporter_common::visit_address(offset_t address)
@@ -447,119 +434,65 @@ void XMLExporter_common::visit_address(offset_t address)
 
     memset(buffer, 0, sizeof buffer);
     sprintf(buffer, "%" PRIXOFFSET, address);
-    if(xmlTextWriterWriteElement(writer_.get(), BAD_CAST "address", BAD_CAST buffer) < 0)
-    {
-        throw "could not add address element";
-    }
+    add_element(*writer_, "address", buffer);
 }
 
 void XMLExporter_common::visit_end_object_version()
 {
-    int rc = 0;
-    rc = xmlTextWriterEndElement(writer_.get());
-    if (rc < 0)
-    {
-        throw "could not write version end";
-    }
+    end_element(*writer_, "version");
 }
 
 void XMLExporter_common::visit_name(const const_string_ref& name, int flags)
 {
-    int rc = 0;
-    rc = xmlTextWriterStartElement(writer_.get(), BAD_CAST"userdefinedname");
-    if (rc < 0)
-    {
-        throw "could not start name element";
-    }
-    if (flags != 0)
+    start_element(*writer_, "userdefinedname");
+    if(flags)
     {
         char flags_buffer[(sizeof(flags) + 3) * 2] = {0};
         sprintf(flags_buffer, "0x%08X", flags);
-        rc = xmlTextWriterWriteAttribute(writer_.get(), BAD_CAST "flags", BAD_CAST flags_buffer);
-        if (rc < 0)
-        {
-            throw "could not add flag attribute to name element";
-        }
-
+        add_attribute(*writer_, "flags", flags_buffer);
     }
-    if (name.size && xmlTextWriterWriteString(writer_.get(), BAD_CAST name.value) < 0)
-    {
-        throw "could not write user defined name value";
-    }
-    rc = xmlTextWriterEndElement(writer_.get());
-    if (rc < 0)
-    {
-        throw "could not end name element";
-    }
+    if(name.size)
+        write_string(*writer_, name.value);
+    
+    end_element(*writer_, "userdefinedname");
 }
 
 void XMLExporter_common::visit_size(offset_t size)
 {
     char size_buffer[(sizeof(size) + 3) * 2] = { 0 };
     sprintf(size_buffer, "0x%016" PRIXOFFSET, size);
-    if (xmlTextWriterWriteElement(writer_.get(), BAD_CAST "size", BAD_CAST size_buffer) < 0)
-    {
-        throw "could not add size element";
-    }
+    add_element(*writer_, "size", size_buffer);
 }
 
 void  XMLExporter_common::visit_start_signatures()
 {
-    if (xmlTextWriterStartElement(writer_.get(), BAD_CAST "signatures") < 0)
-    {
-        throw "could not start signatures element";
-    }
+    start_element(*writer_, "signatures");
 }
 
 void XMLExporter_common::visit_signature(SignatureMethod_e method, SignatureAlgo_e algo, const const_string_ref& hex)
 {
-    if (xmlTextWriterStartElement(writer_.get(), BAD_CAST "signature") < 0)
-    {
-        throw "could not start signature element";
-    }
-    if (xmlTextWriterWriteAttribute(writer_.get(), BAD_CAST "algo", BAD_CAST get_signature_algo_string(algo)) < 0)
-    {
-        throw "could not add algo attribute to signature element";
-    }
-    if (xmlTextWriterWriteAttribute(writer_.get(), BAD_CAST "method", BAD_CAST get_signature_method_string(method)) < 0)
-    {
-        throw "could not add algo attribute to signature element";
-    }
-
-    if (xmlTextWriterWriteString(writer_.get(), BAD_CAST hex.value)  < 0)
-    {
-        throw "could not add hash value to signature";
-    }
-    if (xmlTextWriterEndElement(writer_.get()) < 0)
-    {
-        throw "could not end signature element";
-    }
+    start_element(*writer_, "signature");
+    add_attribute(*writer_, "algo", get_signature_algo_string(algo));
+    add_attribute(*writer_, "method", get_signature_method_string(method));
+    write_string(*writer_, hex.value);
+    end_element(*writer_, "signature");
 }
 
 void XMLExporter_common::visit_end_signatures()
 {
-    if (xmlTextWriterEndElement(writer_.get()) < 0)
-    {
-        throw "could not end signatures element";
-    }
+    end_element(*writer_, "signatures");
 }
 
 void XMLExporter_common::visit_prototype(const const_string_ref& prototype)
 {
-    if (xmlTextWriterWriteElement(writer_.get(), BAD_CAST"proto", BAD_CAST prototype.value) < 0)
-    {
-        throw "could not end signatures element";
-    }
+    add_element(*writer_, "proto", prototype.value);
 }
 
 void XMLExporter_common::visit_string_type(int str_type)
 {
     char str_type_buffer[sizeof(str_type) * 2 + 2] = { 0 };
     sprintf(str_type_buffer, "%d", str_type);
-    if (xmlTextWriterWriteElement(writer_.get(), BAD_CAST "str_type", BAD_CAST str_type_buffer) < 0)
-    {
-        throw "could not add str_type element";
-    }
+    add_element(*writer_, "str_type", str_type_buffer);
 }
 
 static std::string xml_escape(const const_string_ref& ref)
@@ -569,172 +502,78 @@ static std::string xml_escape(const const_string_ref& ref)
 
 void XMLExporter_common::visit_header_comment(bool repeatable, const const_string_ref& comment)
 {
-    if (repeatable == true)
-    {
-        if (xmlTextWriterWriteElement(writer_.get(), BAD_CAST "repeatable_headercomment", BAD_CAST xml_escape(comment).c_str()) < 0)
-        {
-            throw "could not add repeatable_headercomment element";
-        }
-    }
-    else
-    {
-        if (xmlTextWriterWriteElement(writer_.get(), BAD_CAST "nonrepeatable_headercomment", BAD_CAST xml_escape(comment).c_str()) < 0)
-        {
-            throw "could not add nonrepeatable_headercomment element";
-        }
-    }
+    const char* key = repeatable ? "repeatable_headercomment" : "nonrepeatable_headercomment";
+    add_element(*writer_, key, xml_escape(comment).data());
 }
 
 void XMLExporter_common::visit_start_offsets()
 {
-    if (xmlTextWriterStartElement(writer_.get(), BAD_CAST"offsets") < 0)
-    {
-        throw "could not start offsets element";
-    }
+    start_element(*writer_, "offsets");
 }
 
 void XMLExporter_common::visit_end_offsets()
 {
-    if (xmlTextWriterEndElement(writer_.get()) < 0)
-    {
-        throw "could not end offsets element";
-    }
+    end_element(*writer_, "offsets");
 }
 
 void XMLExporter_common::visit_offset_comments(offset_t offset, CommentType_e comment_type, const const_string_ref& comment)
 {
-    if (xmlTextWriterStartElement(writer_.get(), BAD_CAST "comments") < 0)
-    {
-        throw "could not start comments element";
-    }
-    if (xmlTextWriterWriteAttribute(writer_.get(), BAD_CAST "offset", BAD_CAST get_uint_hex(offset).c_str()) < 0)
-    {
-        throw "could not add offset attribute to comments element";
-    }
-    if (xmlTextWriterWriteAttribute(writer_.get(), BAD_CAST "type", BAD_CAST get_comment_type_string(comment_type)) < 0)
-    {
-        throw "could not add type attribute to comments element";
-    }
-    if (xmlTextWriterWriteString(writer_.get(), BAD_CAST xml_escape(comment).c_str())  < 0)
-    {
-        throw "could not write offset comments content";
-    }
-    if (xmlTextWriterEndElement(writer_.get()) < 0)
-    {
-        throw "could not end comments element";
-    }
+    start_element(*writer_, "comments");
+    add_attribute(*writer_, "offset", get_uint_hex(offset).data());
+    add_attribute(*writer_, "type", get_comment_type_string(comment_type));
+    write_string(*writer_, xml_escape(comment).data());
+    end_element(*writer_, "comments");
 }
 
 void XMLExporter_common::visit_offset_valueview(offset_t offset, operand_t operand, const const_string_ref& view_value)
 {
-
-    if (xmlTextWriterStartElement(writer_.get(), BAD_CAST "valueview") < 0)
-    {
-        throw "could not start valueview element";
-    }
-    if (xmlTextWriterWriteAttribute(writer_.get(), BAD_CAST "offset", BAD_CAST get_uint_hex(offset).c_str()) < 0)
-    {
-        throw "could not add offset attribute to valueview element";
-    }
-    if (xmlTextWriterWriteAttribute(writer_.get(), BAD_CAST "operand", BAD_CAST get_uint_hex(operand).c_str()) < 0)
-    {
-        throw "could not add operand attribute to valueview element";
-    }
-    if (xmlTextWriterWriteString(writer_.get(), BAD_CAST view_value.value)  < 0)
-    {
-        throw "could not write valueview content";
-    }
-    if (xmlTextWriterEndElement(writer_.get()) < 0)
-    {
-        throw "could not end valueview element";
-    }
+    start_element(*writer_, "valueview");
+    add_attribute(*writer_, "offset", get_uint_hex(offset).data());
+    add_attribute(*writer_, "operand", get_uint_hex(operand).data());
+    write_string(*writer_, view_value.value);
+    end_element(*writer_, "valueview");
 }
 
 void XMLExporter_common::visit_offset_registerview(offset_t offset, offset_t end_offset, const const_string_ref& register_name, const const_string_ref& register_new_name)
 {
-
-    if (xmlTextWriterStartElement(writer_.get(), BAD_CAST "registerview") < 0)
-    {
-        throw "could not start registerview element";
-    }
-    if (xmlTextWriterWriteAttribute(writer_.get(), BAD_CAST "offset", BAD_CAST get_uint_hex(offset).c_str()) < 0)
-    {
-        throw "could not add offset attribute to registerview element";
-    }
-    if (xmlTextWriterWriteAttribute(writer_.get(), BAD_CAST "end_offset", BAD_CAST get_uint_hex(end_offset).c_str()) < 0)
-    {
-        throw "could not add end_offset attribute to registerview element";
-    }
-    if (xmlTextWriterWriteAttribute(writer_.get(), BAD_CAST "register", BAD_CAST register_name.value) < 0)
-    {
-        throw "could not add register attribute to registerview element";
-    }
-    if (xmlTextWriterWriteString(writer_.get(), BAD_CAST register_new_name.value)  < 0)
-    {
-        throw "could not write registerview content";
-    }
-    if (xmlTextWriterEndElement(writer_.get()) < 0)
-    {
-        throw "could not end registerview element";
-    }
+    start_element(*writer_, "registerview");
+    add_attribute(*writer_, "offset", get_uint_hex(offset).data());
+    add_attribute(*writer_, "end_offset", get_uint_hex(end_offset).data());
+    add_attribute(*writer_, "register", register_name.value);
+    write_string(*writer_, register_new_name.value);
+    end_element(*writer_, "registerview");
 }
 
 void XMLExporter_common::visit_offset_hiddenarea(offset_t offset, offset_t area_size, const const_string_ref& hidden_area_value)
 {
-
-    if (xmlTextWriterStartElement(writer_.get(), BAD_CAST "hiddenarea") < 0)
-    {
-        throw "could not start hiddenarea element";
-    }
-    if (xmlTextWriterWriteAttribute(writer_.get(), BAD_CAST "offset", BAD_CAST get_uint_hex(offset).c_str()) < 0)
-    {
-        throw "could not add offset attribute to hiddenarea element";
-    }
-    if (xmlTextWriterWriteAttribute(writer_.get(), BAD_CAST "size", BAD_CAST get_uint_hex(area_size).c_str()) < 0)
-    {
-        throw "could not add size attribute to hiddenarea element";
-    }
-    if (xmlTextWriterWriteString(writer_.get(), BAD_CAST hidden_area_value.value)  < 0)
-    {
-        throw "could not write hiddenarea content";
-    }
-    if (xmlTextWriterEndElement(writer_.get()) < 0)
-    {
-        throw "could not end hiddenarea element";
-    }
+    start_element(*writer_, "hiddenarea");
+    add_attribute(*writer_, "offset", get_uint_hex(offset).data());
+    add_attribute(*writer_, "size", get_uint_hex(area_size).data());
+    write_string(*writer_, hidden_area_value.value);
+    end_element(*writer_, "hiddenarea");
 }
 
 void XMLExporter_common::visit_start_xrefs()
 {
-    if (xmlTextWriterStartElement(writer_.get(), BAD_CAST"xrefs") < 0)
-    {
-        throw "could not start xrefs element";
-    }
+    start_element(*writer_, "xrefs");
 }
 
 void XMLExporter_common::visit_end_xrefs()
 {
-    if (xmlTextWriterEndElement(writer_.get()) < 0)
-    {
-        throw "could not end xrefs element";
-    }
+    end_element(*writer_, "xrefs");
 }
 
 void XMLExporter_common::visit_start_matching_systems()
 {
-    //if (xmlTextWriterStartElement(writer_.get(), BAD_CAST"matchingsystem") < 0)
-    //{
-    //  throw "could not start matchingsystem element";
-    //}
+    if(false)
+        start_element(*writer_, "matchingsystem");
 }
 
 
 void XMLExporter_common::visit_end_matching_systems()
 {
-    //if (xmlTextWriterEndElement(writer_) < 0)
-    //{
-    //  throw "could not end matchingsystem element";
-    //}
+    if(false)
+        end_element(*writer_, "matchingsystem");
 }
 
 void XMLExporter_common::visit_segments_start()
@@ -749,106 +588,52 @@ void XMLExporter_common::visit_segments_end()
 
 void XMLExporter_common::visit_attribute(const const_string_ref& attr_name, const const_string_ref& attr_value)
 {
-    if (xmlTextWriterStartElement(writer_.get(), BAD_CAST"attribute") < 0)
-    {
-        throw "could not start attribute element";
-    }
-
-    if (xmlTextWriterWriteAttribute(writer_.get(), BAD_CAST"key", BAD_CAST attr_name.value) < 0)
-    {
-        throw "could not add key attribute to attribute";
-    }
-
-    if (xmlTextWriterWriteString(writer_.get(), BAD_CAST attr_value.value) < 0)
-    {
-        throw "could not add value content to attribute";
-    }
-
-    if(xmlTextWriterEndElement(writer_.get()) < 0)
-    {
-        throw "could not end attribute element";
-    }
+    start_element(*writer_, "attribute");
+    add_attribute(*writer_, "key", attr_name.value);
+    write_string(*writer_, attr_value.value);
+    end_element(*writer_, "attribute");
 }
 
-void XMLExporter_common::visit_start_xref(offset_t offset,
-    YaToolObjectId offset_value, operand_t operand) {
-    if (xmlTextWriterStartElement(writer_.get(), BAD_CAST"xref") < 0)
-    {
-        throw "could not start xref element";
-    }
-    string offset_str = "0x";
-    offset_str += get_uint_hex(offset);
+void XMLExporter_common::visit_start_xref(offset_t offset, YaToolObjectId offset_value, operand_t operand)
+{
+    start_element(*writer_, "xref");
+    add_attribute(*writer_, "offset", ("0x" + get_uint_hex(offset)).data());
+    if(operand)
+        add_attribute(*writer_, "operand", ("0x" + get_uint_hex(operand)).data());
 
-    if (xmlTextWriterWriteAttribute(writer_.get(), BAD_CAST"offset", BAD_CAST offset_str.c_str()) < 0)
-    {
-        throw "could not add offset attribute to xref";
-    }
-    if (operand != 0)
-    {
-        string operand_str = "0x";
-        operand_str += get_uint_hex(operand);
-        if (xmlTextWriterWriteAttribute(writer_.get(), BAD_CAST"operand", BAD_CAST operand_str.c_str()) < 0)
-        {
-            throw "could not add operand attribute to xref";
-        }
-    }
     // keep this value until we can write it (all attributes must be set before)
     char id_str[YATOOL_OBJECT_ID_STR_LEN+1];
     YaToolObjectId_To_String(id_str, YATOOL_OBJECT_ID_STR_LEN+1, offset_value);
-
     tmp_value_ = id_str;
 
 }
 
 void XMLExporter_common::visit_end_xref()
 {
-    if (xmlTextWriterWriteString(writer_.get(), BAD_CAST tmp_value_.c_str()) < 0)
-    {
-        throw "could not write xref offset id";
-    }
-    if (xmlTextWriterEndElement(writer_.get()) < 0)
-    {
-        throw "could not end xref element";
-    }
+    write_string(*writer_, tmp_value_.data());
+    end_element(*writer_, "xref");
 }
 
 void XMLExporter_common::visit_xref_attribute(const const_string_ref& attribute_key, const const_string_ref& attribute_value)
 {
-    if (xmlTextWriterWriteAttribute(writer_.get(), BAD_CAST attribute_key.value, BAD_CAST attribute_value.value) < 0)
-    {
-        throw "could not add attribute to xref";
-    }
+    add_attribute(*writer_, attribute_key.value, attribute_value.value);
 }
 
 void XMLExporter_common::visit_start_matching_system(offset_t address)
 {
-    if (xmlTextWriterStartElement(writer_.get(), BAD_CAST"matchingsystem") < 0)
-    {
-        throw "could not start matchingsystem element";
-    }
-    if (address != UNKNOWN_ADDR)
-    {
-        if (xmlTextWriterWriteElement(writer_.get(), BAD_CAST"address", BAD_CAST get_uint_hex(address).c_str()) < 0)
-        {
-            throw "could not start address matchingsystem element";
-        }
-    }
+    start_element(*writer_, "matchingsystem");
+    if(address != UNKNOWN_ADDR)
+        add_element(*writer_, "address", get_uint_hex(address).data());
 }
 
 void XMLExporter_common::visit_matching_system_description(const const_string_ref& description_key, const const_string_ref& description_value)
 {
-    if (xmlTextWriterWriteElement(writer_.get(), BAD_CAST description_key.value, BAD_CAST description_value.value) < 0)
-    {
-        throw "could not add system description system element";
-    }
+    add_element(*writer_, description_key.value, description_value.value);
 }
 
 void XMLExporter_common::visit_end_matching_system()
 {
-    if (xmlTextWriterEndElement(writer_.get()) < 0)
-    {
-        throw "could not end matching system element";
-    }
+    end_element(*writer_, "matchingsystem");
 }
 
 void XMLExporter_common::visit_blob(offset_t offset, const void* blob, size_t len)
@@ -858,36 +643,22 @@ void XMLExporter_common::visit_blob(offset_t offset, const void* blob, size_t le
     buffer_to_hex(blob, len, &buffer[0]);
     buffer[len*2] = 0;
 
-    if (xmlTextWriterStartElement(writer_.get(), BAD_CAST "blob") < 0)
-        throw "could not start blob element";
+    static_assert(sizeof offset == sizeof(uint64_t), "bad offset_t sizeof");
 
-    if (xmlTextWriterWriteAttribute(writer_.get(), BAD_CAST"offset", BAD_CAST get_uint_hex(offset).c_str()) < 0)
-        throw "could not add key attribute to blob";
-
-    if (xmlTextWriterWriteString(writer_.get(), BAD_CAST &buffer[0]) < 0)
-    {
-        static_assert(sizeof offset == sizeof(uint64_t), "bad static assert");
-        YALOG_ERROR(nullptr, "bad blob at %" PRIXOFFSET " len=%zx\n", offset, len);
-        YALOG_ERROR(nullptr, "content: %s\n", &buffer[0]);
-        throw "could not add value content to blob";
-    }
-
-    if(xmlTextWriterEndElement(writer_.get()) < 0)
-        throw "could not end blob element";
+    start_element(*writer_, "blob");
+    add_attribute(*writer_, "offset", get_uint_hex(offset).data());
+    write_string(*writer_, &buffer[0]);
+    end_element(*writer_, "blob");
 }
 
 void XMLExporter_common::visit_flags(flags_t flags)
 {
-    if (flags == 0)
-    {
+    if(!flags)
         return;
-    }
+
     char buffer[(sizeof(flags) + 3) * 2] = { 0 };
     sprintf(buffer, "0x%X", flags);
-    if (xmlTextWriterWriteElement(writer_.get(), BAD_CAST "flags", BAD_CAST buffer) < 0)
-    {
-        throw "could not add flags element";
-    }
+    add_element(*writer_, "flags", buffer);
 }
 
 static const std::vector<std::string> gFolders =

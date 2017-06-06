@@ -17,10 +17,12 @@
 #include "Ida.h"
 
 #include "IDANativeModel.hpp"
+#include "YaToolsHashProvider.hpp"
 
 #include <Logger.h>
 #include <Yatools.h>
 #include "../Helpers.h"
+#include "YaHelpers.hpp"
 
 #include <regex>
 
@@ -39,18 +41,13 @@
 
 namespace
 {
-    std::string to_string(const qstring& q)
-    {
-        return {q.c_str(), q.length()};
-    }
-
     std::string to_string(const tinfo_t& tif, const char* name)
     {
         qstring out;
         const auto ok = tif.print(&out, name);
         if(!ok)
             return {};
-        auto value = to_string(out);
+        auto value = ya::to_string(out);
         while(!value.empty() && value.back() == ' ')
             value.resize(value.size() - 1);
         return value;
@@ -126,7 +123,7 @@ namespace
             if(it.flags & FAI_STRUCT)
                 add_suffix(it_name, "__struct_ptr");
             // FIXME ida remove leading underscores on argument names...
-            auto argname = to_string(it.name);
+            auto argname = ya::to_string(it.name);
             argname = std::regex_replace(argname, r_leading_underscores, "");
             add_suffix(it_name, argname);
             append_location(it_name, cc, buffer, sizeof buffer, it.argloc);
@@ -138,6 +135,36 @@ namespace
             type += ", ...";
         return type + ")";
     }
+
+    const char               gEq[] = "equipment";
+    const char               gOs[] = "os";
+    const char               gEmpty[] = "";
+    const const_string_ref   gEqRef = {gEq, sizeof gEq - 1};
+    const const_string_ref   gOsRef = {gOs, sizeof gOs - 1};
+    const const_string_ref   gEmptyRef = {gEmpty, sizeof gEmpty - 1};
+
+    const int DEFAULT_NAME_FLAGS = 0;
+    const int DEFAULT_OPERAND = 0;
+}
+
+IDANativeModel::IDANativeModel()
+    : provider_(nullptr)
+    , eqref_(gEmptyRef)
+    , osref_(gEmptyRef)
+{
+}
+
+void IDANativeModel::set_system(const const_string_ref& eq, const const_string_ref& os)
+{
+    eq_ = make_string(eq);
+    eqref_ = make_string_ref(eq_);
+    os_ = make_string(os);
+    osref_ = make_string_ref(os_);
+}
+
+void IDANativeModel::set_provider(YaToolsHashProvider* provider)
+{
+    provider_ = provider;
 }
 
 std::string IDANativeModel::get_type(ea_t ea)
@@ -153,4 +180,137 @@ std::string IDANativeModel::get_type(ea_t ea)
     // - mangled c++ names are rejected as prototype
     auto type = get_type_from(tif, nullptr);
     return type;
+}
+
+void IDANativeModel::start_object(IModelVisitor& v, YaToolObjectType_e type, YaToolObjectId id, YaToolObjectId parent, ea_t ea)
+{
+    v.visit_start_reference_object(type);
+    v.visit_id(id);
+    v.visit_start_object_version();
+    if(parent)
+        v.visit_parent_id(parent);
+    v.visit_address(ea);
+}
+
+void IDANativeModel::finish_object(IModelVisitor& v, int64_t offset)
+{
+    v.visit_start_matching_systems();
+    v.visit_start_matching_system(offset);
+    v.visit_matching_system_description(gEqRef, eqref_);
+    v.visit_matching_system_description(gOsRef, osref_);
+    v.visit_end_matching_system();
+    v.visit_end_matching_systems();
+    v.visit_end_object_version();
+    v.visit_end_reference_object();
+}
+
+namespace
+{
+    template<typename T>
+    void visit_header_comments(IModelVisitor& v, qstring& buffer, const T& read)
+    {
+        for(const auto rpt : {false, true})
+        {
+            const auto comment = ya::read_string_from(buffer, [&](char* buf, size_t szbuf)
+            {
+                return read(buf, szbuf, rpt);
+            });
+            if(comment.size)
+                v.visit_header_comment(rpt, comment);
+        }
+    }
+
+    struct EnumMember
+    {
+        YaToolObjectId  id;
+        const_t         const_id;
+        qstring         const_name;
+        uval_t          const_value;
+        bmask_t         bmask;
+    };
+}
+
+YaToolObjectId IDANativeModel::accept_enum(IModelVisitor& visitor, ea_t eid)
+{
+    const auto enum_id = static_cast<enum_t>(eid);
+    qstring buffer;
+    get_enum_name(&buffer, enum_id);
+    const auto enum_name = ya::to_string(buffer);
+    const auto id = provider_->get_struc_enum_object_id(enum_id, enum_name, true);
+    const auto idx = get_enum_idx(enum_id);
+
+    start_object(visitor, OBJECT_TYPE_ENUM, id, 0, idx);
+    visitor.visit_size(get_enum_width(enum_id));
+    visitor.visit_name(make_string_ref(enum_name), DEFAULT_NAME_FLAGS);
+    const auto flags = get_enum_flag(enum_id);
+    const auto bitfield = is_bf(enum_id) ? ENUM_FLAGS_IS_BF : 0;
+    visitor.visit_flags(flags | bitfield);
+    visit_header_comments(visitor, buffer, [&](char* buf, size_t szbuf, bool repeated)
+    {
+        return get_enum_cmt(enum_id, repeated, buf, szbuf);
+    });
+
+    visitor.visit_start_xrefs();
+    std::vector<EnumMember> members;
+    ya::walk_enum_members(enum_id, [&](const_t const_id, uval_t const_value, uchar /*serial*/, bmask_t bmask)
+    {
+        get_enum_member_name(&buffer, const_id);
+        const auto member_id = provider_->get_enum_member_id(enum_id, enum_name, const_id, ya::to_string(buffer), ya::to_py_hex(const_value), bmask, true);
+        visitor.visit_start_xref(0, member_id, DEFAULT_OPERAND);
+        visitor.visit_end_xref();
+        members.push_back({member_id, const_id, buffer, const_value, bmask});
+    });
+    visitor.visit_end_xrefs();
+
+    finish_object(visitor, idx);
+
+    for(const auto& m : members)
+    {
+        start_object(visitor, OBJECT_TYPE_ENUM_MEMBER, m.id, id, m.const_value);
+        visitor.visit_size(0);
+        visitor.visit_name(ya::to_string_ref(m.const_name), DEFAULT_NAME_FLAGS);
+        if(m.bmask != BADADDR)
+            visitor.visit_flags(static_cast<flags_t>(m.bmask));
+        visit_header_comments(visitor, buffer, [&](char* buf, size_t szbuf, bool repeated)
+        {
+            return get_enum_member_cmt(m.const_id, repeated, buf, szbuf);
+        });
+        finish_object(visitor, m.const_value);
+    }
+
+    return id;
+}
+
+YaToolObjectId IDANativeModel::accept_binary(IModelVisitor& visitor)
+{
+    const auto id = provider_->get_binary_id();
+    const auto base = get_imagebase();
+    start_object(visitor, OBJECT_TYPE_BINARY, id, 0, base);
+    const auto first = get_first_seg();
+    if(first)
+        visitor.visit_size(get_last_seg()->endEA - first->startEA);
+
+    qstring buffer;
+    const auto filename = ya::read_string_from(buffer, [&](char* buf, size_t szbuf)
+    {
+        return get_root_filename(buf, szbuf);
+    });
+    if(filename.size)
+        visitor.visit_name(filename, DEFAULT_NAME_FLAGS);
+
+    visitor.visit_start_xrefs();
+    for(auto seg = first; seg; seg = get_next_seg(seg->endEA - 1))
+    {
+        const auto segname = ya::read_string_from(buffer, [&](char* buf, size_t szbuf)
+        {
+            return get_true_segm_name(seg, buf, szbuf);
+        });
+        const auto seg_id = provider_->get_segment_id(make_string(segname), seg->startEA);
+        visitor.visit_start_xref(seg->startEA - base, seg_id, DEFAULT_OPERAND);
+        visitor.visit_end_xref();
+    }
+    visitor.visit_end_xrefs();
+
+    finish_object(visitor, base);
+    return id;
 }

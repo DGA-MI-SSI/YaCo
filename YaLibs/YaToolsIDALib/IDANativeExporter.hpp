@@ -19,8 +19,11 @@
 #include "YaTypes.hpp"
 #include "YaToolsIDANativeLib.hpp"
 
+#include <unordered_set>
+
 namespace std { template<typename T> class shared_ptr; }
 class YaToolObjectVersion;
+struct YaToolsHashProvider;
 
 struct IDANativeExporter
 {
@@ -30,20 +33,38 @@ struct IDANativeExporter
     void make_posterior_comment(ea_t address, const char* comment);
 
     void make_comments(std::shared_ptr<YaToolObjectVersion> object_version, ea_t address);
+    void make_header_comments(std::shared_ptr<YaToolObjectVersion>& object_version, ea_t ea);
 
     void make_segment(std::shared_ptr<YaToolObjectVersion> object_version, ea_t address);
     void make_segment_chunk(std::shared_ptr<YaToolObjectVersion> object_version, ea_t address);
     bool set_type(ea_t ea, const std::string& prototype);
     bool set_struct_member_type(ea_t ea, const std::string& prototype);
 
-    void set_struct_id(YaToolObjectId id, uint64_t struct_id);
+    void    set_tid(YaToolObjectId id, ea_t tid);
+    ea_t    get_tid(YaToolObjectId id);
+
+
+    void analyze_function(ea_t ea);
+    void make_function(std::shared_ptr<YaToolObjectVersion> version, ea_t ea);
+
+    void make_views(std::shared_ptr<YaToolObjectVersion> version, ea_t ea);
+
+    void make_code(std::shared_ptr<YaToolObjectVersion> version, ea_t ea);
+    void make_data(std::shared_ptr<YaToolObjectVersion> version, ea_t ea);
+
+    void make_enum(YaToolsHashProvider* provider, std::shared_ptr<YaToolObjectVersion> version, ea_t ea);
+    void make_enum_member(YaToolsHashProvider* provider, std::shared_ptr<YaToolObjectVersion> version, ea_t ea);
 
 #ifndef SWIG
     std::string patch_prototype(const std::string& prototype, ea_t ea);
-#endif
+
+    using IdMap = std::unordered_map<YaToolObjectId, ea_t>;
+    using EnumMemberMap = std::unordered_map<uint64_t, enum_t>;
 
 private:
-    std::unordered_map<YaToolObjectId, uint64_t> struct_ids;
+    IdMap tids;
+    EnumMemberMap enum_members;
     YaToolsIDANativeLib tools;
+#endif
 };
 

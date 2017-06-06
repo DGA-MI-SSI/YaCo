@@ -20,8 +20,30 @@
 
 namespace std { template<typename T> class shared_ptr; }
 class YaToolObjectVersion;
+struct YaToolsHashProvider;
 
 struct IDANativeModel
 {
+    IDANativeModel();
+
+    void set_system     (const const_string_ref& eq, const const_string_ref& os);
+    void set_provider   (YaToolsHashProvider* provider);
+
     std::string get_type(ea_t ea);
+
+    YaToolObjectId  accept_binary       (IModelVisitor& visitor);
+    YaToolObjectId  accept_enum         (IModelVisitor& visitor, ea_t eid);
+
+    // intermediate native methods
+    void start_object   (IModelVisitor& visitor, YaToolObjectType_e type, YaToolObjectId id, YaToolObjectId parent, ea_t ea);
+    void finish_object  (IModelVisitor& visitor, int64_t offset);
+
+#ifndef SWIG
+private:
+    YaToolsHashProvider*    provider_;
+    std::string             eq_;
+    const_string_ref        eqref_;
+    std::string             os_;
+    const_string_ref        osref_;
+#endif
 };

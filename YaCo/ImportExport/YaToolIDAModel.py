@@ -76,6 +76,8 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         if self.minXrefAddress == idc.BADADDR:
             self.minXrefAddress = idc.SegStart(0)
             self.maxXrefAddress = idc.SegEnd(0)
+        _yatools_ida_model.set_system(EquipementDescription, OSDescription)
+        _yatools_ida_model.set_provider(self.hash_provider)
 
     def set_ea_exporter(self, ea_exporter):
         self.delegate_exporter = ea_exporter
@@ -108,49 +110,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         visitor.visit_end()
 
     def accept_binary(self, visitor):
-
-        binary_object_id = self.hash_provider.get_binary_id()
-
-        visitor.visit_start_reference_object(ya.OBJECT_TYPE_BINARY)
-        # object version id
-        visitor.visit_id(binary_object_id)
-
-        visitor.visit_start_object_version()
-
-        # size
-        visitor.visit_size(YaToolIDATools.LastSegEnd() - idc.FirstSeg())
-        visitor.visit_parent_id(0)
-
-        image_base = idaapi.get_imagebase()
-        visitor.visit_address(image_base)
-        visitor.visit_name(idc.GetInputFile(), DEFAULT_NAME_FLAGS)
-
-        visitor.visit_start_xrefs()
-
-        seg_ea_start = idc.FirstSeg()
-
-        while seg_ea_start != idc.BADADDR:
-            seg_ea_end = idc.SegEnd(seg_ea_start)
-            obj_id = self.hash_provider.get_segment_id(idc.SegName(seg_ea_start), seg_ea_start)
-            visitor.visit_start_xref(seg_ea_start - image_base, obj_id, DEFAULT_OPERAND)
-            visitor.visit_end_xref()
-
-            seg_ea_start = idc.NextSeg(seg_ea_end - 1)
-        visitor.visit_end_xrefs()
-
-        visitor.visit_start_matching_systems()
-        visitor.visit_start_matching_system(image_base)
-        visitor.visit_matching_system_description("equipement", self.EquipementDescription)
-        visitor.visit_matching_system_description("os", self.OSDescription)
-        visitor.visit_end_matching_system()
-        visitor.visit_end_matching_systems()
-
-        # TODO: add offsets for all elements inside segment
-
-        visitor.visit_end_object_version()
-
-        visitor.visit_end_reference_object()
-
+        binary_object_id = _yatools_ida_model.accept_binary(visitor)
         if self.descending_mode:
             self.accept_strucs(visitor)
             self.accept_enums(visitor)
@@ -168,126 +128,10 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             self.accept_enum(visitor, idc.GetnEnum(i))
 
     def accept_enum(self, visitor, enum_id):
-
         if self.skip_accept_enum or enum_id in self.exported_object_ids:
             return
-
-        enum_name = idc.GetEnumName(enum_id)
-
-        visitor.visit_start_reference_object(ya.OBJECT_TYPE_ENUM)
-
-        object_id = self.hash_provider.get_struc_enum_object_id(enum_id, enum_name)
+        object_id = _yatools_ida_model.accept_enum(visitor, enum_id)
         self.exported_object_ids[enum_id] = object_id
-
-        visitor.visit_id(object_id)
-
-        visitor.visit_start_object_version()
-
-        visitor.visit_size(idc.GetEnumWidth(enum_id))
-
-        logger.debug("visiting enum name : %r" % enum_name)
-        visitor.visit_name(enum_name, DEFAULT_NAME_FLAGS)
-        # idc.GetEnumIdx is used to keep order when we recreate enums
-        idx = idc.GetEnumIdx(enum_id)
-        visitor.visit_address(idx)
-
-        #
-        # FLAGS
-        #
-        flags = idc.GetEnumFlag(enum_id)
-        if idc.IsBitfield(enum_id):
-            flags |= 0x1  # bitfield flag
-        visitor.visit_flags(flags)
-
-        #
-        # HEADER COMMENT
-        #
-        RptComt = idc.GetEnumCmt(enum_id, 1)
-        if RptComt is not None and RptComt != "":
-            visitor.visit_header_comment(True, RptComt)
-        Cmt = idc.GetEnumCmt(enum_id, 0)
-        if Cmt is not None and Cmt != "":
-            visitor.visit_header_comment(False, Cmt)
-
-        visitor.visit_start_xrefs()
-
-        for (const_id, const_value, bmask) in YaToolIDATools.enum_member_iterate_all(enum_id):
-            const_name = idc.GetConstName(const_id)
-            enum_member_id = self.hash_provider.get_enum_member_id(
-                enum_id, enum_name, const_id, const_name, const_value, bmask)
-            visitor.visit_start_xref(0, enum_member_id, DEFAULT_OPERAND)
-            visitor.visit_end_xref()
-
-        visitor.visit_end_xrefs()
-
-        #
-        # MATCHING SYSTEMS
-        #
-        visitor.visit_start_matching_systems()
-        visitor.visit_start_matching_system(idx)
-        visitor.visit_matching_system_description("equipement", self.EquipementDescription)
-        visitor.visit_matching_system_description("os", self.OSDescription)
-        visitor.visit_end_matching_system()
-        visitor.visit_end_matching_systems()
-
-        visitor.visit_end_object_version()
-
-        visitor.visit_end_reference_object()
-
-        self.accept_enum_members(visitor, object_id, enum_id)
-
-    def accept_enum_members(self, visitor, parent_id, enum_id):
-        for (const_id, const_value, bmask) in YaToolIDATools.enum_member_iterate_all(enum_id):
-            self.accept_enum_member(visitor, parent_id, enum_id, const_id)
-
-    def accept_enum_member(self, visitor, parent_id, enum_id, const_id):
-        visitor.visit_start_reference_object(ya.OBJECT_TYPE_ENUM_MEMBER)
-
-        const_name = idc.GetConstName(const_id)
-        bmask = idc.GetConstBmask(const_id)
-        const_value = idc.GetConstValue(const_id)
-
-        enum_name = idc.GetEnumName(enum_id)
-        object_id = self.hash_provider.get_enum_member_id(enum_id, enum_name, const_id, const_name, const_value, bmask)
-
-        visitor.visit_id(object_id)
-
-        visitor.visit_start_object_version()
-
-        visitor.visit_parent_id(parent_id)
-        visitor.visit_address(const_value)
-
-        visitor.visit_size(0)
-
-        visitor.visit_name(const_name, DEFAULT_NAME_FLAGS)
-
-        # mask is treated as flags
-        if bmask != idc.BADADDR:
-            visitor.visit_flags(bmask)
-
-        #
-        # MEMBER COMMENT
-        #
-        RptComt = idc.GetConstCmt(const_id, 1)
-        if RptComt is not None and RptComt != "":
-            visitor.visit_header_comment(True, RptComt)
-        Cmt = idc.GetConstCmt(const_id, 0)
-        if Cmt is not None and Cmt != "":
-            visitor.visit_header_comment(False, Cmt)
-
-        #
-        # MATCHING SYSTEMS
-        #
-        visitor.visit_start_matching_systems()
-        visitor.visit_start_matching_system(const_value)
-        visitor.visit_matching_system_description("equipement", self.EquipementDescription)
-        visitor.visit_matching_system_description("os", self.OSDescription)
-        visitor.visit_end_matching_system()
-        visitor.visit_end_matching_systems()
-
-        visitor.visit_end_object_version()
-
-        visitor.visit_end_reference_object()
 
     def accept_deleted_struc(self, visitor, struc_id, struc_type=ya.OBJECT_TYPE_STRUCT):
         object_id = self.hash_provider.get_struc_enum_object_id(struc_id)
@@ -321,10 +165,8 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         if DEBUG_IDA_MODEL_EXPORT:
             logger.debug("accept_struc : 0x%08X : %s" % (struc_id, struc_name))
 
-        visitor.visit_start_reference_object(struc_type)
-
         if struc_type == ya.OBJECT_TYPE_STACKFRAME:
-            object_id = self.hash_provider.get_stackframe_object_id(struc_id)
+            object_id = self.hash_provider.get_stackframe_object_id(struc_id, idc.BADADDR)
         else:
             object_id = self.hash_provider.get_struc_enum_object_id(struc_id, idc.GetStrucName(struc_id))
 
@@ -333,12 +175,8 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         else:
             self.exported_stackframe_addresses[stackframe_func_addr] = object_id
 
-        visitor.visit_id(object_id)
-
-        visitor.visit_start_object_version()
-        visitor.visit_parent_id(parent_id)
-        if stackframe_func_addr:
-            visitor.visit_address(stackframe_func_addr)
+        ea = stackframe_func_addr if stackframe_func_addr else 0
+        _yatools_ida_model.start_object(visitor, struc_type, object_id, parent_id, ea)
 
         size = idc.GetStrucSize(struc_id)
         if size > MAX_STRUCT_SIZE:
@@ -406,16 +244,6 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             offset = idaapi.get_struc_next_offset(ida_struc, offset)
         visitor.visit_end_xrefs()
 
-        #
-        # MATCHING SYSTEMS
-        #
-        visitor.visit_start_matching_systems()
-        visitor.visit_start_matching_system(0)
-        visitor.visit_matching_system_description("equipement", self.EquipementDescription)
-        visitor.visit_matching_system_description("os", self.OSDescription)
-        visitor.visit_end_matching_system()
-        visitor.visit_end_matching_systems()
-
         default_name_offset = 0
         if struc_type == ya.OBJECT_TYPE_STACKFRAME:
             func = idaapi.get_func_by_frame(struc_id)
@@ -428,9 +256,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
 
             default_name_offset = lvars_size
 
-        visitor.visit_end_object_version()
-
-        visitor.visit_end_reference_object()
+        _yatools_ida_model.finish_object(visitor, 0)
 
         self.accept_struc_members(visitor, object_id, ida_struc, struc_id, struc_name, is_union, struc_type,
                                   struc_member_type, default_name_offset, stackframe_func_addr=stackframe_func_addr)
@@ -487,18 +313,8 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             # TODO: type
             member_type = _yatools_ida_model.get_type(mid)
 
-            visitor.visit_start_reference_object(struc_member_type)
-
-            visitor.visit_id(member_object_id)
-
-            visitor.visit_start_object_version()
-
-            visitor.visit_parent_id(parent_id)
-
-            visitor.visit_address(offset)
-
+            _yatools_ida_model.start_object(visitor, struc_member_type, member_object_id, parent_id, offset)
             visitor.visit_size(member_size)
-
             visitor.visit_name(name, DEFAULT_NAME_FLAGS)
 
             if len(member_type):
@@ -551,20 +367,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             if Cmt is not None and Cmt != "":
                 visitor.visit_header_comment(False, Cmt)
 
-            #
-            # MATCHING SYSTEMS
-            #
-            # matchingsystems
-            visitor.visit_start_matching_systems()
-            visitor.visit_start_matching_system(offset)
-            visitor.visit_matching_system_description("equipement", self.EquipementDescription)
-            visitor.visit_matching_system_description("os", self.OSDescription)
-            visitor.visit_end_matching_system()
-            visitor.visit_end_matching_systems()
-
-            visitor.visit_end_object_version()
-
-            visitor.visit_end_reference_object()
+            _yatools_ida_model.finish_object(visitor, offset)
 
             if idc.isStruct(flags):
                 self.accept_struc(visitor, member_object_id, member_sid)
@@ -634,7 +437,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             if walk_basic_blocks:
 
                 basic_blocks = YaToolIDATools.get_function_basic_blocks(ea, func)
-                func_object_id = self.hash_provider.get_function_id_at_ea(eaFunc)
+                func_object_id = self.hash_provider.get_hash_for_ea(eaFunc)
 
                 if self.descending_mode:
                     self.accept_function(visitor, parent_id, eaFunc, func, basic_blocks)
@@ -647,7 +450,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
                     logger.error("Function has no basic blocks : %s (eaFunc=%s) " %
                                  (self.yatools.address_to_hex_string(ea), self.yatools.address_to_hex_string(eaFunc)))
                 else:
-                    func_object_id = self.hash_provider.get_function_id_at_ea(eaFunc)
+                    func_object_id = self.hash_provider.get_hash_for_ea(eaFunc)
                     self.accept_basic_block(visitor, func_object_id, basic_block, eaFunc, func, func_object_id)
 
         # if ea is not in a function and it is code
@@ -675,22 +478,14 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         if (eaCode in self.exported_object_ids):
             return
         eaCodeEnd = _yatools_ida.get_code_chunk_end_addr(eaCode, idc.SegEnd(eaCode))
-        
+
         if DEBUG_IDA_MODEL_EXPORT:
             logger.debug("accept_code : %s" % self.yatools.address_to_hex_string(eaCode))
 
-        visitor.visit_start_reference_object(ya.OBJECT_TYPE_CODE)
-
-        code_id = self.hash_provider.get_code_id_at_ea(eaCode)
+        code_id = self.hash_provider.get_hash_for_ea(eaCode)
         # object version id
-        visitor.visit_id(code_id)
         self.exported_object_ids[eaCode] = code_id
-
-        visitor.visit_start_object_version()
-
-        visitor.visit_parent_id(parent_id)
-        visitor.visit_address(eaCode)
-
+        _yatools_ida_model.start_object(visitor, ya.OBJECT_TYPE_CODE, code_id, parent_id, eaCode)
         visitor.visit_size(eaCodeEnd-eaCode)
 
         # code label
@@ -698,24 +493,12 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         if YaToolIDATools.is_userdefined_name(name, eaCode):
             name_flags = YaToolIDATools.GetNameFlags(name, eaCode)
             visitor.visit_name(name, name_flags)
-        
+
         (references, xrefed_struc_ids, xrefed_enum_ids) = self.accept_code_area(visitor, eaCode, eaCodeEnd)
 
-        #
-        # MATCHING SYSTEMS
-        #
-        visitor.visit_start_matching_systems()
         (chunk_start, chunk_end) = YaToolIDATools.get_segment_chunk_for_ea(idc.SegStart(eaCode), eaCode)
-        visitor.visit_start_matching_system(eaCode - chunk_start)
-        visitor.visit_matching_system_description("equipement", self.EquipementDescription)
-        visitor.visit_matching_system_description("os", self.OSDescription)
-        visitor.visit_end_matching_system()
-        visitor.visit_end_matching_systems()
+        _yatools_ida_model.finish_object(visitor, eaCode - chunk_start)
 
-        visitor.visit_end_object_version()
-
-        visitor.visit_end_reference_object()
-        
         # proceed reference values
         for (reference_offset, references_t) in references.iteritems():
             for (operand, reference_dict, reference_value) in references_t:
@@ -737,7 +520,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         if DEBUG_IDA_MODEL_EXPORT:
             logger.debug("accept_function : %s" % self.yatools.address_to_hex_string(eaFunc))
 
-        funcId = self.hash_provider.get_function_id_at_ea(eaFunc)
+        funcId = self.hash_provider.get_hash_for_ea(eaFunc)
         self.exported_function_ids[eaFunc] = funcId
 
         Comm = idaapi.get_func_cmt(func, 0)
@@ -755,19 +538,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         # create function sig
         (FirstBytesHash, OpcodesHash) = YaToolIDATools.createSig(basic_blocks)
 
-        #
-        # INFOS
-        #
-        visitor.visit_start_reference_object(ya.OBJECT_TYPE_FUNCTION)
-
-        # id
-        visitor.visit_id(funcId)
-
-        visitor.visit_start_object_version()
-        visitor.visit_parent_id(parent_id)
-        visitor.visit_address(eaFunc)
-
-        # size
+        _yatools_ida_model.start_object(visitor, ya.OBJECT_TYPE_FUNCTION, funcId, parent_id, eaFunc)
         visitor.visit_size(FunctionSize)
 
         #
@@ -824,29 +595,13 @@ class YaToolIDAModel(YaToolObjectVersionElement):
 
         visitor.visit_end_xrefs()
 
-        #
-        # MATCHING SYSTEMS
-        #
-        # matchingsystems
-        visitor.visit_start_matching_systems()
         (chunk_start, chunk_end) = YaToolIDATools.get_segment_chunk_for_ea(ea_seg, eaFunc)
-        visitor.visit_start_matching_system(eaFunc - chunk_start)
-        visitor.visit_matching_system_description("equipement", self.EquipementDescription)
-        visitor.visit_matching_system_description("os", self.OSDescription)
-        visitor.visit_end_matching_system()
-        visitor.visit_end_matching_systems()
 
         #
         # Call the architecture plugin
         #
         self.arch_plugin.accept_function_hook(visitor, eaFunc, func, basic_blocks)
-
-        #
-        # END
-        #
-        visitor.visit_end_object_version()
-
-        visitor.visit_end_reference_object()
+        _yatools_ida_model.finish_object(visitor, eaFunc - chunk_start)
 
         if stack_frame is not None:
             #             logger.debug("exporting stackframe for function at 0x%08X" % eaFunc)
@@ -884,21 +639,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         # create function sig
         (_FirstBytesHash, OpcodesHash) = YaToolIDATools.create_basic_block_sig(basic_block)
 
-        #
-        # INFOS
-        #
-        visitor.visit_start_reference_object(ya.OBJECT_TYPE_BASIC_BLOCK)
-
-        # id
-        visitor.visit_id(basic_block_id)
-
-        visitor.visit_start_object_version()
-
-        visitor.visit_parent_id(parent_id)
-
-        visitor.visit_address(startEA)
-
-        # size
+        _yatools_ida_model.start_object(visitor, ya.OBJECT_TYPE_BASIC_BLOCK, basic_block_id, parent_id, startEA)
         visitor.visit_size(endEA - startEA)
 
         # function name
@@ -919,30 +660,15 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         signature = "%08X" % OpcodesHash
         visitor.visit_signature(ya.SIGNATURE_FIRSTBYTE, ya.SIGNATURE_ALGORITHM_CRC32, signature)
         visitor.visit_end_signatures()
-        
-        (references, xrefed_struc_ids, xrefed_enum_ids) = self.accept_code_area(visitor, startEA, endEA, func)
 
-        #
-        # MATCHING SYSTEMS
-        #
-        visitor.visit_start_matching_systems()
-        visitor.visit_start_matching_system(startEA - funcEA)
-        visitor.visit_matching_system_description("equipement", self.EquipementDescription)
-        visitor.visit_matching_system_description("os", self.OSDescription)
-        visitor.visit_end_matching_system()
-        visitor.visit_end_matching_systems()
+        (references, xrefed_struc_ids, xrefed_enum_ids) = self.accept_code_area(visitor, startEA, endEA, func)
 
         #
         # Call the architecture plugin
         #
         self.arch_plugin.accept_basic_block_hook(visitor, basic_block, funcEA, func, parent_function_id)
 
-        #
-        # END
-        #
-        visitor.visit_end_object_version()
-
-        visitor.visit_end_reference_object()
+        _yatools_ida_model.finish_object(visitor, startEA - funcEA)
 
         # proceed reference values
         for (reference_offset, references_t) in references.iteritems():
@@ -958,7 +684,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
 
         if not self.descending_mode:
             self.accept_function(visitor, parent_function_id, funcEA, func)
-    
+
     def accept_code_area(self, visitor, startEA, endEA, func=None):
         # get Xrefs
         xrefsto = YaToolIDATools.createBasicBlockXRefsTo(
@@ -1036,7 +762,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
                 except KeyError:
                     this_offset = []
                     offset_elements[offset] = this_offset
-    
+
                 for (register_name, end_offset, register_value) in registers_set:
                     this_offset.append((TYPE_REGISTER_VIEW, (end_offset, register_name, register_value)))
                     # visitor.visit_offset_registerview(register_offset, end_offset, register_name, register_value)
@@ -1081,7 +807,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         # we have to order all xrefs, so we create a temp dict to add all xrefs of all types and visit them later
         ordered_xrefs = {}
         for (functionOffset, functionXref) in functionXrefs.iteritems():
-            xref_value = self.hash_provider.get_function_id_at_ea(functionXref)
+            xref_value = self.hash_provider.get_hash_for_ea(functionXref)
             try:
                 ll = ordered_xrefs[functionOffset]
             except KeyError:
@@ -1092,7 +818,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             # visitor.visit_end_xref()
 
         for (dataOffset, dataXref) in dataXrefs.iteritems():
-            xref_value = self.hash_provider.get_data_id_at_ea(dataXref)
+            xref_value = self.hash_provider.get_hash_for_ea(dataXref)
             try:
                 ll = ordered_xrefs[dataOffset]
             except KeyError:
@@ -1111,7 +837,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             funcEA = func.startEA
             bbOffset = idc.PrevNotTail(endEA)
             child_ea = idc.Rfirst(bbOffset)
-    
+
             while child_ea != idc.BADADDR:
                 # id of the cross ref BB
                 child_id = self.hash_provider.get_function_basic_block_hash(child_ea, funcEA)
@@ -1230,42 +956,17 @@ class YaToolIDAModel(YaToolObjectVersionElement):
                 visitor.visit_end_xref()
 
         visitor.visit_end_xrefs()
-        
+
         return (references, xrefed_struc_ids, xrefed_enum_ids)
-        
+
     def accept_reference_info(self, visitor, parent_ea, reference_info):
         (reference_offset, reference_value, reference_flags) = reference_info
-
-        visitor.visit_start_reference_object(ya.OBJECT_TYPE_REFERENCE_INFO)
-
-        # id
         # hash the full ea and value
-        visitor.visit_id(self.hash_provider.get_reference_info_hash(parent_ea + reference_offset, reference_value))
-
-        visitor.visit_start_object_version()
-
-        # size
+        refid = self.hash_provider.get_reference_info_hash(parent_ea + reference_offset, reference_value)
+        _yatools_ida_model.start_object(visitor, ya.OBJECT_TYPE_REFERENCE_INFO, refid, 0, 0)
         visitor.visit_size(0)
-
-        # flags
         visitor.visit_flags(reference_flags)
-
-        #
-        # MATCHING SYSTEMS
-        #
-        visitor.visit_start_matching_systems()
-        visitor.visit_start_matching_system(reference_value)
-        visitor.visit_matching_system_description("equipement", self.EquipementDescription)
-        visitor.visit_matching_system_description("os", self.OSDescription)
-        visitor.visit_end_matching_system()
-        visitor.visit_end_matching_systems()
-
-        #
-        # END
-        #
-        visitor.visit_end_object_version()
-
-        visitor.visit_end_reference_object()
+        _yatools_ida_model.finish_object(visitor, reference_value)
 
     """
     Unused by now but might be useful
@@ -1308,7 +1009,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
                 else:
                     return size
         """
-        object_id = self.hash_provider.get_data_id_at_ea(ea)
+        object_id = self.hash_provider.get_hash_for_ea(ea)
         if ea in self.exported_object_ids:
             if size == 0:
                 return 1
@@ -1317,17 +1018,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
 
         self.exported_object_ids[ea] = object_id
 
-        visitor.visit_start_reference_object(ya.OBJECT_TYPE_DATA)
-
-        # reference object id
-        visitor.visit_id(object_id)
-
-        visitor.visit_start_object_version()
-
-        visitor.visit_parent_id(parent_id)
-        visitor.visit_address(ea)
-
-        # size
+        _yatools_ida_model.start_object(visitor, ya.OBJECT_TYPE_DATA, object_id, parent_id, ea)
         visitor.visit_size(size)
 
         # data name
@@ -1394,20 +1085,8 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         if idc.isStruct(flags):  # OR HAS_XREFS
             visitor.visit_end_xrefs()
 
-        #
-        # MATCHING SYSTEMS
-        #
-        visitor.visit_start_matching_systems()
         (chunk_start, chunk_end) = YaToolIDATools.get_segment_chunk_for_ea(idc.SegStart(ea), ea)
-        visitor.visit_start_matching_system(ea - chunk_start)
-        visitor.visit_matching_system_description("equipement", self.EquipementDescription)
-        visitor.visit_matching_system_description("os", self.OSDescription)
-        visitor.visit_end_matching_system()
-        visitor.visit_end_matching_systems()
-
-        visitor.visit_end_object_version()
-
-        visitor.visit_end_reference_object()
+        _yatools_ida_model.finish_object(visitor, ea - chunk_start)
 
         if idc.isStruct(flags):
             self.accept_struc(visitor, object_id, strid)
@@ -1437,13 +1116,6 @@ class YaToolIDAModel(YaToolObjectVersionElement):
 
         visitor.visit_segments_end()
 
-    def accept_attribute(self, visitor, attr_name, attr_value):
-        visitor.visit_attribute(attr_name, attr_value)
-
-    def accept_attributes(self, visitor, attributes):
-        for (attr_name, attr_value) in attributes.iteritems():
-            self.accept_attribute(visitor, attr_name, str(attr_value))
-
     def accept_segment(self, visitor, parent_id, seg_ea_start, seg_ea_end=None, export_chunks=False, chunk_eas=None,
                        export_eas=None):
 
@@ -1462,22 +1134,8 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         segment_object_id = self.hash_provider.get_segment_id(name, seg_ea_start)
         self.exported_segment_ids[seg_ea_start] = segment_object_id
 
-        seg_attributes = {}
-        for (attr_name, attr_key) in YaToolIDATools.SEGATTR_MAP.iteritems():
-            value = idc.GetSegmentAttr(seg_ea_start, attr_key)
-            seg_attributes[attr_name] = value
-
-        visitor.visit_start_reference_object(ya.OBJECT_TYPE_SEGMENT)
-        # object version id
-        visitor.visit_id(segment_object_id)
-
-        visitor.visit_start_object_version()
-        visitor.visit_parent_id(parent_id)
-        visitor.visit_address(seg_ea_start)
-
-        # size
+        _yatools_ida_model.start_object(visitor, ya.OBJECT_TYPE_SEGMENT, segment_object_id, parent_id, seg_ea_start)
         visitor.visit_size(seg_ea_end - seg_ea_start)
-
         visitor.visit_name(name, DEFAULT_NAME_FLAGS)
 
         visitor.visit_start_xrefs()
@@ -1490,20 +1148,12 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             visitor.visit_end_xref()
         visitor.visit_end_xrefs()
 
-        visitor.visit_start_matching_systems()
-        visitor.visit_start_matching_system(seg_ea_start - idaapi.get_imagebase())
-        visitor.visit_matching_system_description("equipement", self.EquipementDescription)
-        visitor.visit_matching_system_description("os", self.OSDescription)
-        visitor.visit_end_matching_system()
-        visitor.visit_end_matching_systems()
-
-        self.accept_attributes(visitor, seg_attributes)
+        for (attr_name, attr_key) in YaToolIDATools.SEGATTR_MAP.iteritems():
+            value = idc.GetSegmentAttr(seg_ea_start, attr_key)
+            visitor.visit_attribute(attr_name, str(value))
 
         # TODO: add offsets for all elements inside segment
-
-        visitor.visit_end_object_version()
-
-        visitor.visit_end_reference_object()
+        _yatools_ida_model.finish_object(visitor, seg_ea_start - idaapi.get_imagebase())
 
         if export_chunks:
             for (chunk_start, chunk_end) in segment_items:
@@ -1542,16 +1192,8 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         logger.debug("exporting segment_chunk 0x%08X -> 0x%08X in segment 0x%08X -> 0x%08X : %s" %
                      (chunk_start, chunk_end, seg_start, seg_end, idc.SegName(seg_start)))
 
-        visitor.visit_start_reference_object(ya.OBJECT_TYPE_SEGMENT_CHUNK)
-        # object version id
-        visitor.visit_id(segment_chunk_object_id)
-
-        visitor.visit_start_object_version()
-        if segment_oid:
-            visitor.visit_parent_id(segment_oid)
-        visitor.visit_address(chunk_start)
-
-        # size
+        parent_id = segment_oid if segment_oid else 0
+        _yatools_ida_model.start_object(visitor, ya.OBJECT_TYPE_SEGMENT_CHUNK, segment_chunk_object_id, parent_id, chunk_start)
         visitor.visit_size(chunk_end - chunk_start)
 
         visitor.visit_start_xrefs()
@@ -1564,13 +1206,6 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             visitor.visit_end_xref()
         visitor.visit_end_xrefs()
 
-        visitor.visit_start_matching_systems()
-        visitor.visit_start_matching_system(chunk_start - seg_start)
-        visitor.visit_matching_system_description("equipement", self.EquipementDescription)
-        visitor.visit_matching_system_description("os", self.OSDescription)
-        visitor.visit_end_matching_system()
-        visitor.visit_end_matching_systems()
-
         for (blob_addr, blob_content) in sorted(
                 YaToolIDATools.address_range_get_blobs(chunk_start, chunk_end).iteritems()):
             while len(blob_content) > MAX_BLOB_TAG_LEN:
@@ -1579,9 +1214,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
                 blob_addr += MAX_BLOB_TAG_LEN
             visitor.visit_blob(blob_addr - chunk_start, blob_content)
 
-        visitor.visit_end_object_version()
-
-        visitor.visit_end_reference_object()
+        _yatools_ida_model.finish_object(visitor, chunk_start - seg_start)
 
         if not self.descending_mode:
             self.accept_segment(visitor, 0, seg_start, seg_end)
