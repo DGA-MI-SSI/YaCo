@@ -40,7 +40,9 @@ struct IDANativeExporter
     bool set_type(ea_t ea, const std::string& prototype);
     bool set_struct_member_type(ea_t ea, const std::string& prototype);
 
-    void set_struct_id(YaToolObjectId id, uint64_t struct_id);
+    void        set_tid(YaToolObjectId id, uint64_t tid);
+    uint64_t    get_tid(YaToolObjectId id);
+
 
     void analyze_function(ea_t ea);
     void make_function(std::shared_ptr<YaToolObjectVersion> version, ea_t ea);
@@ -52,17 +54,14 @@ struct IDANativeExporter
 
     void make_enum(YaToolsHashProvider* provider, std::shared_ptr<YaToolObjectVersion> version, ea_t ea);
     void make_enum_member(YaToolsHashProvider* provider, std::shared_ptr<YaToolObjectVersion> version, ea_t ea);
-    uint64_t get_enum_id(YaToolObjectId id);
 
 #ifndef SWIG
     std::string patch_prototype(const std::string& prototype, ea_t ea);
 
     using IdMap = std::unordered_map<YaToolObjectId, uint64_t>;
-    using EnumSet = std::unordered_set<uint64_t>;
 
 private:
-    IdMap struct_ids;
-    IdMap enum_ids;
+    IdMap tids;
     YaToolsIDANativeLib tools;
 #endif
 };
