@@ -991,8 +991,20 @@ static void make_registerview(ea_t ea, offset_t offset, const std::string& name,
         return;
     }
 
-    const auto ea0 = static_cast<ea_t>(offset += func->startEA);
-    const auto ea1 = static_cast<ea_t>(end += func->startEA);
+    const auto ea0 = static_cast<ea_t>(func->startEA + offset);
+    const auto ea1 = static_cast<ea_t>(func->startEA + end);
+    const auto regvar = find_regvar(func, ea0, ea1, name.data(), newname.data());
+    if(regvar)
+    {
+        if(regvar->startEA == ea0 && regvar->endEA == ea1)
+            return;
+
+        const auto err = del_regvar(func, ea0, ea1, regvar->canon);
+        if(err)
+            LOG(ERROR, "make_registerview: 0x" EA_FMT " unable to del regvar 0x%p 0x" EA_FMT "-0x" EA_FMT " %s -> %s error %d\n",
+                ea, func, ea0, ea1, name.data(), newname.data(), err);
+    }
+
     const auto err = add_regvar(func, ea0, ea1, name.data(), newname.data(), nullptr);
     if(err)
         LOG(ERROR, "make_registerview: 0x" EA_FMT " unable to add regvar 0x%p 0x" EA_FMT "-0x" EA_FMT " %s -> %s error %d\n",
