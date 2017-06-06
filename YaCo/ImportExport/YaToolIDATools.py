@@ -733,6 +733,7 @@ def get_object_id_of_union_member_id(hash_provider, member_id):
         idx = idc.GetFirstStrucIdx()
         while idx != idc.BADADDR:
             struc_id = idc.GetStrucId(idx)
+            struc_name = idc.GetStrucName(struc_id)
             if idc.IsUnion(struc_id):
 
                 offset = idc.GetFirstMember(struc_id)
@@ -742,9 +743,8 @@ def get_object_id_of_union_member_id(hash_provider, member_id):
                     if smember_id == member_id:
                         name = idc.GetMemberName(struc_id, offset)
                         if name is not None:
-                            struc_name = idc.GetStrucName(struc_id)
                             logger.debug("found member id 0x%016X in union %s/%s" % (member_id, struc_name, name))
-                            return hash_provider.get_struc_member_id_for_name(struc_name, offset)
+                            return hash_provider.get_struc_member_id(struc_id, offset, struc_name)
 
                     # next member
                     offset = idc.GetStrucNextOff(struc_id, offset)

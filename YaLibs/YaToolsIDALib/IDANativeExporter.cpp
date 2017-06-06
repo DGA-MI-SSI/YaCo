@@ -1161,9 +1161,8 @@ void IDANativeExporter::make_enum_member(YaToolsHashProvider* provider, std::sha
     const auto eid = static_cast<tid_t>(it->second);
     const auto ename = get_enum_name(eid);
     const auto name = version->get_name();
-    const auto value = std::to_string(ea);
     const auto id = version->get_id();
-    provider->put_hash_enum_member({ename.c_str(), ename.length()}, name, value, id, false);
+    provider->put_hash_enum_member({ename.c_str(), ename.length()}, name, ea, id, false);
 
     const auto bmask = is_bf(eid) ? version->get_object_flags() : DEFMASK;
     auto mid = get_enum_member(eid, ea, 0, bmask);

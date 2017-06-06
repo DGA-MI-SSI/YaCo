@@ -288,13 +288,12 @@ static YaToolObjectId get_segment_id(YaToolsHashProvider* provider, qstring& buf
     {
         return get_true_segm_name(seg, &buffer[0], buffer.size());
     });
-    const auto value = "segment-" + ya::to_string(buffer) + std::to_string(seg->startEA);
-    return provider->hash_local_string(value);
+    return provider->get_segment_id(ya::to_string(buffer), seg->startEA);
 }
 
 YaToolObjectId IDANativeModel::accept_binary(IModelVisitor& visitor)
 {
-    const auto id = provider_->hash_local_string("binary");
+    const auto id = provider_->get_binary_id();
     const auto base = get_imagebase();
     start_object(visitor, OBJECT_TYPE_BINARY, id, 0, base);
     const auto first = get_first_seg();

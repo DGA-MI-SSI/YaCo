@@ -20,8 +20,9 @@
 
 #include <Logger.h>
 #include <Yatools.h>
+#include <Hexa.h>
 #include "../Helpers.h"
-
+#include "YaHelpers.hpp"
 
 #include <string>
 #include <iostream>
@@ -32,9 +33,21 @@
 
 #define YATOOL_OBJECT_ID_NOT_FOUND  ((YaToolObjectId)0)
 
+static const auto MAX_CACHE_SIZE = 1000;
+
 YaToolsHashProvider::YaToolsHashProvider()
     : persistent_cache_enabled_(true)
 {
+    uchar hash[16];
+    const auto ok = retrieve_input_file_md5(hash);
+    if(!ok)
+        LOG(ERROR, "unable to retrieve input file MD5\n");
+
+    char hexbuf[sizeof hash * 2 + 1];
+    buffer_to_hex(hash, sizeof hash, hexbuf);
+    string_start_ = "md5=";
+    string_start_ += hexbuf;
+    string_start_ += "----";
 }
 
 void YaToolsHashProvider::populate_persistent_cache()
@@ -42,12 +55,6 @@ void YaToolsHashProvider::populate_persistent_cache()
     cache_by_string_persistent_.clear();
     cache_by_string_persistent_.insert(cache_by_string_.begin(), cache_by_string_.end());
 }
-
-void YaToolsHashProvider::set_string_start(const std::string& string_start)
-{
-    string_start_ = string_start;
-}
-
 
 void YaToolsHashProvider::check_and_flush_cache_if_needed()
 {
@@ -162,22 +169,28 @@ void YaToolsHashProvider::put_hash_struc_or_enum(ea_t item_id, YaToolObjectId id
     put_hash_cache(item_id, id, in_persistent_cache);
 }
 
-void YaToolsHashProvider::put_hash_enum_member(const std::string& enum_name, const std::string& const_name, const std::string& const_value, YaToolObjectId id, bool in_persistent_cache)
+void YaToolsHashProvider::put_hash_enum_member(const std::string& enum_name, const std::string& const_name, uint64_t const_value, YaToolObjectId id, bool in_persistent_cache)
 {
-    std::string key_string = get_enum_key_string(enum_name, const_name, const_value);
+    std::string key_string = get_enum_key_string(enum_name, const_name, ya::to_py_hex(const_value));
     put_hash_cache(key_string, id, in_persistent_cache);
 }
 
-int64_t get_clock_ms()
+static int64_t get_clock_ms()
 {
 
     const auto now = std::chrono::high_resolution_clock::now();
     return std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
 }
 
+static qstring get_name(const std::string& value, ea_t item_id)
+{
+    if(!value.empty())
+        return {};
+    return get_struc_name(item_id);
+}
+
 YaToolObjectId YaToolsHashProvider::get_struc_enum_object_id(ea_t item_id, const std::string& name, bool use_time)
 {
-    std::string used_name = name;
     ea_t eaFunc = get_func_by_frame(item_id);
     if(eaFunc != BADADDR)
     {
@@ -185,38 +198,33 @@ YaToolObjectId YaToolsHashProvider::get_struc_enum_object_id(ea_t item_id, const
         //(not the timestamp)
         return get_stackframe_object_id(item_id, eaFunc);
     }
-    if(name.size() == 0)
-        used_name = std::string(get_struc_name(item_id).c_str());
 
     auto cache_it = cache_by_string_.find(ea_to_std_string_key(item_id));
     if(cache_it != cache_by_string_.end())
     {
         LOG(DEBUG, "[HASH]:get_struc_enum_object_id cache hit : 0x%016llX (%s) --> %s\n",
-                (uint64_t)item_id, used_name.c_str(), YaToolObjectId_To_StdString(cache_it->second).c_str());
+                (uint64_t)item_id, get_name(name, item_id).c_str(), YaToolObjectId_To_StdString(cache_it->second).c_str());
         return cache_it->second;
+    }
+    
+    std::string prefix;
+    if(use_time)
+    {
+        std::stringstream ss;
+        ss << std::hex << get_clock_ms() << ea_to_std_string_key(item_id);
+        prefix = ss.str();
     }
     else
     {
-
-        std::string prefix;
-        if(use_time)
-        {
-            std::stringstream ss;
-            ss << std::hex << get_clock_ms() << ea_to_std_string_key(item_id);
-            prefix = ss.str();
-        }
-        else
-        {
-            prefix = std::string("struc_enum-");
-        }
-        std::string key_string(prefix + "----" + ea_to_std_string_key(item_id));
-        YaToolObjectId id = hash_local_string(key_string);
-        put_hash_struc_or_enum(item_id, id, use_time);
-        LOG(DEBUG, "HASH]:get_struc_enum_object_id cache miss : 0x%016llX (%p) --> %p\n",
-                         (uint64_t)item_id, used_name.c_str(), YaToolObjectId_To_StdString(id).c_str());
-
-        return id;
+        prefix = std::string("struc_enum-");
     }
+    std::string key_string(prefix + "----" + ea_to_std_string_key(item_id));
+    YaToolObjectId id = hash_local_string(key_string);
+    put_hash_struc_or_enum(item_id, id, use_time);
+    LOG(DEBUG, "HASH]:get_struc_enum_object_id cache miss : 0x%016llX (%p) --> %p\n",
+        (uint64_t) item_id, get_name(name, item_id).c_str(), YaToolObjectId_To_StdString(id).c_str());
+
+    return id;
 }
 
 
@@ -255,4 +263,70 @@ YaToolObjectId YaToolsHashProvider::get_enum_member_id(ea_t enum_id, const std::
                 (uint64_t)const_id, (enum_name + "." + const_name).c_str(), YaToolObjectId_To_StdString(id).c_str());
         return id;
     }
+}
+
+void YaToolsHashProvider::populate_struc_enum_ids()
+{
+    for(auto idx = get_first_struc_idx(); idx != BADADDR; idx = get_next_struc_idx(idx))
+        get_struc_enum_object_id(get_struc_by_idx(idx), {}, false);
+
+    qstring buffer;
+    std::string enum_name;
+    for(auto idx = 0u, end = get_enum_qty(); idx < end; ++idx)
+    {
+        const auto enum_id = getn_enum(idx);
+        get_enum_name(&buffer, enum_id);
+        enum_name.assign(buffer.c_str(), buffer.length());
+        get_struc_enum_object_id(enum_id, enum_name, false);
+        ya::walk_enum_members(enum_id, [&](const_t const_id, uval_t value, uchar /*serial*/, bmask_t bmask)
+        {
+            get_enum_member_name(&buffer, const_id);
+            get_enum_member_id(enum_id, enum_name, const_id, ya::to_string(buffer), ya::to_py_hex(value), bmask, false);
+        });
+    }
+
+    populate_persistent_cache();
+}
+
+YaToolObjectId YaToolsHashProvider::get_function_basic_block_hash(ea_t block_ea, ea_t func_ea)
+{
+    return hash_local_string("basic_block--" + std::to_string(block_ea) + "-" + std::to_string(func_ea));
+}
+
+YaToolObjectId YaToolsHashProvider::get_reference_info_hash(ea_t ea, uint64_t value)
+{
+    return hash_local_string("reference_info--" + std::to_string(ea) + "-" + std::to_string(value));
+}
+
+YaToolObjectId YaToolsHashProvider::get_struc_member_id(ea_t struc_id, ea_t offset, const std::string& name)
+{
+    const auto id = get_struc_enum_object_id(struc_id, name);
+    return hash_local_string("structmember-" + YaToolObjectId_To_StdString(id) + "-" + ya::to_py_hex(offset));
+}
+
+YaToolObjectId YaToolsHashProvider::get_stackframe_member_object_id(ea_t stack_id, ea_t offset, ea_t func_ea)
+{
+    const auto id = get_stackframe_object_id(stack_id, func_ea);
+    return hash_local_string("structmember-" + YaToolObjectId_To_StdString(id) + "-" + ya::to_py_hex(offset));
+}
+
+YaToolObjectId YaToolsHashProvider::get_binary_id()
+{
+    return hash_local_string("binary");
+}
+
+YaToolObjectId YaToolsHashProvider::get_segment_id(const std::string& name, ea_t ea)
+{
+    return hash_local_string("segment-" + name + std::to_string(ea));
+}
+
+YaToolObjectId YaToolsHashProvider::get_segment_chunk_id(YaToolObjectId seg_id, ea_t start, ea_t end)
+{
+    return hash_local_string("segment_chunk-" + YaToolObjectId_To_StdString(seg_id) + "-" + std::to_string(start) + "-" + std::to_string(end));
+}
+
+std::string YaToolsHashProvider::hash_to_string(YaToolObjectId id)
+{
+    // FIXME remove me when conversion to python is done
+    return YaToolObjectId_To_StdString(id);
 }

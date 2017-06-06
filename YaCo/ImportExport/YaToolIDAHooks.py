@@ -751,7 +751,7 @@ class YaToolIDB_Hooks(idaapi.IDB_Hooks):
         logger.warning("enum_member_deleted not fully implemented yet")
         # TODO: finish enum_member_deleted implementation
         """
-        when const hashs will be improved (see TODO+comment in YaToolHashProvider.get_enum_member_id)
+        when const hashs will be improved (see TODO+comment in YaToolsHashProvider.get_enum_member_id)
         we should be able to now which enum member has been deleted, and
         thus delete its corresponding object
         """

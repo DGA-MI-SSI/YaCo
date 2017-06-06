@@ -77,7 +77,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             self.minXrefAddress = idc.SegStart(0)
             self.maxXrefAddress = idc.SegEnd(0)
         _yatools_ida_model.set_system(EquipementDescription, OSDescription)
-        _yatools_ida_model.set_provider(self.hash_provider.get())
+        _yatools_ida_model.set_provider(self.hash_provider)
 
     def set_ea_exporter(self, ea_exporter):
         self.delegate_exporter = ea_exporter
@@ -166,7 +166,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             logger.debug("accept_struc : 0x%08X : %s" % (struc_id, struc_name))
 
         if struc_type == ya.OBJECT_TYPE_STACKFRAME:
-            object_id = self.hash_provider.get_stackframe_object_id(struc_id)
+            object_id = self.hash_provider.get_stackframe_object_id(struc_id, idc.BADADDR)
         else:
             object_id = self.hash_provider.get_struc_enum_object_id(struc_id, idc.GetStrucName(struc_id))
 
@@ -437,7 +437,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             if walk_basic_blocks:
 
                 basic_blocks = YaToolIDATools.get_function_basic_blocks(ea, func)
-                func_object_id = self.hash_provider.get_function_id_at_ea(eaFunc)
+                func_object_id = self.hash_provider.get_hash_for_ea(eaFunc)
 
                 if self.descending_mode:
                     self.accept_function(visitor, parent_id, eaFunc, func, basic_blocks)
@@ -450,7 +450,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
                     logger.error("Function has no basic blocks : %s (eaFunc=%s) " %
                                  (self.yatools.address_to_hex_string(ea), self.yatools.address_to_hex_string(eaFunc)))
                 else:
-                    func_object_id = self.hash_provider.get_function_id_at_ea(eaFunc)
+                    func_object_id = self.hash_provider.get_hash_for_ea(eaFunc)
                     self.accept_basic_block(visitor, func_object_id, basic_block, eaFunc, func, func_object_id)
 
         # if ea is not in a function and it is code
@@ -482,7 +482,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         if DEBUG_IDA_MODEL_EXPORT:
             logger.debug("accept_code : %s" % self.yatools.address_to_hex_string(eaCode))
 
-        code_id = self.hash_provider.get_code_id_at_ea(eaCode)
+        code_id = self.hash_provider.get_hash_for_ea(eaCode)
         # object version id
         self.exported_object_ids[eaCode] = code_id
         _yatools_ida_model.start_object(visitor, ya.OBJECT_TYPE_CODE, code_id, parent_id, eaCode)
@@ -520,7 +520,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         if DEBUG_IDA_MODEL_EXPORT:
             logger.debug("accept_function : %s" % self.yatools.address_to_hex_string(eaFunc))
 
-        funcId = self.hash_provider.get_function_id_at_ea(eaFunc)
+        funcId = self.hash_provider.get_hash_for_ea(eaFunc)
         self.exported_function_ids[eaFunc] = funcId
 
         Comm = idaapi.get_func_cmt(func, 0)
@@ -807,7 +807,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         # we have to order all xrefs, so we create a temp dict to add all xrefs of all types and visit them later
         ordered_xrefs = {}
         for (functionOffset, functionXref) in functionXrefs.iteritems():
-            xref_value = self.hash_provider.get_function_id_at_ea(functionXref)
+            xref_value = self.hash_provider.get_hash_for_ea(functionXref)
             try:
                 ll = ordered_xrefs[functionOffset]
             except KeyError:
@@ -818,7 +818,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             # visitor.visit_end_xref()
 
         for (dataOffset, dataXref) in dataXrefs.iteritems():
-            xref_value = self.hash_provider.get_data_id_at_ea(dataXref)
+            xref_value = self.hash_provider.get_hash_for_ea(dataXref)
             try:
                 ll = ordered_xrefs[dataOffset]
             except KeyError:
@@ -1009,7 +1009,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
                 else:
                     return size
         """
-        object_id = self.hash_provider.get_data_id_at_ea(ea)
+        object_id = self.hash_provider.get_hash_for_ea(ea)
         if ea in self.exported_object_ids:
             if size == 0:
                 return 1

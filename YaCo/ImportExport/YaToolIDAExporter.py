@@ -71,7 +71,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
             elif self.use_stackframes and obj_type == ya.OBJECT_TYPE_STACKFRAME:
                 self.make_stackframe(object_version, address)
             elif obj_type == ya.OBJECT_TYPE_ENUM:
-                _yatools_ida_exporter.make_enum(self.hash_provider.get(), object_version, address)
+                _yatools_ida_exporter.make_enum(self.hash_provider, object_version, address)
 
             else:
 
@@ -99,7 +99,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
                     self.make_struc_member(object_version, address)
 
                 elif obj_type == ya.OBJECT_TYPE_ENUM_MEMBER:
-                    _yatools_ida_exporter.make_enum_member(self.hash_provider.get(), object_version, address)
+                    _yatools_ida_exporter.make_enum_member(self.hash_provider, object_version, address)
 
                 elif self.use_stackframes and obj_type == ya.OBJECT_TYPE_STACKFRAME_MEMBER:
                     self.make_stackframe_member(object_version, address)
