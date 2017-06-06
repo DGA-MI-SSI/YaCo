@@ -43,11 +43,9 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
         self.struc_ids = {}
         self.union_ids = set()
         self.strucmember_ids = {}
-        self.enum_member_ids = {}
         self.stackframes_functions = {}
         self.stackframemembers_stackframes = {}
         self.arch_plugin = yatools.get_arch_plugin().get_ida_visitor_plugin()
-        self.enum_ids = {}
         self.reference_infos = {}
         self.hash_provider = hash_provider
         self.use_stackframes = use_stackframes
@@ -73,7 +71,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
             elif self.use_stackframes and obj_type == ya.OBJECT_TYPE_STACKFRAME:
                 self.make_stackframe(object_version, address)
             elif obj_type == ya.OBJECT_TYPE_ENUM:
-                self.make_enum(object_version, address)
+                _yatools_ida_exporter.make_enum(self.hash_provider.get(), object_version, address)
 
             else:
 
@@ -101,7 +99,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
                     self.make_struc_member(object_version, address)
 
                 elif obj_type == ya.OBJECT_TYPE_ENUM_MEMBER:
-                    self.make_enum_member(object_version, address)
+                    _yatools_ida_exporter.make_enum_member(self.hash_provider.get(), object_version, address)
 
                 elif self.use_stackframes and obj_type == ya.OBJECT_TYPE_STACKFRAME_MEMBER:
                     self.make_stackframe_member(object_version, address)
@@ -128,109 +126,6 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
             logger.error(traceback.format_exc())
             traceback.print_exc()
             raise e
-
-    def make_enum(self, object_version, address):
-        enum_name = object_version.get_name()
-        object_id = object_version.get_id()
-
-        # build flags
-        bitfield = False
-        flags = object_version.get_object_flags()
-        if flags & 0x1 == 0x1:
-            bitfield = True
-        flags = flags & ~0x1
-
-        try:
-            enum_width = object_version.get_size()
-        except KeyError:
-            enum_width = None
-
-        # check if enum already exists
-        enum_id = idc.GetEnum(enum_name)
-        enum_xrefs_ids = object_version.get_xrefed_ids()
-        logger.debug("%s:%d : Check here that enum_xrefs_ids is a set(YaToolObjectId) and correctly used" %
-                     (__file__, inspect.currentframe().f_lineno))
-        if enum_id != idc.BADADDR:
-            # enum already exists, deleting all members
-            for (const_id, const_value, bmask) in YaToolIDATools.enum_member_iterate_all(enum_id):
-                if bmask == idc.BADADDR:
-                    bmask = -1
-                const_name = idc.GetConstName(const_id)
-
-                if (enum_name, const_name, const_value) not in self.enum_member_ids:
-                    idc.DelConstEx(enum_id, const_value, 0, bmask)
-                elif self.hash_provider.get_enum_member_id(enum_id, enum_name, const_id, const_name,
-                                                           const_value) not in enum_xrefs_ids:
-                    logger.debug("deleting not found constant : %s/%s" % (enum_name, const_name))
-                    idc.DelConstEx(enum_id, const_value, 0, bmask)
-
-            """
-            if the enum "bitfield" state has changed : change it!
-            We can't access the functions
-            """
-            if idc.IsBitfield(enum_id) != bitfield:
-                idaapi.set_enum_bf(enum_id, bitfield)
-        else:
-            # create enum
-            # SetEnumFlag return "'module' object has no attribute 'set_enum_flag'".
-            enum_id = idc.AddEnum(address, enum_name, flags)
-
-        if enum_width is not None:
-            idc.SetEnumWidth(enum_id, enum_width)
-
-        if bitfield:
-            idc.SetEnumBf(enum_id, 1)
-
-        try:
-            for rpt in [False, True]:
-                cmt = self.sanitize_comment_to_ascii(object_version.get_header_comment(rpt))
-                idc.SetEnumCmt(enum_id, cmt, rpt)
-        except KeyError:
-            pass
-
-        self.enum_ids[object_id] = enum_id
-
-        self.hash_provider.put_hash_struc_or_enum(enum_id, object_id)
-
-        logger.debug("adding enum id %s : '0x%.016X'" % (self.hash_provider.hash_to_string(object_id), enum_id))
-
-    def make_enum_member(self, object_version, value):
-        name = object_version.get_name()
-        object_id = object_version.get_id()
-
-        enum_object_id = object_version.get_parent_object_id()
-
-        enum_id = 0
-        try:
-            enum_id = self.enum_ids[enum_object_id]
-        except:
-            return
-
-        self.hash_provider.put_hash_enum_member(idc.GetEnumName(enum_id), name, value, object_id)
-
-        # create member
-        if not idc.IsBitfield(enum_id):
-            bmask = -1
-        else:
-            bmask = object_version.get_object_flags()
-
-        member_id = idc.GetConstEx(enum_id, value, 0, bmask)
-        if member_id == idc.BADADDR:
-            idc.AddConstEx(enum_id, name, value, bmask)
-            member_id = idc.GetConstEx(enum_id, value, 0, bmask)
-        else:
-            if idc.SetConstName(member_id, name) == 0:
-                logger.error("Failed to set const name for enum_id")
-
-        # apply comments
-        try:
-            for rpt in [False, True]:
-                cmt = self.sanitize_comment_to_ascii(object_version.get_header_comment(rpt))
-                idc.SetConstCmt(member_id, cmt, rpt)
-        except KeyError:
-            pass
-
-        self.enum_member_ids[(idc.GetEnumName(enum_id), name, value)] = (member_id, object_id)
 
     def clear_struc_fields(self, struc_id, struc_size, xref_keys, is_union=False,
                            member_type=ya.OBJECT_TYPE_STRUCT_MEMBER, name_offset=0):
@@ -434,7 +329,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
             # an enum is applied here
             try:
                 sub_enum_object_id = object_version.getXRefIdsAt(0, 0)[0]
-                sub_enum_id = self.enum_ids[sub_enum_object_id]
+                sub_enum_id = _yatools_ida_exporter.get_enum_id(sub_enum_object_id)
 
                 name_ok = idc.SetMemberName(struc_id, offset, member_name)
                 if name_ok is not True:
@@ -654,7 +549,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
                 # apply enums     ###################
                 #
                 try:
-                    enum_id = self.enum_ids[xref_value]
+                    enum_id = _yatools_ida_exporter.get_enum_id(xref_value)
                     idaapi.op_enum(address + xref_offset, operand, enum_id, 0)
                 except KeyError:
                     pass

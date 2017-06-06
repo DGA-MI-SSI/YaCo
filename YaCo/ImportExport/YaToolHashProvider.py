@@ -45,6 +45,9 @@ class YaToolHashProvider(object):
     def disable_persistent_cache(self):
         _yatools_hash_provider.disable_persistent_cache()
 
+    def get(self):
+        return _yatools_hash_provider
+
     #     def flush_cache(self):
     #         self.cache = dict(self.persistent_cache)
 

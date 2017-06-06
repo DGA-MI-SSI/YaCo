@@ -20,10 +20,12 @@
 #pragma GCC system_header
 #endif
 
-#define BYTES_SOURCE
-#define NO_OBSOLETE_FUNCS
+#define BYTES_SOURCE        // access byte flags
+#define ENUM_SOURCE         // access enum flags
+#define NO_OBSOLETE_FUNCS   // disable obsolete functions
 #include <auto.hpp>
 #include <bytes.hpp>
+#include <enum.hpp>
 #include <frame.hpp>
 #include <funcs.hpp>
 #include <ida.hpp>
