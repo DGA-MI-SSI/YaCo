@@ -436,9 +436,17 @@ void IDANativeExporter::make_segment_chunk(std::shared_ptr<YaToolObjectVersion> 
     }
 }
 
-void IDANativeExporter::set_struct_id(YaToolObjectId id, uint64_t struct_id)
+uint64_t IDANativeExporter::get_tid(YaToolObjectId id)
 {
-    struct_ids[id] = struct_id;
+    const auto it = tids.find(id);
+    if(it == tids.end())
+        return ~0u;
+    return it->second;
+}
+
+void IDANativeExporter::set_tid(YaToolObjectId id, uint64_t tid)
+{
+    tids[id] = tid;
 }
 
 namespace
@@ -473,11 +481,11 @@ std::string IDANativeExporter::patch_prototype(const std::string& src, ea_t ea)
     for(std::sregex_iterator it = {src.begin(), src.end(), r_type_id}, end; it != end; ++it)
     {
         const auto id = it->str(2);
-        const auto sid = struct_ids.find(to_yaid(id.data()));
+        const auto sid = tids.find(to_yaid(id.data()));
         const auto name = it->str(1);
         // always remove special struct comment
         replace_inline(dst, "/*%" + name + "#" + id + "%*/", "");
-        if(sid == struct_ids.end())
+        if(sid == tids.end())
         {
             LOG(WARNING, "make_prototype: 0x" EA_FMT " unknown struct %s id %s\n", ea, name.data(), id.data());
             continue;
@@ -741,29 +749,71 @@ static bool set_function_comment(ea_t ea, const char* comment, bool repeatable)
     return set_func_cmt(func, comment, repeatable);
 }
 
-static bool set_struct_comment(const IDANativeExporter::IdMap& struct_ids, YaToolObjectId id, const char* comment, bool repeatable)
+static bool set_struct_comment(const IDANativeExporter::IdMap& tids, YaToolObjectId id, const char* comment, bool repeatable)
 {
-    const auto it = struct_ids.find(id);
-    if(it == struct_ids.end())
+    const auto it = tids.find(id);
+    if(it == tids.end())
         return false;
     const auto tid = static_cast<tid_t>(it->second);
     return set_struc_cmt(tid, comment, repeatable);
+}
+
+static bool set_struct_member_comment(const IDANativeExporter::IdMap& tids, YaToolObjectId id, const char* comment, bool repeatable)
+{
+    const auto it = tids.find(id);
+    if(it == tids.end())
+        return false;
+    const auto tid = static_cast<tid_t>(it->second);
+    const auto member = get_member_by_id(tid);
+    if(!member)
+        return false;
+    return set_member_cmt(member, comment, repeatable);
 }
 
 void IDANativeExporter::make_header_comments(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
 {
     const auto type = version->get_type();
     const auto id = version->get_id();
-    for(const auto repeatable : {true, false})
+    for(const auto rpt : {false, true})
     {
-        const auto comment = version->get_header_comment(repeatable);
+        const auto comment = version->get_header_comment(rpt);
         auto ok = false;
-        if(type == OBJECT_TYPE_FUNCTION)
-            ok = set_function_comment(ea, comment.data(), repeatable);
-        else if(type == OBJECT_TYPE_STRUCT)
-            ok = set_struct_comment(struct_ids, id, comment.data(), repeatable);
+        switch(type)
+        {
+            case OBJECT_TYPE_FUNCTION:
+                ok = set_function_comment(ea, comment.data(), rpt);
+                break;
+
+            case OBJECT_TYPE_STRUCT:
+                ok = set_struct_comment(tids, id, comment.data(), rpt);
+                break;
+
+            case OBJECT_TYPE_STRUCT_MEMBER:
+                ok = set_struct_member_comment(tids, id, comment.data(), rpt);
+                break;
+
+            case OBJECT_TYPE_ENUM:              // done in make_enum
+            case OBJECT_TYPE_ENUM_MEMBER:       // done in make_enum_member
+                ok = true;
+                break;
+
+            // unsupported yet
+            case OBJECT_TYPE_UNKNOWN:
+            case OBJECT_TYPE_BINARY:
+            case OBJECT_TYPE_DATA:
+            case OBJECT_TYPE_CODE:
+            case OBJECT_TYPE_BASIC_BLOCK:
+            case OBJECT_TYPE_SEGMENT:
+            case OBJECT_TYPE_SEGMENT_CHUNK:
+            case OBJECT_TYPE_STACKFRAME:
+            case OBJECT_TYPE_STACKFRAME_MEMBER:
+            case OBJECT_TYPE_REFERENCE_INFO:
+            case OBJECT_TYPE_COUNT:
+                ok = comment.empty();
+                break;
+        }
         if(!ok)
-            LOG(ERROR, "make_header_comments: 0x" EA_FMT " unable to set %s comment: %s\n", ea, repeatable ? "repeatable" : "nonrepeatable", comment.data());
+            LOG(ERROR, "make_header_comments: 0x" EA_FMT " unable to set %s %s comment: %s\n", ea, get_object_type_string(type), rpt ? "repeatable" : "non-repeatable", comment.data());
     }
 }
 
@@ -1056,7 +1106,7 @@ static void set_data_type(ea_t ea, YaToolObjectVersion& version, const IDANative
 
 void IDANativeExporter::make_data(std::shared_ptr<YaToolObjectVersion> version, ea_t ea)
 {
-    set_data_type(ea, *version, struct_ids);
+    set_data_type(ea, *version, tids);
     make_name(version, ea, false);
     set_type(ea, version->get_prototype());
 }
@@ -1104,15 +1154,15 @@ void IDANativeExporter::make_enum(YaToolsHashProvider* provider, std::shared_ptr
         }
 
     const auto id = version->get_id();
-    enum_ids[id] = eid;
+    tids[id] = eid;
     provider->put_hash_struc_or_enum(eid, id, false);
 }
 
 void IDANativeExporter::make_enum_member(YaToolsHashProvider* provider, std::shared_ptr<YaToolObjectVersion> version, ea_t ea)
 {
     const auto parent_id = version->get_parent_object_id();
-    const auto it = enum_ids.find(parent_id);
-    if(it == enum_ids.end())
+    const auto it = tids.find(parent_id);
+    if(it == tids.end())
     {
         LOG(ERROR, "make_enum_member: 0x" EA_FMT " unable to find parent enum %016llx\n", ea, parent_id);
         return;
@@ -1143,12 +1193,4 @@ void IDANativeExporter::make_enum_member(YaToolsHashProvider* provider, std::sha
         {
             LOG(ERROR, "make_enum_member: 0x" EA_FMT " unable to set %s comment to %s\n", ea, rpt ? "repeatable" : "non-repeatable", version->get_header_comment(rpt).data());
         }
-}
-
-uint64_t IDANativeExporter::get_enum_id(YaToolObjectId id)
-{
-    const auto it = enum_ids.find(id);
-    if(it == enum_ids.end())
-        return ~0u;
-    return it->second;
 }

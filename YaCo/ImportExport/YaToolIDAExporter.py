@@ -259,7 +259,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
             logger.debug("adding struc id %s : '0x%.016X' (%s)" %
                          (self.hash_provider.hash_to_string(object_id), struc_id, name))
         self.struc_ids[object_id] = struc_id
-        _yatools_ida_exporter.set_struct_id(object_id, struc_id)
+        _yatools_ida_exporter.set_tid(object_id, struc_id)
 
         self.hash_provider.put_hash_struc_or_enum(struc_id, object_id)
 
@@ -329,7 +329,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
             # an enum is applied here
             try:
                 sub_enum_object_id = object_version.getXRefIdsAt(0, 0)[0]
-                sub_enum_id = _yatools_ida_exporter.get_enum_id(sub_enum_object_id)
+                sub_enum_id = _yatools_ida_exporter.get_tid(sub_enum_object_id)
 
                 name_ok = idc.SetMemberName(struc_id, offset, member_name)
                 if name_ok is not True:
@@ -403,7 +403,9 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
         member_id = idc.GetMemberId(struc_id, offset)
         _yatools_ida_exporter.set_struct_member_type(member_id, object_version.get_prototype())
         if object_version.get_type() == ya.OBJECT_TYPE_STRUCT_MEMBER:
-            self.strucmember_ids[object_version.get_id()] = member_id
+            id = object_version.get_id()
+            self.strucmember_ids[id] = member_id
+            _yatools_ida_exporter.set_tid(id, member_id)
 
     def make_function(self, object_version, address):
         self.arch_plugin.make_function_prehook(object_version, address)
@@ -458,7 +460,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
                 self.hash_provider.hash_to_string(object_id), eaFunc))
         else:
             self.struc_ids[object_id] = stack_frame.id
-            _yatools_ida_exporter.set_struct_id(object_id, stack_frame.id)
+            _yatools_ida_exporter.set_tid(object_id, stack_frame.id)
             stack_lvars = None
             try:
                 stack_lvars = self.yatools.hex_string_to_address(object_version.get_attributes()["stack_lvars"])
@@ -549,7 +551,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
                 # apply enums     ###################
                 #
                 try:
-                    enum_id = _yatools_ida_exporter.get_enum_id(xref_value)
+                    enum_id = _yatools_ida_exporter.get_tid(xref_value)
                     idaapi.op_enum(address + xref_offset, operand, enum_id, 0)
                 except KeyError:
                     pass
