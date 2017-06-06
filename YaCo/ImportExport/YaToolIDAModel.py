@@ -210,38 +210,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
 
     def accept_enum_members(self, visitor, parent_id, enum_id):
         for (const_id, const_value, bmask) in YaToolIDATools.enum_member_iterate_all(enum_id):
-            self.accept_enum_member(visitor, parent_id, enum_id, const_id)
-
-    def accept_enum_member(self, visitor, parent_id, enum_id, const_id):
-        const_name = idc.GetConstName(const_id)
-        bmask = idc.GetConstBmask(const_id)
-        const_value = idc.GetConstValue(const_id)
-
-        enum_name = idc.GetEnumName(enum_id)
-        object_id = self.hash_provider.get_enum_member_id(enum_id, enum_name, const_id, const_name, const_value, bmask)
-        _yatools_ida_model.start_object(visitor, ya.OBJECT_TYPE_ENUM_MEMBER, object_id, parent_id, const_value)
-        visitor.visit_size(0)
-        visitor.visit_name(const_name, DEFAULT_NAME_FLAGS)
-
-        # mask is treated as flags
-        if bmask != idc.BADADDR:
-            visitor.visit_flags(bmask)
-
-        #
-        # MEMBER COMMENT
-        #
-        RptComt = idc.GetConstCmt(const_id, 1)
-        if RptComt is not None and RptComt != "":
-            visitor.visit_header_comment(True, RptComt)
-        Cmt = idc.GetConstCmt(const_id, 0)
-        if Cmt is not None and Cmt != "":
-            visitor.visit_header_comment(False, Cmt)
-
-        _yatools_ida_model.visit_system(visitor, const_value)
-
-        visitor.visit_end_object_version()
-
-        visitor.visit_end_reference_object()
+            _yatools_ida_model.accept_enum_member(visitor, self.hash_provider.get(), parent_id, enum_id, const_id)
 
     def accept_deleted_struc(self, visitor, struc_id, struc_type=ya.OBJECT_TYPE_STRUCT):
         object_id = self.hash_provider.get_struc_enum_object_id(struc_id)

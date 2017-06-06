@@ -20,10 +20,13 @@
 
 namespace std { template<typename T> class shared_ptr; }
 class YaToolObjectVersion;
+struct YaToolsHashProvider;
 
 struct IDANativeModel
 {
     std::string get_type(ea_t ea);
+
+    void accept_enum_member(IModelVisitor& visitor, YaToolsHashProvider* provider, YaToolObjectId parent, uint64_t eid, uint64_t const_id);
 
     // intermediate native methods
     void set_system(const const_string_ref& eq, const const_string_ref& os);

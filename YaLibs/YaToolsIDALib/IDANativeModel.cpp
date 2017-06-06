@@ -17,6 +17,7 @@
 #include "Ida.h"
 
 #include "IDANativeModel.hpp"
+#include "YaToolsHashProvider.hpp"
 
 #include <Logger.h>
 #include <Yatools.h>
@@ -171,6 +172,8 @@ namespace
     const char               gOs[] = "os";
     const const_string_ref   gEqRef = {gEq, sizeof gEq - 1};
     const const_string_ref   gOsRef = {gOs, sizeof gOs - 1};
+
+    const int DEFAULT_NAME_FLAGS = 0;
 }
 
 void IDANativeModel::visit_system(IModelVisitor& v, ea_t ea)
@@ -181,6 +184,53 @@ void IDANativeModel::visit_system(IModelVisitor& v, ea_t ea)
     v.visit_matching_system_description(gOsRef, osref_);
     v.visit_end_matching_system();
     v.visit_end_matching_systems();
+}
+
+template<typename T>
+static std::string to_py_hex(T value)
+{
+    std::stringstream ss;
+    ss << "0x" << std::hex << value << "L";
+    return ss.str();
+}
+
+void IDANativeModel::accept_enum_member(IModelVisitor& v, YaToolsHashProvider* provider, YaToolObjectId parent, uint64_t veid, uint64_t vconst_id)
+{
+    const auto eid = static_cast<enum_t>(veid);
+    const auto const_id = static_cast<const_t>(vconst_id);
+
+    qstring const_name;
+    get_enum_member_name(&const_name, const_id);
+    const auto bmask = get_enum_member_bmask(const_id);
+    const auto const_value = get_enum_member_value(const_id);
+    const auto enum_name = get_enum_name(eid);
+    const auto id = provider->get_enum_member_id(eid, to_string(enum_name), const_id, to_string(const_name), to_py_hex(const_value), bmask, true);
+    start_object(v, OBJECT_TYPE_ENUM_MEMBER, id, parent, const_value);
+    v.visit_size(0);
+    v.visit_name({const_name.c_str(), const_name.length()}, DEFAULT_NAME_FLAGS);
+    if(bmask != BADADDR)
+        v.visit_flags(static_cast<flags_t>(bmask));
+
+    std::vector<char> buffer(64);
+    for(const auto rpt : {false, true})
+    {
+        while(true)
+        {
+            const auto n = get_enum_member_cmt(const_id, rpt, &buffer[0], buffer.size());
+            if(n < 0)
+                break;
+            if(n + 1 < static_cast<ssize_t>(buffer.size()))
+            {
+                v.visit_header_comment(rpt, {&buffer[0], static_cast<size_t>(n)});
+                break;
+            }
+            // retry with bigger buffer
+            buffer.resize(buffer.size() * 2);
+        }
+    }
+    visit_system(v, const_value);
+    v.visit_end_object_version();
+    v.visit_end_reference_object();
 }
 
 void IDANativeModel::set_system(const const_string_ref& eq, const const_string_ref& os)
