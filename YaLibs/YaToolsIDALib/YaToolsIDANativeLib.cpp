@@ -231,22 +231,21 @@ void YaToolsIDANativeLib::update_bookmarks()
 
 std::string get_extra_comment(ea_t ea, int from)
 {
-    std::string comment = "";
+    std::string comment;
     int idx = get_first_free_extra_cmtidx(ea, from);
     if(idx == from)
-    {
-        return std::string();
-    }
+        return comment;
 
-    int i;
     char tmp[MAX_COMMENT_SIZE];
-    for(i=from; i<idx; i++)
+    for(int i = from; i < idx; i++)
     {
-        get_extra_cmt(ea, i, tmp, MAX_COMMENT_SIZE);
+        get_extra_cmt(ea, i, tmp, sizeof tmp);
         comment.append(tmp);
         comment.append("\n");
     }
-    return comment.substr(0, comment.length()-1);
+    if(!comment.empty())
+        comment.resize(comment.length() - 1);
+    return comment;
 }
 
 void YaToolsIDANativeLib::clear_extra_comment(ea_t ea, int from)
