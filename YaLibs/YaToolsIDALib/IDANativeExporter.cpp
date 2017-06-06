@@ -24,6 +24,7 @@
 #include "Logger.h"
 #include "Yatools.h"
 #include "../Helpers.h"
+#include "YaHelpers.hpp"
 
 #include <string>
 #include <iostream>
@@ -78,20 +79,15 @@ void IDANativeExporter::make_posterior_comment(ea_t address, const char* comment
 void add_bookmark(ea_t ea, std::string comment_text)
 {
     char buffer[1024];
-    curloc loc;
-    for(int i = 1; i < 1024; ++i)
+    ya::walk_bookmarks([&](int i, ea_t locea, curloc loc)
     {
-        const auto locea = loc.markedpos(&i);
-        if(locea == BADADDR)
-            break;
-
         LOG(DEBUG, "add_bookmark: 0x" EA_FMT " found bookmark[%d]\n", ea, i);
         if(locea != ea)
-            continue;
+            return;
 
         loc.markdesc(i, buffer, sizeof buffer);
         if(comment_text == buffer)
-            continue;
+            return;
 
         LOG(DEBUG, "add_bookmark: 0x" EA_FMT " bookmark[%d] = %s\n", ea, i, comment_text.data());
         loc.ea = ea;
@@ -99,7 +95,7 @@ void add_bookmark(ea_t ea, std::string comment_text)
         loc.y = 0;
         loc.lnnum = 0;
         loc.mark(i, comment_text.data(), comment_text.data());
-    }
+    });
 }
 
 namespace
@@ -817,31 +813,15 @@ void IDANativeExporter::make_header_comments(std::shared_ptr<YaToolObjectVersion
     }
 }
 
-template<typename T>
-static void walk_function_chunks(ea_t ea, const T& operand)
-{
-    const auto func = get_func(ea);
-    if(!func)
-    {
-        LOG(ERROR, "analyze_function: 0x" EA_FMT " missing function\n", ea);
-        return;
-    }
-
-    func_tail_iterator_t fti{func, ea};
-    for(bool ok = fti.first(); ok; ok = fti.next())
-    {
-        const auto& area = fti.chunk();
-        operand(area.startEA, area.endEA);
-    }
-}
-
 void IDANativeExporter::analyze_function(ea_t ea)
 {
-    walk_function_chunks(ea, [=](ea_t start, ea_t end)
+    const auto ok = ya::walk_function_chunks(ea, [=](area_t area)
     {
-        if(!analyze_area(start, end))
-            LOG(ERROR, "analyze_function: 0x" EA_FMT " unable to analyze area " EA_FMT "-" EA_FMT "\n", ea, start, end);
+        if(!analyze_area(area.startEA, area.endEA))
+            LOG(ERROR, "analyze_function: 0x" EA_FMT " unable to analyze area " EA_FMT "-" EA_FMT "\n", ea, area.startEA, area.endEA);
     });
+    if(!ok)
+        LOG(ERROR, "analyze_function: 0x" EA_FMT " missing function\n", ea);
 }
 
 static void clear_function(const YaToolObjectVersion& version, ea_t ea)
@@ -1122,32 +1102,6 @@ void IDANativeExporter::make_data(std::shared_ptr<YaToolObjectVersion> version, 
     set_type(ea, version->get_prototype());
 }
 
-template<typename T>
-static void walk_enum_members_with_bmask(enum_t eid, bmask_t bmask, const T& operand)
-{
-    const_t first_cid;
-    uchar serial;
-    for(auto value = get_first_enum_member(eid, bmask); value != BADADDR; value = get_next_enum_member(eid, value, bmask))
-        for(auto cid = first_cid = get_first_serial_enum_member(eid, value, &serial, bmask); cid != BADADDR; cid = get_next_serial_enum_member(first_cid, &serial))
-            operand(cid, value, serial, bmask);
-}
-
-template<typename T>
-static void walk_enum_members(enum_t eid, const T& operand)
-{
-    walk_enum_members_with_bmask(eid, DEFMASK, operand);
-    for(auto fmask = get_first_bmask(eid); fmask != BADADDR; fmask = get_next_bmask(eid, fmask))
-        walk_enum_members_with_bmask(eid, fmask, operand);
-}
-
-template<typename T>
-static std::string to_py_hex(T value)
-{
-    std::stringstream ss;
-    ss << "0x" << std::hex << value << "L";
-    return ss.str();
-}
-
 void IDANativeExporter::make_enum(YaToolsHashProvider* provider, std::shared_ptr<YaToolObjectVersion> version, ea_t ea)
 {
     const auto name = version->get_name();
@@ -1174,14 +1128,14 @@ void IDANativeExporter::make_enum(YaToolsHashProvider* provider, std::shared_ptr
 
     const auto xref_ids = version->get_xrefed_ids();
     qstring const_name;
-    walk_enum_members(eid, [&](const_t cid, uval_t value, uchar serial, bmask_t bmask)
+    ya::walk_enum_members(eid, [&](const_t cid, uval_t value, uchar serial, bmask_t bmask)
     {
         const auto it = enum_members.find(cid);
         if(it != enum_members.end() && it->second == eid)
             return;
 
         get_enum_member_name(&const_name, cid);
-        const auto yaid = provider->get_enum_member_id(eid, name, cid, {const_name.c_str(), const_name.length()}, to_py_hex(value), bmask, true);
+        const auto yaid = provider->get_enum_member_id(eid, name, cid, {const_name.c_str(), const_name.length()}, ya::to_py_hex(value), bmask, true);
         if(xref_ids.count(yaid))
             return;
 

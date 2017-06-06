@@ -21,6 +21,7 @@
 #include <Logger.h>
 #include <Yatools.h>
 #include "../Helpers.h"
+#include "YaHelpers.hpp"
 
 #include <algorithm>
 
@@ -207,24 +208,11 @@ std::vector<ea_t> YaToolsIDANativeLib::address_range_get_items(ea_t ea_start, ea
 
 static const int MAX_COMMENT_SIZE = 1024;
 
-template<typename T>
-static void walk_bookmarks(const T& operand)
-{
-    curloc loc;
-    for(int i = 1; i < 1024; ++i)
-    {
-        const auto ea = loc.markedpos(&i);
-        if(ea == BADADDR)
-            return;
-        operand(i, ea, loc);
-    }
-}
-
 void YaToolsIDANativeLib::update_bookmarks()
 {
     bookmarks.clear();
     char bookmark_buf[MAX_COMMENT_SIZE];
-    walk_bookmarks([&](int i, ea_t ea, curloc& loc)
+    ya::walk_bookmarks([&](int i, ea_t ea, curloc& loc)
     {
         loc.markdesc(i, bookmark_buf, sizeof bookmark_buf);
         bookmarks[ea] = bookmark_buf;
@@ -332,7 +320,7 @@ static bool try_delete_comment_at_ea(YaToolsIDANativeLib& lib, ea_t ea, CommentT
             return true;
 
         case COMMENT_BOOKMARK:
-            walk_bookmarks([&](int i, ea_t locea, curloc& loc)
+            ya::walk_bookmarks([&](int i, ea_t locea, curloc& loc)
             {
                 if(locea == ea)
                     loc.mark(i, "", "");

@@ -22,17 +22,10 @@
 #include <Logger.h>
 #include <Yatools.h>
 #include "../Helpers.h"
+#include "YaHelpers.hpp"
 
 #include <regex>
 
-#ifdef _MSC_VER
-#   include <optional.hpp>
-using namespace nonstd;
-#else
-#   include <experimental/optional>
-using namespace std::experimental;
-
-#endif
 #define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("IDANativeModel", (FMT), ## __VA_ARGS__)
 
 #ifdef __EA64__
@@ -48,18 +41,13 @@ using namespace std::experimental;
 
 namespace
 {
-    std::string to_string(const qstring& q)
-    {
-        return {q.c_str(), q.length()};
-    }
-
     std::string to_string(const tinfo_t& tif, const char* name)
     {
         qstring out;
         const auto ok = tif.print(&out, name);
         if(!ok)
             return {};
-        auto value = to_string(out);
+        auto value = ya::to_string(out);
         while(!value.empty() && value.back() == ' ')
             value.resize(value.size() - 1);
         return value;
@@ -135,7 +123,7 @@ namespace
             if(it.flags & FAI_STRUCT)
                 add_suffix(it_name, "__struct_ptr");
             // FIXME ida remove leading underscores on argument names...
-            auto argname = to_string(it.name);
+            auto argname = ya::to_string(it.name);
             argname = std::regex_replace(argname, r_leading_underscores, "");
             add_suffix(it_name, argname);
             append_location(it_name, cc, buffer, sizeof buffer, it.argloc);
@@ -208,64 +196,17 @@ void IDANativeModel::finish_object(IModelVisitor& v, ea_t ea)
 namespace
 {
     template<typename T>
-    std::string to_py_hex(T value)
-    {
-        std::stringstream ss;
-        ss << "0x" << std::hex << value << "L";
-        return ss.str();
-    }
-
-    template<typename T>
-    optional<size_t> read_string_from(qstring& buffer, const T& read)
-    {
-        while(true)
-        {
-            const auto n = read();
-            if(n < 0)
-                return nullopt;
-            if(n + 1 < static_cast<ssize_t>(buffer.size()))
-                return n;
-            buffer.resize(buffer.size() * 2);
-        }
-    }
-
-    template<typename T>
     void visit_header_comments(IModelVisitor& v, qstring& buffer, const T& read)
     {
         for(const auto rpt : {false, true})
         {
-            while(true)
+            ya::read_string_from(buffer, [&]
             {
-                const auto n = read(rpt, &buffer[0], buffer.size());
-                if(n < 0)
-                    break;
-                if(n + 1 < static_cast<ssize_t>(buffer.size()))
-                {
-                    v.visit_header_comment(rpt, {&buffer[0], static_cast<size_t>(n)});
-                    break;
-                }
-                // retry with bigger buffer
-                buffer.resize(buffer.size() * 2);
-            }
+                return read(rpt);
+            });
+            if(!buffer.empty())
+                v.visit_header_comment(rpt, ya::to_string_ref(buffer));
         }
-    }
-
-    template<typename T>
-    void walk_enum_members_with_bmask(enum_t eid, bmask_t bmask, const T& operand)
-    {
-        const_t first_cid;
-        uchar serial;
-        for(auto value = get_first_enum_member(eid, bmask); value != BADADDR; value = get_next_enum_member(eid, value, bmask))
-            for(auto cid = first_cid = get_first_serial_enum_member(eid, value, &serial, bmask); cid != BADADDR; cid = get_next_serial_enum_member(first_cid, &serial))
-                operand(cid, value, serial, bmask);
-    }
-
-    template<typename T>
-    void walk_enum_members(enum_t eid, const T& operand)
-    {
-        walk_enum_members_with_bmask(eid, DEFMASK, operand);
-        for(auto fmask = get_first_bmask(eid); fmask != BADADDR; fmask = get_next_bmask(eid, fmask))
-            walk_enum_members_with_bmask(eid, fmask, operand);
     }
 
     struct EnumMember
@@ -286,25 +227,25 @@ YaToolObjectId IDANativeModel::accept_enum(IModelVisitor& visitor, YaToolsHashPr
     const auto enum_id = static_cast<enum_t>(eid);
     qstring enum_name;
     get_enum_name(&enum_name, enum_id);
-    const auto id = provider->get_struc_enum_object_id(enum_id, to_string(enum_name), true);
+    const auto id = provider->get_struc_enum_object_id(enum_id, ya::to_string(enum_name), true);
     const auto idx = get_enum_idx(enum_id);
     start_object(visitor, OBJECT_TYPE_ENUM, id, 0, idx);
     visitor.visit_size(get_enum_width(enum_id));
-    visitor.visit_name({enum_name.c_str(), enum_name.length()}, DEFAULT_NAME_FLAGS);
+    visitor.visit_name(ya::to_string_ref(enum_name), DEFAULT_NAME_FLAGS);
     const auto flags = get_enum_flag(enum_id);
     const auto bitfield = is_bf(enum_id) ? ENUM_FLAGS_IS_BF : 0;
     visitor.visit_flags(flags | bitfield);
-    visit_header_comments(visitor, buffer, [&](bool repeated, char* buf, size_t szbuf)
+    visit_header_comments(visitor, buffer, [&](bool repeated)
     {
-        return get_enum_cmt(enum_id, repeated, buf, szbuf);
+        return get_enum_cmt(enum_id, repeated, &buffer[0], buffer.size());
     });
 
     visitor.visit_start_xrefs();
     std::vector<EnumMember> members;
-    walk_enum_members(enum_id, [&](const_t const_id, uval_t const_value, uchar /*serial*/, bmask_t bmask)
+    ya::walk_enum_members(enum_id, [&](const_t const_id, uval_t const_value, uchar /*serial*/, bmask_t bmask)
     {
         get_enum_member_name(&buffer, const_id);
-        const auto member_id = provider->get_enum_member_id(enum_id, to_string(enum_name), const_id, to_string(buffer), to_py_hex(const_value), bmask, true);
+        const auto member_id = provider->get_enum_member_id(enum_id, ya::to_string(enum_name), const_id, ya::to_string(buffer), ya::to_py_hex(const_value), bmask, true);
         visitor.visit_start_xref(0, member_id, DEFAULT_OPERAND);
         visitor.visit_end_xref();
         members.push_back({member_id, const_id, buffer, const_value, bmask});
@@ -317,12 +258,12 @@ YaToolObjectId IDANativeModel::accept_enum(IModelVisitor& visitor, YaToolsHashPr
     {
         start_object(visitor, OBJECT_TYPE_ENUM_MEMBER, m.id, id, m.const_value);
         visitor.visit_size(0);
-        visitor.visit_name({m.const_name.c_str(), m.const_name.length()}, DEFAULT_NAME_FLAGS);
+        visitor.visit_name(ya::to_string_ref(m.const_name), DEFAULT_NAME_FLAGS);
         if(m.bmask != BADADDR)
             visitor.visit_flags(static_cast<flags_t>(m.bmask));
-        visit_header_comments(visitor, buffer, [&](bool repeated, char* buf, size_t szbuf)
+        visit_header_comments(visitor, buffer, [&](bool repeated)
         {
-            return get_enum_member_cmt(m.const_id, repeated, buf, szbuf);
+            return get_enum_member_cmt(m.const_id, repeated, &buffer[0], buffer.size());
         });
         finish_object(visitor, m.const_value);
     }
@@ -332,11 +273,11 @@ YaToolObjectId IDANativeModel::accept_enum(IModelVisitor& visitor, YaToolsHashPr
 
 static YaToolObjectId get_segment_id(YaToolsHashProvider* provider, qstring& buffer, segment_t* seg)
 {
-    const auto n = read_string_from(buffer, [&]
+    ya::read_string_from(buffer, [&]
     {
         return get_true_segm_name(seg, &buffer[0], buffer.size());
     });
-    const auto value = "segment-" + std::string{&buffer[0], n ? *n : 0} + std::to_string(seg->startEA);
+    const auto value = "segment-" + ya::to_string(buffer) + std::to_string(seg->startEA);
     return provider->hash_local_string(value);
 }
 
@@ -351,12 +292,12 @@ YaToolObjectId IDANativeModel::accept_binary(IModelVisitor& visitor, YaToolsHash
 
     qstring buffer;
     buffer.resize(64);
-    const auto n = read_string_from(buffer, [&]
+    ya::read_string_from(buffer, [&]
     {
         return get_root_filename(&buffer[0], buffer.size());
     });
-    if(n)
-        visitor.visit_name({buffer.c_str(), *n}, DEFAULT_NAME_FLAGS);
+    if(!buffer.empty())
+        visitor.visit_name(ya::to_string_ref(buffer), DEFAULT_NAME_FLAGS);
 
     visitor.visit_start_xrefs();
     for(auto seg = first; seg; seg = get_next_seg(seg->endEA - 1))
