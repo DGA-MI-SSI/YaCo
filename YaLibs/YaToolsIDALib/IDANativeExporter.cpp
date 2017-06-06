@@ -863,3 +863,107 @@ void IDANativeExporter::make_function(std::shared_ptr<YaToolObjectVersion> versi
 
     set_type(ea, version->get_prototype());
 }
+
+static bool begins_with_offset(const std::string& value)
+{
+    static const char offset_prefix[] = "offset";
+    return !strncmp(value.data(), offset_prefix, sizeof offset_prefix - 1);
+}
+
+static const struct { char type[8]; reftype_t offset; } offset_types[] =
+{
+    {"OFF8",    REF_OFF8},
+    {"OFF16",   REF_OFF16},
+    {"OFF32",   REF_OFF32},
+    {"LOW8",    REF_LOW8},
+    {"LOW16",   REF_LOW16},
+    {"HIGH8",   REF_HIGH8},
+    {"HIGH16",  REF_HIGH16},
+    {"VHIGH",   REF_VHIGH},
+    {"VLOW",    REF_VLOW},
+    {"OFF64",   REF_OFF64},
+};
+
+static reftype_t get_offset_type(const char* value)
+{
+    for(const auto& it : offset_types)
+        if(!stricmp(it.type, value))
+            return it.offset;
+    return REF_OFF32;
+}
+
+enum SignToggle_e
+{
+    UNSIGNED,
+    SIGNED,
+};
+
+static bool set_sign(ea_t ea, operand_t operand, SignToggle_e toggle)
+{
+    if(is_invsign(ea, getFlags(ea), operand) == !!toggle)
+        return true;
+    return toggle_sign(ea, operand);
+}
+
+static bool try_make_valueview(ea_t ea, operand_t operand, const std::string& view)
+{
+    if(view == "signeddecimal")
+        return op_dec(ea, operand) && set_sign(ea, operand, SIGNED);
+    if(view == "unsigneddecimal")
+        return op_dec(ea, operand) && set_sign(ea, operand, UNSIGNED);
+    if(view == "signedhexadecimal")
+        return op_hex(ea, operand) && set_sign(ea, operand, SIGNED);
+    if(view == "unsignedhexadecimal")
+        return op_hex(ea, operand) && set_sign(ea, operand, UNSIGNED);
+    if(view == "char")
+        return op_chr(ea, operand);
+    if(view == "binary")
+        return op_bin(ea, operand);
+    if(view == "octal")
+        return op_oct(ea, operand);
+    if(begins_with_offset(view))
+    {
+        const auto dash = view.find('-');
+        auto op_type = REF_OFF32;
+        if(dash != std::string::npos)
+            op_type = get_offset_type(&view.data()[dash+1]);
+        refinfo_t ri;
+        ri.init(op_type);
+        return !!op_offset_ex(ea, operand, &ri);
+    }
+
+    LOG(ERROR, "make_valueview: 0x" EA_FMT " unexpected value view type %s\n", ea, view.data());
+    return false;
+}
+
+static void make_valueview(ea_t ea, operand_t operand, const std::string& view)
+{
+    const auto ok = try_make_valueview(ea, operand, view);
+    if(!ok)
+        LOG(ERROR, "make_valueview: 0x" EA_FMT " unable to make value view\n", ea);
+}
+
+static void make_registerview(ea_t ea, offset_t offset, const std::string& name, offset_t end, const std::string& newname)
+{
+    const auto func = get_func(ea);
+    if(!func)
+    {
+        LOG(ERROR, "make_registerview: 0x" EA_FMT " missing function\n", ea);
+        return;
+    }
+
+    const auto ea0 = static_cast<ea_t>(offset += func->startEA);
+    const auto ea1 = static_cast<ea_t>(end += func->startEA);
+    const auto err = add_regvar(func, ea0, ea1, name.data(), newname.data(), nullptr);
+    if(err)
+        LOG(ERROR, "make_registerview: 0x" EA_FMT " unable to add regvar 0x%p 0x" EA_FMT "-0x" EA_FMT " %s -> %s error %d\n",
+            ea, func, ea0, ea1, name.data(), newname.data(), err);
+}
+
+void IDANativeExporter::make_views(std::shared_ptr<YaToolObjectVersion> version, ea_t ea)
+{
+    for(const auto& it : version->get_offset_valueviews())
+        make_valueview(static_cast<ea_t>(ea + it.first.first), it.first.second, it.second);
+    for(const auto& it : version->get_offset_registerviews())
+        make_registerview(ea, it.first.first, it.first.second, it.second.first, it.second.second);
+}
