@@ -19,8 +19,11 @@
 #include "YaTypes.hpp"
 #include "YaToolsIDANativeLib.hpp"
 
+#include <unordered_set>
+
 namespace std { template<typename T> class shared_ptr; }
 class YaToolObjectVersion;
+struct YaToolsHashProvider;
 
 struct IDANativeExporter
 {
@@ -47,13 +50,19 @@ struct IDANativeExporter
     void make_code(std::shared_ptr<YaToolObjectVersion> version, ea_t ea);
     void make_data(std::shared_ptr<YaToolObjectVersion> version, ea_t ea);
 
+    void make_enum(YaToolsHashProvider* provider, std::shared_ptr<YaToolObjectVersion> version, ea_t ea);
+    void make_enum_member(YaToolsHashProvider* provider, std::shared_ptr<YaToolObjectVersion> version, ea_t ea);
+    uint64_t get_enum_id(YaToolObjectId id);
+
 #ifndef SWIG
     std::string patch_prototype(const std::string& prototype, ea_t ea);
 
-    using StructIdMap = std::unordered_map<YaToolObjectId, uint64_t>;
+    using IdMap = std::unordered_map<YaToolObjectId, uint64_t>;
+    using EnumSet = std::unordered_set<uint64_t>;
 
 private:
-    StructIdMap struct_ids;
+    IdMap struct_ids;
+    IdMap enum_ids;
     YaToolsIDANativeLib tools;
 #endif
 };
