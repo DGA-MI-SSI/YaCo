@@ -290,7 +290,7 @@ std::vector<std::pair<CommentType_e, std::string>> YaToolsIDANativeLib::get_comm
 
     // check if anterior/posterior comment exists
     flags_t fl = getFlags(ea);
-    if (fl & FF_LINE)
+    if (hasExtra(fl))
     {
         // anterior comments
         std::string comment;
