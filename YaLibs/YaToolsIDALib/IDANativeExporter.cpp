@@ -989,7 +989,7 @@ static void set_data_type(ea_t ea, YaToolObjectVersion& version, const IDANative
     const auto flags = version.get_object_flags();
     if(!flags)
     {
-        const auto ok = do_data_ex(ea, FF_BYTE, size, 0);
+        const auto ok = doByte(ea, size);
         if(!ok)
             LOG(ERROR, "make_data: 0x" EA_FMT " unable to set data size %zd\n", ea, size);
         return;
@@ -1030,7 +1030,7 @@ static void set_data_type(ea_t ea, YaToolObjectVersion& version, const IDANative
         return;
     }
 
-    const auto type_flags = flags & (DT_TYPE | MS_0TYPE);
+    const auto type_flags = flags & (DT_TYPE | get_optype_flags0(~0u));
     const auto ok = do_data_ex(ea, type_flags, size, 0);
     if(!ok)
         LOG(ERROR, "make_data: 0x" EA_FMT " unable to set data type 0x%llx size %zd\n", ea, static_cast<uint64_t>(type_flags), size);
