@@ -77,6 +77,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             self.minXrefAddress = idc.SegStart(0)
             self.maxXrefAddress = idc.SegEnd(0)
         _yatools_ida_model.set_system(EquipementDescription, OSDescription)
+        _yatools_ida_model.set_provider(self.hash_provider.get())
 
     def set_ea_exporter(self, ea_exporter):
         self.delegate_exporter = ea_exporter
@@ -109,7 +110,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         visitor.visit_end()
 
     def accept_binary(self, visitor):
-        binary_object_id = _yatools_ida_model.accept_binary(visitor, self.hash_provider.get())
+        binary_object_id = _yatools_ida_model.accept_binary(visitor)
         if self.descending_mode:
             self.accept_strucs(visitor)
             self.accept_enums(visitor)
@@ -129,7 +130,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
     def accept_enum(self, visitor, enum_id):
         if self.skip_accept_enum or enum_id in self.exported_object_ids:
             return
-        object_id = _yatools_ida_model.accept_enum(visitor, self.hash_provider.get(), enum_id)
+        object_id = _yatools_ida_model.accept_enum(visitor, enum_id)
         self.exported_object_ids[enum_id] = object_id
 
     def accept_deleted_struc(self, visitor, struc_id, struc_type=ya.OBJECT_TYPE_STRUCT):

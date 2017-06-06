@@ -135,6 +135,36 @@ namespace
             type += ", ...";
         return type + ")";
     }
+
+    const char               gEq[] = "equipment";
+    const char               gOs[] = "os";
+    const char               gEmpty[] = "";
+    const const_string_ref   gEqRef = {gEq, sizeof gEq - 1};
+    const const_string_ref   gOsRef = {gOs, sizeof gOs - 1};
+    const const_string_ref   gEmptyRef = {gEmpty, sizeof gEmpty - 1};
+
+    const int DEFAULT_NAME_FLAGS = 0;
+    const int DEFAULT_OPERAND = 0;
+}
+
+IDANativeModel::IDANativeModel()
+    : provider_(nullptr)
+    , eqref_(gEmptyRef)
+    , osref_(gEmptyRef)
+{
+}
+
+void IDANativeModel::set_system(const const_string_ref& eq, const const_string_ref& os)
+{
+    eq_ = make_string(eq);
+    eqref_ = make_string_ref(eq_);
+    os_ = make_string(os);
+    osref_ = make_string_ref(os_);
+}
+
+void IDANativeModel::set_provider(YaToolsHashProvider* provider)
+{
+    provider_ = provider;
 }
 
 std::string IDANativeModel::get_type(ea_t ea)
@@ -160,25 +190,6 @@ void IDANativeModel::start_object(IModelVisitor& v, YaToolObjectType_e type, YaT
     if(parent)
         v.visit_parent_id(parent);
     v.visit_address(ea);
-}
-
-namespace
-{
-    const char               gEq[] = "equipment";
-    const char               gOs[] = "os";
-    const const_string_ref   gEqRef = {gEq, sizeof gEq - 1};
-    const const_string_ref   gOsRef = {gOs, sizeof gOs - 1};
-
-    const int DEFAULT_NAME_FLAGS = 0;
-    const int DEFAULT_OPERAND = 0;
-}
-
-void IDANativeModel::set_system(const const_string_ref& eq, const const_string_ref& os)
-{
-    eq_ = make_string(eq);
-    eqref_ = make_string_ref(eq_);
-    os_ = make_string(os);
-    osref_ = make_string_ref(os_);
 }
 
 void IDANativeModel::finish_object(IModelVisitor& v, ea_t ea)
@@ -219,7 +230,7 @@ namespace
     };
 }
 
-YaToolObjectId IDANativeModel::accept_enum(IModelVisitor& visitor, YaToolsHashProvider* provider, uint64_t eid)
+YaToolObjectId IDANativeModel::accept_enum(IModelVisitor& visitor, uint64_t eid)
 {
     qstring buffer;
     buffer.resize(64);
@@ -227,7 +238,7 @@ YaToolObjectId IDANativeModel::accept_enum(IModelVisitor& visitor, YaToolsHashPr
     const auto enum_id = static_cast<enum_t>(eid);
     qstring enum_name;
     get_enum_name(&enum_name, enum_id);
-    const auto id = provider->get_struc_enum_object_id(enum_id, ya::to_string(enum_name), true);
+    const auto id = provider_->get_struc_enum_object_id(enum_id, ya::to_string(enum_name), true);
     const auto idx = get_enum_idx(enum_id);
     start_object(visitor, OBJECT_TYPE_ENUM, id, 0, idx);
     visitor.visit_size(get_enum_width(enum_id));
@@ -245,7 +256,7 @@ YaToolObjectId IDANativeModel::accept_enum(IModelVisitor& visitor, YaToolsHashPr
     ya::walk_enum_members(enum_id, [&](const_t const_id, uval_t const_value, uchar /*serial*/, bmask_t bmask)
     {
         get_enum_member_name(&buffer, const_id);
-        const auto member_id = provider->get_enum_member_id(enum_id, ya::to_string(enum_name), const_id, ya::to_string(buffer), ya::to_py_hex(const_value), bmask, true);
+        const auto member_id = provider_->get_enum_member_id(enum_id, ya::to_string(enum_name), const_id, ya::to_string(buffer), ya::to_py_hex(const_value), bmask, true);
         visitor.visit_start_xref(0, member_id, DEFAULT_OPERAND);
         visitor.visit_end_xref();
         members.push_back({member_id, const_id, buffer, const_value, bmask});
@@ -281,9 +292,9 @@ static YaToolObjectId get_segment_id(YaToolsHashProvider* provider, qstring& buf
     return provider->hash_local_string(value);
 }
 
-YaToolObjectId IDANativeModel::accept_binary(IModelVisitor& visitor, YaToolsHashProvider* provider)
+YaToolObjectId IDANativeModel::accept_binary(IModelVisitor& visitor)
 {
-    const auto id = provider->hash_local_string("binary");
+    const auto id = provider_->hash_local_string("binary");
     const auto base = get_imagebase();
     start_object(visitor, OBJECT_TYPE_BINARY, id, 0, base);
     const auto first = get_first_seg();
@@ -302,7 +313,7 @@ YaToolObjectId IDANativeModel::accept_binary(IModelVisitor& visitor, YaToolsHash
     visitor.visit_start_xrefs();
     for(auto seg = first; seg; seg = get_next_seg(seg->endEA - 1))
     {
-        const auto seg_id = get_segment_id(provider, buffer, seg);
+        const auto seg_id = get_segment_id(provider_, buffer, seg);
         visitor.visit_start_xref(seg->startEA - base, seg_id, DEFAULT_OPERAND);
         visitor.visit_end_xref();
     }
