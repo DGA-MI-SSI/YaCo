@@ -743,3 +743,37 @@ void IDANativeExporter::make_hiddenareas(std::shared_ptr<YaToolObjectVersion>& v
             LOG(ERROR, "make_hiddenarea: 0x" EA_FMT " unable to set hidden area " EA_FMT "-" EA_FMT " %s\n", ea, start, end, it.second.data());
     }
 }
+
+static bool set_function_comment(ea_t ea, const char* comment, bool repeatable)
+{
+    const auto func = get_func(ea);
+    if(!func)
+        return false;
+    return set_func_cmt(func, comment, repeatable);
+}
+
+static bool set_struct_comment(const IDANativeExporter::StructIdMap& struct_ids, YaToolObjectId id, const char* comment, bool repeatable)
+{
+    const auto it = struct_ids.find(id);
+    if(it == struct_ids.end())
+        return false;
+    const auto tid = static_cast<tid_t>(it->second);
+    return set_struc_cmt(tid, comment, repeatable);
+}
+
+void IDANativeExporter::make_header_comments(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
+{
+    const auto type = version->get_type();
+    const auto id = version->get_id();
+    for(const auto repeatable : {true, false})
+    {
+        const auto comment = version->get_header_comment(repeatable);
+        auto ok = false;
+        if(type == OBJECT_TYPE_FUNCTION)
+            ok = set_function_comment(ea, comment.data(), repeatable);
+        else if(type == OBJECT_TYPE_STRUCT)
+            ok = set_struct_comment(struct_ids, id, comment.data(), repeatable);
+        if(!ok)
+            LOG(ERROR, "make_header_comments: 0x" EA_FMT " unable to set %s comment: %s\n", ea, repeatable ? "repeatable" : "nonrepeatable", comment.data());
+    }
+}
