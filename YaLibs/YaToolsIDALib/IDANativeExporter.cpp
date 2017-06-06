@@ -411,14 +411,14 @@ void IDANativeExporter::make_segment(std::shared_ptr<YaToolObjectVersion> versio
         LOG(ERROR, "make_segment: 0x" EA_FMT " unable to update segment\n", ea);
 }
 
-void IDANativeExporter::make_segment_chunk(std::shared_ptr<YaToolObjectVersion> version, ea_t)
+void IDANativeExporter::make_segment_chunk(std::shared_ptr<YaToolObjectVersion> version, ea_t ea)
 {
     // TODO : now that we have enough precision, we could delete elements
     // that are in the base but not in our segment_chunk
     std::vector<uint8_t> buffer;
     for(const auto& it : version->get_blobs())
     {
-        const auto offset = static_cast<ea_t>(it.first);
+        const auto offset = static_cast<ea_t>(ea + it.first);
         const auto& data = it.second;
         buffer.resize(data.size());
         auto ok = get_many_bytes(offset, &buffer[0], data.size());
