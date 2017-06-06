@@ -732,18 +732,6 @@ bool IDANativeExporter::set_struct_member_type(ea_t ea, const std::string& value
     });
 }
 
-void IDANativeExporter::make_hiddenareas(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
-{
-    for(const auto& it : version->get_offset_hiddenareas())
-    {
-        const auto start = static_cast<ea_t>(ea + it.first.first);
-        const auto end = static_cast<ea_t>(start + it.first.second);
-        const auto ok = add_hidden_area(start, end, it.second.data(), nullptr, nullptr, ~0u);
-        if(!ok)
-            LOG(ERROR, "make_hiddenarea: 0x" EA_FMT " unable to set hidden area " EA_FMT "-" EA_FMT " %s\n", ea, start, end, it.second.data());
-    }
-}
-
 static bool set_function_comment(ea_t ea, const char* comment, bool repeatable)
 {
     const auto func = get_func(ea);
@@ -977,12 +965,23 @@ static void make_registerview(ea_t ea, offset_t offset, const std::string& name,
             ea, func, ea0, ea1, name.data(), newname.data(), err);
 }
 
+static void make_hiddenarea(ea_t ea, offset_t offset, offset_t offset_end, const std::string& value)
+{
+    const auto start = static_cast<ea_t>(ea + offset);
+    const auto end = static_cast<ea_t>(ea + offset_end);
+    const auto ok = add_hidden_area(start, end, value.data(), nullptr, nullptr, ~0u);
+    if(!ok)
+        LOG(ERROR, "make_hiddenarea: 0x" EA_FMT " unable to set hidden area " EA_FMT "-" EA_FMT " %s\n", ea, start, end, value.data());
+}
+
 void IDANativeExporter::make_views(std::shared_ptr<YaToolObjectVersion> version, ea_t ea)
 {
     for(const auto& it : version->get_offset_valueviews())
         make_valueview(static_cast<ea_t>(ea + it.first.first), it.first.second, it.second);
     for(const auto& it : version->get_offset_registerviews())
         make_registerview(ea, it.first.first, it.first.second, it.second.first, it.second.second);
+    for(const auto& it : version->get_offset_hiddenareas())
+        make_hiddenarea(ea, it.first.first, it.first.second, it.second);
 }
 
 void IDANativeExporter::make_code(std::shared_ptr<YaToolObjectVersion> version, ea_t ea)
@@ -991,5 +990,4 @@ void IDANativeExporter::make_code(std::shared_ptr<YaToolObjectVersion> version, 
     create_insn(ea);
     make_name(version, ea, false);
     make_views(version, ea);
-    make_hiddenareas(version, ea);
 }

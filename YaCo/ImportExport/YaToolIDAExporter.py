@@ -684,7 +684,6 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
 
         # apply view
         _yatools_ida_exporter.make_views(object_version, address)
-        _yatools_ida_exporter.make_hiddenareas(object_version, address)
 
         for ((xref_offset, operand), xref_list) in object_version.get_xrefed_id_map().iteritems():
             struc_path = {}
