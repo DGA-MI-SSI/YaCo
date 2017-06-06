@@ -107,7 +107,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
                     self.make_stackframe_member(object_version, address)
 
                 elif obj_type == ya.OBJECT_TYPE_DATA:
-                    self.make_data(object_version, address)
+                    _yatools_ida_exporter.make_data(object_version, address)
 
                 elif obj_type == ya.OBJECT_TYPE_SEGMENT:
                     _yatools_ida_exporter.make_segment(object_version, address)
@@ -128,84 +128,6 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
             logger.error(traceback.format_exc())
             traceback.print_exc()
             raise e
-
-    def make_data(self, object_version, address):
-        size = 0
-        try:
-            size = object_version.get_size()
-        except KeyError:
-            pass
-        flags = None
-        try:
-            flags = object_version.get_object_flags()
-        except KeyError:
-            pass
-
-        if size == 0:
-            idc.MakeUnkn(address, idc.DOUNK_EXPAND)
-        else:
-            if flags is not None:
-                if idc.isASCII(flags):
-                    try:
-                        str_type = object_version.get_string_type()
-                        YaToolIDATools.check_and_set_str_type(str_type)
-                    except KeyError:
-                        pass
-                    idc.MakeStr(address, address + size)
-                    idc.SetFlags(address, flags)
-
-                if idc.isStruct(flags):
-                    found = False
-                    for xref_offset_operand, xref_id_attr in object_version.get_xrefed_id_map().iteritems():
-                        (xref_offset, xref_operand) = xref_offset_operand
-                        for xref_hash, xref_attrs in xref_id_attr:
-
-                            if xref_hash in self.struc_ids:
-                                struc_id = self.struc_ids[xref_hash]
-                                if DEBUG_EXPORTER:
-                                    logger.debug("making unknown from 0x%08X to 0x%08X" % (address, address + size))
-                                idaapi.do_unknown_range(address, size, idc.DOUNK_DELNAMES)
-
-                                #   idc.MakeUnkn(address, DOUNK_SIMPLE | idc.DOUNK_DELNAMES)
-                                #   for i in xrange(1, size):
-                                #       MakeName(address + i, "")
-                                #       idc.MakeUnkn(address + i, DOUNK_SIMPLE | idc.DOUNK_DELNAMES)
-                                # idc.MakeStructEx uses idaapi.doStruct (but asks for name while
-                                # we already have the struc id)
-                                if DEBUG_EXPORTER:
-                                    logger.debug(
-                                        "Making struc at %s : %s (sizeof(%s)=0x%08X, size=0x%08X, flags=0x%08X" %
-                                        (
-                                            self.yatools.address_to_hex_string(address),
-                                            self.yatools.address_to_hex_string(struc_id),
-                                            idaapi.get_struc_name(struc_id),
-                                            idc.GetStrucSize(struc_id), size,
-                                            flags
-                                        ))
-                                idc.SetCharPrm(idc.INF_AUTO, True)
-                                idc.Wait()
-                                if idaapi.doStruct(address, size, struc_id) == 0:
-                                    if DEBUG_EXPORTER:
-                                        logger.warning("Making struc failed")
-                                idc.SetCharPrm(idc.INF_AUTO, False)
-                                #                                     idc.SetFlags(address, flags)
-                                found = True
-                    else:
-                        logger.error("bad struc flags : idc.isStruct is true but no xref available for object %s" %
-                                     self.hash_provider.hash_to_string(object_version.get_id()))
-                    if not found:
-                        logger.error("bad struc flags : idc.isStruct is true "
-                                     "but no struc available for object %s (%s)" %
-                                     (self.hash_provider.hash_to_string(object_version.get_id()),
-                                      object_version.get_name()))
-                else:
-                    idc.MakeData(address, flags & (idc.DT_TYPE | idc.MS_0TYPE), size, 0)
-
-            else:
-                idc.MakeData(address, idc.FF_BYTE, size, 0)
-
-        _yatools_ida_exporter.make_name(object_version, address, False)
-        _yatools_ida_exporter.set_type(address, object_version.get_prototype())
 
     def make_enum(self, object_version, address):
         enum_name = object_version.get_name()
