@@ -731,3 +731,15 @@ bool IDANativeExporter::set_struct_member_type(ea_t ea, const std::string& value
         return s && m && set_member_tinfo2(s, m, 0, tif, 0);
     });
 }
+
+void IDANativeExporter::make_hiddenareas(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
+{
+    for(const auto& it : version->get_offset_hiddenareas())
+    {
+        const auto start = static_cast<ea_t>(ea + it.first.first);
+        const auto end = static_cast<ea_t>(start + it.first.second);
+        const auto ok = add_hidden_area(start, end, it.second.data(), nullptr, nullptr, ~0u);
+        if(!ok)
+            LOG(ERROR, "make_hiddenarea: 0x" EA_FMT " unable to set hidden area " EA_FMT "-" EA_FMT " %s\n", ea, start, end, it.second.data());
+    }
+}
