@@ -206,11 +206,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
 
         visitor.visit_end_reference_object()
 
-        self.accept_enum_members(visitor, object_id, enum_id)
-
-    def accept_enum_members(self, visitor, parent_id, enum_id):
-        for (const_id, const_value, bmask) in YaToolIDATools.enum_member_iterate_all(enum_id):
-            _yatools_ida_model.accept_enum_member(visitor, self.hash_provider.get(), parent_id, enum_id, const_id)
+        _yatools_ida_model.accept_enum_members(visitor, self.hash_provider.get(), object_id, enum_id)
 
     def accept_deleted_struc(self, visitor, struc_id, struc_type=ya.OBJECT_TYPE_STRUCT):
         object_id = self.hash_provider.get_struc_enum_object_id(struc_id)

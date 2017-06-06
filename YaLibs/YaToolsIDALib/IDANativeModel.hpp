@@ -26,7 +26,7 @@ struct IDANativeModel
 {
     std::string get_type(ea_t ea);
 
-    void accept_enum_member(IModelVisitor& visitor, YaToolsHashProvider* provider, YaToolObjectId parent, uint64_t eid, uint64_t const_id);
+    void accept_enum_members(IModelVisitor& visitor, YaToolsHashProvider* provider, YaToolObjectId parent, uint64_t eid);
 
     // intermediate native methods
     void set_system(const const_string_ref& eq, const const_string_ref& os);
