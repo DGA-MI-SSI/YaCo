@@ -68,21 +68,18 @@ namespace ya
 
     // call read which return size_t & grow buffer if necessary
     template<typename T>
-    bool read_string_from(qstring& buffer, const T& read)
+    const_string_ref read_string_from(qstring& buffer, const T& read)
     {
+        if(buffer.empty())
+            buffer.resize(16);
         while(true)
         {
-            const auto n = read();
+            const auto n = read(&buffer[0], buffer.size());
             if(n < 0)
-            {
-                buffer.resize(0);
-                return false;
-            }
+                return {nullptr, 0};
             if(n + 1 < static_cast<ssize_t>(buffer.size()))
-            {
-                buffer.resize(n);
-                return true;
-            }
+                return {buffer.c_str(), static_cast<size_t>(n)};
+            // retry with bigger buffer
             buffer.resize(buffer.size() * 2);
         }
     }

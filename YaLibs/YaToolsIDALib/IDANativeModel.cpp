@@ -211,12 +211,12 @@ namespace
     {
         for(const auto rpt : {false, true})
         {
-            ya::read_string_from(buffer, [&]
+            const auto comment = ya::read_string_from(buffer, [&](char* buf, size_t szbuf)
             {
-                return read(rpt);
+                return read(buf, szbuf, rpt);
             });
-            if(!buffer.empty())
-                v.visit_header_comment(rpt, ya::to_string_ref(buffer));
+            if(comment.size)
+                v.visit_header_comment(rpt, comment);
         }
     }
 
@@ -232,23 +232,22 @@ namespace
 
 YaToolObjectId IDANativeModel::accept_enum(IModelVisitor& visitor, uint64_t eid)
 {
-    qstring buffer;
-    buffer.resize(64);
-
     const auto enum_id = static_cast<enum_t>(eid);
-    qstring enum_name;
-    get_enum_name(&enum_name, enum_id);
-    const auto id = provider_->get_struc_enum_object_id(enum_id, ya::to_string(enum_name), true);
+    qstring buffer;
+    get_enum_name(&buffer, enum_id);
+    const auto enum_name = ya::to_string(buffer);
+    const auto id = provider_->get_struc_enum_object_id(enum_id, enum_name, true);
     const auto idx = get_enum_idx(enum_id);
+
     start_object(visitor, OBJECT_TYPE_ENUM, id, 0, idx);
     visitor.visit_size(get_enum_width(enum_id));
-    visitor.visit_name(ya::to_string_ref(enum_name), DEFAULT_NAME_FLAGS);
+    visitor.visit_name(make_string_ref(enum_name), DEFAULT_NAME_FLAGS);
     const auto flags = get_enum_flag(enum_id);
     const auto bitfield = is_bf(enum_id) ? ENUM_FLAGS_IS_BF : 0;
     visitor.visit_flags(flags | bitfield);
-    visit_header_comments(visitor, buffer, [&](bool repeated)
+    visit_header_comments(visitor, buffer, [&](char* buf, size_t szbuf, bool repeated)
     {
-        return get_enum_cmt(enum_id, repeated, &buffer[0], buffer.size());
+        return get_enum_cmt(enum_id, repeated, buf, szbuf);
     });
 
     visitor.visit_start_xrefs();
@@ -256,7 +255,7 @@ YaToolObjectId IDANativeModel::accept_enum(IModelVisitor& visitor, uint64_t eid)
     ya::walk_enum_members(enum_id, [&](const_t const_id, uval_t const_value, uchar /*serial*/, bmask_t bmask)
     {
         get_enum_member_name(&buffer, const_id);
-        const auto member_id = provider_->get_enum_member_id(enum_id, ya::to_string(enum_name), const_id, ya::to_string(buffer), ya::to_py_hex(const_value), bmask, true);
+        const auto member_id = provider_->get_enum_member_id(enum_id, enum_name, const_id, ya::to_string(buffer), ya::to_py_hex(const_value), bmask, true);
         visitor.visit_start_xref(0, member_id, DEFAULT_OPERAND);
         visitor.visit_end_xref();
         members.push_back({member_id, const_id, buffer, const_value, bmask});
@@ -272,23 +271,14 @@ YaToolObjectId IDANativeModel::accept_enum(IModelVisitor& visitor, uint64_t eid)
         visitor.visit_name(ya::to_string_ref(m.const_name), DEFAULT_NAME_FLAGS);
         if(m.bmask != BADADDR)
             visitor.visit_flags(static_cast<flags_t>(m.bmask));
-        visit_header_comments(visitor, buffer, [&](bool repeated)
+        visit_header_comments(visitor, buffer, [&](char* buf, size_t szbuf, bool repeated)
         {
-            return get_enum_member_cmt(m.const_id, repeated, &buffer[0], buffer.size());
+            return get_enum_member_cmt(m.const_id, repeated, buf, szbuf);
         });
         finish_object(visitor, m.const_value);
     }
 
     return id;
-}
-
-static YaToolObjectId get_segment_id(YaToolsHashProvider* provider, qstring& buffer, segment_t* seg)
-{
-    ya::read_string_from(buffer, [&]
-    {
-        return get_true_segm_name(seg, &buffer[0], buffer.size());
-    });
-    return provider->get_segment_id(ya::to_string(buffer), seg->startEA);
 }
 
 YaToolObjectId IDANativeModel::accept_binary(IModelVisitor& visitor)
@@ -301,18 +291,21 @@ YaToolObjectId IDANativeModel::accept_binary(IModelVisitor& visitor)
         visitor.visit_size(get_last_seg()->endEA - first->startEA);
 
     qstring buffer;
-    buffer.resize(64);
-    ya::read_string_from(buffer, [&]
+    const auto filename = ya::read_string_from(buffer, [&](char* buf, size_t szbuf)
     {
-        return get_root_filename(&buffer[0], buffer.size());
+        return get_root_filename(buf, szbuf);
     });
-    if(!buffer.empty())
-        visitor.visit_name(ya::to_string_ref(buffer), DEFAULT_NAME_FLAGS);
+    if(filename.size)
+        visitor.visit_name(filename, DEFAULT_NAME_FLAGS);
 
     visitor.visit_start_xrefs();
     for(auto seg = first; seg; seg = get_next_seg(seg->endEA - 1))
     {
-        const auto seg_id = get_segment_id(provider_, buffer, seg);
+        const auto segname = ya::read_string_from(buffer, [&](char* buf, size_t szbuf)
+        {
+            return get_true_segm_name(seg, buf, szbuf);
+        });
+        const auto seg_id = provider_->get_segment_id(make_string(segname), seg->startEA);
         visitor.visit_start_xref(seg->startEA - base, seg_id, DEFAULT_OPERAND);
         visitor.visit_end_xref();
     }
