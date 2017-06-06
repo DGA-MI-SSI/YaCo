@@ -599,52 +599,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
             self.strucmember_ids[object_version.get_id()] = member_id
 
     def make_view(self, object_version, address):
-        # apply view
-        ri = idaapi.refinfo_t()
-        ri.target = idc.BADADDR
-        ri.base = 0
-        ri.tdelta = 0
-        for ((view_offset, operand), view_value) in object_version.get_offset_valueviews().iteritems():
-            if view_value == 'signeddecimal':
-                if not (idaapi.is_invsign(address + view_offset, idaapi.getFlags(address + view_offset), operand)):
-                    idaapi.op_dec(address + view_offset, operand)
-                    # we assume defaut operand is unsigned !
-                    idaapi.toggle_sign(address + view_offset, operand)
-            elif view_value == 'unsigneddecimal':
-                idaapi.op_dec(address + view_offset, operand)
-            elif view_value == 'signedhexadecimal':
-                idaapi.op_hex(address + view_offset, operand)
-                if not (idaapi.is_invsign(address + view_offset, idaapi.getFlags(address + view_offset), operand)):
-                    idaapi.toggle_sign(address + view_offset, operand)
-            elif view_value == 'unsignedhexadecimal':
-                idaapi.op_hex(address + view_offset, operand)
-                if idaapi.is_invsign(address + view_offset, idaapi.getFlags(address + view_offset), operand):
-                    idaapi.toggle_sign(address + view_offset, operand)
-            elif view_value.startswith('offset'):
-                dash = view_value.find("-")
-                if dash != -1:
-                    op_type_str = view_value[dash + 1:]
-                    op_type = YaToolIDATools.OFFSET_TYPE_MAP[op_type_str]
-                else:
-                    op_type = idc.REF_OFF32
-                ri.flags = op_type
-                idaapi.op_offset_ex(address + view_offset, 1, ri)
-            #                 idaapi.set_op_type(address + view_offset, idaapi.offflag(), operand)
-            elif view_value == 'char':
-                idaapi.op_chr(address + view_offset, operand)
-            elif view_value == 'binary':
-                idaapi.op_bin(address + view_offset, operand)
-            elif view_value == 'octal':
-                idaapi.op_oct(address + view_offset, operand)
-
-        for ((register_offset, register_name),
-             (end_offset, new_name)) in object_version.get_offset_registerviews().iteritems():
-            func = idaapi.get_func(address)
-            funcEA = func.startEA
-            ret = idaapi.add_regvar(func, funcEA + register_offset, funcEA + end_offset, register_name, new_name, None)
-            if ret != REGVAR_ERROR_OK:
-                logger.warning("make register_view failed: func=0x%08X, 0x%08X->0x%08X  %s->%s, error=%d" %
-                               (funcEA, funcEA + register_offset, funcEA + end_offset, register_name, new_name, ret))
+        _yatools_ida_exporter.make_views(object_version, address)
 
     def make_code(self, object_version, address):
         # delete function if previously defined

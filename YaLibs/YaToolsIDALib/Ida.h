@@ -33,6 +33,7 @@
 #include <loader.hpp>
 #include <moves.hpp>
 #include <name.hpp>
+#include <offset.hpp>
 #include <struct.hpp>
 #include <typeinf.hpp>
 
