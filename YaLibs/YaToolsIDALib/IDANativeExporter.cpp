@@ -967,3 +967,12 @@ void IDANativeExporter::make_views(std::shared_ptr<YaToolObjectVersion> version,
     for(const auto& it : version->get_offset_registerviews())
         make_registerview(ea, it.first.first, it.first.second, it.second.first, it.second.second);
 }
+
+void IDANativeExporter::make_code(std::shared_ptr<YaToolObjectVersion> version, ea_t ea)
+{
+    del_func(ea);
+    create_insn(ea);
+    make_name(version, ea, false);
+    make_views(version, ea);
+    make_hiddenareas(version, ea);
+}
