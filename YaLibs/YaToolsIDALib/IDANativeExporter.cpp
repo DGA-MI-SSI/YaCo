@@ -1117,7 +1117,7 @@ static void walk_enum_members_with_bmask(enum_t eid, bmask_t bmask, const T& ope
     uchar serial;
     for(auto value = get_first_enum_member(eid, bmask); value != BADADDR; value = get_next_enum_member(eid, value, bmask))
         for(auto cid = first_cid = get_first_serial_enum_member(eid, value, &serial, bmask); cid != BADADDR; cid = get_next_serial_enum_member(first_cid, &serial))
-            operand(cid, value, bmask);
+            operand(cid, value, serial, bmask);
 }
 
 template<typename T>
@@ -1126,6 +1126,14 @@ static void walk_enum_members(enum_t eid, const T& operand)
     walk_enum_members_with_bmask(eid, DEFMASK, operand);
     for(auto fmask = get_first_bmask(eid); fmask != BADADDR; fmask = get_next_bmask(eid, fmask))
         walk_enum_members_with_bmask(eid, fmask, operand);
+}
+
+template<typename T>
+static std::string to_py_hex(T value)
+{
+    std::stringstream ss;
+    ss << "0x" << std::hex << value << "L";
+    return ss.str();
 }
 
 void IDANativeExporter::make_enum(YaToolsHashProvider* provider, std::shared_ptr<YaToolObjectVersion> version, ea_t ea)
@@ -1151,6 +1159,23 @@ void IDANativeExporter::make_enum(YaToolsHashProvider* provider, std::shared_ptr
         {
             LOG(ERROR, "make_enum: 0x" EA_FMT " unable to set %s comment to %s\n", ea, rpt ? "repeatable" : "non-repeatable", version->get_header_comment(rpt).data());
         }
+
+    const auto xref_ids = version->get_xrefed_ids();
+    qstring const_name;
+    walk_enum_members(eid, [&](const_t cid, uval_t value, uchar serial, bmask_t bmask)
+    {
+        const auto it = enum_members.find(cid);
+        if(it != enum_members.end() && it->second == eid)
+            return;
+
+        get_enum_member_name(&const_name, cid);
+        const auto yaid = provider->get_enum_member_id(eid, name, cid, {const_name.c_str(), const_name.length()}, to_py_hex(value), bmask, true);
+        if(xref_ids.count(yaid))
+            return;
+
+        if(!del_enum_member(eid, value, serial, bmask))
+            LOG(ERROR, "make_enum: 0x" EA_FMT ": unable to delete member " EA_FMT " " EA_FMT " %x " EA_FMT "\n", ea, cid, value, serial, bmask);
+    });
 
     const auto id = version->get_id();
     tids[id] = eid;
@@ -1192,4 +1217,6 @@ void IDANativeExporter::make_enum_member(YaToolsHashProvider* provider, std::sha
         {
             LOG(ERROR, "make_enum_member: 0x" EA_FMT " unable to set %s comment to %s\n", ea, rpt ? "repeatable" : "non-repeatable", version->get_header_comment(rpt).data());
         }
+
+    enum_members.emplace(mid, eid);
 }

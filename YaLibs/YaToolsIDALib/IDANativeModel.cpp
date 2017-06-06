@@ -255,7 +255,7 @@ namespace
         uchar serial;
         for(auto value = get_first_enum_member(eid, bmask); value != BADADDR; value = get_next_enum_member(eid, value, bmask))
             for(auto cid = first_cid = get_first_serial_enum_member(eid, value, &serial, bmask); cid != BADADDR; cid = get_next_serial_enum_member(first_cid, &serial))
-                operand(cid, value, bmask);
+                operand(cid, value, serial, bmask);
     }
 
     template<typename T>
@@ -299,7 +299,7 @@ YaToolObjectId IDANativeModel::accept_enum(IModelVisitor& visitor, YaToolsHashPr
 
     visitor.visit_start_xrefs();
     std::vector<EnumMember> members;
-    walk_enum_members(enum_id, [&](const_t const_id, uval_t const_value, bmask_t bmask)
+    walk_enum_members(enum_id, [&](const_t const_id, uval_t const_value, uchar /*serial*/, bmask_t bmask)
     {
         get_enum_member_name(&buffer, const_id);
         const auto member_id = provider->get_enum_member_id(enum_id, to_string(enum_name), const_id, to_string(buffer), to_py_hex(const_value), bmask, true);
