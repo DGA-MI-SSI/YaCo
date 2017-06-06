@@ -181,15 +181,10 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
         if bitfield:
             idc.SetEnumBf(enum_id, 1)
 
-        # process comment
         try:
-            repeatable_headercomment = self.sanitize_comment_to_ascii(object_version.get_header_comment(True))
-            idc.SetEnumCmt(enum_id, repeatable_headercomment, 1)
-        except KeyError:
-            pass
-        try:
-            nonrepeatable_headercomment = self.sanitize_comment_to_ascii(object_version.get_header_comment(False))
-            idc.SetEnumCmt(enum_id, nonrepeatable_headercomment, 0)
+            for rpt in [False, True]:
+                cmt = self.sanitize_comment_to_ascii(object_version.get_header_comment(rpt))
+                idc.SetEnumCmt(enum_id, cmt, rpt)
         except KeyError:
             pass
 
@@ -229,14 +224,9 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
 
         # apply comments
         try:
-            repeatable_headercomment = self.sanitize_comment_to_ascii(object_version.get_header_comment(True))
-            idc.SetConstCmt(member_id, repeatable_headercomment, 1)
-        except KeyError:
-            pass
-
-        try:
-            nonrepeatable_headercomment = self.sanitize_comment_to_ascii(object_version.get_header_comment(True))
-            idc.SetConstCmt(member_id, nonrepeatable_headercomment, 0)
+            for rpt in [False, True]:
+                cmt = self.sanitize_comment_to_ascii(object_version.get_header_comment(rpt))
+                idc.SetConstCmt(member_id, cmt, rpt)
         except KeyError:
             pass
 

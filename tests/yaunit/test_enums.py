@@ -88,7 +88,7 @@ class Fixture(unittest.TestCase):
                         self.assertNotEqual(idaapi.op_enum(ea, 1, eid, 0), idaapi.BADADDR)
                     cid = idc.GetConstByName(field)
                     self.assertTrue(idc.SetConstCmt(cid, field + 'cmt', False))
-                    #self.assertTrue(idc.SetConstCmt(cid, field + 'rpt', True))
+                    self.assertTrue(idc.SetConstCmt(cid, field + 'rpt', True))
                 values.append((name, ea))
         yaunit.save('enums', values)
 
@@ -115,9 +115,8 @@ class Fixture(unittest.TestCase):
                     self.assertNotEqual(cid, idaapi.BADADDR)
                     field = '%s_%d' % (name, n)
                     self.assertEqual(idc.GetConstName(cid), field)
-                    # FIXME comments are not working
-                    #self.assertEqual(idc.GetConstCmt(cid, False), field + 'cmt')
-                    #self.assertEqual(idc.GetConstCmt(cid, True),  field + 'rpt')
+                    self.assertEqual(idc.GetConstCmt(cid, False), field + 'cmt')
+                    self.assertEqual(idc.GetConstCmt(cid, True),  field + 'rpt')
                     n += 1
                 self.assertEqual(n, num_fields)
                 if ea != None:
