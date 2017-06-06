@@ -193,7 +193,7 @@ void IDANativeModel::set_system(const const_string_ref& eq, const const_string_r
     osref_ = make_string_ref(os_);
 }
 
-void IDANativeModel::visit_system(IModelVisitor& v, ea_t ea)
+void IDANativeModel::finish_object(IModelVisitor& v, ea_t ea)
 {
     v.visit_start_matching_systems();
     v.visit_start_matching_system(ea);
@@ -201,6 +201,8 @@ void IDANativeModel::visit_system(IModelVisitor& v, ea_t ea)
     v.visit_matching_system_description(gOsRef, osref_);
     v.visit_end_matching_system();
     v.visit_end_matching_systems();
+    v.visit_end_object_version();
+    v.visit_end_reference_object();
 }
 
 namespace
@@ -309,9 +311,7 @@ YaToolObjectId IDANativeModel::accept_enum(IModelVisitor& visitor, YaToolsHashPr
     });
     visitor.visit_end_xrefs();
 
-    visit_system(visitor, idx);
-    visitor.visit_end_object_version();
-    visitor.visit_end_reference_object();
+    finish_object(visitor, idx);
 
     for(const auto& m : members)
     {
@@ -324,9 +324,7 @@ YaToolObjectId IDANativeModel::accept_enum(IModelVisitor& visitor, YaToolsHashPr
         {
             return get_enum_member_cmt(m.const_id, repeated, buf, szbuf);
         });
-        visit_system(visitor, m.const_value);
-        visitor.visit_end_object_version();
-        visitor.visit_end_reference_object();
+        finish_object(visitor, m.const_value);
     }
 
     return id;
@@ -368,8 +366,7 @@ YaToolObjectId IDANativeModel::accept_binary(IModelVisitor& visitor, YaToolsHash
         visitor.visit_end_xref();
     }
     visitor.visit_end_xrefs();
-    visit_system(visitor, base);
-    visitor.visit_end_object_version();
-    visitor.visit_end_reference_object();
+
+    finish_object(visitor, base);
     return id;
 }

@@ -243,8 +243,6 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             offset = idaapi.get_struc_next_offset(ida_struc, offset)
         visitor.visit_end_xrefs()
 
-        _yatools_ida_model.visit_system(visitor, 0)
-
         default_name_offset = 0
         if struc_type == ya.OBJECT_TYPE_STACKFRAME:
             func = idaapi.get_func_by_frame(struc_id)
@@ -257,9 +255,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
 
             default_name_offset = lvars_size
 
-        visitor.visit_end_object_version()
-
-        visitor.visit_end_reference_object()
+        _yatools_ida_model.finish_object(visitor, 0)
 
         self.accept_struc_members(visitor, object_id, ida_struc, struc_id, struc_name, is_union, struc_type,
                                   struc_member_type, default_name_offset, stackframe_func_addr=stackframe_func_addr)
@@ -370,11 +366,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             if Cmt is not None and Cmt != "":
                 visitor.visit_header_comment(False, Cmt)
 
-            _yatools_ida_model.visit_system(visitor, offset)
-
-            visitor.visit_end_object_version()
-
-            visitor.visit_end_reference_object()
+            _yatools_ida_model.finish_object(visitor, offset)
 
             if idc.isStruct(flags):
                 self.accept_struc(visitor, member_object_id, member_sid)
@@ -504,11 +496,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         (references, xrefed_struc_ids, xrefed_enum_ids) = self.accept_code_area(visitor, eaCode, eaCodeEnd)
 
         (chunk_start, chunk_end) = YaToolIDATools.get_segment_chunk_for_ea(idc.SegStart(eaCode), eaCode)
-        _yatools_ida_model.visit_system(visitor, eaCode - chunk_start)
-
-        visitor.visit_end_object_version()
-
-        visitor.visit_end_reference_object()
+        _yatools_ida_model.finish_object(visitor, eaCode - chunk_start)
 
         # proceed reference values
         for (reference_offset, references_t) in references.iteritems():
@@ -607,19 +595,12 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         visitor.visit_end_xrefs()
 
         (chunk_start, chunk_end) = YaToolIDATools.get_segment_chunk_for_ea(ea_seg, eaFunc)
-        _yatools_ida_model.visit_system(visitor, eaFunc - chunk_start)
 
         #
         # Call the architecture plugin
         #
         self.arch_plugin.accept_function_hook(visitor, eaFunc, func, basic_blocks)
-
-        #
-        # END
-        #
-        visitor.visit_end_object_version()
-
-        visitor.visit_end_reference_object()
+        _yatools_ida_model.finish_object(visitor, eaFunc - chunk_start)
 
         if stack_frame is not None:
             #             logger.debug("exporting stackframe for function at 0x%08X" % eaFunc)
@@ -681,19 +662,12 @@ class YaToolIDAModel(YaToolObjectVersionElement):
 
         (references, xrefed_struc_ids, xrefed_enum_ids) = self.accept_code_area(visitor, startEA, endEA, func)
 
-        _yatools_ida_model.visit_system(visitor, startEA - funcEA)
-
         #
         # Call the architecture plugin
         #
         self.arch_plugin.accept_basic_block_hook(visitor, basic_block, funcEA, func, parent_function_id)
 
-        #
-        # END
-        #
-        visitor.visit_end_object_version()
-
-        visitor.visit_end_reference_object()
+        _yatools_ida_model.finish_object(visitor, startEA - funcEA)
 
         # proceed reference values
         for (reference_offset, references_t) in references.iteritems():
@@ -991,9 +965,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         _yatools_ida_model.start_object(visitor, ya.OBJECT_TYPE_REFERENCE_INFO, refid, 0, 0)
         visitor.visit_size(0)
         visitor.visit_flags(reference_flags)
-        _yatools_ida_model.visit_system(visitor, reference_value)
-        visitor.visit_end_object_version()
-        visitor.visit_end_reference_object()
+        _yatools_ida_model.finish_object(visitor, reference_value)
 
     """
     Unused by now but might be useful
@@ -1113,11 +1085,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             visitor.visit_end_xrefs()
 
         (chunk_start, chunk_end) = YaToolIDATools.get_segment_chunk_for_ea(idc.SegStart(ea), ea)
-        _yatools_ida_model.visit_system(visitor, ea - chunk_start)
-
-        visitor.visit_end_object_version()
-
-        visitor.visit_end_reference_object()
+        _yatools_ida_model.finish_object(visitor, ea - chunk_start)
 
         if idc.isStruct(flags):
             self.accept_struc(visitor, object_id, strid)
@@ -1191,15 +1159,11 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             visitor.visit_end_xref()
         visitor.visit_end_xrefs()
 
-        _yatools_ida_model.visit_system(visitor, seg_ea_start - idaapi.get_imagebase())
 
         self.accept_attributes(visitor, seg_attributes)
 
         # TODO: add offsets for all elements inside segment
-
-        visitor.visit_end_object_version()
-
-        visitor.visit_end_reference_object()
+        _yatools_ida_model.finish_object(visitor, seg_ea_start - idaapi.get_imagebase())
 
         if export_chunks:
             for (chunk_start, chunk_end) in segment_items:
@@ -1252,8 +1216,6 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             visitor.visit_end_xref()
         visitor.visit_end_xrefs()
 
-        _yatools_ida_model.visit_system(visitor, chunk_start - seg_start)
-
         for (blob_addr, blob_content) in sorted(
                 YaToolIDATools.address_range_get_blobs(chunk_start, chunk_end).iteritems()):
             while len(blob_content) > MAX_BLOB_TAG_LEN:
@@ -1262,9 +1224,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
                 blob_addr += MAX_BLOB_TAG_LEN
             visitor.visit_blob(blob_addr - chunk_start, blob_content)
 
-        visitor.visit_end_object_version()
-
-        visitor.visit_end_reference_object()
+        _yatools_ida_model.finish_object(visitor, chunk_start - seg_start)
 
         if not self.descending_mode:
             self.accept_segment(visitor, 0, seg_start, seg_end)
