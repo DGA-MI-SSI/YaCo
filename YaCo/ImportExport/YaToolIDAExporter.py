@@ -694,11 +694,8 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
                             #                  " idc.DOUNK_EXPAND | idaapi.DOUNK_NOTRUNC)" % (i))
                             #    idc.MakeUnkn(i, idc.DOUNK_DELNAMES | idc.DOUNK_EXPAND | idaapi.DOUNK_NOTRUNC)
 
-    def analyze_function(self, address):
-        chunks = YaToolIDATools.get_function_chunks(address)
-        for (ch_start, ch_end) in chunks:
-            if idc.AnalyzeArea(ch_start, ch_end) != 1:
-                logger.error("[0x%08X] idc.AnalyzeArea failed [0x%08X->0x%08X" % (address, ch_start, ch_end))
+    def analyze_function(self, ea):
+        _yatools_ida_exporter.analyze_function(ea)
 
     def make_function(self, object_version, address):
         #

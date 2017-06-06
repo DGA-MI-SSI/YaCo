@@ -22,8 +22,10 @@
 
 #define BYTES_SOURCE
 #define NO_OBSOLETE_FUNCS
+#include <auto.hpp>
 #include <bytes.hpp>
 #include <frame.hpp>
+#include <funcs.hpp>
 #include <ida.hpp>
 #include <idp.hpp>
 #include <kernwin.hpp>

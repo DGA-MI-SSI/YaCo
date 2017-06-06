@@ -777,3 +777,30 @@ void IDANativeExporter::make_header_comments(std::shared_ptr<YaToolObjectVersion
             LOG(ERROR, "make_header_comments: 0x" EA_FMT " unable to set %s comment: %s\n", ea, repeatable ? "repeatable" : "nonrepeatable", comment.data());
     }
 }
+
+template<typename T>
+static void walk_function_chunks(ea_t ea, const T& operand)
+{
+    const auto func = get_func(ea);
+    if(!func)
+    {
+        LOG(ERROR, "analyze_function: 0x" EA_FMT " missing function\n", ea);
+        return;
+    }
+
+    func_tail_iterator_t fti{func, ea};
+    for(bool ok = fti.first(); ok; ok = fti.next())
+    {
+        const auto& area = fti.chunk();
+        operand(area.startEA, area.endEA);
+    }
+}
+
+void IDANativeExporter::analyze_function(ea_t ea)
+{
+    walk_function_chunks(ea, [=](ea_t start, ea_t end)
+    {
+        if(!analyze_area(start, end))
+            LOG(ERROR, "analyze_function: 0x" EA_FMT " unable to analyze area " EA_FMT "-" EA_FMT "\n", ea, start, end);
+    });
+}
