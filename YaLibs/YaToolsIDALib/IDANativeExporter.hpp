@@ -31,6 +31,8 @@ struct IDANativeExporter
 
     void make_comments(std::shared_ptr<YaToolObjectVersion> object_version, ea_t address);
 
+    void make_hiddenareas(std::shared_ptr<YaToolObjectVersion>& object_version, ea_t address);
+
     void make_segment(std::shared_ptr<YaToolObjectVersion> object_version, ea_t address);
     void make_segment_chunk(std::shared_ptr<YaToolObjectVersion> object_version, ea_t address);
     bool set_type(ea_t ea, const std::string& prototype);

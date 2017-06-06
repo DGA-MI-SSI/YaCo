@@ -649,11 +649,8 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
                 logger.warning("make register_view failed: func=0x%08X, 0x%08X->0x%08X  %s->%s, error=%d" %
                                (funcEA, funcEA + register_offset, funcEA + end_offset, register_name, new_name, ret))
 
-    def make_hidden_area(self, object_version, address):
-        # create hidden area
-        for ((hidden_area_offset, size), hidden_area_value) in object_version.get_offset_hiddenareas().iteritems():
-            idaapi.add_hidden_area(address + hidden_area_offset, address + hidden_area_offset +
-                                   size, hidden_area_value, None, None, 0xffffffff)  # 0xffffffff -> no color
+    def make_hidden_area(self, version, ea):
+        _yatools_ida_exporter.make_hiddenareas(version, ea)
 
     def make_code(self, object_version, address):
         # delete function if previously defined
