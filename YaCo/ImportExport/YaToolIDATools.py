@@ -855,33 +855,6 @@ def struc_member_list(struc_id, is_union):
     return sorted(offsets.items())
 
 
-def enum_member_iterate_const(enum_id):
-    const_value = idc.GetFirstConst(enum_id, -1)
-    while const_value != idc.BADADDR:
-        serial = 0
-        const_id = idc.GetConstEx(enum_id, const_value, serial, -1)
-        while const_id != idc.BADADDR:
-            yield (const_id, const_value, None)
-
-            serial += 1
-            const_id = idc.GetConstEx(enum_id, const_value, serial, -1)
-        const_value = idc.GetNextConst(enum_id, const_value, -1)
-
-
-def enum_member_iterate_bitfield(enum_id):
-    # bitfield
-    bmask = idc.GetFirstBmask(enum_id)
-    while bmask != idc.BADADDR:
-        const_value = idc.GetFirstConst(enum_id, bmask)
-        while const_value != idc.BADADDR:
-            # TODO must implement serial for bitfield
-            const_id = idc.GetConstEx(enum_id, const_value, 0, bmask)
-            yield (const_id, const_value, bmask)
-
-            const_value = idc.GetNextConst(enum_id, const_value, bmask)
-        bmask = idc.GetNextBmask(enum_id, bmask)
-
-
 def enum_member_iterate_all(enum_id):
     const_value = idc.GetFirstConst(enum_id, -1)
     while const_value != idc.BADADDR:
@@ -893,7 +866,6 @@ def enum_member_iterate_all(enum_id):
             serial += 1
             const_id = idc.GetConstEx(enum_id, const_value, serial, -1)
         const_value = idc.GetNextConst(enum_id, const_value, -1)
-    enum_member_iterate_bitfield(enum_id)
 
     bmask = idc.GetFirstBmask(enum_id)
     while bmask != idc.BADADDR:
@@ -902,7 +874,6 @@ def enum_member_iterate_all(enum_id):
             # TODO must implement serial for bitfield
             const_id = idc.GetConstEx(enum_id, const_value, 0, bmask)
             yield (const_id, const_value, bmask)
-
             const_value = idc.GetNextConst(enum_id, const_value, bmask)
         bmask = idc.GetNextBmask(enum_id, bmask)
 
