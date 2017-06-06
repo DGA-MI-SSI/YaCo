@@ -25,6 +25,16 @@ struct IDANativeModel
 {
     std::string get_type(ea_t ea);
 
+    // intermediate native methods
+    void set_system(const const_string_ref& eq, const const_string_ref& os);
     void start_object(IModelVisitor& visitor, YaToolObjectType_e type, YaToolObjectId id, YaToolObjectId parent, ea_t ea);
-    void visit_system(IModelVisitor& visitor, ea_t ea, const const_string_ref& eq, const const_string_ref& os);
+    void visit_system(IModelVisitor& visitor, ea_t ea);
+
+#ifndef SWIG
+private:
+    std::string eq_;
+    const_string_ref eqref_;
+    std::string os_;
+    const_string_ref osref_;
+#endif
 };

@@ -76,6 +76,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         if self.minXrefAddress == idc.BADADDR:
             self.minXrefAddress = idc.SegStart(0)
             self.maxXrefAddress = idc.SegEnd(0)
+        _yatools_ida_model.set_system(EquipementDescription, OSDescription)
 
     def set_ea_exporter(self, ea_exporter):
         self.delegate_exporter = ea_exporter
@@ -129,7 +130,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             seg_ea_start = idc.NextSeg(seg_ea_end - 1)
         visitor.visit_end_xrefs()
 
-        _yatools_ida_model.visit_system(visitor, image_base, self.EquipementDescription, self.OSDescription)
+        _yatools_ida_model.visit_system(visitor, image_base)
 
         # TODO: add offsets for all elements inside segment
 
@@ -199,7 +200,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
 
         visitor.visit_end_xrefs()
 
-        _yatools_ida_model.visit_system(visitor, idx, self.EquipementDescription, self.OSDescription)
+        _yatools_ida_model.visit_system(visitor, idx)
 
         visitor.visit_end_object_version()
 
@@ -236,7 +237,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         if Cmt is not None and Cmt != "":
             visitor.visit_header_comment(False, Cmt)
 
-        _yatools_ida_model.visit_system(visitor, const_value, self.EquipementDescription, self.OSDescription)
+        _yatools_ida_model.visit_system(visitor, const_value)
 
         visitor.visit_end_object_version()
 
@@ -353,7 +354,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             offset = idaapi.get_struc_next_offset(ida_struc, offset)
         visitor.visit_end_xrefs()
 
-        _yatools_ida_model.visit_system(visitor, 0, self.EquipementDescription, self.OSDescription)
+        _yatools_ida_model.visit_system(visitor, 0)
 
         default_name_offset = 0
         if struc_type == ya.OBJECT_TYPE_STACKFRAME:
@@ -480,7 +481,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             if Cmt is not None and Cmt != "":
                 visitor.visit_header_comment(False, Cmt)
 
-            _yatools_ida_model.visit_system(visitor, offset, self.EquipementDescription, self.OSDescription)
+            _yatools_ida_model.visit_system(visitor, offset)
 
             visitor.visit_end_object_version()
 
@@ -614,7 +615,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         (references, xrefed_struc_ids, xrefed_enum_ids) = self.accept_code_area(visitor, eaCode, eaCodeEnd)
 
         (chunk_start, chunk_end) = YaToolIDATools.get_segment_chunk_for_ea(idc.SegStart(eaCode), eaCode)
-        _yatools_ida_model.visit_system(visitor, eaCode - chunk_start, self.EquipementDescription, self.OSDescription)
+        _yatools_ida_model.visit_system(visitor, eaCode - chunk_start)
 
         visitor.visit_end_object_version()
 
@@ -717,7 +718,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         visitor.visit_end_xrefs()
 
         (chunk_start, chunk_end) = YaToolIDATools.get_segment_chunk_for_ea(ea_seg, eaFunc)
-        _yatools_ida_model.visit_system(visitor, eaFunc - chunk_start, self.EquipementDescription, self.OSDescription)
+        _yatools_ida_model.visit_system(visitor, eaFunc - chunk_start)
 
         #
         # Call the architecture plugin
@@ -791,7 +792,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
 
         (references, xrefed_struc_ids, xrefed_enum_ids) = self.accept_code_area(visitor, startEA, endEA, func)
 
-        _yatools_ida_model.visit_system(visitor, startEA - funcEA, self.EquipementDescription, self.OSDescription)
+        _yatools_ida_model.visit_system(visitor, startEA - funcEA)
 
         #
         # Call the architecture plugin
@@ -1101,7 +1102,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         _yatools_ida_model.start_object(visitor, ya.OBJECT_TYPE_REFERENCE_INFO, refid, 0, 0)
         visitor.visit_size(0)
         visitor.visit_flags(reference_flags)
-        _yatools_ida_model.visit_system(visitor, reference_value, self.EquipementDescription, self.OSDescription)
+        _yatools_ida_model.visit_system(visitor, reference_value)
         visitor.visit_end_object_version()
         visitor.visit_end_reference_object()
 
@@ -1223,7 +1224,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             visitor.visit_end_xrefs()
 
         (chunk_start, chunk_end) = YaToolIDATools.get_segment_chunk_for_ea(idc.SegStart(ea), ea)
-        _yatools_ida_model.visit_system(visitor, ea - chunk_start, self.EquipementDescription, self.OSDescription)
+        _yatools_ida_model.visit_system(visitor, ea - chunk_start)
 
         visitor.visit_end_object_version()
 
@@ -1301,7 +1302,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             visitor.visit_end_xref()
         visitor.visit_end_xrefs()
 
-        _yatools_ida_model.visit_system(visitor, seg_ea_start - idaapi.get_imagebase(), self.EquipementDescription, self.OSDescription)
+        _yatools_ida_model.visit_system(visitor, seg_ea_start - idaapi.get_imagebase())
 
         self.accept_attributes(visitor, seg_attributes)
 
@@ -1362,7 +1363,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             visitor.visit_end_xref()
         visitor.visit_end_xrefs()
 
-        _yatools_ida_model.visit_system(visitor, chunk_start - seg_start, self.EquipementDescription, self.OSDescription)
+        _yatools_ida_model.visit_system(visitor, chunk_start - seg_start)
 
         for (blob_addr, blob_content) in sorted(
                 YaToolIDATools.address_range_get_blobs(chunk_start, chunk_end).iteritems()):
