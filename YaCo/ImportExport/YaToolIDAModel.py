@@ -138,12 +138,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             seg_ea_start = idc.NextSeg(seg_ea_end - 1)
         visitor.visit_end_xrefs()
 
-        visitor.visit_start_matching_systems()
-        visitor.visit_start_matching_system(image_base)
-        visitor.visit_matching_system_description("equipement", self.EquipementDescription)
-        visitor.visit_matching_system_description("os", self.OSDescription)
-        visitor.visit_end_matching_system()
-        visitor.visit_end_matching_systems()
+        _yatools_ida_model.visit_system(visitor, image_base, self.EquipementDescription, self.OSDescription)
 
         # TODO: add offsets for all elements inside segment
 
@@ -220,15 +215,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
 
         visitor.visit_end_xrefs()
 
-        #
-        # MATCHING SYSTEMS
-        #
-        visitor.visit_start_matching_systems()
-        visitor.visit_start_matching_system(idx)
-        visitor.visit_matching_system_description("equipement", self.EquipementDescription)
-        visitor.visit_matching_system_description("os", self.OSDescription)
-        visitor.visit_end_matching_system()
-        visitor.visit_end_matching_systems()
+        _yatools_ida_model.visit_system(visitor, idx, self.EquipementDescription, self.OSDescription)
 
         visitor.visit_end_object_version()
 
@@ -275,15 +262,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         if Cmt is not None and Cmt != "":
             visitor.visit_header_comment(False, Cmt)
 
-        #
-        # MATCHING SYSTEMS
-        #
-        visitor.visit_start_matching_systems()
-        visitor.visit_start_matching_system(const_value)
-        visitor.visit_matching_system_description("equipement", self.EquipementDescription)
-        visitor.visit_matching_system_description("os", self.OSDescription)
-        visitor.visit_end_matching_system()
-        visitor.visit_end_matching_systems()
+        _yatools_ida_model.visit_system(visitor, const_value, self.EquipementDescription, self.OSDescription)
 
         visitor.visit_end_object_version()
 
@@ -406,15 +385,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             offset = idaapi.get_struc_next_offset(ida_struc, offset)
         visitor.visit_end_xrefs()
 
-        #
-        # MATCHING SYSTEMS
-        #
-        visitor.visit_start_matching_systems()
-        visitor.visit_start_matching_system(0)
-        visitor.visit_matching_system_description("equipement", self.EquipementDescription)
-        visitor.visit_matching_system_description("os", self.OSDescription)
-        visitor.visit_end_matching_system()
-        visitor.visit_end_matching_systems()
+        _yatools_ida_model.visit_system(visitor, 0, self.EquipementDescription, self.OSDescription)
 
         default_name_offset = 0
         if struc_type == ya.OBJECT_TYPE_STACKFRAME:
@@ -551,16 +522,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             if Cmt is not None and Cmt != "":
                 visitor.visit_header_comment(False, Cmt)
 
-            #
-            # MATCHING SYSTEMS
-            #
-            # matchingsystems
-            visitor.visit_start_matching_systems()
-            visitor.visit_start_matching_system(offset)
-            visitor.visit_matching_system_description("equipement", self.EquipementDescription)
-            visitor.visit_matching_system_description("os", self.OSDescription)
-            visitor.visit_end_matching_system()
-            visitor.visit_end_matching_systems()
+            _yatools_ida_model.visit_system(visitor, offset, self.EquipementDescription, self.OSDescription)
 
             visitor.visit_end_object_version()
 
@@ -701,16 +663,8 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         
         (references, xrefed_struc_ids, xrefed_enum_ids) = self.accept_code_area(visitor, eaCode, eaCodeEnd)
 
-        #
-        # MATCHING SYSTEMS
-        #
-        visitor.visit_start_matching_systems()
         (chunk_start, chunk_end) = YaToolIDATools.get_segment_chunk_for_ea(idc.SegStart(eaCode), eaCode)
-        visitor.visit_start_matching_system(eaCode - chunk_start)
-        visitor.visit_matching_system_description("equipement", self.EquipementDescription)
-        visitor.visit_matching_system_description("os", self.OSDescription)
-        visitor.visit_end_matching_system()
-        visitor.visit_end_matching_systems()
+        _yatools_ida_model.visit_system(visitor, eaCode - chunk_start, self.EquipementDescription, self.OSDescription)
 
         visitor.visit_end_object_version()
 
@@ -824,17 +778,8 @@ class YaToolIDAModel(YaToolObjectVersionElement):
 
         visitor.visit_end_xrefs()
 
-        #
-        # MATCHING SYSTEMS
-        #
-        # matchingsystems
-        visitor.visit_start_matching_systems()
         (chunk_start, chunk_end) = YaToolIDATools.get_segment_chunk_for_ea(ea_seg, eaFunc)
-        visitor.visit_start_matching_system(eaFunc - chunk_start)
-        visitor.visit_matching_system_description("equipement", self.EquipementDescription)
-        visitor.visit_matching_system_description("os", self.OSDescription)
-        visitor.visit_end_matching_system()
-        visitor.visit_end_matching_systems()
+        _yatools_ida_model.visit_system(visitor, eaFunc - chunk_start, self.EquipementDescription, self.OSDescription)
 
         #
         # Call the architecture plugin
@@ -922,15 +867,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         
         (references, xrefed_struc_ids, xrefed_enum_ids) = self.accept_code_area(visitor, startEA, endEA, func)
 
-        #
-        # MATCHING SYSTEMS
-        #
-        visitor.visit_start_matching_systems()
-        visitor.visit_start_matching_system(startEA - funcEA)
-        visitor.visit_matching_system_description("equipement", self.EquipementDescription)
-        visitor.visit_matching_system_description("os", self.OSDescription)
-        visitor.visit_end_matching_system()
-        visitor.visit_end_matching_systems()
+        _yatools_ida_model.visit_system(visitor, startEA - funcEA, self.EquipementDescription, self.OSDescription)
 
         #
         # Call the architecture plugin
@@ -1250,15 +1187,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         # flags
         visitor.visit_flags(reference_flags)
 
-        #
-        # MATCHING SYSTEMS
-        #
-        visitor.visit_start_matching_systems()
-        visitor.visit_start_matching_system(reference_value)
-        visitor.visit_matching_system_description("equipement", self.EquipementDescription)
-        visitor.visit_matching_system_description("os", self.OSDescription)
-        visitor.visit_end_matching_system()
-        visitor.visit_end_matching_systems()
+        _yatools_ida_model.visit_system(visitor, reference_value, self.EquipementDescription, self.OSDescription)
 
         #
         # END
@@ -1394,16 +1323,8 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         if idc.isStruct(flags):  # OR HAS_XREFS
             visitor.visit_end_xrefs()
 
-        #
-        # MATCHING SYSTEMS
-        #
-        visitor.visit_start_matching_systems()
         (chunk_start, chunk_end) = YaToolIDATools.get_segment_chunk_for_ea(idc.SegStart(ea), ea)
-        visitor.visit_start_matching_system(ea - chunk_start)
-        visitor.visit_matching_system_description("equipement", self.EquipementDescription)
-        visitor.visit_matching_system_description("os", self.OSDescription)
-        visitor.visit_end_matching_system()
-        visitor.visit_end_matching_systems()
+        _yatools_ida_model.visit_system(visitor, ea - chunk_start, self.EquipementDescription, self.OSDescription)
 
         visitor.visit_end_object_version()
 
@@ -1490,12 +1411,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             visitor.visit_end_xref()
         visitor.visit_end_xrefs()
 
-        visitor.visit_start_matching_systems()
-        visitor.visit_start_matching_system(seg_ea_start - idaapi.get_imagebase())
-        visitor.visit_matching_system_description("equipement", self.EquipementDescription)
-        visitor.visit_matching_system_description("os", self.OSDescription)
-        visitor.visit_end_matching_system()
-        visitor.visit_end_matching_systems()
+        _yatools_ida_model.visit_system(visitor, seg_ea_start - idaapi.get_imagebase(), self.EquipementDescription, self.OSDescription)
 
         self.accept_attributes(visitor, seg_attributes)
 
@@ -1564,12 +1480,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             visitor.visit_end_xref()
         visitor.visit_end_xrefs()
 
-        visitor.visit_start_matching_systems()
-        visitor.visit_start_matching_system(chunk_start - seg_start)
-        visitor.visit_matching_system_description("equipement", self.EquipementDescription)
-        visitor.visit_matching_system_description("os", self.OSDescription)
-        visitor.visit_end_matching_system()
-        visitor.visit_end_matching_systems()
+        _yatools_ida_model.visit_system(visitor, chunk_start - seg_start, self.EquipementDescription, self.OSDescription)
 
         for (blob_addr, blob_content) in sorted(
                 YaToolIDATools.address_range_get_blobs(chunk_start, chunk_end).iteritems()):

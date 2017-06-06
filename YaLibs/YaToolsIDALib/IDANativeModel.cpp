@@ -154,3 +154,21 @@ std::string IDANativeModel::get_type(ea_t ea)
     auto type = get_type_from(tif, nullptr);
     return type;
 }
+
+namespace
+{
+    const char               gEq[] = "equipment";
+    const char               gOs[] = "os";
+    const const_string_ref   gEqRef = {gEq, sizeof gEq - 1};
+    const const_string_ref   gOsRef = {gOs, sizeof gOs - 1};
+}
+
+void IDANativeModel::visit_system(IModelVisitor& v, ea_t ea, const const_string_ref& eq, const const_string_ref& os)
+{
+    v.visit_start_matching_systems();
+    v.visit_start_matching_system(ea);
+    v.visit_matching_system_description(gEqRef, eq);
+    v.visit_matching_system_description(gOsRef, os);
+    v.visit_end_matching_system();
+    v.visit_end_matching_systems();
+}

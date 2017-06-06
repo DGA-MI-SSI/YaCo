@@ -24,4 +24,6 @@ class YaToolObjectVersion;
 struct IDANativeModel
 {
     std::string get_type(ea_t ea);
+
+    void visit_system(IModelVisitor& visitor, ea_t ea, const const_string_ref& eq, const const_string_ref& os);
 };
