@@ -853,7 +853,6 @@ static void clear_function(const YaToolObjectVersion& version, ea_t ea)
             if(itsize == ju.attributes.end())
                 continue;
 
-            const auto size = to_ea(itsize->second.data());
             const auto xref_ea = static_cast<ea_t>(ea + it.first.first);
             const auto func = get_func(xref_ea);
             if(!func)
@@ -1101,7 +1100,7 @@ static void set_data_type(ea_t ea, YaToolObjectVersion& version, const IDANative
     const auto type_flags = flags & (DT_TYPE | get_optype_flags0(~0u));
     const auto ok = do_data_ex(ea, type_flags, size, 0);
     if(!ok)
-        LOG(ERROR, "make_data: 0x" EA_FMT " unable to set data type 0x%08x size %d\n", ea, type_flags, size);
+        LOG(ERROR, "make_data: 0x" EA_FMT " unable to set data type 0x%llx size %zd\n", ea, static_cast<uint64_t>(type_flags), size);
 }
 
 void IDANativeExporter::make_data(std::shared_ptr<YaToolObjectVersion> version, ea_t ea)
