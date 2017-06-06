@@ -174,6 +174,15 @@ namespace
     const const_string_ref   gOsRef = {gOs, sizeof gOs - 1};
 
     const int DEFAULT_NAME_FLAGS = 0;
+    const int DEFAULT_OPERAND = 0;
+}
+
+void IDANativeModel::set_system(const const_string_ref& eq, const const_string_ref& os)
+{
+    eq_ = make_string(eq);
+    eqref_ = make_string_ref(eq_);
+    os_ = make_string(os);
+    osref_ = make_string_ref(os_);
 }
 
 void IDANativeModel::visit_system(IModelVisitor& v, ea_t ea)
@@ -186,79 +195,117 @@ void IDANativeModel::visit_system(IModelVisitor& v, ea_t ea)
     v.visit_end_matching_systems();
 }
 
-template<typename T>
-static std::string to_py_hex(T value)
+namespace
 {
-    std::stringstream ss;
-    ss << "0x" << std::hex << value << "L";
-    return ss.str();
-}
-
-static void accept_enum_member(IDANativeModel& lib, IModelVisitor& v, YaToolsHashProvider* provider, YaToolObjectId parent, enum_t eid, const_t const_id, uval_t const_value, bmask_t bmask)
-{
-    qstring const_name;
-    get_enum_member_name(&const_name, const_id);
-    const auto enum_name = get_enum_name(eid);
-    const auto id = provider->get_enum_member_id(eid, to_string(enum_name), const_id, to_string(const_name), to_py_hex(const_value), bmask, true);
-    lib.start_object(v, OBJECT_TYPE_ENUM_MEMBER, id, parent, const_value);
-    v.visit_size(0);
-    v.visit_name({const_name.c_str(), const_name.length()}, DEFAULT_NAME_FLAGS);
-    if(bmask != BADADDR)
-        v.visit_flags(static_cast<flags_t>(bmask));
-
-    std::vector<char> buffer(64);
-    for(const auto rpt : {false, true})
+    template<typename T>
+    std::string to_py_hex(T value)
     {
-        while(true)
+        std::stringstream ss;
+        ss << "0x" << std::hex << value << "L";
+        return ss.str();
+    }
+
+    template<typename T>
+    void visit_header_comments(IModelVisitor& v, qstring& buffer, const T& read)
+    {
+        for(const auto rpt : {false, true})
         {
-            const auto n = get_enum_member_cmt(const_id, rpt, &buffer[0], buffer.size());
-            if(n < 0)
-                break;
-            if(n + 1 < static_cast<ssize_t>(buffer.size()))
+            while(true)
             {
-                v.visit_header_comment(rpt, {&buffer[0], static_cast<size_t>(n)});
-                break;
+                const auto n = read(rpt, &buffer[0], buffer.size());
+                if(n < 0)
+                    break;
+                if(n + 1 < static_cast<ssize_t>(buffer.size()))
+                {
+                    v.visit_header_comment(rpt, {&buffer[0], static_cast<size_t>(n)});
+                    break;
+                }
+                // retry with bigger buffer
+                buffer.resize(buffer.size() * 2);
             }
-            // retry with bigger buffer
-            buffer.resize(buffer.size() * 2);
         }
     }
-    lib.visit_system(v, const_value);
-    v.visit_end_object_version();
-    v.visit_end_reference_object();
-}
 
-template<typename T>
-static void walk_enum_members_with_bmask(enum_t eid, bmask_t bmask, const T& operand)
-{
-    const_t first_cid;
-    uchar serial;
-    for(auto value = get_first_enum_member(eid, bmask); value != BADADDR; value = get_next_enum_member(eid, value, bmask))
-        for(auto cid = first_cid = get_first_serial_enum_member(eid, value, &serial, bmask); cid != BADADDR; cid = get_next_serial_enum_member(first_cid, &serial))
-            operand(cid, value, bmask);
-}
-
-template<typename T>
-static void walk_enum_members(enum_t eid, const T& operand)
-{
-    walk_enum_members_with_bmask(eid, DEFMASK, operand);
-    for(auto fmask = get_first_bmask(eid); fmask != BADADDR; fmask = get_next_bmask(eid, fmask))
-        walk_enum_members_with_bmask(eid, fmask, operand);
-}
-
-void IDANativeModel::accept_enum_members(IModelVisitor& visitor, YaToolsHashProvider* provider, YaToolObjectId parent, uint64_t veid)
-{
-    const auto eid = static_cast<enum_t>(veid);
-    walk_enum_members(eid, [&](const_t const_id, uval_t const_value, bmask_t bmask)
+    template<typename T>
+    void walk_enum_members_with_bmask(enum_t eid, bmask_t bmask, const T& operand)
     {
-        accept_enum_member(*this, visitor, provider, parent, eid, const_id, const_value, bmask);
-    });
+        const_t first_cid;
+        uchar serial;
+        for(auto value = get_first_enum_member(eid, bmask); value != BADADDR; value = get_next_enum_member(eid, value, bmask))
+            for(auto cid = first_cid = get_first_serial_enum_member(eid, value, &serial, bmask); cid != BADADDR; cid = get_next_serial_enum_member(first_cid, &serial))
+                operand(cid, value, bmask);
+    }
+
+    template<typename T>
+    void walk_enum_members(enum_t eid, const T& operand)
+    {
+        walk_enum_members_with_bmask(eid, DEFMASK, operand);
+        for(auto fmask = get_first_bmask(eid); fmask != BADADDR; fmask = get_next_bmask(eid, fmask))
+            walk_enum_members_with_bmask(eid, fmask, operand);
+    }
+
+    struct EnumMember
+    {
+        YaToolObjectId  id;
+        const_t         const_id;
+        qstring         const_name;
+        uval_t          const_value;
+        bmask_t         bmask;
+    };
 }
 
-void IDANativeModel::set_system(const const_string_ref& eq, const const_string_ref& os)
+YaToolObjectId IDANativeModel::accept_enum(IModelVisitor& visitor, YaToolsHashProvider* provider, uint64_t eid)
 {
-    eq_ = make_string(eq);
-    eqref_ = make_string_ref(eq_);
-    os_ = make_string(os);
-    osref_ = make_string_ref(os_);
+    qstring buffer;
+    buffer.resize(64);
+
+    const auto enum_id = static_cast<enum_t>(eid);
+    qstring enum_name;
+    get_enum_name(&enum_name, enum_id);
+    const auto id = provider->get_struc_enum_object_id(enum_id, to_string(enum_name), true);
+    const auto idx = get_enum_idx(enum_id);
+    start_object(visitor, OBJECT_TYPE_ENUM, id, 0, idx);
+    visitor.visit_size(get_enum_width(enum_id));
+    visitor.visit_name({enum_name.c_str(), enum_name.length()}, DEFAULT_NAME_FLAGS);
+    const auto flags = get_enum_flag(enum_id);
+    const auto bitfield = is_bf(enum_id) ? ENUM_FLAGS_IS_BF : 0;
+    visitor.visit_flags(flags | bitfield);
+    visit_header_comments(visitor, buffer, [&](bool repeated, char* buf, size_t szbuf)
+    {
+        return get_enum_cmt(enum_id, repeated, buf, szbuf);
+    });
+
+    visitor.visit_start_xrefs();
+    std::vector<EnumMember> members;
+    walk_enum_members(enum_id, [&](const_t const_id, uval_t const_value, bmask_t bmask)
+    {
+        get_enum_member_name(&buffer, const_id);
+        const auto member_id = provider->get_enum_member_id(enum_id, to_string(enum_name), const_id, to_string(buffer), to_py_hex(const_value), bmask, true);
+        visitor.visit_start_xref(0, member_id, DEFAULT_OPERAND);
+        visitor.visit_end_xref();
+        members.push_back({member_id, const_id, buffer, const_value, bmask});
+    });
+    visitor.visit_end_xrefs();
+
+    visit_system(visitor, idx);
+    visitor.visit_end_object_version();
+    visitor.visit_end_reference_object();
+
+    for(const auto& m : members)
+    {
+        start_object(visitor, OBJECT_TYPE_ENUM_MEMBER, m.id, id, m.const_value);
+        visitor.visit_size(0);
+        visitor.visit_name({m.const_name.c_str(), m.const_name.length()}, DEFAULT_NAME_FLAGS);
+        if(m.bmask != BADADDR)
+            visitor.visit_flags(static_cast<flags_t>(m.bmask));
+        visit_header_comments(visitor, buffer, [&](bool repeated, char* buf, size_t szbuf)
+        {
+            return get_enum_member_cmt(m.const_id, repeated, buf, szbuf);
+        });
+        visit_system(visitor, m.const_value);
+        visitor.visit_end_object_version();
+        visitor.visit_end_reference_object();
+    }
+
+    return id;
 }

@@ -23,6 +23,7 @@ if(MSVC)
     if("${ARCH}" STREQUAL "x86")
         set_flag_all(LINKER_FLAGS "/LARGEADDRESSAWARE(:NO)?" "/LARGEADDRESSAWARE" DEBUG RELEASE RELWITHDEBINFO)
     endif()
+    include_directories("${ya_dir}/deps/optional-lite")
 endif()
 
 include(${ya_dir}/build/yadeps.cmake)
@@ -60,11 +61,6 @@ setup_yatools(yatools)
 target_include_directories(yatools PUBLIC
     "${ya_dir}/YaLibs/YaToolsLib"
 )
-if(MSVC)
-    target_include_directories(yatools PRIVATE
-        "${ya_dir}/deps/optional-lite"
-    )
-endif()
 target_link_libraries(yatools PUBLIC
     farmhash
     flatbuffers
@@ -93,7 +89,6 @@ add_custom_command(TARGET yatools POST_BUILD
 add_target(yatools_tests yatools/tests "${ya_dir}/YaLibs/tests/YaToolsLib_test" OPTIONS test recurse static_runtime)
 setup_yatools(yatools_tests)
 target_include_directories(yatools_tests PRIVATE
-    "${ya_dir}/deps/optional-lite"
     "${ya_dir}/YaLibs/tests"
 )
 target_link_libraries(yatools_tests PRIVATE
@@ -257,7 +252,6 @@ if("${ARCH}" STREQUAL "x86")
     add_target(integration_tests yatools/tests "${ya_dir}/YaLibs/tests/integration" OPTIONS test static_runtime)
     setup_yatools(integration_tests)
     target_include_directories(integration_tests PRIVATE
-        "${ya_dir}/deps/optional-lite"
         "${ya_dir}/YaLibs/tests"
     )
     target_link_libraries(integration_tests PRIVATE

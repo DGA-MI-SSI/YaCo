@@ -155,58 +155,10 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             self.accept_enum(visitor, idc.GetnEnum(i))
 
     def accept_enum(self, visitor, enum_id):
-
         if self.skip_accept_enum or enum_id in self.exported_object_ids:
             return
-
-        enum_name = idc.GetEnumName(enum_id)
-
-        object_id = self.hash_provider.get_struc_enum_object_id(enum_id, enum_name)
+        object_id = _yatools_ida_model.accept_enum(visitor, self.hash_provider.get(), enum_id)
         self.exported_object_ids[enum_id] = object_id
-
-        logger.debug("visiting enum name : %r" % enum_name)
-        # idc.GetEnumIdx is used to keep order when we recreate enums
-        idx = idc.GetEnumIdx(enum_id)
-        _yatools_ida_model.start_object(visitor, ya.OBJECT_TYPE_ENUM, object_id, 0, idx)
-        visitor.visit_size(idc.GetEnumWidth(enum_id))
-        visitor.visit_name(enum_name, DEFAULT_NAME_FLAGS)
-
-        #
-        # FLAGS
-        #
-        flags = idc.GetEnumFlag(enum_id)
-        if idc.IsBitfield(enum_id):
-            flags |= 0x1  # bitfield flag
-        visitor.visit_flags(flags)
-
-        #
-        # HEADER COMMENT
-        #
-        RptComt = idc.GetEnumCmt(enum_id, 1)
-        if RptComt is not None and RptComt != "":
-            visitor.visit_header_comment(True, RptComt)
-        Cmt = idc.GetEnumCmt(enum_id, 0)
-        if Cmt is not None and Cmt != "":
-            visitor.visit_header_comment(False, Cmt)
-
-        visitor.visit_start_xrefs()
-
-        for (const_id, const_value, bmask) in YaToolIDATools.enum_member_iterate_all(enum_id):
-            const_name = idc.GetConstName(const_id)
-            enum_member_id = self.hash_provider.get_enum_member_id(
-                enum_id, enum_name, const_id, const_name, const_value, bmask)
-            visitor.visit_start_xref(0, enum_member_id, DEFAULT_OPERAND)
-            visitor.visit_end_xref()
-
-        visitor.visit_end_xrefs()
-
-        _yatools_ida_model.visit_system(visitor, idx)
-
-        visitor.visit_end_object_version()
-
-        visitor.visit_end_reference_object()
-
-        _yatools_ida_model.accept_enum_members(visitor, self.hash_provider.get(), object_id, enum_id)
 
     def accept_deleted_struc(self, visitor, struc_id, struc_type=ya.OBJECT_TYPE_STRUCT):
         object_id = self.hash_provider.get_struc_enum_object_id(struc_id)
