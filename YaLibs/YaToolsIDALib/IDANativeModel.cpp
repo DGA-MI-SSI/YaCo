@@ -192,10 +192,10 @@ void IDANativeModel::start_object(IModelVisitor& v, YaToolObjectType_e type, YaT
     v.visit_address(ea);
 }
 
-void IDANativeModel::finish_object(IModelVisitor& v, ea_t ea)
+void IDANativeModel::finish_object(IModelVisitor& v, int64_t offset)
 {
     v.visit_start_matching_systems();
-    v.visit_start_matching_system(ea);
+    v.visit_start_matching_system(offset);
     v.visit_matching_system_description(gEqRef, eqref_);
     v.visit_matching_system_description(gOsRef, osref_);
     v.visit_end_matching_system();
@@ -230,7 +230,7 @@ namespace
     };
 }
 
-YaToolObjectId IDANativeModel::accept_enum(IModelVisitor& visitor, uint64_t eid)
+YaToolObjectId IDANativeModel::accept_enum(IModelVisitor& visitor, ea_t eid)
 {
     const auto enum_id = static_cast<enum_t>(eid);
     qstring buffer;

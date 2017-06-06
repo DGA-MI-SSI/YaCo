@@ -32,11 +32,11 @@ struct IDANativeModel
     std::string get_type(ea_t ea);
 
     YaToolObjectId  accept_binary       (IModelVisitor& visitor);
-    YaToolObjectId  accept_enum         (IModelVisitor& visitor, uint64_t eid);
+    YaToolObjectId  accept_enum         (IModelVisitor& visitor, ea_t eid);
 
     // intermediate native methods
     void start_object   (IModelVisitor& visitor, YaToolObjectType_e type, YaToolObjectId id, YaToolObjectId parent, ea_t ea);
-    void finish_object  (IModelVisitor& visitor, ea_t ea);
+    void finish_object  (IModelVisitor& visitor, int64_t offset);
 
 #ifndef SWIG
 private:

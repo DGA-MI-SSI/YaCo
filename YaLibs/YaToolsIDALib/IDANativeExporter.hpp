@@ -40,8 +40,8 @@ struct IDANativeExporter
     bool set_type(ea_t ea, const std::string& prototype);
     bool set_struct_member_type(ea_t ea, const std::string& prototype);
 
-    void        set_tid(YaToolObjectId id, uint64_t tid);
-    uint64_t    get_tid(YaToolObjectId id);
+    void    set_tid(YaToolObjectId id, ea_t tid);
+    ea_t    get_tid(YaToolObjectId id);
 
 
     void analyze_function(ea_t ea);
@@ -58,7 +58,7 @@ struct IDANativeExporter
 #ifndef SWIG
     std::string patch_prototype(const std::string& prototype, ea_t ea);
 
-    using IdMap = std::unordered_map<YaToolObjectId, uint64_t>;
+    using IdMap = std::unordered_map<YaToolObjectId, ea_t>;
     using EnumMemberMap = std::unordered_map<uint64_t, enum_t>;
 
 private:

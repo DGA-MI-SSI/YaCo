@@ -432,7 +432,7 @@ void IDANativeExporter::make_segment_chunk(std::shared_ptr<YaToolObjectVersion> 
     }
 }
 
-uint64_t IDANativeExporter::get_tid(YaToolObjectId id)
+ea_t IDANativeExporter::get_tid(YaToolObjectId id)
 {
     const auto it = tids.find(id);
     if(it == tids.end())
@@ -440,7 +440,7 @@ uint64_t IDANativeExporter::get_tid(YaToolObjectId id)
     return it->second;
 }
 
-void IDANativeExporter::set_tid(YaToolObjectId id, uint64_t tid)
+void IDANativeExporter::set_tid(YaToolObjectId id, ea_t tid)
 {
     tids[id] = tid;
 }
