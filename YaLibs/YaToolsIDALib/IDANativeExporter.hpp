@@ -45,6 +45,8 @@ struct IDANativeExporter
     void analyze_function(ea_t ea);
     void make_function(std::shared_ptr<YaToolObjectVersion> version, ea_t ea);
 
+    void make_views(std::shared_ptr<YaToolObjectVersion> version, ea_t ea);
+
 #ifndef SWIG
     std::string patch_prototype(const std::string& prototype, ea_t ea);
 
