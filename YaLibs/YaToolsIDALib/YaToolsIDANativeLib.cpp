@@ -312,26 +312,24 @@ std::map<ea_t, std::vector<std::pair<CommentType_e, std::string>>> YaToolsIDANat
     return comments;
 }
 
-void YaToolsIDANativeLib::delete_comment_at_ea(ea_t ea, CommentType_e comment_type)
+static bool try_delete_comment_at_ea(YaToolsIDANativeLib& lib, ea_t ea, CommentType_e comment_type)
 {
     LOG(DEBUG, "delete_comment: 0x%" PRIXEA " %s\n", ea, get_comment_type_string(comment_type));
     switch(comment_type)
     {
         case COMMENT_REPEATABLE:
-            set_cmt(ea, "", 1);
-            break;
+            return set_cmt(ea, "", 1);
 
         case COMMENT_NON_REPEATABLE:
-            set_cmt(ea, "", 0);
-            break;
+            return set_cmt(ea, "", 0);
 
         case COMMENT_ANTERIOR:
-            clear_extra_comment(ea, E_PREV);
-            break;
+            lib.clear_extra_comment(ea, E_PREV);
+            return true;
 
         case COMMENT_POSTERIOR:
-            clear_extra_comment(ea, E_NEXT);
-            break;
+            lib.clear_extra_comment(ea, E_NEXT);
+            return true;
 
         case COMMENT_BOOKMARK:
             walk_bookmarks([&](int i, ea_t locea, curloc& loc)
@@ -339,10 +337,18 @@ void YaToolsIDANativeLib::delete_comment_at_ea(ea_t ea, CommentType_e comment_ty
                 if(locea == ea)
                     loc.mark(i, "", "");
             });
-            break;
+            return true;
 
-        default:
-            LOG(ERROR, "delete_comment: 0x%" PRIXEA " unhandled comment type %d %s\n", ea, comment_type, get_comment_type_string(comment_type));
+        case COMMENT_UNKNOWN:
+        case COMMENT_COUNT:
             break;
     }
+    return false;
+}
+
+void YaToolsIDANativeLib::delete_comment_at_ea(ea_t ea, CommentType_e comment_type)
+{
+    const auto ok = try_delete_comment_at_ea(*this, ea, comment_type);
+    if(!ok)
+        LOG(ERROR, "delete_comment: 0x%" PRIXEA " unable to delete comment type %d %s\n", ea, comment_type, get_comment_type_string(comment_type));
 }
