@@ -36,6 +36,7 @@
 #include <moves.hpp>
 #include <name.hpp>
 #include <offset.hpp>
+#include <segment.hpp>
 #include <struct.hpp>
 #include <typeinf.hpp>
 

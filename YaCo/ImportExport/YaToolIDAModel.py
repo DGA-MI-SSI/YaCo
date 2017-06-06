@@ -109,35 +109,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         visitor.visit_end()
 
     def accept_binary(self, visitor):
-
-        binary_object_id = self.hash_provider.get_binary_id()
-        image_base = idaapi.get_imagebase()
-        _yatools_ida_model.start_object(visitor, ya.OBJECT_TYPE_BINARY, binary_object_id, 0, image_base)
-
-        visitor.visit_size(YaToolIDATools.LastSegEnd() - idc.FirstSeg())
-        visitor.visit_name(idc.GetInputFile(), DEFAULT_NAME_FLAGS)
-
-        visitor.visit_start_xrefs()
-
-        seg_ea_start = idc.FirstSeg()
-
-        while seg_ea_start != idc.BADADDR:
-            seg_ea_end = idc.SegEnd(seg_ea_start)
-            obj_id = self.hash_provider.get_segment_id(idc.SegName(seg_ea_start), seg_ea_start)
-            visitor.visit_start_xref(seg_ea_start - image_base, obj_id, DEFAULT_OPERAND)
-            visitor.visit_end_xref()
-
-            seg_ea_start = idc.NextSeg(seg_ea_end - 1)
-        visitor.visit_end_xrefs()
-
-        _yatools_ida_model.visit_system(visitor, image_base)
-
-        # TODO: add offsets for all elements inside segment
-
-        visitor.visit_end_object_version()
-
-        visitor.visit_end_reference_object()
-
+        binary_object_id = _yatools_ida_model.accept_binary(visitor, self.hash_provider.get())
         if self.descending_mode:
             self.accept_strucs(visitor)
             self.accept_enums(visitor)

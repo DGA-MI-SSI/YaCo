@@ -331,3 +331,45 @@ YaToolObjectId IDANativeModel::accept_enum(IModelVisitor& visitor, YaToolsHashPr
 
     return id;
 }
+
+static YaToolObjectId get_segment_id(YaToolsHashProvider* provider, qstring& buffer, segment_t* seg)
+{
+    const auto n = read_string_from(buffer, [&]
+    {
+        return get_true_segm_name(seg, &buffer[0], buffer.size());
+    });
+    const auto value = "segment-" + std::string{&buffer[0], n ? *n : 0} + std::to_string(seg->startEA);
+    return provider->hash_local_string(value);
+}
+
+YaToolObjectId IDANativeModel::accept_binary(IModelVisitor& visitor, YaToolsHashProvider* provider)
+{
+    const auto id = provider->hash_local_string("binary");
+    const auto base = get_imagebase();
+    start_object(visitor, OBJECT_TYPE_BINARY, id, 0, base);
+    const auto first = get_first_seg();
+    if(first)
+        visitor.visit_size(get_last_seg()->endEA - first->startEA);
+
+    qstring buffer;
+    buffer.resize(64);
+    const auto n = read_string_from(buffer, [&]
+    {
+        return get_root_filename(&buffer[0], buffer.size());
+    });
+    if(n)
+        visitor.visit_name({buffer.c_str(), *n}, DEFAULT_NAME_FLAGS);
+
+    visitor.visit_start_xrefs();
+    for(auto seg = first; seg; seg = get_next_seg(seg->endEA - 1))
+    {
+        const auto seg_id = get_segment_id(provider, buffer, seg);
+        visitor.visit_start_xref(seg->startEA - base, seg_id, DEFAULT_OPERAND);
+        visitor.visit_end_xref();
+    }
+    visitor.visit_end_xrefs();
+    visit_system(visitor, base);
+    visitor.visit_end_object_version();
+    visitor.visit_end_reference_object();
+    return id;
+}
