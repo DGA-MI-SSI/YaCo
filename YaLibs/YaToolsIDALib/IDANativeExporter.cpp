@@ -436,7 +436,7 @@ ea_t IDANativeExporter::get_tid(YaToolObjectId id)
 {
     const auto it = tids.find(id);
     if(it == tids.end())
-        return ~0u;
+        return BADADDR;
     return it->second;
 }
 
