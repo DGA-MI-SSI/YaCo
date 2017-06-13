@@ -31,12 +31,13 @@ sudo apt update
 sudo apt install binutils:i386
 sudo apt install gcc:i386
 sudo apt install g++:i386
-sudo apt install python2.7-dev:i386
+sudo apt install libpython2.7-dev:i386
 ```
 
-Set IDA_DIR environment variable
+Set IDA_DIR & IDASDK_DIR environment variables
 ```
 export IDA_DIR=/opt/ida6.8/
+export IDASDK_DIR=/opt/idasdk/
 ```
 
 Clone, configure & build **YaCo**
@@ -57,6 +58,7 @@ Only visual studio 2015 is currently supported
 Configure and build **YaCo**
 ```
 set IDA_DIR=/your/ida/directory
+set IDASDK_DIR=/your/idasdk/directory
 build> configure_2015.cmd
 out/x86> cmake --build . --config RelWithDebInfo
 out/x86> ctest . --output-on-failure -C RelWithDebInfo -j4
@@ -101,3 +103,4 @@ Setup **YaCo** environment:
 
 ## License
 
+YaCo is licensed under the GNU General Public License v3.0 that can be found in the LICENSE file
