@@ -40,7 +40,6 @@ from ImportExport import YaToolIDATools
 from ImportExport.YaToolIDAExporter import YaToolIDAExporter
 from ImportExport.YaToolIDAHooks import Hooks, YaCoUI_Hooks
 from ImportExport.YaTools import YaTools
-from ImportExport.YaToolHashProvider import YaToolHashProvider
 from ImportExport.YaToolIDAModel import YaToolIDAModel
 from ImportExport.YaToolRepoManager import YaToolRepoManager
 from ImportExport.YaToolIDATools import copy_idb_to_local_file, copy_idb_to_original_file
@@ -308,7 +307,7 @@ class YaCo:
         idaapi.msg("YaCo %s\n" % YACO_VERSION)
 
         self.yatools = YaTools()
-        self.hash_provider = YaToolHashProvider()
+        self.hash_provider = ya.YaToolsHashProvider()
 
         self.repo_manager = YaToolRepoManager(self.yatools, idc.GetIdbPath())
         self.repo_manager.check_valid_cache_startup()
@@ -326,6 +325,7 @@ class YaCo:
     ]
 
     def start(self):
+        logger.info("YaCo.start()")
         self.YaCoUI.hook()
 
         try:
@@ -407,7 +407,6 @@ def start(init_logging=True):
 
     yaco_starting = True
     if yaco is None:
-        print("Starting YaCo")
         yaco = YaCo()
         yaco.start()
         yaco_starting = False

@@ -37,7 +37,6 @@ if idc.__EA64__:
 else:
     import YaToolsPy32 as ya
 
-from ImportExport.YaToolHashProvider import YaToolHashProvider
 from ImportExport.YaToolIDAExporter import YaToolIDAExporter
 from ImportExport.YaTools import YaTools
 
@@ -80,7 +79,7 @@ logger.addHandler(handler)
 
 idc.Wait()
 yatools = YaTools()
-hash_provider = YaToolHashProvider()
+hash_provider = ya.YaToolsHashProvider()
 hash_provider.populate_struc_enum_ids()
 ida_exporter = YaToolIDAExporter(yatools, hash_provider, use_stackframes=False)
 fbmodel = ya.MakeFlatBufferDatabaseModel(args.filename)

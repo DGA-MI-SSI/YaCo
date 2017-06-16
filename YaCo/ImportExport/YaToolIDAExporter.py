@@ -240,7 +240,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
                 if (enum_name, const_name, const_value) not in self.enum_member_ids:
                     idc.DelConstEx(enum_id, const_value, 0, bmask)
                 elif self.hash_provider.get_enum_member_id(enum_id, enum_name, const_id, const_name,
-                                                           const_value) not in enum_xrefs_ids:
+                                                           hex(const_value), idc.BADADDR, True) not in enum_xrefs_ids:
                     logger.debug("deleting not found constant : %s/%s" % (enum_name, const_name))
                     idc.DelConstEx(enum_id, const_value, 0, bmask)
 
@@ -377,7 +377,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
                 else:
                     field_size = 1
                 if member_type == ya.OBJECT_TYPE_STRUCT_MEMBER:
-                    strucmember_id = self.hash_provider.get_struc_member_id(struc_id, offset)
+                    strucmember_id = self.hash_provider.get_struc_member_id(struc_id, offset, "")
                 elif member_type == ya.OBJECT_TYPE_STACKFRAME_MEMBER:
                     strucmember_id = self.hash_provider.get_stackframe_member_object_id(struc_id, offset)
                 else:

@@ -77,7 +77,6 @@ cd ..
 sed -i -e "s/DEBUG_REPO=False/DEBUG_REPO=True/" YaCo/ImportExport/YaToolRepoManager.py
 sed -i -e "s/DEBUG_IDA_MODEL_EXPORT=False/DEBUG_IDA_MODEL_EXPORT=True/" YaCo/ImportExport/YaToolIDAModel.py
 sed -i -e "s/DEBUG_EXPORTER=False/DEBUG_EXPORTER=True/" YaCo/ImportExport/YaToolIDAExporter.py
-sed -i -e "s/DEBUG_HASH_PROVIDER=False/DEBUG_HASH_PROVIDER=True/" YaCo/ImportExport/YaToolHashProvider.py
 sed -i -e "s/DEBUG_EXPORTER=False/DEBUG_EXPORTER=True/" YaCo/ImportExport/YaToolIDAExporter.py
 sed -i -e "s/VALIDATE_EXPORTER_VISITOR=False/VALIDATE_EXPORTER_VISITOR=True/" YaCo/YaCo.py
 sed -i -e "s/VALIDATE_EXPORTED_XML=False/VALIDATE_EXPORTED_XML=True/" YaCo/ImportExport/YaToolIDAHooks.py

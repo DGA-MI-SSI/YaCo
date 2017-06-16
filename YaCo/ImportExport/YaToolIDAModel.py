@@ -214,7 +214,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         for (const_id, const_value, bmask) in YaToolIDATools.enum_member_iterate_all(enum_id):
             const_name = idc.GetConstName(const_id)
             enum_member_id = self.hash_provider.get_enum_member_id(
-                enum_id, enum_name, const_id, const_name, const_value, bmask)
+                enum_id, enum_name, const_id, const_name, hex(const_value), bmask, True)
             visitor.visit_start_xref(0, enum_member_id, DEFAULT_OPERAND)
             visitor.visit_end_xref()
 
@@ -248,7 +248,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         const_value = idc.GetConstValue(const_id)
 
         enum_name = idc.GetEnumName(enum_id)
-        object_id = self.hash_provider.get_enum_member_id(enum_id, enum_name, const_id, const_name, const_value, bmask)
+        object_id = self.hash_provider.get_enum_member_id(enum_id, enum_name, const_id, const_name, hex(const_value), bmask, True)
 
         visitor.visit_id(object_id)
 
@@ -324,7 +324,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         visitor.visit_start_reference_object(struc_type)
 
         if struc_type == ya.OBJECT_TYPE_STACKFRAME:
-            object_id = self.hash_provider.get_stackframe_object_id(struc_id)
+            object_id = self.hash_provider.get_stackframe_object_id(struc_id, idc.BADADDR)
         else:
             object_id = self.hash_provider.get_struc_enum_object_id(struc_id, idc.GetStrucName(struc_id))
 
@@ -634,7 +634,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             if walk_basic_blocks:
 
                 basic_blocks = YaToolIDATools.get_function_basic_blocks(ea, func)
-                func_object_id = self.hash_provider.get_function_id_at_ea(eaFunc)
+                func_object_id = self.hash_provider.get_hash_for_ea(eaFunc)
 
                 if self.descending_mode:
                     self.accept_function(visitor, parent_id, eaFunc, func, basic_blocks)
@@ -647,7 +647,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
                     logger.error("Function has no basic blocks : %s (eaFunc=%s) " %
                                  (self.yatools.address_to_hex_string(ea), self.yatools.address_to_hex_string(eaFunc)))
                 else:
-                    func_object_id = self.hash_provider.get_function_id_at_ea(eaFunc)
+                    func_object_id = self.hash_provider.get_hash_for_ea(eaFunc)
                     self.accept_basic_block(visitor, func_object_id, basic_block, eaFunc, func, func_object_id)
 
         # if ea is not in a function and it is code
@@ -681,7 +681,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
 
         visitor.visit_start_reference_object(ya.OBJECT_TYPE_CODE)
 
-        code_id = self.hash_provider.get_code_id_at_ea(eaCode)
+        code_id = self.hash_provider.get_hash_for_ea(eaCode)
         # object version id
         visitor.visit_id(code_id)
         self.exported_object_ids[eaCode] = code_id
@@ -737,7 +737,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         if DEBUG_IDA_MODEL_EXPORT:
             logger.debug("accept_function : %s" % self.yatools.address_to_hex_string(eaFunc))
 
-        funcId = self.hash_provider.get_function_id_at_ea(eaFunc)
+        funcId = self.hash_provider.get_hash_for_ea(eaFunc)
         self.exported_function_ids[eaFunc] = funcId
 
         Comm = idaapi.get_func_cmt(func, 0)
@@ -1081,7 +1081,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         # we have to order all xrefs, so we create a temp dict to add all xrefs of all types and visit them later
         ordered_xrefs = {}
         for (functionOffset, functionXref) in functionXrefs.iteritems():
-            xref_value = self.hash_provider.get_function_id_at_ea(functionXref)
+            xref_value = self.hash_provider.get_hash_for_ea(functionXref)
             try:
                 ll = ordered_xrefs[functionOffset]
             except KeyError:
@@ -1092,7 +1092,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             # visitor.visit_end_xref()
 
         for (dataOffset, dataXref) in dataXrefs.iteritems():
-            xref_value = self.hash_provider.get_data_id_at_ea(dataXref)
+            xref_value = self.hash_provider.get_hash_for_ea(dataXref)
             try:
                 ll = ordered_xrefs[dataOffset]
             except KeyError:
@@ -1308,7 +1308,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
                 else:
                     return size
         """
-        object_id = self.hash_provider.get_data_id_at_ea(ea)
+        object_id = self.hash_provider.get_hash_for_ea(ea)
         if ea in self.exported_object_ids:
             if size == 0:
                 return 1
