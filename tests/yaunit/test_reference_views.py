@@ -18,26 +18,34 @@ import idc
 import unittest
 import yaunit
 
+# operand, isOperand
+tests = [
+    (0, idaapi.isNum0, 0xcafebabe+0),
+    (1, idaapi.isNum1, 0xcafebabe+1),
+]
+
 class Fixture(unittest.TestCase):
 
-    def setUp(self):
-        self.operand = 1
-        self.reference_addr = 0xcafebabe
-
     def yatest_reference_views(self):
-        addr = yaunit.get_next_function()
-        f = idaapi.get_flags_novalue(addr)
-        while not idaapi.isNum1(f) and not idaapi.isOff(f, 1):
-            addr += idc.ItemSize(addr)
-            f = idaapi.get_flags_novalue(addr)
-        self.assertTrue(idaapi.set_offset(addr, self.operand, self.reference_addr))
-        yaunit.save('reference_view_addr', addr)
+        eas = []
+        for (operand, is_num, reference) in tests:
+            ea = yaunit.get_next_function()
+            f = idaapi.get_flags_novalue(ea)
+            while not is_num(f) and not idaapi.isOff(f, operand):
+                ea += idc.ItemSize(ea)
+                f = idaapi.get_flags_novalue(ea)
+            self.assertTrue(idaapi.set_offset(ea, operand, reference))
+            eas.append(ea)
+        yaunit.save('reference_views', eas)
 
-    @unittest.skip("flaky")
     def yacheck_reference_views(self):
-        addr = yaunit.load('reference_view_addr')
-        ti = idaapi.opinfo_t()
-        f = idc.GetFlags(addr)
-        self.assertTrue(idaapi.get_opinfo(addr, self.operand, f, ti))
-        self.assertTrue(ti.ri.type())
-        self.assertEqual(ti.ri.base, self.reference_addr)
+        eas = yaunit.load('reference_views')
+        idx = 0
+        for ea in eas:
+            (operand, is_num, reference) = tests[idx]
+            idx += 1
+            ti = idaapi.opinfo_t()
+            f = idc.GetFlags(ea)
+            self.assertTrue(idaapi.get_opinfo(ea, operand, f, ti))
+            self.assertTrue(ti.ri.type())
+            self.assertEqual(ti.ri.base, reference)
