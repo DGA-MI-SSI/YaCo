@@ -345,6 +345,15 @@ class YaToolPrototypeParser(object):
 
         return function_type
 
+    def get_struc_enum_id_for_name(self, hash_provider, name):
+        item_id = idc.GetStrucIdByName(name)
+        if item_id == idc.BADADDR:
+            item_id = idc.GetEnum(name)
+            if item_id == idc.BADADDR:
+                logger.error("no struc or enum id for name : %s", name)
+                return None
+        return hash_provider.get_struc_enum_object_id(item_id, name)
+
     """
     take a prototype and replace enum and struc names with their hashes
     """
@@ -357,7 +366,7 @@ class YaToolPrototypeParser(object):
             dependencies = list()
             for (el, is_valid) in parsed_elements:
                 if is_valid:
-                    hashed = hash_provider.get_struc_enum_id_for_name(el)
+                    hashed = self.get_struc_enum_id_for_name(hash_provider, el)
                     if hashed is not None:
                         h = hash_provider.hash_to_string(hashed)
                         new_prototype += el + " /*%" + el + "#" + h + "%*/"
@@ -380,7 +389,7 @@ class YaToolPrototypeParser(object):
         new_prototype = ""
         for (el, is_valid) in parsed_elements:
             if is_valid:
-                hashed = hash_provider.get_struc_enum_id_for_name(el)
+                hashed = self.get_struc_enum_id_for_name(hash_provider, el)
                 if hashed is not None:
                     new_prototype += el + " /*%" + el + "#" + hash_provider.hash_to_string(hashed) + "%*/"
                 else:

@@ -733,6 +733,7 @@ def get_object_id_of_union_member_id(hash_provider, member_id):
         idx = idc.GetFirstStrucIdx()
         while idx != idc.BADADDR:
             struc_id = idc.GetStrucId(idx)
+            struc_name = idc.GetStrucName(struc_id)
             if idc.IsUnion(struc_id):
 
                 offset = idc.GetFirstMember(struc_id)
@@ -742,9 +743,8 @@ def get_object_id_of_union_member_id(hash_provider, member_id):
                     if smember_id == member_id:
                         name = idc.GetMemberName(struc_id, offset)
                         if name is not None:
-                            struc_name = idc.GetStrucName(struc_id)
                             logger.debug("found member id 0x%016X in union %s/%s" % (member_id, struc_name, name))
-                            return hash_provider.get_struc_member_id_for_name(struc_name, offset)
+                            return hash_provider.get_struc_member_id(struc_id, offset, struc_name)
 
                     # next member
                     offset = idc.GetStrucNextOff(struc_id, offset)
@@ -855,33 +855,6 @@ def struc_member_list(struc_id, is_union):
     return sorted(offsets.items())
 
 
-def enum_member_iterate_const(enum_id):
-    const_value = idc.GetFirstConst(enum_id, -1)
-    while const_value != idc.BADADDR:
-        serial = 0
-        const_id = idc.GetConstEx(enum_id, const_value, serial, -1)
-        while const_id != idc.BADADDR:
-            yield (const_id, const_value, None)
-
-            serial += 1
-            const_id = idc.GetConstEx(enum_id, const_value, serial, -1)
-        const_value = idc.GetNextConst(enum_id, const_value, -1)
-
-
-def enum_member_iterate_bitfield(enum_id):
-    # bitfield
-    bmask = idc.GetFirstBmask(enum_id)
-    while bmask != idc.BADADDR:
-        const_value = idc.GetFirstConst(enum_id, bmask)
-        while const_value != idc.BADADDR:
-            # TODO must implement serial for bitfield
-            const_id = idc.GetConstEx(enum_id, const_value, 0, bmask)
-            yield (const_id, const_value, bmask)
-
-            const_value = idc.GetNextConst(enum_id, const_value, bmask)
-        bmask = idc.GetNextBmask(enum_id, bmask)
-
-
 def enum_member_iterate_all(enum_id):
     const_value = idc.GetFirstConst(enum_id, -1)
     while const_value != idc.BADADDR:
@@ -893,7 +866,6 @@ def enum_member_iterate_all(enum_id):
             serial += 1
             const_id = idc.GetConstEx(enum_id, const_value, serial, -1)
         const_value = idc.GetNextConst(enum_id, const_value, -1)
-    enum_member_iterate_bitfield(enum_id)
 
     bmask = idc.GetFirstBmask(enum_id)
     while bmask != idc.BADADDR:
@@ -902,7 +874,6 @@ def enum_member_iterate_all(enum_id):
             # TODO must implement serial for bitfield
             const_id = idc.GetConstEx(enum_id, const_value, 0, bmask)
             yield (const_id, const_value, bmask)
-
             const_value = idc.GetNextConst(enum_id, const_value, bmask)
         bmask = idc.GetNextBmask(enum_id, bmask)
 

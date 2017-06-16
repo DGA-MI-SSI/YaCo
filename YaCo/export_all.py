@@ -36,7 +36,6 @@ if idc.__EA64__:
 else:
     import YaToolsPy32 as ya
 
-from ImportExport.YaToolHashProvider import YaToolHashProvider
 from ImportExport.YaTools import YaTools
 import YaCoExporterMaster
 import YaCoExporterSlave
@@ -81,7 +80,7 @@ logger.addHandler(handler)
 idc.Wait()
 
 yatools = YaTools()
-hash_provider = YaToolHashProvider()
+hash_provider = ya.YaToolsHashProvider()
 hash_provider.populate_struc_enum_ids()
 
 if args.slave:
