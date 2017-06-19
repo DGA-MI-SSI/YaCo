@@ -15,16 +15,15 @@
 
 #pragma once
 
-#include "IModelVisitor.hpp"
 #include "YaTypes.hpp"
 
 namespace std { template<typename T> class shared_ptr; }
-class YaToolObjectVersion;
+struct YaToolsHashProvider;
+class IModelAccept;
 
 const int SEGMENT_CHUNK_MAX_SIZE = 0x10000;
 const int MAX_BLOB_TAG_LEN = 0x1000;
 
-struct IDANativeModel
-{
-    std::string get_type(ea_t ea);
-};
+std::string get_type(ea_t ea);
+
+std::shared_ptr<IModelAccept> MakeIdaModel(YaToolsHashProvider* provider);

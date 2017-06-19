@@ -186,7 +186,12 @@ function(add_yatools_py bits)
     setup_yatools(yaida${bits})
     target_include_directories(yaida${bits} PUBLIC "${ida_dir}/include")
     target_compile_definitions(yaida${bits} PUBLIC __${os_}__ __IDP__)
-    target_link_libraries(yaida${bits} PUBLIC yatools)
+    target_link_libraries(yaida${bits}
+        PUBLIC
+        yatools
+        PRIVATE
+        zlib
+    )
     if(WIN32)
         target_link_libraries(yaida${bits} PRIVATE
             "${ida_dir}/lib/x86_win_vc_${bits}/ida.lib"
