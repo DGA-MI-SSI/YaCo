@@ -1267,31 +1267,6 @@ class YaToolIDAModel(YaToolObjectVersionElement):
 
         visitor.visit_end_reference_object()
 
-    """
-    Unused by now but might be useful
-    """
-
-    def is_reference_info_valid(self, rv):
-        if rv == 0:
-            return False
-
-        if rv < YaToolIDATools.RV_MIN_ADDR:
-            return False
-        if rv >= YaToolIDATools.RV_MAX_ADDR:
-            return False
-
-        seg_ea_start = idc.FirstSeg()
-
-        while seg_ea_start != idc.BADADDR:
-            seg_ea_end = idc.SegEnd(seg_ea_start)
-
-            if rv >= seg_ea_start and rv < seg_ea_end:
-                return True
-
-            seg_ea_start = idc.NextSeg(seg_ea_end - 1)
-
-        return False
-
     def accept_data(self, visitor, parent_id, ea):
         if DEBUG_IDA_MODEL_EXPORT:
             logger.debug("accept_data : %s" % self.yatools.address_to_hex_string(ea))
