@@ -15,8 +15,25 @@
 
 #pragma once
 
+#include "YaTypes.hpp"
+
+struct YaToolsHashProvider;
+
 namespace ya
 {
+    struct Dependency
+    {
+        YaToolObjectId  id;
+        tinfo_t         tif;
+        tid_t           tid;
+    };
+    using Deps = std::vector<Dependency>;
+    void        print_type(qstring& dst, YaToolsHashProvider* provider, Deps* deps, const tinfo_t& tif, const const_string_ref& name);
+    tinfo_t     get_tinfo(flags_t flags, const opinfo_t* op);
+    tinfo_t     get_tinfo(ea_t ea);
+    std::string get_type(ea_t ea);
+    std::string dump_flags(flags_t flags);
+
     // call void(const_t const_id, uval_t value, uchar serial, bmask_t bmask) on every enum member with specified bmask
     template<typename T>
     void walk_enum_members_with_bmask(enum_t eid, bmask_t bmask, const T& operand)
@@ -71,7 +88,7 @@ namespace ya
     const_string_ref read_string_from(qstring& buffer, const T& read)
     {
         if(buffer.empty())
-            buffer.resize(16);
+            buffer.resize(32);
         while(true)
         {
             const auto n = read(&buffer[0], buffer.size());
