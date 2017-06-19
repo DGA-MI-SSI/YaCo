@@ -21,7 +21,6 @@
 #include "../Helpers.h"
 
 #include <memory>
-#include <regex>
 
 std::shared_ptr<IModelVisitor> MakeMultiplexerDebugger(const std::shared_ptr<IModelVisitor>& inner)
 {
@@ -33,23 +32,66 @@ std::shared_ptr<IModelVisitor> MakeMultiplexerDebugger(const std::shared_ptr<IMo
     return delegater;
 }
 
-static const std::regex r_is_default_name("(?:"
-                                          "loc|"
-                                          "locret|"
-                                          "sub|"
-                                          "asc|"
-                                          "byte|"
-                                          "word|"
-                                          "dword|"
-                                          "qword|"
-                                          "str|"
-                                          "stru|"
-                                          "unk"
-                                          ")_[A-Fa-f0-9]+");
+namespace
+{
+#define DECLARE_REF(name, value)\
+    const char name ## _txt[] = value;\
+    const const_string_ref name = {name ## _txt, sizeof name ## _txt - 1};
+    DECLARE_REF(g_loc_, "loc_")
+    DECLARE_REF(g_locret_, "locret_")
+    DECLARE_REF(g_sub_, "sub_")
+    DECLARE_REF(g_asc_, "asc_")
+    DECLARE_REF(g_byte_, "byte_")
+    DECLARE_REF(g_word_, "word_")
+    DECLARE_REF(g_dword_, "dword_")
+    DECLARE_REF(g_qword_, "qword_")
+    DECLARE_REF(g_str_, "str_")
+    DECLARE_REF(g_stru_, "stru_")
+    DECLARE_REF(g_unk_, "unk_")
+#undef DECLARE_REF
+
+    const const_string_ref default_prefixes[] =
+    {
+        g_loc_,
+        g_locret_,
+        g_sub_,
+        g_asc_,
+        g_byte_,
+        g_word_,
+        g_dword_,
+        g_qword_,
+        g_str_,
+        g_stru_,
+        g_unk_,
+    };
+
+    const_string_ref has_default_prefix(const const_string_ref& value)
+    {
+        for(const auto& prefix : default_prefixes)
+        {
+            if(value.size > prefix.size)
+                if(!memcmp(prefix.value, value.value, prefix.size))
+                    return const_string_ref{&value.value[prefix.size], value.size - prefix.size};
+        }
+        return {nullptr, 0};
+    }
+}
 
 bool IsDefaultName(const const_string_ref& value)
 {
-    return std::regex_match(value.value, value.value + value.size, r_is_default_name);
+    const auto str = has_default_prefix(value);
+    if(!str.size)
+        return false;
+    const auto is_in_range = [](char a, char min, char max)
+    {
+        return min <= a && a <= max;
+    };
+    for(size_t i = 0; i < str.size; ++i)
+        if(!is_in_range(str.value[i], '0', '9')
+        && !is_in_range(str.value[i], 'a', 'f')
+        && !is_in_range(str.value[i], 'A', 'F'))
+            return false;
+    return true;
 }
 
 namespace
