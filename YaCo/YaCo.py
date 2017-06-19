@@ -318,8 +318,8 @@ class YaCo:
 
     yaco_menus = [
         ["yaco_toggle_rebase_push", "YaCo - Toggle YaCo auto rebase/push", toggle_auto_rebase_push, ""],
-        ["yaco_create_reset", "YaCo - Force push", create_reset, ""],
-        ["yaco_retrieve_reset", "YaCo - Force pull", retrieve_reset, ""],
+        ["yaco_create_reset", "YaCo - Resync idb & force push", create_reset, ""],
+        ["yaco_retrieve_reset", "YaCo - Discard idb & force pull", retrieve_reset, ""],
         ["yaco_export_all_cache", "YaCo - Export database (All cores)", export_all_cache, ""],
         ["yaco_export_single_file", "YaCo - Export database (One core)", export_single_cache, ""],
     ]
