@@ -46,7 +46,8 @@ namespace
             return {dst, size * 2};
         
         size_t skip = 0;
-        while(dst[skip] == '0')
+        // we need at least one 0
+        while(skip + 1 < size * 2  && dst[skip] == '0')
             skip++;
         return {&dst[skip], size * 2 - skip};
     }
