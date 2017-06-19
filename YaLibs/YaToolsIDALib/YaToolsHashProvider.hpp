@@ -27,29 +27,29 @@ struct YaToolsHashProvider
 
     std::string     hash_to_string(YaToolObjectId id);
     void            populate_struc_enum_ids();
-    void            put_hash_struc_or_enum(ea_t item_id, YaToolObjectId id, bool in_persistent_cache=false);
+    void            put_hash_struc_or_enum(ea_t item_id, YaToolObjectId id, bool in_persistent_cache);
     YaToolObjectId  get_hash_for_ea(ea_t ea);
-    YaToolObjectId  get_stackframe_object_id(ea_t sf_id, ea_t eaFunc=BADADDR);
-    YaToolObjectId  get_struc_enum_object_id(ea_t item_id, const std::string& name, bool use_time=true);
+    YaToolObjectId  get_stackframe_object_id(ea_t sf_id, ea_t eaFunc);
+    YaToolObjectId  get_struc_enum_object_id(ea_t item_id, const std::string& name, bool use_time);
     YaToolObjectId  get_function_basic_block_hash(ea_t block_ea, ea_t func_ea);
     YaToolObjectId  get_reference_info_hash(ea_t block_ea, uint64_t value);
     YaToolObjectId  get_struc_member_id(ea_t struc_id, ea_t offset, const std::string& name);
-    YaToolObjectId  get_stackframe_member_object_id(ea_t stack_id, ea_t offset, ea_t func_ea=BADADDR);
+    YaToolObjectId  get_stackframe_member_object_id(ea_t stack_id, ea_t offset, ea_t func_ea);
     YaToolObjectId  get_segment_id(const std::string& name, ea_t ea);
     YaToolObjectId  get_segment_chunk_id(YaToolObjectId seg_id, ea_t start, ea_t end);
     YaToolObjectId  get_binary_id();
     YaToolObjectId  get_enum_member_id(ea_t enum_id, const std::string& enum_name, ea_t const_id, const std::string& const_name, const std::string& const_value, bmask_t bmask, bool use_time);
-    void            put_hash_enum_member(const std::string& enum_name, const std::string& const_name, uint64_t const_value, YaToolObjectId id, bool in_persistent_cache = false);
+    void            put_hash_enum_member(const std::string& enum_name, const std::string& const_name, uint64_t const_value, YaToolObjectId id, bool in_persistent_cache);
 
 #ifndef SWIG
-    YaToolObjectId  hash_local_string(const std::string& key_string, bool in_persistent_cache = false);
+    YaToolObjectId  hash_local_string(const std::string& key_string, bool in_persistent_cache);
 
 private:
-    YaToolObjectId  hash_string(const std::string& key_string, bool in_persistent_cache = false);
+    YaToolObjectId  hash_string(const std::string& key_string, bool in_persistent_cache);
     void            populate_persistent_cache();
     void            check_and_flush_cache_if_needed();
-    void            put_hash_cache(const std::string& key_string, YaToolObjectId id, bool in_persistent_cache = false);
-    void            put_hash_cache(ea_t key_string, YaToolObjectId id, bool in_persistent_cache = false);
+    void            put_hash_cache(const std::string& key_string, YaToolObjectId id, bool in_persistent_cache);
+    void            put_hash_cache(ea_t key_string, YaToolObjectId id, bool in_persistent_cache);
 
     std::string                                     string_start_;
     std::unordered_map<std::string,YaToolObjectId>  cache_by_string_;

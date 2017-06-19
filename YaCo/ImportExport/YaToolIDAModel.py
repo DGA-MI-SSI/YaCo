@@ -174,7 +174,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
 
         visitor.visit_start_reference_object(ya.OBJECT_TYPE_ENUM)
 
-        object_id = self.hash_provider.get_struc_enum_object_id(enum_id, enum_name)
+        object_id = self.hash_provider.get_struc_enum_object_id(enum_id, enum_name, True)
         self.exported_object_ids[enum_id] = object_id
 
         visitor.visit_id(object_id)
@@ -390,7 +390,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
                 if name is not None:
                     if struc_type == ya.OBJECT_TYPE_STACKFRAME:
                         struc_member_oid = self.hash_provider.get_stackframe_member_object_id(
-                            struc_id, offset)
+                            struc_id, offset, idc.BADADDR)
                     else:
                         struc_member_oid = self.hash_provider.get_struc_member_id(struc_id, offset, struc_name)
                     if is_union:
@@ -457,7 +457,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             return
 
         if struc_type == ya.OBJECT_TYPE_STACKFRAME:
-            member_object_id = self.hash_provider.get_stackframe_member_object_id(struc_id, offset)
+            member_object_id = self.hash_provider.get_stackframe_member_object_id(struc_id, offset, idc.BADADDR)
         else:
             member_object_id = self.hash_provider.get_struc_member_id(struc_id, offset, struc_name)
 
@@ -582,7 +582,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         if struc_type == ya.OBJECT_TYPE_STRUCT:
             member_object_id = self.hash_provider.get_struc_member_id(struc_id, offset, struc_name)
         else:
-            member_object_id = self.hash_provider.get_stackframe_member_object_id(struc_id, offset)
+            member_object_id = self.hash_provider.get_stackframe_member_object_id(struc_id, offset, idc.BADADDR)
         visitor.visit_start_default_object(strucmember_type)
         visitor.visit_id(member_object_id)
         visitor.visit_end_default_object()
@@ -592,7 +592,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         if struc_type == ya.OBJECT_TYPE_STRUCT:
             member_object_id = self.hash_provider.get_struc_member_id(struc_id, offset, struc_name)
         else:
-            member_object_id = self.hash_provider.get_stackframe_member_object_id(struc_id, offset)
+            member_object_id = self.hash_provider.get_stackframe_member_object_id(struc_id, offset, idc.BADADDR)
         visitor.visit_start_deleted_object(strucmember_type)
         visitor.visit_id(member_object_id)
         visitor.visit_end_deleted_object()

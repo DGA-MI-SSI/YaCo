@@ -270,7 +270,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
 
         self.enum_ids[object_id] = enum_id
 
-        self.hash_provider.put_hash_struc_or_enum(enum_id, object_id)
+        self.hash_provider.put_hash_struc_or_enum(enum_id, object_id, False)
 
         logger.debug("adding enum id %s : '0x%.016X'" % (self.hash_provider.hash_to_string(object_id), enum_id))
 
@@ -286,7 +286,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
         except:
             return
 
-        self.hash_provider.put_hash_enum_member(idc.GetEnumName(enum_id), name, value, object_id)
+        self.hash_provider.put_hash_enum_member(idc.GetEnumName(enum_id), name, value, object_id, False)
 
         # create member
         if not idc.IsBitfield(enum_id):
@@ -379,7 +379,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
                 if member_type == ya.OBJECT_TYPE_STRUCT_MEMBER:
                     strucmember_id = self.hash_provider.get_struc_member_id(struc_id, offset, "")
                 elif member_type == ya.OBJECT_TYPE_STACKFRAME_MEMBER:
-                    strucmember_id = self.hash_provider.get_stackframe_member_object_id(struc_id, offset)
+                    strucmember_id = self.hash_provider.get_stackframe_member_object_id(struc_id, offset, idc.BADADDR)
                 else:
                     logger.error("Bad member_type : %d" % member_type)
 
@@ -446,7 +446,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
         self.struc_ids[object_id] = struc_id
         _yatools_ida_exporter.set_struct_id(object_id, struc_id)
 
-        self.hash_provider.put_hash_struc_or_enum(struc_id, object_id)
+        self.hash_provider.put_hash_struc_or_enum(struc_id, object_id, False)
 
     def make_struc_member(self, object_version, address, member_type=ya.OBJECT_TYPE_STRUCT_MEMBER):
         struc_object_id = object_version.get_parent_object_id()

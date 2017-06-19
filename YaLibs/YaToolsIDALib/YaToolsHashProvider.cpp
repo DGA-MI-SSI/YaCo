@@ -117,7 +117,7 @@ void YaToolsHashProvider::put_hash_cache(ea_t ea, YaToolObjectId id, bool in_per
 
 YaToolObjectId YaToolsHashProvider::get_hash_for_ea(ea_t ea)
 {
-    return hash_local_string(ea_to_std_string_key(ea));
+    return hash_local_string(ea_to_std_string_key(ea), false);
 }
 
 YaToolObjectId YaToolsHashProvider::get_stackframe_object_id(ea_t sf_id, ea_t eaFunc)
@@ -132,8 +132,8 @@ YaToolObjectId YaToolsHashProvider::get_stackframe_object_id(ea_t sf_id, ea_t ea
 
     if(eaFunc == BADADDR)
         eaFunc = get_func_by_frame(sf_id);
-    const auto id = hash_local_string("stackframe-" + ea_to_std_string_key(eaFunc));
-    put_hash_struc_or_enum(sf_id, id);
+    const auto id = hash_local_string("stackframe-" + ea_to_std_string_key(eaFunc), false);
+    put_hash_struc_or_enum(sf_id, id, false);
     LOG(DEBUG, "get_stackframe_object_id cache miss: 0x%016llX (%s) --> %s\n",
             (uint64_t) sf_id, get_struc_name(sf_id).c_str(), YaToolObjectId_To_StdString(id).c_str());
     return id;
@@ -189,7 +189,7 @@ YaToolObjectId YaToolsHashProvider::get_struc_enum_object_id(ea_t item_id, const
         prefix = ss.str();
     }
 
-    const auto id = hash_local_string(prefix + "----" + item_id_str);
+    const auto id = hash_local_string(prefix + "----" + item_id_str, false);
     put_hash_struc_or_enum(item_id, id, use_time);
     LOG(DEBUG, "get_struc_enum_object_id cache miss: 0x%016llX (%p) --> %p\n",
         (uint64_t) item_id, get_name(name, item_id).c_str(), YaToolObjectId_To_StdString(id).c_str());
@@ -219,7 +219,7 @@ YaToolObjectId YaToolsHashProvider::get_enum_member_id(ea_t enum_id, const std::
     if(use_time)
         key_string_stream << "-" << std::hex << get_clock_ms();
 
-    const auto id = hash_local_string(key_string_stream.str());
+    const auto id = hash_local_string(key_string_stream.str(), false);
     put_hash_cache(enum_key_string, id, true);
     LOG(DEBUG, "get_enum_member_id cache miss: 0x%016llX (%s) --> %s\n",
             (uint64_t) const_id, (enum_name + "." + const_name).c_str(), YaToolObjectId_To_StdString(id).c_str());
@@ -251,39 +251,39 @@ void YaToolsHashProvider::populate_struc_enum_ids()
 
 YaToolObjectId YaToolsHashProvider::get_function_basic_block_hash(ea_t block_ea, ea_t func_ea)
 {
-    return hash_local_string("basic_block--" + std::to_string(block_ea) + "-" + std::to_string(func_ea));
+    return hash_local_string("basic_block--" + std::to_string(block_ea) + "-" + std::to_string(func_ea), false);
 }
 
 YaToolObjectId YaToolsHashProvider::get_reference_info_hash(ea_t ea, uint64_t value)
 {
-    return hash_local_string("reference_info--" + std::to_string(ea) + "-" + std::to_string(value));
+    return hash_local_string("reference_info--" + std::to_string(ea) + "-" + std::to_string(value), false);
 }
 
 YaToolObjectId YaToolsHashProvider::get_struc_member_id(ea_t struc_id, ea_t offset, const std::string& name)
 {
-    const auto id = get_struc_enum_object_id(struc_id, name);
-    return hash_local_string("structmember-" + YaToolObjectId_To_StdString(id) + "-" + ya::to_py_hex(offset));
+    const auto id = get_struc_enum_object_id(struc_id, name, true);
+    return hash_local_string("structmember-" + YaToolObjectId_To_StdString(id) + "-" + ya::to_py_hex(offset), false);
 }
 
 YaToolObjectId YaToolsHashProvider::get_stackframe_member_object_id(ea_t stack_id, ea_t offset, ea_t func_ea)
 {
     const auto id = get_stackframe_object_id(stack_id, func_ea);
-    return hash_local_string("structmember-" + YaToolObjectId_To_StdString(id) + "-" + ya::to_py_hex(offset));
+    return hash_local_string("structmember-" + YaToolObjectId_To_StdString(id) + "-" + ya::to_py_hex(offset), false);
 }
 
 YaToolObjectId YaToolsHashProvider::get_binary_id()
 {
-    return hash_local_string("binary");
+    return hash_local_string("binary", false);
 }
 
 YaToolObjectId YaToolsHashProvider::get_segment_id(const std::string& name, ea_t ea)
 {
-    return hash_local_string("segment-" + name + std::to_string(ea));
+    return hash_local_string("segment-" + name + std::to_string(ea), false);
 }
 
 YaToolObjectId YaToolsHashProvider::get_segment_chunk_id(YaToolObjectId seg_id, ea_t start, ea_t end)
 {
-    return hash_local_string("segment_chunk-" + YaToolObjectId_To_StdString(seg_id) + "-" + std::to_string(start) + "-" + std::to_string(end));
+    return hash_local_string("segment_chunk-" + YaToolObjectId_To_StdString(seg_id) + "-" + std::to_string(start) + "-" + std::to_string(end), false);
 }
 
 std::string YaToolsHashProvider::hash_to_string(YaToolObjectId id)
