@@ -21,6 +21,9 @@
 namespace std { template<typename T> class shared_ptr; }
 class YaToolObjectVersion;
 
+const int SEGMENT_CHUNK_MAX_SIZE = 0x10000;
+const int MAX_BLOB_TAG_LEN = 0x1000;
+
 struct IDANativeModel
 {
     std::string get_type(ea_t ea);
