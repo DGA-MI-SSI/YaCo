@@ -33,7 +33,6 @@ else:
     import YaToolsPy32 as ya
 from ImportExport import YaToolIDATools
 
-model = ya.IDANativeModel()
 exporter = ya.IDANativeExporter()
 
 def walk_datas():
@@ -96,7 +95,7 @@ class Fixture(unittest.TestCase):
             return idaapi.get_member_fullname(ea)
 
         def get_set_type(name, ea, fr, ff, identify, setter):
-            fntype = model.get_type(ea)
+            fntype = ya.get_type(ea)
             if not len(fntype):
                 return
             # workaround broken usercall arguments on 32-bit binaries in ida64
@@ -109,7 +108,7 @@ class Fixture(unittest.TestCase):
             if not ok:
                 ff.write(line)
                 return
-            check = model.get_type(ea)
+            check = ya.get_type(ea)
             if check != fntype:
                 ff.write("%s:%s:\n    got  %s\n    want %s\n" % (name, identify(ea), fntype, check))
 

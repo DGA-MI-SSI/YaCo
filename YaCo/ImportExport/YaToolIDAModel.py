@@ -29,7 +29,6 @@ else:
 
 
 _yatools_ida = ya.YaToolsIDANativeLib()
-_yatools_ida_model = ya.IDANativeModel()
 
 logger = logging.getLogger("YaCo")
 
@@ -483,7 +482,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         else:
             # this is not a default field
             # TODO: type
-            member_type = _yatools_ida_model.get_type(mid)
+            member_type = ya.get_type(mid)
 
             visitor.visit_start_reference_object(struc_member_type)
 
@@ -771,7 +770,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         #
         # PROTO
         #
-        item_type = _yatools_ida_model.get_type(eaFunc)
+        item_type = ya.get_type(eaFunc)
         type_dependencies = None
         if len(item_type):
             (item_type, type_dependencies) = self.prototype_parser.update_prototype_with_hashes(
@@ -1309,7 +1308,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             name_flags = YaToolIDATools.GetNameFlags(name, ea)
             visitor.visit_name(name, name_flags)
 
-        item_type = _yatools_ida_model.get_type(ea)
+        item_type = ya.get_type(ea)
         if len(item_type):
             item_type = self.prototype_parser.update_data_prototype_with_hashes(item_type, self.hash_provider)
             visitor.visit_prototype(item_type)
