@@ -20,6 +20,7 @@
 #include <stdint.h>
 #include <unordered_map>
 
+template<typename T> struct Pool;
 
 struct YaToolsHashProvider
 {
@@ -49,11 +50,14 @@ private:
     void            populate_persistent_cache();
     void            check_and_flush_cache_if_needed();
     void            put_hash_cache(const const_string_ref& key_string, YaToolObjectId id, bool in_persistent_cache);
-    void            put_hash_cache(ea_t key_string, YaToolObjectId id, bool in_persistent_cache);
+    void            put_hash_cache_ea(ea_t key_string, YaToolObjectId id, bool in_persistent_cache);
 
+    std::shared_ptr<Pool<std::string>>              pool_;
     std::string                                     string_start_;
     std::unordered_map<std::string,YaToolObjectId>  cache_by_string_;
     std::unordered_map<std::string,YaToolObjectId>  cache_by_string_persistent_;
+    std::unordered_map<ea_t, YaToolObjectId>        cache_stackframe_;
+    std::unordered_map<ea_t, YaToolObjectId>        cache_block_;
 #endif
 };
 
