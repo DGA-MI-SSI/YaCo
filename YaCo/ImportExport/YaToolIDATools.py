@@ -41,8 +41,6 @@ MAX_COMMENT_LINES = 255
 RV_MIN_ADDR = 0x1000
 RV_MAX_ADDR = idc.BADADDR
 
-SEGMENT_CHUNK_MAX_SIZE = 0x10000
-
 OBJECT_WITH_COMMENTS = set([ya.OBJECT_TYPE_BASIC_BLOCK, ya.OBJECT_TYPE_CODE, ya.OBJECT_TYPE_DATA])
 
 TID_MASK = None
@@ -920,11 +918,11 @@ def address_range_get_items(ea_start, ea_end=idc.BADADDR):
 def segment_get_chunks(seg_start, seg_end):
     chunks = []
     ea = seg_start
-    while ea + SEGMENT_CHUNK_MAX_SIZE < seg_end:
-        chunk_end = min(ea + SEGMENT_CHUNK_MAX_SIZE, seg_end)
+    while ea + ya.SEGMENT_CHUNK_MAX_SIZE < seg_end:
+        chunk_end = min(ea + ya.SEGMENT_CHUNK_MAX_SIZE, seg_end)
         chunks.append((ea, chunk_end))
 
-        ea += SEGMENT_CHUNK_MAX_SIZE
+        ea += ya.SEGMENT_CHUNK_MAX_SIZE
 
     chunks.append((ea, seg_end))
     return chunks
@@ -939,9 +937,9 @@ def segment_get_chunks_for_eas(seg_start, seg_end, ea_list):
     chunks = []
     for ea in ea_list:
         rel_ea = ea - seg_start
-        chunk_off = rel_ea % SEGMENT_CHUNK_MAX_SIZE
+        chunk_off = rel_ea % ya.SEGMENT_CHUNK_MAX_SIZE
         chunk_start = ea - chunk_off
-        chunk_end = min(chunk_start + SEGMENT_CHUNK_MAX_SIZE, seg_end)
+        chunk_end = min(chunk_start + ya.SEGMENT_CHUNK_MAX_SIZE, seg_end)
         chunks.append((chunk_start, chunk_end))
     return chunks
 
@@ -950,10 +948,10 @@ def get_segment_chunk_for_ea(seg_ea_start, ea, seg_end=None):
     if seg_end is None:
         seg_end = idc.SegEnd(ea)
     rel_ea = ea - seg_ea_start
-    chunk_off = rel_ea % SEGMENT_CHUNK_MAX_SIZE
+    chunk_off = rel_ea % ya.SEGMENT_CHUNK_MAX_SIZE
     chunk_start = ea - chunk_off
 
-    chunk_end = min(chunk_start + SEGMENT_CHUNK_MAX_SIZE, seg_end)
+    chunk_end = min(chunk_start + ya.SEGMENT_CHUNK_MAX_SIZE, seg_end)
     return (chunk_start, chunk_end)
 
 

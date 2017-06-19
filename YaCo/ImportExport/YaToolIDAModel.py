@@ -39,8 +39,6 @@ MAX_STRUCT_SIZE = 0x01000000
 
 DEFAULT_OPERAND = 0
 DEFAULT_NAME_FLAGS = 0
-MAX_BLOB_TAG_LEN = 0x00001000
-
 
 class YaToolIDAModel(YaToolObjectVersionElement):
     def __init__(self, yatools, hash_provider, EquipementDescription="None", OSDescription="None"):
@@ -1548,10 +1546,10 @@ class YaToolIDAModel(YaToolObjectVersionElement):
 
         for (blob_addr, blob_content) in sorted(
                 YaToolIDATools.address_range_get_blobs(chunk_start, chunk_end).iteritems()):
-            while len(blob_content) > MAX_BLOB_TAG_LEN:
-                visitor.visit_blob(blob_addr - chunk_start, blob_content[:MAX_BLOB_TAG_LEN])
-                blob_content = blob_content[MAX_BLOB_TAG_LEN:]
-                blob_addr += MAX_BLOB_TAG_LEN
+            while len(blob_content) > ya.MAX_BLOB_TAG_LEN:
+                visitor.visit_blob(blob_addr - chunk_start, blob_content[:ya.MAX_BLOB_TAG_LEN])
+                blob_content = blob_content[ya.MAX_BLOB_TAG_LEN:]
+                blob_addr += ya.MAX_BLOB_TAG_LEN
             visitor.visit_blob(blob_addr - chunk_start, blob_content)
 
         visitor.visit_end_object_version()
