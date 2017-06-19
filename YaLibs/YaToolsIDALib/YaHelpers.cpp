@@ -116,7 +116,7 @@ namespace
         if(subtid == BADADDR)
             return;
 
-        const auto subid = provider->get_struc_enum_object_id(subtid, ya::to_string(type), true);
+        const auto subid = provider->get_struc_enum_object_id(subtid, ya::to_string_ref(type), true);
         if(deps)
             deps->push_back({subid, tif, subtid});
 
