@@ -288,7 +288,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         visitor.visit_end_reference_object()
 
     def accept_deleted_struc(self, visitor, struc_id, struc_type=ya.OBJECT_TYPE_STRUCT):
-        object_id = self.hash_provider.get_struc_enum_object_id(struc_id)
+        object_id = self.hash_provider.get_struc_enum_object_id(struc_id, "", True)
         visitor.visit_start_deleted_object(struc_type)
         visitor.visit_id(object_id)
         visitor.visit_end_deleted_object()
@@ -324,7 +324,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         if struc_type == ya.OBJECT_TYPE_STACKFRAME:
             object_id = self.hash_provider.get_stackframe_object_id(struc_id, idc.BADADDR)
         else:
-            object_id = self.hash_provider.get_struc_enum_object_id(struc_id, idc.GetStrucName(struc_id))
+            object_id = self.hash_provider.get_struc_enum_object_id(struc_id, idc.GetStrucName(struc_id), True)
 
         if struc_type == ya.OBJECT_TYPE_STRUCT:
             self.exported_object_ids[struc_id] = object_id
@@ -522,7 +522,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
                     else:
                         member_sid = -1
                     logger.debug("Getting object id for member : 0x%08X [%s]" % (member_sid, name))
-                    object_id = self.hash_provider.get_struc_enum_object_id(member_sid, idc.GetStrucName(member_sid))
+                    object_id = self.hash_provider.get_struc_enum_object_id(member_sid, idc.GetStrucName(member_sid), True)
                 else:  # enum
                     op = idaapi.opinfo_t()
                     idaapi.retrieve_member_info(ida_member, op)
@@ -531,7 +531,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
                     if serial != 0:
                         xref_dict = {'serial': self.yatools.address_to_hex_string(serial)}
                         logger.debug("Getting object id for member : 0x%08X" % member_sid)
-                    object_id = self.hash_provider.get_struc_enum_object_id(member_sid, idc.GetEnumName(member_sid))
+                    object_id = self.hash_provider.get_struc_enum_object_id(member_sid, idc.GetEnumName(member_sid), True)
 
                 visitor.visit_start_xrefs()
                 visitor.visit_start_xref(0, object_id, 0)
@@ -1144,7 +1144,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
                         continue
                     else:
                         struc_name = idc.GetStrucName(path_id)
-                        obj_id = self.hash_provider.get_struc_enum_object_id(path_id, struc_name)
+                        obj_id = self.hash_provider.get_struc_enum_object_id(path_id, struc_name, True)
                         if obj_id is None:
                             logger.error("No object id for struc 0x%08X (name=%s)",
                                          path_id, idaapi.get_struc_name(path_id))
@@ -1171,7 +1171,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         for (enum_offset, enums_t) in enums.iteritems():
             for (operand, enum_id, enum_name) in enums_t:
                 xrefed_enum_ids.add(enum_id)
-                enum_value = self.hash_provider.get_struc_enum_object_id(enum_id, enum_name)
+                enum_value = self.hash_provider.get_struc_enum_object_id(enum_id, enum_name, True)
                 try:
                     ll = ordered_xrefs[enum_offset]
                 except KeyError:
@@ -1357,7 +1357,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             idaapi.get_opinfo(ea, 0, flags, op)
             strid = op.tid
             str_name = idc.GetStrucName(strid)
-            str_object_id = self.hash_provider.get_struc_enum_object_id(strid, str_name)
+            str_object_id = self.hash_provider.get_struc_enum_object_id(strid, str_name, True)
             visitor.visit_start_xref(0, str_object_id, DEFAULT_OPERAND)
             visitor.visit_end_xref()
 

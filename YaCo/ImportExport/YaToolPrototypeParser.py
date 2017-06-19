@@ -352,7 +352,7 @@ class YaToolPrototypeParser(object):
             if item_id == idc.BADADDR:
                 logger.error("no struc or enum id for name : %s", name)
                 return None
-        return hash_provider.get_struc_enum_object_id(item_id, name)
+        return hash_provider.get_struc_enum_object_id(item_id, name, True)
 
     """
     take a prototype and replace enum and struc names with their hashes
