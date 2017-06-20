@@ -54,7 +54,6 @@ private:
     std::string                                     string_start_;
     std::unordered_map<std::string,YaToolObjectId>  cache_by_string_;
     std::unordered_map<std::string,YaToolObjectId>  cache_by_string_persistent_;
-    bool                                            persistent_cache_enabled_;
 #endif
 };
 
