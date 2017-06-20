@@ -298,8 +298,10 @@ def master_handler(yatools, hash_provider, db_dir=".", export_dir=".", num_cpu=N
     m = YaToolIDAModel(yatools, hash_provider)
     m.set_ea_exporter(master)
     m.set_descending_mode(True)
-
-    YaCoUtils.yadb_export(m, os.path.join(db_dir, "database_master.yadb"))
+    exporter = ya.MakeFlatBufferExporter()
+    m.accept(exporter)
+    with open(os.path.join(db_dir, "database_master.yadb"), "wb") as fh:
+        fh.write(exporter.GetBuffer())
 
     master.close_workers(True)
     yadbs = [os.path.join(db_dir, "database_master.yadb")]

@@ -20,8 +20,8 @@ else:
     import YaToolsPy32 as ya
 
 
-def yadb_export(model, filename):
+def export_ida(provider, filename):
     exporter = ya.MakeFlatBufferExporter()
-    model.accept(exporter)
-    with open(filename, 'wb') as fh:
+    ya.MakeIdaModel(provider).accept(exporter)
+    with open(filename, "wb") as fh:
         fh.write(exporter.GetBuffer())

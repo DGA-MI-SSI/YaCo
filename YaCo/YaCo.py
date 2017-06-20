@@ -185,11 +185,9 @@ class YaCo:
 
     def export_single_cache(self, *args):
         logger.info("Exporting database using one core")
-        m = YaToolIDAModel(self.yatools, self.hash_provider)
-        m.set_descending_mode(True)
         if not os.path.isdir("database"):
             os.mkdir("database")
-        YaCoUtils.yadb_export(m, "database/database.yadb")
+        YaCoUtils.export_ida(self.hash_provider, "database/database.yadb")
         idc.Message("Export complete.")
 
     def create_reset(self, *args):

@@ -97,6 +97,9 @@ class Fixture(unittest.TestCase):
                         prototype = re.sub("@<r(\w)x>", "@<e\\1x>", prototype)
                     # remove ids from prototypes which are unstable
                     prototype = re.sub("/\\*%(:?[^%]+)%\\*/", "", prototype)
+                    # clean-up artifacts after prototype id removal
+                    prototype = prototype.replace(" ,", ",")
+                    prototype = prototype.replace(" )", ")")
                     values.append((getkey(it), prefix, it.Address(), name, prototype))
                 values.sort(cmp=lambda x, y: cmp(x[0], y[0]))
                 for (key, prefix, ea, name, prototype) in values:
@@ -104,6 +107,7 @@ class Fixture(unittest.TestCase):
                     fh.write(line.rstrip() + "\n")
         self.check_golden(read)
 
+    @unittest.skip("obsolete")
     def yaexport_all(self):
         YaCo.yaco.export_all_cache()
         self.check_yadb()
