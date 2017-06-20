@@ -59,9 +59,11 @@ struct IDANativeExporter
     std::string patch_prototype(const std::string& prototype, ea_t ea);
 
     using IdMap = std::unordered_map<YaToolObjectId, uint64_t>;
+    using EnumMemberMap = std::unordered_map<uint64_t, enum_t>;
 
 private:
     IdMap tids;
+    EnumMemberMap enum_members;
     YaToolsIDANativeLib tools;
 #endif
 };
