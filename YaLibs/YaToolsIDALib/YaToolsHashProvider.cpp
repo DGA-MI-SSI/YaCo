@@ -33,10 +33,13 @@
 
 #define YATOOL_OBJECT_ID_NOT_FOUND  ((YaToolObjectId)0)
 
-static const auto MAX_CACHE_SIZE = 1000;
+namespace
+{
+    const bool USE_PERSISTENT_CACHE = true;
+    const auto MAX_CACHE_SIZE = 1000;
+}
 
 YaToolsHashProvider::YaToolsHashProvider()
-    : persistent_cache_enabled_(true)
 {
     uchar hash[16];
     const auto ok = retrieve_input_file_md5(hash);
@@ -68,7 +71,7 @@ void YaToolsHashProvider::put_hash_cache(const std::string& key_string, YaToolOb
 {
     check_and_flush_cache_if_needed();
 
-    if(persistent_cache_enabled_ || in_persistent_cache)
+    if(USE_PERSISTENT_CACHE || in_persistent_cache)
         cache_by_string_[key_string] = id;
 
     if(in_persistent_cache)
