@@ -54,21 +54,21 @@ stm_0  dwLowDateTime DWORD
 stm_4  dwHighDateTime DWORD
 stm_0  magicNumber
 stm_4  maxState
-stm_8  pUnwindMap
+stm_8  pUnwindMap void *
 stm_c  nTryBlocks
-stm_10 pTryBlockMap
+stm_10 pTryBlockMap void *
 stm_14 nIPMapEntries
-stm_18 pIPtoStateMap
-stm_1c pESTypeList
+stm_18 pIPtoStateMap void *
+stm_1c pESTypeList void *
 stm_20 EHFlags
 stm_0  Data1 unsigned __int32
 stm_4  Data2 unsigned __int16
 stm_6  Data3 unsigned __int16
 stm_8  Data4 unsigned __int8[8]
 stm_0  adjectives
-stm_4  pType
+stm_4  pType void *
 stm_8  dispCatchObj
-stm_c  addressOfHandler
+stm_c  addressOfHandler void *
 stm_0  Data1 unsigned __int32
 stm_4  Data2 unsigned __int16
 stm_6  Data3 unsigned __int16
@@ -90,12 +90,12 @@ stm_0  tryLow
 stm_4  tryHigh
 stm_8  catchHigh
 stm_c  nCatches
-stm_10 pHandlerArray
-stm_0  pVFTable
-stm_4  spare
-stm_8  name
+stm_10 pHandlerArray void *
+stm_0  pVFTable void *
+stm_4  spare void *
+stm_8  name char[]
 stm_0  toState
-stm_4  action
+stm_4  action void *
 stm_0  style UINT
 stm_4  lpfnWndProc WNDPROC
 stm_8  cbClsExtra int
@@ -32220,7 +32220,7 @@ stm_18 var_4
 stm_20 arg_0 struct QT::QAbstractAnimation *
 stm_c  var_4 int
 stm_14 arg_0 struct QT::QAbstractAnimation *
-stm_14 var_24 bool
+stm_14 var_24
 stm_18 var_20
 stm_1c var_1C
 stm_20 var_18
@@ -32873,7 +32873,7 @@ stm_5c var_70 int
 stm_74 var_58 int
 stm_c0 var_C
 stm_c8 var_4
-stm_d4 arg_0 char
+stm_d4 arg_0
 stm_0  var_8C
 stm_30 var_5C QT::QObjectPrivate *
 stm_34 var_58
@@ -33872,7 +33872,7 @@ stm_18 var_C
 stm_20 var_4
 stm_28 arg_0
 stm_2c arg_4
-stm_0  DstBuf char
+stm_0  DstBuf
 stm_100 var_4
 stm_108 arg_0
 stm_8  arg_0
@@ -33899,7 +33899,7 @@ stm_20 var_118 void *
 stm_24 var_114
 stm_28 var_110
 stm_30 var_108
-stm_34 DstBuf char
+stm_34 DstBuf
 stm_134 var_4
 stm_140 arg_0 int
 stm_4  arg_0 char *
@@ -36793,7 +36793,7 @@ stm_4  var_C
 stm_8  var_8
 stm_c  var_4 void *
 stm_0  ReturnValue size_t
-stm_4  Buffer char
+stm_4  Buffer
 stm_204 var_4
 stm_4  arg_0
 stm_4  arg_0
@@ -36812,7 +36812,7 @@ stm_12 var_12
 stm_14 var_10
 stm_18 var_C
 stm_1c var_8 QT::QLocalePrivate *
-stm_20 var_4 char
+stm_20 var_4
 stm_28 arg_0
 stm_2c arg_4
 stm_30 arg_8 QT::QByteArray *
@@ -38100,7 +38100,7 @@ stm_14 var_34
 stm_1a var_2E
 stm_1c var_2C void *
 stm_20 var_28
-stm_28 var_20 char
+stm_28 var_20
 stm_2c var_1C
 stm_30 var_18
 stm_34 var_14
@@ -39565,7 +39565,7 @@ stm_10 ArgList va_list
 stm_4  DstBuf char *
 stm_8  DstSize size_t
 stm_c  Format char *
-stm_10 ArgList char
+stm_10 ArgList
 stm_8  lpProcName LPCSTR
 stm_8  var_8
 stm_c  var_4
@@ -43142,7 +43142,7 @@ stm_4  arg_0
 stm_10 var_10
 stm_14 var_C
 stm_1c var_4
-stm_14 var_10 char
+stm_14 var_10
 stm_18 var_C
 stm_20 var_4
 stm_28 arg_0 void *
@@ -43571,7 +43571,7 @@ stm_24 arg_0
 stm_10 var_14
 stm_14 var_10
 stm_18 var_C
-stm_1c var_8 char
+stm_1c var_8
 stm_20 var_4
 stm_28 arg_0 QT::QByteArray *
 stm_c  var_10
@@ -44418,24 +44418,24 @@ stm_24 arg_0 QT::QByteArray *
 stm_18 var_20 void *
 stm_1c var_1C
 stm_20 var_18 void *
-stm_24 var_14 char
-stm_28 var_10 char
+stm_24 var_14
+stm_28 var_10
 stm_2c var_C
 stm_34 var_4
 stm_3c arg_0 void *
 stm_14 var_18 void *
 stm_18 var_14
-stm_1c var_10 char
+stm_1c var_10
 stm_20 var_C
 stm_28 var_4
 stm_14 var_14
-stm_18 var_10 char
+stm_18 var_10
 stm_1c var_C
 stm_24 var_4
 stm_2c arg_0 const struct QT::QString *
 stm_30 arg_4 const struct QT::QString *
 stm_10 var_14
-stm_14 var_10 char
+stm_14 var_10
 stm_18 var_C
 stm_20 var_4
 stm_28 arg_0 struct QT::QByteArray *
@@ -45517,7 +45517,7 @@ stm_30 var_8C
 stm_34 var_88
 stm_38 var_84
 stm_3c var_80
-stm_40 var_7C bool
+stm_40 var_7C
 stm_44 var_78 void *
 stm_48 var_74 void *
 stm_4c var_70
@@ -46268,9 +46268,9 @@ stm_40 var_30 void *
 stm_44 var_2C void *
 stm_48 var_28
 stm_4c hKey HKEY
-stm_50 var_20 char
+stm_50 var_20
 stm_58 var_18
-stm_5c var_14 char
+stm_5c var_14
 stm_60 var_10
 stm_64 var_C
 stm_6c var_4
@@ -46712,7 +46712,7 @@ stm_80 var_4
 stm_88 arg_0
 stm_8c arg_4
 stm_c  var_1C void *
-stm_10 var_18 char
+stm_10 var_18
 stm_14 var_14
 stm_1c var_C
 stm_24 var_4
@@ -47658,7 +47658,7 @@ stm_8  arg_4 char *
 stm_10 arg_0 char *
 stm_14 arg_4 char *
 stm_10 var_1C
-stm_14 ms_exc
+stm_14 ms_exc CPPEH_RECORD
 stm_34 arg_0
 stm_38 arg_4
 stm_8  arg_0 struct QT::QObject *
@@ -48774,11 +48774,11 @@ stm_8  var_10
 stm_c  var_C
 stm_14 var_4
 stm_1c var_18 void *
-stm_20 var_14 char
+stm_20 var_14
 stm_28 var_C
 stm_30 var_4
 stm_1c var_18 void *
-stm_20 var_14 char
+stm_20 var_14
 stm_28 var_C
 stm_30 var_4
 stm_14 var_74
@@ -48793,21 +48793,21 @@ stm_44 var_44
 stm_48 var_40
 stm_4c var_3C
 stm_50 var_38
-stm_54 var_34 char
-stm_58 var_30 char
+stm_54 var_34
+stm_58 var_30
 stm_60 var_28
 stm_64 var_24
 stm_68 var_20
 stm_6c var_1C
-stm_70 var_18 char
+stm_70 var_18
 stm_7c var_C
 stm_84 var_4
 stm_1c var_18 void *
-stm_20 var_14 char
+stm_20 var_14
 stm_28 var_C
 stm_30 var_4
 stm_1c var_18 void *
-stm_20 var_14 char
+stm_20 var_14
 stm_28 var_C
 stm_30 var_4
 stm_14 var_74
@@ -48822,13 +48822,13 @@ stm_44 var_44
 stm_48 var_40
 stm_4c var_3C
 stm_50 var_38
-stm_54 var_34 char
-stm_58 var_30 char
+stm_54 var_34
+stm_58 var_30
 stm_60 var_28
 stm_64 var_24
 stm_68 var_20
 stm_6c var_1C
-stm_70 var_18 char
+stm_70 var_18
 stm_7c var_C
 stm_84 var_4
 stm_4  var_4 int
@@ -49509,7 +49509,7 @@ stm_1c var_48
 stm_20 var_44 void *
 stm_24 var_40 QT::QByteArray *
 stm_28 var_3C void *
-stm_2c var_38 char
+stm_2c var_38
 stm_30 var_34
 stm_34 var_30
 stm_38 var_2C size_t
@@ -49557,7 +49557,7 @@ stm_144 arg_4
 stm_14 var_134 void *
 stm_18 var_130
 stm_1c var_12C
-stm_20 var_128 char
+stm_20 var_128
 stm_24 var_124
 stm_28 var_120
 stm_2c var_11C void *
@@ -55484,18 +55484,18 @@ stm_10 lEvent __int32
 stm_10 var_24
 stm_14 var_20
 stm_18 var_1C
-stm_1c ms_exc
+stm_1c ms_exc CPPEH_RECORD
 stm_3c arg_0 void *
 stm_40 arg_4 unsigned int
 stm_44 arg_8 int
 stm_48 arg_C void (__thiscall *)(void *)
 stm_10 var_1C
-stm_14 ms_exc
+stm_14 ms_exc CPPEH_RECORD
 stm_34 arg_0 void *
 stm_38 arg_4 unsigned int
 stm_3c arg_8 int
 stm_40 arg_C void (__thiscall *)(void *)
-stm_c  arg_0 char
+stm_c  arg_0
 stm_0  var_C
 stm_0  var_20
 stm_10 var_10
@@ -55503,7 +55503,7 @@ stm_18 var_8
 stm_10 var_24
 stm_14 var_20 PVOID
 stm_18 Ptr PVOID
-stm_1c ms_exc
+stm_1c ms_exc CPPEH_RECORD
 stm_3c Func _onexit_t
 stm_8  Func _onexit_t
 stm_10 arg_0
@@ -55524,7 +55524,7 @@ stm_14 arg_8
 stm_18 arg_C
 stm_10 var_20
 stm_14 var_1C int
-stm_18 ms_exc
+stm_18 ms_exc CPPEH_RECORD
 stm_38 arg_0 void *
 stm_3c arg_4 unsigned int
 stm_40 arg_8 int
@@ -55545,7 +55545,7 @@ stm_20 arg_4 void *
 stm_24 arg_8 int
 stm_10 var_20
 stm_14 var_1C
-stm_18 ms_exc
+stm_18 ms_exc CPPEH_RECORD
 stm_38 hinstDLL HINSTANCE
 stm_8  hinstDLL HINSTANCE
 stm_c  fdwReason DWORD
@@ -55559,7 +55559,7 @@ stm_330 arg_0
 stm_8  arg_0
 stm_14 arg_0
 stm_18 arg_4
-stm_10 ms_exc
+stm_10 ms_exc CPPEH_RECORD
 stm_30 arg_0
 stm_8  hinstDLL HINSTANCE
 stm_c  fdwReason DWORD
@@ -78578,7 +78578,7 @@ dat_671b1074 GetLocaleInfoW int __stdcall sub(LCID Locale, LCTYPE LCType, LPWSTR
 dat_671b1078 CompareStringW int __stdcall sub(LCID Locale, DWORD dwCmpFlags, LPCWSTR lpString1, int cchCount1, LPCWSTR lpString2, int cchCount2)
 dat_671b107c GetUserDefaultLCID LCID __stdcall sub()
 dat_671b1080 GetProcAddress FARPROC __stdcall sub(HMODULE hModule, LPCSTR lpProcName)
-dat_671b1084 QueryPerformanceFrequency BOOL __stdcall sub(LARGE_INTEGER  *lpFrequency)
+dat_671b1084 QueryPerformanceFrequency BOOL __stdcall sub(LARGE_INTEGER *lpFrequency)
 dat_671b1088 GetTickCount DWORD __stdcall sub()
 dat_671b108c GetDateFormatW int __stdcall sub(LCID Locale, DWORD dwFlags, const SYSTEMTIME *lpDate, LPCWSTR lpFormat, LPWSTR lpDateStr, int cchDate)
 dat_671b1090 GetTimeFormatW int __stdcall sub(LCID Locale, DWORD dwFlags, const SYSTEMTIME *lpTime, LPCWSTR lpFormat, LPWSTR lpTimeStr, int cchTime)
@@ -78672,7 +78672,7 @@ dat_671b11ec CloseHandle BOOL __stdcall sub(HANDLE hObject)
 dat_671b11f0 GetVersionExW BOOL __stdcall sub(LPOSVERSIONINFOW lpVersionInformation)
 dat_671b11f4 GetLastError DWORD __stdcall sub()
 dat_671b11f8 FormatMessageW DWORD __stdcall sub(DWORD dwFlags, LPCVOID lpSource, DWORD dwMessageId, DWORD dwLanguageId, LPWSTR lpBuffer, DWORD nSize, va_list *Arguments)
-dat_671b11fc QueryPerformanceCounter BOOL __stdcall sub(LARGE_INTEGER  *lpPerformanceCount)
+dat_671b11fc QueryPerformanceCounter BOOL __stdcall sub(LARGE_INTEGER *lpPerformanceCount)
 dat_671b1200 LocalFree HLOCAL __stdcall sub(HLOCAL hMem)
 dat_671b1204 FileTimeToSystemTime BOOL __stdcall sub(const FILETIME *lpFileTime, LPSYSTEMTIME lpSystemTime)
 dat_671b1208
@@ -78812,7 +78812,7 @@ dat_671b141c __imp_WSAAsyncSelect int __stdcall sub(SOCKET s, HWND hWnd, u_int w
 dat_671b1420
 dat_671b1424 CoInitialize HRESULT __stdcall sub(LPVOID pvReserved)
 dat_671b1428 CoUninitialize void __stdcall sub()
-dat_671b142c CoCreateGuid HRESULT __stdcall sub(GUID  *pguid)
+dat_671b142c CoCreateGuid HRESULT __stdcall sub(GUID *pguid)
 dat_671b1430 CoCreateInstance HRESULT __stdcall sub(const CLSID *const rclsid, LPUNKNOWN pUnkOuter, DWORD dwClsContext, const IID *const riid, LPVOID *ppv)
 dat_671b1434
 dat_671b1438 unk_671B1438

@@ -88,6 +88,11 @@ if args.slave:
     input_eas = name + ".txt"
     YaCoExporterSlave.slave_handler(idx, input_eas, yatools, hash_provider)
 else:
-    YaCoExporterMaster.master_handler(yatools, hash_provider, db_dir="database",
-                                      export_dir="export", bin_dir=args.bin_dir, disable_plugin=args.disable_plugin)
+    # ignore multithreaded python model as it is slower
+    # than pure native model even with 4 cores
+    exporter = ya.MakeFlatBufferExporter()
+    ya.MakeIdaModel(hash_provider).accept(exporter)
+    os.makedirs("database")
+    with open("database/database.yadb", "wb") as fh:
+        fh.write(exporter.GetBuffer())
 idc.Exit(0)
