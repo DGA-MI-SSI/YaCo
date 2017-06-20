@@ -23,6 +23,7 @@
 #include "Logger.h"
 #include "Yatools.h"
 #include "../Helpers.h"
+#include "YaHelpers.hpp"
 
 #include <string>
 #include <iostream>
@@ -776,4 +777,13 @@ void IDANativeExporter::make_header_comments(std::shared_ptr<YaToolObjectVersion
         if(!ok)
             LOG(ERROR, "make_header_comments: 0x" EA_FMT " unable to set %s comment: %s\n", ea, repeatable ? "repeatable" : "nonrepeatable", comment.data());
     }
+}
+
+void IDANativeExporter::analyze_function(ea_t ea)
+{
+    ya::walk_function_chunks(ea, [=](area_t chunk)
+    {
+        if(!analyze_area(chunk.startEA, chunk.endEA))
+            LOG(ERROR, "analyze_function: 0x" EA_FMT " unable to analyze area " EA_FMT "-" EA_FMT "\n", ea, chunk.startEA, chunk.endEA);
+    });
 }
