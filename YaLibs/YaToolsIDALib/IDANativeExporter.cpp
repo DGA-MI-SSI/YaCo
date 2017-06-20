@@ -104,7 +104,8 @@ void add_bookmark(ea_t ea, std::string comment_text)
 
 namespace
 {
-    std::string sanitize_comment_to_ascii(const std::string& comment)
+    // FIXME useless ?
+    const std::string& sanitize_comment_to_ascii(const std::string& comment)
     {
         return comment;
     }
