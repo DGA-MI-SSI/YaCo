@@ -184,15 +184,28 @@ int find_int(const T& data, const char* key)
     return to_int(it->second.data());
 }
 
-bool check_segment(ea_t ea, ea_t start, ea_t end)
+// FIXME weird bug, getseg returns different results from iterating segments manually...
+segment_t* try_getseg(ea_t ea)
 {
-    const auto segment = getseg(ea);
-    if(!segment)
-        return false;
-    return segment->startEA == start && segment->endEA == end;
+    for(auto seg = get_first_seg(); seg; seg = get_next_seg(seg->endEA - 1))
+        if(seg->contains(ea))
+            return seg;
+    return nullptr;
 }
 
-bool add_seg(ea_t start, ea_t end, ea_t base, int bitness, int align, int comb)
+segment_t* check_segment(ea_t ea, ea_t end)
+{
+    const auto segment = try_getseg(ea);
+    if(!segment)
+        return nullptr;
+
+    if(segment->startEA != ea || segment->endEA != end)
+        return nullptr;
+
+    return segment;
+}
+
+segment_t* add_seg(ea_t start, ea_t end, ea_t base, int bitness, int align, int comb)
 {
     segment_t seg;
     seg.startEA = start;
@@ -201,7 +214,11 @@ bool add_seg(ea_t start, ea_t end, ea_t base, int bitness, int align, int comb)
     seg.bitness = static_cast<uchar>(bitness);
     seg.align = static_cast<uchar>(align);
     seg.comb = static_cast<uchar>(comb);
-    return add_segm_ex(&seg, "", "", ADDSEG_NOSREG);
+    const auto ok = add_segm_ex(&seg, nullptr, nullptr, ADDSEG_NOSREG);
+    if(!ok)
+        return nullptr;
+
+    return try_getseg(start);
 }
 
 enum SegAttribute
@@ -353,25 +370,22 @@ void IDANativeExporter::make_segment(std::shared_ptr<YaToolObjectVersion> versio
     const auto attributes = version->get_attributes();
     const auto end  = static_cast<ea_t>(ea + size);
 
-    if(!check_segment(ea, ea, end))
+    auto seg = check_segment(ea, end);
+    if(!seg)
     {
         const auto align = find_int(attributes, "align");
         const auto comb = find_int(attributes, "comb");
-        const auto ok = add_seg(ea, end, 0, 1, align, comb);
-        if(!ok)
+        seg = add_seg(ea, end, 0, 1, align, comb);
+        if(!seg)
+        {
             LOG(ERROR, "make_segment: 0x" EA_FMT " unable to add segment [0x" EA_FMT ", 0x" EA_FMT "] align:%d comb:%d\n", ea, ea, end, align, comb);
-    }
-
-    auto seg = getseg(ea);
-    if(!seg)
-    {
-        LOG(ERROR, "make_segment: 0x" EA_FMT " unable to get segment\n", ea);
-        return;
+            return;
+        }
     }
 
     if(!name.empty())
     {
-        const auto ok = set_segm_name(seg, name.data());
+        const auto ok = set_segm_name(seg, "%s", name.data());
         if(!ok)
             LOG(ERROR, "make_segment: 0x" EA_FMT " unable to set name %s\n", ea, name.data());
     }
