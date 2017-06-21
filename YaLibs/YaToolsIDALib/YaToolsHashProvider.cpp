@@ -40,6 +40,14 @@
 // enum_member: type, parent_id, const_value
 // basic_block: type, block ea
 
+namespace std
+{
+    void pool_item_clear(std::string& item)
+    {
+        item.clear();
+    }
+}
+
 namespace
 {
     const auto USE_PERSISTENT_CACHE = true;
@@ -58,11 +66,6 @@ namespace
     const std::string segment_chunk_prefix  = "segment_chunk-";
     const std::string ea_prefix             = "ea-";
     const std::string ox_prefix             = "0x";
-
-    void pool_item_clear(std::string& item)
-    {
-        item.clear();
-    }
 
     void append_ea(std::string& dst, ea_t id)
     {
@@ -113,7 +116,7 @@ YaToolsHashProvider::YaToolsHashProvider()
         LOG(ERROR, "unable to retrieve input file MD5\n");
 
     char hexbuf[sizeof hash * 2];
-    const auto str = binhex<UpperCase, IgnorePadding, sizeof hash>(hexbuf, hash);
+    binhex<UpperCase, IgnorePadding, sizeof hash>(hexbuf, hash);
     string_start_ = md5_prefix;
     string_start_.append(hexbuf, sizeof hash * 2);
     string_start_ += separator;

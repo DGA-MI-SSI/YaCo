@@ -16,6 +16,7 @@
 #pragma once
 
 #include "YaTypes.hpp"
+#include <vector>
 
 struct YaToolsHashProvider;
 

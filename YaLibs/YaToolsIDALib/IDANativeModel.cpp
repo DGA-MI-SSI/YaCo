@@ -34,7 +34,7 @@
 extern "C"
 {
     // ugly, we extract crc32 function from git2/deps/zlib
-    typedef __int64 git_off_t;
+    typedef int64_t git_off_t;
     #define INCLUDE_common_h__
     #include <zlib.h>
 }
@@ -54,6 +54,11 @@ extern "C"
 std::string get_type(ea_t ea)
 {
     return ya::get_type(ea);
+}
+
+void pool_item_clear(qstring& item)
+{
+    item.qclear();
 }
 
 namespace
@@ -102,7 +107,7 @@ namespace
     const_string_ref str_icrc32(char* buf, size_t /*szbuf*/, uint32_t x)
     {
         *buf = '-';
-        const auto str = to_hex(buf + 1, x);
+        to_hex(buf + 1, x);
         if(buf[1] != '0')
             return {buf, 1 + 8};
 
@@ -194,11 +199,6 @@ namespace
         return std::make_tuple(a.offset, a.operand, a.id, a.path_idx) == std::make_tuple(b.offset, b.operand, b.id, b.path_idx);
     }
 
-    void pool_item_clear(qstring& item)
-    {
-        item.qclear();
-    }
-
     struct Model : public IModelAccept
     {
         Model(YaToolsHashProvider* provider);
@@ -230,7 +230,7 @@ namespace
     offset_t offset_from_ea(ea_t offset)
     {
         // FIXME sign-extend to 64-bits because offset_t is unsigned...
-        return sizeof ea_t == 4 ? int64_t(int32_t(offset)) : offset;
+        return sizeof offset == 4 ? int64_t(int32_t(offset)) : offset;
     }
 
     void start_object(IModelVisitor& v, YaToolObjectType_e type, YaToolObjectId id, YaToolObjectId parent, ea_t ea)
@@ -940,7 +940,7 @@ namespace
         if(!ok)
             return;
 
-        const auto strtype = op.strtype == BADADDR ? ASCSTR_C : op.strtype;
+        const auto strtype = op.strtype == -1 ? ASCSTR_C : op.strtype;
         if(strtype > 0)
             v.visit_string_type(strtype);
 
