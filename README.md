@@ -21,7 +21,7 @@ As **IDA** is a 32bits software, **YaCo** must be built for 32 bits architecture
 
 Install dependencies
 ```
-sudo apt install cmake
+sudo apt install build-essential cmake gcc-multilib g++-multilib
 ```
 
 Add i386 architecture and install dependencies
