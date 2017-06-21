@@ -16,6 +16,7 @@
 #pragma once
 
 #include "YaTypes.hpp"
+#include "IModelAccept.hpp"
 
 namespace std { template<typename T> class shared_ptr; }
 struct YaToolsHashProvider;
@@ -26,4 +27,12 @@ const int MAX_BLOB_TAG_LEN = 0x1000;
 
 std::string get_type(ea_t ea);
 
-std::shared_ptr<IModelAccept> MakeIdaModel(YaToolsHashProvider* provider);
+struct INativeModel
+    : public IModelAccept
+{
+    virtual ~INativeModel() {}
+
+    virtual YaToolObjectId accept_enum(IModelVisitor& v, ea_t enum_id) = 0;
+};
+
+std::shared_ptr<INativeModel> MakeIdaModel(YaToolsHashProvider* provider);

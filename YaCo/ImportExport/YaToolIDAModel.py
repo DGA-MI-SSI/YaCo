@@ -73,6 +73,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         if self.minXrefAddress == idc.BADADDR:
             self.minXrefAddress = idc.SegStart(0)
             self.maxXrefAddress = idc.SegEnd(0)
+        self.native = ya.MakeIdaModel(self.hash_provider)
 
     def set_ea_exporter(self, ea_exporter):
         self.delegate_exporter = ea_exporter
@@ -168,123 +169,8 @@ class YaToolIDAModel(YaToolObjectVersionElement):
 
         if self.skip_accept_enum or enum_id in self.exported_object_ids:
             return
-
-        enum_name = idc.GetEnumName(enum_id)
-
-        visitor.visit_start_reference_object(ya.OBJECT_TYPE_ENUM)
-
-        object_id = self.hash_provider.get_struc_enum_object_id(enum_id, enum_name, True)
+        object_id = self.native.accept_enum(visitor, enum_id)
         self.exported_object_ids[enum_id] = object_id
-
-        visitor.visit_id(object_id)
-
-        visitor.visit_start_object_version()
-
-        visitor.visit_size(idc.GetEnumWidth(enum_id))
-
-        logger.debug("visiting enum name : %r" % enum_name)
-        visitor.visit_name(enum_name, DEFAULT_NAME_FLAGS)
-        # idc.GetEnumIdx is used to keep order when we recreate enums
-        idx = idc.GetEnumIdx(enum_id)
-        visitor.visit_address(idx)
-
-        #
-        # FLAGS
-        #
-        flags = idc.GetEnumFlag(enum_id)
-        if idc.IsBitfield(enum_id):
-            flags |= 0x1  # bitfield flag
-        visitor.visit_flags(flags)
-
-        #
-        # HEADER COMMENT
-        #
-        RptComt = idc.GetEnumCmt(enum_id, 1)
-        if RptComt is not None and RptComt != "":
-            visitor.visit_header_comment(True, RptComt)
-        Cmt = idc.GetEnumCmt(enum_id, 0)
-        if Cmt is not None and Cmt != "":
-            visitor.visit_header_comment(False, Cmt)
-
-        visitor.visit_start_xrefs()
-
-        for (const_id, const_value, bmask) in YaToolIDATools.enum_member_iterate_all(enum_id):
-            const_name = idc.GetConstName(const_id)
-            enum_member_id = self.hash_provider.get_enum_member_id(
-                enum_id, enum_name, const_id, const_name, hex(const_value), bmask, True)
-            visitor.visit_start_xref(0, enum_member_id, DEFAULT_OPERAND)
-            visitor.visit_end_xref()
-
-        visitor.visit_end_xrefs()
-
-        #
-        # MATCHING SYSTEMS
-        #
-        visitor.visit_start_matching_systems()
-        visitor.visit_start_matching_system(idx)
-        visitor.visit_matching_system_description("equipement", self.EquipementDescription)
-        visitor.visit_matching_system_description("os", self.OSDescription)
-        visitor.visit_end_matching_system()
-        visitor.visit_end_matching_systems()
-
-        visitor.visit_end_object_version()
-
-        visitor.visit_end_reference_object()
-
-        self.accept_enum_members(visitor, object_id, enum_id)
-
-    def accept_enum_members(self, visitor, parent_id, enum_id):
-        for (const_id, const_value, bmask) in YaToolIDATools.enum_member_iterate_all(enum_id):
-            self.accept_enum_member(visitor, parent_id, enum_id, const_id)
-
-    def accept_enum_member(self, visitor, parent_id, enum_id, const_id):
-        visitor.visit_start_reference_object(ya.OBJECT_TYPE_ENUM_MEMBER)
-
-        const_name = idc.GetConstName(const_id)
-        bmask = idc.GetConstBmask(const_id)
-        const_value = idc.GetConstValue(const_id)
-
-        enum_name = idc.GetEnumName(enum_id)
-        object_id = self.hash_provider.get_enum_member_id(enum_id, enum_name, const_id, const_name, hex(const_value), bmask, True)
-
-        visitor.visit_id(object_id)
-
-        visitor.visit_start_object_version()
-
-        visitor.visit_parent_id(parent_id)
-        visitor.visit_address(const_value)
-
-        visitor.visit_size(0)
-
-        visitor.visit_name(const_name, DEFAULT_NAME_FLAGS)
-
-        # mask is treated as flags
-        if bmask != idc.BADADDR:
-            visitor.visit_flags(bmask)
-
-        #
-        # MEMBER COMMENT
-        #
-        RptComt = idc.GetConstCmt(const_id, 1)
-        if RptComt is not None and RptComt != "":
-            visitor.visit_header_comment(True, RptComt)
-        Cmt = idc.GetConstCmt(const_id, 0)
-        if Cmt is not None and Cmt != "":
-            visitor.visit_header_comment(False, Cmt)
-
-        #
-        # MATCHING SYSTEMS
-        #
-        visitor.visit_start_matching_systems()
-        visitor.visit_start_matching_system(const_value)
-        visitor.visit_matching_system_description("equipement", self.EquipementDescription)
-        visitor.visit_matching_system_description("os", self.OSDescription)
-        visitor.visit_end_matching_system()
-        visitor.visit_end_matching_systems()
-
-        visitor.visit_end_object_version()
-
-        visitor.visit_end_reference_object()
 
     def accept_deleted_struc(self, visitor, struc_id, struc_type=ya.OBJECT_TYPE_STRUCT):
         object_id = self.hash_provider.get_struc_enum_object_id(struc_id, "", True)
