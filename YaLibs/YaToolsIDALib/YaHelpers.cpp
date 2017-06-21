@@ -13,6 +13,7 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#include "YaTypes.hpp"
 #include "Ida.h"
 #include "YaHelpers.hpp"
 
@@ -21,10 +22,6 @@
 #include "StringFormat.hpp"
 
 #include <algorithm>
-
-#ifdef _MSC_VER
-#define itoa _itoa
-#endif
 
 #define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("ya", (FMT), ## __VA_ARGS__)
 
@@ -89,13 +86,6 @@ namespace
         dst += arglog_prefix;
         dst.append(buffer, size);
         dst += '>';
-    }
-
-    void append_int(qstring& dst, int value)
-    {
-        char buf[65];
-        itoa(value, buf, 10);
-        dst += buf;
     }
 
     const qstring comment_prefix = "/*%";
@@ -225,7 +215,7 @@ namespace
     }
 }
 
-namespace std
+namespace ya
 {
     bool operator==(const ya::Dependency& a, const ya::Dependency& b)
     {
@@ -263,7 +253,7 @@ namespace
         if(!struc)
             return tif;
 
-        if(struc->ordinal == BADADDR)
+        if(struc->ordinal == -1)
             return tif;
 
         const auto ok = tif.get_numbered_type(idati, struc->ordinal);
