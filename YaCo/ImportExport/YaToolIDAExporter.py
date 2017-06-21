@@ -429,10 +429,13 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
                 traceback.print_exc()
         elif idc.isEnum0(flags):
             # an enum is applied here
-            try:
-                sub_enum_object_id = object_version.getXRefIdsAt(0, 0)[0]
-                sub_enum_id = _yatools_ida_exporter.get_tid(sub_enum_object_id)
-
+            sub_enum_object_id = object_version.getXRefIdsAt(0, 0)[0]
+            sub_enum_id = _yatools_ida_exporter.get_tid(sub_enum_object_id)
+            if sub_enum_id == idc.BADADDR:
+                logger.error("Error while looking for sub enum in struc %s, offset 0x%08X (field name='%s')" %
+                    (struc_object_id, offset, member_name))
+                traceback.print_exc()
+            else:
                 name_ok = idc.SetMemberName(struc_id, offset, member_name)
                 if name_ok is not True:
                     logger.debug(
@@ -451,15 +454,6 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
                             "Error while setting member type (enum) : "
                             "(ret=%d struc=%s, member=%s, offset=0x%08X, mflags=%d, msize=%d, tid=0x%016X" %
                             (ret, idc.GetStrucName(struc_id), member_name, offset, flags, member_size, sub_enum_id))
-
-            except KeyError:
-                logger.error("Error while looking for sub enum in struc %s, offset 0x%08X (field name='%s')" %
-                             (
-                                 struc_object_id, offset, member_name
-                             )
-                             )
-                traceback.print_exc()
-
         else:
             #             logger.debug("%20s: adding member at offset 0x%08X, size=0x%08X with name %s" %
             #                         (
@@ -652,11 +646,9 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
                 #
                 # apply enums     ###################
                 #
-                try:
-                    enum_id = _yatools_ida_exporter.get_tid(xref_value)
+                enum_id = _yatools_ida_exporter.get_tid(xref_value)
+                if enum_id != idc.BADADDR:
                     idaapi.op_enum(address + xref_offset, operand, enum_id, 0)
-                except KeyError:
-                    pass
 
                 #
                 # apply reference info ##################
