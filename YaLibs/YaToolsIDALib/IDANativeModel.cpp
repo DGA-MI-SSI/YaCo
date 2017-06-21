@@ -199,17 +199,20 @@ namespace
         return std::make_tuple(a.offset, a.operand, a.id, a.path_idx) == std::make_tuple(b.offset, b.operand, b.id, b.path_idx);
     }
 
-    struct Model : public IModelAccept
+    struct Model
+        : public INativeModel
     {
         Model(YaToolsHashProvider* provider);
 
         // IModelAccept methods
         void accept(IModelVisitor& v) override;
 
+        // INativeModel methods
+        virtual YaToolObjectId accept_enum(IModelVisitor& v, enum_t enum_id) override;
+
         // private methods
         void accept_binary          (IModelVisitor& v);
         void accept_enums           (IModelVisitor& v);
-        void accept_enum            (IModelVisitor& v, enum_t eid);
         void accept_enum_member     (IModelVisitor& v, const Parent& parent, const EnumMember& m);
         void accept_structs         (IModelVisitor& v);
         void accept_struct          (IModelVisitor& v, const Parent& parent, struc_t* s, func_t* func);
@@ -271,7 +274,7 @@ namespace
     }
 }
 
-std::shared_ptr<IModelAccept> MakeIdaModel(YaToolsHashProvider* provider)
+std::shared_ptr<INativeModel> MakeIdaModel(YaToolsHashProvider* provider)
 {
     return std::make_shared<Model>(provider);
 }
@@ -341,7 +344,7 @@ void Model::accept_enums(IModelVisitor& v)
         accept_enum(v, getn_enum(i));
 }
 
-void Model::accept_enum(IModelVisitor& v, enum_t eid)
+YaToolObjectId Model::accept_enum(IModelVisitor& v, enum_t eid)
 {
     const auto enum_name = qpool_.acquire();
     get_enum_name(&*enum_name, eid);
@@ -378,6 +381,8 @@ void Model::accept_enum(IModelVisitor& v, enum_t eid)
 
     for(const auto& m : members)
         accept_enum_member(v, {id, 0}, m);
+
+    return id;
 }
 
 void Model::accept_enum_member(IModelVisitor& v, const Parent& parent, const EnumMember& m)

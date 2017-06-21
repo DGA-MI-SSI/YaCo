@@ -214,6 +214,7 @@ YaToolObjectId YaToolObjectId_From_String(const char* input, size_t input_len);
 %shared_ptr(ObjectSignature)
 %shared_ptr(CRC32FunctionSignature)
 %shared_ptr(IModelAccept)
+%shared_ptr(INativeModel)
 %shared_ptr(IModelVisitor)
 %shared_ptr(IFlatExporter)
 %shared_ptr(IModel)
