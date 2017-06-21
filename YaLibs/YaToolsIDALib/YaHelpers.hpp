@@ -101,15 +101,6 @@ namespace ya
         }
     }
 
-    // duplicate hex function behavior from python
-    template<typename T>
-    std::string to_py_hex(T value)
-    {
-        std::stringstream ss;
-        ss << "0x" << std::hex << value << "L";
-        return ss.str();
-    }
-
     inline std::string to_string(const qstring& q)
     {
         return {q.c_str(), q.length()};
