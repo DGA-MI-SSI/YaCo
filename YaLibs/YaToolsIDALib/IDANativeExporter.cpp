@@ -25,6 +25,7 @@
 #include "Yatools.h"
 #include "../Helpers.h"
 #include "YaHelpers.hpp"
+#include "StringFormat.hpp"
 
 #include <string>
 #include <iostream>
@@ -1143,6 +1144,7 @@ void IDANativeExporter::make_enum(YaToolsHashProvider* provider, std::shared_ptr
 
     const auto xref_ids = version->get_xrefed_ids();
     qstring const_name;
+    qstring const_value;
     ya::walk_enum_members(eid, [&](const_t cid, uval_t value, uchar serial, bmask_t bmask)
     {
         const auto it = enum_members.find(cid);
@@ -1150,7 +1152,8 @@ void IDANativeExporter::make_enum(YaToolsHashProvider* provider, std::shared_ptr
             return;
 
         get_enum_member_name(&const_name, cid);
-        const auto yaid = provider->get_enum_member_id(eid, make_string_ref(name), cid, ya::to_string_ref(const_name), make_string_ref(ya::to_py_hex(value)), bmask, true);
+        to_py_hex(const_value, value);
+        const auto yaid = provider->get_enum_member_id(eid, make_string_ref(name), cid, ya::to_string_ref(const_name), ya::to_string_ref(const_value), bmask, true);
         if(xref_ids.count(yaid))
             return;
 

@@ -362,10 +362,12 @@ void Model::accept_enum(IModelVisitor& v, enum_t eid)
 
     v.visit_start_xrefs();
     std::vector<EnumMember> members;
+    const auto qval = qpool_.acquire();
     ya::walk_enum_members(eid, [&](const_t const_id, uval_t value, uchar /*serial*/, bmask_t bmask)
     {
         get_enum_member_name(&*qbuf, const_id);
-        const auto member_id = provider_.get_enum_member_id(eid, ya::to_string_ref(*enum_name), const_id, ya::to_string_ref(*qbuf), make_string_ref(ya::to_py_hex(value)), bmask, true);
+        to_py_hex(*qval, value);
+        const auto member_id = provider_.get_enum_member_id(eid, ya::to_string_ref(*enum_name), const_id, ya::to_string_ref(*qbuf), ya::to_string_ref(*qval), bmask, true);
         v.visit_start_xref(0, member_id, DEFAULT_OPERAND);
         v.visit_end_xref();
         members.push_back({member_id, const_id, value, bmask});
