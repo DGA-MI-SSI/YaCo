@@ -531,7 +531,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
                     logger.debug(
                         "Error while setting member name (enum) : "
                         "(struc=%s, member=%s, offset=0x%08X, mflags=%d, msize=%d, tid=0x%016X" %
-                        (name_ok, idc.GetStrucName(struc_id), member_name, offset, flags, member_size, sub_struc_id))
+                        (idc.GetStrucName(struc_id), member_name, offset, flags, member_size, sub_enum_id))
                 else:
                     sub_enum_size = idc.GetEnumWidth(sub_enum_id)
                     if sub_enum_size == 0:
@@ -542,8 +542,8 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
                     if ret == 0:
                         logger.debug(
                             "Error while setting member type (enum) : "
-                            "(struc=%s, member=%s, offset=0x%08X, mflags=%d, msize=%d, tid=0x%016X" %
-                            (ret, idc.GetStrucName(struc_id), member_name, offset, flags, member_size, sub_struc_id))
+                            "(ret=%d struc=%s, member=%s, offset=0x%08X, mflags=%d, msize=%d, tid=0x%016X" %
+                            (ret, idc.GetStrucName(struc_id), member_name, offset, flags, member_size, sub_enum_id))
 
             except KeyError:
                 logger.error("Error while looking for sub enum in struc %s, offset 0x%08X (field name='%s')" %
