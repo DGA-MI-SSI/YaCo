@@ -309,7 +309,9 @@ namespace
         {DT_TYPE,   FF_3BYTE,       "3byte"},
         {DT_TYPE,   FF_CUSTOM,      "custom"},
         {DT_TYPE,   FF_YWRD,        "yword"},
+#ifdef FF_ZWRD
         {DT_TYPE,   FF_ZWRD,        "zword"},
+#endif
     };
 
     static const FlagName g_commonflags[] =
