@@ -61,21 +61,6 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             self.maxXrefAddress = idc.SegEnd(0)
         self.native = ya.MakeModelIncremental(self.hash_provider)
 
-    # ==================================================================#
-    # Export Entry point
-    # ==================================================================#
-
-    def accept(self, visitor):
-        self.native.clear_exports()
-        self.exported_stackframe_addresses.clear()
-        YaToolIDATools.update_bookmarks()
-
-        visitor.visit_start()
-
-        self.accept_binary(visitor)
-
-        visitor.visit_end()
-
     def accept_binary(self, visitor):
 
         binary_object_id = self.hash_provider.get_binary_id()
@@ -119,17 +104,6 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         visitor.visit_end_object_version()
 
         visitor.visit_end_reference_object()
-
-    def accept_strucs(self, visitor):
-        idx = idc.GetFirstStrucIdx()
-        while idx != idc.BADADDR:
-            self.accept_struc(visitor, 0, idc.GetStrucId(idx))
-            idx = idc.GetNextStrucIdx(idx)
-
-    def accept_enums(self, visitor):
-        # enum
-        for i in xrange(0, idc.GetEnumQty()):
-            self.accept_enum(visitor, idc.GetnEnum(i))
 
     def accept_enum(self, visitor, enum_id):
         self.native.accept_enum(visitor, enum_id)
@@ -1226,19 +1200,6 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         if size == 0:
             size = 1
         return size
-
-    def accept_segments(self, visitor, parent_id):
-        seg_ea_start = idc.FirstSeg()
-
-        visitor.visit_segments_start()
-
-        while seg_ea_start != idc.BADADDR:
-            seg_ea_end = idc.SegEnd(seg_ea_start)
-            self.accept_segment(visitor, parent_id, seg_ea_start, seg_ea_end, export_chunks=True,
-                                export_eas=True)  # TODO
-            seg_ea_start = idc.NextSeg(seg_ea_end - 1)
-
-        visitor.visit_segments_end()
 
     def accept_attribute(self, visitor, attr_name, attr_value):
         visitor.visit_attribute(attr_name, attr_value)

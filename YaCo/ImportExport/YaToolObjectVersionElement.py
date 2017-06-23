@@ -34,6 +34,3 @@ class YaToolObjectVersionElement:
         'reference_info',
     ]
 
-    @abc.abstractmethod
-    def accept(self, visitor):
-        pass
