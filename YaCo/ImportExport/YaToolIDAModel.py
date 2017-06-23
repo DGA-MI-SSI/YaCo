@@ -60,7 +60,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         if self.minXrefAddress == idc.BADADDR:
             self.minXrefAddress = idc.SegStart(0)
             self.maxXrefAddress = idc.SegEnd(0)
-        self.native = ya.MakeIdaModel(self.hash_provider)
+        self.native = ya.MakeModelIncremental(self.hash_provider)
 
     # ==================================================================#
     # Export Entry point

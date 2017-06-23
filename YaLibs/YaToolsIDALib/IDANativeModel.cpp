@@ -200,20 +200,16 @@ namespace
     }
 
     struct Model
-        : public INativeModel
+        : public IModelAccept
     {
         Model(YaToolsHashProvider* provider);
 
         // IModelAccept methods
         void accept(IModelVisitor& v) override;
 
-        // INativeModel methods
-        virtual YaToolObjectId accept_enum(IModelVisitor& v, enum_t enum_id) override;
-
         // private methods
         void accept_binary          (IModelVisitor& v);
         void accept_enums           (IModelVisitor& v);
-        void accept_enum_member     (IModelVisitor& v, const Parent& parent, const EnumMember& m);
         void accept_structs         (IModelVisitor& v);
         void accept_struct          (IModelVisitor& v, const Parent& parent, struc_t* s, func_t* func);
         void accept_struct_member   (IModelVisitor& v, const Parent& parent, struc_t* s, func_t* func, member_t* m);
@@ -228,6 +224,21 @@ namespace
         Bookmarks               bookmarks_;
         Xrefs                   xrefs_;
         RefInfos                refs_;
+    };
+
+    struct ModelIncremental
+        : public IModelAccept
+        , public IModelIncremental
+    {
+        ModelIncremental(YaToolsHashProvider* provider);
+
+        // IModelAccept methods
+        void accept(IModelVisitor& v) override;
+
+        // IModelIncremental methods
+        YaToolObjectId accept_enum(IModelVisitor& v, ea_t enum_id) override;
+
+        Model model_;
     };
 
     offset_t offset_from_ea(ea_t offset)
@@ -274,15 +285,15 @@ namespace
     }
 }
 
-std::shared_ptr<INativeModel> MakeIdaModel(YaToolsHashProvider* provider)
-{
-    return std::make_shared<Model>(provider);
-}
-
 Model::Model(YaToolsHashProvider* provider)
     : provider_(*provider)
     , qpool_(4)
 {
+}
+
+std::shared_ptr<IModelAccept> MakeModel(YaToolsHashProvider* provider)
+{
+    return std::make_shared<Model>(provider);
 }
 
 void Model::accept(IModelVisitor& v)
@@ -338,68 +349,71 @@ void Model::accept_binary(IModelVisitor& v)
     accept_segments(v, {id, base});
 }
 
+namespace
+{
+    void accept_enum_member(Model& m, IModelVisitor& v, const Parent& parent, const EnumMember& em)
+    {
+        start_object(v, OBJECT_TYPE_ENUM_MEMBER, em.id, parent.id, em.value);
+        const auto qbuf = m.qpool_.acquire();
+        get_enum_member_name(&*qbuf, em.const_id);
+        if(EMULATE_PYTHON_MODEL_BEHAVIOR)
+            v.visit_size(0);
+        v.visit_name(ya::to_string_ref(*qbuf), DEFAULT_NAME_FLAGS);
+        if(em.bmask != BADADDR)
+            v.visit_flags(static_cast<flags_t>(em.bmask));
+        visit_header_comments(v, *qbuf, [&](char* buf, size_t szbuf, bool repeated)
+        {
+            return get_enum_member_cmt(em.const_id, repeated, buf, szbuf);
+        });
+        finish_object(v, em.value);
+    }
+
+    YaToolObjectId accept_enum(Model& m, IModelVisitor& v, enum_t eid)
+    {
+        const auto enum_name = m.qpool_.acquire();
+        get_enum_name(&*enum_name, eid);
+        const auto id = m.provider_.get_struc_enum_object_id(eid, ya::to_string_ref(*enum_name), true);
+        const auto idx = get_enum_idx(eid);
+        start_object(v, OBJECT_TYPE_ENUM, id, 0, idx);
+        v.visit_size(get_enum_width(eid));
+        v.visit_name(ya::to_string_ref(*enum_name), DEFAULT_NAME_FLAGS);
+        const auto flags = get_enum_flag(eid);
+        const auto bitfield = is_bf(eid) ? ENUM_FLAGS_IS_BF : 0;
+        v.visit_flags(flags | bitfield);
+
+        const auto qbuf = m.qpool_.acquire();
+        visit_header_comments(v, *qbuf, [&](char* buf, size_t szbuf, bool repeated)
+        {
+            return get_enum_cmt(eid, repeated, buf, szbuf);
+        });
+
+        v.visit_start_xrefs();
+        std::vector<EnumMember> members;
+        const auto qval = m.qpool_.acquire();
+        ya::walk_enum_members(eid, [&](const_t const_id, uval_t value, uchar /*serial*/, bmask_t bmask)
+        {
+            get_enum_member_name(&*qbuf, const_id);
+            to_py_hex(*qval, value);
+            const auto member_id = m.provider_.get_enum_member_id(eid, ya::to_string_ref(*enum_name), const_id, ya::to_string_ref(*qbuf), ya::to_string_ref(*qval), bmask, true);
+            v.visit_start_xref(0, member_id, DEFAULT_OPERAND);
+            v.visit_end_xref();
+            members.push_back({member_id, const_id, value, bmask});
+        });
+        v.visit_end_xrefs();
+
+        finish_object(v, idx);
+
+        for(const auto& it : members)
+            accept_enum_member(m, v, {id, 0}, it);
+
+        return id;
+    }
+}
+
 void Model::accept_enums(IModelVisitor& v)
 {
     for(size_t i = 0, end = get_enum_qty(); i < end; ++i)
-        accept_enum(v, getn_enum(i));
-}
-
-YaToolObjectId Model::accept_enum(IModelVisitor& v, enum_t eid)
-{
-    const auto enum_name = qpool_.acquire();
-    get_enum_name(&*enum_name, eid);
-    const auto id = provider_.get_struc_enum_object_id(eid, ya::to_string_ref(*enum_name), true);
-    const auto idx = get_enum_idx(eid);
-    start_object(v, OBJECT_TYPE_ENUM, id, 0, idx);
-    v.visit_size(get_enum_width(eid));
-    v.visit_name(ya::to_string_ref(*enum_name), DEFAULT_NAME_FLAGS);
-    const auto flags = get_enum_flag(eid);
-    const auto bitfield = is_bf(eid) ? ENUM_FLAGS_IS_BF : 0;
-    v.visit_flags(flags | bitfield);
-
-    const auto qbuf = qpool_.acquire();
-    visit_header_comments(v, *qbuf, [&](char* buf, size_t szbuf, bool repeated)
-    {
-        return get_enum_cmt(eid, repeated, buf, szbuf);
-    });
-
-    v.visit_start_xrefs();
-    std::vector<EnumMember> members;
-    const auto qval = qpool_.acquire();
-    ya::walk_enum_members(eid, [&](const_t const_id, uval_t value, uchar /*serial*/, bmask_t bmask)
-    {
-        get_enum_member_name(&*qbuf, const_id);
-        to_py_hex(*qval, value);
-        const auto member_id = provider_.get_enum_member_id(eid, ya::to_string_ref(*enum_name), const_id, ya::to_string_ref(*qbuf), ya::to_string_ref(*qval), bmask, true);
-        v.visit_start_xref(0, member_id, DEFAULT_OPERAND);
-        v.visit_end_xref();
-        members.push_back({member_id, const_id, value, bmask});
-    });
-    v.visit_end_xrefs();
-
-    finish_object(v, idx);
-
-    for(const auto& m : members)
-        accept_enum_member(v, {id, 0}, m);
-
-    return id;
-}
-
-void Model::accept_enum_member(IModelVisitor& v, const Parent& parent, const EnumMember& m)
-{
-    start_object(v, OBJECT_TYPE_ENUM_MEMBER, m.id, parent.id, m.value);
-    const auto qbuf = qpool_.acquire();
-    get_enum_member_name(&*qbuf, m.const_id);
-    if(EMULATE_PYTHON_MODEL_BEHAVIOR)
-        v.visit_size(0);
-    v.visit_name(ya::to_string_ref(*qbuf), DEFAULT_NAME_FLAGS);
-    if(m.bmask != BADADDR)
-        v.visit_flags(static_cast<flags_t>(m.bmask));
-    visit_header_comments(v, *qbuf, [&](char* buf, size_t szbuf, bool repeated)
-    {
-        return get_enum_member_cmt(m.const_id, repeated, buf, szbuf);
-    });
-    finish_object(v, m.value);
+        accept_enum(*this, v, getn_enum(i));
 }
 
 void Model::accept_structs(IModelVisitor& v)
@@ -1843,4 +1857,24 @@ void Model::accept_segment_chunk(IModelVisitor& v, const Parent& parent, ea_t ea
 
     for(const auto item_ea : eas)
         accept_ea(*this, v, {id, ea}, item_ea);
+}
+
+ModelIncremental::ModelIncremental(YaToolsHashProvider* provider)
+    : model_(provider)
+{
+}
+
+std::shared_ptr<IModelIncremental> MakeModelIncremental(YaToolsHashProvider* provider)
+{
+    return std::make_shared<ModelIncremental>(provider);
+}
+
+void ModelIncremental::accept(IModelVisitor& v)
+{
+    model_.accept(v);
+}
+
+YaToolObjectId ModelIncremental::accept_enum(IModelVisitor& v, ea_t enum_id)
+{
+    return ::accept_enum(model_, v, enum_id);
 }

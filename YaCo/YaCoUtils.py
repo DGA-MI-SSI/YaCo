@@ -22,6 +22,6 @@ else:
 
 def export_ida(provider, filename):
     exporter = ya.MakeFlatBufferExporter()
-    ya.MakeIdaModel(provider).accept(exporter)
+    ya.MakeModel(provider).accept(exporter)
     with open(filename, "wb") as fh:
         fh.write(exporter.GetBuffer())

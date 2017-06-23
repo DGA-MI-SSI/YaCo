@@ -27,12 +27,13 @@ const int MAX_BLOB_TAG_LEN = 0x1000;
 
 std::string get_type(ea_t ea);
 
-struct INativeModel
-    : public IModelAccept
+std::shared_ptr<IModelAccept> MakeModel(YaToolsHashProvider* provider);
+
+struct IModelIncremental
 {
-    virtual ~INativeModel() {}
+    virtual ~IModelIncremental() {}
 
     virtual YaToolObjectId accept_enum(IModelVisitor& v, ea_t enum_id) = 0;
 };
 
-std::shared_ptr<INativeModel> MakeIdaModel(YaToolsHashProvider* provider);
+std::shared_ptr<IModelIncremental> MakeModelIncremental(YaToolsHashProvider* provider);

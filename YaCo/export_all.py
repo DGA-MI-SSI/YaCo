@@ -82,7 +82,7 @@ hash_provider.populate_struc_enum_ids()
 # ignore multithreaded python model as it is slower
 # than pure native model even with 4 cores
 exporter = ya.MakeFlatBufferExporter()
-ya.MakeIdaModel(hash_provider).accept(exporter)
+ya.MakeModel(hash_provider).accept(exporter)
 os.makedirs("database")
 with open("database/database.yadb", "wb") as fh:
     fh.write(exporter.GetBuffer())
