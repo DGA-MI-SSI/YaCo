@@ -91,42 +91,47 @@ namespace
     const qstring comment_prefix = "/*%";
     const qstring comment_suffix = "%*/";
 
-    void simple_tif_to_string(qstring& dst, YaToolsHashProvider* provider, ya::Deps* deps, const tinfo_t& tif, const tinfo_t& subtif, const const_string_ref& name)
+    void simple_tif_to_string(qstring& dst, YaToolsHashProvider* provider, ya::Deps* deps, const tinfo_t& tif, const const_string_ref& name)
     {
         to_string(dst, tif, name.value, nullptr);
         if(!provider)
             return;
 
-        qstring type;
-        const auto ok = subtif.get_type_name(&type);
+        auto subtif = tif;
+        while(subtif.remove_ptr_or_array())
+            continue;
+
+        qstring subtype;
+        const auto ok = subtif.get_type_name(&subtype);
         if(!ok)
             return;
 
-        const auto subtid = static_cast<tid_t>(netnode(type.c_str()));
+        const auto subtid = static_cast<tid_t>(netnode(subtype.c_str()));
         if(subtid == BADADDR)
             return;
 
-        const auto subid = provider->get_struc_enum_object_id(subtid, ya::to_string_ref(type), true);
+        const auto subid = provider->get_struc_enum_object_id(subtid, ya::to_string_ref(subtype), true);
         if(deps)
-            deps->push_back({subid, tif, subtid});
+            deps->push_back({subid, subtif, subtid});
 
-        type.insert(0, comment_prefix);
-        type += '#';
-        append_uint64(type, subid);
-        type += comment_suffix;
-        auto comment_size = type.length();
+        subtype.insert(0, comment_prefix);
+        subtype += '#';
+        append_uint64(subtype, subid);
+        subtype += comment_suffix;
+
+        auto comment_size = subtype.length();
         const auto has_name = name.value && *name.value;
         if(has_name)
         {
-            type += ' ';
+            subtype += ' ';
             comment_size += 1;
-            type.append(name.value, name.size);
+            subtype.append(name.value, name.size);
         }
 
-        to_string(dst, tif, type.c_str(), nullptr);
+        to_string(dst, tif, subtype.c_str(), nullptr);
 
         // move back pointers after dependency comment
-        const auto pos = dst.find(type);
+        const auto pos = dst.find(subtype);
         if(pos == qstring::npos)
             return;
 
@@ -167,7 +172,7 @@ namespace
     void tif_to_string(qstring& dst, YaToolsHashProvider* provider, ya::Deps* deps, const tinfo_t& tif, const const_string_ref& name)
     {
         if(!tif.is_func())
-            return simple_tif_to_string(dst, provider, deps, tif, tif, name);
+            return simple_tif_to_string(dst, provider, deps, tif, name);
 
         func_type_data_t fi;
         auto ok = tif.get_func_details(&fi);
