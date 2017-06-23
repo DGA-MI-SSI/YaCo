@@ -35,7 +35,6 @@ else:
     import YaToolsPy32 as ya
 
 # from idaapi import ASKBTN_NO, ASKBTN_YES
-from YaCoExporterMaster import master_handler
 from ImportExport import YaToolIDATools
 from ImportExport.YaToolIDAExporter import YaToolIDAExporter
 from ImportExport.YaToolIDAHooks import Hooks, YaCoUI_Hooks
@@ -177,11 +176,6 @@ class YaCo:
         else:
             self.repo_manager.repo_auto_sync = True
             idc.Message('Auto rebase/push enabled')
-
-    def export_all_cache(self, num_cpu=None):
-        logger.info("Exporting database using all cores")
-        master_handler(self.yatools, self.hash_provider, db_dir="database", export_dir="export", num_cpu=num_cpu)
-        idc.Message("Export complete.")
 
     def export_single_cache(self, *args):
         logger.info("Exporting database using one core")

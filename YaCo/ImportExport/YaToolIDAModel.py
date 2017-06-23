@@ -46,12 +46,10 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         self.hash_provider = hash_provider
         self.EquipementDescription = EquipementDescription
         self.OSDescription = OSDescription
-        self.CurrentObjectId = 0
         self.minXrefAddress = idc.NextSeg(0)
         self.maxXrefAddress = YaToolIDATools.LastSegEnd()
         self.minExportAddress = self.minXrefAddress
         self.maxExportAddress = self.maxXrefAddress
-        self.function_basic_block_cache = {}
         self.exported_object_ids = {}
         self.exported_stackframe_addresses = {}
         self.exported_function_ids = {}
@@ -59,36 +57,10 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         self.exported_segment_chunk_ids = {}
         self.prototype_parser = YaToolPrototypeParser.YaToolPrototypeParser()
         self.arch_plugin = self.yatools.get_arch_plugin().get_ida_model_plugin()
-        self.delegate_exporter = None
-        self.skip_accept_struc = False
-        self.skip_accept_enum = False
-        self.skip_accept_segment = False
-        """
-        If this flag is set to True, we assume that parents are exporting there children
-        If it is set to False, children export there parents (i.e. basic_block asks for the
-        parent function to be exported, which asks to the parent segment to be exported, and so on
-        """
-        self.descending_mode = False
-
         if self.minXrefAddress == idc.BADADDR:
             self.minXrefAddress = idc.SegStart(0)
             self.maxXrefAddress = idc.SegEnd(0)
         self.native = ya.MakeIdaModel(self.hash_provider)
-
-    def set_ea_exporter(self, ea_exporter):
-        self.delegate_exporter = ea_exporter
-
-    def set_slave_skip(self, is_slave=True):
-        self.skip_accept_struc = is_slave
-        self.skip_accept_enum = is_slave
-        self.skip_accept_segment = is_slave
-        self.descending_mode = is_slave
-
-    def set_descending_mode(self, mode):
-        self.descending_mode = mode
-
-    def set_skip_accept_segment(self, skip):
-        self.skip_accept_segment = skip
 
     # ==================================================================#
     # Export Entry point
@@ -149,11 +121,6 @@ class YaToolIDAModel(YaToolObjectVersionElement):
 
         visitor.visit_end_reference_object()
 
-        if self.descending_mode:
-            self.accept_strucs(visitor)
-            self.accept_enums(visitor)
-            self.accept_segments(visitor, binary_object_id)
-
     def accept_strucs(self, visitor):
         idx = idc.GetFirstStrucIdx()
         while idx != idc.BADADDR:
@@ -166,8 +133,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             self.accept_enum(visitor, idc.GetnEnum(i))
 
     def accept_enum(self, visitor, enum_id):
-
-        if self.skip_accept_enum or enum_id in self.exported_object_ids:
+        if enum_id in self.exported_object_ids:
             return
         object_id = self.native.accept_enum(visitor, enum_id)
         self.exported_object_ids[enum_id] = object_id
@@ -180,10 +146,6 @@ class YaToolIDAModel(YaToolObjectVersionElement):
 
     def accept_struc(self, visitor, parent_id, struc_id, struc_type=ya.OBJECT_TYPE_STRUCT,
                      struc_member_type=ya.OBJECT_TYPE_STRUCT_MEMBER, stackframe_func_addr=None):
-
-        if self.skip_accept_struc and struc_type == ya.OBJECT_TYPE_STRUCT:
-            return
-
         if struc_type == ya.OBJECT_TYPE_STRUCT:
             if struc_id in self.exported_object_ids:
                 return
@@ -492,8 +454,6 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             self.exported_function_ids.clear()
             self.exported_stackframe_addresses.clear()
             YaToolIDATools.clear_function_basic_block_cache()
-            if self.skip_accept_struc:
-                self.exported_object_ids.clear()
             self.minExportAddress = ea
             # handle data/code/function at current_ea
             self.accept_ea(visitor, parent_id, ea, walk_basic_blocks=True, export_segment=False)
@@ -518,10 +478,6 @@ class YaToolIDAModel(YaToolObjectVersionElement):
 
                 basic_blocks = YaToolIDATools.get_function_basic_blocks(ea, func)
                 func_object_id = self.hash_provider.get_hash_for_ea(eaFunc)
-
-                if self.descending_mode:
-                    self.accept_function(visitor, parent_id, eaFunc, func, basic_blocks)
-
                 for basic_block in basic_blocks:
                     self.accept_basic_block(visitor, func_object_id, basic_block, eaFunc, func, func_object_id)
             else:
@@ -741,12 +697,11 @@ class YaToolIDAModel(YaToolObjectVersionElement):
                 # TODO : check if it is actually a struc!
                 self.accept_struc(visitor, funcId, dep_id, ya.OBJECT_TYPE_STRUCT, ya.OBJECT_TYPE_STRUCT_MEMBER)
 
-        if not self.descending_mode:
-            eas = [eaFunc]
-            for basic_block in basic_blocks:
-                eas.append(basic_block['startEA'])
+        eas = [eaFunc]
+        for basic_block in basic_blocks:
+            eas.append(basic_block['startEA'])
 
-            self.accept_segment(visitor, 0, ea_seg, chunk_eas=eas)
+        self.accept_segment(visitor, 0, ea_seg, chunk_eas=eas)
 
     def accept_basic_block(self, visitor, parent_id, basic_block, funcEA, func, parent_function_id):
 
@@ -839,8 +794,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         for enum_id in xrefed_enum_ids:
             self.accept_enum(visitor, enum_id)
 
-        if not self.descending_mode:
-            self.accept_function(visitor, parent_function_id, funcEA, func)
+        self.accept_function(visitor, parent_function_id, funcEA, func)
     
     def accept_code_area(self, visitor, startEA, endEA, func=None):
         # get Xrefs
@@ -1281,17 +1235,9 @@ class YaToolIDAModel(YaToolObjectVersionElement):
 
         while seg_ea_start != idc.BADADDR:
             seg_ea_end = idc.SegEnd(seg_ea_start)
-
-            if self.delegate_exporter is not None:
-                self.delegate_exporter.accept_segment(parent_id, seg_ea_start, seg_ea_end)  # TODO
-            else:
-                self.accept_segment(visitor, parent_id, seg_ea_start, seg_ea_end, export_chunks=True,
-                                    export_eas=True)  # TODO
-
+            self.accept_segment(visitor, parent_id, seg_ea_start, seg_ea_end, export_chunks=True,
+                                export_eas=True)  # TODO
             seg_ea_start = idc.NextSeg(seg_ea_end - 1)
-
-        if self.delegate_exporter is not None:
-            self.delegate_exporter.join()
 
         visitor.visit_segments_end()
 
@@ -1304,10 +1250,6 @@ class YaToolIDAModel(YaToolObjectVersionElement):
 
     def accept_segment(self, visitor, parent_id, seg_ea_start, seg_ea_end=None, export_chunks=False, chunk_eas=None,
                        export_eas=None):
-
-        if self.skip_accept_segment:
-            pass
-
         if seg_ea_start in self.exported_segment_ids:
             return
 
@@ -1374,15 +1316,10 @@ class YaToolIDAModel(YaToolObjectVersionElement):
                 self.accept_segment_chunk(visitor, chunk_start, chunk_end, segment_object_id, seg_ea_start, seg_ea_end,
                                           export_eas)
 
-        if not self.descending_mode:
-            self.accept_binary(visitor)
+        self.accept_binary(visitor)
 
     def accept_segment_chunk(self, visitor, chunk_start, chunk_end, segment_oid=None, seg_start=None, seg_end=None,
                              export_eas=False):
-        if self.skip_accept_segment:
-            # @warning really ???
-            pass
-
         if chunk_start in self.exported_segment_chunk_ids:
             return
 
@@ -1441,8 +1378,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
 
         visitor.visit_end_reference_object()
 
-        if not self.descending_mode:
-            self.accept_segment(visitor, 0, seg_start, seg_end)
+        self.accept_segment(visitor, 0, seg_start, seg_end)
 
         if export_eas:
             self.accept_ea_list(visitor, segment_chunk_object_id, segment_items)
@@ -1452,21 +1388,6 @@ class YaToolIDAModel(YaToolObjectVersionElement):
 
     def clear_exported_struc_member_id(self, member_id):
         self.clear_exported_object_id(member_id)
-
-    def clear_exported_struc_members_id(self, struc_id):
-        is_union = idc.IsUnion(struc_id)
-
-        offset = idc.GetFirstMember(struc_id)
-
-        last_offset = idc.GetLastMember(struc_id)
-        while offset != idc.BADADDR and (is_union or offset <= last_offset):
-            name = idc.GetMemberName(struc_id, offset)
-            if name is not None:
-                member_id = idc.GetMemberId(struc_id, offset)
-                self.clear_exported_object_id(member_id)
-
-            # next member
-            offset = idc.GetStrucNextOff(struc_id, offset)
 
     def clear_exported_object_id(self, ea):
         try:
