@@ -1821,13 +1821,9 @@ namespace
     };
 
     struct ModelIncremental
-        : public IModelAccept
-        , public IModelIncremental
+        : public IModelIncremental
     {
         ModelIncremental(YaToolsHashProvider* provider);
-
-        // IModelAccept methods
-        void accept(IModelVisitor& v) override;
 
         // IModelIncremental methods
         void            clear_exports() override;
@@ -1864,11 +1860,6 @@ ModelIncremental::ModelIncremental(YaToolsHashProvider* provider)
 std::shared_ptr<IModelIncremental> MakeModelIncremental(YaToolsHashProvider* provider)
 {
     return std::make_shared<ModelIncremental>(provider);
-}
-
-void ModelIncremental::accept(IModelVisitor& v)
-{
-    ::accept(ctx_, v);
 }
 
 void ModelIncremental::clear_exports()
