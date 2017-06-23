@@ -105,9 +105,6 @@ class YaToolIDAModel(YaToolObjectVersionElement):
 
         visitor.visit_end_reference_object()
 
-    def accept_enum(self, visitor, enum_id):
-        self.native.accept_enum(visitor, enum_id)
-
     def is_exported(self, enum_id):
         return self.native.is_exported(enum_id) != ya.InvalidId
 
@@ -116,6 +113,9 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         visitor.visit_start_deleted_object(struc_type)
         visitor.visit_id(object_id)
         visitor.visit_end_deleted_object()
+
+    def accept_enum(self, visitor, enum_id):
+        self.native.accept_enum(visitor, enum_id)
 
     def accept_struc(self, visitor, parent_id, struc_id, struc_type=ya.OBJECT_TYPE_STRUCT,
                      struc_member_type=ya.OBJECT_TYPE_STRUCT_MEMBER, stackframe_func_addr=None):
@@ -387,7 +387,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             if idc.isStruct(flags):
                 self.accept_struc(visitor, member_object_id, member_sid)
             elif idc.isEnum0(flags):
-                self.accept_enum(visitor, member_sid)
+                self.native.accept_enum(visitor, member_sid)
 
         self.accept_struc(visitor, parent_id, struc_id, struc_type, struc_member_type,
                           stackframe_func_addr=stackframe_func_addr)
@@ -538,7 +538,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             self.accept_struc(visitor, basic_block_id, struc_id)
 
         for enum_id in xrefed_enum_ids:
-            self.accept_enum(visitor, enum_id)
+            self.native.accept_enum(visitor, enum_id)
 
 
     def accept_function(self, visitor, parent_id, eaFunc, func, basic_blocks=None):
@@ -765,7 +765,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             self.accept_struc(visitor, basic_block_id, struc_id)
 
         for enum_id in xrefed_enum_ids:
-            self.accept_enum(visitor, enum_id)
+            self.native.accept_enum(visitor, enum_id)
 
         self.accept_function(visitor, parent_function_id, funcEA, func)
     
