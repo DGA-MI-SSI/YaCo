@@ -27,7 +27,6 @@ import idaapi
 import logging
 import pstats
 import traceback
-import YaCoUtils
 
 if idc.__EA64__:
     import YaToolsPy64 as ya
@@ -181,7 +180,10 @@ class YaCo:
         logger.info("Exporting database using one core")
         if not os.path.isdir("database"):
             os.mkdir("database")
-        YaCoUtils.export_ida(self.hash_provider, "database/database.yadb")
+        exporter = ya.MakeFlatBufferExporter()
+        ya.MakeModel(provider).accept(exporter)
+        with open("database/database.yadb", "wb") as fh:
+            fh.write(exporter.GetBuffer())
         idc.Message("Export complete.")
 
     def create_reset(self, *args):
