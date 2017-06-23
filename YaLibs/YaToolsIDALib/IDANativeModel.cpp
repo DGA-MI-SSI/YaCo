@@ -1826,7 +1826,6 @@ namespace
         ModelIncremental(YaToolsHashProvider* provider);
 
         // IModelIncremental methods
-        void            clear_exports() override;
         void            export_id(ea_t item_id, YaToolObjectId id) override;
         void            unexport_id(ea_t item_id) override;
         YaToolObjectId  is_exported(ea_t item_id) const override;
@@ -1860,11 +1859,6 @@ ModelIncremental::ModelIncremental(YaToolsHashProvider* provider)
 std::shared_ptr<IModelIncremental> MakeModelIncremental(YaToolsHashProvider* provider)
 {
     return std::make_shared<ModelIncremental>(provider);
-}
-
-void ModelIncremental::clear_exports()
-{
-    exports.clear();
 }
 
 void ModelIncremental::export_id(ea_t item_id, YaToolObjectId id)
