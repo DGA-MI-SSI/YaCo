@@ -100,6 +100,8 @@ class Fixture(unittest.TestCase):
                     # clean-up artifacts after prototype id removal
                     prototype = prototype.replace(" ,", ",")
                     prototype = prototype.replace(" )", ")")
+                    prototype = prototype.replace("  ", " ")
+                    prototype = prototype.replace(" []", "[]")
                     values.append((getkey(it), prefix, it.Address(), name, prototype))
                 values.sort(cmp=lambda x, y: cmp(x[0], y[0]))
                 for (key, prefix, ea, name, prototype) in values:

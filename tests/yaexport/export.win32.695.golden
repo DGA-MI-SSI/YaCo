@@ -5649,7 +5649,7 @@ fun_670fe530
 fun_670fe540
 fun_670fe5a0
 fun_670fe6f0  int __cdecl sub(int, QT::QString *)
-fun_670feac0  int __stdcall sub(LARGE_INTEGER  liDistanceToMove)
+fun_670feac0  int __stdcall sub(LARGE_INTEGER liDistanceToMove)
 fun_670febb0  int __stdcall sub(void *, void *, int)
 fun_670fed50  int __stdcall sub(void *, void *, int)
 fun_670fee80  bool __thiscall sub(QT::QFSFileEngine *this, const struct QT::QString *, bool)
@@ -78599,7 +78599,7 @@ dat_671b10c8 CreateProcessW BOOL __stdcall sub(LPCWSTR lpApplicationName, LPWSTR
 dat_671b10cc FreeEnvironmentStringsW BOOL __stdcall sub(LPWSTR)
 dat_671b10d0 GetEnvironmentStringsW LPWSTR __stdcall sub()
 dat_671b10d4 GetFileType DWORD __stdcall sub(HANDLE hFile)
-dat_671b10d8 SetFilePointerEx BOOL __stdcall sub(HANDLE hFile, LARGE_INTEGER  liDistanceToMove, PLARGE_INTEGER lpNewFilePointer, DWORD dwMoveMethod)
+dat_671b10d8 SetFilePointerEx BOOL __stdcall sub(HANDLE hFile, LARGE_INTEGER liDistanceToMove, PLARGE_INTEGER lpNewFilePointer, DWORD dwMoveMethod)
 dat_671b10dc SetEndOfFile BOOL __stdcall sub(HANDLE hFile)
 dat_671b10e0 GetLogicalDrives DWORD __stdcall sub()
 dat_671b10e4 MapViewOfFile LPVOID __stdcall sub(HANDLE hFileMappingObject, DWORD dwDesiredAccess, DWORD dwFileOffsetHigh, DWORD dwFileOffsetLow, DWORD dwNumberOfBytesToMap)
