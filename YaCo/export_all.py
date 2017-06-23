@@ -37,9 +37,6 @@ else:
     import YaToolsPy32 as ya
 
 from ImportExport.YaTools import YaTools
-import YaCoExporterMaster
-import YaCoExporterSlave
-
 
 class YaLogHandler(logging.Handler):
     def __init__(self):
@@ -79,20 +76,14 @@ logger.addHandler(handler)
 
 idc.Wait()
 
-yatools = YaTools()
 hash_provider = ya.YaToolsHashProvider()
 hash_provider.populate_struc_enum_ids()
 
-if args.slave:
-    idx = int(name[name.rfind("_") + 1:])
-    input_eas = name + ".txt"
-    YaCoExporterSlave.slave_handler(idx, input_eas, yatools, hash_provider)
-else:
-    # ignore multithreaded python model as it is slower
-    # than pure native model even with 4 cores
-    exporter = ya.MakeFlatBufferExporter()
-    ya.MakeIdaModel(hash_provider).accept(exporter)
-    os.makedirs("database")
-    with open("database/database.yadb", "wb") as fh:
-        fh.write(exporter.GetBuffer())
+# ignore multithreaded python model as it is slower
+# than pure native model even with 4 cores
+exporter = ya.MakeFlatBufferExporter()
+ya.MakeIdaModel(hash_provider).accept(exporter)
+os.makedirs("database")
+with open("database/database.yadb", "wb") as fh:
+    fh.write(exporter.GetBuffer())
 idc.Exit(0)
