@@ -226,21 +226,6 @@ namespace
         RefInfos                refs_;
     };
 
-    struct ModelIncremental
-        : public IModelAccept
-        , public IModelIncremental
-    {
-        ModelIncremental(YaToolsHashProvider* provider);
-
-        // IModelAccept methods
-        void accept(IModelVisitor& v) override;
-
-        // IModelIncremental methods
-        YaToolObjectId accept_enum(IModelVisitor& v, ea_t enum_id) override;
-
-        Model model_;
-    };
-
     offset_t offset_from_ea(ea_t offset)
     {
         // FIXME sign-extend to 64-bits because offset_t is unsigned...
@@ -1859,6 +1844,29 @@ void Model::accept_segment_chunk(IModelVisitor& v, const Parent& parent, ea_t ea
         accept_ea(*this, v, {id, ea}, item_ea);
 }
 
+namespace
+{
+    struct ModelIncremental
+        : public IModelAccept
+        , public IModelIncremental
+    {
+        ModelIncremental(YaToolsHashProvider* provider);
+
+        // IModelAccept methods
+        void accept(IModelVisitor& v) override;
+
+        // IModelIncremental methods
+        void            clear_exports() override;
+        void            export_id(ea_t item_id, YaToolObjectId id) override;
+        void            unexport_id(ea_t item_id) override;
+        YaToolObjectId  is_exported(ea_t item_id) const override;
+        void            accept_enum(IModelVisitor& v, ea_t enum_id) override;
+
+        Model model_;
+        std::unordered_map<ea_t, YaToolObjectId> exports;
+    };
+}
+
 ModelIncremental::ModelIncremental(YaToolsHashProvider* provider)
     : model_(provider)
 {
@@ -1874,7 +1882,31 @@ void ModelIncremental::accept(IModelVisitor& v)
     model_.accept(v);
 }
 
-YaToolObjectId ModelIncremental::accept_enum(IModelVisitor& v, ea_t enum_id)
+void ModelIncremental::clear_exports()
 {
-    return ::accept_enum(model_, v, enum_id);
+    exports.clear();
+}
+
+void ModelIncremental::export_id(ea_t item_id, YaToolObjectId id)
+{
+    exports.emplace(item_id, id);
+}
+
+void ModelIncremental::unexport_id(ea_t item_id)
+{
+    exports.erase(item_id);
+}
+
+YaToolObjectId ModelIncremental::is_exported(ea_t item_id) const
+{
+    const auto it = exports.find(item_id);
+    return it == exports.end() ? InvalidId : it->second;
+}
+
+void ModelIncremental::accept_enum(IModelVisitor& v, ea_t enum_id)
+{
+    if(is_exported(enum_id) != InvalidId)
+        return;
+    const auto id = ::accept_enum(model_, v, enum_id);
+    export_id(enum_id, id);
 }

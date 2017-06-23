@@ -33,7 +33,14 @@ struct IModelIncremental
 {
     virtual ~IModelIncremental() {}
 
-    virtual YaToolObjectId accept_enum(IModelVisitor& v, ea_t enum_id) = 0;
+    // export methods
+    virtual void            clear_exports() = 0;
+    virtual void            export_id(ea_t item_id, YaToolObjectId id) = 0;
+    virtual void            unexport_id(ea_t item_id) = 0;
+    virtual YaToolObjectId  is_exported(ea_t item_id) const = 0;
+
+    // accept methods
+    virtual void accept_enum(IModelVisitor& v, ea_t enum_id) = 0;
 };
 
 std::shared_ptr<IModelIncremental> MakeModelIncremental(YaToolsHashProvider* provider);
