@@ -50,7 +50,6 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         self.maxXrefAddress = YaToolIDATools.LastSegEnd()
         self.minExportAddress = self.minXrefAddress
         self.maxExportAddress = self.maxXrefAddress
-        self.exported_object_ids = {}
         self.exported_stackframe_addresses = {}
         self.exported_function_ids = {}
         self.exported_segment_ids = {}
@@ -67,7 +66,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
     # ==================================================================#
 
     def accept(self, visitor):
-        self.exported_object_ids.clear()
+        self.native.clear_exports()
         self.exported_stackframe_addresses.clear()
         YaToolIDATools.update_bookmarks()
 
@@ -133,10 +132,10 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             self.accept_enum(visitor, idc.GetnEnum(i))
 
     def accept_enum(self, visitor, enum_id):
-        if enum_id in self.exported_object_ids:
-            return
-        object_id = self.native.accept_enum(visitor, enum_id)
-        self.exported_object_ids[enum_id] = object_id
+        self.native.accept_enum(visitor, enum_id)
+
+    def is_exported(self, enum_id):
+        return self.native.is_exported(enum_id) != ya.InvalidId
 
     def accept_deleted_struc(self, visitor, struc_id, struc_type=ya.OBJECT_TYPE_STRUCT):
         object_id = self.hash_provider.get_struc_enum_object_id(struc_id, "", True)
@@ -147,7 +146,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
     def accept_struc(self, visitor, parent_id, struc_id, struc_type=ya.OBJECT_TYPE_STRUCT,
                      struc_member_type=ya.OBJECT_TYPE_STRUCT_MEMBER, stackframe_func_addr=None):
         if struc_type == ya.OBJECT_TYPE_STRUCT:
-            if struc_id in self.exported_object_ids:
+            if self.is_exported(struc_id):
                 return
             elif DEBUG_IDA_MODEL_EXPORT:
                 logger.debug(
@@ -174,7 +173,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             object_id = self.hash_provider.get_struc_enum_object_id(struc_id, idc.GetStrucName(struc_id), True)
 
         if struc_type == ya.OBJECT_TYPE_STRUCT:
-            self.exported_object_ids[struc_id] = object_id
+            self.native.export_id(struc_id, object_id)
         else:
             self.exported_stackframe_addresses[stackframe_func_addr] = object_id
 
@@ -297,7 +296,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             return
         mid = ida_member.id
 
-        if mid in self.exported_object_ids:
+        if self.is_exported(mid):
             return
 
         if struc_type == ya.OBJECT_TYPE_STACKFRAME and idaapi.is_special_member(mid):
@@ -308,7 +307,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         else:
             member_object_id = self.hash_provider.get_struc_member_id(struc_id, offset, struc_name)
 
-        self.exported_object_ids[mid] = member_object_id
+        self.native.export_id(mid, member_object_id)
 
         flags = ida_member.flag
         member_size = idaapi.get_member_size(ida_member)
@@ -511,7 +510,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
 
     def accept_code(self, visitor, parent_id, eaCode):
         eaCode = _yatools_ida.get_code_chunk_start_addr(eaCode, idc.SegStart(eaCode))
-        if (eaCode in self.exported_object_ids):
+        if self.is_exported(eaCode):
             return
         eaCodeEnd = _yatools_ida.get_code_chunk_end_addr(eaCode, idc.SegEnd(eaCode))
         
@@ -523,7 +522,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         code_id = self.hash_provider.get_hash_for_ea(eaCode)
         # object version id
         visitor.visit_id(code_id)
-        self.exported_object_ids[eaCode] = code_id
+        self.native.export_id(eaCode, code_id)
 
         visitor.visit_start_object_version()
 
@@ -708,14 +707,14 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         startEA = basic_block['startEA']
         endEA = basic_block['endEA']
 
-        if (startEA == endEA or startEA in self.exported_object_ids):
+        if startEA == endEA or self.is_exported(startEA):
             return
 
         if DEBUG_IDA_MODEL_EXPORT:
             logger.debug("accept_basic_block : %s", self.yatools.address_to_hex_string(startEA))
 
         basic_block_id = self.hash_provider.get_function_basic_block_hash(startEA, funcEA)
-        self.exported_object_ids[startEA] = basic_block_id
+        self.native.export_id(startEA, basic_block_id)
 
         block_type = basic_block['block_type']
 
@@ -1121,13 +1120,13 @@ class YaToolIDAModel(YaToolObjectVersionElement):
                     return size
         """
         object_id = self.hash_provider.get_hash_for_ea(ea)
-        if ea in self.exported_object_ids:
+        if self.is_exported(ea):
             if size == 0:
                 return 1
             else:
                 return size
 
-        self.exported_object_ids[ea] = object_id
+        self.native.export_id(ea, object_id)
 
         visitor.visit_start_reference_object(ya.OBJECT_TYPE_DATA)
 
@@ -1384,16 +1383,10 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             self.accept_ea_list(visitor, segment_chunk_object_id, segment_items)
 
     def clear_exported_struc_enum_id(self, struc_id):
-        self.clear_exported_object_id(struc_id)
+        self.native.unexport_id(struc_id)
 
     def clear_exported_struc_member_id(self, member_id):
-        self.clear_exported_object_id(member_id)
-
-    def clear_exported_object_id(self, ea):
-        try:
-            del self.exported_object_ids[ea]
-        except KeyError:
-            pass
+        self.native.unexport_id(member_id)
 
     def clear_exported_function_id(self, ea):
         try:
@@ -1415,7 +1408,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         func = idaapi.get_func(ea)
         if idaapi.isFunc(fl) or func is not None:
             eaFunc = func.startEA
-            self.clear_exported_object_id(eaFunc)
+            self.native.unexport_id(eaFunc)
             self.clear_exported_function_id(eaFunc)
 
             basic_block = YaToolIDATools.get_basic_block_at_ea(ea, eaFunc, func)
@@ -1423,11 +1416,11 @@ class YaToolIDAModel(YaToolObjectVersionElement):
                 logger.error("Function has no basic blocks : %s (eaFunc=%s) " %
                              (self.yatools.address_to_hex_string(ea), self.yatools.address_to_hex_string(eaFunc)))
             else:
-                self.clear_exported_object_id(basic_block['startEA'])
+                self.native.unexport_id(basic_block['startEA'])
 
         # if ea is not in a function and it is code
         elif (func is None) and (idaapi.isCode(fl)):
-            self.clear_exported_object_id(ea)
+            self.native.unexport_id(ea)
         else:
             previous_item = idc.PrevHead(ea)
             if previous_item != idc.BADADDR:
@@ -1435,7 +1428,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
                 if previous_item_size > 0 and ea < previous_item + previous_item_size:
                     ea = previous_item
 
-            self.clear_exported_object_id(ea)
+            self.native.unexport_id(ea)
 
         segment_ea = idc.SegStart(ea)
         if segment_ea == ea:

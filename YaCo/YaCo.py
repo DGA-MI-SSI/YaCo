@@ -181,7 +181,7 @@ class YaCo:
         if not os.path.isdir("database"):
             os.mkdir("database")
         exporter = ya.MakeFlatBufferExporter()
-        ya.MakeModel(provider).accept(exporter)
+        ya.MakeModel(self.hash_provider).accept(exporter)
         with open("database/database.yadb", "wb") as fh:
             fh.write(exporter.GetBuffer())
         idc.Message("Export complete.")
