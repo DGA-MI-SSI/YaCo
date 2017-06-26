@@ -203,57 +203,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             self.accept_segment_chunk(visitor, chunk_start, chunk_end, seg_start=seg_ea_start, seg_end=seg_ea_end)
 
     def accept_code(self, visitor, parent_id, eaCode):
-        eaCode = _yatools_ida.get_code_chunk_start_addr(eaCode, idc.SegStart(eaCode))
-        eaCodeEnd = _yatools_ida.get_code_chunk_end_addr(eaCode, idc.SegEnd(eaCode))
-        code_id = self.hash_provider.get_hash_for_ea(eaCode)
-        if self.native.is_exported(code_id):
-            return
-
-        self.native.export_id(code_id)
-        visitor.visit_start_reference_object(ya.OBJECT_TYPE_CODE)
-        visitor.visit_id(code_id)
-
-        visitor.visit_start_object_version()
-
-        visitor.visit_parent_id(parent_id)
-        visitor.visit_address(eaCode)
-
-        visitor.visit_size(eaCodeEnd-eaCode)
-
-        # code label
-        name = idc.Name(eaCode)
-        if YaToolIDATools.is_userdefined_name(name, eaCode):
-            name_flags = YaToolIDATools.GetNameFlags(name, eaCode)
-            visitor.visit_name(name, name_flags)
-        
-        (references, xrefed_struc_ids, xrefed_enum_ids) = self.accept_code_area(visitor, eaCode, eaCodeEnd)
-
-        #
-        # MATCHING SYSTEMS
-        #
-        visitor.visit_start_matching_systems()
-        (chunk_start, chunk_end) = YaToolIDATools.get_segment_chunk_for_ea(idc.SegStart(eaCode), eaCode)
-        visitor.visit_start_matching_system(eaCode - chunk_start)
-        visitor.visit_matching_system_description("equipement", self.EquipementDescription)
-        visitor.visit_matching_system_description("os", self.OSDescription)
-        visitor.visit_end_matching_system()
-        visitor.visit_end_matching_systems()
-
-        visitor.visit_end_object_version()
-
-        visitor.visit_end_reference_object()
-        
-        # proceed reference values
-        for (reference_offset, references_t) in references.iteritems():
-            for (operand, reference_dict, reference_value) in references_t:
-                self.accept_reference_info(
-                    visitor, eaCode, (reference_offset, reference_value, reference_dict['flags']))
-
-        for struc_id in xrefed_struc_ids:
-            self.native.accept_struct(visitor, 0, struc_id, idc.BADADDR)
-
-        for enum_id in xrefed_enum_ids:
-            self.native.accept_enum(visitor, enum_id)
+        self.native.accept_code(visitor, parent_id, eaCode)
 
     def accept_function(self, visitor, parent_id, eaFunc, func, basic_blocks=None):
         self.native.accept_function(visitor, parent_id, eaFunc)
