@@ -271,16 +271,21 @@ endif()
 
 # yaco_tests
 function(make_yaco_test bitness idaq)
-    set(name yaco${bitness}_tests)
-    if("${ARCH}" STREQUAL "x86")
-        add_test(NAME ${name}
-            COMMAND ${PYTHON_EXECUTABLE} ${ya_dir}/tests/run_tests.py
-            ${deploy_dir} all ${CMAKE_CURRENT_BINARY_DIR} ${idaq}
-            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-        )
-    else()
+    set(suffix ${bitness}_tests)
+    if(NOT "${ARCH}" STREQUAL "x86")
         message("${name} are disabled on ${ARCH}")
+        return()
     endif()
+    add_test(NAME yaco${suffix}
+        COMMAND ${PYTHON_EXECUTABLE} ${ya_dir}/tests/run_tests.py
+        ${deploy_dir} ya ${CMAKE_CURRENT_BINARY_DIR} ${idaq}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    )
+    add_test(NAME svg${suffix}
+        COMMAND ${PYTHON_EXECUTABLE} ${ya_dir}/tests/run_tests.py
+        ${deploy_dir} svg ${CMAKE_CURRENT_BINARY_DIR} ${idaq}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    )
 endfunction()
 make_yaco_test(32 idaq)
 make_yaco_test(64 idaq64)
