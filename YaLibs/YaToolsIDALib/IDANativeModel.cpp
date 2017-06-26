@@ -442,7 +442,8 @@ namespace
 
         ya::Deps deps;
         const auto qbuf = ctx.qpool_.acquire();
-        if(!is_trivial_member_type(mtype))
+        // FIXME is_ascii vs visit_prototype confusion
+        if((!EMULATE_PYTHON_MODEL_BEHAVIOR || !is_ascii) && !is_trivial_member_type(mtype))
             ya::print_type(*qbuf, &ctx.provider_, &deps, mtype.tif, {nullptr, 0});
         if(!qbuf->empty())
             v.visit_prototype(ya::to_string_ref(*qbuf));
