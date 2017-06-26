@@ -16,6 +16,18 @@
 set(bin_dir     ${bin_dir}/YaTools/bin)
 set(bin_d_dir   ${bin_d_dir}/YaTools/bin)
 
+if("$ENV{IDASDK_DIR}" STREQUAL "")
+    message(FATAL_ERROR "missing IDASDK_DIR environment variable")
+endif()
+get_filename_component(idasdk_dir "$ENV{IDASDK_DIR}" REALPATH)
+message("-- Using IDASDK_DIR=${idasdk_dir}")
+
+if("$ENV{IDA_DIR}" STREQUAL "")
+    message(FATAL_ERROR "missing IDA_DIR environment variable")
+endif()
+get_filename_component(ida_dir "$ENV{IDA_DIR}" REALPATH)
+message("-- Using IDA_DIR=${ida_dir}")
+
 if(MSVC)
     # disable 'conditional expression is constant'
     set_cx_flags("" "/wd4127" "/wd4127")
@@ -184,7 +196,7 @@ function(add_yatools_py bits)
     get_files(yaida_files "${ya_dir}/YaLibs/YaToolsIDALib")
     make_target(yaida${bits} yatools ${yaida_files} OPTIONS static_runtime)
     setup_yatools(yaida${bits})
-    target_include_directories(yaida${bits} PUBLIC "${ida_dir}/include")
+    target_include_directories(yaida${bits} PUBLIC "${idasdk_dir}/include")
     target_compile_definitions(yaida${bits} PUBLIC __${os_}__ __IDP__)
     target_link_libraries(yaida${bits}
         PUBLIC
@@ -194,8 +206,8 @@ function(add_yatools_py bits)
     )
     if(WIN32)
         target_link_libraries(yaida${bits} PRIVATE
-            "${ida_dir}/lib/x86_win_vc_${bits}/ida.lib"
-            "${ida_dir}/lib/x86_win_vc_32/pro.lib"
+            "${idasdk_dir}/lib/x86_win_vc_${bits}/ida.lib"
+            "${idasdk_dir}/lib/x86_win_vc_32/pro.lib"
         )
     endif()
     if(bits EQUAL 64)
@@ -229,9 +241,6 @@ add_yatools_py(32)
 add_yatools_py(64)
 
 # testdata
-if("$ENV{IDA_DIR}" STREQUAL "")
-    message(FATAL_ERROR "missing IDA_DIR environment variable")
-endif()
 find_package(PythonInterp)
 function(make_testdata dst dir dll idaq)
     if("${ARCH}" STREQUAL "x86")
@@ -240,7 +249,7 @@ function(make_testdata dst dir dll idaq)
         list(APPEND dst_ ${output})
         add_test(NAME "make_${dir}_testdata"
             COMMAND ${PYTHON_EXECUTABLE} "${ya_dir}/tests/make_testdata.py"
-            "${root_dir}" "${deploy_dir}" "${dir}/${dll}" "$ENV{IDA_DIR}/${idaq}"
+            "${root_dir}" "${deploy_dir}" "${dir}/${dll}" "${ida_dir}/${idaq}"
             WORKING_DIRECTORY "${ya_dir}/tests"
         )
         set(${dst} ${dst_} PARENT_SCOPE)

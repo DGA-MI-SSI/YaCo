@@ -25,11 +25,6 @@ get_filename_component(ssh2_dir     "${ya_dir}/deps/libssh2-1.8.0"  REALPATH)
 get_filename_component(swig_dir     "${ya_dir}/deps/swig-3.0.7"     REALPATH)
 get_filename_component(xml_dir      "${ya_dir}/deps/libxml2-2.7.8"  REALPATH)
 
-if("$ENV{IDASDK_DIR}" STREQUAL "")
-    message(FATAL_ERROR "missing IDASDK_DIR environment variable")
-endif()
-get_filename_component(ida_dir "$ENV{IDASDK_DIR}" REALPATH)
-
 if(WIN32)
     # force add winsock2 & crypt32
     set(CMAKE_REQUIRED_LIBRARIES ws2_32 crypt32)
