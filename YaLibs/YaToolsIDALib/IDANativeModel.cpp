@@ -1466,7 +1466,7 @@ namespace
         accept_dependencies(ctx, v, deps);
     }
 
-    void accept_function(Ctx& ctx, IModelVisitor& v, const Parent& parent, func_t* func);
+    void accept_function(Ctx& ctx, IModelVisitor& v, const Parent& parent, func_t* func, ea_t block_ea);
 
     void accept_block(Ctx& ctx, IModelVisitor& v, const Parent& parent, const Parent& func_parent, func_t* func, const qflow_chart_t& flow, size_t idx, const qbasic_block_t& block)
     {
@@ -1502,12 +1502,12 @@ namespace
             return;
 
         accept_dependencies(ctx, v, deps);
-        accept_function(ctx, v, func_parent, func);
+        accept_function(ctx, v, func_parent, func, ea);
     }
 
     void accept_segment(Ctx& ctx, IModelVisitor& v, const Parent& parent, segment_t* seg);
 
-    void accept_function(Ctx& ctx, IModelVisitor& v, const Parent& parent, func_t* func)
+    void accept_function(Ctx& ctx, IModelVisitor& v, const Parent& parent, func_t* func, ea_t block_ea)
     {
         const auto ea = func->startEA;
         const auto id = ctx.provider_.get_hash_for_ea(ea);
@@ -1563,7 +1563,7 @@ namespace
             for(const auto& block : flow.blocks)
             {
                 ++i;
-                if(!block.contains(ea))
+                if(block.contains(block_ea))
                     continue;
                 accept_block(ctx, v, {id, ea}, parent, func, flow, i - 1, block);
                 break;
@@ -1584,7 +1584,7 @@ namespace
         const auto flags = getFlags(ea);
         const auto func = get_func(ea);
         if(func)
-            accept_function(ctx, v, parent, func);
+            accept_function(ctx, v, parent, func, ea);
         else if(isCode(flags))
             accept_code(ctx, v, parent, ea);
         else
@@ -1951,10 +1951,8 @@ namespace
         void accept_enum(IModelVisitor& v, ea_t enum_id) override;
         void accept_struct(IModelVisitor& v, YaToolObjectId parent_id, ea_t struc_id, ea_t func_ea) override;
         void accept_struct_member(IModelVisitor& v, YaToolObjectId parent_id, ea_t func_ea, ea_t member_id) override;
-        void accept_data(IModelVisitor& v, YaToolObjectId parent_id, ea_t ea) override;
         void accept_function(IModelVisitor& v, YaToolObjectId parent_id, ea_t ea) override;
-        void accept_code(IModelVisitor& v, YaToolObjectId parent_id, ea_t ea) override;
-        void accept_block(IModelVisitor& v, YaToolObjectId parent_id, ea_t ea) override;
+        void accept_ea(IModelVisitor& v, YaToolObjectId parent, ea_t ea) override;
 
         // Ctx methods
         bool is_incremental() const override { return true; }
@@ -2056,15 +2054,6 @@ namespace
     }
 }
 
-void ModelIncremental::accept_data(IModelVisitor& v, YaToolObjectId parent_id, ea_t ea)
-{
-    // FIXME find out why python call accept_data on invalid addresses
-    const auto parent_ea = get_segment_chunk_start("accept_data", ea);
-    if(parent_ea == BADADDR)
-        return;
-    ::accept_data(*this, v, {parent_id, parent_ea}, ea);
-}
-
 void ModelIncremental::accept_function(IModelVisitor& v, YaToolObjectId parent_id, ea_t ea)
 {
     const auto parent_ea = get_segment_chunk_start("accept_function", ea);
@@ -2076,44 +2065,39 @@ void ModelIncremental::accept_function(IModelVisitor& v, YaToolObjectId parent_i
         LOG(ERROR, "accept_function: 0x" EA_FMT " unable to get function\n", ea);
         return;
     }
-    ::accept_function(*this, v, {parent_id, parent_ea}, func);
+    ::accept_function(*this, v, {parent_id, parent_ea}, func, func->startEA);
 }
 
-void ModelIncremental::accept_code(IModelVisitor& v, YaToolObjectId parent_id, ea_t ea)
+void ModelIncremental::accept_ea(IModelVisitor& v, YaToolObjectId parent, ea_t ea)
 {
-    const auto parent_ea = get_segment_chunk_start("accept_code", ea);
-    if(parent_ea == BADADDR)
-        return;
-    ::accept_code(*this, v, {parent_id, parent_ea}, ea);
-}
-
-void ModelIncremental::accept_block(IModelVisitor& v, YaToolObjectId parent, ea_t ea)
-{
-    const auto func = get_func(ea);
-    if(!func)
+    const auto prev = prev_head(ea, BADADDR);
+    if(prev != BADADDR)
     {
-        LOG(ERROR, "accept_block: 0x" EA_FMT " unable to get function\n", ea);
-        return;
+        const auto prev_block = area_t{prev, get_item_end(prev)};
+        if(prev_block.contains(ea))
+            ea = prev;
     }
 
     const auto seg = getseg(ea);
     if(!seg)
     {
-        LOG(ERROR, "accept_block: 0x" EA_FMT " unable to get segment\n", ea);
+        LOG(ERROR, "accept_ea: 0x" EA_FMT " unable to get segment\n", ea);
         return;
     }
+
+    const auto chunk_start = get_segment_chunk_start("accept_ea", ea);
+    ::accept_ea(*this, v, {parent, chunk_start}, ea);
 
     const auto segname = ya::read_string_from(*qpool_.acquire(), [&](char* buf, size_t szbuf)
     {
         return get_true_segm_name(seg, buf, szbuf);
     });
     const auto segment_id = provider_.get_segment_id(segname, seg->startEA);
-    const auto chunk_start = get_segment_chunk_start("accept_block", ea);
     const auto chunk_end = std::min(chunk_start + SEGMENT_CHUNK_MAX_SIZE, getseg(ea)->endEA);
-    const auto chunk_id = provider_.get_segment_chunk_id(segment_id, chunk_start, chunk_end);
-    const auto flow = get_flow(func);
-    size_t idx = 0;
-    for(const auto& block : flow.blocks)
-        if(block.contains(ea))
-            ::accept_block(*this, v, {parent, func->startEA}, {chunk_id, chunk_start}, func, flow, idx++, block);
+    ::accept_segment_chunk(*this, v, {segment_id, seg->startEA}, chunk_start, chunk_end);
+
+    const auto binary_id = provider_.get_binary_id();
+    const auto binary_ea = get_imagebase();
+    ::accept_segment(*this, v, {binary_id, binary_ea}, seg);
+    ::accept_binary(*this, v);
 }

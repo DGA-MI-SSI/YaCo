@@ -151,68 +151,11 @@ class YaToolIDAModel(YaToolObjectVersionElement):
             # handle data/code/function at current_ea
             self.accept_ea(visitor, parent_id, ea, walk_basic_blocks=True, export_segment=False)
 
-    def accept_ea(self, visitor, parent_id, ea, walk_basic_blocks=False, export_segment=True):
-
-        previous_item = idc.PrevHead(ea)
-        if previous_item != idc.BADADDR:
-            previous_item_size = idc.ItemSize(previous_item)
-            if previous_item_size > 0 and ea < previous_item + previous_item_size:
-                ea = previous_item
-        if DEBUG_IDA_MODEL_EXPORT:
-            logger.debug("accept_ea : %s" % self.yatools.address_to_hex_string(ea))
-
-        # get flag
-        fl = idc.GetFlags(ea)
-        # if ea is func
-        func = idaapi.get_func(ea)
-        if idaapi.isFunc(fl) or (func is not None and idc.isCode(fl)):
-            eaFunc = func.startEA
-            if walk_basic_blocks:
-
-                basic_blocks = YaToolIDATools.get_function_basic_blocks(ea, func)
-                func_object_id = self.hash_provider.get_hash_for_ea(eaFunc)
-                for basic_block in basic_blocks:
-                    self.accept_basic_block(visitor, func_object_id, basic_block, eaFunc, func, func_object_id)
-            else:
-                basic_block = YaToolIDATools.get_basic_block_at_ea(ea, eaFunc, func)
-                if basic_block is None:
-                    logger.error("Function has no basic blocks : %s (eaFunc=%s) " %
-                                 (self.yatools.address_to_hex_string(ea), self.yatools.address_to_hex_string(eaFunc)))
-                else:
-                    func_object_id = self.hash_provider.get_hash_for_ea(eaFunc)
-                    self.accept_basic_block(visitor, func_object_id, basic_block, eaFunc, func, func_object_id)
-
-        # if ea is not in a function and it is code
-        elif (func is None) and (idaapi.isCode(fl)):
-            self.accept_code(visitor, parent_id, ea)
-        else:
-            self.accept_data(visitor, parent_id, ea)
-
-        if export_segment:
-            seg_ea_start = idc.SegStart(ea)
-            seg_ea_end = idc.SegEnd(ea)
-            if seg_ea_start == idc.BADADDR:
-                logger.error("Exported EA [%s] does not belong to a segment : error 1" %
-                             self.yatools.address_to_hex_string(ea))
-                return
-            if seg_ea_end == idc.BADADDR:
-                logger.error("Exported EA [%s] does not belong to a segment : error 2" %
-                             self.yatools.address_to_hex_string(ea))
-                return
-            (chunk_start, chunk_end) = YaToolIDATools.get_segment_chunk_for_ea(seg_ea_start, ea)
-            self.accept_segment_chunk(visitor, chunk_start, chunk_end, seg_start=seg_ea_start, seg_end=seg_ea_end)
-
-    def accept_code(self, visitor, parent_id, eaCode):
-        self.native.accept_code(visitor, parent_id, eaCode)
+    def accept_ea(self, visitor, parent_id, ea, export_segment=True):
+        self.native.accept_ea(visitor, parent_id, ea)
 
     def accept_function(self, visitor, parent_id, eaFunc, func, basic_blocks=None):
         self.native.accept_function(visitor, parent_id, eaFunc)
-
-    def accept_basic_block(self, visitor, parent_id, basic_block, funcEA, func, parent_function_id):
-        self.native.accept_block(visitor, parent_id, basic_block["startEA"])
-
-    def accept_data(self, visitor, parent_id, ea):
-        self.native.accept_data(visitor, parent_id, ea)
 
     def accept_attribute(self, visitor, attr_name, attr_value):
         visitor.visit_attribute(attr_name, attr_value)
