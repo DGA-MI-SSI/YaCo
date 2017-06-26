@@ -1433,6 +1433,9 @@ namespace
     void accept_code(Ctx& ctx, IModelVisitor& v, const Parent& parent, ea_t ea)
     {
         const auto id = ctx.provider_.get_hash_for_ea(ea);
+        if(ctx.skip_id(id))
+            return;
+
         start_object(v, OBJECT_TYPE_CODE, id, parent.id, ea);
         const auto seg = getseg(ea);
         const auto end = get_code_end(ea, seg ? seg->endEA : BADADDR);
@@ -1452,6 +1455,9 @@ namespace
     {
         const auto ea = block.startEA;
         const auto id = ctx.provider_.get_function_basic_block_hash(ea, parent.ea);
+        if(ctx.skip_id(id))
+            return;
+
         start_object(v, OBJECT_TYPE_BASIC_BLOCK, id, parent.id, ea);
         v.visit_size(block.size());
 
@@ -1475,11 +1481,14 @@ namespace
         accept_reference_infos(ctx, v, ea);
     }
 
+    void accept_segment(Ctx& ctx, IModelVisitor& v, const Parent& parent, segment_t* seg);
+
     void accept_function(Ctx& ctx, IModelVisitor& v, const Parent& parent, func_t* func)
     {
         const auto ea = func->startEA;
         const auto id = ctx.provider_.get_hash_for_ea(ea);
-        start_object(v, OBJECT_TYPE_FUNCTION, id, parent.id, ea);
+        if(ctx.skip_id(id))
+            return;
 
         asize_t size = 0;
         Crcs crcs = {};
@@ -1489,6 +1498,8 @@ namespace
             size += block.size();
             get_crcs(ctx, "accept_functions", &crcs, ea, block);
         }
+
+        start_object(v, OBJECT_TYPE_FUNCTION, id, parent.id, ea);
         v.visit_size(size);
 
         ya::Deps deps;
@@ -1520,6 +1531,15 @@ namespace
 
         if(frame)
             accept_struct(ctx, v, {id, ea}, frame, func);
+
+        if(ctx.is_incremental())
+        {
+            accept_dependencies(ctx, v, deps);
+            const auto parent_id = ctx.provider_.get_binary_id();
+            const auto parent_ea = get_imagebase();
+            accept_segment(ctx, v, {parent_id, parent_ea}, getseg(ea));
+            return;
+        }
 
         size_t i = 0;
         for(const auto& block : flow.blocks)
@@ -1636,6 +1656,9 @@ namespace
     void accept_segment_chunk(Ctx& ctx, IModelVisitor& v, const Parent& parent, ea_t ea, ea_t end)
     {
         const auto id = ctx.provider_.get_segment_chunk_id(parent.id, ea, end);
+        if(ctx.skip_id(id))
+            return;
+
         start_object(v, OBJECT_TYPE_SEGMENT_CHUNK, id, parent.id, ea);
         v.visit_size(end - ea);
 
@@ -1652,6 +1675,9 @@ namespace
 
         accept_blobs(ctx, v, ea, end);
         finish_object(v, ea - parent.ea);
+
+        if(ctx.is_incremental())
+            return;
 
         for(const auto item_ea : eas)
             accept_ea(ctx, v, {id, ea}, item_ea);
@@ -1767,8 +1793,10 @@ namespace
             return get_true_segm_name(seg, buf, szbuf);
         });
         const auto id = ctx.provider_.get_segment_id(segname, seg->startEA);
-        start_object(v, OBJECT_TYPE_SEGMENT, id, parent.id, seg->startEA);
+        if(ctx.skip_id(id))
+            return;
 
+        start_object(v, OBJECT_TYPE_SEGMENT, id, parent.id, seg->startEA);
         v.visit_size(seg->endEA - seg->startEA);
         v.visit_name(segname, DEFAULT_NAME_FLAGS);
 
@@ -1785,6 +1813,9 @@ namespace
         accept_segment_attributes(v, seg);
         finish_object(v, seg->startEA - parent.ea);
 
+        if(ctx.is_incremental())
+            return;
+
         accept_segment_chunks(ctx, v, {id, seg->startEA}, seg);
     }
 
@@ -1800,6 +1831,9 @@ namespace
     {
         const auto qbuf = ctx.qpool_.acquire();
         const auto id = ctx.provider_.get_binary_id();
+        if(ctx.skip_id(id))
+            return;
+
         const auto base = get_imagebase();
         start_object(v, OBJECT_TYPE_BINARY, id, 0, base);
         const auto first = get_first_seg();
@@ -1827,6 +1861,9 @@ namespace
         v.visit_end_xrefs();
 
         finish_object(v, base);
+
+        if(ctx.is_incremental())
+            return;
 
         accept_enums(ctx, v);
         accept_structs(ctx, v);
@@ -1882,6 +1919,7 @@ namespace
         void accept_struct(IModelVisitor& v, YaToolObjectId parent_id, ea_t struc_id, ea_t func_ea) override;
         void accept_struct_member(IModelVisitor& v, YaToolObjectId parent_id, ea_t func_ea, ea_t member_id) override;
         void accept_data(IModelVisitor& v, YaToolObjectId parent_id, ea_t ea) override;
+        void accept_function(IModelVisitor& v, YaToolObjectId parent_id, ea_t ea) override;
 
         // Ctx methods
         bool is_incremental() const override { return true; }
@@ -1969,15 +2007,39 @@ void ModelIncremental::accept_struct_member(IModelVisitor& v, YaToolObjectId par
     ::accept_struct_member(*this, v, {parent_id, member->soff}, struc, get_func(func_ea), member);
 }
 
+namespace
+{
+    ea_t get_segment_chunk_start(const char* where, ea_t ea)
+    {
+        const auto segment = getseg(ea);
+        if(!segment)
+        {
+            LOG(ERROR, "%s: 0x" EA_FMT "unable to get segment\n", where, ea);
+            return BADADDR;
+        }
+        return ea - ((ea - segment->startEA) % SEGMENT_CHUNK_MAX_SIZE);
+    }
+}
+
 void ModelIncremental::accept_data(IModelVisitor& v, YaToolObjectId parent_id, ea_t ea)
 {
-    const auto segment = getseg(ea);
-    if(!segment)
+    // FIXME find out why python call accept_data on invalid addresses
+    const auto parent_ea = get_segment_chunk_start("accept_data", ea);
+    if(parent_ea == BADADDR)
+        return;
+    ::accept_data(*this, v, {parent_id, parent_ea}, ea);
+}
+
+void ModelIncremental::accept_function(IModelVisitor& v, YaToolObjectId parent_id, ea_t ea)
+{
+    const auto parent_ea = get_segment_chunk_start("accept_function", ea);
+    if(parent_ea == BADADDR)
+        return;
+    const auto func = get_func(ea);
+    if(!func)
     {
-        // FIXME find out why python call accept_data on invalid addresses
-        LOG(ERROR, "accept_data: 0x" EA_FMT "unable to get segment\n", ea);
+        LOG(ERROR, "accept_function: 0x" EA_FMT " unable to get function\n", ea);
         return;
     }
-    const auto chunk_start = ea - ((ea - segment->startEA) % SEGMENT_CHUNK_MAX_SIZE);
-    ::accept_data(*this, v, {parent_id, chunk_start}, ea);
+    ::accept_function(*this, v, {parent_id, parent_ea}, func);
 }
