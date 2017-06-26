@@ -42,10 +42,8 @@ struct IModelIncremental
     virtual void accept_enum(IModelVisitor& v, ea_t enum_id) = 0;
     virtual void accept_struct(IModelVisitor& v, YaToolObjectId parent_id, ea_t struc_id, ea_t func_ea) = 0;
     virtual void accept_struct_member(IModelVisitor& v, YaToolObjectId parent_id, ea_t func_ea, ea_t member_id) = 0;
-    virtual void accept_data(IModelVisitor& v, YaToolObjectId parent_id, ea_t ea) = 0;
     virtual void accept_function(IModelVisitor& v, YaToolObjectId parent, ea_t ea) = 0;
-    virtual void accept_code(IModelVisitor& v, YaToolObjectId parent, ea_t ea) = 0;
-    virtual void accept_block(IModelVisitor& v, YaToolObjectId parent, ea_t ea) = 0;
+    virtual void accept_ea(IModelVisitor& v, YaToolObjectId parent, ea_t ea) = 0;
 };
 
 std::shared_ptr<IModelIncremental> MakeModelIncremental(YaToolsHashProvider* provider);
