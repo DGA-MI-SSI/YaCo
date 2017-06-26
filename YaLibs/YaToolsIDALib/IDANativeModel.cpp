@@ -1182,7 +1182,7 @@ namespace
         }
     }
 
-    void accept_enum_operand(Ctx& ctx, ea_t ea, ea_t root, flags_t flags, int opidx, opinfo_t* pop)
+    void accept_enum_operand(Ctx& ctx, ea_t ea, ea_t root, ya::Deps* deps, flags_t flags, int opidx, opinfo_t* pop)
     {
         const auto ok = get_opinfo(ea, opidx, flags, pop);
         if(!ok)
@@ -1191,10 +1191,15 @@ namespace
         const auto qbuf = ctx.qpool_.acquire();
         get_enum_name(&*qbuf, pop->ec.tid);
         const auto xid = ctx.provider_.get_struc_enum_object_id(pop->ec.tid, ya::to_string_ref(*qbuf), true);
+
+        tinfo_t tif;
+        const auto has_tif = get_op_tinfo2(ea, opidx, &tif);
+        if(has_tif)
+            deps->push_back({xid, tif, pop->ec.tid});
         ctx.xrefs_.push_back({ea - root, xid, opidx, 0});
     }
 
-    void accept_struc_operand(Ctx& ctx, ea_t ea, ea_t root, flags_t flags, int opidx, opinfo_t* pop)
+    void accept_struc_operand(Ctx& ctx, ea_t ea, ea_t root, ya::Deps* deps, flags_t flags, int opidx, opinfo_t* pop)
     {
         const auto ok = get_opinfo(ea, opidx, flags, pop);
         if(!ok)
@@ -1211,6 +1216,12 @@ namespace
         const auto qbuf = ctx.qpool_.acquire();
         get_struc_name(&*qbuf, tid);
         const auto xid = ctx.provider_.get_struc_enum_object_id(tid, ya::to_string_ref(*qbuf), true);
+
+        tinfo_t tif;
+        const auto has_tif = get_op_tinfo2(ea, opidx, &tif);
+        if(has_tif)
+            deps->push_back({xid, tif, tid});
+
         ctx.xrefs_.push_back({ea - root, xid, opidx, 0});
 
         for(int i = 1; i < pop->path.len; ++i)
@@ -1251,7 +1262,7 @@ namespace
         ctx.xrefs_.push_back({ea - root, xid, opidx, 0});
     }
 
-    void accept_insn_xrefs(Ctx& ctx, ea_t ea, ea_t root, flags_t flags, func_t* func, struc_t* frame, opinfo_t* pop)
+    void accept_insn_xrefs(Ctx& ctx, ea_t ea, ea_t root, ya::Deps* deps, flags_t flags, func_t* func, struc_t* frame, opinfo_t* pop)
     {
         // check for content before decoding
         if(!isEnum0(flags)
@@ -1271,9 +1282,9 @@ namespace
             if(cmd.Operands[i].type == o_void)
                 continue;
             else if(isEnum(flags, i))
-                accept_enum_operand(ctx, ea, root, flags, i, pop);
+                accept_enum_operand(ctx, ea, root, deps, flags, i, pop);
             else if(isStroff(flags, i))
-                accept_struc_operand(ctx, ea, root, flags, i, pop);
+                accept_struc_operand(ctx, ea, root, deps, flags, i, pop);
             else if(func && isStkvar(flags, i))
                 accept_stackframe_operand(ctx, ea, root, func, frame, cmd.Operands[i], i);
     }
@@ -1323,7 +1334,7 @@ namespace
         }
     }
 
-    void accept_offsets(Ctx& ctx, IModelVisitor& v, ea_t start, ea_t end)
+    void accept_offsets(Ctx& ctx, IModelVisitor& v, ya::Deps* deps, ea_t start, ea_t end)
     {
         opinfo_t op;
 
@@ -1341,7 +1352,7 @@ namespace
             accept_hiddenareas(ctx, v, ea, start);
             accept_value_views(ctx, v, ea, start, flags);
             accept_from_xrefs(ctx, ea, start);
-            accept_insn_xrefs(ctx, ea, start, flags, func, frame, &op);
+            accept_insn_xrefs(ctx, ea, start, deps, flags, func, frame, &op);
             accept_references(ctx, ea, start, flags, &op);
         }
         v.visit_end_offsets();
@@ -1444,11 +1455,13 @@ namespace
         const auto flags = get_flags_novalue(ea);
         accept_name(ctx, v, ea, flags, BasicBlockNamePolicy);
 
-        accept_offsets(ctx, v, ea, end);
+        ya::Deps deps;
+        accept_offsets(ctx, v, &deps, ea, end);
         accept_xrefs(ctx, v);
 
         finish_object(v, ea - parent.ea);
         accept_reference_infos(ctx, v, ea);
+        accept_dependencies(ctx, v, deps);
     }
 
     void accept_block(Ctx& ctx, IModelVisitor& v, const Parent& parent, const qflow_chart_t& flow, size_t idx, const qbasic_block_t& block)
@@ -1474,11 +1487,13 @@ namespace
         accept_signature(ctx, v, crcs.operands);
         v.visit_end_signatures();
 
-        accept_offsets(ctx, v, block.startEA, block.endEA);
+        ya::Deps deps;
+        accept_offsets(ctx, v, &deps, block.startEA, block.endEA);
         accept_xrefs(ctx, v);
 
         finish_object(v, ea - parent.ea);
         accept_reference_infos(ctx, v, ea);
+        accept_dependencies(ctx, v, deps);
     }
 
     void accept_segment(Ctx& ctx, IModelVisitor& v, const Parent& parent, segment_t* seg);
@@ -1920,6 +1935,7 @@ namespace
         void accept_struct_member(IModelVisitor& v, YaToolObjectId parent_id, ea_t func_ea, ea_t member_id) override;
         void accept_data(IModelVisitor& v, YaToolObjectId parent_id, ea_t ea) override;
         void accept_function(IModelVisitor& v, YaToolObjectId parent_id, ea_t ea) override;
+        void accept_code(IModelVisitor& v, YaToolObjectId parent_id, ea_t ea) override;
 
         // Ctx methods
         bool is_incremental() const override { return true; }
@@ -2042,4 +2058,12 @@ void ModelIncremental::accept_function(IModelVisitor& v, YaToolObjectId parent_i
         return;
     }
     ::accept_function(*this, v, {parent_id, parent_ea}, func);
+}
+
+void ModelIncremental::accept_code(IModelVisitor& v, YaToolObjectId parent_id, ea_t ea)
+{
+    const auto parent_ea = get_segment_chunk_start("accept_code", ea);
+    if(parent_ea == BADADDR)
+        return;
+    ::accept_code(*this, v, {parent_id, parent_ea}, ea);
 }
