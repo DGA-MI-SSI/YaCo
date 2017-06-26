@@ -62,48 +62,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         self.native = ya.MakeModelIncremental(self.hash_provider)
 
     def accept_binary(self, visitor):
-
-        binary_object_id = self.hash_provider.get_binary_id()
-
-        visitor.visit_start_reference_object(ya.OBJECT_TYPE_BINARY)
-        # object version id
-        visitor.visit_id(binary_object_id)
-
-        visitor.visit_start_object_version()
-
-        # size
-        visitor.visit_size(YaToolIDATools.LastSegEnd() - idc.FirstSeg())
-        visitor.visit_parent_id(0)
-
-        image_base = idaapi.get_imagebase()
-        visitor.visit_address(image_base)
-        visitor.visit_name(idc.GetInputFile(), DEFAULT_NAME_FLAGS)
-
-        visitor.visit_start_xrefs()
-
-        seg_ea_start = idc.FirstSeg()
-
-        while seg_ea_start != idc.BADADDR:
-            seg_ea_end = idc.SegEnd(seg_ea_start)
-            obj_id = self.hash_provider.get_segment_id(idc.SegName(seg_ea_start), seg_ea_start)
-            visitor.visit_start_xref(seg_ea_start - image_base, obj_id, DEFAULT_OPERAND)
-            visitor.visit_end_xref()
-
-            seg_ea_start = idc.NextSeg(seg_ea_end - 1)
-        visitor.visit_end_xrefs()
-
-        visitor.visit_start_matching_systems()
-        visitor.visit_start_matching_system(image_base)
-        visitor.visit_matching_system_description("equipement", self.EquipementDescription)
-        visitor.visit_matching_system_description("os", self.OSDescription)
-        visitor.visit_end_matching_system()
-        visitor.visit_end_matching_systems()
-
-        # TODO: add offsets for all elements inside segment
-
-        visitor.visit_end_object_version()
-
-        visitor.visit_end_reference_object()
+        self.native.accept_binary(visitor)
 
     def accept_deleted_struc(self, visitor, struc_id, struc_type=ya.OBJECT_TYPE_STRUCT):
         object_id = self.hash_provider.get_struc_enum_object_id(struc_id, "", True)

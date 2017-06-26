@@ -1953,6 +1953,7 @@ namespace
         void accept_struct_member(IModelVisitor& v, YaToolObjectId parent_id, ea_t func_ea, ea_t member_id) override;
         void accept_function(IModelVisitor& v, YaToolObjectId parent_id, ea_t ea) override;
         void accept_ea(IModelVisitor& v, YaToolObjectId parent, ea_t ea) override;
+        void accept_binary(IModelVisitor& v) override;
 
         // Ctx methods
         bool is_incremental() const override { return true; }
@@ -2095,9 +2096,14 @@ void ModelIncremental::accept_ea(IModelVisitor& v, YaToolObjectId parent, ea_t e
     const auto segment_id = provider_.get_segment_id(segname, seg->startEA);
     const auto chunk_end = std::min(chunk_start + SEGMENT_CHUNK_MAX_SIZE, getseg(ea)->endEA);
     ::accept_segment_chunk(*this, v, {segment_id, seg->startEA}, chunk_start, chunk_end);
-
+    
     const auto binary_id = provider_.get_binary_id();
     const auto binary_ea = get_imagebase();
     ::accept_segment(*this, v, {binary_id, binary_ea}, seg);
+    ::accept_binary(*this, v);
+}
+
+void ModelIncremental::accept_binary(IModelVisitor& v)
+{
     ::accept_binary(*this, v);
 }
