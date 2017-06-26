@@ -34,9 +34,9 @@ struct IModelIncremental
     virtual ~IModelIncremental() {}
 
     // export methods
-    virtual void            export_id(ea_t item_id, YaToolObjectId id) = 0;
-    virtual void            unexport_id(ea_t item_id) = 0;
-    virtual YaToolObjectId  is_exported(ea_t item_id) const = 0;
+    virtual void    export_id(YaToolObjectId id) = 0;
+    virtual void    unexport_id(YaToolObjectId id) = 0;
+    virtual bool    is_exported(YaToolObjectId id) const = 0;
 
     // accept methods
     virtual void accept_enum(IModelVisitor& v, ea_t enum_id) = 0;

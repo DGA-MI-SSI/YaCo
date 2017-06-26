@@ -76,8 +76,6 @@ class YaToolIDAHooks(object):
         self.hash_provider = hash_provider
         self.repo_manager = repo_manager
 
-        self.ida_model = YaToolIDAModel(self.yatools, self.hash_provider)
-
         self.new_marked_pos = set()
         # load marked pos
         for i in xrange(1, 1024):
@@ -243,12 +241,11 @@ class YaToolIDAHooks(object):
         self.addresses_to_process.add(ea)
         self.repo_manager.add_auto_comment(ea, "Type info changed")
 
-    def save_strucs(self, memory_exporter):
+    def save_strucs(self, ida_model, memory_exporter):
         """
         Structures : export modified structures and delete those who have been deleted
         """
         for struc_id in self.structures_to_process:
-            self.ida_model.clear_exported_struc_enum_id(struc_id)
             sidx = idc.GetStrucIdx(struc_id)
             if sidx is None or sidx == idc.BADADDR:
                 # it is a deleted structure or a stackframe
@@ -256,16 +253,16 @@ class YaToolIDAHooks(object):
                 eaFunc = idaapi.get_func_by_frame(struc_id)
                 if eaFunc != idc.BADADDR:
                     # OK, it is a stackframe
-                    self.ida_model.accept_struc(
+                    ida_model.accept_struc(
                         memory_exporter, 0, struc_id, ya.OBJECT_TYPE_STACKFRAME, ya.OBJECT_TYPE_STACKFRAME_MEMBER,
                         stackframe_func_addr=eaFunc)
-                    self.ida_model.accept_ea(memory_exporter, 0, eaFunc)
+                    ida_model.accept_ea(memory_exporter, 0, eaFunc)
                 else:
                     # it is a deleted structure
-                    self.ida_model.accept_deleted_struc(memory_exporter, struc_id)
+                    ida_model.accept_deleted_struc(memory_exporter, struc_id)
             else:
 
-                self.ida_model.accept_struc(memory_exporter, 0, struc_id)
+                ida_model.accept_struc(memory_exporter, 0, struc_id)
 
         logger.debug("Walking members")
         """
@@ -296,7 +293,7 @@ class YaToolIDAHooks(object):
                 eaFunc = idaapi.get_func_by_frame(struc_id)
                 stackframe_func_addr = eaFunc
                 func = idaapi.get_func(eaFunc)
-                self.ida_model.accept_function(memory_exporter, 0, eaFunc, func)
+                ida_model.accept_function(memory_exporter, 0, eaFunc, func)
             else:
                 strucmember_type = ya.OBJECT_TYPE_STRUCT_MEMBER
                 struc_type = ya.OBJECT_TYPE_STRUCT
@@ -309,7 +306,7 @@ class YaToolIDAHooks(object):
                 # Note: at first sight, it is not a stackframe
                 # TODO: handle function->stackframe deletion here
                 for (member_id, offset) in member_set:
-                    self.ida_model.accept_deleted_strucmember(memory_exporter, struc_id, None, offset)
+                    ida_model.accept_deleted_strucmember(memory_exporter, struc_id, None, offset)
             else:
                 # The structure or stackframe has been modified
                 is_union = ida_struc.is_union()
@@ -322,20 +319,18 @@ class YaToolIDAHooks(object):
                         new_member_id = ida_member.id
                     logger.debug("exporting member %s at offset 0x%02X (mid=0x%016X)" %
                                  (strucmember_type, offset, member_id))
-                    self.ida_model.clear_exported_struc_member_id(new_member_id)
-
                     if new_member_id == -1:
                         # the member has been deleted : delete it
-                        self.ida_model.accept_deleted_strucmember(
+                        ida_model.accept_deleted_strucmember(
                             memory_exporter, struc_id, struc_name, offset, struc_type, strucmember_type)
                     elif offset > 0 and idc.GetMemberId(struc_id, offset - 1) == new_member_id:
                         # the member was deleted, and replaced by a member starting above it
-                        self.ida_model.accept_deleted_strucmember(
+                        ida_model.accept_deleted_strucmember(
                             memory_exporter, struc_id, struc_name, offset, struc_type, strucmember_type)
                     elif new_member_id != member_id:
                         # the member has been deleted and later recreated
                         name = idaapi.get_member_name(new_member_id)
-                        self.ida_model.accept_struc_member(
+                        ida_model.accept_struc_member(
                             memory_exporter, 0, ida_struc, struc_id, is_union, offset, struc_name, name, struc_type,
                             strucmember_type, stackframe_func_addr=stackframe_func_addr)
                     else:
@@ -343,24 +338,23 @@ class YaToolIDAHooks(object):
                         name = idaapi.get_member_name(new_member_id)
                         logger.debug("exporting member %s (%s) at offset 0x%02X (mid=0x%016X)" %
                                      (strucmember_type, name, offset, member_id))
-                        self.ida_model.accept_struc_member(
+                        ida_model.accept_struc_member(
                             memory_exporter, 0, ida_struc, struc_id, is_union, offset, struc_name, name, struc_type,
                             strucmember_type, stackframe_func_addr=stackframe_func_addr)
 
-    def save_enums(self, memory_exporter):
+    def save_enums(self, ida_model, memory_exporter):
         """
         export modified enums and delete those who have been deleted
         """
         for enum_id in self.enums_to_process:
             eidx = idc.GetEnumIdx(enum_id)
-            self.ida_model.clear_exported_struc_enum_id(enum_id)
             if eidx is None or eidx == idc.BADADDR:
                 # it is a deleted enum
                 logger.debug("Accepting deleted enum: 0x%08X" % enum_id)
-                self.ida_model.accept_deleted_enum(memory_exporter, enum_id)
+                ida_model.accept_deleted_enum(memory_exporter, enum_id)
             else:
                 logger.debug("Accepting enum: 0x%08X" % enum_id)
-                self.ida_model.accept_enum(memory_exporter, enum_id)
+                ida_model.accept_enum(memory_exporter, enum_id)
 
         """
         This is not fully implemented yet, as we have no way of detecting
@@ -376,6 +370,7 @@ class YaToolIDAHooks(object):
 
     def save(self):
         start_time = time.time()
+        ida_model = YaToolIDAModel(self.yatools, self.hash_provider)
         YaToolIDATools.update_bookmarks()
         """
         TODO : improve cache re-generation
@@ -426,28 +421,24 @@ class YaToolIDAHooks(object):
         Next, export strucs and enums
         This will also delete unneeded files
         """
-        self.save_strucs(memory_exporter)
-        self.save_enums(memory_exporter)
-
-        for ea in self.addresses_to_process:
-            self.ida_model.clear_exported_ea(ea)
+        self.save_strucs(ida_model, memory_exporter)
+        self.save_enums(ida_model, memory_exporter)
 
         segs = set()
         for ea in self.segment_address_to_process:
             segs.add(idc.SegStart(ea))
 
         for ea in segs:
-            self.ida_model.clear_segment_item_cache(ea)
-            self.ida_model.clear_exported_segment_id(ea)
+            ida_model.clear_segment_item_cache(ea)
 
         """
         explore IDA yacoHooks for logged ea
         """
         for ea in self.addresses_to_process:
-            self.ida_model.accept_ea(memory_exporter, 0, ea)
+            ida_model.accept_ea(memory_exporter, 0, ea)
 
         for seg_ea_start, seg_ea_end in self.updated_segments:
-            self.ida_model.accept_segment(memory_exporter, 0, seg_ea_start, seg_ea_end, export_chunks=True)
+            ida_model.accept_segment(memory_exporter, 0, seg_ea_start, seg_ea_end, export_chunks=True)
 
         memory_exporter.visit_end()
         """
