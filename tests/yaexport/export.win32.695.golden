@@ -93,7 +93,7 @@ stm_c  nCatches
 stm_10 pHandlerArray void *
 stm_0  pVFTable void *
 stm_4  spare void *
-stm_8  name char[]
+stm_8  name
 stm_0  toState
 stm_4  action void *
 stm_0  style UINT
