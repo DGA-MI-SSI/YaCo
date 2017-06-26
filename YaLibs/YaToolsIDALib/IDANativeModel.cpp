@@ -427,7 +427,7 @@ namespace
     template<typename T>
     const_string_ref to_hex_ref(qstring* qbuf, T value)
     {
-        *qbuf += "0x";
+        *qbuf = "0x";
         append_uint64(*qbuf, value);
         return ya::to_string_ref(*qbuf);
     }
