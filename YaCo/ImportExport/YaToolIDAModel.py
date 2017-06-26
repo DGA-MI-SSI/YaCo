@@ -105,9 +105,6 @@ class YaToolIDAModel(YaToolObjectVersionElement):
 
         visitor.visit_end_reference_object()
 
-    def is_exported(self, enum_id):
-        return self.native.is_exported(enum_id) != ya.InvalidId
-
     def accept_deleted_struc(self, visitor, struc_id, struc_type=ya.OBJECT_TYPE_STRUCT):
         object_id = self.hash_provider.get_struc_enum_object_id(struc_id, "", True)
         visitor.visit_start_deleted_object(struc_type)
@@ -207,19 +204,14 @@ class YaToolIDAModel(YaToolObjectVersionElement):
 
     def accept_code(self, visitor, parent_id, eaCode):
         eaCode = _yatools_ida.get_code_chunk_start_addr(eaCode, idc.SegStart(eaCode))
-        if self.is_exported(eaCode):
-            return
         eaCodeEnd = _yatools_ida.get_code_chunk_end_addr(eaCode, idc.SegEnd(eaCode))
-        
-        if DEBUG_IDA_MODEL_EXPORT:
-            logger.debug("accept_code : %s" % self.yatools.address_to_hex_string(eaCode))
-
-        visitor.visit_start_reference_object(ya.OBJECT_TYPE_CODE)
-
         code_id = self.hash_provider.get_hash_for_ea(eaCode)
-        # object version id
+        if self.native.is_exported(code_id):
+            return
+
+        self.native.export_id(code_id)
+        visitor.visit_start_reference_object(ya.OBJECT_TYPE_CODE)
         visitor.visit_id(code_id)
-        self.native.export_id(eaCode, code_id)
 
         visitor.visit_start_object_version()
 
@@ -402,15 +394,17 @@ class YaToolIDAModel(YaToolObjectVersionElement):
 
         startEA = basic_block['startEA']
         endEA = basic_block['endEA']
-
-        if startEA == endEA or self.is_exported(startEA):
+        if startEA == endEA:
             return
 
         if DEBUG_IDA_MODEL_EXPORT:
             logger.debug("accept_basic_block : %s", self.yatools.address_to_hex_string(startEA))
 
         basic_block_id = self.hash_provider.get_function_basic_block_hash(startEA, funcEA)
-        self.native.export_id(startEA, basic_block_id)
+        if self.native.is_exported(basic_block_id):
+            return
+
+        self.native.export_id(basic_block_id)
 
         block_type = basic_block['block_type']
 
@@ -816,13 +810,13 @@ class YaToolIDAModel(YaToolObjectVersionElement):
                     return size
         """
         object_id = self.hash_provider.get_hash_for_ea(ea)
-        if self.is_exported(ea):
+        if self.native.is_exported(object_id):
             if size == 0:
                 return 1
             else:
                 return size
 
-        self.native.export_id(ea, object_id)
+        self.native.export_id(object_id)
 
         visitor.visit_start_reference_object(ya.OBJECT_TYPE_DATA)
 
@@ -1064,59 +1058,6 @@ class YaToolIDAModel(YaToolObjectVersionElement):
 
         if export_eas:
             self.accept_ea_list(visitor, segment_chunk_object_id, segment_items)
-
-    def clear_exported_struc_enum_id(self, struc_id):
-        self.native.unexport_id(struc_id)
-
-    def clear_exported_struc_member_id(self, member_id):
-        self.native.unexport_id(member_id)
-
-    def clear_exported_function_id(self, ea):
-        try:
-            del self.exported_function_ids[ea]
-        except KeyError:
-            pass
-
-    def clear_exported_segment_id(self, ea):
-        try:
-            del self.exported_segment_ids[ea]
-        except KeyError:
-            pass
-
-    def clear_exported_ea(self, ea):
-        # get flag
-        fl = idc.GetFlags(ea)
-
-        # if ea is func
-        func = idaapi.get_func(ea)
-        if idaapi.isFunc(fl) or func is not None:
-            eaFunc = func.startEA
-            self.native.unexport_id(eaFunc)
-            self.clear_exported_function_id(eaFunc)
-
-            basic_block = YaToolIDATools.get_basic_block_at_ea(ea, eaFunc, func)
-            if basic_block is None:
-                logger.error("Function has no basic blocks : %s (eaFunc=%s) " %
-                             (self.yatools.address_to_hex_string(ea), self.yatools.address_to_hex_string(eaFunc)))
-            else:
-                self.native.unexport_id(basic_block['startEA'])
-
-        # if ea is not in a function and it is code
-        elif (func is None) and (idaapi.isCode(fl)):
-            self.native.unexport_id(ea)
-        else:
-            previous_item = idc.PrevHead(ea)
-            if previous_item != idc.BADADDR:
-                previous_item_size = idc.ItemSize(previous_item)
-                if previous_item_size > 0 and ea < previous_item + previous_item_size:
-                    ea = previous_item
-
-            self.native.unexport_id(ea)
-
-        segment_ea = idc.SegStart(ea)
-        if segment_ea == ea:
-            # ea is a segment start
-            self.clear_exported_segment_id(ea)
 
     def clear_segment_item_cache(self, ea):
         YaToolIDATools.address_range_items_clear_cache(idc.SegStart(ea), idc.SegEnd(ea))

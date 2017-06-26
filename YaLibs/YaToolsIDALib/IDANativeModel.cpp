@@ -30,6 +30,7 @@
 #include <Yatools.h>
 
 #include <algorithm>
+#include <unordered_set>
 
 extern "C"
 {
@@ -207,10 +208,8 @@ namespace
         {
         }
 
-        virtual bool is_incremental     () const = 0;
-        virtual bool skip_enum          (enum_t enum_id, YaToolObjectId id) = 0;
-        virtual bool skip_struct        (const struc_t* struc, const func_t* func, YaToolObjectId id) = 0;
-        virtual bool skip_struct_member (const member_t* member, YaToolObjectId id) = 0;
+        virtual bool is_incremental () const = 0;
+        virtual bool skip_id        (YaToolObjectId id) = 0;
 
         YaToolsHashProvider&    provider_;
         Pool<qstring>           qpool_;
@@ -285,7 +284,7 @@ namespace
         const auto enum_name = ctx.qpool_.acquire();
         get_enum_name(&*enum_name, eid);
         const auto id = ctx.provider_.get_struc_enum_object_id(eid, ya::to_string_ref(*enum_name), true);
-        if(ctx.skip_enum(eid, id))
+        if(ctx.skip_id(id))
             return;
 
         const auto idx = get_enum_idx(eid);
@@ -498,7 +497,7 @@ namespace
         const auto id = func ?
             ctx.provider_.get_stackframe_member_object_id(sid, member->soff, func->startEA) :
             ctx.provider_.get_struc_member_id(sid, offset, ya::to_string_ref(*qbuf));
-        if(ctx.skip_struct_member(member, id))
+        if(ctx.skip_id(id))
             return;
 
         get_member_name2(&*qbuf, member->id);
@@ -544,7 +543,7 @@ namespace
         const auto id = func ?
             ctx.provider_.get_stackframe_object_id(sid, func->startEA) :
             ctx.provider_.get_struc_enum_object_id(sid, ya::to_string_ref(*struc_name), true);
-        if(ctx.skip_struct(struc, func, id))
+        if(ctx.skip_id(id))
             return;
 
         const auto ea = func ? func->startEA : 0;
@@ -1853,9 +1852,7 @@ namespace
 
         // Ctx methods
         bool is_incremental() const override { return false; }
-        bool skip_enum(enum_t, YaToolObjectId) override { return false; }
-        bool skip_struct(const struc_t*, const func_t*, YaToolObjectId) override { return false; }
-        bool skip_struct_member(const member_t*, YaToolObjectId) override { return false; }
+        bool skip_id(YaToolObjectId) override { return false; }
     };
 
     struct ModelIncremental
@@ -1865,9 +1862,9 @@ namespace
         ModelIncremental(YaToolsHashProvider* provider);
 
         // IModelIncremental methods
-        void            export_id(ea_t item_id, YaToolObjectId id) override;
-        void            unexport_id(ea_t item_id) override;
-        YaToolObjectId  is_exported(ea_t item_id) const override;
+        void export_id(YaToolObjectId id) override;
+        void unexport_id(YaToolObjectId id) override;
+        bool is_exported(YaToolObjectId id) const override;
 
         // IModelIncremental accept methods
         void accept_enum(IModelVisitor& v, ea_t enum_id) override;
@@ -1876,11 +1873,9 @@ namespace
 
         // Ctx methods
         bool is_incremental() const override { return true; }
-        bool skip_enum(enum_t, YaToolObjectId) override;
-        bool skip_struct(const struc_t*, const func_t*, YaToolObjectId) override;
-        bool skip_struct_member(const member_t*, YaToolObjectId) override;
+        bool skip_id(YaToolObjectId) override;
 
-        std::unordered_map<ea_t, YaToolObjectId> ids_;
+        std::unordered_set<YaToolObjectId> ids_;
     };
 }
 
@@ -1909,20 +1904,20 @@ std::shared_ptr<IModelIncremental> MakeModelIncremental(YaToolsHashProvider* pro
     return std::make_shared<ModelIncremental>(provider);
 }
 
-void ModelIncremental::export_id(ea_t item_id, YaToolObjectId id)
+void ModelIncremental::export_id(YaToolObjectId id)
 {
-    ids_.emplace(item_id, id);
+    ids_.emplace(id);
 }
 
-void ModelIncremental::unexport_id(ea_t item_id)
+void ModelIncremental::unexport_id(YaToolObjectId id)
 {
-    ids_.erase(item_id);
+    ids_.erase(id);
 }
 
-YaToolObjectId ModelIncremental::is_exported(ea_t item_id) const
+bool ModelIncremental::is_exported(YaToolObjectId id) const
 {
-    const auto it = ids_.find(item_id);
-    return it == ids_.end() ? InvalidId : it->second;
+    const auto it = ids_.find(id);
+    return it != ids_.end();
 }
 
 void ModelIncremental::accept_enum(IModelVisitor& v, ea_t enum_id)
@@ -1930,32 +1925,11 @@ void ModelIncremental::accept_enum(IModelVisitor& v, ea_t enum_id)
     ::accept_enum(*this, v, enum_id);
 }
 
-bool ModelIncremental::skip_enum(enum_t enum_id, YaToolObjectId id)
+bool ModelIncremental::skip_id(YaToolObjectId id)
 {
-    if(ids_.count(enum_id))
-        return true;
-
-    ids_.emplace(enum_id, id);
-    return false;
-}
-
-bool ModelIncremental::skip_struct(const struc_t* struc, const func_t* func, YaToolObjectId id)
-{
-    const auto sid = func ? func->startEA : struc->id;
-    if(ids_.count(sid))
-        return true;
-
-    ids_.emplace(sid, id);
-    return false;
-}
-
-bool ModelIncremental::skip_struct_member(const member_t* member, YaToolObjectId id)
-{
-    if(ids_.count(member->id))
-        return true;
-
-    ids_.emplace(member->id, id);
-    return false;
+    const auto size = ids_.size();
+    ids_.emplace(id);
+    return ids_.size() == size;
 }
 
 void ModelIncremental::accept_struct(IModelVisitor& v, YaToolObjectId parent_id, ea_t struc_id, ea_t func_ea)
