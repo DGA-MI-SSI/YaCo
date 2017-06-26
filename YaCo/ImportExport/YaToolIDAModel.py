@@ -119,293 +119,16 @@ class YaToolIDAModel(YaToolObjectVersionElement):
 
     def accept_struc(self, visitor, parent_id, struc_id, struc_type=ya.OBJECT_TYPE_STRUCT,
                      struc_member_type=ya.OBJECT_TYPE_STRUCT_MEMBER, stackframe_func_addr=None):
-        if struc_type == ya.OBJECT_TYPE_STRUCT:
-            if self.is_exported(struc_id):
-                return
-            elif DEBUG_IDA_MODEL_EXPORT:
-                logger.debug(
-                    "struc with id 0x%016X not exported : exporting (%s)" % (struc_id, idaapi.get_struc_name(struc_id)))
-        else:
-            # for a stackframe, ids might be reused, so we store the function addresses
-            if stackframe_func_addr in self.exported_stackframe_addresses:
-                return
-
-        ida_struc = idaapi.get_struc(struc_id)
-        if ida_struc is None:
-            logger.error("unable to get struc from id 0x%08X : %s" % (struc_id, idc.GetStrucName(struc_id)))
-            return
-        struc_name = idc.GetStrucName(struc_id)
-
-        if DEBUG_IDA_MODEL_EXPORT:
-            logger.debug("accept_struc : 0x%08X : %s" % (struc_id, struc_name))
-
-        visitor.visit_start_reference_object(struc_type)
-
-        if struc_type == ya.OBJECT_TYPE_STACKFRAME:
-            object_id = self.hash_provider.get_stackframe_object_id(struc_id, idc.BADADDR)
-        else:
-            object_id = self.hash_provider.get_struc_enum_object_id(struc_id, idc.GetStrucName(struc_id), True)
-
-        if struc_type == ya.OBJECT_TYPE_STRUCT:
-            self.native.export_id(struc_id, object_id)
-        else:
-            self.exported_stackframe_addresses[stackframe_func_addr] = object_id
-
-        visitor.visit_id(object_id)
-
-        visitor.visit_start_object_version()
-        visitor.visit_parent_id(parent_id)
-        if stackframe_func_addr:
-            visitor.visit_address(stackframe_func_addr)
-
-        size = idc.GetStrucSize(struc_id)
-        if size > MAX_STRUCT_SIZE:
-            if struc_type == ya.OBJECT_TYPE_STRUCT:
-                Warning("Structure %s is too big : size = 0x%08X" % (struc_name, size))
-                raise Exception("Structure %s is too big : size = 0x%08X" % (struc_name, size))
-            else:
-                func_ea = idaapi.get_func_by_frame(struc_id)
-                Warning("[0x%08X:%s] Stackframe %s is too big : size = 0x%08X" %
-                        (func_ea, idc.GetFunctionName(func_ea), struc_name, size))
-                if idc.AskYN(1, "Do you want to ignore this object and continue export anyway ?") == 1:
-                    visitor.visit_end_object_version()
-                    visitor.visit_end_reference_object()
-                    return
-                else:
-                    raise Exception("[0x%08X:%s] Stackframe %s is too big : size = 0x%08X" %
-                                    (func_ea, idc.GetFunctionName(func_ea), struc_name, size))
-
-        visitor.visit_size(size)
-
-        visitor.visit_name(struc_name, DEFAULT_NAME_FLAGS)
-
-        is_union = ida_struc.is_union()
-        if is_union:
-            visitor.visit_flags(1)
-
-        #
-        # HEADER COMMENT
-        #
-        RptComt = idc.GetStrucComment(struc_id, 1)
-        if RptComt is not None and RptComt != "":
-            visitor.visit_header_comment(True, RptComt)
-        Cmt = idc.GetStrucComment(struc_id, 0)
-        if Cmt is not None and Cmt != "":
-            visitor.visit_header_comment(False, Cmt)
-
-        #
-        # XREFS TO MEMBERS
-        #
-        visitor.visit_start_xrefs()
-        offset = idaapi.get_struc_first_offset(ida_struc)
-        last_offset = idaapi.get_struc_last_offset(ida_struc)
-        while offset != idc.BADADDR and (is_union or (offset <= last_offset)):
-            ida_member = idaapi.get_member(ida_struc, offset)
-            if ida_member:
-                mid = ida_member.id
-            else:
-                mid = -1
-            if struc_type != ya.OBJECT_TYPE_STACKFRAME or not idaapi.is_special_member(mid):
-                name = idaapi.get_member_name(mid)
-                if name is not None:
-                    if struc_type == ya.OBJECT_TYPE_STACKFRAME:
-                        struc_member_oid = self.hash_provider.get_stackframe_member_object_id(
-                            struc_id, offset, idc.BADADDR)
-                    else:
-                        struc_member_oid = self.hash_provider.get_struc_member_id(struc_id, offset, struc_name)
-                    if is_union:
-                        use_offset = 0
-                    else:
-                        use_offset = offset
-                    visitor.visit_start_xref(use_offset, struc_member_oid, DEFAULT_OPERAND)
-                    visitor.visit_end_xref()
-
-            # next member
-            offset = idaapi.get_struc_next_offset(ida_struc, offset)
-        visitor.visit_end_xrefs()
-
-        #
-        # MATCHING SYSTEMS
-        #
-        visitor.visit_start_matching_systems()
-        visitor.visit_start_matching_system(0)
-        visitor.visit_matching_system_description("equipement", self.EquipementDescription)
-        visitor.visit_matching_system_description("os", self.OSDescription)
-        visitor.visit_end_matching_system()
-        visitor.visit_end_matching_systems()
-
-        default_name_offset = 0
-        if struc_type == ya.OBJECT_TYPE_STACKFRAME:
-            func = idaapi.get_func_by_frame(struc_id)
-            lvars_size = idc.GetFrameLvarSize(func)
-            regvars_size = idc.GetFrameRegsSize(func)
-            args_size = idc.GetFrameArgsSize(func)
-            visitor.visit_attribute("stack_lvars", self.yatools.address_to_hex_string(lvars_size))
-            visitor.visit_attribute("stack_regvars", self.yatools.address_to_hex_string(regvars_size))
-            visitor.visit_attribute("stack_args", self.yatools.address_to_hex_string(args_size))
-
-            default_name_offset = lvars_size
-
-        visitor.visit_end_object_version()
-
-        visitor.visit_end_reference_object()
-
-        self.accept_struc_members(visitor, object_id, ida_struc, struc_id, struc_name, is_union, struc_type,
-                                  struc_member_type, default_name_offset, stackframe_func_addr=stackframe_func_addr)
-
-    def accept_struc_members(self, visitor, parent_id, ida_struc, struc_id, struc_name, is_union,
-                             struc_type=ya.OBJECT_TYPE_STRUCT, struc_member_type=ya.OBJECT_TYPE_STRUCT_MEMBER,
-                             default_name_offset=0, stackframe_func_addr=None):
-        for (offset, name) in YaToolIDATools.struc_member_list(struc_id, is_union):
-            self.accept_struc_member(visitor, parent_id, ida_struc, struc_id, is_union, offset, struc_name, name,
-                                     struc_type, struc_member_type, default_name_offset,
-                                     stackframe_func_addr=stackframe_func_addr)
+        ea = stackframe_func_addr if stackframe_func_addr else idc.BADADDR
+        self.native.accept_struct(visitor, parent_id, struc_id, ea)
 
     def accept_struc_member(self, visitor, parent_id, ida_struc, struc_id, is_union, offset, struc_name, name,
                             struc_type=ya.OBJECT_TYPE_STRUCT, struc_member_type=ya.OBJECT_TYPE_STRUCT_MEMBER,
                             default_name_offset=0, stackframe_func_addr=None):
         ida_member = idaapi.get_member(ida_struc, offset)
-        if ida_member is None:
-            logger.warning("Member is none : %s:0x%08X" % (struc_name, offset))
-            return
-        mid = ida_member.id
-
-        if self.is_exported(mid):
-            return
-
-        if struc_type == ya.OBJECT_TYPE_STACKFRAME and idaapi.is_special_member(mid):
-            return
-
-        if struc_type == ya.OBJECT_TYPE_STACKFRAME:
-            member_object_id = self.hash_provider.get_stackframe_member_object_id(struc_id, offset, idc.BADADDR)
-        else:
-            member_object_id = self.hash_provider.get_struc_member_id(struc_id, offset, struc_name)
-
-        self.native.export_id(mid, member_object_id)
-
-        flags = ida_member.flag
-        member_size = idaapi.get_member_size(ida_member)
-        RptComt = idaapi.get_member_cmt(mid, 1)
-        Cmt = idaapi.get_member_cmt(mid, 0)
-
-        default_name = YaToolIDATools.get_default_struc_member_name(struc_member_type, offset, default_name_offset)
-        type_dependencies = None
-
-        if is_union:
-            YaToolIDATools.register_union_member_object_id(struc_id, mid, member_object_id)
-
-        # is the field is a "default field", don't export it
-        if (is_union is False and flags == idc.FF_DATA and member_size == 1 and name == default_name and
-                (RptComt is None or RptComt == "") and (Cmt is None or Cmt == "")):
-            # this is a default field : delete it
-            #             logger.debug("Accepting default strucmember : %s.%s" % (idc.GetStrucName(struc_id), name))
-            self.accept_default_strucmember(visitor, struc_id, struc_name, offset, struc_type, struc_member_type)
-        else:
-            # this is not a default field
-            # TODO: type
-            member_type = ya.get_type(mid)
-
-            visitor.visit_start_reference_object(struc_member_type)
-
-            visitor.visit_id(member_object_id)
-
-            visitor.visit_start_object_version()
-
-            visitor.visit_parent_id(parent_id)
-
-            visitor.visit_address(offset)
-
-            visitor.visit_size(member_size)
-
-            visitor.visit_name(name, DEFAULT_NAME_FLAGS)
-
-            if len(member_type):
-                (member_type, type_dependencies) = self.prototype_parser.update_prototype_with_hashes(
-                    member_type, self.hash_provider, name)
-                visitor.visit_prototype(member_type)
-
-            visitor.visit_flags(flags)
-
-            if idc.isASCII(flags):
-                op = idaapi.opinfo_t()
-                idaapi.retrieve_member_info(ida_member, op)
-                strtype = op.tid
-                if strtype is not None and strtype != -1 and strtype != 0 and strtype != idc.BADADDR:
-                    visitor.visit_string_type(strtype)
-
-            if idc.isStruct(flags) or idc.isEnum0(flags):
-                xref_dict = None
-                if idc.isStruct(flags):
-                    cs = idaapi.get_sptr(ida_member)
-                    if cs:
-                        member_sid = cs.id
-                    else:
-                        member_sid = -1
-                    logger.debug("Getting object id for member : 0x%08X [%s]" % (member_sid, name))
-                    object_id = self.hash_provider.get_struc_enum_object_id(member_sid, idc.GetStrucName(member_sid), True)
-                else:  # enum
-                    op = idaapi.opinfo_t()
-                    idaapi.retrieve_member_info(ida_member, op)
-                    member_sid = op.ec.tid
-                    serial = op.ec.serial
-                    if serial != 0:
-                        xref_dict = {'serial': self.yatools.address_to_hex_string(serial)}
-                        logger.debug("Getting object id for member : 0x%08X" % member_sid)
-                    object_id = self.hash_provider.get_struc_enum_object_id(member_sid, idc.GetEnumName(member_sid), True)
-
-                visitor.visit_start_xrefs()
-                visitor.visit_start_xref(0, object_id, 0)
-                if xref_dict is not None:
-                    for (attribute_key, attribute_value) in xref_dict.values():
-                        visitor.visit_xref_attribute(attribute_key, attribute_value)
-                visitor.visit_end_xref()
-                visitor.visit_end_xrefs()
-
-            #
-            # HEADER COMMENT
-            #
-            if RptComt is not None and RptComt != "":
-                visitor.visit_header_comment(True, RptComt)
-            if Cmt is not None and Cmt != "":
-                visitor.visit_header_comment(False, Cmt)
-
-            #
-            # MATCHING SYSTEMS
-            #
-            # matchingsystems
-            visitor.visit_start_matching_systems()
-            visitor.visit_start_matching_system(offset)
-            visitor.visit_matching_system_description("equipement", self.EquipementDescription)
-            visitor.visit_matching_system_description("os", self.OSDescription)
-            visitor.visit_end_matching_system()
-            visitor.visit_end_matching_systems()
-
-            visitor.visit_end_object_version()
-
-            visitor.visit_end_reference_object()
-
-            if idc.isStruct(flags):
-                self.accept_struc(visitor, member_object_id, member_sid)
-            elif idc.isEnum0(flags):
-                self.native.accept_enum(visitor, member_sid)
-
-        self.accept_struc(visitor, parent_id, struc_id, struc_type, struc_member_type,
-                          stackframe_func_addr=stackframe_func_addr)
-
-        if type_dependencies is not None:
-            for (dep_object_id, dep_id) in type_dependencies:
-                # TODO : check if it is actually a struc!
-                self.accept_struc(visitor, parent_id, dep_id, ya.OBJECT_TYPE_STRUCT, ya.OBJECT_TYPE_STRUCT_MEMBER)
-
-    def accept_default_strucmember(self, visitor, struc_id, struc_name, offset, struc_type=ya.OBJECT_TYPE_STRUCT,
-                                   strucmember_type=ya.OBJECT_TYPE_STRUCT_MEMBER):
-        if struc_type == ya.OBJECT_TYPE_STRUCT:
-            member_object_id = self.hash_provider.get_struc_member_id(struc_id, offset, struc_name)
-        else:
-            member_object_id = self.hash_provider.get_stackframe_member_object_id(struc_id, offset, idc.BADADDR)
-        visitor.visit_start_default_object(strucmember_type)
-        visitor.visit_id(member_object_id)
-        visitor.visit_end_default_object()
+        if ida_member:
+            ea = stackframe_func_addr if stackframe_func_addr else idc.BADADDR
+            self.native.accept_struct_member(visitor, parent_id, ea, ida_member.id)
 
     def accept_deleted_strucmember(self, visitor, struc_id, struc_name, offset, struc_type=ya.OBJECT_TYPE_STRUCT,
                                    strucmember_type=ya.OBJECT_TYPE_STRUCT_MEMBER):
@@ -535,7 +258,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
                     visitor, eaCode, (reference_offset, reference_value, reference_dict['flags']))
 
         for struc_id in xrefed_struc_ids:
-            self.accept_struc(visitor, basic_block_id, struc_id)
+            self.native.accept_struct(visitor, 0, struc_id, idc.BADADDR)
 
         for enum_id in xrefed_enum_ids:
             self.native.accept_enum(visitor, enum_id)
@@ -662,13 +385,12 @@ class YaToolIDAModel(YaToolObjectVersionElement):
 
         if stack_frame is not None:
             #             logger.debug("exporting stackframe for function at 0x%08X" % eaFunc)
-            self.accept_struc(visitor, funcId, stack_frame.id, ya.OBJECT_TYPE_STACKFRAME,
-                              ya.OBJECT_TYPE_STACKFRAME_MEMBER, stackframe_func_addr=eaFunc)
+            self.native.accept_struct(visitor, funcId, stack_frame.id, eaFunc)
 
         if type_dependencies is not None:
             for (dep_object_id, dep_id) in type_dependencies:
                 # TODO : check if it is actually a struc!
-                self.accept_struc(visitor, funcId, dep_id, ya.OBJECT_TYPE_STRUCT, ya.OBJECT_TYPE_STRUCT_MEMBER)
+                self.native.accept_struct(visitor, 0, dep_id, idc.BADADDR)
 
         eas = [eaFunc]
         for basic_block in basic_blocks:
@@ -762,7 +484,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
                     visitor, startEA, (reference_offset, reference_value, reference_dict['flags']))
 
         for struc_id in xrefed_struc_ids:
-            self.accept_struc(visitor, basic_block_id, struc_id)
+            self.native.accept_struct(visitor, basic_block_id, struc_id, idc.BADADDR)
 
         for enum_id in xrefed_enum_ids:
             self.native.accept_enum(visitor, enum_id)
@@ -1195,7 +917,7 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         visitor.visit_end_reference_object()
 
         if idc.isStruct(flags):
-            self.accept_struc(visitor, object_id, strid)
+            self.native.accept_struct(visitor, 0, strid, idc.BADADDR)
 
         if size == 0:
             size = 1

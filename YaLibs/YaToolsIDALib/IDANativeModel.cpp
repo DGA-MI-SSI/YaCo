@@ -207,6 +207,11 @@ namespace
         {
         }
 
+        virtual bool is_incremental     () const = 0;
+        virtual bool skip_enum          (enum_t enum_id, YaToolObjectId id) = 0;
+        virtual bool skip_struct        (const struc_t* struc, const func_t* func, YaToolObjectId id) = 0;
+        virtual bool skip_struct_member (const member_t* member, YaToolObjectId id) = 0;
+
         YaToolsHashProvider&    provider_;
         Pool<qstring>           qpool_;
         std::vector<uint8_t>    buffer_;
@@ -275,11 +280,14 @@ namespace
         finish_object(v, em.value);
     }
 
-    YaToolObjectId accept_enum(Ctx& ctx, IModelVisitor& v, enum_t eid)
+    void accept_enum(Ctx& ctx, IModelVisitor& v, enum_t eid)
     {
         const auto enum_name = ctx.qpool_.acquire();
         get_enum_name(&*enum_name, eid);
         const auto id = ctx.provider_.get_struc_enum_object_id(eid, ya::to_string_ref(*enum_name), true);
+        if(ctx.skip_enum(eid, id))
+            return;
+
         const auto idx = get_enum_idx(eid);
         start_object(v, OBJECT_TYPE_ENUM, id, 0, idx);
         v.visit_size(get_enum_width(eid));
@@ -312,8 +320,6 @@ namespace
 
         for(const auto& it : members)
             accept_enum_member(ctx, v, {id, 0}, it);
-
-        return id;
     }
 
     void accept_enums(Ctx& ctx, IModelVisitor& v)
@@ -427,7 +433,7 @@ namespace
         return ya::to_string_ref(*qbuf);
     }
 
-    void visit_member_type(Ctx& ctx, IModelVisitor& v, member_t* member)
+    void visit_member_type(Ctx& ctx, IModelVisitor& v, ya::Deps& deps, member_t* member)
     {
         opinfo_t op;
         const auto flags = member->flag;
@@ -440,7 +446,6 @@ namespace
         if(mtype.tif.empty())
             LOG(WARNING, "accept_struct_member: 0x" EA_FMT " unable to get member type info\n", member->id);
 
-        ya::Deps deps;
         const auto qbuf = ctx.qpool_.acquire();
         // FIXME is_ascii vs visit_prototype confusion
         if((!EMULATE_PYTHON_MODEL_BEHAVIOR || !is_ascii) && !is_trivial_member_type(mtype))
@@ -477,6 +482,10 @@ namespace
         v.visit_end_xrefs();
     }
 
+    // need forward declaration as there is a cycle between accept_struct & accept_struct_member
+    void accept_dependency  (Ctx& ctx, IModelVisitor& v, const ya::Dependency);
+    void accept_struct      (Ctx& ctx, IModelVisitor& v, const Parent& parent, struc_t* struc, func_t* func);
+
     void accept_struct_member(Ctx& ctx, IModelVisitor& v, const Parent& parent, struc_t* struc, func_t* func, member_t* member)
     {
         if(func && is_special_member(member->id))
@@ -489,6 +498,9 @@ namespace
         const auto id = func ?
             ctx.provider_.get_stackframe_member_object_id(sid, member->soff, func->startEA) :
             ctx.provider_.get_struc_member_id(sid, offset, ya::to_string_ref(*qbuf));
+        if(ctx.skip_struct_member(member, id))
+            return;
+
         get_member_name2(&*qbuf, member->id);
 
         // we need to skip default members else we explode on structures with thousand of default fields
@@ -506,13 +518,22 @@ namespace
         v.visit_size(size);
         v.visit_name(ya::to_string_ref(*qbuf), DEFAULT_NAME_FLAGS);
 
-        visit_member_type(ctx, v, member);
+        ya::Deps deps;
+        visit_member_type(ctx, v, deps, member);
 
         visit_header_comments(v, *qbuf, [&](char* buf, size_t szbuf, bool repeat)
         {
             return get_member_cmt(member->id, repeat, buf, szbuf);
         });
         finish_object(v, offset);
+
+        if(!ctx.is_incremental())
+            return;
+
+        const auto fid = func ? ctx.provider_.get_hash_for_ea(func->startEA) : 0;
+        accept_struct(ctx, v, {fid, func ? func->startEA : 0}, struc, func);
+        for(const auto& it : deps)
+            accept_dependency(ctx, v, it);
     }
 
     void accept_struct(Ctx& ctx, IModelVisitor& v, const Parent& parent, struc_t* struc, func_t* func)
@@ -523,6 +544,9 @@ namespace
         const auto id = func ?
             ctx.provider_.get_stackframe_object_id(sid, func->startEA) :
             ctx.provider_.get_struc_enum_object_id(sid, ya::to_string_ref(*struc_name), true);
+        if(ctx.skip_struct(struc, func, id))
+            return;
+
         const auto ea = func ? func->startEA : 0;
         start_object(v, func ? OBJECT_TYPE_STACKFRAME : OBJECT_TYPE_STRUCT, id, parent.id, ea);
         const auto size = get_struc_size(struc);
@@ -578,6 +602,14 @@ namespace
             const auto member = &struc->members[i];
             accept_struct_member(ctx, v, {id, member->soff}, struc, func, member);
         }
+    }
+
+    void accept_dependency(Ctx& ctx, IModelVisitor& v, const ya::Dependency dep)
+    {
+        if(dep.tif.is_enum())
+            accept_enum(ctx, v, dep.tid);
+        else
+            accept_struct(ctx, v, {}, get_struc(dep.tid), nullptr);
     }
 
     void accept_structs(Ctx& ctx, IModelVisitor& v)
@@ -1812,17 +1844,23 @@ namespace
 {
     struct Model
         : public IModelAccept
+        , public Ctx
     {
         Model(YaToolsHashProvider* provider);
 
         // IModelAccept methods
         void accept(IModelVisitor& v) override;
 
-        Ctx ctx_;
+        // Ctx methods
+        bool is_incremental() const override { return false; }
+        bool skip_enum(enum_t, YaToolObjectId) override { return false; }
+        bool skip_struct(const struc_t*, const func_t*, YaToolObjectId) override { return false; }
+        bool skip_struct_member(const member_t*, YaToolObjectId) override { return false; }
     };
 
     struct ModelIncremental
         : public IModelIncremental
+        , public Ctx
     {
         ModelIncremental(YaToolsHashProvider* provider);
 
@@ -1830,15 +1868,24 @@ namespace
         void            export_id(ea_t item_id, YaToolObjectId id) override;
         void            unexport_id(ea_t item_id) override;
         YaToolObjectId  is_exported(ea_t item_id) const override;
-        void            accept_enum(IModelVisitor& v, ea_t enum_id) override;
 
-        Ctx ctx_;
-        std::unordered_map<ea_t, YaToolObjectId> exports;
+        // IModelIncremental accept methods
+        void accept_enum(IModelVisitor& v, ea_t enum_id) override;
+        void accept_struct(IModelVisitor& v, YaToolObjectId parent_id, ea_t struc_id, ea_t func_ea)  override;
+        void accept_struct_member(IModelVisitor& v, YaToolObjectId parent_id, ea_t func_ea, ea_t member_id)  override;
+
+        // Ctx methods
+        bool is_incremental() const override { return true; }
+        bool skip_enum(enum_t, YaToolObjectId) override;
+        bool skip_struct(const struc_t*, const func_t*, YaToolObjectId) override;
+        bool skip_struct_member(const member_t*, YaToolObjectId) override;
+
+        std::unordered_map<ea_t, YaToolObjectId> ids_;
     };
 }
 
 Model::Model(YaToolsHashProvider* provider)
-    : ctx_(*provider)
+    : Ctx(*provider)
 {
 }
 
@@ -1849,11 +1896,11 @@ std::shared_ptr<IModelAccept> MakeModel(YaToolsHashProvider* provider)
 
 void Model::accept(IModelVisitor& v)
 {
-    ::accept(ctx_, v);
+    ::accept(*this, v);
 }
 
 ModelIncremental::ModelIncremental(YaToolsHashProvider* provider)
-    : ctx_(*provider)
+    : Ctx(*provider)
 {
 }
 
@@ -1864,24 +1911,77 @@ std::shared_ptr<IModelIncremental> MakeModelIncremental(YaToolsHashProvider* pro
 
 void ModelIncremental::export_id(ea_t item_id, YaToolObjectId id)
 {
-    exports.emplace(item_id, id);
+    ids_.emplace(item_id, id);
 }
 
 void ModelIncremental::unexport_id(ea_t item_id)
 {
-    exports.erase(item_id);
+    ids_.erase(item_id);
 }
 
 YaToolObjectId ModelIncremental::is_exported(ea_t item_id) const
 {
-    const auto it = exports.find(item_id);
-    return it == exports.end() ? InvalidId : it->second;
+    const auto it = ids_.find(item_id);
+    return it == ids_.end() ? InvalidId : it->second;
 }
 
 void ModelIncremental::accept_enum(IModelVisitor& v, ea_t enum_id)
 {
-    if(is_exported(enum_id) != InvalidId)
+    ::accept_enum(*this, v, enum_id);
+}
+
+bool ModelIncremental::skip_enum(enum_t enum_id, YaToolObjectId id)
+{
+    if(ids_.count(enum_id))
+        return true;
+
+    ids_.emplace(enum_id, id);
+    return false;
+}
+
+bool ModelIncremental::skip_struct(const struc_t* struc, const func_t* func, YaToolObjectId id)
+{
+    const auto sid = func ? func->startEA : struc->id;
+    if(ids_.count(sid))
+        return true;
+
+    ids_.emplace(sid, id);
+    return false;
+}
+
+bool ModelIncremental::skip_struct_member(const member_t* member, YaToolObjectId id)
+{
+    if(ids_.count(member->id))
+        return true;
+
+    ids_.emplace(member->id, id);
+    return false;
+}
+
+void ModelIncremental::accept_struct(IModelVisitor& v, YaToolObjectId parent_id, ea_t struc_id, ea_t func_ea)
+{
+    const auto struc = get_struc(struc_id);
+    if(!struc)
+    {
+        LOG(ERROR, "accept_struct: 0x" EA_FMT " unable to get struct\n", struc_id);
         return;
-    const auto id = ::accept_enum(ctx_, v, enum_id);
-    export_id(enum_id, id);
+    }
+
+    if(func_ea == BADADDR)
+        return ::accept_struct(*this, v, {}, struc, nullptr);
+
+    ::accept_struct(*this, v, {parent_id, func_ea}, struc, get_func(func_ea));
+}
+
+void ModelIncremental::accept_struct_member(IModelVisitor& v, YaToolObjectId parent_id, ea_t func_ea, ea_t member_id)
+{
+    struc_t* struc = nullptr;
+    const auto member = get_member_by_id(member_id, &struc);
+    if(!member)
+    {
+        LOG(ERROR, "accept_member: 0x" EA_FMT "unable to get member\n", member_id);
+        return;
+    }
+
+    ::accept_struct_member(*this, v, {parent_id, member->soff}, struc, get_func(func_ea), member);
 }
