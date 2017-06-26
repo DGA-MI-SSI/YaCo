@@ -928,10 +928,20 @@ namespace
         });
     }
 
+    void accept_dependencies(Ctx& ctx, IModelVisitor& v, const ya::Deps& deps)
+    {
+        if(ctx.is_incremental())
+            for(const auto& dep : deps)
+                accept_dependency(ctx, v, dep);
+    }
+
     void accept_data(Ctx& ctx, IModelVisitor& v, const Parent& parent, ea_t ea)
     {
         const auto flags = getFlags(ea);
         const auto id = ctx.provider_.get_hash_for_ea(ea);
+        if(ctx.skip_id(id))
+            return;
+
         start_object(v, OBJECT_TYPE_DATA, id, parent.id, ea);
         const auto size = get_item_end(ea) - ea;
         v.visit_size(size);
@@ -950,6 +960,7 @@ namespace
         v.visit_end_offsets();
         accept_data_xrefs(v, deps, ea);
         finish_object(v, ea - parent.ea);
+        accept_dependencies(ctx, v, deps);
     }
 
     qflow_chart_t get_flow(func_t* func)
@@ -1868,8 +1879,9 @@ namespace
 
         // IModelIncremental accept methods
         void accept_enum(IModelVisitor& v, ea_t enum_id) override;
-        void accept_struct(IModelVisitor& v, YaToolObjectId parent_id, ea_t struc_id, ea_t func_ea)  override;
-        void accept_struct_member(IModelVisitor& v, YaToolObjectId parent_id, ea_t func_ea, ea_t member_id)  override;
+        void accept_struct(IModelVisitor& v, YaToolObjectId parent_id, ea_t struc_id, ea_t func_ea) override;
+        void accept_struct_member(IModelVisitor& v, YaToolObjectId parent_id, ea_t func_ea, ea_t member_id) override;
+        void accept_data(IModelVisitor& v, YaToolObjectId parent_id, ea_t ea) override;
 
         // Ctx methods
         bool is_incremental() const override { return true; }
@@ -1916,8 +1928,7 @@ void ModelIncremental::unexport_id(YaToolObjectId id)
 
 bool ModelIncremental::is_exported(YaToolObjectId id) const
 {
-    const auto it = ids_.find(id);
-    return it != ids_.end();
+    return !!ids_.count(id);
 }
 
 void ModelIncremental::accept_enum(IModelVisitor& v, ea_t enum_id)
@@ -1927,9 +1938,7 @@ void ModelIncremental::accept_enum(IModelVisitor& v, ea_t enum_id)
 
 bool ModelIncremental::skip_id(YaToolObjectId id)
 {
-    const auto size = ids_.size();
-    ids_.emplace(id);
-    return ids_.size() == size;
+    return !ids_.emplace(id).second;
 }
 
 void ModelIncremental::accept_struct(IModelVisitor& v, YaToolObjectId parent_id, ea_t struc_id, ea_t func_ea)
@@ -1958,4 +1967,17 @@ void ModelIncremental::accept_struct_member(IModelVisitor& v, YaToolObjectId par
     }
 
     ::accept_struct_member(*this, v, {parent_id, member->soff}, struc, get_func(func_ea), member);
+}
+
+void ModelIncremental::accept_data(IModelVisitor& v, YaToolObjectId parent_id, ea_t ea)
+{
+    const auto segment = getseg(ea);
+    if(!segment)
+    {
+        // FIXME find out why python call accept_data on invalid addresses
+        LOG(ERROR, "accept_data: 0x" EA_FMT "unable to get segment\n", ea);
+        return;
+    }
+    const auto chunk_start = ea - ((ea - segment->startEA) % SEGMENT_CHUNK_MAX_SIZE);
+    ::accept_data(*this, v, {parent_id, chunk_start}, ea);
 }
