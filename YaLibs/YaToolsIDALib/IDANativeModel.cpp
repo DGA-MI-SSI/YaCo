@@ -164,10 +164,11 @@ namespace
 
     struct RefInfo
     {
-        ea_t    offset;
-        int     opidx;
-        flags_t flags;
-        ea_t    base;
+        YaToolObjectId  id;
+        ea_t            offset;
+        int             opidx;
+        flags_t         flags;
+        ea_t            base;
     };
     using RefInfos = std::vector<RefInfo>;
 
@@ -1306,7 +1307,9 @@ namespace
             const auto offset = ea - root;
             const auto rflags = pop->ri.flags;
             const auto base = pop->ri.base;
-            ctx.refs_.push_back({offset, i, rflags, base});
+            const auto id = ctx.provider_.get_reference_info_hash(ea, base);
+            ctx.xrefs_.push_back({offset, id, i, 0});
+            ctx.refs_.push_back({id, offset, i, rflags, base});
         }
     }
 
@@ -1383,13 +1386,12 @@ namespace
         ctx.xrefs_.clear();
     }
 
-    void accept_reference_infos(Ctx& ctx, IModelVisitor& v, ea_t parent)
+    void accept_reference_infos(Ctx& ctx, IModelVisitor& v)
     {
         dedup(ctx.refs_);
         for(const auto& r : ctx.refs_)
         {
-            const auto id = ctx.provider_.get_reference_info_hash(parent + r.offset, r.base);
-            start_object(v, OBJECT_TYPE_REFERENCE_INFO, id, 0, 0);
+            start_object(v, OBJECT_TYPE_REFERENCE_INFO, r.id, 0, 0);
             if(EMULATE_PYTHON_MODEL_BEHAVIOR)
                 v.visit_size(0);
             v.visit_flags(r.flags);
@@ -1460,7 +1462,7 @@ namespace
         accept_xrefs(ctx, v);
 
         finish_object(v, ea - parent.ea);
-        accept_reference_infos(ctx, v, ea);
+        accept_reference_infos(ctx, v);
         accept_dependencies(ctx, v, deps);
     }
 
