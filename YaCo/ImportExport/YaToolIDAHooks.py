@@ -342,7 +342,6 @@ class YaToolIDAHooks(object):
     def save(self):
         start_time = time.time()
         ida_model = ya.MakeModelIncremental(self.hash_provider)
-        YaToolIDATools.update_bookmarks()
         """
         TODO : improve cache re-generation
         pb : we should not regenerate the whole cache everytime

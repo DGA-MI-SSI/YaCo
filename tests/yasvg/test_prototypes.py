@@ -31,14 +31,13 @@ if idc.__EA64__:
     import YaToolsPy64 as ya
 else:
     import YaToolsPy32 as ya
-from ImportExport import YaToolIDATools
 
 exporter = ya.IDANativeExporter()
 
 def walk_datas():
     for seg_start in idautils.Segments():
         seg_end = idc.SegEnd(seg_start)
-        for ea in YaToolIDATools.address_range_get_items(seg_start, seg_end):
+        for ea in ya.get_all_items(seg_start, seg_end):
             flags = idc.GetFlags(ea)
             func = idaapi.get_func(ea)
             if idaapi.isFunc(flags) or (func and idc.isCode(flags)):

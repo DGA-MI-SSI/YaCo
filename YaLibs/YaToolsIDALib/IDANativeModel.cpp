@@ -1567,102 +1567,105 @@ namespace
         else
             accept_data(ctx, v, parent, ea);
     }
+}
 
-    std::vector<ea_t> get_items(ea_t start, ea_t end)
+std::vector<ea_t> get_all_items(ea_t start, ea_t end)
+{
+    std::vector<ea_t> items;
+
+    // first, find all function entry points
+    auto ea = start;
+    while(ea != BADADDR && ea < end)
     {
-        std::vector<ea_t> items;
-
-        // first, find all function entry points
-        auto ea = start;
-        while(ea != BADADDR && ea < end)
+        const auto flags = get_flags_novalue(ea);
+        if(isCode(flags) || isFunc(flags))
         {
-            const auto flags = get_flags_novalue(ea);
-            if(isCode(flags) || isFunc(flags))
-            {
-                const auto func = get_func(ea);
-                if(func)
-                {
-                    const auto eaFunc = func->startEA;
-                    if(eaFunc >= start && eaFunc < end)
-                        items.push_back(eaFunc);
-                }
-            }
-            const auto func = get_next_func(ea);
-            ea = func ? func->startEA : BADADDR;
-        }
-
-        // try to add previous overlapped item
-        ea = start;
-        const auto previous_item = prev_head(ea, 0);
-        if(previous_item != BADADDR)
-        {
-            const auto previous_item_size = get_item_end(ea) - ea;
-            if(previous_item_size > 0 && ea < previous_item + previous_item_size)
-                ea = previous_item;
-        }
-
-        // iterate on every ea
-        while(ea != BADADDR && ea < end)
-        {
-            const auto flags = get_flags_novalue(ea);
-            if(isData(flags))
-            {
-                if(ea >= start && ea < end)
-                    items.push_back(ea);
-                ea = next_not_tail(ea);
-                continue;
-            }
-
-            auto size = BADADDR;
-            const auto func = isFunc(flags) || isCode(flags) ? get_func(ea) : nullptr;
+            const auto func = get_func(ea);
             if(func)
             {
-                const auto chunk = get_fchunk(ea);
-                if(chunk)
-                    size = chunk->endEA - ea;
-            }
-            else if(isCode(flags))
-            {
-                size = get_code_end(ea, end) - ea;
-                const auto chunk_start_ea = get_code_start(ea, start);
-                if(chunk_start_ea != BADADDR && chunk_start_ea >= start && ea < end)
-                    items.push_back(ea);
-            }
-            else if(has_any_name(flags) && hasRef(flags))
-            {
-                if(ea >= start && ea < end)
-                    items.push_back(ea);
-            }
-
-            if(size == 0 || size == 1)
-            {
-                if(!flags || hasValue(flags))
-                    ea = next_not_tail(ea);
-                else
-                    ++ea;
-            }
-            else if(size == BADADDR)
-            {
-                ea = next_not_tail(ea);
-            }
-            else
-            {
-                // TODO: check if we should use next_head or get_item_end
-                // next_head is FAR faster (we skip bytes that belong to no items) but may miss
-                // some elements
-                // end = idaapi.get_item_end(ea)
-                const auto tail_end = next_not_tail(ea);
-                if(ea + size < tail_end)
-                    ea = tail_end;
-                else
-                    ea += size;
+                const auto eaFunc = func->startEA;
+                if(eaFunc >= start && eaFunc < end)
+                    items.push_back(eaFunc);
             }
         }
-
-        dedup(items);
-        return items;
+        const auto func = get_next_func(ea);
+        ea = func ? func->startEA : BADADDR;
     }
 
+    // try to add previous overlapped item
+    ea = start;
+    const auto previous_item = prev_head(ea, 0);
+    if(previous_item != BADADDR)
+    {
+        const auto previous_item_size = get_item_end(ea) - ea;
+        if(previous_item_size > 0 && ea < previous_item + previous_item_size)
+            ea = previous_item;
+    }
+
+    // iterate on every ea
+    while(ea != BADADDR && ea < end)
+    {
+        const auto flags = get_flags_novalue(ea);
+        if(isData(flags))
+        {
+            if(ea >= start && ea < end)
+                items.push_back(ea);
+            ea = next_not_tail(ea);
+            continue;
+        }
+
+        auto size = BADADDR;
+        const auto func = isFunc(flags) || isCode(flags) ? get_func(ea) : nullptr;
+        if(func)
+        {
+            const auto chunk = get_fchunk(ea);
+            if(chunk)
+                size = chunk->endEA - ea;
+        }
+        else if(isCode(flags))
+        {
+            size = get_code_end(ea, end) - ea;
+            const auto chunk_start_ea = get_code_start(ea, start);
+            if(chunk_start_ea != BADADDR && chunk_start_ea >= start && ea < end)
+                items.push_back(ea);
+        }
+        else if(has_any_name(flags) && hasRef(flags))
+        {
+            if(ea >= start && ea < end)
+                items.push_back(ea);
+        }
+
+        if(size == 0 || size == 1)
+        {
+            if(!flags || hasValue(flags))
+                ea = next_not_tail(ea);
+            else
+                ++ea;
+        }
+        else if(size == BADADDR)
+        {
+            ea = next_not_tail(ea);
+        }
+        else
+        {
+            // TODO: check if we should use next_head or get_item_end
+            // next_head is FAR faster (we skip bytes that belong to no items) but may miss
+            // some elements
+            // end = idaapi.get_item_end(ea)
+            const auto tail_end = next_not_tail(ea);
+            if(ea + size < tail_end)
+                ea = tail_end;
+            else
+                ea += size;
+        }
+    }
+
+    dedup(items);
+    return items;
+}
+
+namespace
+{
     Parent accept_segment_chunk(Ctx& ctx, IModelVisitor& v, const Parent& parent, ea_t ea, ea_t end)
     {
         const auto id = ctx.provider_.get_segment_chunk_id(parent.id, ea, end);
@@ -1674,7 +1677,7 @@ namespace
         v.visit_size(end - ea);
 
         v.visit_start_xrefs();
-        const auto eas = get_items(ea, end);
+        const auto eas = get_all_items(ea, end);
         for(const auto item_ea : eas)
         {
             const auto offset = item_ea - ea;

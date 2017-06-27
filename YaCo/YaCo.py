@@ -89,7 +89,6 @@ class YaCo:
         logger.debug("YaCo cache loaded in %d seconds.", (end_time - start_time))
 
     def update(self):
-        YaToolIDATools.update_bookmarks()
         # pydevd.settrace()
         logger.debug("Yaco.update()")
         (modified_object_ids_str, deleted_object_ids_str, modified_files,
