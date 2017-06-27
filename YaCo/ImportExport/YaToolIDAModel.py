@@ -44,18 +44,14 @@ class YaToolIDAModel(YaToolObjectVersionElement):
     def accept_enum(self, visitor, enum_id):
         self.native.accept_enum(visitor, enum_id)
 
-    def accept_struc(self, visitor, parent_id, struc_id, struc_type=ya.OBJECT_TYPE_STRUCT,
-                     struc_member_type=ya.OBJECT_TYPE_STRUCT_MEMBER, stackframe_func_addr=None):
-        ea = stackframe_func_addr if stackframe_func_addr else idc.BADADDR
-        self.native.accept_struct(visitor, parent_id, struc_id, ea)
+    def accept_struc(self, visitor, struc_id, func_ea):
+        self.native.accept_struct(visitor, struc_id, func_ea)
 
-    def accept_struc_member(self, visitor, parent_id, ida_struc, struc_id, is_union, offset, struc_name, name,
-                            struc_type=ya.OBJECT_TYPE_STRUCT, struc_member_type=ya.OBJECT_TYPE_STRUCT_MEMBER,
-                            default_name_offset=0, stackframe_func_addr=None):
-        ida_member = idaapi.get_member(ida_struc, offset)
-        if ida_member:
-            ea = stackframe_func_addr if stackframe_func_addr else idc.BADADDR
-            self.native.accept_struct_member(visitor, parent_id, ea, ida_member.id)
+    def accept_struc_member(self, visitor, struc, offset, func_ea=None):
+        member = idaapi.get_member(struc, offset)
+        if member:
+            ea = func_ea if func_ea else idc.BADADDR
+            self.native.accept_struct_member(visitor, ea, member.id)
 
     def accept_deleted_strucmember(self, visitor, struc_id, struc_name, offset, struc_type=ya.OBJECT_TYPE_STRUCT,
                                    strucmember_type=ya.OBJECT_TYPE_STRUCT_MEMBER):
@@ -67,12 +63,11 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         visitor.visit_id(member_object_id)
         visitor.visit_end_deleted_object()
 
-    def accept_ea(self, visitor, parent_id, ea, export_segment=True):
+    def accept_ea(self, visitor, ea):
         self.native.accept_ea(visitor, ea)
 
-    def accept_function(self, visitor, parent_id, eaFunc, func, basic_blocks=None):
-        self.native.accept_function(visitor, eaFunc)
+    def accept_function(self, visitor, ea):
+        self.native.accept_function(visitor, ea)
 
-    def accept_segment(self, visitor, parent_id, seg_ea_start, seg_ea_end=None, export_chunks=False, chunk_eas=None,
-                       export_eas=None):
-        self.native.accept_segment(visitor, seg_ea_start)
+    def accept_segment(self, visitor, ea):
+        self.native.accept_segment(visitor, ea)

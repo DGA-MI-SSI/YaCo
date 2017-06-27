@@ -253,16 +253,14 @@ class YaToolIDAHooks(object):
                 eaFunc = idaapi.get_func_by_frame(struc_id)
                 if eaFunc != idc.BADADDR:
                     # OK, it is a stackframe
-                    ida_model.accept_struc(
-                        memory_exporter, 0, struc_id, ya.OBJECT_TYPE_STACKFRAME, ya.OBJECT_TYPE_STACKFRAME_MEMBER,
-                        stackframe_func_addr=eaFunc)
-                    ida_model.accept_ea(memory_exporter, 0, eaFunc)
+                    ida_model.accept_struc(memory_exporter, struc_id, eaFunc)
+                    ida_model.accept_ea(memory_exporter, eaFunc)
                 else:
                     # it is a deleted structure
                     ida_model.accept_deleted_struc(memory_exporter, struc_id)
             else:
 
-                ida_model.accept_struc(memory_exporter, 0, struc_id)
+                ida_model.accept_struc(memory_exporter, struc_id, idc.BADADDR)
 
         logger.debug("Walking members")
         """
@@ -286,18 +284,17 @@ class YaToolIDAHooks(object):
                 else:
                     struc_deleted = True
 
+            struc_type = ya.OBJECT_TYPE_STRUCT
+            strucmember_type = ya.OBJECT_TYPE_STRUCT_MEMBER
+            stackframe_func_addr = idc.BADADDR
             if is_stackframe:
                 strucmember_type = ya.OBJECT_TYPE_STACKFRAME_MEMBER
                 struc_name = None
                 struc_type = ya.OBJECT_TYPE_STACKFRAME
                 eaFunc = idaapi.get_func_by_frame(struc_id)
                 stackframe_func_addr = eaFunc
-                func = idaapi.get_func(eaFunc)
-                ida_model.accept_function(memory_exporter, 0, eaFunc, func)
+                ida_model.accept_function(memory_exporter, eaFunc)
             else:
-                strucmember_type = ya.OBJECT_TYPE_STRUCT_MEMBER
-                struc_type = ya.OBJECT_TYPE_STRUCT
-                stackframe_func_addr = None
                 if not struc_deleted:
                     struc_name = idc.GetStrucName(struc_id)
 
@@ -327,20 +324,9 @@ class YaToolIDAHooks(object):
                         # the member was deleted, and replaced by a member starting above it
                         ida_model.accept_deleted_strucmember(
                             memory_exporter, struc_id, struc_name, offset, struc_type, strucmember_type)
-                    elif new_member_id != member_id:
-                        # the member has been deleted and later recreated
-                        name = idaapi.get_member_name(new_member_id)
-                        ida_model.accept_struc_member(
-                            memory_exporter, 0, ida_struc, struc_id, is_union, offset, struc_name, name, struc_type,
-                            strucmember_type, stackframe_func_addr=stackframe_func_addr)
                     else:
                         # the member has just been modified
-                        name = idaapi.get_member_name(new_member_id)
-                        logger.debug("exporting member %s (%s) at offset 0x%02X (mid=0x%016X)" %
-                                     (strucmember_type, name, offset, member_id))
-                        ida_model.accept_struc_member(
-                            memory_exporter, 0, ida_struc, struc_id, is_union, offset, struc_name, name, struc_type,
-                            strucmember_type, stackframe_func_addr=stackframe_func_addr)
+                        ida_model.accept_struc_member(memory_exporter, ida_struc, offset, stackframe_func_addr)
 
     def save_enums(self, ida_model, memory_exporter):
         """
@@ -428,10 +414,10 @@ class YaToolIDAHooks(object):
         explore IDA yacoHooks for logged ea
         """
         for ea in self.addresses_to_process:
-            ida_model.accept_ea(memory_exporter, 0, ea)
+            ida_model.accept_ea(memory_exporter, ea)
 
         for seg_ea_start, seg_ea_end in self.updated_segments:
-            ida_model.accept_segment(memory_exporter, 0, seg_ea_start, seg_ea_end, export_chunks=True)
+            ida_model.accept_segment(memory_exporter, seg_ea_start)
 
         memory_exporter.visit_end()
         """
