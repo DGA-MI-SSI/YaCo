@@ -21,7 +21,6 @@ import traceback
 
 from ImportExport import YaToolIDATools
 from idaapi import REGVAR_ERROR_OK
-from ImportExport.YaToolPrototypeParser import YaToolPrototypeParser
 from exceptions import Exception
 
 if idc.__EA64__:
@@ -38,7 +37,6 @@ DEBUG_EXPORTER = False
 class YaToolIDAExporter(ya.IObjectVisitorListener):
     def __init__(self, yatools, hash_provider, use_stackframes=True):
         super(YaToolIDAExporter, self).__init__()
-        self.prototype_parser = YaToolPrototypeParser()
         self.yatools = yatools
         self.struc_ids = {}
         self.union_ids = set()
