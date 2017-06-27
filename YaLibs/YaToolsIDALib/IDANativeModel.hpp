@@ -17,6 +17,7 @@
 
 #include "YaTypes.hpp"
 #include "IModelAccept.hpp"
+#include <vector>
 
 namespace std { template<typename T> class shared_ptr; }
 struct YaToolsHashProvider;
@@ -28,6 +29,7 @@ const int MAX_BLOB_TAG_LEN = 0x1000;
 std::string get_type(ea_t ea);
 
 std::shared_ptr<IModelAccept> MakeModel(YaToolsHashProvider* provider);
+std::vector<ea_t> get_all_items(ea_t start, ea_t end);
 
 struct IModelIncremental
 {
