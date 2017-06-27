@@ -1942,6 +1942,7 @@ namespace
         void accept_segment(IModelVisitor& v, ea_t ea) override;
 
         // IModelIncremental delete methods
+        void delete_enum(IModelVisitor& v, ea_t enum_id) override;
         void delete_struct(IModelVisitor& v, ea_t struc_id) override;
         void delete_struct_member(IModelVisitor& v, ea_t struc_id, ea_t offset, ea_t func_ea) override;
 
@@ -2120,6 +2121,12 @@ void ModelIncremental::delete_struct(IModelVisitor& v, ea_t struc_id)
 {
     const auto id = provider_.get_struc_enum_object_id(struc_id, g_empty, true);
     delete_id(v, OBJECT_TYPE_STRUCT, id);
+}
+
+void ModelIncremental::delete_enum(IModelVisitor& v, ea_t enum_id)
+{
+    const auto id = provider_.get_struc_enum_object_id(enum_id, g_empty, true);
+    delete_id(v, OBJECT_TYPE_ENUM, id);
 }
 
 void ModelIncremental::delete_struct_member(IModelVisitor& v, ea_t struc_id, ea_t offset, ea_t func_ea)

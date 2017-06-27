@@ -49,6 +49,7 @@ struct IModelIncremental
     virtual void accept_ea(IModelVisitor& v, ea_t ea) = 0;
 
     // delete methods
+    virtual void delete_enum(IModelVisitor& v, ea_t enum_id) = 0;
     virtual void delete_struct(IModelVisitor& v, ea_t struc_id) = 0;
     virtual void delete_struct_member(IModelVisitor& v, ea_t struc_id, ea_t offset, ea_t func_ea) = 0;
 };

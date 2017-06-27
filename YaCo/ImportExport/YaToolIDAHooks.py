@@ -322,7 +322,7 @@ class YaToolIDAHooks(object):
             if eidx is None or eidx == idc.BADADDR:
                 # it is a deleted enum
                 logger.debug("Accepting deleted enum: 0x%08X" % enum_id)
-                ida_model.accept_deleted_enum(memory_exporter, enum_id)
+                ida_model.delete_enum(memory_exporter, enum_id)
             else:
                 logger.debug("Accepting enum: 0x%08X" % enum_id)
                 ida_model.accept_enum(memory_exporter, enum_id)
