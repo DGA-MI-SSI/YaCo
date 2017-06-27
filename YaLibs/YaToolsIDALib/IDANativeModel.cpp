@@ -1936,8 +1936,11 @@ namespace
         void accept_struct_member(IModelVisitor& v, ea_t func_ea, ea_t member_id) override;
         void accept_function(IModelVisitor& v, ea_t ea) override;
         void accept_ea(IModelVisitor& v, ea_t ea) override;
-        void accept_binary(IModelVisitor& v) override;
         void accept_segment(IModelVisitor& v, ea_t ea) override;
+
+        // IModelIncremental delete methods
+        void delete_struct(IModelVisitor& v, ea_t struc_id) override;
+        void delete_struct_member(IModelVisitor& v, ea_t struc_id, ea_t offset, ea_t func_ea) override;
 
         // Ctx methods
         bool is_incremental() const override { return true; }
@@ -2085,11 +2088,6 @@ void ModelIncremental::accept_ea(IModelVisitor& v, ea_t ea)
     ::accept_ea(*this, v, chunk, ea);
 }
 
-void ModelIncremental::accept_binary(IModelVisitor& v)
-{
-    ::accept_binary(*this, v);
-}
-
 void ModelIncremental::accept_segment(IModelVisitor& v, ea_t ea)
 {
     const auto seg = getseg(ea);
@@ -2103,4 +2101,36 @@ void ModelIncremental::accept_segment(IModelVisitor& v, ea_t ea)
     const auto segment = ::accept_segment(*this, v, binary, seg);
     // called on new segments only, so we need to accept chunks too
     ::accept_segment_chunks(*this, v, segment, seg);
+}
+
+namespace
+{
+    void delete_id(IModelVisitor& v, YaToolObjectType_e type, YaToolObjectId id)
+    {
+        v.visit_start_deleted_object(type);
+        v.visit_id(id);
+        v.visit_end_deleted_object();
+    }
+}
+
+void ModelIncremental::delete_struct(IModelVisitor& v, ea_t struc_id)
+{
+    const auto id = provider_.get_struc_enum_object_id(struc_id, g_empty, true);
+    delete_id(v, OBJECT_TYPE_STRUCT, id);
+}
+
+void ModelIncremental::delete_struct_member(IModelVisitor& v, ea_t struc_id, ea_t offset, ea_t func_ea)
+{
+    const auto func = get_func(func_ea);
+    if(func)
+    {
+        const auto id = provider_.get_stackframe_member_object_id(struc_id, offset, func_ea);
+        delete_id(v, OBJECT_TYPE_STACKFRAME_MEMBER, id);
+        return;
+    }
+
+    const auto qbuf = qpool_.acquire();
+    get_struc_name(&*qbuf, struc_id);
+    const auto id = provider_.get_struc_member_id(struc_id, offset, ya::to_string_ref(*qbuf));
+    delete_id(v, OBJECT_TYPE_STRUCT_MEMBER, id);
 }

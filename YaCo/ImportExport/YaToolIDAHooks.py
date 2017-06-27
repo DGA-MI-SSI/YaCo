@@ -257,7 +257,7 @@ class YaToolIDAHooks(object):
                     ida_model.accept_ea(memory_exporter, eaFunc)
                 else:
                     # it is a deleted structure
-                    ida_model.accept_deleted_struc(memory_exporter, struc_id)
+                    ida_model.delete_struc(memory_exporter, struc_id)
             else:
 
                 ida_model.accept_struc(memory_exporter, struc_id, idc.BADADDR)
@@ -284,49 +284,35 @@ class YaToolIDAHooks(object):
                 else:
                     struc_deleted = True
 
-            struc_type = ya.OBJECT_TYPE_STRUCT
-            strucmember_type = ya.OBJECT_TYPE_STRUCT_MEMBER
             stackframe_func_addr = idc.BADADDR
             if is_stackframe:
-                strucmember_type = ya.OBJECT_TYPE_STACKFRAME_MEMBER
-                struc_name = None
-                struc_type = ya.OBJECT_TYPE_STACKFRAME
                 eaFunc = idaapi.get_func_by_frame(struc_id)
                 stackframe_func_addr = eaFunc
                 ida_model.accept_function(memory_exporter, eaFunc)
-            else:
-                if not struc_deleted:
-                    struc_name = idc.GetStrucName(struc_id)
 
             if struc_deleted:
                 # The structure has been deleted : we need to delete the members
                 # Note: at first sight, it is not a stackframe
                 # TODO: handle function->stackframe deletion here
                 for (member_id, offset) in member_set:
-                    ida_model.accept_deleted_strucmember(memory_exporter, struc_id, None, offset)
+                    ida_model.delete_struc_member(memory_exporter, struc_id, offset, idc.BADADDR)
             else:
                 # The structure or stackframe has been modified
-                is_union = ida_struc.is_union()
-
                 for (member_id, offset) in member_set:
                     ida_member = idaapi.get_member(ida_struc, offset)
                     if ida_member is None:
                         new_member_id = -1
                     else:
                         new_member_id = ida_member.id
-                    logger.debug("exporting member %s at offset 0x%02X (mid=0x%016X)" %
-                                 (strucmember_type, offset, member_id))
                     if new_member_id == -1:
                         # the member has been deleted : delete it
-                        ida_model.accept_deleted_strucmember(
-                            memory_exporter, struc_id, struc_name, offset, struc_type, strucmember_type)
+                        ida_model.delete_struc_member(memory_exporter, struc_id, offset, stackframe_func_addr)
                     elif offset > 0 and idc.GetMemberId(struc_id, offset - 1) == new_member_id:
                         # the member was deleted, and replaced by a member starting above it
-                        ida_model.accept_deleted_strucmember(
-                            memory_exporter, struc_id, struc_name, offset, struc_type, strucmember_type)
+                        ida_model.delete_struc_member(memory_exporter, struc_id, offset, stackframe_func_addr)
                     else:
                         # the member has just been modified
-                        ida_model.accept_struc_member(memory_exporter, ida_struc, offset, stackframe_func_addr)
+                        ida_model.accept_struc_member(memory_exporter, ida_member.id, stackframe_func_addr)
 
     def save_enums(self, ida_model, memory_exporter):
         """

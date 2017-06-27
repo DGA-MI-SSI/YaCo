@@ -32,14 +32,8 @@ class YaToolIDAModel(YaToolObjectVersionElement):
         self.hash_provider = hash_provider
         self.native = ya.MakeModelIncremental(self.hash_provider)
 
-    def accept_binary(self, visitor):
-        self.native.accept_binary(visitor)
-
-    def accept_deleted_struc(self, visitor, struc_id, struc_type=ya.OBJECT_TYPE_STRUCT):
-        object_id = self.hash_provider.get_struc_enum_object_id(struc_id, "", True)
-        visitor.visit_start_deleted_object(struc_type)
-        visitor.visit_id(object_id)
-        visitor.visit_end_deleted_object()
+    def delete_struc(self, visitor, struc_id):
+        self.native.delete_struct(visitor, struc_id)
 
     def accept_enum(self, visitor, enum_id):
         self.native.accept_enum(visitor, enum_id)
@@ -47,21 +41,11 @@ class YaToolIDAModel(YaToolObjectVersionElement):
     def accept_struc(self, visitor, struc_id, func_ea):
         self.native.accept_struct(visitor, struc_id, func_ea)
 
-    def accept_struc_member(self, visitor, struc, offset, func_ea=None):
-        member = idaapi.get_member(struc, offset)
-        if member:
-            ea = func_ea if func_ea else idc.BADADDR
-            self.native.accept_struct_member(visitor, ea, member.id)
+    def accept_struc_member(self, visitor, member_id, func_ea):
+        self.native.accept_struct_member(visitor, member_id, func_ea)
 
-    def accept_deleted_strucmember(self, visitor, struc_id, struc_name, offset, struc_type=ya.OBJECT_TYPE_STRUCT,
-                                   strucmember_type=ya.OBJECT_TYPE_STRUCT_MEMBER):
-        if struc_type == ya.OBJECT_TYPE_STRUCT:
-            member_object_id = self.hash_provider.get_struc_member_id(struc_id, offset, struc_name)
-        else:
-            member_object_id = self.hash_provider.get_stackframe_member_object_id(struc_id, offset, idc.BADADDR)
-        visitor.visit_start_deleted_object(strucmember_type)
-        visitor.visit_id(member_object_id)
-        visitor.visit_end_deleted_object()
+    def delete_struc_member(self, visitor, struc_id, offset, func_ea):
+        self.native.delete_struct_member(visitor, struc_id, offset, func_ea)
 
     def accept_ea(self, visitor, ea):
         self.native.accept_ea(visitor, ea)
