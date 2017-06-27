@@ -21,7 +21,6 @@ import traceback
 import os
 import YaCo
 
-from ImportExport.YaToolIDAModel import YaToolIDAModel
 from ImportExport import YaToolIDATools
 
 if idc.__EA64__:
@@ -253,14 +252,14 @@ class YaToolIDAHooks(object):
                 eaFunc = idaapi.get_func_by_frame(struc_id)
                 if eaFunc != idc.BADADDR:
                     # OK, it is a stackframe
-                    ida_model.accept_struc(memory_exporter, struc_id, eaFunc)
+                    ida_model.accept_struct(memory_exporter, struc_id, eaFunc)
                     ida_model.accept_ea(memory_exporter, eaFunc)
                 else:
                     # it is a deleted structure
-                    ida_model.delete_struc(memory_exporter, struc_id)
+                    ida_model.delete_struct(memory_exporter, struc_id)
             else:
 
-                ida_model.accept_struc(memory_exporter, struc_id, idc.BADADDR)
+                ida_model.accept_struct(memory_exporter, struc_id, idc.BADADDR)
 
         logger.debug("Walking members")
         """
@@ -268,7 +267,7 @@ class YaToolIDAHooks(object):
         We iterate over members :
             -if the parent struc has been deleted, delete the member
             -otherwise, detect if the member has been updated or removed
-                -updated : accept struc_member + accept_struc if not already exported!
+                -updated : accept struc_member + accept_struct if not already exported!
                 -removed : accept struc_member_deleted
         """
         for (struc_id, member_set) in self.strucmember_to_process.iteritems():
@@ -295,7 +294,7 @@ class YaToolIDAHooks(object):
                 # Note: at first sight, it is not a stackframe
                 # TODO: handle function->stackframe deletion here
                 for (member_id, offset) in member_set:
-                    ida_model.delete_struc_member(memory_exporter, struc_id, offset, idc.BADADDR)
+                    ida_model.delete_struct_member(memory_exporter, struc_id, offset, idc.BADADDR)
             else:
                 # The structure or stackframe has been modified
                 for (member_id, offset) in member_set:
@@ -306,13 +305,13 @@ class YaToolIDAHooks(object):
                         new_member_id = ida_member.id
                     if new_member_id == -1:
                         # the member has been deleted : delete it
-                        ida_model.delete_struc_member(memory_exporter, struc_id, offset, stackframe_func_addr)
+                        ida_model.delete_struct_member(memory_exporter, struc_id, offset, stackframe_func_addr)
                     elif offset > 0 and idc.GetMemberId(struc_id, offset - 1) == new_member_id:
                         # the member was deleted, and replaced by a member starting above it
-                        ida_model.delete_struc_member(memory_exporter, struc_id, offset, stackframe_func_addr)
+                        ida_model.delete_struct_member(memory_exporter, struc_id, offset, stackframe_func_addr)
                     else:
                         # the member has just been modified
-                        ida_model.accept_struc_member(memory_exporter, ida_member.id, stackframe_func_addr)
+                        ida_model.accept_struct_member(memory_exporter, ida_member.id, stackframe_func_addr)
 
     def save_enums(self, ida_model, memory_exporter):
         """
@@ -342,7 +341,7 @@ class YaToolIDAHooks(object):
 
     def save(self):
         start_time = time.time()
-        ida_model = YaToolIDAModel(self.yatools, self.hash_provider)
+        ida_model = ya.MakeModelIncremental(self.hash_provider)
         YaToolIDATools.update_bookmarks()
         """
         TODO : improve cache re-generation
