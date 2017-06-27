@@ -424,13 +424,6 @@ class YaToolIDAHooks(object):
         self.save_strucs(ida_model, memory_exporter)
         self.save_enums(ida_model, memory_exporter)
 
-        segs = set()
-        for ea in self.segment_address_to_process:
-            segs.add(idc.SegStart(ea))
-
-        for ea in segs:
-            ida_model.clear_segment_item_cache(ea)
-
         """
         explore IDA yacoHooks for logged ea
         """
