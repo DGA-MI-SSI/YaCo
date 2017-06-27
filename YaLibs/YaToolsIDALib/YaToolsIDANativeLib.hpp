@@ -27,21 +27,13 @@ struct YaToolsIDANativeLib
 {
     YaToolsIDANativeLib();
 
-    bool is_exportable_data(ea_t address);
-    ea_t get_code_chunk_end_addr(ea_t ea_start, ea_t ea_max);
-    ea_t get_code_chunk_start_addr(ea_t ea_start, ea_t ea_min);
     ea_t get_struc_member_by_idx(const struc_t *sptr, uint32_t idx);
-    std::vector<ea_t> address_range_get_items(ea_t ea_start, ea_t ea_end);
 
-    void update_bookmarks();
-    std::vector<std::pair<CommentType_e, std::string>> get_comments_at_ea(ea_t ea);
     std::map<ea_t, std::vector<std::pair<CommentType_e, std::string>>> get_comments_in_area(ea_t ea_start, ea_t ea_end);
 
     void clear_extra_comment(ea_t ea, int from);
     void make_extra_comment(ea_t ea, const char* comment, int from);
 
     void delete_comment_at_ea(ea_t ea, CommentType_e comment_type);
-private:
-    std::map<ea_t,std::string> bookmarks;
 };
 
