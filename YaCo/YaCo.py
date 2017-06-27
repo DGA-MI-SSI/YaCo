@@ -38,7 +38,6 @@ from ImportExport import YaToolIDATools
 from ImportExport.YaToolIDAExporter import YaToolIDAExporter
 from ImportExport.YaToolIDAHooks import Hooks, YaCoUI_Hooks
 from ImportExport.YaTools import YaTools
-from ImportExport.YaToolIDAModel import YaToolIDAModel
 from ImportExport.YaToolRepoManager import YaToolRepoManager
 from ImportExport.YaToolIDATools import copy_idb_to_local_file, copy_idb_to_original_file
 from ImportExport.YaToolIDATools import get_original_idb_name, get_local_idb_name
