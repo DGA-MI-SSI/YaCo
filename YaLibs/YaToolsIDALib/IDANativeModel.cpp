@@ -482,9 +482,15 @@ namespace
         v.visit_end_xrefs();
     }
 
-    // need forward declaration as there is a cycle between accept_struct & accept_struct_member
-    void accept_dependency  (Ctx& ctx, IModelVisitor& v, const ya::Dependency);
-    void accept_struct      (Ctx& ctx, IModelVisitor& v, const Parent& parent, struc_t* struc, func_t* func);
+    // forward declaration due to circular dependency on structs & struct members
+    void accept_dependency(Ctx& ctx, IModelVisitor& v, const ya::Dependency dep);
+
+    void accept_dependencies(Ctx& ctx, IModelVisitor& v, const ya::Deps& deps)
+    {
+        if(ctx.is_incremental())
+            for(const auto& dep : deps)
+                accept_dependency(ctx, v, dep);
+    }
 
     void accept_struct_member(Ctx& ctx, IModelVisitor& v, const Parent& parent, struc_t* struc, func_t* func, member_t* member)
     {
@@ -526,17 +532,10 @@ namespace
             return get_member_cmt(member->id, repeat, buf, szbuf);
         });
         finish_object(v, offset);
-
-        if(!ctx.is_incremental())
-            return;
-
-        const auto fid = func ? ctx.provider_.get_hash_for_ea(func->startEA) : 0;
-        accept_struct(ctx, v, {fid, func ? func->startEA : 0}, struc, func);
-        for(const auto& it : deps)
-            accept_dependency(ctx, v, it);
+        accept_dependencies(ctx, v, deps);
     }
 
-    void accept_struct(Ctx& ctx, IModelVisitor& v, const Parent& parent, struc_t* struc, func_t* func)
+    YaToolObjectId accept_struct(Ctx& ctx, IModelVisitor& v, const Parent& parent, struc_t* struc, func_t* func)
     {
         const auto struc_name = ctx.qpool_.acquire();
         const auto sid = struc->id;
@@ -545,7 +544,7 @@ namespace
             ctx.provider_.get_stackframe_object_id(sid, func->startEA) :
             ctx.provider_.get_struc_enum_object_id(sid, ya::to_string_ref(*struc_name), true);
         if(ctx.skip_id(id))
-            return;
+            return id;
 
         const auto ea = func ? func->startEA : 0;
         start_object(v, func ? OBJECT_TYPE_STACKFRAME : OBJECT_TYPE_STRUCT, id, parent.id, ea);
@@ -602,6 +601,8 @@ namespace
             const auto member = &struc->members[i];
             accept_struct_member(ctx, v, {id, member->soff}, struc, func, member);
         }
+
+        return id;
     }
 
     void accept_dependency(Ctx& ctx, IModelVisitor& v, const ya::Dependency dep)
@@ -927,13 +928,6 @@ namespace
         {
             v.visit_offset_comments(offset, type, cmt);
         });
-    }
-
-    void accept_dependencies(Ctx& ctx, IModelVisitor& v, const ya::Deps& deps)
-    {
-        if(ctx.is_incremental())
-            for(const auto& dep : deps)
-                accept_dependency(ctx, v, dep);
     }
 
     void accept_data(Ctx& ctx, IModelVisitor& v, const Parent& parent, ea_t ea)
@@ -1938,8 +1932,8 @@ namespace
 
         // IModelIncremental accept methods
         void accept_enum(IModelVisitor& v, ea_t enum_id) override;
-        void accept_struct(IModelVisitor& v, YaToolObjectId parent_id, ea_t struc_id, ea_t func_ea) override;
-        void accept_struct_member(IModelVisitor& v, YaToolObjectId parent_id, ea_t func_ea, ea_t member_id) override;
+        void accept_struct(IModelVisitor& v, ea_t struc_id, ea_t func_ea) override;
+        void accept_struct_member(IModelVisitor& v, ea_t func_ea, ea_t member_id) override;
         void accept_function(IModelVisitor& v, ea_t ea) override;
         void accept_ea(IModelVisitor& v, ea_t ea) override;
         void accept_binary(IModelVisitor& v) override;
@@ -2003,7 +1997,18 @@ bool ModelIncremental::skip_id(YaToolObjectId id)
     return !ids_.emplace(id).second;
 }
 
-void ModelIncremental::accept_struct(IModelVisitor& v, YaToolObjectId parent_id, ea_t struc_id, ea_t func_ea)
+namespace
+{
+    Parent get_parent_function(Ctx& ctx, ea_t func_ea, func_t* func)
+    {
+        if(!func)
+            return {};
+        const auto id = ctx.provider_.get_hash_for_ea(func_ea);
+        return {id, func_ea};
+    }
+}
+
+void ModelIncremental::accept_struct(IModelVisitor& v, ea_t struc_id, ea_t func_ea)
 {
     const auto struc = get_struc(struc_id);
     if(!struc)
@@ -2012,23 +2017,22 @@ void ModelIncremental::accept_struct(IModelVisitor& v, YaToolObjectId parent_id,
         return;
     }
 
-    if(func_ea == BADADDR)
-        return ::accept_struct(*this, v, {}, struc, nullptr);
-
-    ::accept_struct(*this, v, {parent_id, func_ea}, struc, get_func(func_ea));
+    const auto func = get_func(func_ea);
+    ::accept_struct(*this, v, get_parent_function(*this, func_ea, func), struc, func);
 }
 
-void ModelIncremental::accept_struct_member(IModelVisitor& v, YaToolObjectId parent_id, ea_t func_ea, ea_t member_id)
+void ModelIncremental::accept_struct_member(IModelVisitor& v, ea_t func_ea, ea_t member_id)
 {
     struc_t* struc = nullptr;
     const auto member = get_member_by_id(member_id, &struc);
     if(!member)
     {
-        LOG(ERROR, "accept_member: 0x" EA_FMT "unable to get member\n", member_id);
+        LOG(ERROR, "accept_member: 0x" EA_FMT "unable to get member or struc (m %p s %p)\n", member_id, member, struc);
         return;
     }
-
-    ::accept_struct_member(*this, v, {parent_id, member->soff}, struc, get_func(func_ea), member);
+    const auto func = get_func(func_ea);
+    const auto struct_id = ::accept_struct(*this, v, get_parent_function(*this, func_ea, func), struc, func);
+    ::accept_struct_member(*this, v, {struct_id, member->soff}, struc, func, member);
 }
 
 namespace
