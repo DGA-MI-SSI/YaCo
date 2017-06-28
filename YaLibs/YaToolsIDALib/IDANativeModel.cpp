@@ -2015,7 +2015,7 @@ namespace
     }
 }
 
-void ModelIncremental::accept_struct(IModelVisitor& v, ea_t struc_id, ea_t func_ea)
+void ModelIncremental::accept_struct(IModelVisitor& v, ea_t func_ea, ea_t struc_id)
 {
     const auto struc = get_struc(struc_id);
     if(!struc)
@@ -2129,7 +2129,7 @@ void ModelIncremental::delete_enum(IModelVisitor& v, ea_t enum_id)
     delete_id(v, OBJECT_TYPE_ENUM, id);
 }
 
-void ModelIncremental::delete_struct_member(IModelVisitor& v, ea_t struc_id, ea_t offset, ea_t func_ea)
+void ModelIncremental::delete_struct_member(IModelVisitor& v, ea_t func_ea, ea_t struc_id, ea_t offset)
 {
     const auto func = get_func(func_ea);
     if(func)
