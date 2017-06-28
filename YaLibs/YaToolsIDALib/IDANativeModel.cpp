@@ -1783,18 +1783,19 @@ namespace
             return const_string_ref{g_seg_attributes[attr], sizeof g_seg_attributes[attr]};
         };
         char buf[32];
-        v.visit_attribute(get_key(SEG_ATTR_START), str_ea(buf, sizeof buf, seg->startEA));
-        v.visit_attribute(get_key(SEG_ATTR_END), str_ea(buf, sizeof buf, seg->endEA));
         v.visit_attribute(get_key(SEG_ATTR_BASE), str_ea(buf, sizeof buf, get_segm_base(seg)));
-        v.visit_attribute(get_key(SEG_ATTR_ALIGN), str_uchar(buf, sizeof buf, seg->align));
         v.visit_attribute(get_key(SEG_ATTR_COMB), str_uchar(buf, sizeof buf, seg->comb));
+        if(EMULATE_PYTHON_MODEL_BEHAVIOR || seg->color != DEFCOLOR)
+            v.visit_attribute(get_key(SEG_ATTR_COLOR), str_bgcolor(buf, sizeof buf, seg->color));
+        v.visit_attribute(get_key(SEG_ATTR_ALIGN), str_uchar(buf, sizeof buf, seg->align));
+        v.visit_attribute(get_key(SEG_ATTR_START), str_ea(buf, sizeof buf, seg->startEA));
         v.visit_attribute(get_key(SEG_ATTR_PERM), str_uchar(buf, sizeof buf, seg->perm));
         v.visit_attribute(get_key(SEG_ATTR_BITNESS), str_uchar(buf, sizeof buf, seg->bitness));
         v.visit_attribute(get_key(SEG_ATTR_FLAGS), str_ushort(buf, sizeof buf, seg->flags));
+        v.visit_attribute(get_key(SEG_ATTR_END), str_ea(buf, sizeof buf, seg->endEA));
         v.visit_attribute(get_key(SEG_ATTR_SEL), str_ea(buf, sizeof buf, seg->sel));
         v.visit_attribute(get_key(SEG_ATTR_TYPE), str_uchar(buf, sizeof buf, seg->type));
-        if(seg->color != DEFCOLOR)
-            v.visit_attribute(get_key(SEG_ATTR_COLOR), str_bgcolor(buf, sizeof buf, seg->color));
+
         // FIXME flaky link between REG_ATTR, SEG_ATTR & defsr...
         for(size_t i = 0; i < REG_ATTR_COUNT; ++i)
             if(seg->defsr[i] != BADADDR)
