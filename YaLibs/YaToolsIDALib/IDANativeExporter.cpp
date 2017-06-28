@@ -37,9 +37,11 @@
 
 #ifdef __EA64__
 #define EA_FMT  "%llx"
+#define EA_DECIMAL_FMT "%llu"
 #define SEL_FMT "%lld"
 #else
 #define EA_FMT  "%x"
+#define EA_DECIMAL_FMT "%u"
 #define SEL_FMT "%d"
 #endif
 
@@ -168,12 +170,12 @@ TYPE NAME(const char* value)\
     return reply;\
 }
 
-MAKE_TO_TYPE_FUNCTION(to_ea,      ea_t,             EA_FMT);
+MAKE_TO_TYPE_FUNCTION(to_ea,      ea_t,             EA_DECIMAL_FMT);
 MAKE_TO_TYPE_FUNCTION(to_uchar,   uchar,            "%hhd");
 MAKE_TO_TYPE_FUNCTION(to_ushort,  ushort,           "%hd");
 MAKE_TO_TYPE_FUNCTION(to_int,     int,              "%d");
 MAKE_TO_TYPE_FUNCTION(to_sel,     sel_t,            SEL_FMT);
-MAKE_TO_TYPE_FUNCTION(to_bgcolor, bgcolor_t,        "%d");
+MAKE_TO_TYPE_FUNCTION(to_bgcolor, bgcolor_t,        "%u");
 MAKE_TO_TYPE_FUNCTION(to_yaid,    YaToolObjectId,   "%llx");
 
 template<typename T>
