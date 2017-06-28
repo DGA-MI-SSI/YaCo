@@ -2035,7 +2035,7 @@ void ModelIncremental::accept_struct_member(IModelVisitor& v, ea_t func_ea, ea_t
     const auto member = get_member_by_id(member_id, &struc);
     if(!member)
     {
-        LOG(ERROR, "accept_member: 0x" EA_FMT "unable to get member or struc (m %p s %p)\n", member_id, member, struc);
+        LOG(ERROR, "accept_member: 0x" EA_FMT " unable to get member or struc (m %p s %p)\n", member_id, member, struc);
         return;
     }
     const auto func = get_func(func_ea);
