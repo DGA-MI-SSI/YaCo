@@ -796,7 +796,7 @@ namespace
             flags |= SN_AUTO;
         else if(has_dummy_name(ea_flags))
             flags |= SN_AUTO;
-        else if(ea_flags)
+        else if(ea_flags && name && *name)
             LOG(WARNING, "get_name_flags: 0x" EA_FMT " unhandled name flags %x on %s\n", ea, ea_flags, name);
         uval_t ignore = 0;
         const auto code = get_name_value(ea, name, &ignore);
