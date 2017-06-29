@@ -2067,13 +2067,7 @@ namespace
 
 void ModelIncremental::accept_function(IModelVisitor& v, ea_t ea)
 {
-    const auto seg = getseg(ea);
-    if(!seg)
-    {
-        LOG(ERROR, "accept_function: 0x" EA_FMT " unable to get segment\n", ea);
-        return;
-    }
-
+    // owner function may not belong to the same segment chunk as ea
     const auto func = get_func(ea);
     if(!func)
     {
@@ -2081,16 +2075,23 @@ void ModelIncremental::accept_function(IModelVisitor& v, ea_t ea)
         return;
     }
 
-    const auto chunk = accept_binary_to_chunk(ctx_, v, seg, ea);
-    ::accept_function(ctx_, v, chunk, func, func->startEA);
+    const auto seg = getseg(func->startEA);
+    if(!seg)
+    {
+        LOG(ERROR, "accept_function: 0x" EA_FMT " unable to get segment\n", func->startEA);
+        return;
+    }
+
+    const auto chunk = accept_binary_to_chunk(ctx_, v, seg, func->startEA);
+    ::accept_function(ctx_, v, chunk, func, ea);
 }
 
 void ModelIncremental::accept_ea(IModelVisitor& v, ea_t ea)
 {
-    const auto prev = prev_head(ea, BADADDR);
-    if(prev != BADADDR)
-        if(area_t{prev, get_item_end(prev)}.contains(ea))
-            ea = prev;
+    // owner function may not belong to the same segment chunk as ea
+    const auto func = get_func(ea);
+    if(func)
+        return accept_function(v, ea);
 
     const auto seg = getseg(ea);
     if(!seg)
