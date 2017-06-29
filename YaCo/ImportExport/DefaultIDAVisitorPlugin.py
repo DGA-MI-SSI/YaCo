@@ -13,16 +13,9 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-class DefaultIDAModelPlugin(object):
-
-    def accept_basic_block_hook(self, visitor, basic_block, funcEA, func, parent_function_id):
-        pass
-
-    def accept_function_hook(self, visitor, eaFunc, func, basic_blocks=None):
-        pass
-
-
 class DefaultIDAVisitorPlugin(object):
+    def __init__(self):
+        pass
 
     def make_basic_block_prehook(self, object_version, address):
         pass
@@ -35,21 +28,3 @@ class DefaultIDAVisitorPlugin(object):
 
     def make_function_posthook(self, object_version, address):
         pass
-
-
-class DefaultArchPlugin(object):
-
-    '''
-    classdocs
-    '''
-
-    def __init__(self, yatools):
-        self.yatools = yatools
-        self.ida_model_plugin = DefaultIDAModelPlugin()
-        self.ida_visitor_plugin = DefaultIDAVisitorPlugin()
-
-    def get_ida_model_plugin(self):
-        return self.ida_model_plugin
-
-    def get_ida_visitor_plugin(self):
-        return self.ida_visitor_plugin

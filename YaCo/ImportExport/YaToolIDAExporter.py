@@ -19,6 +19,8 @@ import inspect
 import logging
 import traceback
 
+from ImportExport import ARMIDAVisitorPlugin
+from ImportExport import DefaultIDAVisitorPlugin
 from ImportExport import YaToolIDATools
 from idaapi import REGVAR_ERROR_OK
 from exceptions import Exception
@@ -43,7 +45,9 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
         self.strucmember_ids = {}
         self.stackframes_functions = {}
         self.stackframemembers_stackframes = {}
-        self.arch_plugin = yatools.get_arch_plugin().get_ida_visitor_plugin()
+        self.arch_plugin = DefaultIDAVisitorPlugin.DefaultIDAVisitorPlugin()
+        if idc.GetCharPrm(idc.INF_PROCNAME) == "ARM":
+            self.arch_plugin = ARMIDAVisitorPlugin.ARMIDAVisitorPlugin()
         self.reference_infos = {}
         self.hash_provider = hash_provider
         self.use_stackframes = use_stackframes

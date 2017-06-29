@@ -38,6 +38,7 @@
 #include <name.hpp>
 #include <offset.hpp>
 #include <segment.hpp>
+#include <srarea.hpp>
 #include <struct.hpp>
 #include <typeinf.hpp>
 #undef snprintf // ida disable this...
