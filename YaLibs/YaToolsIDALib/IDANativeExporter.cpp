@@ -187,18 +187,9 @@ int find_int(const T& data, const char* key)
     return to_int(it->second.data());
 }
 
-// FIXME weird bug, getseg returns different results from iterating segments manually...
-segment_t* try_getseg(ea_t ea)
-{
-    for(auto seg = get_first_seg(); seg; seg = get_next_seg(seg->endEA - 1))
-        if(seg->contains(ea))
-            return seg;
-    return nullptr;
-}
-
 segment_t* check_segment(ea_t ea, ea_t end)
 {
-    const auto segment = try_getseg(ea);
+    const auto segment = getseg(ea);
     if(!segment)
         return nullptr;
 
@@ -221,7 +212,7 @@ segment_t* add_seg(ea_t start, ea_t end, ea_t base, int bitness, int align, int 
     if(!ok)
         return nullptr;
 
-    return try_getseg(start);
+    return getseg(start);
 }
 
 enum SegAttribute
