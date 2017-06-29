@@ -1119,8 +1119,6 @@ void IDANativeExporter::make_enum(YaToolsHashProvider* provider, std::shared_ptr
     if(eid == BADADDR)
         eid = add_enum(~0u, name.data(), flags & ~ENUM_FLAGS_IS_BF);
 
-    // FIXME find & delete invalid members
-
     if(!set_enum_bf(eid, flags & ENUM_FLAGS_IS_BF))
         LOG(ERROR, "make_enum: 0x" EA_FMT " unable to set as bitfield\n", ea);
 
