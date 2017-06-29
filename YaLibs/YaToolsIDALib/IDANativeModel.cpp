@@ -1200,9 +1200,7 @@ namespace
         for(auto ea = get_first_cref_from(next); ea != BADADDR; ea = get_next_cref_from(next, ea))
         {
             const auto id = ctx.provider_.get_function_basic_block_hash(ea, func->startEA);
-            // FIXME use offset rather than absolute address
-            const auto offset = EMULATE_PYTHON_MODEL_BEHAVIOR ? 0 : start;
-            ctx.xrefs_.push_back({ea - offset, id, DEFAULT_OPERAND, 0});
+            ctx.xrefs_.push_back({ea - start, id, DEFAULT_OPERAND, 0});
         }
     }
 
