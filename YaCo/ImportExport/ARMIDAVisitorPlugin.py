@@ -16,25 +16,7 @@
 import logging
 import idaapi
 
-from DefaultArchPlugin import DefaultArchPlugin, \
-    DefaultIDAModelPlugin
-
 logger = logging.getLogger("YaCo")
-
-
-class ARMIDAModelPlugin(DefaultIDAModelPlugin):
-    def __init__(self):
-        self.thumb_segment_register = idaapi.str2reg("T")
-
-    def accept_basic_block_hook(self, visitor, basic_block, funcEA, func, parent_function_id):
-        startEA = basic_block['startEA']
-        thumb_flag = idaapi.getSR(startEA, self.thumb_segment_register)
-        visitor.visit_attribute("thumb_mode_flag", str(thumb_flag))
-
-    def accept_function_hook(self, visitor, eaFunc, func, basic_blocks=None):
-        startEA = eaFunc
-        thumb_flag = idaapi.getSR(startEA, self.thumb_segment_register)
-        visitor.visit_attribute("thumb_mode_flag", str(thumb_flag))
 
 
 class ARMIDAVisitorPlugin(object):
@@ -76,15 +58,3 @@ class ARMIDAVisitorPlugin(object):
 
     def make_function_posthook(self, object_version, address):
         pass
-
-
-class ARMArchPlugin(DefaultArchPlugin):
-    '''
-    classdocs
-    '''
-
-    def __init__(self, yatools):
-        DefaultArchPlugin.__init__(self, yatools)
-
-        self.ida_model_plugin = ARMIDAModelPlugin()
-        self.ida_visitor_plugin = ARMIDAVisitorPlugin()

@@ -25,6 +25,7 @@
 #include "../Helpers.h"
 #include "Pool.hpp"
 #include "StringFormat.hpp"
+#include "PluginModel.hpp"
 
 #include <Logger.h>
 #include <Yatools.h>
@@ -207,17 +208,20 @@ namespace
             : provider_ (provider)
             , qpool_    (4)
         {
+            if(!strncmp(inf.procName, "ARM", sizeof inf.procName))
+                plugin_ = MakeArmPluginModel();
         }
 
         virtual bool is_incremental () const = 0;
         virtual bool skip_id        (YaToolObjectId id) = 0;
 
-        YaToolsHashProvider&    provider_;
-        Pool<qstring>           qpool_;
-        std::vector<uint8_t>    buffer_;
-        Bookmarks               bookmarks_;
-        Xrefs                   xrefs_;
-        RefInfos                refs_;
+        YaToolsHashProvider&            provider_;
+        Pool<qstring>                   qpool_;
+        std::vector<uint8_t>            buffer_;
+        Bookmarks                       bookmarks_;
+        Xrefs                           xrefs_;
+        RefInfos                        refs_;
+        std::shared_ptr<PluginModel>    plugin_;
     };
 
     offset_t offset_from_ea(ea_t offset)
@@ -239,7 +243,6 @@ namespace
     void finish_object(IModelVisitor& v, ea_t offset)
     {
         v.visit_start_matching_systems();
-
         v.visit_start_matching_system(offset_from_ea(offset));
         v.visit_matching_system_description(g_eq, g_none);
         v.visit_matching_system_description(g_os, g_none);
@@ -1487,6 +1490,8 @@ namespace
         accept_offsets(ctx, v, &deps, block.startEA, block.endEA);
         accept_xrefs(ctx, v);
 
+        if(ctx.plugin_)
+            ctx.plugin_->accept_block(v, ea);
         finish_object(v, ea - parent.ea);
         accept_reference_infos(ctx, v);
         accept_dependencies(ctx, v, deps);
@@ -1536,6 +1541,8 @@ namespace
         const auto frame = get_frame(func);
         accept_function_xrefs(ctx, v, func->startEA, frame, flow.blocks);
 
+        if(ctx.plugin_)
+            ctx.plugin_->accept_function(v, ea);
         finish_object(v, ea - parent.ea);
 
         if(frame)

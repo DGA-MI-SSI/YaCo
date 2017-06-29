@@ -17,11 +17,6 @@ import idc
 import logging
 
 
-from idc import GetCharPrm, INF_PROCNAME
-from ImportExport.ARMArchPlugin import ARMArchPlugin
-from ImportExport.DefaultArchPlugin import DefaultArchPlugin
-
-
 IDLE_PRIORITY_CLASS = 0x00000040
 logger = logging.getLogger("YaCo")
 debug = False
@@ -47,8 +42,6 @@ class YaTools(object):
         else:
             self.addr_len = addr_len
 
-        self.load_arch_plugin()
-
     def address_to_hex_string(self, address):
         if self.addr_len == 32:
             return "0x%08X" % address
@@ -56,12 +49,6 @@ class YaTools(object):
             return "0x%016X" % address
         else:
             return hex(address)
-
-    def flags_to_hex_string(self, flags):
-        return "0x%08X" % flags
-
-    def operand_to_hex_string(self, operand):
-        return self.address_to_hex_string(operand)
 
     def try_read_hex_value(self, value):
         if value[0:2] == "0x":
@@ -92,13 +79,3 @@ class YaTools(object):
         else:
             logger.warning("unable to parse hex address : '%s'" % hex_str)
             return int(hex_str, 16)
-
-    def load_arch_plugin(self):
-        proc = GetCharPrm(INF_PROCNAME)
-        if proc == "ARM":
-            self.arch_plugin = ARMArchPlugin(self)
-        else:
-            self.arch_plugin = DefaultArchPlugin(self)
-
-    def get_arch_plugin(self):
-        return self.arch_plugin
