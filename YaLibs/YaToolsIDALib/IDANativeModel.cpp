@@ -729,17 +729,9 @@ namespace
     template<typename Ctx>
     void accept_signature(Ctx& ctx, IModelVisitor& v, uint32_t crc)
     {
-        // FIXME remove this once python is not used in models anymore
-        // emulate python model behavior which print -A6B523A for hex value F594ADC6 (signed/unsigned confusion)
-        auto to_str = &str_crc32;
-        if(EMULATE_PYTHON_MODEL_BEHAVIOR && crc > INT32_MAX)
-        {
-            crc = ~crc + 1;
-            to_str = &str_icrc32;
-        }
         const auto qbuf = ctx.qpool_.acquire();
         qbuf->resize(std::max(qbuf->size(), 32u));
-        v.visit_signature(SIGNATURE_FIRSTBYTE, SIGNATURE_ALGORITHM_CRC32, to_str(&(*qbuf)[0], qbuf->size(), crc));
+        v.visit_signature(SIGNATURE_FIRSTBYTE, SIGNATURE_ALGORITHM_CRC32, str_crc32(&(*qbuf)[0], qbuf->size(), crc));
     }
 
     template<typename T>
