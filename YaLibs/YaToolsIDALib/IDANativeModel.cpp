@@ -108,17 +108,6 @@ namespace
         return to_hex(buf, x);
     }
 
-    const_string_ref str_icrc32(char* buf, size_t /*szbuf*/, uint32_t x)
-    {
-        *buf = '-';
-        to_hex(buf + 1, x);
-        if(buf[1] != '0')
-            return {buf, 1 + 8};
-
-        buf[1] = '-';
-        return {&buf[1], 8};
-    }
-
     const_string_ref str_defname(char* buf, size_t /*szbuf*/, ea_t ea)
     {
         // make sure we have one byte to put '-'
@@ -788,10 +777,6 @@ namespace
             LOG(ERROR, "accept_string_type: 0x" EA_FMT " unable to get ascii contents %d bytes %x strtype\n", ea, n, strtype);
             return;
         }
-
-        // FIXME python stop at first char with unicode
-        if(EMULATE_PYTHON_MODEL_BEHAVIOR && strtype == ASCSTR_UNICODE)
-            buf.resize(std::min(buf.size(), 1u));
 
         // remove invalid characters
         buf.erase(std::remove_if(buf.begin(), buf.end(), [](uint8_t c)
