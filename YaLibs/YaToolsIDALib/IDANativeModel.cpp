@@ -849,11 +849,6 @@ namespace
         if(!ok)
             return;
 
-        // FIXME python version does not skip empty names on basic blocks...
-        if(!EMULATE_PYTHON_MODEL_BEHAVIOR || epolicy != BasicBlockNamePolicy)
-            if(!qbuf->length())
-                return;
-
         // FIXME python version does not check for default names on datas...
         if(!EMULATE_PYTHON_MODEL_BEHAVIOR || epolicy != DataNamePolicy)
         {
