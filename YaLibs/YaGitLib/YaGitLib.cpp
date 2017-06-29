@@ -110,34 +110,12 @@ GitRepo::~GitRepo()
     git_libgit2_shutdown();
 }
 
-
-static std::string last_ssh_url;
-
-void clear_last_ssh_url(){
-    last_ssh_url = "";
-}
-
 int git_cred_acquire_callback(git_cred **cred, const char *url, const char *username_from_url, unsigned int allowed_types, void* payload)
 {
+    UNUSED(url);
     UNUSED(allowed_types);
     UNUSED(payload);
-
-#ifdef WIN32
-    filesystem::path priv_path(std::string(getenv("HOMEDRIVE")) + getenv("HOMEPATH"));
-#else
-    filesystem::path priv_path(getenv("HOME"));
-#endif
-    priv_path /= ".ssh";
-    filesystem::path pub_path(priv_path);
-    priv_path /= "id_rsa";
-    pub_path /= "id_rsa.pub";
-    if(last_ssh_url.length() > 0 && last_ssh_url.compare(url) == 0) {
-        throw "could not authenticate with given url";
-    }
-    last_ssh_url = url;
-    int result = git_cred_ssh_key_new(cred, username_from_url, pub_path.string().c_str(), priv_path.string().c_str(), "");
-//  FIXME cerr << "git_cred_acquire_callback: " << result << endl;
-    return result;
+    return git_cred_ssh_key_from_agent(cred, username_from_url);
 }
 
 std::shared_ptr<const git_signature> GitRepo::make_signature()
@@ -205,12 +183,9 @@ void GitRepo::clone(const std::string &url, const std::string &branch)
     }
     else
     {
-
         options.checkout_branch = branch.c_str();
         check_git_error(git_clone(&repository, url.c_str(), repo_path.c_str(), &options ));
     }
-
-    clear_last_ssh_url();
 }
 
 
@@ -264,8 +239,6 @@ void GitRepo::fetch(const std::string& remote_name)
     git_fetch_options options = make_git_fetch_options();
     options.callbacks.credentials = git_cred_acquire_callback;
     check_git_error(git_remote_fetch(current_remote, nullptr, &options, ""));
-
-    clear_last_ssh_url();
 }
 
 void GitRepo::load_remote(const std::string& remote_name)
@@ -849,7 +822,6 @@ void GitRepo::push(const std::string& src, const std::string& dst)
             1,
     };
     check_git_error(git_remote_push(current_remote, &refspecs, &options));
-    clear_last_ssh_url();
 }
 
 void GitRepo::merge_fastforward(const std::string& onto, const std::string& from)
