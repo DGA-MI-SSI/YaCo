@@ -970,7 +970,7 @@ namespace
     };
 
     template<typename Ctx>
-    void get_crcs(Ctx& ctx, const char* where, Crcs* crcs, ea_t ea_func, const qbasic_block_t& block)
+    void get_crcs(Ctx& ctx, const char* where, Crcs* crcs, ea_t ea_func, area_t block)
     {
         char hexbuf[32];
         const auto buf = read_buffer(ctx, "accept_function", block.startEA, block.endEA);
@@ -1454,7 +1454,7 @@ namespace
     }
 
     template<typename Ctx>
-    void accept_block(Ctx& ctx, IModelVisitor& v, const Parent& parent, const qflow_chart_t& flow, size_t idx, const qbasic_block_t& block)
+    void accept_block(Ctx& ctx, IModelVisitor& v, const Parent& parent, const qflow_chart_t& flow, size_t idx, area_t block)
     {
         const auto ea = block.startEA;
         const auto id = ctx.provider_.get_function_basic_block_hash(ea, parent.ea);
