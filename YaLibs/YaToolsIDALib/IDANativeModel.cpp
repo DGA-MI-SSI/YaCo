@@ -1069,11 +1069,6 @@ namespace
         if(!ok)
             return {nullptr, 0};
 
-        // FIXME python use full flags instead of just type...
-        if(EMULATE_PYTHON_MODEL_BEHAVIOR)
-            if(pop->ri.flags >= COUNT_OF(offset_types))
-                return g_offset;
-
         *qbuf = "offset-";
         const auto offtype = get_offset_type(pop->ri.type());
         qbuf->insert(qbuf->size(), offtype.value, offtype.size);
