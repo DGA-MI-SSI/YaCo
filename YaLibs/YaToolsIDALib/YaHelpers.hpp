@@ -25,7 +25,6 @@ namespace ya
     struct Dependency
     {
         YaToolObjectId  id;
-        tinfo_t         tif;
         tid_t           tid;
     };
     using Deps = std::vector<Dependency>;

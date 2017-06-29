@@ -112,7 +112,7 @@ namespace
 
         const auto subid = provider->get_struc_enum_object_id(subtid, ya::to_string_ref(subtype), true);
         if(deps)
-            deps->push_back({subid, subtif, subtid});
+            deps->push_back({subid, subtid});
 
         subtype.insert(0, comment_prefix);
         subtype += '#';

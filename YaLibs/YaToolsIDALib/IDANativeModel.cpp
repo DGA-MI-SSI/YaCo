@@ -612,10 +612,10 @@ namespace
     template<typename Ctx>
     void accept_dependency(Ctx& ctx, IModelVisitor& v, const ya::Dependency dep)
     {
-        if(dep.tif.is_enum())
-            accept_enum(ctx, v, dep.tid);
-        else
+        if(get_struc(dep.tid))
             accept_struct(ctx, v, {}, get_struc(dep.tid), nullptr);
+        else
+            accept_enum(ctx, v, dep.tid);
     }
 
     template<typename Ctx>
@@ -814,7 +814,7 @@ namespace
             return;
 
         const auto& dep = deps.front();
-        if(!dep.tif.is_struct())
+        if(!get_struc(dep.tid))
             return;
 
         if(dep.tid == BADADDR)
@@ -1173,10 +1173,7 @@ namespace
         get_enum_name(&*qbuf, pop->ec.tid);
         const auto xid = ctx.provider_.get_struc_enum_object_id(pop->ec.tid, ya::to_string_ref(*qbuf), true);
 
-        tinfo_t tif;
-        const auto has_tif = get_op_tinfo2(ea, opidx, &tif);
-        if(has_tif)
-            deps->push_back({xid, tif, pop->ec.tid});
+        deps->push_back({xid, pop->ec.tid});
         ctx.xrefs_.push_back({ea - root, xid, opidx, 0});
     }
 
@@ -1199,11 +1196,7 @@ namespace
         get_struc_name(&*qbuf, tid);
         const auto xid = ctx.provider_.get_struc_enum_object_id(tid, ya::to_string_ref(*qbuf), true);
 
-        tinfo_t tif;
-        const auto has_tif = get_op_tinfo2(ea, opidx, &tif);
-        if(has_tif)
-            deps->push_back({xid, tif, tid});
-
+        deps->push_back({xid, tid});
         ctx.xrefs_.push_back({ea - root, xid, opidx, 0});
 
         for(int i = 1; i < pop->path.len; ++i)
