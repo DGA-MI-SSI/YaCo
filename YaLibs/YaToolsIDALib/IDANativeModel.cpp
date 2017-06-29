@@ -1747,7 +1747,7 @@ namespace
     void walk_segment_chunks(const segment_t* seg, const T& operand)
     {
         // do not chunk empty loader segments
-        if(!EMULATE_PYTHON_MODEL_BEHAVIOR && !isEnabled(seg->startEA))
+        if(!isEnabled(seg->startEA))
             return;
         for(auto ea = seg->startEA; ea < seg->endEA; ea += SEGMENT_CHUNK_MAX_SIZE)
         {
