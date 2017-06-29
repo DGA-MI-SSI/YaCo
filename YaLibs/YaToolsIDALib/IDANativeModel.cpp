@@ -835,17 +835,8 @@ namespace
     template<typename Ctx>
     void accept_name(Ctx& ctx, IModelVisitor& v, ea_t ea, flags_t flags, NamePolicy_e epolicy)
     {
-        // FIXME get_long_name: __declspec(dllimport) public: class QStringList __thiscall QVariant::toStringList(void)const
-        //    vs get_true_name: __imp_?toStringList@QVariant@@QBE?AVQStringList@@XZ
-        //    or get_visible_name: ...
-        bool ok = false;
         const auto qbuf = ctx.qpool_.acquire();
-        if(!EMULATE_PYTHON_MODEL_BEHAVIOR)
-            ok = !!get_long_name(&*qbuf, ea, GN_LOCAL);
-        else if(epolicy == BasicBlockNamePolicy)
-            ok = !!get_true_name(&*qbuf, ea, GN_LOCAL);
-        else
-            ok = !!get_visible_name(&*qbuf, ea, GN_LOCAL);
+        const auto ok = !!get_long_name(&*qbuf, ea, GN_LOCAL);
         if(!ok)
             return;
 
