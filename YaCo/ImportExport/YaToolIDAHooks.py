@@ -137,7 +137,7 @@ class YaToolIDAHooks(object):
         old_name_txt = ""
         if old_name is not None:
             old_name_txt = "from %s" % old_name
-        self.repo_manager.add_auto_comment(ea, "%srenamed %sto %s" % (prefix, old_name_txt, new_name))
+        self.repo_manager.add_auto_comment(ea, "%srenamed %s to %s" % (prefix, old_name_txt, new_name))
 
     def comment_changed(self, ea):
         # TODO: Fix this when we received end undefined event !
