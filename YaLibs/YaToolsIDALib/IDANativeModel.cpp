@@ -278,8 +278,6 @@ namespace
         start_object(v, OBJECT_TYPE_ENUM_MEMBER, em.id, parent.id, em.value);
         const auto qbuf = ctx.qpool_.acquire();
         get_enum_member_name(&*qbuf, em.const_id);
-        if(EMULATE_PYTHON_MODEL_BEHAVIOR)
-            v.visit_size(0);
         v.visit_name(ya::to_string_ref(*qbuf), DEFAULT_NAME_FLAGS);
         if(em.bmask != BADADDR)
             v.visit_flags(static_cast<flags_t>(em.bmask));
@@ -1426,8 +1424,6 @@ namespace
         for(const auto& r : ctx.refs_)
         {
             start_object(v, OBJECT_TYPE_REFERENCE_INFO, r.id, 0, 0);
-            if(EMULATE_PYTHON_MODEL_BEHAVIOR)
-                v.visit_size(0);
             v.visit_flags(r.flags);
             finish_object(v, r.base);
         }
@@ -1835,7 +1831,7 @@ namespace
         char buf[32];
         v.visit_attribute(get_key(SEG_ATTR_BASE), str_ea(buf, sizeof buf, get_segm_base(seg)));
         v.visit_attribute(get_key(SEG_ATTR_COMB), str_uchar(buf, sizeof buf, seg->comb));
-        if(EMULATE_PYTHON_MODEL_BEHAVIOR || seg->color != DEFCOLOR)
+        if(seg->color != DEFCOLOR)
             v.visit_attribute(get_key(SEG_ATTR_COLOR), str_bgcolor(buf, sizeof buf, seg->color));
         v.visit_attribute(get_key(SEG_ATTR_ALIGN), str_uchar(buf, sizeof buf, seg->align));
         v.visit_attribute(get_key(SEG_ATTR_START), str_ea(buf, sizeof buf, seg->startEA));
