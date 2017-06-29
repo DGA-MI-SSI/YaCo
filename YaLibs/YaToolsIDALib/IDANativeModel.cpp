@@ -69,6 +69,8 @@ namespace
 
     const int DEFAULT_NAME_FLAGS = 0;
     const int DEFAULT_OPERAND = 0;
+    const int SEGMENT_CHUNK_MAX_SIZE = 0x10000;
+    const int MAX_BLOB_TAG_LEN = 0x1000;
 
 #define DECLARE_REF(name, value)\
     const char name ## _txt[] = value;\
