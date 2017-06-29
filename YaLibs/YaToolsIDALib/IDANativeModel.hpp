@@ -23,9 +23,6 @@ namespace std { template<typename T> class shared_ptr; }
 struct YaToolsHashProvider;
 class IModelAccept;
 
-const int SEGMENT_CHUNK_MAX_SIZE = 0x10000;
-const int MAX_BLOB_TAG_LEN = 0x1000;
-
 std::string get_type(ea_t ea);
 
 std::shared_ptr<IModelAccept> MakeModel(YaToolsHashProvider* provider);
@@ -36,9 +33,9 @@ struct IModelIncremental
     virtual ~IModelIncremental() {}
 
     // export methods
-    virtual void    export_id(YaToolObjectId id) = 0;
-    virtual void    unexport_id(YaToolObjectId id) = 0;
-    virtual bool    is_exported(YaToolObjectId id) const = 0;
+    virtual void export_id(YaToolObjectId id) = 0;
+    virtual void unexport_id(YaToolObjectId id) = 0;
+    virtual bool is_exported(YaToolObjectId id) const = 0;
 
     // accept methods
     virtual void accept_enum(IModelVisitor& v, ea_t enum_id) = 0;
