@@ -440,6 +440,7 @@ class YaToolRepoManager(object):
                     idc.Exit(0)
 
     def update_cache(self):
+        logger.info("updating cache")
         if "origin" not in self.repo.get_remotes():
             return ([], [], [], [])
 
@@ -478,9 +479,15 @@ class YaToolRepoManager(object):
 
                     # get modified files from origin
                     modified_files = self.repo.get_modified_objects(master_commit)
-
                     deleted_files = self.repo.get_deleted_objects(master_commit)
                     new_files = self.repo.get_new_objects(master_commit)
+                    for f in new_files:
+                        logger.info("added    %s" % os.path.relpath(f, "cache"))
+                    for f in modified_files:
+                        logger.info("modified %s" % os.path.relpath(f, "cache"))
+                    for f in deleted_files:
+                        logger.info("deleted  %s" % os.path.relpath(f, "cache"))
+
                     modified_files = set(new_files).union(modified_files)
 
                     # if all done, we can push to origin
@@ -536,50 +543,47 @@ class YaToolRepoManager(object):
         return ([], [], [], [])
 
     def repo_commit(self, commit_msg=None):
-        status = False
 
+        logger.info("committing changes")
+        untracked_files = self.repo.get_untracked_objects_in_path("cache/")
         modified_files = self.repo.get_modified_objects_in_path("cache/")
         deleted_files = self.repo.get_deleted_objects_in_path("cache/")
-        untracked_files = self.repo.get_untracked_objects_in_path("cache/")
 
-        if len(untracked_files) > 0:
-            logger.debug("adding %i untracked files..." % len(untracked_files))
-            self.repo.add_files(untracked_files)
-        if len(modified_files) > 0:
-            logger.debug("adding %i modified files..." % len(modified_files))
-            self.repo.add_files(modified_files)
-        if len(deleted_files) > 0:
-            logger.debug("removing %i deleted files..." % len(deleted_files))
-            self.repo.remove_files(deleted_files)
+        if not len(modified_files) and not len(deleted_files) and not len(untracked_files):
+            return False
 
-        # check if we have to commit cache
-        uncommited_cache = False
-        if (len(untracked_files) + len(modified_files) + len(deleted_files)) > 0:
-            uncommited_cache = True
+        for f in untracked_files:
+            logger.info("added    %s" % os.path.relpath(f, "cache"))
+        for f in modified_files:
+            logger.info("modified %s" % os.path.relpath(f, "cache"))
+        for f in deleted_files:
+            logger.info("deleted  %s" % os.path.relpath(f, "cache"))
+        self.repo.add_files(untracked_files)
+        self.repo.add_files(modified_files)
+        self.repo.remove_files(deleted_files)
 
-        if uncommited_cache:
-            # warning in test mode idaapi.asktext will be override to return "dummy message"
-            max_prefix_len = 0
-            for (prefix, text) in self.auto_comments:
-                max_prefix_len = max(len(prefix), max_prefix_len)
-            prefix_format = "[%-" + ("%d" % max_prefix_len) + "s] "
-            sorted_comments = list()
-            for (prefix, text) in self.auto_comments:
-                sorted_comments.append((prefix_format % prefix) + text)
+        # warning in test mode idaapi.asktext will be overrided to return "dummy message"
+        max_prefix_len = 0
+        for (prefix, text) in self.auto_comments:
+            max_prefix_len = max(len(prefix), max_prefix_len)
+        prefix_format = "[%-" + ("%d" % max_prefix_len) + "s] "
+        sorted_comments = list()
+        for (prefix, text) in self.auto_comments:
+            sorted_comments.append((prefix_format % prefix) + text)
 
-            if commit_msg is None:
-                commit_msg = ""
-                sorted_comments.sort()
-                for msg in sorted_comments:
-                    commit_msg += msg + '\n'
-                if len(commit_msg) > TRUNCATE_COMMIT_MESSAGE_LENGTH:
-                    commit_msg = commit_msg[:TRUNCATE_COMMIT_MESSAGE_LENGTH] + "\n...truncated"
-                if self.options.ask_commit_msg is True:
-                    commit_msg = idaapi.asktext(len(commit_msg) * 2 + 256, commit_msg, "Commit message :")
+        if commit_msg is None:
+            commit_msg = ""
+            sorted_comments.sort()
+            for msg in sorted_comments:
+                commit_msg += msg + '\n'
+            if len(commit_msg) > TRUNCATE_COMMIT_MESSAGE_LENGTH:
+                commit_msg = commit_msg[:TRUNCATE_COMMIT_MESSAGE_LENGTH] + "\n...truncated"
+            if self.options.ask_commit_msg is True:
+                commit_msg = idaapi.asktext(len(commit_msg) * 2 + 256, commit_msg, "Commit message :")
 
-            if commit_msg != "":
-                self.repo.commit(commit_msg)
-                self.auto_comments = set()
-                status = True
+        if commit_msg != "":
+            self.repo.commit(commit_msg)
+            self.auto_comments = set()
+            return True
 
-        return status
+        return False
