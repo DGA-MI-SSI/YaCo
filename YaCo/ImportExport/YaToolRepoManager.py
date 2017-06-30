@@ -452,8 +452,8 @@ class YaToolRepoManager(object):
 
                 for _ in range(COMMIT_RETRIES):
                     # get master commit
-                    origin_master_commit = self.get_origin_master_commit()
-                    logger.debug("Current origin/master: %s" % origin_master_commit)
+                    master_commit = self.get_master_commit()
+                    logger.debug("Current master: %s" % master_commit)
 
                     # fetch remote
                     self.fetch_origin()
@@ -477,10 +477,10 @@ class YaToolRepoManager(object):
                         return ([], [], [], [])
 
                     # get modified files from origin
-                    modified_files = self.repo.get_modified_objects(origin_master_commit)
+                    modified_files = self.repo.get_modified_objects(master_commit)
 
-                    deleted_files = self.repo.get_deleted_objects(origin_master_commit)
-                    new_files = self.repo.get_new_objects(origin_master_commit)
+                    deleted_files = self.repo.get_deleted_objects(master_commit)
+                    new_files = self.repo.get_new_objects(master_commit)
                     modified_files = set(new_files).union(modified_files)
 
                     # if all done, we can push to origin
