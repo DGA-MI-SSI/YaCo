@@ -109,8 +109,6 @@ class YaCo:
 
         logger.debug("loading XML")
         logger.debug("modified files : %r", modified_files)
-        from pprint import pprint
-        pprint(modified_files)
 
         memory_exporter = ya.MakeStdModel()
 
@@ -422,6 +420,7 @@ def commit():
 
 def save():
     global yaco
+    print("")
     logger.info("YaCo.save()")
     try:
         yaco.commit_cache()
