@@ -441,17 +441,17 @@ void IDANativeExporter::make_segment_chunk(std::shared_ptr<YaToolObjectVersion> 
     }
 }
 
-uint64_t IDANativeExporter::get_tid(YaToolObjectId id)
+Tid IDANativeExporter::get_tid(YaToolObjectId id)
 {
     const auto it = tids.find(id);
     if(it == tids.end())
-        return BADADDR;
+        return {BADADDR, OBJECT_TYPE_UNKNOWN};
     return it->second;
 }
 
-void IDANativeExporter::set_tid(YaToolObjectId id, uint64_t tid)
+void IDANativeExporter::set_tid(YaToolObjectId id, ea_t tid, YaToolObjectType_e type)
 {
-    tids[id] = tid;
+    tids.insert({id, {tid, type}});
 }
 
 namespace
@@ -486,16 +486,18 @@ std::string IDANativeExporter::patch_prototype(const std::string& src, ea_t ea)
     for(std::sregex_iterator it = {src.begin(), src.end(), r_type_id}, end; it != end; ++it)
     {
         const auto id = it->str(2);
-        const auto sid = tids.find(to_yaid(id.data()));
         const auto name = it->str(1);
         // always remove special struct comment
         replace_inline(dst, "/*%" + name + "#" + id + "%*/", "");
-        if(sid == tids.end())
+        const auto k = tids.find(to_yaid(id.data()));
+        if(k == tids.end())
         {
             LOG(WARNING, "make_prototype: 0x" EA_FMT " unknown struct %s id %s\n", ea, name.data(), id.data());
             continue;
         }
-        const auto tid = static_cast<tid_t>(sid->second);
+        if(k->second.type != OBJECT_TYPE_STRUCT)
+            continue;
+        const auto tid = static_cast<tid_t>(k->second.tid);
         get_struc_name(&buffer, tid);
         // replace struct name with new name
         replace_inline(dst, name, buffer.c_str());
@@ -754,22 +756,20 @@ static bool set_function_comment(ea_t ea, const char* comment, bool repeatable)
     return set_func_cmt(func, comment, repeatable);
 }
 
-static bool set_struct_comment(const IDANativeExporter::IdMap& tids, YaToolObjectId id, const char* comment, bool repeatable)
+static bool set_struct_comment(const IDANativeExporter::TidMap& tids, YaToolObjectId id, const char* comment, bool repeatable)
 {
     const auto it = tids.find(id);
     if(it == tids.end())
         return false;
-    const auto tid = static_cast<tid_t>(it->second);
-    return set_struc_cmt(tid, comment, repeatable);
+    return set_struc_cmt(it->second.tid, comment, repeatable);
 }
 
-static bool set_struct_member_comment(const IDANativeExporter::IdMap& tids, YaToolObjectId id, const char* comment, bool repeatable)
+static bool set_struct_member_comment(const IDANativeExporter::TidMap& tids, YaToolObjectId id, const char* comment, bool repeatable)
 {
     const auto it = tids.find(id);
     if(it == tids.end())
         return false;
-    const auto tid = static_cast<tid_t>(it->second);
-    const auto member = get_member_by_id(tid);
+    const auto member = get_member_by_id(it->second.tid);
     if(!member)
         return false;
     return set_member_cmt(member, comment, repeatable);
@@ -1043,7 +1043,7 @@ void IDANativeExporter::make_code(std::shared_ptr<YaToolObjectVersion> version, 
     make_views(version, ea);
 }
 
-static void set_data_type(ea_t ea, YaToolObjectVersion& version, const IDANativeExporter::IdMap& struct_ids)
+static void set_data_type(ea_t ea, YaToolObjectVersion& version, const IDANativeExporter::TidMap& struct_ids)
 {
     const auto size = static_cast<size_t>(version.get_size());
     if(!size)
@@ -1087,7 +1087,7 @@ static void set_data_type(ea_t ea, YaToolObjectVersion& version, const IDANative
                 const auto prev = inf.s_auto;
                 inf.s_auto = true;
                 autoWait();
-                auto ok = doStruct(ea, size, static_cast<tid_t>(fi->second));
+                auto ok = doStruct(ea, size, fi->second.tid);
                 inf.s_auto = prev;
                 if(!ok)
                     LOG(ERROR, "make_data: 0x" EA_FMT " unable to set struct %016llx size %d\n", ea, xref.object_id, size);
@@ -1153,7 +1153,7 @@ void IDANativeExporter::make_enum(YaToolsHashProvider* provider, std::shared_ptr
     });
 
     const auto id = version->get_id();
-    tids[id] = eid;
+    tids.insert({id, {eid, OBJECT_TYPE_ENUM}});
     provider->put_hash_struc_or_enum(eid, id, false);
 }
 
@@ -1167,7 +1167,7 @@ void IDANativeExporter::make_enum_member(YaToolsHashProvider* provider, std::sha
         return;
     }
 
-    const auto eid = static_cast<tid_t>(it->second);
+    const auto eid = it->second.tid;
     const auto ename = get_enum_name(eid);
     const auto name = version->get_name();
     const auto id = version->get_id();

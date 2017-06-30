@@ -40,11 +40,8 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
     def __init__(self, yatools, hash_provider, use_stackframes=True):
         super(YaToolIDAExporter, self).__init__()
         self.yatools = yatools
-        self.struc_ids = {}
         self.union_ids = set()
-        self.strucmember_ids = {}
         self.stackframes_functions = {}
-        self.stackframemembers_stackframes = {}
         self.arch_plugin = DefaultIDAVisitorPlugin.DefaultIDAVisitorPlugin()
         if idc.GetCharPrm(idc.INF_PROCNAME) == "ARM":
             self.arch_plugin = ARMIDAVisitorPlugin.ARMIDAVisitorPlugin()
@@ -129,6 +126,13 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
             traceback.print_exc()
             raise e
 
+    def get_tid(self, id, *args):
+        key = _yatools_ida_exporter.get_tid(id)
+        for type in args:
+            if key.type == type:
+                return key.tid
+        return idc.BADADDR
+
     def clear_struc_fields(self, struc_id, struc_size, xref_keys, is_union=False,
                            member_type=ya.OBJECT_TYPE_STRUCT_MEMBER, name_offset=0):
 
@@ -200,7 +204,8 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
                 else:
                     logger.error("Bad member_type : %d" % member_type)
 
-                if strucmember_id not in self.strucmember_ids:
+                strucmember_id = self.get_tid(strucmember_id, ya.OBJECT_TYPE_STRUCT_MEMBER, ya.OBJECT_TYPE_STACKFRAME_MEMBER)
+                if strucmember_id == idc.BADADDR:
                     # It is not necessary to clear the member if it is presnet in the resolved_objects
                     if DEBUG_EXPORTER:
                         logger.debug("SetStrucmember(0x%08X, None, 0x%08X, idc.FF_BYTE, -1, 0x%08X, name_offset=%s)",
@@ -260,18 +265,15 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
         if DEBUG_EXPORTER:
             logger.debug("adding struc id %s : '0x%.016X' (%s)" %
                          (self.hash_provider.hash_to_string(object_id), struc_id, name))
-        self.struc_ids[object_id] = struc_id
-        _yatools_ida_exporter.set_tid(object_id, struc_id)
+        _yatools_ida_exporter.set_tid(object_id, struc_id, ya.OBJECT_TYPE_STRUCT)
 
         self.hash_provider.put_hash_struc_or_enum(struc_id, object_id, False)
 
     def make_struc_member(self, object_version, address, member_type=ya.OBJECT_TYPE_STRUCT_MEMBER):
         struc_object_id = object_version.get_parent_object_id()
 
-        struc_id = 0
-        try:
-            struc_id = self.struc_ids[struc_object_id]
-        except:
+        struc_id = self.get_tid(struc_object_id, ya.OBJECT_TYPE_STRUCT, ya.OBJECT_TYPE_STACKFRAME)
+        if struc_id == idc.BADADDR:
             return
         is_union = struc_id in self.union_ids
 
@@ -294,7 +296,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
             # if the sub field is a struct, it must have a single Xref field with the struct object id
             try:
                 sub_struc_object_id = object_version.getXRefIdsAt(0, 0)[0]
-                sub_struc_id = self.struc_ids[sub_struc_object_id]
+                sub_struc_id = self.get_tid(sub_struc_object_id, ya.OBJECT_TYPE_STRUCT, ya.OBJECT_TYPE_STACKFRAME)
 
                 #                 logger.debug("%20s: adding sub member at offset 0x%08X,
                 #                               size=0x%08X (sub=0x%.016X, size=0x%08X) with name %s" %
@@ -330,7 +332,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
         elif idc.isEnum0(flags):
             # an enum is applied here
             sub_enum_object_id = object_version.getXRefIdsAt(0, 0)[0]
-            sub_enum_id = _yatools_ida_exporter.get_tid(sub_enum_object_id)
+            sub_enum_id = self.get_tid(sub_enum_object_id, ya.OBJECT_TYPE_ENUM)
             if sub_enum_id == idc.BADADDR:
                 logger.error("Error while looking for sub enum in struc %s, offset 0x%08X (field name='%s')" %
                     (struc_object_id, offset, member_name))
@@ -400,8 +402,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
         _yatools_ida_exporter.set_struct_member_type(member_id, object_version.get_prototype())
         if object_version.get_type() == ya.OBJECT_TYPE_STRUCT_MEMBER:
             id = object_version.get_id()
-            self.strucmember_ids[id] = member_id
-            _yatools_ida_exporter.set_tid(id, member_id)
+            _yatools_ida_exporter.set_tid(id, member_id, ya.OBJECT_TYPE_STRUCT_MEMBER)
 
     def make_function(self, object_version, address):
         self.arch_plugin.make_function_prehook(object_version, address)
@@ -455,8 +456,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
             logger.error("No function found for stackframe[%s] at 0x%08X after idc.MakeFrame" % (
                 self.hash_provider.hash_to_string(object_id), eaFunc))
         else:
-            self.struc_ids[object_id] = stack_frame.id
-            _yatools_ida_exporter.set_tid(object_id, stack_frame.id)
+            _yatools_ida_exporter.set_tid(object_id, stack_frame.id, ya.OBJECT_TYPE_STACKFRAME)
             stack_lvars = None
             try:
                 stack_lvars = self.yatools.hex_string_to_address(object_version.get_attributes()["stack_lvars"])
@@ -473,10 +473,8 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
 
     def make_stackframe_member(self, object_version, address):
         object_id = object_version.get_id()
-
         self.make_struc_member(object_version, address)
-        # associate stack frame members to stack frame
-        self.stackframemembers_stackframes[object_id] = object_version.get_parent_object_id()
+        _yatools_ida_exporter.set_tid(object_id, object_version.get_parent_object_id(), ya.OBJECT_TYPE_STACKFRAME_MEMBER)
 
     def make_basic_block(self, object_version, address):
         #
@@ -498,8 +496,9 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
                 # fetch structure ###################
                 #
                 # it's a struc (normal case)
-                if xref_value in self.struc_ids:
-                    struc_id = self.struc_ids[xref_value]
+                ktid = _yatools_ida_exporter.get_tid(xref_value)
+                if ktid.type == ya.OBJECT_TYPE_STRUCT or ktid.type == ya.OBJECT_TYPE_STACKFRAME:
+                    struc_id = ktid.tid
                     path_idx = 0
                     if xref_attributes is not None:
                         try:
@@ -519,8 +518,8 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
 
                     struc_path_off[path_idx] = struc_id
                 # This is a struc member : it happens when the "struc path" contains unions
-                elif xref_value in self.strucmember_ids:
-                    member_id = self.strucmember_ids[xref_value]
+                elif ktid.type == ya.OBJECT_TYPE_STRUCT_MEMBER:
+                    member_id = ktid.tid
                     path_idx = 0
                     if xref_attributes is not None:
                         try:
@@ -539,14 +538,14 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
 
                     struc_path_off[path_idx] = member_id
                 # apply stackframe
-                elif xref_value in self.stackframemembers_stackframes:
+                elif ktid.type == ya.OBJECT_TYPE_STACKFRAME_MEMBER:
                     # create operand as stack variable
                     idaapi.op_stkvar(address + xref_offset, operand)
 
                 #
                 # apply enums     ###################
                 #
-                enum_id = _yatools_ida_exporter.get_tid(xref_value)
+                enum_id = self.get_tid(xref_value, ya.OBJECT_TYPE_ENUM)
                 if enum_id != idc.BADADDR:
                     idaapi.op_enum(address + xref_offset, operand, enum_id, 0)
 
