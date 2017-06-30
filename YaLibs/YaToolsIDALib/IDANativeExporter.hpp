@@ -25,6 +25,12 @@ namespace std { template<typename T> class shared_ptr; }
 class YaToolObjectVersion;
 struct YaToolsHashProvider;
 
+struct Tid
+{
+    ea_t                tid;
+    YaToolObjectType_e  type;
+};
+
 struct IDANativeExporter
 {
     void make_name(std::shared_ptr<YaToolObjectVersion> object_version, ea_t address, bool is_in_func);
@@ -40,9 +46,8 @@ struct IDANativeExporter
     bool set_type(ea_t ea, const std::string& prototype);
     bool set_struct_member_type(ea_t ea, const std::string& prototype);
 
-    void        set_tid(YaToolObjectId id, uint64_t tid);
-    uint64_t    get_tid(YaToolObjectId id);
-
+    void    set_tid(YaToolObjectId id, ea_t tid, YaToolObjectType_e type);
+    Tid     get_tid(YaToolObjectId id);
 
     void analyze_function(ea_t ea);
     void make_function(std::shared_ptr<YaToolObjectVersion> version, ea_t ea);
@@ -58,11 +63,11 @@ struct IDANativeExporter
 #ifndef SWIG
     std::string patch_prototype(const std::string& prototype, ea_t ea);
 
-    using IdMap = std::unordered_map<YaToolObjectId, uint64_t>;
+    using TidMap = std::unordered_map<YaToolObjectId, Tid>;
     using EnumMemberMap = std::unordered_map<uint64_t, enum_t>;
 
 private:
-    IdMap tids;
+    TidMap tids;
     EnumMemberMap enum_members;
     YaToolsIDANativeLib tools;
 #endif
