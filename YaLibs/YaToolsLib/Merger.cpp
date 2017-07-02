@@ -310,13 +310,13 @@ MergeStatus_e Merger::mergeObjectVersions( IModelVisitor& visitor_db, std::set<Y
     /********** merge offsets ****************************/
      /* Merge comments */
     //TODO export valueviews registerviews hiddenareas
-    std::map<std::pair<offset_t, CommentType_e>, const_string_ref> offsets;
+    std::map<std::pair<offset_t, CommentType_e>, std::string> offsets;
     switch(relation.type_)
     {
     case RELATION_TYPE_EXACT_MATCH:
         relation.version2_.walk_comments([&](offset_t offset_new, CommentType_e type_new, const const_string_ref& comment_new)
         {
-           offsets[std::make_pair(offset_new, type_new)] = comment_new;
+           offsets[std::make_pair(offset_new, type_new)] = make_string(comment_new);
            return WALK_CONTINUE;
         });
         relation.version1_.walk_comments([&](offset_t offset_ref, CommentType_e type_ref, const const_string_ref& comment_ref)
@@ -324,13 +324,13 @@ MergeStatus_e Merger::mergeObjectVersions( IModelVisitor& visitor_db, std::set<Y
             const auto& search = offsets.find(std::make_pair(offset_ref, type_ref));
             if( search == offsets.end())
             {
-                offsets[std::make_pair(offset_ref, type_ref)] = comment_ref;
+                offsets[std::make_pair(offset_ref, type_ref)] = make_string(comment_ref);
             }
             else
             {
-                mergeAttributes("comment", comment_ref, search->second, [&](const const_string_ref& value)
+                mergeAttributes("comment", comment_ref, make_string_ref(search->second), [&](const const_string_ref& value)
                 {
-                    offsets[std::make_pair(offset_ref, type_ref)] = value;
+                    offsets[std::make_pair(offset_ref, type_ref)] = make_string(value);
                 });
             }
             return WALK_CONTINUE;
@@ -340,7 +340,7 @@ MergeStatus_e Merger::mergeObjectVersions( IModelVisitor& visitor_db, std::set<Y
             visitor_db.visit_start_offsets();
             for(const auto& offset: offsets)
             {
-                visitor_db.visit_offset_comments(offset.first.first, offset.first.second, offset.second);
+                visitor_db.visit_offset_comments(offset.first.first, offset.first.second, make_string_ref(offset.second));
             }
             visitor_db.visit_end_offsets();
         }
