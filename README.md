@@ -21,16 +21,13 @@ As **IDA** is a 32bits software, **YaCo** must be built for 32 bits architecture
 
 Install dependencies
 ```
-sudo apt install build-essential cmake gcc-multilib g++-multilib
+sudo apt install build-essential git cmake g++-multilib
 ```
 
 Add i386 architecture and install dependencies
 ```
 sudo dpkg --add-architecture i386
 sudo apt update
-sudo apt install binutils:i386
-sudo apt install gcc:i386
-sudo apt install g++:i386
 sudo apt install libpython2.7-dev:i386
 ```
 
@@ -57,8 +54,8 @@ Only visual studio 2015 is currently supported
 
 Configure and build **YaCo**
 ```
-set IDA_DIR=/your/ida/directory
-set IDASDK_DIR=/your/idasdk/directory
+set IDA_DIR=C:\Program Files (x86)\IDA Pro 6.8
+set IDASDK_DIR=C:\idasdk68
 build> configure_2015.cmd
 out/x86> cmake --build . --config RelWithDebInfo
 out/x86> ctest . --output-on-failure -C RelWithDebInfo -j4
