@@ -37,14 +37,17 @@
 #define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("ida_exporter", (FMT), ## __VA_ARGS__)
 
 #ifdef __EA64__
-#define EA_FMT  "%llx"
-#define EA_DECIMAL_FMT "%llu"
-#define SEL_FMT "%lld"
+#define EA_PREFIX "ll"
+#define EA_SIZE   "16"
 #else
-#define EA_FMT  "%x"
-#define EA_DECIMAL_FMT "%u"
-#define SEL_FMT "%d"
+#define EA_PREFIX ""
+#define EA_SIZE   "8"
 #endif
+
+#define EA_FMT          "%" EA_PREFIX "x"
+#define EA_DECIMAL_FMT  "%" EA_PREFIX "u"
+#define XMLEA_FMT       "%0" EA_SIZE EA_PREFIX "X"
+#define SEL_FMT         "%" EA_PREFIX "d"
 
 namespace
 {
@@ -60,7 +63,6 @@ namespace
         bool set_struct_member_type (ea_t ea, const std::string& prototype) override;
         void set_tid                (YaToolObjectId id, ea_t tid, YaToolObjectType_e type) override;
         Tid  get_tid                (YaToolObjectId id) override;
-        void analyze_function       (ea_t ea) override;
         void make_function          (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
         void make_views             (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
         void make_code              (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
@@ -75,6 +77,7 @@ namespace
         void make_basic_block       (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
         void make_reference_info    (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
         void clear_struct_fields    (std::shared_ptr<YaToolObjectVersion>& version, ea_t struct_id) override;
+        void make_stackframe        (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
 
         //
         std::string patch_prototype(const std::string& prototype, ea_t ea);
@@ -221,7 +224,8 @@ namespace
     MAKE_TO_TYPE_FUNCTION(to_sel,     sel_t,            SEL_FMT);
     MAKE_TO_TYPE_FUNCTION(to_bgcolor, bgcolor_t,        "%u");
     MAKE_TO_TYPE_FUNCTION(to_yaid,    YaToolObjectId,   "%llx");
-    MAKE_TO_TYPE_FUNCTION(to_path,    int,              "0x%08X")
+    MAKE_TO_TYPE_FUNCTION(to_path,    int,              "0x%08X");
+    MAKE_TO_TYPE_FUNCTION(to_xmlea,   ea_t,             "0x" XMLEA_FMT);
 
     template<typename T>
     int find_int(const T& data, const char* key)
@@ -870,17 +874,6 @@ void Exporter::make_header_comments(std::shared_ptr<YaToolObjectVersion>& versio
     }
 }
 
-void Exporter::analyze_function(ea_t ea)
-{
-    const auto ok = ya::walk_function_chunks(ea, [=](area_t area)
-    {
-        if(!analyze_area(area.startEA, area.endEA))
-            LOG(ERROR, "analyze_function: 0x" EA_FMT " unable to analyze area " EA_FMT "-" EA_FMT "\n", ea, area.startEA, area.endEA);
-    });
-    if(!ok)
-        LOG(ERROR, "analyze_function: 0x" EA_FMT " missing function\n", ea);
-}
-
 namespace
 {
     void clear_function(const YaToolObjectVersion& version, ea_t ea)
@@ -1465,4 +1458,67 @@ void Exporter::clear_struct_fields(std::shared_ptr<YaToolObjectVersion>& version
     }
 
     end_type_updating(UTP_STRUCT);
+}
+
+namespace
+{
+    template<typename T>
+    ea_t find_hex(const T& data, const char* key)
+    {
+        const auto it = data.find(key);
+        if(it == data.end())
+            return 0;
+        return to_xmlea(it->second.data());
+    }
+
+    struc_t* get_or_add_frame(const YaToolObjectVersion& version, ea_t func_ea)
+    {
+        auto frame = get_frame(func_ea);
+        if(frame)
+            return frame;
+
+        ya::walk_function_chunks(func_ea, [=](area_t area)
+        {
+            if(!analyze_area(area.startEA, area.endEA))
+                LOG(ERROR, "analyze_function: 0x" EA_FMT " unable to analyze area " EA_FMT "-" EA_FMT "\n", func_ea, area.startEA, area.endEA);
+        });
+        frame = get_frame(func_ea);
+        if(frame)
+            return frame;
+
+        const auto prev = inf.s_auto;
+        inf.s_auto = true;
+        autoWait();
+        inf.s_auto = prev;
+        frame = get_frame(func_ea);
+        if(frame)
+            return frame;
+
+        const auto func = get_func(func_ea);
+        if(!func)
+            return nullptr;
+
+        const auto& attributes = version.get_attributes();
+        const auto lvars = find_hex(attributes, "stack_lvars");
+        const auto regvars = static_cast<ushort>(find_hex(attributes, "stack_regvars"));
+        const auto args = find_hex(attributes, "stack_args");
+        const auto ok = add_frame(func, lvars, regvars, args);
+        if(!ok)
+            set_frame_size(func, lvars, regvars, args);
+        return get_frame(func);
+    }
+}
+
+void Exporter::make_stackframe(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
+{
+    const auto frame = get_or_add_frame(*version, ea);
+    if(!frame)
+    {
+        LOG(ERROR, "make_stackframe: 0x" EA_FMT " unable to create function\n", ea);
+        return;
+    }
+
+    const auto id = version->get_id();
+    set_tid(id, frame->id, OBJECT_TYPE_STACKFRAME);
+    clear_struct_fields(version, frame->id);
 }

@@ -62,7 +62,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
             if obj_type == ya.OBJECT_TYPE_STRUCT:
                 self.make_struc(object_version, address)
             elif self.use_stackframes and obj_type == ya.OBJECT_TYPE_STACKFRAME:
-                self.make_stackframe(object_version, address)
+                self.native.make_stackframe(object_version, address)
             elif obj_type == ya.OBJECT_TYPE_ENUM:
                 self.native.make_enum(object_version, address)
             else:
@@ -298,63 +298,6 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
         if object_version.get_type() == ya.OBJECT_TYPE_STRUCT_MEMBER:
             id = object_version.get_id()
             self.native.set_tid(id, member_id, ya.OBJECT_TYPE_STRUCT_MEMBER)
-
-    def make_stackframe(self, object_version, address):
-        object_id = object_version.get_id()
-        parent_object_id = object_version.get_parent_object_id()
-        # association stackframe id to internal struc id
-        eaFunc = object_version.get_object_address()
-        logger.debug("stackframe[%s] : address of function is 0x%08X" %
-                     (self.hash_provider.hash_to_string(object_id), eaFunc))
-
-        attributes = object_version.get_attributes()
-        stack_lvars = None
-        stack_regvars = None
-        stack_args = None
-        try:
-            stack_lvars = self.yatools.hex_string_to_address(attributes["stack_lvars"])
-            stack_regvars = self.yatools.hex_string_to_address(attributes["stack_regvars"])
-            stack_args = self.yatools.hex_string_to_address(attributes["stack_args"])
-        except KeyError:
-            logger.warning("Stackframe at %s has missing attribute" % self.yatools.address_to_hex_string(eaFunc))
-
-        stack_frame = idaapi.get_frame(eaFunc)
-        if stack_frame is None:
-            logger.error("No function found for stackframe[%s] at 0x%08X" % (
-                self.hash_provider.hash_to_string(object_id), eaFunc))
-            self.native.analyze_function(eaFunc)
-            stack_frame = idaapi.get_frame(eaFunc)
-
-        if stack_frame is None:
-            logger.error("No function found for stackframe[%s] at 0x%08X after reanalysis" % (
-                self.hash_provider.hash_to_string(object_id), eaFunc))
-            idc.SetCharPrm(idc.INF_AUTO, 1)
-            idc.Wait()
-            idc.SetCharPrm(idc.INF_AUTO, 0)
-            stack_frame = idaapi.get_frame(eaFunc)
-
-        if stack_frame is None:
-            logger.error("No function found for stackframe[%s] at 0x%08X after full reanalysis" % (
-                self.hash_provider.hash_to_string(object_id), eaFunc))
-            idc.MakeFrame(eaFunc, stack_lvars, stack_regvars, stack_args)
-            stack_frame = idaapi.get_frame(eaFunc)
-
-        if stack_frame is None:
-            logger.error("No function found for stackframe[%s] at 0x%08X after idc.MakeFrame" % (
-                self.hash_provider.hash_to_string(object_id), eaFunc))
-        else:
-            self.native.set_tid(object_id, stack_frame.id, ya.OBJECT_TYPE_STACKFRAME)
-            stack_lvars = None
-            try:
-                stack_lvars = self.yatools.hex_string_to_address(object_version.get_attributes()["stack_lvars"])
-            except KeyError:
-                logger.warning("Stackframe at %s has no stack_lvars attribute" %
-                               self.yatools.address_to_hex_string(eaFunc))
-
-            if stack_lvars is not None:
-                logger.debug("Clearing everything for stackframe at 0x%08X, with stack_lvars=0x%04X", eaFunc,
-                             stack_lvars)
-                self.native.clear_struct_fields(object_version, stack_frame.id)
 
     def make_stackframe_member(self, object_version, address):
         object_id = object_version.get_id()
