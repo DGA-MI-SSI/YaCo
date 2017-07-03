@@ -117,30 +117,30 @@ void Exporter::make_name(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea,
     set_name(ea, previous.c_str(), SN_CHECK | SN_NOWARN);
 }
 
-void add_bookmark(ea_t ea, std::string comment_text)
-{
-    char buffer[1024];
-    ya::walk_bookmarks([&](int i, ea_t locea, curloc loc)
-    {
-        LOG(DEBUG, "add_bookmark: 0x" EA_FMT " found bookmark[%d]\n", ea, i);
-        if(locea != ea)
-            return;
-
-        loc.markdesc(i, buffer, sizeof buffer);
-        if(comment_text == buffer)
-            return;
-
-        LOG(DEBUG, "add_bookmark: 0x" EA_FMT " bookmark[%d] = %s\n", ea, i, comment_text.data());
-        loc.ea = ea;
-        loc.x = 0;
-        loc.y = 0;
-        loc.lnnum = 0;
-        loc.mark(i, comment_text.data(), comment_text.data());
-    });
-}
-
 namespace
 {
+    void add_bookmark(ea_t ea, std::string comment_text)
+    {
+        char buffer[1024];
+        ya::walk_bookmarks([&](int i, ea_t locea, curloc loc)
+        {
+            LOG(DEBUG, "add_bookmark: 0x" EA_FMT " found bookmark[%d]\n", ea, i);
+            if(locea != ea)
+                return;
+
+            loc.markdesc(i, buffer, sizeof buffer);
+            if(comment_text == buffer)
+                return;
+
+            LOG(DEBUG, "add_bookmark: 0x" EA_FMT " bookmark[%d] = %s\n", ea, i, comment_text.data());
+            loc.ea = ea;
+            loc.x = 0;
+            loc.y = 0;
+            loc.lnnum = 0;
+            loc.mark(i, comment_text.data(), comment_text.data());
+        });
+    }
+
     // FIXME useless ?
     const std::string& sanitize_comment_to_ascii(const std::string& comment)
     {
@@ -199,200 +199,200 @@ void Exporter::make_comments(std::shared_ptr<YaToolObjectVersion>& object_versio
 
 namespace
 {
-// use a macro & ensure compiler statically check sscanf...
-#define MAKE_TO_TYPE_FUNCTION(NAME, TYPE, FMT)\
-TYPE NAME(const char* value)\
-{\
-    TYPE reply = {};\
-    sscanf(value, FMT, &reply);\
-    return reply;\
-}
-
-MAKE_TO_TYPE_FUNCTION(to_ea,      ea_t,             EA_DECIMAL_FMT);
-MAKE_TO_TYPE_FUNCTION(to_uchar,   uchar,            "%hhd");
-MAKE_TO_TYPE_FUNCTION(to_ushort,  ushort,           "%hd");
-MAKE_TO_TYPE_FUNCTION(to_int,     int,              "%d");
-MAKE_TO_TYPE_FUNCTION(to_sel,     sel_t,            SEL_FMT);
-MAKE_TO_TYPE_FUNCTION(to_bgcolor, bgcolor_t,        "%u");
-MAKE_TO_TYPE_FUNCTION(to_yaid,    YaToolObjectId,   "%llx");
-
-template<typename T>
-int find_int(const T& data, const char* key)
-{
-    const auto it = data.find(key);
-    if(it == data.end())
-        return 0;
-    return to_int(it->second.data());
-}
-
-segment_t* check_segment(ea_t ea, ea_t end)
-{
-    const auto segment = getseg(ea);
-    if(!segment)
-        return nullptr;
-
-    if(segment->startEA != ea || segment->endEA != end)
-        return nullptr;
-
-    return segment;
-}
-
-segment_t* add_seg(ea_t start, ea_t end, ea_t base, int bitness, int align, int comb)
-{
-    segment_t seg;
-    seg.startEA = start;
-    seg.endEA = end;
-    seg.sel = setup_selector(base);
-    seg.bitness = static_cast<uchar>(bitness);
-    seg.align = static_cast<uchar>(align);
-    seg.comb = static_cast<uchar>(comb);
-    const auto ok = add_segm_ex(&seg, nullptr, nullptr, ADDSEG_NOSREG);
-    if(!ok)
-        return nullptr;
-
-    return getseg(start);
-}
-
-enum SegAttribute
-{
-    SEG_ATTR_START,
-    SEG_ATTR_END,
-    SEG_ATTR_BASE,
-    SEG_ATTR_ALIGN,
-    SEG_ATTR_COMB,
-    SEG_ATTR_PERM,
-    SEG_ATTR_BITNESS,
-    SEG_ATTR_FLAGS,
-    SEG_ATTR_SEL,
-    SEG_ATTR_ES,
-    SEG_ATTR_CS,
-    SEG_ATTR_SS,
-    SEG_ATTR_DS,
-    SEG_ATTR_FS,
-    SEG_ATTR_GS,
-    SEG_ATTR_TYPE,
-    SEG_ATTR_COLOR,
-    SEG_ATTR_COUNT,
-};
-
-// copied from _SEGATTRMAP in idc.py...
-enum RegAttribute
-{
-    REG_ATTR_ES = 0,
-    REG_ATTR_CS = 1,
-    REG_ATTR_SS = 2,
-    REG_ATTR_DS = 3,
-    REG_ATTR_FS = 4,
-    REG_ATTR_GS = 5,
-};
-
-const char g_seg_attributes[][12] =
-{
-    "start_ea",
-    "end_ea",
-    "org_base",
-    "align",
-    "comb",
-    "perm",
-    "bitness",
-    "flags",
-    "sel",
-    "es",
-    "cs",
-    "ss",
-    "ds",
-    "fs",
-    "gs",
-    "type",
-    "color",
-};
-
-static_assert(COUNT_OF(g_seg_attributes) == SEG_ATTR_COUNT, "invalid number of g_seg_attributes entries");
-
-SegAttribute get_segment_attribute(const char* value)
-{
-    for(size_t i = 0; i < COUNT_OF(g_seg_attributes); ++i)
-        if(!strcmp(g_seg_attributes[i], value))
-            return static_cast<SegAttribute>(i);
-    return SEG_ATTR_COUNT;
-}
-
-void set_segment_attribute(segment_t* seg, const char* key, const char* value)
-{
-    switch(get_segment_attribute(key))
-    {
-        case SEG_ATTR_START:
-            seg->startEA = to_ea(value);
-            break;
-
-        case SEG_ATTR_END:
-            seg->endEA = to_ea(value);
-            break;
-
-        case SEG_ATTR_BASE:
-            set_segm_base(seg, to_ea(value));
-            break;
-
-        case SEG_ATTR_ALIGN:
-            seg->align = to_uchar(value);
-            break;
-
-        case SEG_ATTR_COMB:
-            seg->comb = to_uchar(value);
-            break;
-
-        case SEG_ATTR_PERM:
-            seg->perm = to_uchar(value);
-            break;
-
-        case SEG_ATTR_BITNESS:
-            set_segm_addressing(seg, to_int(value));
-            break;
-
-        case SEG_ATTR_FLAGS:
-            seg->flags = to_ushort(value);
-            break;
-
-        case SEG_ATTR_SEL:
-            seg->sel = to_sel(value);
-            break;
-
-        case SEG_ATTR_ES:
-            seg->defsr[REG_ATTR_ES] = to_sel(value);
-            break;
-
-        case SEG_ATTR_CS:
-            seg->defsr[REG_ATTR_CS] = to_sel(value);
-            break;
-
-        case SEG_ATTR_SS:
-            seg->defsr[REG_ATTR_SS] = to_sel(value);
-            break;
-
-        case SEG_ATTR_DS:
-            seg->defsr[REG_ATTR_DS] = to_sel(value);
-            break;
-
-        case SEG_ATTR_FS:
-            seg->defsr[REG_ATTR_FS] = to_sel(value);
-            break;
-
-        case SEG_ATTR_GS:
-            seg->defsr[REG_ATTR_GS] = to_sel(value);
-            break;
-
-        case SEG_ATTR_TYPE:
-            seg->type = to_uchar(value);
-            break;
-
-        case SEG_ATTR_COLOR:
-            seg->color = to_bgcolor(value);
-            break;
-
-        case SEG_ATTR_COUNT:
-            break;
+    // use a macro & ensure compiler statically check sscanf...
+    #define MAKE_TO_TYPE_FUNCTION(NAME, TYPE, FMT)\
+    TYPE NAME(const char* value)\
+    {\
+        TYPE reply = {};\
+        sscanf(value, FMT, &reply);\
+        return reply;\
     }
-}
+
+    MAKE_TO_TYPE_FUNCTION(to_ea,      ea_t,             EA_DECIMAL_FMT);
+    MAKE_TO_TYPE_FUNCTION(to_uchar,   uchar,            "%hhd");
+    MAKE_TO_TYPE_FUNCTION(to_ushort,  ushort,           "%hd");
+    MAKE_TO_TYPE_FUNCTION(to_int,     int,              "%d");
+    MAKE_TO_TYPE_FUNCTION(to_sel,     sel_t,            SEL_FMT);
+    MAKE_TO_TYPE_FUNCTION(to_bgcolor, bgcolor_t,        "%u");
+    MAKE_TO_TYPE_FUNCTION(to_yaid,    YaToolObjectId,   "%llx");
+
+    template<typename T>
+    int find_int(const T& data, const char* key)
+    {
+        const auto it = data.find(key);
+        if(it == data.end())
+            return 0;
+        return to_int(it->second.data());
+    }
+
+    segment_t* check_segment(ea_t ea, ea_t end)
+    {
+        const auto segment = getseg(ea);
+        if(!segment)
+            return nullptr;
+
+        if(segment->startEA != ea || segment->endEA != end)
+            return nullptr;
+
+        return segment;
+    }
+
+    segment_t* add_seg(ea_t start, ea_t end, ea_t base, int bitness, int align, int comb)
+    {
+        segment_t seg;
+        seg.startEA = start;
+        seg.endEA = end;
+        seg.sel = setup_selector(base);
+        seg.bitness = static_cast<uchar>(bitness);
+        seg.align = static_cast<uchar>(align);
+        seg.comb = static_cast<uchar>(comb);
+        const auto ok = add_segm_ex(&seg, nullptr, nullptr, ADDSEG_NOSREG);
+        if(!ok)
+            return nullptr;
+
+        return getseg(start);
+    }
+
+    enum SegAttribute
+    {
+        SEG_ATTR_START,
+        SEG_ATTR_END,
+        SEG_ATTR_BASE,
+        SEG_ATTR_ALIGN,
+        SEG_ATTR_COMB,
+        SEG_ATTR_PERM,
+        SEG_ATTR_BITNESS,
+        SEG_ATTR_FLAGS,
+        SEG_ATTR_SEL,
+        SEG_ATTR_ES,
+        SEG_ATTR_CS,
+        SEG_ATTR_SS,
+        SEG_ATTR_DS,
+        SEG_ATTR_FS,
+        SEG_ATTR_GS,
+        SEG_ATTR_TYPE,
+        SEG_ATTR_COLOR,
+        SEG_ATTR_COUNT,
+    };
+
+    // copied from _SEGATTRMAP in idc.py...
+    enum RegAttribute
+    {
+        REG_ATTR_ES = 0,
+        REG_ATTR_CS = 1,
+        REG_ATTR_SS = 2,
+        REG_ATTR_DS = 3,
+        REG_ATTR_FS = 4,
+        REG_ATTR_GS = 5,
+    };
+
+    const char g_seg_attributes[][12] =
+    {
+        "start_ea",
+        "end_ea",
+        "org_base",
+        "align",
+        "comb",
+        "perm",
+        "bitness",
+        "flags",
+        "sel",
+        "es",
+        "cs",
+        "ss",
+        "ds",
+        "fs",
+        "gs",
+        "type",
+        "color",
+    };
+
+    static_assert(COUNT_OF(g_seg_attributes) == SEG_ATTR_COUNT, "invalid number of g_seg_attributes entries");
+
+    SegAttribute get_segment_attribute(const char* value)
+    {
+        for(size_t i = 0; i < COUNT_OF(g_seg_attributes); ++i)
+            if(!strcmp(g_seg_attributes[i], value))
+                return static_cast<SegAttribute>(i);
+        return SEG_ATTR_COUNT;
+    }
+
+    void set_segment_attribute(segment_t* seg, const char* key, const char* value)
+    {
+        switch(get_segment_attribute(key))
+        {
+            case SEG_ATTR_START:
+                seg->startEA = to_ea(value);
+                break;
+
+            case SEG_ATTR_END:
+                seg->endEA = to_ea(value);
+                break;
+
+            case SEG_ATTR_BASE:
+                set_segm_base(seg, to_ea(value));
+                break;
+
+            case SEG_ATTR_ALIGN:
+                seg->align = to_uchar(value);
+                break;
+
+            case SEG_ATTR_COMB:
+                seg->comb = to_uchar(value);
+                break;
+
+            case SEG_ATTR_PERM:
+                seg->perm = to_uchar(value);
+                break;
+
+            case SEG_ATTR_BITNESS:
+                set_segm_addressing(seg, to_int(value));
+                break;
+
+            case SEG_ATTR_FLAGS:
+                seg->flags = to_ushort(value);
+                break;
+
+            case SEG_ATTR_SEL:
+                seg->sel = to_sel(value);
+                break;
+
+            case SEG_ATTR_ES:
+                seg->defsr[REG_ATTR_ES] = to_sel(value);
+                break;
+
+            case SEG_ATTR_CS:
+                seg->defsr[REG_ATTR_CS] = to_sel(value);
+                break;
+
+            case SEG_ATTR_SS:
+                seg->defsr[REG_ATTR_SS] = to_sel(value);
+                break;
+
+            case SEG_ATTR_DS:
+                seg->defsr[REG_ATTR_DS] = to_sel(value);
+                break;
+
+            case SEG_ATTR_FS:
+                seg->defsr[REG_ATTR_FS] = to_sel(value);
+                break;
+
+            case SEG_ATTR_GS:
+                seg->defsr[REG_ATTR_GS] = to_sel(value);
+                break;
+
+            case SEG_ATTR_TYPE:
+                seg->type = to_uchar(value);
+                break;
+
+            case SEG_ATTR_COLOR:
+                seg->color = to_bgcolor(value);
+                break;
+
+            case SEG_ATTR_COUNT:
+                break;
+        }
+    }
 }
 
 void Exporter::make_segment(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
@@ -494,26 +494,26 @@ void Exporter::set_tid(YaToolObjectId id, ea_t tid, YaToolObjectType_e type)
 
 namespace
 {
-const std::regex r_trailing_identifier  {"\\s*<?[a-zA-Z_0-9]+>?\\s*$"};     // match c/c++ identifiers
-const std::regex r_type_id              {"/\\*%(.+?)#([A-F0-9]{16})%\\*/"}; // match yaco ids /*%name:ID%*/
-const std::regex r_trailing_comma       {"\\s*;\\s*$"};                     // match trailing ;
-const std::regex r_trailing_whitespace  {"\\s+$"};                          // match trailing whitespace
-const std::regex r_leading_whitespace   {"^\\s+"};                          // match leading whitespace
-const std::regex r_trailing_pointer     {"\\*\\s*$"};                       // match trailing *
+    const std::regex r_trailing_identifier{"\\s*<?[a-zA-Z_0-9]+>?\\s*$"};     // match c/c++ identifiers
+    const std::regex r_type_id{"/\\*%(.+?)#([A-F0-9]{16})%\\*/"}; // match yaco ids /*%name:ID%*/
+    const std::regex r_trailing_comma{"\\s*;\\s*$"};                     // match trailing ;
+    const std::regex r_trailing_whitespace{"\\s+$"};                          // match trailing whitespace
+    const std::regex r_leading_whitespace{"^\\s+"};                          // match leading whitespace
+    const std::regex r_trailing_pointer{"\\*\\s*$"};                       // match trailing *
 
-void replace_inline(std::string& value, const std::string& pattern, const std::string& replace)
-{
-    size_t pos = 0;
-    while(true)
+    void replace_inline(std::string& value, const std::string& pattern, const std::string& replace)
     {
-        pos = value.find(pattern, pos);
-        if(pos == std::string::npos)
-            break;
+        size_t pos = 0;
+        while(true)
+        {
+            pos = value.find(pattern, pos);
+            if(pos == std::string::npos)
+                break;
 
-        value.replace(pos, pattern.size(), replace);
-        pos += replace.size();
+            value.replace(pos, pattern.size(), replace);
+            pos += replace.size();
+        }
     }
-}
 }
 
 std::string Exporter::patch_prototype(const std::string& src, ea_t ea)
@@ -786,31 +786,34 @@ bool Exporter::set_struct_member_type(ea_t ea, const std::string& value)
     });
 }
 
-static bool set_function_comment(ea_t ea, const char* comment, bool repeatable)
+namespace
 {
-    const auto func = get_func(ea);
-    if(!func)
-        return false;
-    return set_func_cmt(func, comment, repeatable);
-}
+    bool set_function_comment(ea_t ea, const char* comment, bool repeatable)
+    {
+        const auto func = get_func(ea);
+        if(!func)
+            return false;
+        return set_func_cmt(func, comment, repeatable);
+    }
 
-static bool set_struct_comment(const Exporter::TidMap& tids, YaToolObjectId id, const char* comment, bool repeatable)
-{
-    const auto it = tids.find(id);
-    if(it == tids.end())
-        return false;
-    return set_struc_cmt(it->second.tid, comment, repeatable);
-}
+    bool set_struct_comment(const Exporter::TidMap& tids, YaToolObjectId id, const char* comment, bool repeatable)
+    {
+        const auto it = tids.find(id);
+        if(it == tids.end())
+            return false;
+        return set_struc_cmt(it->second.tid, comment, repeatable);
+    }
 
-static bool set_struct_member_comment(const Exporter::TidMap& tids, YaToolObjectId id, const char* comment, bool repeatable)
-{
-    const auto it = tids.find(id);
-    if(it == tids.end())
-        return false;
-    const auto member = get_member_by_id(it->second.tid);
-    if(!member)
-        return false;
-    return set_member_cmt(member, comment, repeatable);
+    bool set_struct_member_comment(const Exporter::TidMap& tids, YaToolObjectId id, const char* comment, bool repeatable)
+    {
+        const auto it = tids.find(id);
+        if(it == tids.end())
+            return false;
+        const auto member = get_member_by_id(it->second.tid);
+        if(!member)
+            return false;
+        return set_member_cmt(member, comment, repeatable);
+     }
 }
 
 void Exporter::make_header_comments(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
@@ -871,61 +874,64 @@ void Exporter::analyze_function(ea_t ea)
         LOG(ERROR, "analyze_function: 0x" EA_FMT " missing function\n", ea);
 }
 
-static void clear_function(const YaToolObjectVersion& version, ea_t ea)
+namespace
 {
-    for(const auto& it : version.get_xrefed_id_map())
-        for(const auto& ju : it.second)
-        {
-            const auto itsize = ju.attributes.find("size");
-            if(itsize == ju.attributes.end())
-                continue;
-
-            const auto xref_ea = static_cast<ea_t>(ea + it.first.first);
-            const auto func = get_func(xref_ea);
-            if(!func)
-                continue;
-            if(func->startEA == ea)
-                continue;
-
-            const auto ok = remove_func_tail(func, ea);
-            if(!ok)
-                LOG(ERROR, "clear_function: 0x" EA_FMT " unable to remove func tail at " EA_FMT "\n", ea, xref_ea);
-            // FIXME check if we need for i in xrange(ea, ea + size): idc.MakeUnkn(i)
-        }
-}
-
-static bool set_function_flags(ea_t ea, ObjectVersionFlag_T flags)
-{
-    auto func = get_func(ea);
-    if(!func)
-        return false;
-    func->flags = static_cast<ushort>(flags);
-    return update_func(func);
-}
-
-static bool add_function(ea_t ea, const YaToolObjectVersion& version)
-{
-    const auto flags = getFlags(ea);
-    const auto func = get_func(ea);
-    if(isFunc(flags) && func && func->startEA == ea)
-        return true;
-
-    LOG(DEBUG, "make_function: 0x" EA_FMT " flags 0x%08X current flags 0x%08x\n", ea, version.get_object_flags(), flags);
-    if(func)
-        LOG(DEBUG, "make_function: 0x" EA_FMT " func [0x" EA_FMT ", 0x" EA_FMT "] size 0x%08llX\n", ea, func->startEA, func->endEA, version.get_size());
-
-    auto ok = add_func(ea, BADADDR);
-    if(ok)
-        return true;
-
-    if(!hasValue(flags))
+    void clear_function(const YaToolObjectVersion& version, ea_t ea)
     {
-        LOG(ERROR, "make_function: 0x" EA_FMT " unable to add function, missing data\n", ea);
-        return false;
+        for(const auto& it : version.get_xrefed_id_map())
+            for(const auto& ju : it.second)
+            {
+                const auto itsize = ju.attributes.find("size");
+                if(itsize == ju.attributes.end())
+                    continue;
+
+                const auto xref_ea = static_cast<ea_t>(ea + it.first.first);
+                const auto func = get_func(xref_ea);
+                if(!func)
+                    continue;
+                if(func->startEA == ea)
+                    continue;
+
+                const auto ok = remove_func_tail(func, ea);
+                if(!ok)
+                    LOG(ERROR, "clear_function: 0x" EA_FMT " unable to remove func tail at " EA_FMT "\n", ea, xref_ea);
+                // FIXME check if we need for i in xrange(ea, ea + size): idc.MakeUnkn(i)
+            }
     }
 
-    clear_function(version, ea);
-    return add_func(ea, BADADDR);
+    bool set_function_flags(ea_t ea, ObjectVersionFlag_T flags)
+    {
+        auto func = get_func(ea);
+        if(!func)
+            return false;
+        func->flags = static_cast<ushort>(flags);
+        return update_func(func);
+    }
+
+    bool add_function(ea_t ea, const YaToolObjectVersion& version)
+    {
+        const auto flags = getFlags(ea);
+        const auto func = get_func(ea);
+        if(isFunc(flags) && func && func->startEA == ea)
+            return true;
+
+        LOG(DEBUG, "make_function: 0x" EA_FMT " flags 0x%08X current flags 0x%08x\n", ea, version.get_object_flags(), flags);
+        if(func)
+            LOG(DEBUG, "make_function: 0x" EA_FMT " func [0x" EA_FMT ", 0x" EA_FMT "] size 0x%08llX\n", ea, func->startEA, func->endEA, version.get_size());
+
+        auto ok = add_func(ea, BADADDR);
+        if(ok)
+            return true;
+
+        if(!hasValue(flags))
+        {
+            LOG(ERROR, "make_function: 0x" EA_FMT " unable to add function, missing data\n", ea);
+            return false;
+        }
+
+        clear_function(version, ea);
+        return add_func(ea, BADADDR);
+    }
 }
 
 void Exporter::make_function(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
@@ -946,121 +952,124 @@ void Exporter::make_function(std::shared_ptr<YaToolObjectVersion>& version, ea_t
     set_type(ea, version->get_prototype());
 }
 
-static bool begins_with_offset(const std::string& value)
+namespace
 {
-    static const char offset_prefix[] = "offset";
-    return !strncmp(value.data(), offset_prefix, sizeof offset_prefix - 1);
-}
-
-static const struct { char type[8]; reftype_t offset; } offset_types[] =
-{
-    {"OFF8",    REF_OFF8},
-    {"OFF16",   REF_OFF16},
-    {"OFF32",   REF_OFF32},
-    {"LOW8",    REF_LOW8},
-    {"LOW16",   REF_LOW16},
-    {"HIGH8",   REF_HIGH8},
-    {"HIGH16",  REF_HIGH16},
-    {"VHIGH",   REF_VHIGH},
-    {"VLOW",    REF_VLOW},
-    {"OFF64",   REF_OFF64},
-};
-
-static reftype_t get_offset_type(const char* value)
-{
-    for(const auto& it : offset_types)
-        if(!stricmp(it.type, value))
-            return it.offset;
-    return REF_OFF32;
-}
-
-enum SignToggle_e
-{
-    UNSIGNED,
-    SIGNED,
-};
-
-static bool set_sign(ea_t ea, operand_t operand, SignToggle_e toggle)
-{
-    if(is_invsign(ea, getFlags(ea), operand) == !!toggle)
-        return true;
-    return toggle_sign(ea, operand);
-}
-
-static bool try_make_valueview(ea_t ea, operand_t operand, const std::string& view)
-{
-    if(view == "signeddecimal")
-        return op_dec(ea, operand) && set_sign(ea, operand, SIGNED);
-    if(view == "unsigneddecimal")
-        return op_dec(ea, operand) && set_sign(ea, operand, UNSIGNED);
-    if(view == "signedhexadecimal")
-        return op_hex(ea, operand) && set_sign(ea, operand, SIGNED);
-    if(view == "unsignedhexadecimal")
-        return op_hex(ea, operand) && set_sign(ea, operand, UNSIGNED);
-    if(view == "char")
-        return op_chr(ea, operand);
-    if(view == "binary")
-        return op_bin(ea, operand);
-    if(view == "octal")
-        return op_oct(ea, operand);
-    if(begins_with_offset(view))
+    bool begins_with_offset(const std::string& value)
     {
-        const auto dash = view.find('-');
-        auto op_type = REF_OFF32;
-        if(dash != std::string::npos)
-            op_type = get_offset_type(&view.data()[dash+1]);
-        refinfo_t ri;
-        ri.init(op_type);
-        return !!op_offset_ex(ea, operand, &ri);
+        static const char offset_prefix[] = "offset";
+        return !strncmp(value.data(), offset_prefix, sizeof offset_prefix - 1);
     }
 
-    LOG(ERROR, "make_valueview: 0x" EA_FMT " unexpected value view type %s\n", ea, view.data());
-    return false;
-}
-
-static void make_valueview(ea_t ea, operand_t operand, const std::string& view)
-{
-    const auto ok = try_make_valueview(ea, operand, view);
-    if(!ok)
-        LOG(ERROR, "make_valueview: 0x" EA_FMT " unable to make value view\n", ea);
-}
-
-static void make_registerview(ea_t ea, offset_t offset, const std::string& name, offset_t end, const std::string& newname)
-{
-    const auto func = get_func(ea);
-    if(!func)
+    const struct { char type[8]; reftype_t offset; } offset_types[] =
     {
-        LOG(ERROR, "make_registerview: 0x" EA_FMT " missing function\n", ea);
-        return;
+        {"OFF8",    REF_OFF8},
+        {"OFF16",   REF_OFF16},
+        {"OFF32",   REF_OFF32},
+        {"LOW8",    REF_LOW8},
+        {"LOW16",   REF_LOW16},
+        {"HIGH8",   REF_HIGH8},
+        {"HIGH16",  REF_HIGH16},
+        {"VHIGH",   REF_VHIGH},
+        {"VLOW",    REF_VLOW},
+        {"OFF64",   REF_OFF64},
+    };
+
+    reftype_t get_offset_type(const char* value)
+    {
+        for(const auto& it : offset_types)
+            if(!stricmp(it.type, value))
+                return it.offset;
+        return REF_OFF32;
     }
 
-    const auto ea0 = static_cast<ea_t>(func->startEA + offset);
-    const auto ea1 = static_cast<ea_t>(func->startEA + end);
-    const auto regvar = find_regvar(func, ea0, ea1, name.data(), newname.data());
-    if(regvar)
+    enum SignToggle_e
     {
-        if(regvar->startEA == ea0 && regvar->endEA == ea1)
+        UNSIGNED,
+        SIGNED,
+    };
+
+    bool set_sign(ea_t ea, operand_t operand, SignToggle_e toggle)
+    {
+        if(is_invsign(ea, getFlags(ea), operand) == !!toggle)
+            return true;
+        return toggle_sign(ea, operand);
+    }
+
+    bool try_make_valueview(ea_t ea, operand_t operand, const std::string& view)
+    {
+        if(view == "signeddecimal")
+            return op_dec(ea, operand) && set_sign(ea, operand, SIGNED);
+        if(view == "unsigneddecimal")
+            return op_dec(ea, operand) && set_sign(ea, operand, UNSIGNED);
+        if(view == "signedhexadecimal")
+            return op_hex(ea, operand) && set_sign(ea, operand, SIGNED);
+        if(view == "unsignedhexadecimal")
+            return op_hex(ea, operand) && set_sign(ea, operand, UNSIGNED);
+        if(view == "char")
+            return op_chr(ea, operand);
+        if(view == "binary")
+            return op_bin(ea, operand);
+        if(view == "octal")
+            return op_oct(ea, operand);
+        if(begins_with_offset(view))
+        {
+            const auto dash = view.find('-');
+            auto op_type = REF_OFF32;
+            if(dash != std::string::npos)
+                op_type = get_offset_type(&view.data()[dash+1]);
+            refinfo_t ri;
+            ri.init(op_type);
+            return !!op_offset_ex(ea, operand, &ri);
+        }
+
+        LOG(ERROR, "make_valueview: 0x" EA_FMT " unexpected value view type %s\n", ea, view.data());
+        return false;
+    }
+
+    void make_valueview(ea_t ea, operand_t operand, const std::string& view)
+    {
+        const auto ok = try_make_valueview(ea, operand, view);
+        if(!ok)
+            LOG(ERROR, "make_valueview: 0x" EA_FMT " unable to make value view\n", ea);
+    }
+
+    void make_registerview(ea_t ea, offset_t offset, const std::string& name, offset_t end, const std::string& newname)
+    {
+        const auto func = get_func(ea);
+        if(!func)
+        {
+            LOG(ERROR, "make_registerview: 0x" EA_FMT " missing function\n", ea);
             return;
+        }
 
-        const auto err = del_regvar(func, ea0, ea1, regvar->canon);
+        const auto ea0 = static_cast<ea_t>(func->startEA + offset);
+        const auto ea1 = static_cast<ea_t>(func->startEA + end);
+        const auto regvar = find_regvar(func, ea0, ea1, name.data(), newname.data());
+        if(regvar)
+        {
+            if(regvar->startEA == ea0 && regvar->endEA == ea1)
+                return;
+
+            const auto err = del_regvar(func, ea0, ea1, regvar->canon);
+            if(err)
+                LOG(ERROR, "make_registerview: 0x" EA_FMT " unable to del regvar 0x%p 0x" EA_FMT "-0x" EA_FMT " %s -> %s error %d\n",
+                    ea, func, ea0, ea1, name.data(), newname.data(), err);
+        }
+
+        const auto err = add_regvar(func, ea0, ea1, name.data(), newname.data(), nullptr);
         if(err)
-            LOG(ERROR, "make_registerview: 0x" EA_FMT " unable to del regvar 0x%p 0x" EA_FMT "-0x" EA_FMT " %s -> %s error %d\n",
+            LOG(ERROR, "make_registerview: 0x" EA_FMT " unable to add regvar 0x%p 0x" EA_FMT "-0x" EA_FMT " %s -> %s error %d\n",
                 ea, func, ea0, ea1, name.data(), newname.data(), err);
     }
 
-    const auto err = add_regvar(func, ea0, ea1, name.data(), newname.data(), nullptr);
-    if(err)
-        LOG(ERROR, "make_registerview: 0x" EA_FMT " unable to add regvar 0x%p 0x" EA_FMT "-0x" EA_FMT " %s -> %s error %d\n",
-            ea, func, ea0, ea1, name.data(), newname.data(), err);
-}
-
-static void make_hiddenarea(ea_t ea, offset_t offset, offset_t offset_end, const std::string& value)
-{
-    const auto start = static_cast<ea_t>(ea + offset);
-    const auto end = static_cast<ea_t>(ea + offset_end);
-    const auto ok = add_hidden_area(start, end, value.data(), nullptr, nullptr, ~0u);
-    if(!ok)
-        LOG(ERROR, "make_hiddenarea: 0x" EA_FMT " unable to set hidden area " EA_FMT "-" EA_FMT " %s\n", ea, start, end, value.data());
+    void make_hiddenarea(ea_t ea, offset_t offset, offset_t offset_end, const std::string& value)
+    {
+        const auto start = static_cast<ea_t>(ea + offset);
+        const auto end = static_cast<ea_t>(ea + offset_end);
+        const auto ok = add_hidden_area(start, end, value.data(), nullptr, nullptr, ~0u);
+        if(!ok)
+            LOG(ERROR, "make_hiddenarea: 0x" EA_FMT " unable to set hidden area " EA_FMT "-" EA_FMT " %s\n", ea, start, end, value.data());
+    }
 }
 
 void Exporter::make_views(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
@@ -1081,65 +1090,68 @@ void Exporter::make_code(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
     make_views(version, ea);
 }
 
-static void set_data_type(ea_t ea, YaToolObjectVersion& version, const Exporter::TidMap& struct_ids)
+namespace
 {
-    const auto size = static_cast<size_t>(version.get_size());
-    if(!size)
+    void set_data_type(ea_t ea, YaToolObjectVersion& version, const Exporter::TidMap& struct_ids)
     {
-        const auto ok = do_unknown(ea, DOUNK_EXPAND);
+        const auto size = static_cast<size_t>(version.get_size());
+        if(!size)
+        {
+            const auto ok = do_unknown(ea, DOUNK_EXPAND);
+            if(!ok)
+                LOG(ERROR, "make_data: 0x" EA_FMT " unable to set unknown\n", ea);
+            return;
+        }
+
+        const auto flags = version.get_object_flags();
+        if(!flags)
+        {
+            const auto ok = doByte(ea, size);
+            if(!ok)
+                LOG(ERROR, "make_data: 0x" EA_FMT " unable to set data size %zd\n", ea, size);
+            return;
+        }
+
+        if(isASCII(flags))
+        {
+            const auto strtype = version.get_string_type();
+            auto ok = make_ascii_string(ea, size, strtype);
+            if(!ok)
+                LOG(ERROR, "make_data: 0x" EA_FMT " unable to make ascii string size %zd type %d\n", ea, size, strtype);
+            setFlags(ea, flags);
+            return;
+        }
+
+        if(isStruct(flags))
+        {
+            bool found = false;
+            for(const auto& it : version.get_xrefed_id_map())
+                for(const auto& xref : it.second)
+                {
+                    const auto fi = struct_ids.find(xref.object_id);
+                    if(fi == struct_ids.end())
+                        continue;
+
+                    do_unknown_range(ea, size, DOUNK_DELNAMES);
+                    const auto prev = inf.s_auto;
+                    inf.s_auto = true;
+                    autoWait();
+                    auto ok = doStruct(ea, size, fi->second.tid);
+                    inf.s_auto = prev;
+                    if(!ok)
+                        LOG(ERROR, "make_data: 0x" EA_FMT " unable to set struct %016llx size %d\n", ea, xref.object_id, size);
+                    found = true;
+                }
+            if(!found)
+                LOG(ERROR, "make_data: 0x" EA_FMT " unknown struct %016llx %s\n", ea, version.get_id(), version.get_name().data());
+            return;
+        }
+
+        const auto type_flags = flags & (DT_TYPE | get_optype_flags0(~0u));
+        const auto ok = do_data_ex(ea, type_flags, size, 0);
         if(!ok)
-            LOG(ERROR, "make_data: 0x" EA_FMT " unable to set unknown\n", ea);
-        return;
+            LOG(ERROR, "make_data: 0x" EA_FMT " unable to set data type 0x%llx size %zd\n", ea, static_cast<uint64_t>(type_flags), size);
     }
-
-    const auto flags = version.get_object_flags();
-    if(!flags)
-    {
-        const auto ok = doByte(ea, size);
-        if(!ok)
-            LOG(ERROR, "make_data: 0x" EA_FMT " unable to set data size %zd\n", ea, size);
-        return;
-    }
-
-    if(isASCII(flags))
-    {
-        const auto strtype = version.get_string_type();
-        auto ok = make_ascii_string(ea, size, strtype);
-        if(!ok)
-            LOG(ERROR, "make_data: 0x" EA_FMT " unable to make ascii string size %zd type %d\n", ea, size, strtype);
-        setFlags(ea, flags);
-        return;
-    }
-
-    if(isStruct(flags))
-    {
-        bool found = false;
-        for(const auto& it : version.get_xrefed_id_map())
-            for(const auto& xref : it.second)
-            {
-                const auto fi = struct_ids.find(xref.object_id);
-                if(fi == struct_ids.end())
-                    continue;
-
-                do_unknown_range(ea, size, DOUNK_DELNAMES);
-                const auto prev = inf.s_auto;
-                inf.s_auto = true;
-                autoWait();
-                auto ok = doStruct(ea, size, fi->second.tid);
-                inf.s_auto = prev;
-                if(!ok)
-                    LOG(ERROR, "make_data: 0x" EA_FMT " unable to set struct %016llx size %d\n", ea, xref.object_id, size);
-                found = true;
-            }
-        if(!found)
-            LOG(ERROR, "make_data: 0x" EA_FMT " unknown struct %016llx %s\n", ea, version.get_id(), version.get_name().data());
-        return;
-    }
-
-    const auto type_flags = flags & (DT_TYPE | get_optype_flags0(~0u));
-    const auto ok = do_data_ex(ea, type_flags, size, 0);
-    if(!ok)
-        LOG(ERROR, "make_data: 0x" EA_FMT " unable to set data type 0x%llx size %zd\n", ea, static_cast<uint64_t>(type_flags), size);
 }
 
 void Exporter::make_data(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
