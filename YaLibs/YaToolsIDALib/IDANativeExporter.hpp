@@ -33,6 +33,8 @@ struct Tid
 
 struct IDANativeExporter
 {
+    IDANativeExporter(YaToolsHashProvider* provider);
+
     void make_name(std::shared_ptr<YaToolObjectVersion> object_version, ea_t address, bool is_in_func);
 
     void make_anterior_comment (ea_t address, const char* comment);
@@ -57,8 +59,8 @@ struct IDANativeExporter
     void make_code(std::shared_ptr<YaToolObjectVersion> version, ea_t ea);
     void make_data(std::shared_ptr<YaToolObjectVersion> version, ea_t ea);
 
-    void make_enum(YaToolsHashProvider* provider, std::shared_ptr<YaToolObjectVersion> version, ea_t ea);
-    void make_enum_member(YaToolsHashProvider* provider, std::shared_ptr<YaToolObjectVersion> version, ea_t ea);
+    void make_enum(std::shared_ptr<YaToolObjectVersion> version, ea_t ea);
+    void make_enum_member(std::shared_ptr<YaToolObjectVersion> version, ea_t ea);
 
 #ifndef SWIG
     std::string patch_prototype(const std::string& prototype, ea_t ea);
@@ -70,6 +72,7 @@ private:
     TidMap tids;
     EnumMemberMap enum_members;
     YaToolsIDANativeLib tools;
+    YaToolsHashProvider& provider;
 #endif
 };
 

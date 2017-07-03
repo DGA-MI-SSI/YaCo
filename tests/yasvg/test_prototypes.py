@@ -32,7 +32,8 @@ if idc.__EA64__:
 else:
     import YaToolsPy32 as ya
 
-exporter = ya.IDANativeExporter()
+hash_provider = ya.YaToolsHashProvider()
+exporter = ya.IDANativeExporter(hash_provider)
 
 def walk_datas():
     for seg_start in idautils.Segments():
