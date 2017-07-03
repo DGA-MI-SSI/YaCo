@@ -44,7 +44,6 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
         self.arch_plugin = DefaultIDAVisitorPlugin.DefaultIDAVisitorPlugin()
         if idc.GetCharPrm(idc.INF_PROCNAME) == "ARM":
             self.arch_plugin = ARMIDAVisitorPlugin.ARMIDAVisitorPlugin()
-        self.reference_infos = {}
         self.hash_provider = hash_provider
         self.use_stackframes = use_stackframes
 
@@ -58,10 +57,6 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
             obj_id_str = self.hash_provider.hash_to_string(obj_id)
             logger.debug("object visited : %s" % obj_id_str)
             obj_type = object_version.get_type()
-
-            if obj_type == ya.OBJECT_TYPE_REFERENCE_INFO:
-                self.reference_infos[obj_id] = (object_version.get_object_address(), object_version.get_object_flags())
-
             address = object_version.get_object_address()
             # create code
             if obj_type == ya.OBJECT_TYPE_STRUCT:
@@ -70,7 +65,6 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
                 self.make_stackframe(object_version, address)
             elif obj_type == ya.OBJECT_TYPE_ENUM:
                 self.native.make_enum(object_version, address)
-
             else:
 
                 if DEBUG_EXPORTER:
@@ -91,7 +85,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
 
                 # create basic blocks
                 elif obj_type == ya.OBJECT_TYPE_BASIC_BLOCK:
-                    self.make_basic_block(object_version, address)
+                    self.native.make_basic_block(object_version, address)
 
                 elif obj_type == ya.OBJECT_TYPE_STRUCT_MEMBER:
                     self.make_struc_member(object_version, address)
@@ -110,6 +104,9 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
 
                 elif obj_type == ya.OBJECT_TYPE_SEGMENT_CHUNK:
                     self.native.make_segment_chunk(object_version, address)
+
+                elif obj_type == ya.OBJECT_TYPE_REFERENCE_INFO:
+                    self.native.make_reference_info(object_version, address)
 
                 else:
                     pass
@@ -471,127 +468,6 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
         object_id = object_version.get_id()
         self.make_struc_member(object_version, address)
         self.native.set_tid(object_id, object_version.get_parent_object_id(), ya.OBJECT_TYPE_STACKFRAME_MEMBER)
-
-    def make_basic_block(self, object_version, address):
-        #
-        # call the architecture dependent plugin  ###########
-        #
-        self.arch_plugin.make_basic_block_prehook(object_version, address)
-
-        # create basic block name
-        self.native.make_name(object_version, address, True)
-
-        # apply view
-        self.native.make_views(object_version, address)
-
-        for ((xref_offset, operand), xref_list) in object_version.get_xrefed_id_map().iteritems():
-            struc_path = {}
-            struc_off_delta = {}
-            for (xref_value, xref_attributes) in xref_list:
-                #
-                # fetch structure ###################
-                #
-                # it's a struc (normal case)
-                ktid = self.native.get_tid(xref_value)
-                if ktid.type == ya.OBJECT_TYPE_STRUCT or ktid.type == ya.OBJECT_TYPE_STACKFRAME:
-                    struc_id = ktid.tid
-                    path_idx = 0
-                    if xref_attributes is not None:
-                        try:
-                            struc_off_delta[operand] = self.yatools.try_read_hex_value(xref_attributes['delta'])
-                        except KeyError:
-                            pass
-                        try:
-                            path_idx = self.yatools.try_read_hex_value(xref_attributes['path_idx'])
-                        except KeyError:
-                            pass
-
-                    try:
-                        struc_path_off = struc_path[operand]
-                    except KeyError:
-                        struc_path_off = {}
-                        struc_path[operand] = struc_path_off
-
-                    struc_path_off[path_idx] = struc_id
-                # This is a struc member : it happens when the "struc path" contains unions
-                elif ktid.type == ya.OBJECT_TYPE_STRUCT_MEMBER:
-                    member_id = ktid.tid
-                    path_idx = 0
-                    if xref_attributes is not None:
-                        try:
-                            struc_off_delta[operand] = self.yatools.try_read_hex_value(xref_attributes['delta'])
-                        except KeyError:
-                            pass
-                        try:
-                            path_idx = self.yatools.try_read_hex_value(xref_attributes['path_idx'])
-                        except KeyError:
-                            pass
-                    try:
-                        struc_path_off = struc_path[operand]
-                    except KeyError:
-                        struc_path_off = {}
-                        struc_path[operand] = struc_path_off
-
-                    struc_path_off[path_idx] = member_id
-                # apply stackframe
-                elif ktid.type == ya.OBJECT_TYPE_STACKFRAME_MEMBER:
-                    # create operand as stack variable
-                    idaapi.op_stkvar(address + xref_offset, operand)
-
-                #
-                # apply enums     ###################
-                #
-                enum_id = self.get_tid(xref_value, ya.OBJECT_TYPE_ENUM)
-                if enum_id != idc.BADADDR:
-                    idaapi.op_enum(address + xref_offset, operand, enum_id, 0)
-
-                #
-                # apply reference info ##################
-                #
-                ref_info_valid = False
-                try:
-                    (reference_info_base, reference_info_flags) = self.reference_infos[xref_value]
-                    ref_info_valid = True
-                except KeyError:
-                    pass
-
-                if ref_info_valid:
-                    try:
-                        ri = idaapi.refinfo_t()
-                        ri.base = reference_info_base
-                        ri.flags = reference_info_flags
-                        ri.tdelta = 0
-                        ri.target = idc.BADADDR
-                        idaapi.op_offset_ex(address + xref_offset, operand, ri)
-                    except OverflowError:
-                        logger.error(
-                            "OverflowError while committing address=0x%08X, "
-                            "operand=%d, flags=0x%08X, target=0x%08X, value=0x%08X " %
-                            (address + xref_offset, operand, reference_info_flags, idc.BADADDR, reference_info_base))
-                        traceback.print_exc()
-
-            #
-            # now apply structures ##################
-            #
-            for (operand, struc_path_off) in struc_path.iteritems():
-                path_len = len(struc_path_off)
-                path = idaapi.tid_array(path_len)
-                for i in xrange(0, path_len):
-                    path[i] = struc_path_off[i]
-                delta = 0
-                try:
-                    delta = struc_off_delta[operand]
-                except KeyError:
-                    pass
-                if DEBUG_EXPORTER:
-                    logger.debug("apply struc : 0x%016X:0x%02X, path_len=%d, delta=%d" %
-                                 (address + xref_offset, operand, path_len, delta))
-                idaapi.op_stroff(address + xref_offset, operand, path.cast(), path_len, delta)
-
-        #
-        # now call the architecture dependent plugin  #########
-        #
-        self.arch_plugin.make_basic_block_posthook(object_version, address)
 
     def sanitize_comment_to_ascii(self, comment):
         try:

@@ -48,38 +48,43 @@
 
 namespace
 {
+    using RefInfos = std::unordered_map<YaToolObjectId, refinfo_t>;
+
     struct Exporter
         : public IExporter
     {
         Exporter(YaToolsHashProvider* provider);
 
         // IExporter methods
-        bool set_type(ea_t ea, const std::string& prototype) override;
-        bool set_struct_member_type(ea_t ea, const std::string& prototype) override;
-        void set_tid(YaToolObjectId id, ea_t tid, YaToolObjectType_e type) override;
-        Tid  get_tid(YaToolObjectId id) override;
-        void analyze_function(ea_t ea) override;
-        void make_function(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
-        void make_views(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
-        void make_code(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
-        void make_data(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
-        void make_enum(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
-        void make_enum_member(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
-        void make_name(std::shared_ptr<YaToolObjectVersion>& object_version, ea_t ea, bool is_in_func) override;
-        void make_comments(std::shared_ptr<YaToolObjectVersion>& object_version, ea_t ea) override;
-        void make_header_comments(std::shared_ptr<YaToolObjectVersion>& object_version, ea_t ea) override;
-        void make_segment(std::shared_ptr<YaToolObjectVersion>& object_version, ea_t ea) override;
-        void make_segment_chunk(std::shared_ptr<YaToolObjectVersion>& object_version, ea_t ea) override;
+        bool set_type               (ea_t ea, const std::string& prototype) override;
+        bool set_struct_member_type (ea_t ea, const std::string& prototype) override;
+        void set_tid                (YaToolObjectId id, ea_t tid, YaToolObjectType_e type) override;
+        Tid  get_tid                (YaToolObjectId id) override;
+        void analyze_function       (ea_t ea) override;
+        void make_function          (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
+        void make_views             (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
+        void make_code              (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
+        void make_data              (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
+        void make_enum              (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
+        void make_enum_member       (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
+        void make_name              (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea, bool is_in_func) override;
+        void make_comments          (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
+        void make_header_comments   (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
+        void make_segment           (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
+        void make_segment_chunk     (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
+        void make_basic_block       (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
+        void make_reference_info    (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
 
         //
         std::string patch_prototype(const std::string& prototype, ea_t ea);
         using TidMap = std::unordered_map<YaToolObjectId, Tid>;
         using EnumMemberMap = std::unordered_map<uint64_t, enum_t>;
 
-        TidMap tids;
-        EnumMemberMap enum_members;
-        YaToolsIDANativeLib tools;
-        YaToolsHashProvider& provider;
+        YaToolsHashProvider&    provider;
+        EnumMemberMap           enum_members;
+        YaToolsIDANativeLib     tools;
+        RefInfos                refs;
+        TidMap                  tids;
     };
 }
 
@@ -148,10 +153,10 @@ namespace
     }
 }
 
-void Exporter::make_comments(std::shared_ptr<YaToolObjectVersion>& object_version, ea_t address)
+void Exporter::make_comments(std::shared_ptr<YaToolObjectVersion>& version, ea_t address)
 {
-    const auto current_comments = tools.get_comments_in_area(address, static_cast<ea_t>(address + object_version->get_size()));
-    const auto new_comments = object_version->get_offset_comments();
+    const auto current_comments = tools.get_comments_in_area(address, static_cast<ea_t>(address + version->get_size()));
+    const auto new_comments = version->get_offset_comments();
     for(const auto& current_cmt : current_comments)
     {
         const auto comment_offset = current_cmt.first - address;
@@ -215,6 +220,7 @@ namespace
     MAKE_TO_TYPE_FUNCTION(to_sel,     sel_t,            SEL_FMT);
     MAKE_TO_TYPE_FUNCTION(to_bgcolor, bgcolor_t,        "%u");
     MAKE_TO_TYPE_FUNCTION(to_yaid,    YaToolObjectId,   "%llx");
+    MAKE_TO_TYPE_FUNCTION(to_path,    int,              "0x%08X")
 
     template<typename T>
     int find_int(const T& data, const char* key)
@@ -1243,4 +1249,123 @@ void Exporter::make_enum_member(std::shared_ptr<YaToolObjectVersion>& version, e
         }
 
     enum_members.emplace(mid, eid);
+}
+
+void Exporter::make_reference_info(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
+{
+    const auto id = version->get_id();
+    const auto flags = version->get_object_flags();
+    refinfo_t ref;
+    ref.init(flags, ea);
+    refs.emplace(id, ref);
+}
+
+namespace
+{
+    void set_stackframe_member_operand(ea_t ea, offset_t offset, operand_t operand)
+    {
+        const auto ok = op_stkvar(static_cast<ea_t>(ea + offset), operand);
+        if(!ok)
+            LOG(ERROR, "make_basic_block: 0x" EA_FMT " unable to set stackframe member at offset %lld operand %d\n", ea, offset, operand);
+    }
+
+    void set_enum_operand(ea_t ea, offset_t offset, operand_t operand, enum_t enum_id)
+    {
+        // FIXME serial
+        const auto ok = op_enum(static_cast<ea_t>(ea + offset), operand, enum_id, 0);
+        if(!ok)
+            LOG(ERROR, "make_basic_block: 0x" EA_FMT " unable to set enum 0x" EA_FMT " at offset %lld operand %d\n", ea, enum_id, offset, operand);
+    }
+
+    void set_reference_info(RefInfos& refs, ea_t ea, offset_t offset, operand_t operand, YaToolObjectId id)
+    {
+        const auto it_ref = refs.find(id);
+        if(it_ref == refs.end())
+            return;
+        const auto& ref = it_ref->second;
+        const auto ok = op_offset_ex(static_cast<ea_t>(ea + offset), operand, &ref);
+        if(!ok)
+            LOG(ERROR, "make_basic_block: 0x" EA_FMT " unable to set reference info " EA_FMT ":%x at offset %lld operand %d\n", ea, ref.base, ref.flags, offset, operand);
+    }
+
+    struct PathValue
+    {
+        tid_t   tid;
+        int     idx;
+    };
+    using Path = std::vector<PathValue>;
+    using IdaPath = std::vector<tid_t>;
+
+    void fill_path(Path& path, tid_t tid, const XrefedId_T& xref)
+    {
+        int path_idx = 0;
+        const auto it_path_idx = xref.attributes.find("path_idx");
+        if(it_path_idx != xref.attributes.end())
+            path_idx = to_path(it_path_idx->second.data());
+        path.push_back({tid, path_idx});
+    }
+
+    void set_path(Path& path, IdaPath& ida_path, ea_t ea, offset_t offset, operand_t operand)
+    {
+        if(path.empty())
+            return;
+
+        std::sort(path.begin(), path.end(), [](const auto& a, const auto b)
+        {
+            return a.idx < b.idx;
+        });
+        ida_path.clear();
+        ida_path.reserve(path.size());
+        for(const auto& it : path)
+            ida_path.emplace_back(it.tid);
+        const auto ok = op_stroff(static_cast<ea_t>(ea + offset), operand, &ida_path[0], ida_path.size(), 0);
+        if(ok)
+            return;
+
+        std::string pathstr;
+        bool first = true;
+        for(const auto tid : ida_path)
+        {
+            if(!first)
+                pathstr += ":";
+            pathstr += std::to_string(tid);
+        }
+        LOG(ERROR, "make_basic_block: 0x" EA_FMT " unable to set path %s at offset %lld operand %d\n", ea, pathstr.data(), offset, operand);
+    }
+}
+
+void Exporter::make_basic_block(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
+{
+    Path path;
+    IdaPath ida_path;
+    make_name(version, ea, true);
+    make_views(version, ea);
+    for(const auto& xrefs : version->get_xrefed_id_map())
+    {
+        const auto offset = xrefs.first.first;
+        const auto operand = xrefs.first.second;
+        path.clear();
+        for(const auto& xref : xrefs.second)
+        {
+            const auto key = get_tid(xref.object_id);
+            switch(key.type)
+            {
+                case OBJECT_TYPE_STRUCT:
+                case OBJECT_TYPE_STACKFRAME:
+                case OBJECT_TYPE_STRUCT_MEMBER:
+                    fill_path(path, key.tid, xref);
+                    break;
+
+                case OBJECT_TYPE_STACKFRAME_MEMBER:
+                    set_stackframe_member_operand(ea, offset, operand);
+                    break;
+
+                case OBJECT_TYPE_ENUM:
+                    set_enum_operand(ea, offset, operand, key.tid);
+                    break;
+            }
+            set_path(path, ida_path, ea, offset, operand);
+            set_reference_info(refs, ea, offset, operand, xref.object_id);
+        }
+    }
 }
