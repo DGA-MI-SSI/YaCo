@@ -181,7 +181,7 @@
 %include <std_shared_ptr.i>
 
 %shared_ptr(YaToolsIDANativeLib)
-%shared_ptr(IDANativeExporter)
+%shared_ptr(IExporter)
 
 %template () std::shared_ptr<YaToolsIDANativeLib>;
 %template () std::vector<std::shared_ptr<YaToolsIDANativeLib> >;
