@@ -41,7 +41,6 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
         super(YaToolIDAExporter, self).__init__()
         self.yatools = yatools
         self.union_ids = set()
-        self.stackframes_functions = {}
         self.arch_plugin = DefaultIDAVisitorPlugin.DefaultIDAVisitorPlugin()
         if idc.GetCharPrm(idc.INF_PROCNAME) == "ARM":
             self.arch_plugin = ARMIDAVisitorPlugin.ARMIDAVisitorPlugin()
@@ -412,9 +411,6 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
     def make_stackframe(self, object_version, address):
         object_id = object_version.get_id()
         parent_object_id = object_version.get_parent_object_id()
-        # associate stack frame id to function id
-        self.stackframes_functions[object_id] = parent_object_id
-
         # association stackframe id to internal struc id
         eaFunc = object_version.get_object_address()
         logger.debug("stackframe[%s] : address of function is 0x%08X" %
