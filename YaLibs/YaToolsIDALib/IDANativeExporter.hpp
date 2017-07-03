@@ -48,6 +48,7 @@ struct IExporter
     virtual void make_segment_chunk     (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) = 0;
     virtual void make_basic_block       (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) = 0;
     virtual void make_reference_info    (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) = 0;
+    virtual void clear_struct_fields    (std::shared_ptr<YaToolObjectVersion>& version, ea_t struct_id) = 0;
 };
 
 std::shared_ptr<IExporter> MakeExporter(YaToolsHashProvider* provider);

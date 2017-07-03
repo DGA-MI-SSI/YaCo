@@ -450,3 +450,26 @@ std::string ya::get_type(ea_t ea)
     print_type(buf, nullptr, nullptr, tif, {nullptr, 0});
     return to_string(buf);
 }
+
+namespace
+{
+    const_string_ref to_fmt(qstring& buffer, const char* fmt, int64_t value)
+    {
+        return ya::read_string_from(buffer, [&](char* buf, size_t szbuf)
+        {
+            return snprintf(buf, szbuf, fmt, value);
+        });
+    }
+}
+
+const_string_ref ya::get_default_name(qstring& buffer, ea_t offset, func_t* func)
+{
+    buffer.resize(std::max(buffer.size(), 32u));
+    if(!func)
+        return to_fmt(buffer, "field_%X", offset);
+    if(offset <= func->frsize)
+        return to_fmt(buffer, "var_%X", func->frsize - offset);
+    if(offset < func->frsize + 4)
+        return to_fmt(buffer, "var_s%d", offset - func->frsize);
+    return to_fmt(buffer, "arg_%X", offset - func->frsize - 4);
+}

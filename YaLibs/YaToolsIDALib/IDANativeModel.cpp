@@ -327,26 +327,6 @@ namespace
             accept_enum(ctx, v, getn_enum(i));
     }
 
-    const_string_ref to_fmt(qstring& buffer, const char* fmt, int64_t value)
-    {
-        return ya::read_string_from(buffer, [&](char* buf, size_t szbuf)
-        {
-            return snprintf(buf, szbuf, fmt, value);
-        });
-    }
-
-    const_string_ref get_default_name(qstring& buffer, ea_t offset, func_t* func)
-    {
-        buffer.resize(std::max(buffer.size(), 32u));
-        if(!func)
-            return to_fmt(buffer, "field_%X", offset);
-        if(offset <= func->frsize)
-            return to_fmt(buffer, "var_%X", func->frsize - offset);
-        if(offset < func->frsize + 4)
-            return to_fmt(buffer, "var_s%d", offset - func->frsize);
-        return to_fmt(buffer, "arg_%X", offset - func->frsize - 4);
-    }
-
     struct MemberType
     {
         tinfo_t tif;
@@ -412,7 +392,7 @@ namespace
         }
 
         const auto func = get_func(get_func_by_frame(struc->id));
-        const auto defname = get_default_name(buffer, member->soff, func);
+        const auto defname = ya::get_default_name(buffer, member->soff, func);
         if(defname.size != member_name.size)
             return false;
         if(strncmp(defname.value, member_name.value, defname.size))

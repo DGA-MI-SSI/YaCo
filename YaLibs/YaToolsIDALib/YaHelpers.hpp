@@ -28,11 +28,12 @@ namespace ya
         tid_t           tid;
     };
     using Deps = std::vector<Dependency>;
-    void        print_type(qstring& dst, YaToolsHashProvider* provider, Deps* deps, const tinfo_t& tif, const const_string_ref& name);
-    tinfo_t     get_tinfo(flags_t flags, const opinfo_t* op);
-    tinfo_t     get_tinfo(ea_t ea);
-    std::string get_type(ea_t ea);
-    std::string dump_flags(flags_t flags);
+    void                print_type(qstring& dst, YaToolsHashProvider* provider, Deps* deps, const tinfo_t& tif, const const_string_ref& name);
+    tinfo_t             get_tinfo(flags_t flags, const opinfo_t* op);
+    tinfo_t             get_tinfo(ea_t ea);
+    std::string         get_type(ea_t ea);
+    std::string         dump_flags(flags_t flags);
+    const_string_ref    get_default_name(qstring& buffer, ea_t offset, func_t* func);
 
     // call void(const_t const_id, uval_t value, uchar serial, bmask_t bmask) on every enum member with specified bmask
     template<typename T>

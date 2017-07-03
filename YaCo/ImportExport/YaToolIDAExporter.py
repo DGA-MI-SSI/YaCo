@@ -129,102 +129,6 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
                 return key.tid
         return idc.BADADDR
 
-    def clear_struc_fields(self, struc_id, struc_size, xref_keys, is_union=False,
-                           member_type=ya.OBJECT_TYPE_STRUCT_MEMBER, name_offset=0):
-
-        idc.BeginTypeUpdating(idc.UTP_STRUCT)
-        last_offset = idc.GetLastMember(struc_id)
-
-        # get existing member offsets
-        field_offsets = set()
-        for (xref_offset, xref_operand) in xref_keys:
-            field_offsets.add(xref_offset)
-
-        new_offsets = set()
-        struc = idaapi.get_struc(struc_id)
-        # create missing members first (prevent from deleting all members)
-        for offset in field_offsets:
-            member = idaapi.get_member(struc, offset)
-            if member is not None and member.soff < offset:
-                # we have a member above this member that is too big and contain this member
-                # clear it!
-                if DEBUG_EXPORTER:
-                    logger.debug("reduce field : set_member_type(0x%08X, 0x%08X), overlapping 0x%08X",
-                                 struc_id, member.soff, offset
-                                 )
-                idaapi.set_member_type(struc, member.soff, idc.FF_BYTE, None, 1)
-                member = idaapi.get_member(struc, offset)
-
-            if member is None or idaapi.get_member_name(member.id) is None:
-                new_offsets.add(offset)
-                member_name = YaToolIDATools.get_default_struc_member_name(member_type, offset, name_offset)
-                if offset == last_offset and offset == struc_size:
-                    field_size = 0
-                else:
-                    field_size = 1
-                if DEBUG_EXPORTER:
-                    logger.debug("AddStrucMember(0x%08X, '%s', 0x%08X, idc.FF_BYTE, -1, 0x%08X), name_offset=%d",
-                                 struc_id, member_name, offset, field_size, name_offset
-                                 )
-                retval = idc.AddStrucMember(struc_id, member_name, offset, idc.FF_BYTE, -1, field_size)
-                if retval != 0:
-                    logger.error(
-                        "Error %d with idc.AddStrucMember(0x%08X, '%s', 0x%08X,"
-                        "idc.FF_BYTE, -1, 0x%08X), name_offset=%d",
-                        retval, struc_id, member_name, offset, field_size, name_offset
-                    )
-            elif DEBUG_EXPORTER:
-                logger.debug("Member exists : (0x%08X, '%s', 0x%08X, 0x%08X)",
-                             struc_id, idc.GetMemberName(struc_id, offset), offset, idc.GetMemberSize(struc_id, offset)
-                             )
-
-        kept_offsets = field_offsets - new_offsets
-        # clear kept members
-        # split the loop since we will modify the structure while iterating
-        offsets = set()
-        for (offset, member_name) in YaToolIDATools.struc_member_list(struc_id, is_union):
-            offsets.add(offset)
-
-        for offset in offsets:
-            if offset in kept_offsets:
-                # This member already existed and is kept
-                if offset == last_offset and offset == struc_size:
-                    # this is the last field, and it is a variable sized structure
-                    field_size = 0
-                else:
-                    field_size = 1
-                if member_type == ya.OBJECT_TYPE_STRUCT_MEMBER:
-                    strucmember_id = self.hash_provider.get_struc_member_id(struc_id, offset, "")
-                elif member_type == ya.OBJECT_TYPE_STACKFRAME_MEMBER:
-                    strucmember_id = self.hash_provider.get_stackframe_member_object_id(struc_id, offset, idc.BADADDR)
-                else:
-                    logger.error("Bad member_type : %d" % member_type)
-
-                strucmember_id = self.get_tid(strucmember_id, ya.OBJECT_TYPE_STRUCT_MEMBER, ya.OBJECT_TYPE_STACKFRAME_MEMBER)
-                if strucmember_id == idc.BADADDR:
-                    # It is not necessary to clear the member if it is presnet in the resolved_objects
-                    if DEBUG_EXPORTER:
-                        logger.debug("SetStrucmember(0x%08X, None, 0x%08X, idc.FF_BYTE, -1, 0x%08X, name_offset=%s)",
-                                     struc_id, offset, field_size, name_offset
-                                     )
-                    YaToolIDATools.SetStrucmember(struc_id, None, offset, idc.FF_BYTE, -1, field_size,
-                                                  member_type=member_type, name_offset=name_offset)
-
-                    idc.SetMemberComment(struc_id, offset, "", 0)
-                    idc.SetMemberComment(struc_id, offset, "", 1)
-            elif offset not in new_offsets:
-                if (member_type != ya.OBJECT_TYPE_STACKFRAME_MEMBER or not idaapi.is_special_member(
-                        idc.GetMemberId(struc_id, offset))):
-                    if DEBUG_EXPORTER:
-                        logger.debug("DelStrucMember(0x%08X, 0x%08X)  (=%s:%s)",
-                                     struc_id, offset, idc.GetStrucName(struc_id), idc.GetMemberName(struc_id, offset)
-                                     )
-                    idc.DelStrucMember(struc_id, offset)
-            else:
-                # in new_offsets : just created
-                pass
-        idc.EndTypeUpdating(idc.UTP_STRUCT)
-
     def make_struc(self, object_version, address):
         name = object_version.get_name()
         object_id = object_version.get_id()
@@ -248,13 +152,8 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
         else:
 
             is_union = idc.IsUnion(struc_id)
-        #             if(is_union):
-        #                 pass
-        #             else:
-        #                 self.clear_struc_fields(struc_id, object_version['xrefs'], is_union)
-
         if not is_union or is_union == 0:
-            self.clear_struc_fields(struc_id, size, object_version.get_xrefed_id_map().iterkeys(), False)
+            self.native.clear_struct_fields(object_version, struc_id)
         else:
             self.union_ids.add(struc_id)
 
@@ -455,9 +354,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
             if stack_lvars is not None:
                 logger.debug("Clearing everything for stackframe at 0x%08X, with stack_lvars=0x%04X", eaFunc,
                              stack_lvars)
-                self.clear_struc_fields(stack_frame.id, object_version.get_size(), object_version.get_xrefed_id_map()
-                                        .iterkeys(), member_type=ya.OBJECT_TYPE_STACKFRAME_MEMBER,
-                                        name_offset=stack_lvars)
+                self.native.clear_struct_fields(object_version, stack_frame.id)
 
     def make_stackframe_member(self, object_version, address):
         object_id = object_version.get_id()
