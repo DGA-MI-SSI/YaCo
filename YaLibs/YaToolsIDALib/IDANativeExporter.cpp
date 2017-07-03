@@ -74,6 +74,7 @@ namespace
         void make_segment_chunk     (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
         void make_basic_block       (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
         void make_reference_info    (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
+        void clear_struct_fields    (std::shared_ptr<YaToolObjectVersion>& version, ea_t struct_id) override;
 
         //
         std::string patch_prototype(const std::string& prototype, ea_t ea);
@@ -1368,4 +1369,100 @@ void Exporter::make_basic_block(std::shared_ptr<YaToolObjectVersion>& version, e
             set_reference_info(refs, ea, offset, operand, xref.object_id);
         }
     }
+}
+
+namespace
+{
+#define DECLARE_REF(name, value)\
+    const char name ## _txt[] = value;\
+    const const_string_ref name = {name ## _txt, sizeof name ## _txt - 1};
+    DECLARE_REF(g_empty, "");
+#undef DECLARE_REF
+}
+
+void Exporter::clear_struct_fields(std::shared_ptr<YaToolObjectVersion>& version, ea_t struct_id)
+{
+    begin_type_updating(UTP_STRUCT);
+
+    const auto size = version->get_size();
+    const auto struc = get_struc(struct_id);
+    const auto last_offset = get_struc_last_offset(struc);
+
+    // get existing members
+    std::set<offset_t> fields;
+    for(const auto& xref : version->get_xrefed_id_map())
+        fields.emplace(xref.first.first);
+
+    // create missing members first & prevent deleting all members
+    std::set<offset_t> new_fields;
+    qstring member_name;
+    for(const auto offset : fields)
+    {
+        const auto aoff = static_cast<asize_t>(offset);
+        auto member = get_member(struc, aoff);
+        if(member && member->soff < offset)
+        {
+            set_member_type(struc, member->soff, FF_BYTE, nullptr, 1);
+            member = get_member(struc, aoff);
+        }
+        if(member && get_member_name2(&member_name, member->id) > 0)
+            continue;
+
+        new_fields.insert(offset);
+        const auto func_ea = get_func_by_frame(struct_id);
+        const auto func = get_func(func_ea);
+        const auto defname = ya::get_default_name(member_name, aoff, func);
+        const auto field_size = offset == last_offset && offset == size ? 0 : 1;
+        member_name.resize(defname.size);
+        const auto err = add_struc_member(struc, defname.value, aoff, FF_BYTE, nullptr, field_size);
+        if(err != STRUC_ERROR_MEMBER_OK)
+            LOG(ERROR, "clear_struct_fields: 0x" EA_FMT ":%llx unable to add member %s size %d\n", struct_id, offset, defname.value, field_size);
+    }
+
+    for(size_t i = 0; i < struc->memqty; ++i)
+    {
+        auto& m = struc->members[i];
+        const auto offset = m.soff;
+        const auto is_known = fields.count(m.soff);
+        const auto is_new = new_fields.count(m.soff);
+        const auto func_ea = get_func_by_frame(struct_id);
+        if(is_known && !is_new)
+        {
+            const auto field_size = offset == last_offset && offset == size ? 0 : 1;
+            const auto id = struc->props & SF_FRAME ?
+                provider.get_stackframe_member_object_id(struct_id, offset, func_ea) :
+                provider.get_struc_member_id(struct_id, offset, g_empty);
+            const auto key = get_tid(id);
+            if(key.tid == BADADDR)
+            {
+                const auto func = get_func(func_ea);
+                const auto defname = ya::get_default_name(member_name, offset, func);
+                auto ok = set_member_name(struc, offset, defname.value);
+                if(!ok)
+                    LOG(ERROR, "clear_struct_fields: 0x" EA_FMT ":" EA_FMT " unable to set member name %s\n", struct_id, offset, defname.value);
+                ok = set_member_type(struc, offset, FF_BYTE, nullptr, field_size);
+                if(!ok)
+                    LOG(ERROR, "clear_struct_fields: 0x" EA_FMT ":" EA_FMT " unable to set member type to %d bytes\n", struct_id, offset, field_size);
+                for(const auto repeat : {false, true})
+                {
+                    ok = set_member_cmt(&m, g_empty.value, repeat);
+                    if(!ok)
+                        LOG(ERROR, "clear_struct_fields: 0x" EA_FMT ":" EA_FMT " unable to reset %s comment\n", struct_id, offset, repeat ? "repeatable" : "non-repeatable");
+                }
+            }
+        }
+        else if(!is_new)
+        {
+            if(func_ea == BADADDR || !is_special_member(m.id))
+            {
+                const auto ok = del_struc_member(struc, offset);
+                if(!ok)
+                    LOG(ERROR, "clear_struct_fields: 0x" EA_FMT ":" EA_FMT " unable to delete member\n", struct_id, offset);
+                else
+                    --i;
+            }
+        }
+    }
+
+    end_type_updating(UTP_STRUCT);
 }
