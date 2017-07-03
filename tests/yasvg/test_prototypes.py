@@ -33,7 +33,7 @@ else:
     import YaToolsPy32 as ya
 
 hash_provider = ya.YaToolsHashProvider()
-exporter = ya.IDANativeExporter(hash_provider)
+exporter = ya.MakeExporter(hash_provider)
 
 def walk_datas():
     for seg_start in idautils.Segments():

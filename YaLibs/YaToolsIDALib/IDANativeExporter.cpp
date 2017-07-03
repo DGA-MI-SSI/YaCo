@@ -17,8 +17,9 @@
 #include "Ida.h"
 
 #include "IDANativeExporter.hpp"
-#include "YaToolsHashProvider.hpp"
 
+#include "YaToolsIDANativeLib.hpp"
+#include "YaToolsHashProvider.hpp"
 #include <YaToolObjectVersion.hpp>
 #include <MultiplexerDelegatingVisitor.hpp>
 #include "Logger.h"
@@ -33,7 +34,7 @@
 #include <chrono>
 #include <regex>
 
-#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("IDANativeExporter", (FMT), ## __VA_ARGS__)
+#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("ida_exporter", (FMT), ## __VA_ARGS__)
 
 #ifdef __EA64__
 #define EA_FMT  "%llx"
@@ -45,12 +46,54 @@
 #define SEL_FMT "%d"
 #endif
 
-IDANativeExporter::IDANativeExporter(YaToolsHashProvider* provider)
+namespace
+{
+    struct Exporter
+        : public IExporter
+    {
+        Exporter(YaToolsHashProvider* provider);
+
+        // IExporter methods
+        bool set_type(ea_t ea, const std::string& prototype) override;
+        bool set_struct_member_type(ea_t ea, const std::string& prototype) override;
+        void set_tid(YaToolObjectId id, ea_t tid, YaToolObjectType_e type) override;
+        Tid  get_tid(YaToolObjectId id) override;
+        void analyze_function(ea_t ea) override;
+        void make_function(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
+        void make_views(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
+        void make_code(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
+        void make_data(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
+        void make_enum(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
+        void make_enum_member(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
+        void make_name(std::shared_ptr<YaToolObjectVersion>& object_version, ea_t ea, bool is_in_func) override;
+        void make_comments(std::shared_ptr<YaToolObjectVersion>& object_version, ea_t ea) override;
+        void make_header_comments(std::shared_ptr<YaToolObjectVersion>& object_version, ea_t ea) override;
+        void make_segment(std::shared_ptr<YaToolObjectVersion>& object_version, ea_t ea) override;
+        void make_segment_chunk(std::shared_ptr<YaToolObjectVersion>& object_version, ea_t ea) override;
+
+        //
+        std::string patch_prototype(const std::string& prototype, ea_t ea);
+        using TidMap = std::unordered_map<YaToolObjectId, Tid>;
+        using EnumMemberMap = std::unordered_map<uint64_t, enum_t>;
+
+        TidMap tids;
+        EnumMemberMap enum_members;
+        YaToolsIDANativeLib tools;
+        YaToolsHashProvider& provider;
+    };
+}
+
+std::shared_ptr<IExporter> MakeExporter(YaToolsHashProvider* provider)
+{
+    return std::make_shared<Exporter>(provider);
+}
+
+Exporter::Exporter(YaToolsHashProvider* provider)
     : provider(*provider)
 {
 }
 
-void IDANativeExporter::make_name(std::shared_ptr<YaToolObjectVersion> version, ea_t ea, bool is_in_func)
+void Exporter::make_name(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea, bool is_in_func)
 {
     const auto& name = version->get_name();
     auto flags = version->get_name_flags();
@@ -72,16 +115,6 @@ void IDANativeExporter::make_name(std::shared_ptr<YaToolObjectVersion> version, 
 
     LOG(WARNING, "make_name: 0x" EA_FMT " unable to set name flags 0x%08x '%s'\n", ea, flags, name.data());
     set_name(ea, previous.c_str(), SN_CHECK | SN_NOWARN);
-}
-
-void IDANativeExporter::make_anterior_comment(ea_t address, const char* comment)
-{
-    tools.make_extra_comment(address, comment, E_PREV);
-}
-
-void IDANativeExporter::make_posterior_comment(ea_t address, const char* comment)
-{
-    tools.make_extra_comment(address, comment, E_NEXT);
 }
 
 void add_bookmark(ea_t ea, std::string comment_text)
@@ -115,7 +148,7 @@ namespace
     }
 }
 
-void IDANativeExporter::make_comments(std::shared_ptr<YaToolObjectVersion> object_version, ea_t address)
+void Exporter::make_comments(std::shared_ptr<YaToolObjectVersion>& object_version, ea_t address)
 {
     const auto current_comments = tools.get_comments_in_area(address, static_cast<ea_t>(address + object_version->get_size()));
     const auto new_comments = object_version->get_offset_comments();
@@ -149,10 +182,10 @@ void IDANativeExporter::make_comments(std::shared_ptr<YaToolObjectVersion> objec
                 set_cmt(ea, comment_text.c_str(), 0);
                 break;
             case COMMENT_ANTERIOR:
-                make_anterior_comment(ea, comment_text.data());
+                tools.make_extra_comment(ea, comment_text.data(), E_PREV);
                 break;
             case COMMENT_POSTERIOR:
-                make_posterior_comment(ea, comment_text.data());
+                tools.make_extra_comment(ea, comment_text.data(), E_NEXT);
                 break;
             case COMMENT_BOOKMARK:
                 add_bookmark(ea, comment_text);
@@ -362,7 +395,7 @@ void set_segment_attribute(segment_t* seg, const char* key, const char* value)
 }
 }
 
-void IDANativeExporter::make_segment(std::shared_ptr<YaToolObjectVersion> version, ea_t ea)
+void Exporter::make_segment(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
 {
     const auto size = version->get_size();
     const auto name = version->get_name();
@@ -419,7 +452,7 @@ void IDANativeExporter::make_segment(std::shared_ptr<YaToolObjectVersion> versio
         LOG(ERROR, "make_segment: 0x" EA_FMT " unable to update segment\n", ea);
 }
 
-void IDANativeExporter::make_segment_chunk(std::shared_ptr<YaToolObjectVersion> version, ea_t ea)
+void Exporter::make_segment_chunk(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
 {
     // TODO : now that we have enough precision, we could delete elements
     // that are in the base but not in our segment_chunk
@@ -446,7 +479,7 @@ void IDANativeExporter::make_segment_chunk(std::shared_ptr<YaToolObjectVersion> 
     }
 }
 
-Tid IDANativeExporter::get_tid(YaToolObjectId id)
+Tid Exporter::get_tid(YaToolObjectId id)
 {
     const auto it = tids.find(id);
     if(it == tids.end())
@@ -454,7 +487,7 @@ Tid IDANativeExporter::get_tid(YaToolObjectId id)
     return it->second;
 }
 
-void IDANativeExporter::set_tid(YaToolObjectId id, ea_t tid, YaToolObjectType_e type)
+void Exporter::set_tid(YaToolObjectId id, ea_t tid, YaToolObjectType_e type)
 {
     tids.insert({id, {tid, type}});
 }
@@ -483,7 +516,7 @@ void replace_inline(std::string& value, const std::string& pattern, const std::s
 }
 }
 
-std::string IDANativeExporter::patch_prototype(const std::string& src, ea_t ea)
+std::string Exporter::patch_prototype(const std::string& src, ea_t ea)
 {
     // remove/patch struct ids
     auto dst = src;
@@ -721,7 +754,7 @@ namespace
     }
 
     template<typename T>
-    bool try_set_type(IDANativeExporter& exporter, ea_t ea, const std::string& value, const T& operand)
+    bool try_set_type(Exporter& exporter, ea_t ea, const std::string& value, const T& operand)
     {
         if(value.empty())
             return false;
@@ -735,7 +768,7 @@ namespace
     }
 }
 
-bool IDANativeExporter::set_type(ea_t ea, const std::string& value)
+bool Exporter::set_type(ea_t ea, const std::string& value)
 {
     return try_set_type(*this, ea, value, [&](const tinfo_t& tif)
     {
@@ -743,7 +776,7 @@ bool IDANativeExporter::set_type(ea_t ea, const std::string& value)
     });
 }
 
-bool IDANativeExporter::set_struct_member_type(ea_t ea, const std::string& value)
+bool Exporter::set_struct_member_type(ea_t ea, const std::string& value)
 {
     return try_set_type(*this, ea, value, [&](const tinfo_t& tif)
     {
@@ -761,7 +794,7 @@ static bool set_function_comment(ea_t ea, const char* comment, bool repeatable)
     return set_func_cmt(func, comment, repeatable);
 }
 
-static bool set_struct_comment(const IDANativeExporter::TidMap& tids, YaToolObjectId id, const char* comment, bool repeatable)
+static bool set_struct_comment(const Exporter::TidMap& tids, YaToolObjectId id, const char* comment, bool repeatable)
 {
     const auto it = tids.find(id);
     if(it == tids.end())
@@ -769,7 +802,7 @@ static bool set_struct_comment(const IDANativeExporter::TidMap& tids, YaToolObje
     return set_struc_cmt(it->second.tid, comment, repeatable);
 }
 
-static bool set_struct_member_comment(const IDANativeExporter::TidMap& tids, YaToolObjectId id, const char* comment, bool repeatable)
+static bool set_struct_member_comment(const Exporter::TidMap& tids, YaToolObjectId id, const char* comment, bool repeatable)
 {
     const auto it = tids.find(id);
     if(it == tids.end())
@@ -780,7 +813,7 @@ static bool set_struct_member_comment(const IDANativeExporter::TidMap& tids, YaT
     return set_member_cmt(member, comment, repeatable);
 }
 
-void IDANativeExporter::make_header_comments(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
+void Exporter::make_header_comments(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
 {
     const auto type = version->get_type();
     const auto id = version->get_id();
@@ -827,7 +860,7 @@ void IDANativeExporter::make_header_comments(std::shared_ptr<YaToolObjectVersion
     }
 }
 
-void IDANativeExporter::analyze_function(ea_t ea)
+void Exporter::analyze_function(ea_t ea)
 {
     const auto ok = ya::walk_function_chunks(ea, [=](area_t area)
     {
@@ -895,7 +928,7 @@ static bool add_function(ea_t ea, const YaToolObjectVersion& version)
     return add_func(ea, BADADDR);
 }
 
-void IDANativeExporter::make_function(std::shared_ptr<YaToolObjectVersion> version, ea_t ea)
+void Exporter::make_function(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
 {
     auto ok = add_function(ea, *version);
     if(!ok)
@@ -1030,7 +1063,7 @@ static void make_hiddenarea(ea_t ea, offset_t offset, offset_t offset_end, const
         LOG(ERROR, "make_hiddenarea: 0x" EA_FMT " unable to set hidden area " EA_FMT "-" EA_FMT " %s\n", ea, start, end, value.data());
 }
 
-void IDANativeExporter::make_views(std::shared_ptr<YaToolObjectVersion> version, ea_t ea)
+void Exporter::make_views(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
 {
     for(const auto& it : version->get_offset_valueviews())
         make_valueview(static_cast<ea_t>(ea + it.first.first), it.first.second, it.second);
@@ -1040,7 +1073,7 @@ void IDANativeExporter::make_views(std::shared_ptr<YaToolObjectVersion> version,
         make_hiddenarea(ea, it.first.first, it.first.second, it.second);
 }
 
-void IDANativeExporter::make_code(std::shared_ptr<YaToolObjectVersion> version, ea_t ea)
+void Exporter::make_code(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
 {
     del_func(ea);
     create_insn(ea);
@@ -1048,7 +1081,7 @@ void IDANativeExporter::make_code(std::shared_ptr<YaToolObjectVersion> version, 
     make_views(version, ea);
 }
 
-static void set_data_type(ea_t ea, YaToolObjectVersion& version, const IDANativeExporter::TidMap& struct_ids)
+static void set_data_type(ea_t ea, YaToolObjectVersion& version, const Exporter::TidMap& struct_ids)
 {
     const auto size = static_cast<size_t>(version.get_size());
     if(!size)
@@ -1109,14 +1142,14 @@ static void set_data_type(ea_t ea, YaToolObjectVersion& version, const IDANative
         LOG(ERROR, "make_data: 0x" EA_FMT " unable to set data type 0x%llx size %zd\n", ea, static_cast<uint64_t>(type_flags), size);
 }
 
-void IDANativeExporter::make_data(std::shared_ptr<YaToolObjectVersion> version, ea_t ea)
+void Exporter::make_data(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
 {
     set_data_type(ea, *version, tids);
     make_name(version, ea, false);
     set_type(ea, version->get_prototype());
 }
 
-void IDANativeExporter::make_enum(std::shared_ptr<YaToolObjectVersion> version, ea_t ea)
+void Exporter::make_enum(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
 {
     const auto name = version->get_name();
     const auto flags = version->get_object_flags();
@@ -1162,7 +1195,7 @@ void IDANativeExporter::make_enum(std::shared_ptr<YaToolObjectVersion> version, 
     provider.put_hash_struc_or_enum(eid, id, false);
 }
 
-void IDANativeExporter::make_enum_member(std::shared_ptr<YaToolObjectVersion> version, ea_t ea)
+void Exporter::make_enum_member(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
 {
     const auto parent_id = version->get_parent_object_id();
     const auto it = tids.find(parent_id);

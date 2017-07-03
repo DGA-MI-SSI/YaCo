@@ -38,7 +38,7 @@ DEBUG_EXPORTER = False
 class YaToolIDAExporter(ya.IObjectVisitorListener):
     def __init__(self, yatools, hash_provider, use_stackframes=True):
         super(YaToolIDAExporter, self).__init__()
-        self.native = ya.IDANativeExporter(hash_provider)
+        self.native = ya.MakeExporter(hash_provider)
         self.yatools = yatools
         self.union_ids = set()
         self.arch_plugin = DefaultIDAVisitorPlugin.DefaultIDAVisitorPlugin()
