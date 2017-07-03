@@ -81,7 +81,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
 
                 # create function
                 elif obj_type == ya.OBJECT_TYPE_FUNCTION:
-                    self.make_function(object_version, address)
+                    self.native.make_function(object_version, address)
 
                 # create basic blocks
                 elif obj_type == ya.OBJECT_TYPE_BASIC_BLOCK:
@@ -399,11 +399,6 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
         if object_version.get_type() == ya.OBJECT_TYPE_STRUCT_MEMBER:
             id = object_version.get_id()
             self.native.set_tid(id, member_id, ya.OBJECT_TYPE_STRUCT_MEMBER)
-
-    def make_function(self, object_version, address):
-        self.arch_plugin.make_function_prehook(object_version, address)
-        self.native.make_function(object_version, address)
-        self.arch_plugin.make_function_posthook(object_version, address)
 
     def make_stackframe(self, object_version, address):
         object_id = object_version.get_id()
