@@ -30,7 +30,6 @@ if idc.__EA64__:
 else:
     import YaToolsPy32 as ya
 
-_yatools_ida_exporter = ya.IDANativeExporter()
 
 logger = logging.getLogger("YaCo")
 DEBUG_EXPORTER = False
@@ -39,6 +38,7 @@ DEBUG_EXPORTER = False
 class YaToolIDAExporter(ya.IObjectVisitorListener):
     def __init__(self, yatools, hash_provider, use_stackframes=True):
         super(YaToolIDAExporter, self).__init__()
+        self.native = ya.IDANativeExporter(hash_provider)
         self.yatools = yatools
         self.union_ids = set()
         self.arch_plugin = DefaultIDAVisitorPlugin.DefaultIDAVisitorPlugin()
@@ -69,7 +69,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
             elif self.use_stackframes and obj_type == ya.OBJECT_TYPE_STACKFRAME:
                 self.make_stackframe(object_version, address)
             elif obj_type == ya.OBJECT_TYPE_ENUM:
-                _yatools_ida_exporter.make_enum(self.hash_provider, object_version, address)
+                self.native.make_enum(object_version, address)
 
             else:
 
@@ -83,7 +83,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
                     return
 
                 if obj_type == ya.OBJECT_TYPE_CODE:
-                    _yatools_ida_exporter.make_code(object_version, address)
+                    self.native.make_code(object_version, address)
 
                 # create function
                 elif obj_type == ya.OBJECT_TYPE_FUNCTION:
@@ -97,28 +97,28 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
                     self.make_struc_member(object_version, address)
 
                 elif obj_type == ya.OBJECT_TYPE_ENUM_MEMBER:
-                    _yatools_ida_exporter.make_enum_member(self.hash_provider, object_version, address)
+                    self.native.make_enum_member(object_version, address)
 
                 elif self.use_stackframes and obj_type == ya.OBJECT_TYPE_STACKFRAME_MEMBER:
                     self.make_stackframe_member(object_version, address)
 
                 elif obj_type == ya.OBJECT_TYPE_DATA:
-                    _yatools_ida_exporter.make_data(object_version, address)
+                    self.native.make_data(object_version, address)
 
                 elif obj_type == ya.OBJECT_TYPE_SEGMENT:
-                    _yatools_ida_exporter.make_segment(object_version, address)
+                    self.native.make_segment(object_version, address)
 
                 elif obj_type == ya.OBJECT_TYPE_SEGMENT_CHUNK:
-                    _yatools_ida_exporter.make_segment_chunk(object_version, address)
+                    self.native.make_segment_chunk(object_version, address)
 
                 else:
                     pass
 
-            _yatools_ida_exporter.make_header_comments(object_version, address)
+            self.native.make_header_comments(object_version, address)
 
             # add comments
             if obj_type in YaToolIDATools.OBJECT_WITH_COMMENTS:
-                _yatools_ida_exporter.make_comments(object_version, address)
+                self.native.make_comments(object_version, address)
         except Exception as e:
             logger.error("error : %r " % e)
             logger.error(traceback.format_exc())
@@ -126,7 +126,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
             raise e
 
     def get_tid(self, id, *args):
-        key = _yatools_ida_exporter.get_tid(id)
+        key = self.native.get_tid(id)
         for type in args:
             if key.type == type:
                 return key.tid
@@ -264,7 +264,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
         if DEBUG_EXPORTER:
             logger.debug("adding struc id %s : '0x%.016X' (%s)" %
                          (self.hash_provider.hash_to_string(object_id), struc_id, name))
-        _yatools_ida_exporter.set_tid(object_id, struc_id, ya.OBJECT_TYPE_STRUCT)
+        self.native.set_tid(object_id, struc_id, ya.OBJECT_TYPE_STRUCT)
 
         self.hash_provider.put_hash_struc_or_enum(struc_id, object_id, False)
 
@@ -398,14 +398,14 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
             pass
 
         member_id = idc.GetMemberId(struc_id, offset)
-        _yatools_ida_exporter.set_struct_member_type(member_id, object_version.get_prototype())
+        self.native.set_struct_member_type(member_id, object_version.get_prototype())
         if object_version.get_type() == ya.OBJECT_TYPE_STRUCT_MEMBER:
             id = object_version.get_id()
-            _yatools_ida_exporter.set_tid(id, member_id, ya.OBJECT_TYPE_STRUCT_MEMBER)
+            self.native.set_tid(id, member_id, ya.OBJECT_TYPE_STRUCT_MEMBER)
 
     def make_function(self, object_version, address):
         self.arch_plugin.make_function_prehook(object_version, address)
-        _yatools_ida_exporter.make_function(object_version, address)
+        self.native.make_function(object_version, address)
         self.arch_plugin.make_function_posthook(object_version, address)
 
     def make_stackframe(self, object_version, address):
@@ -431,7 +431,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
         if stack_frame is None:
             logger.error("No function found for stackframe[%s] at 0x%08X" % (
                 self.hash_provider.hash_to_string(object_id), eaFunc))
-            _yatools_ida_exporter.analyze_function(eaFunc)
+            self.native.analyze_function(eaFunc)
             stack_frame = idaapi.get_frame(eaFunc)
 
         if stack_frame is None:
@@ -452,7 +452,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
             logger.error("No function found for stackframe[%s] at 0x%08X after idc.MakeFrame" % (
                 self.hash_provider.hash_to_string(object_id), eaFunc))
         else:
-            _yatools_ida_exporter.set_tid(object_id, stack_frame.id, ya.OBJECT_TYPE_STACKFRAME)
+            self.native.set_tid(object_id, stack_frame.id, ya.OBJECT_TYPE_STACKFRAME)
             stack_lvars = None
             try:
                 stack_lvars = self.yatools.hex_string_to_address(object_version.get_attributes()["stack_lvars"])
@@ -470,7 +470,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
     def make_stackframe_member(self, object_version, address):
         object_id = object_version.get_id()
         self.make_struc_member(object_version, address)
-        _yatools_ida_exporter.set_tid(object_id, object_version.get_parent_object_id(), ya.OBJECT_TYPE_STACKFRAME_MEMBER)
+        self.native.set_tid(object_id, object_version.get_parent_object_id(), ya.OBJECT_TYPE_STACKFRAME_MEMBER)
 
     def make_basic_block(self, object_version, address):
         #
@@ -479,10 +479,10 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
         self.arch_plugin.make_basic_block_prehook(object_version, address)
 
         # create basic block name
-        _yatools_ida_exporter.make_name(object_version, address, True)
+        self.native.make_name(object_version, address, True)
 
         # apply view
-        _yatools_ida_exporter.make_views(object_version, address)
+        self.native.make_views(object_version, address)
 
         for ((xref_offset, operand), xref_list) in object_version.get_xrefed_id_map().iteritems():
             struc_path = {}
@@ -492,7 +492,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
                 # fetch structure ###################
                 #
                 # it's a struc (normal case)
-                ktid = _yatools_ida_exporter.get_tid(xref_value)
+                ktid = self.native.get_tid(xref_value)
                 if ktid.type == ya.OBJECT_TYPE_STRUCT or ktid.type == ya.OBJECT_TYPE_STACKFRAME:
                     struc_id = ktid.tid
                     path_idx = 0

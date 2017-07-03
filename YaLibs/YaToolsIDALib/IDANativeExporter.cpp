@@ -45,6 +45,11 @@
 #define SEL_FMT "%d"
 #endif
 
+IDANativeExporter::IDANativeExporter(YaToolsHashProvider* provider)
+    : provider(*provider)
+{
+}
+
 void IDANativeExporter::make_name(std::shared_ptr<YaToolObjectVersion> version, ea_t ea, bool is_in_func)
 {
     const auto& name = version->get_name();
@@ -1111,7 +1116,7 @@ void IDANativeExporter::make_data(std::shared_ptr<YaToolObjectVersion> version, 
     set_type(ea, version->get_prototype());
 }
 
-void IDANativeExporter::make_enum(YaToolsHashProvider* provider, std::shared_ptr<YaToolObjectVersion> version, ea_t ea)
+void IDANativeExporter::make_enum(std::shared_ptr<YaToolObjectVersion> version, ea_t ea)
 {
     const auto name = version->get_name();
     const auto flags = version->get_object_flags();
@@ -1144,7 +1149,7 @@ void IDANativeExporter::make_enum(YaToolsHashProvider* provider, std::shared_ptr
 
         get_enum_member_name(&const_name, cid);
         to_py_hex(const_value, value);
-        const auto yaid = provider->get_enum_member_id(eid, make_string_ref(name), cid, ya::to_string_ref(const_name), ya::to_string_ref(const_value), bmask, true);
+        const auto yaid = provider.get_enum_member_id(eid, make_string_ref(name), cid, ya::to_string_ref(const_name), ya::to_string_ref(const_value), bmask, true);
         if(xref_ids.count(yaid))
             return;
 
@@ -1154,10 +1159,10 @@ void IDANativeExporter::make_enum(YaToolsHashProvider* provider, std::shared_ptr
 
     const auto id = version->get_id();
     tids.insert({id, {eid, OBJECT_TYPE_ENUM}});
-    provider->put_hash_struc_or_enum(eid, id, false);
+    provider.put_hash_struc_or_enum(eid, id, false);
 }
 
-void IDANativeExporter::make_enum_member(YaToolsHashProvider* provider, std::shared_ptr<YaToolObjectVersion> version, ea_t ea)
+void IDANativeExporter::make_enum_member(std::shared_ptr<YaToolObjectVersion> version, ea_t ea)
 {
     const auto parent_id = version->get_parent_object_id();
     const auto it = tids.find(parent_id);
@@ -1171,7 +1176,7 @@ void IDANativeExporter::make_enum_member(YaToolsHashProvider* provider, std::sha
     const auto ename = get_enum_name(eid);
     const auto name = version->get_name();
     const auto id = version->get_id();
-    provider->put_hash_enum_member(ya::to_string_ref(ename), make_string_ref(name), ea, id, false);
+    provider.put_hash_enum_member(ya::to_string_ref(ename), make_string_ref(name), ea, id, false);
 
     const auto bmask = is_bf(eid) ? version->get_object_flags() : DEFMASK;
     auto mid = get_enum_member(eid, ea, 0, bmask);
