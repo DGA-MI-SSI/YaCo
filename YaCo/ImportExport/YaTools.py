@@ -49,33 +49,3 @@ class YaTools(object):
             return "0x%016X" % address
         else:
             return hex(address)
-
-    def try_read_hex_value(self, value):
-        if value[0:2] == "0x":
-            hex_forced = True
-            value = value[2:]
-        else:
-            hex_forced = False
-
-        if hex_forced or str.isdigit(value):
-            if len(value) <= 8:
-                return int(value, 16)
-            elif len(value) <= 16:
-                return int(value, 16)
-            elif hex_forced:
-                logger.warning("unable to parse hex value : '%s'" % value)
-                return int(value, 16)
-
-        return value
-
-    def hex_string_to_address(self, hex_str):
-        if hex_str[0:2] == "0x":
-            hex_str = hex_str[2:]
-
-        if self.addr_len == 32:
-            return int(hex_str, 16)
-        elif self.addr_len == 64:
-            return int(hex_str, 16)
-        else:
-            logger.warning("unable to parse hex address : '%s'" % hex_str)
-            return int(hex_str, 16)
