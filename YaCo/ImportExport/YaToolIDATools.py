@@ -14,7 +14,6 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import ctypes
-import idaapi
 import idc
 import logging
 import os
@@ -26,46 +25,6 @@ else:
     import YaToolsPy32 as ya
 
 logger = logging.getLogger("YaCo")
-_yatools_ida = ya.YaToolsIDANativeLib()
-
-OBJECT_WITH_COMMENTS = set([ya.OBJECT_TYPE_BASIC_BLOCK, ya.OBJECT_TYPE_CODE, ya.OBJECT_TYPE_DATA])
-
-STRING_CHAR_SIZE = {
-    idc.ASCSTR_TERMCHR: 1,  # Character-terminated ASCII string
-    idc.ASCSTR_C: 1,  # C-string, zero terminated
-    idc.ASCSTR_PASCAL: 1,  # Pascal-style ASCII string (length byte)
-    idc.ASCSTR_LEN2: 2,  # Pascal-style, length is 2 bytes
-    idc.ASCSTR_UNICODE: 2,  # Unicode string
-    idc.ASCSTR_LEN4: 4,  # Delphi string, length is 4 bytes
-    idc.ASCSTR_ULEN2: 2,  # Pascal-style Unicode, length is 2 bytes
-    idc.ASCSTR_ULEN4: 4,  # Pascal-style Unicode, length is 4 bytes
-}
-
-
-def get_char_size(str_type):
-    return STRING_CHAR_SIZE[str_type]
-
-
-def get_field_size(field_type, tid=0):
-    field_type = field_type & idc.DT_TYPE
-    if field_type == idc.FF_BYTE:
-        return 1
-    if field_type == idc.FF_ASCI:
-        return get_char_size(tid)
-    elif field_type == idc.FF_WORD:
-        return 2
-    elif field_type == idc.FF_DWRD:
-        return 4
-    elif field_type == idc.FF_QWRD:
-        return 8
-    elif field_type == idc.FF_OWRD:
-        return 16
-    elif field_type == idc.FF_FLOAT:
-        return 4
-    elif field_type == idc.FF_DOUBLE:
-        return 8
-    else:
-        return 1
 
 
 def get_original_idb_name(local_idb_name, suffix=None):
@@ -152,72 +111,6 @@ def copy_idb_to_original_file(suffix=None):
     return orig_file_name
 
 
-def struc_member_list(struc_id, is_union):
-    current_idx = 0
-    struc = idaapi.get_struc(struc_id)
-    if struc is None or struc == idc.BADADDR:
-        return []
-
-    offsets = dict()
-    for current_idx in xrange(0, struc.memqty):
-        offset = _yatools_ida.get_struc_member_by_idx(struc, current_idx)
-        if offset not in offsets:
-            name = idc.GetMemberName(struc_id, offset)
-            if name is not None:
-                offsets[offset] = name
-
-    return sorted(offsets.items())
-
-
-def enum_member_iterate_all(enum_id):
-    const_value = idc.GetFirstConst(enum_id, -1)
-    while const_value != idc.BADADDR:
-        serial = 0
-        const_id = idc.GetConstEx(enum_id, const_value, serial, -1)
-        while const_id != idc.BADADDR:
-            yield (const_id, const_value, idc.BADADDR)
-
-            serial += 1
-            const_id = idc.GetConstEx(enum_id, const_value, serial, -1)
-        const_value = idc.GetNextConst(enum_id, const_value, -1)
-
-    bmask = idc.GetFirstBmask(enum_id)
-    while bmask != idc.BADADDR:
-        const_value = idc.GetFirstConst(enum_id, bmask)
-        while const_value != idc.BADADDR:
-            # TODO must implement serial for bitfield
-            const_id = idc.GetConstEx(enum_id, const_value, 0, bmask)
-            yield (const_id, const_value, bmask)
-            const_value = idc.GetNextConst(enum_id, const_value, bmask)
-        bmask = idc.GetNextBmask(enum_id, bmask)
-
-
-def SetStrucmember(struc_id, member_name, offset, flag, typeid, nitems, member_type=ya.OBJECT_TYPE_STRUCT_MEMBER,
-                   name_offset=0):
-    if member_name is None:
-        member_name = get_default_struc_member_name(member_type, offset, name_offset)
-
-    ret = idc.SetMemberName(struc_id, offset, member_name)
-    if not ret:
-        logger.debug("Error while naming sub strucmember (struc) : " +
-                     "%d (struc=%s, member=%s, offset=0x%08X"
-                     % (ret, idc.GetStrucName(struc_id), member_name, offset))
-    else:
-        ret = idc.SetMemberType(struc_id, offset, flag, typeid, nitems)
-        if ret == 0:
-            logger.debug("Error while setting sub strucmember type (struc) :" +
-                         " %d (struc=%s, member=%s, offset=0x%08X, mflags=%d, nitems=%d, tid=0x%016X" %
-                         (ret, idc.GetStrucName(struc_id), member_name, offset, flag, nitems, typeid))
-
-
-idaname = "ida64" if idc.__EA64__ else "ida"
-if sys.platform == "win32":
-    dll = ctypes.windll[idaname + ".wll"]
-elif sys.platform == "linux2":
-    dll = ctypes.cdll["lib" + idaname + ".so"]
-elif sys.platform == "darwin":
-    dll = ctypes.cdll["lib" + idaname + ".dylib"]
-
 if sys.platform == "linux2":
     def get_mem_usage():
         status_path = "/proc/%i/status" % os.getpid()
@@ -233,26 +126,3 @@ else:
 
     def get_mem_usage():
         return get_memory_usage() / (1024 * 1024)
-
-
-def get_default_struc_member_name(object_type, offset, name_offset=0):
-    if object_type == ya.OBJECT_TYPE_STRUCT_MEMBER:
-        return "field_%X" % (offset - name_offset)
-    elif object_type == ya.OBJECT_TYPE_STACKFRAME_MEMBER:
-        if offset > name_offset:
-
-            if offset - name_offset < 4:
-                name = "var_s%d" % (offset - name_offset)
-            else:
-                name = "arg_%X" % (offset - (name_offset + 4))
-            #             logger.debug("get_default_struc_member_name: offset=0x%08X, name_offset=0x%08X, retval=%s ",
-            #                          offset, name_offset, name
-            #                          )
-            return name
-        else:
-            #             logger.debug("get_default_struc_member_name: offset=0x%08X, name_offset=0x%08X, retval=%s ",
-            #                          offset, name_offset, "var_%X" % (name_offset-offset))
-            return "var_%X" % (name_offset - offset)
-    else:
-        logger.warning("get_default_struc_member_name: bad object_type: %r" % (object_type))
-        return None
