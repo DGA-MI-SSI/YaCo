@@ -30,8 +30,8 @@ struct IExporter
 
 enum FramePolicy
 {
-    ExportFrame,
-    SkipFrame,
+    UseFrames,
+    SkipFrames,
 };
 
 std::shared_ptr<IExporter> MakeExporter(YaToolsHashProvider* provider, FramePolicy frame_policy);

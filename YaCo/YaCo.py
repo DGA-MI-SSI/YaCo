@@ -35,7 +35,6 @@ else:
 
 # from idaapi import ASKBTN_NO, ASKBTN_YES
 from ImportExport import YaToolIDATools
-from ImportExport.YaToolIDAExporter import YaToolIDAExporter
 from ImportExport.YaToolIDAHooks import Hooks, YaCoUI_Hooks
 from ImportExport.YaTools import YaTools
 from ImportExport.YaToolRepoManager import YaToolRepoManager
@@ -75,7 +74,7 @@ class YaCo:
         logger.debug("Initial load")
 
         # export to IDB
-        self.ida_exporter = YaToolIDAExporter(self.yatools, self.hash_provider)
+        self.ida_exporter = ya.MakeExporter(self.hash_provider, ya.UseFrames)
         self.ida_export = ya.MakeDependencyResolverVisitor(self.ida_exporter,
                                                            VALIDATE_EXPORTER_VISITOR,
                                                            "LoadVisitor")

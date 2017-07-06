@@ -100,7 +100,7 @@ namespace
         using EnumMemberMap = std::unordered_map<uint64_t, enum_t>;
 
         YaToolsHashProvider&    provider;
-        const bool              use_stackframe;
+        const bool              use_frames;
         EnumMemberMap           enum_members;
         YaToolsIDANativeLib     tools;
         RefInfos                refs;
@@ -115,7 +115,7 @@ std::shared_ptr<IExporter> MakeExporter(YaToolsHashProvider* provider, FramePoli
 
 Exporter::Exporter(YaToolsHashProvider* provider, FramePolicy frame_policy)
     : provider(*provider)
-    , use_stackframe(frame_policy == ExportFrame)
+    , use_frames(frame_policy == UseFrames)
 {
 }
 
@@ -1722,7 +1722,7 @@ void Exporter::object_version_visited(YaToolObjectId id, const std::shared_ptr<Y
             return;
 
         case OBJECT_TYPE_STACKFRAME:
-            if(!use_stackframe)
+            if(!use_frames)
                 return;
 
             make_struct(version, ea);
@@ -1766,7 +1766,7 @@ void Exporter::object_version_visited(YaToolObjectId id, const std::shared_ptr<Y
             break;
 
         case OBJECT_TYPE_STACKFRAME_MEMBER:
-            if(use_stackframe)
+            if(use_frames)
                 make_struct_member(version, ea);
             break;
 
