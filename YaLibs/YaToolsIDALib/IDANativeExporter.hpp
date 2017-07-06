@@ -16,41 +16,22 @@
 #pragma once
 
 #include "YaTypes.hpp"
+#include "IObjectVisitorListener.hpp"
 
 namespace std { template<typename T> class shared_ptr; }
-class YaToolObjectVersion;
 struct YaToolsHashProvider;
 
-struct Tid
-{
-    ea_t                tid;
-    YaToolObjectType_e  type;
-};
-
 struct IExporter
+    : public IObjectVisitorListener
 {
     virtual bool set_type               (ea_t ea, const std::string& prototype) = 0;
     virtual bool set_struct_member_type (ea_t ea, const std::string& prototype) = 0;
-    virtual void set_tid                (YaToolObjectId id, ea_t tid, YaToolObjectType_e type) = 0;
-    virtual Tid  get_tid                (YaToolObjectId id) const = 0;
-
-    virtual void make_function          (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) = 0;
-    virtual void make_views             (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) = 0;
-    virtual void make_code              (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) = 0;
-    virtual void make_data              (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) = 0;
-    virtual void make_enum              (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) = 0;
-    virtual void make_enum_member       (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) = 0;
-    virtual void make_name              (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea, bool is_in_func) = 0;
-    virtual void make_comments          (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) = 0;
-    virtual void make_header_comments   (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) = 0;
-    virtual void make_segment           (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) = 0;
-    virtual void make_segment_chunk     (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) = 0;
-    virtual void make_basic_block       (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) = 0;
-    virtual void make_reference_info    (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) = 0;
-    virtual void clear_struct_fields    (std::shared_ptr<YaToolObjectVersion>& version, ea_t struct_id) = 0;
-    virtual void make_stackframe        (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) = 0;
-    virtual void make_struct_member     (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) = 0;
-    virtual void make_struct            (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) = 0;
 };
 
-std::shared_ptr<IExporter> MakeExporter(YaToolsHashProvider* provider);
+enum FramePolicy
+{
+    ExportFrame,
+    SkipFrame,
+};
+
+std::shared_ptr<IExporter> MakeExporter(YaToolsHashProvider* provider, FramePolicy frame_policy);

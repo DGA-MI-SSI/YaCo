@@ -53,33 +53,46 @@ namespace
 {
     using RefInfos = std::unordered_map<YaToolObjectId, refinfo_t>;
 
+    struct Tid
+    {
+        ea_t                tid;
+        YaToolObjectType_e  type;
+    };
+
     struct Exporter
         : public IExporter
     {
-        Exporter(YaToolsHashProvider* provider);
+        Exporter(YaToolsHashProvider* provider, FramePolicy frame_policy);
 
-        // IExporter methods
+        // IObjectVisitorListener
+        void object_version_visited(YaToolObjectId object_id, const std::shared_ptr<YaToolObjectVersion>& object) override;
+        void deleted_object_version_visited(YaToolObjectId object_id) override;
+        void default_object_version_visited(YaToolObjectId object_id) override;
+
+        // IExporter
         bool set_type               (ea_t ea, const std::string& prototype) override;
         bool set_struct_member_type (ea_t ea, const std::string& prototype) override;
-        void set_tid                (YaToolObjectId id, ea_t tid, YaToolObjectType_e type) override;
-        Tid  get_tid                (YaToolObjectId id) const override;
-        void make_function          (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
-        void make_views             (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
-        void make_code              (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
-        void make_data              (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
-        void make_enum              (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
-        void make_enum_member       (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
-        void make_name              (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea, bool is_in_func) override;
-        void make_comments          (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
-        void make_header_comments   (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
-        void make_segment           (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
-        void make_segment_chunk     (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
-        void make_basic_block       (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
-        void make_reference_info    (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
-        void clear_struct_fields    (std::shared_ptr<YaToolObjectVersion>& version, ea_t struct_id) override;
-        void make_stackframe        (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
-        void make_struct_member     (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
-        void make_struct            (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
+
+        // private
+        void set_tid                (YaToolObjectId id, ea_t tid, YaToolObjectType_e type);
+        Tid  get_tid                (YaToolObjectId id) const;
+        void make_function          (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea);
+        void make_views             (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea);
+        void make_code              (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea);
+        void make_data              (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea);
+        void make_enum              (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea);
+        void make_enum_member       (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea);
+        void make_name              (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea, bool is_in_func);
+        void make_comments          (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea);
+        void make_header_comments   (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea);
+        void make_segment           (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea);
+        void make_segment_chunk     (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea);
+        void make_basic_block       (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea);
+        void make_reference_info    (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea);
+        void clear_struct_fields    (std::shared_ptr<YaToolObjectVersion>& version, ea_t struct_id);
+        void make_stackframe        (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea);
+        void make_struct_member     (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea);
+        void make_struct            (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea);
 
         //
         std::string patch_prototype(const std::string& prototype, ea_t ea);
@@ -87,6 +100,7 @@ namespace
         using EnumMemberMap = std::unordered_map<uint64_t, enum_t>;
 
         YaToolsHashProvider&    provider;
+        const bool              use_stackframe;
         EnumMemberMap           enum_members;
         YaToolsIDANativeLib     tools;
         RefInfos                refs;
@@ -94,13 +108,14 @@ namespace
     };
 }
 
-std::shared_ptr<IExporter> MakeExporter(YaToolsHashProvider* provider)
+std::shared_ptr<IExporter> MakeExporter(YaToolsHashProvider* provider, FramePolicy frame_policy)
 {
-    return std::make_shared<Exporter>(provider);
+    return std::make_shared<Exporter>(provider, frame_policy);
 }
 
-Exporter::Exporter(YaToolsHashProvider* provider)
+Exporter::Exporter(YaToolsHashProvider* provider, FramePolicy frame_policy)
     : provider(*provider)
+    , use_stackframe(frame_policy == ExportFrame)
 {
 }
 
@@ -1690,4 +1705,99 @@ void Exporter::make_struct(std::shared_ptr<YaToolObjectVersion>& version, ea_t e
     }
 
     clear_struct_fields(version, struc->id);
+}
+
+void Exporter::object_version_visited(YaToolObjectId id, const std::shared_ptr<YaToolObjectVersion>& const_version)
+{
+    auto version = const_version; // FIXME remove me
+    const auto type = version->get_type();
+    const auto ea = static_cast<ea_t>(version->get_object_address());
+    
+    // version without addresses
+    switch(type)
+    {
+        case OBJECT_TYPE_STRUCT:
+            make_struct(version, ea);
+            make_header_comments(version, ea);
+            return;
+
+        case OBJECT_TYPE_STACKFRAME:
+            if(!use_stackframe)
+                return;
+
+            make_struct(version, ea);
+            make_header_comments(version, ea);
+            return;
+        
+        case OBJECT_TYPE_ENUM:
+            make_enum(version, ea);
+            make_header_comments(version, ea);
+            return;
+    }
+
+    if(ea == BADADDR)
+    {
+        LOG(ERROR, "object_version_visited: object %llx type %s has an invalid address\n", id, get_object_type_string(type));
+        return;
+    }
+
+    switch(type)
+    {
+        case OBJECT_TYPE_CODE:
+            make_code(version, ea);
+            make_comments(version, ea);
+            break;
+
+        case OBJECT_TYPE_FUNCTION:
+            make_function(version, ea);
+            break;
+
+        case OBJECT_TYPE_BASIC_BLOCK:
+            make_basic_block(version, ea);
+            make_comments(version, ea);
+            break;
+
+        case OBJECT_TYPE_STRUCT_MEMBER:
+            make_struct_member(version, ea);
+            break;
+
+        case OBJECT_TYPE_ENUM_MEMBER:
+            make_enum_member(version, ea);
+            break;
+
+        case OBJECT_TYPE_STACKFRAME_MEMBER:
+            if(use_stackframe)
+                make_struct_member(version, ea);
+            break;
+
+        case OBJECT_TYPE_DATA:
+            make_data(version, ea);
+            make_comments(version, ea);
+            break;
+
+        case OBJECT_TYPE_SEGMENT:
+            make_segment(version, ea);
+            break;
+
+        case OBJECT_TYPE_SEGMENT_CHUNK:
+            make_segment_chunk(version, ea);
+            break;
+
+        case OBJECT_TYPE_REFERENCE_INFO:
+            make_reference_info(version, ea);
+            break;
+    }
+    make_header_comments(version, ea);
+}
+
+void Exporter::deleted_object_version_visited(YaToolObjectId id)
+{
+    // FIXME ?
+    UNUSED(id);
+}
+
+void Exporter::default_object_version_visited(YaToolObjectId id)
+{
+    // FIXME ?
+    UNUSED(id);
 }
