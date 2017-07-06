@@ -37,9 +37,6 @@ if idc.__EA64__:
 else:
     import YaToolsPy32 as ya
 
-from ImportExport.YaToolIDAExporter import YaToolIDAExporter
-from ImportExport.YaTools import YaTools
-
 
 class YaLogHandler(logging.Handler):
     def __init__(self):
@@ -78,10 +75,9 @@ handler.setLevel(logging.INFO)
 logger.addHandler(handler)
 
 idc.Wait()
-yatools = YaTools()
 hash_provider = ya.YaToolsHashProvider()
 hash_provider.populate_struc_enum_ids()
-ida_exporter = YaToolIDAExporter(yatools, hash_provider, use_stackframes=False)
+ida_exporter = ya.MakeExporter(hash_provider, ya.SkipFrames)
 fbmodel = ya.MakeFlatBufferDatabaseModel(args.filename)
 exporter = ya.MakeSingleObjectVisitor(ida_exporter)
 fbmodel.accept(exporter)
