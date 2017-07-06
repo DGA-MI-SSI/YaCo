@@ -60,7 +60,7 @@ namespace
     };
 
     struct Exporter
-        : public IExporter
+        : public IObjectVisitorListener
     {
         Exporter(YaToolsHashProvider* provider, FramePolicy frame_policy);
 
@@ -69,33 +69,6 @@ namespace
         void deleted_object_version_visited(YaToolObjectId object_id) override;
         void default_object_version_visited(YaToolObjectId object_id) override;
 
-        // IExporter
-        bool set_type               (ea_t ea, const std::string& prototype) override;
-        bool set_struct_member_type (ea_t ea, const std::string& prototype) override;
-
-        // private
-        void set_tid                (YaToolObjectId id, ea_t tid, YaToolObjectType_e type);
-        Tid  get_tid                (YaToolObjectId id) const;
-        void make_function          (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea);
-        void make_views             (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea);
-        void make_code              (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea);
-        void make_data              (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea);
-        void make_enum              (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea);
-        void make_enum_member       (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea);
-        void make_name              (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea, bool is_in_func);
-        void make_comments          (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea);
-        void make_header_comments   (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea);
-        void make_segment           (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea);
-        void make_segment_chunk     (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea);
-        void make_basic_block       (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea);
-        void make_reference_info    (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea);
-        void clear_struct_fields    (std::shared_ptr<YaToolObjectVersion>& version, ea_t struct_id);
-        void make_stackframe        (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea);
-        void make_struct_member     (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea);
-        void make_struct            (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea);
-
-        //
-        std::string patch_prototype(const std::string& prototype, ea_t ea);
         using TidMap = std::unordered_map<YaToolObjectId, Tid>;
         using EnumMemberMap = std::unordered_map<uint64_t, enum_t>;
 
@@ -108,7 +81,7 @@ namespace
     };
 }
 
-std::shared_ptr<IExporter> MakeExporter(YaToolsHashProvider* provider, FramePolicy frame_policy)
+std::shared_ptr<IObjectVisitorListener> MakeExporter(YaToolsHashProvider* provider, FramePolicy frame_policy)
 {
     return std::make_shared<Exporter>(provider, frame_policy);
 }
@@ -119,32 +92,32 @@ Exporter::Exporter(YaToolsHashProvider* provider, FramePolicy frame_policy)
 {
 }
 
-void Exporter::make_name(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea, bool is_in_func)
-{
-    const auto& name = version->get_name();
-    auto flags = version->get_name_flags();
-    if(!flags)
-        flags = SN_CHECK;
-
-    const auto reset_flags = SN_CHECK | (is_in_func ? SN_LOCAL : 0);
-    const auto previous = get_true_name(ea);
-    set_name(ea, "", reset_flags);
-    if(name.empty() || IsDefaultName(make_string_ref(name)))
-    {
-        LOG(DEBUG, "make_name: 0x" EA_FMT " resetting name %s\n", ea, name.data());
-        return;
-    }
-
-    const auto ok = set_name(ea, name.data(), flags | SN_NOWARN);
-    if(ok)
-        return;
-
-    LOG(WARNING, "make_name: 0x" EA_FMT " unable to set name flags 0x%08x '%s'\n", ea, flags, name.data());
-    set_name(ea, previous.c_str(), SN_CHECK | SN_NOWARN);
-}
-
 namespace
 {
+    void make_name(const YaToolObjectVersion& version, ea_t ea, bool is_in_func)
+    {
+        const auto& name = version.get_name();
+        auto flags = version.get_name_flags();
+        if(!flags)
+            flags = SN_CHECK;
+
+        const auto reset_flags = SN_CHECK | (is_in_func ? SN_LOCAL : 0);
+        const auto previous = get_true_name(ea);
+        set_name(ea, "", reset_flags);
+        if(name.empty() || IsDefaultName(make_string_ref(name)))
+        {
+            LOG(DEBUG, "make_name: 0x" EA_FMT " resetting name %s\n", ea, name.data());
+            return;
+        }
+
+        const auto ok = set_name(ea, name.data(), flags | SN_NOWARN);
+        if(ok)
+            return;
+
+        LOG(WARNING, "make_name: 0x" EA_FMT " unable to set name flags 0x%08x '%s'\n", ea, flags, name.data());
+        set_name(ea, previous.c_str(), SN_CHECK | SN_NOWARN);
+    }
+
     void add_bookmark(ea_t ea, std::string comment_text)
     {
         char buffer[1024];
@@ -167,64 +140,55 @@ namespace
         });
     }
 
-    // FIXME useless ?
-    const std::string& sanitize_comment_to_ascii(const std::string& comment)
+    void make_comments(YaToolsIDANativeLib& tools, const YaToolObjectVersion& version, ea_t address)
     {
-        return comment;
-    }
-}
-
-void Exporter::make_comments(std::shared_ptr<YaToolObjectVersion>& version, ea_t address)
-{
-    const auto current_comments = tools_.get_comments_in_area(address, static_cast<ea_t>(address + version->get_size()));
-    const auto new_comments = version->get_offset_comments();
-    for(const auto& current_cmt : current_comments)
-    {
-        const auto comment_offset = current_cmt.first - address;
-        for(const auto& one_comment : current_cmt.second)
+        const auto current_comments = tools.get_comments_in_area(address, static_cast<ea_t>(address + version.get_size()));
+        const auto new_comments = version.get_offset_comments();
+        for(const auto& current_cmt : current_comments)
         {
-            const auto comment_type = one_comment.first;
-            const auto& current_comment_text = one_comment.second;
-            const auto it = new_comments.find(std::make_pair(static_cast<offset_t>(comment_offset), comment_type));
-            if(it != new_comments.end() && it->second == current_comment_text)
-                continue;
-            tools_.delete_comment_at_ea(address + current_cmt.first, comment_type);
+            const auto comment_offset = current_cmt.first - address;
+            for(const auto& one_comment : current_cmt.second)
+            {
+                const auto comment_type = one_comment.first;
+                const auto& current_comment_text = one_comment.second;
+                const auto it = new_comments.find(std::make_pair(static_cast<offset_t>(comment_offset), comment_type));
+                if(it != new_comments.end() && it->second == current_comment_text)
+                    continue;
+                tools.delete_comment_at_ea(address + current_cmt.first, comment_type);
+            }
+        }
+
+        for(const auto& new_comment : new_comments)
+        {
+            const auto comment_offset = new_comment.first.first;
+            const auto ea = static_cast<ea_t>(address + comment_offset);
+            const auto comment_type = new_comment.first.second;
+            const auto& comment_text = new_comment.second;
+            LOG(DEBUG, "make_comments: 0x" EA_FMT " adding comment type %d\n", ea, comment_type);
+            switch(comment_type)
+            {
+                case COMMENT_REPEATABLE:
+                    set_cmt(ea, comment_text.c_str(), 1);
+                    break;
+                case COMMENT_NON_REPEATABLE:
+                    set_cmt(ea, comment_text.c_str(), 0);
+                    break;
+                case COMMENT_ANTERIOR:
+                    tools.make_extra_comment(ea, comment_text.data(), E_PREV);
+                    break;
+                case COMMENT_POSTERIOR:
+                    tools.make_extra_comment(ea, comment_text.data(), E_NEXT);
+                    break;
+                case COMMENT_BOOKMARK:
+                    add_bookmark(ea, comment_text);
+                    break;
+                default:
+                    LOG(ERROR, "make_comments: 0x" EA_FMT " unknown comment type %d\n", ea, comment_type);
+                    break;
+            }
         }
     }
 
-    for(const auto& new_comment : new_comments)
-    {
-        const auto comment_offset = new_comment.first.first;
-        const auto ea = static_cast<ea_t>(address + comment_offset);
-        const auto comment_type = new_comment.first.second;
-        const auto& comment_text = sanitize_comment_to_ascii(new_comment.second);
-        LOG(DEBUG, "make_comments: 0x" EA_FMT " adding comment type %d\n", ea, comment_type);
-        switch(comment_type)
-        {
-            case COMMENT_REPEATABLE:
-                set_cmt(ea, comment_text.c_str(), 1);
-                break;
-            case COMMENT_NON_REPEATABLE:
-                set_cmt(ea, comment_text.c_str(), 0);
-                break;
-            case COMMENT_ANTERIOR:
-                tools_.make_extra_comment(ea, comment_text.data(), E_PREV);
-                break;
-            case COMMENT_POSTERIOR:
-                tools_.make_extra_comment(ea, comment_text.data(), E_NEXT);
-                break;
-            case COMMENT_BOOKMARK:
-                add_bookmark(ea, comment_text);
-                break;
-            default:
-                LOG(ERROR, "make_comments: 0x" EA_FMT " unknown comment type %d\n", ea, comment_type);
-                break;
-        }
-    }
-}
-
-namespace
-{
     // use a macro & ensure compiler statically check sscanf...
     #define MAKE_TO_TYPE_FUNCTION(NAME, TYPE, FMT)\
     TYPE NAME(const char* value)\
@@ -421,107 +385,104 @@ namespace
                 break;
         }
     }
-}
 
-void Exporter::make_segment(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
-{
-    const auto size = version->get_size();
-    const auto name = version->get_name();
-    const auto attributes = version->get_attributes();
-    const auto end  = static_cast<ea_t>(ea + size);
-
-    auto seg = check_segment(ea, end);
-    if(!seg)
+    void make_segment(const YaToolObjectVersion& version, ea_t ea)
     {
-        const auto align = find_int(attributes, "align");
-        const auto comb = find_int(attributes, "comb");
-        seg = add_seg(ea, end, 0, 1, align, comb);
+        const auto size = version.get_size();
+        const auto name = version.get_name();
+        const auto attributes = version.get_attributes();
+        const auto end  = static_cast<ea_t>(ea + size);
+
+        auto seg = check_segment(ea, end);
         if(!seg)
         {
-            LOG(ERROR, "make_segment: 0x" EA_FMT " unable to add segment [0x" EA_FMT ", 0x" EA_FMT "] align:%d comb:%d\n", ea, ea, end, align, comb);
-            return;
+            const auto align = find_int(attributes, "align");
+            const auto comb = find_int(attributes, "comb");
+            seg = add_seg(ea, end, 0, 1, align, comb);
+            if(!seg)
+            {
+                LOG(ERROR, "make_segment: 0x" EA_FMT " unable to add segment [0x" EA_FMT ", 0x" EA_FMT "] align:%d comb:%d\n", ea, ea, end, align, comb);
+                return;
+            }
         }
-    }
 
-    if(!name.empty())
-    {
-        const auto ok = set_segm_name(seg, "%s", name.data());
-        if(!ok)
-            LOG(ERROR, "make_segment: 0x" EA_FMT " unable to set name %s\n", ea, name.data());
-    }
-
-    const auto is_readonly = [](const std::string& key)
-    {
-        static const char read_only_attributes[][12] =
+        if(!name.empty())
         {
-            "start_ea",
-            "end_ea",
-            "sel",
+            const auto ok = set_segm_name(seg, "%s", name.data());
+            if(!ok)
+                LOG(ERROR, "make_segment: 0x" EA_FMT " unable to set name %s\n", ea, name.data());
+        }
+
+        const auto is_readonly = [](const std::string& key)
+        {
+            static const char read_only_attributes[][12] =
+            {
+                "start_ea",
+                "end_ea",
+                "sel",
+            };
+            for(const auto& it : read_only_attributes)
+                if(key == it)
+                    return true;
+            return false;
         };
-        for(const auto& it : read_only_attributes)
-            if(key == it)
-                return true;
-        return false;
-    };
 
-    bool updated = false;
-    for(const auto& p : attributes)
-    {
-        if(is_readonly(p.first))
-            continue;
-        set_segment_attribute(seg, p.first.data(), p.second.data());
-        updated = true;
-    }
-    if(!updated)
-        return;
-
-    const auto ok = seg->update();
-    if(!ok)
-        LOG(ERROR, "make_segment: 0x" EA_FMT " unable to update segment\n", ea);
-}
-
-void Exporter::make_segment_chunk(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
-{
-    // TODO : now that we have enough precision, we could delete elements
-    // that are in the base but not in our segment_chunk
-    std::vector<uint8_t> buffer;
-    for(const auto& it : version->get_blobs())
-    {
-        const auto offset = static_cast<ea_t>(ea + it.first);
-        const auto& data = it.second;
-        buffer.resize(data.size());
-        auto ok = get_many_bytes(offset, &buffer[0], data.size());
-        if(!ok)
+        bool updated = false;
+        for(const auto& p : attributes)
         {
-            LOG(ERROR, "make_segment_chunk: 0x" EA_FMT " unable to read %d bytes\n", offset, data.size());
-            continue;
+            if(is_readonly(p.first))
+                continue;
+            set_segment_attribute(seg, p.first.data(), p.second.data());
+            updated = true;
         }
-        if(data == buffer)
-            continue;
+        if(!updated)
+            return;
 
-        // put_many_bytes does not return any error code...
-        put_many_bytes(offset, &data[0], data.size());
-        ok = get_many_bytes(offset, &buffer[0], data.size());
-        if(!ok || data != buffer)
-            LOG(ERROR, "make_segment_chunk: 0x" EA_FMT " unable to write %d bytes\n", offset, data.size());
+        const auto ok = seg->update();
+        if(!ok)
+            LOG(ERROR, "make_segment: 0x" EA_FMT " unable to update segment\n", ea);
     }
-}
 
-Tid Exporter::get_tid(YaToolObjectId id) const
-{
-    const auto it = tids_.find(id);
-    if(it == tids_.end())
-        return {BADADDR, OBJECT_TYPE_UNKNOWN};
-    return it->second;
-}
+    void make_segment_chunk(const YaToolObjectVersion& version, ea_t ea)
+    {
+        // TODO : now that we have enough precision, we could delete elements
+        // that are in the base but not in our segment_chunk
+        std::vector<uint8_t> buffer;
+        for(const auto& it : version.get_blobs())
+        {
+            const auto offset = static_cast<ea_t>(ea + it.first);
+            const auto& data = it.second;
+            buffer.resize(data.size());
+            auto ok = get_many_bytes(offset, &buffer[0], data.size());
+            if(!ok)
+            {
+                LOG(ERROR, "make_segment_chunk: 0x" EA_FMT " unable to read %d bytes\n", offset, data.size());
+                continue;
+            }
+            if(data == buffer)
+                continue;
 
-void Exporter::set_tid(YaToolObjectId id, ea_t tid, YaToolObjectType_e type)
-{
-    tids_.insert({id, {tid, type}});
-}
+            // put_many_bytes does not return any error code...
+            put_many_bytes(offset, &data[0], data.size());
+            ok = get_many_bytes(offset, &buffer[0], data.size());
+            if(!ok || data != buffer)
+                LOG(ERROR, "make_segment_chunk: 0x" EA_FMT " unable to write %d bytes\n", offset, data.size());
+        }
+    }
 
-namespace
-{
+    Tid get_tid(const Exporter& exporter, YaToolObjectId id)
+    {
+        const auto it = exporter.tids_.find(id);
+        if(it == exporter.tids_.end())
+            return {BADADDR, OBJECT_TYPE_UNKNOWN};
+        return it->second;
+    }
+
+    void set_tid(Exporter& exporter, YaToolObjectId id, ea_t tid, YaToolObjectType_e type)
+    {
+        exporter.tids_.insert({id, {tid, type}});
+    }
+
     const std::regex r_trailing_identifier{"\\s*<?[a-zA-Z_0-9]+>?\\s*$"};     // match c/c++ identifiers
     const std::regex r_type_id{"/\\*%(.+?)#([A-F0-9]{16})%\\*/"}; // match yaco ids /*%name:ID%*/
     const std::regex r_trailing_comma{"\\s*;\\s*$"};                     // match trailing ;
@@ -542,40 +503,37 @@ namespace
             pos += replace.size();
         }
     }
-}
 
-std::string Exporter::patch_prototype(const std::string& src, ea_t ea)
-{
-    // remove/patch struct ids
-    auto dst = src;
-    qstring buffer;
-    for(std::sregex_iterator it = {src.begin(), src.end(), r_type_id}, end; it != end; ++it)
+    std::string patch_prototype(const Exporter& exporter, const std::string& src, ea_t ea)
     {
-        const auto id = it->str(2);
-        const auto name = it->str(1);
-        // always remove special struct comment
-        replace_inline(dst, "/*%" + name + "#" + id + "%*/", "");
-        const auto k = tids_.find(to_yaid(id.data()));
-        if(k == tids_.end())
+        // remove/patch struct ids
+        auto dst = src;
+        qstring buffer;
+        for(std::sregex_iterator it = {src.begin(), src.end(), r_type_id}, end; it != end; ++it)
         {
-            LOG(WARNING, "make_prototype: 0x" EA_FMT " unknown struct %s id %s\n", ea, name.data(), id.data());
-            continue;
+            const auto id = it->str(2);
+            const auto name = it->str(1);
+            // always remove special struct comment
+            replace_inline(dst, "/*%" + name + "#" + id + "%*/", "");
+            const auto k = exporter.tids_.find(to_yaid(id.data()));
+            if(k == exporter.tids_.end())
+            {
+                LOG(WARNING, "make_prototype: 0x" EA_FMT " unknown struct %s id %s\n", ea, name.data(), id.data());
+                continue;
+            }
+            if(k->second.type != OBJECT_TYPE_STRUCT)
+                continue;
+            const auto tid = static_cast<tid_t>(k->second.tid);
+            get_struc_name(&buffer, tid);
+            // replace struct name with new name
+            replace_inline(dst, name, buffer.c_str());
         }
-        if(k->second.type != OBJECT_TYPE_STRUCT)
-            continue;
-        const auto tid = static_cast<tid_t>(k->second.tid);
-        get_struc_name(&buffer, tid);
-        // replace struct name with new name
-        replace_inline(dst, name, buffer.c_str());
+
+        // remove trailing whitespace
+        dst = std::regex_replace(dst, r_trailing_whitespace, "");
+        return dst;
     }
 
-    // remove trailing whitespace
-    dst = std::regex_replace(dst, r_trailing_whitespace, "");
-    return dst;
-}
-
-namespace
-{
     tinfo_t make_simple_type(type_t type)
     {
         tinfo_t tif;
@@ -782,40 +740,37 @@ namespace
     }
 
     template<typename T>
-    bool try_set_type(Exporter& exporter, ea_t ea, const std::string& value, const T& operand)
+    bool try_set_type(const Exporter* exporter, ea_t ea, const std::string& value, const T& operand)
     {
         if(value.empty())
             return false;
 
-        const auto patched = exporter.patch_prototype(value, ea);
+        const auto patched = exporter ? patch_prototype(*exporter, value, ea) : value;
         const auto tif = find_type(ea, patched.data());
         const auto ok = operand(tif);
         if(!ok)
             LOG(ERROR, "set_type: 0x" EA_FMT " unable to set type %s\n", ea, patched.data());
         return ok;
     }
-}
 
-bool Exporter::set_type(ea_t ea, const std::string& value)
-{
-    return try_set_type(*this, ea, value, [&](const tinfo_t& tif)
+    bool set_type(const Exporter* exporter, ea_t ea, const std::string& value)
     {
-        return apply_tinfo2(ea, tif, TINFO_DEFINITE);
-    });
-}
+        return try_set_type(exporter, ea, value, [&](const tinfo_t& tif)
+        {
+            return apply_tinfo2(ea, tif, TINFO_DEFINITE);
+        });
+    }
 
-bool Exporter::set_struct_member_type(ea_t ea, const std::string& value)
-{
-    return try_set_type(*this, ea, value, [&](const tinfo_t& tif)
+    bool set_struct_member_type(const Exporter* exporter, ea_t ea, const std::string& value)
     {
-        struc_t* s = nullptr;
-        auto* m = get_member_by_id(ea, &s);
-        return s && m && set_member_tinfo2(s, m, 0, tif, 0);
-    });
-}
+        return try_set_type(exporter, ea, value, [&](const tinfo_t& tif)
+        {
+            struc_t* s = nullptr;
+            auto* m = get_member_by_id(ea, &s);
+            return s && m && set_member_tinfo2(s, m, 0, tif, 0);
+        });
+    }
 
-namespace
-{
     bool set_function_comment(ea_t ea, const char* comment, bool repeatable)
     {
         const auto func = get_func(ea);
@@ -824,75 +779,72 @@ namespace
         return set_func_cmt(func, comment, repeatable);
     }
 
-    bool set_struct_comment(const Exporter::TidMap& tids, YaToolObjectId id, const char* comment, bool repeatable)
+    bool set_struct_comment(const Exporter& exporter, YaToolObjectId id, const char* comment, bool repeatable)
     {
-        const auto it = tids.find(id);
-        if(it == tids.end())
+        const auto it = exporter.tids_.find(id);
+        if(it == exporter.tids_.end())
             return false;
         return set_struc_cmt(it->second.tid, comment, repeatable);
     }
 
-    bool set_struct_member_comment(const Exporter::TidMap& tids, YaToolObjectId id, const char* comment, bool repeatable)
+    bool set_struct_member_comment(const Exporter& exporter, YaToolObjectId id, const char* comment, bool repeatable)
     {
-        const auto it = tids.find(id);
-        if(it == tids.end())
+        const auto it = exporter.tids_.find(id);
+        if(it == exporter.tids_.end())
             return false;
         const auto member = get_member_by_id(it->second.tid);
         if(!member)
             return false;
         return set_member_cmt(member, comment, repeatable);
      }
-}
 
-void Exporter::make_header_comments(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
-{
-    const auto type = version->get_type();
-    const auto id = version->get_id();
-    for(const auto rpt : {false, true})
+    void make_header_comments(const Exporter& exporter, const YaToolObjectVersion& version, ea_t ea)
     {
-        const auto comment = version->get_header_comment(rpt);
-        auto ok = false;
-        switch(type)
+        const auto type = version.get_type();
+        const auto id = version.get_id();
+        for(const auto rpt : {false, true})
         {
-            case OBJECT_TYPE_FUNCTION:
-                ok = set_function_comment(ea, comment.data(), rpt);
-                break;
+            const auto comment = version.get_header_comment(rpt);
+            auto ok = false;
+            switch(type)
+            {
+                case OBJECT_TYPE_FUNCTION:
+                    ok = set_function_comment(ea, comment.data(), rpt);
+                    break;
 
-            case OBJECT_TYPE_STRUCT:
-                ok = set_struct_comment(tids_, id, comment.data(), rpt);
-                break;
+                case OBJECT_TYPE_STRUCT:
+                    ok = set_struct_comment(exporter, id, comment.data(), rpt);
+                    break;
 
-            case OBJECT_TYPE_STRUCT_MEMBER:
-                ok = set_struct_member_comment(tids_, id, comment.data(), rpt);
-                break;
+                case OBJECT_TYPE_STRUCT_MEMBER:
+                    ok = set_struct_member_comment(exporter, id, comment.data(), rpt);
+                    break;
 
-            case OBJECT_TYPE_ENUM:              // done in make_enum
-            case OBJECT_TYPE_ENUM_MEMBER:       // done in make_enum_member
-                ok = true;
-                break;
+                case OBJECT_TYPE_ENUM:              // done in make_enum
+                case OBJECT_TYPE_ENUM_MEMBER:       // done in make_enum_member
+                    ok = true;
+                    break;
 
-            // unsupported yet
-            case OBJECT_TYPE_UNKNOWN:
-            case OBJECT_TYPE_BINARY:
-            case OBJECT_TYPE_DATA:
-            case OBJECT_TYPE_CODE:
-            case OBJECT_TYPE_BASIC_BLOCK:
-            case OBJECT_TYPE_SEGMENT:
-            case OBJECT_TYPE_SEGMENT_CHUNK:
-            case OBJECT_TYPE_STACKFRAME:
-            case OBJECT_TYPE_STACKFRAME_MEMBER:
-            case OBJECT_TYPE_REFERENCE_INFO:
-            case OBJECT_TYPE_COUNT:
-                ok = comment.empty();
-                break;
+                // unsupported yet
+                case OBJECT_TYPE_UNKNOWN:
+                case OBJECT_TYPE_BINARY:
+                case OBJECT_TYPE_DATA:
+                case OBJECT_TYPE_CODE:
+                case OBJECT_TYPE_BASIC_BLOCK:
+                case OBJECT_TYPE_SEGMENT:
+                case OBJECT_TYPE_SEGMENT_CHUNK:
+                case OBJECT_TYPE_STACKFRAME:
+                case OBJECT_TYPE_STACKFRAME_MEMBER:
+                case OBJECT_TYPE_REFERENCE_INFO:
+                case OBJECT_TYPE_COUNT:
+                    ok = comment.empty();
+                    break;
+            }
+            if(!ok)
+                LOG(ERROR, "make_header_comments: 0x" EA_FMT " unable to set %s %s comment: %s\n", ea, get_object_type_string(type), rpt ? "repeatable" : "non-repeatable", comment.data());
         }
-        if(!ok)
-            LOG(ERROR, "make_header_comments: 0x" EA_FMT " unable to set %s %s comment: %s\n", ea, get_object_type_string(type), rpt ? "repeatable" : "non-repeatable", comment.data());
     }
-}
 
-namespace
-{
     void clear_function(const YaToolObjectVersion& version, ea_t ea)
     {
         for(const auto& it : version.get_xrefed_id_map())
@@ -949,28 +901,25 @@ namespace
         clear_function(version, ea);
         return add_func(ea, BADADDR);
     }
-}
 
-void Exporter::make_function(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
-{
-    auto ok = add_function(ea, *version);
-    if(!ok)
-        LOG(ERROR, "make_function: 0x" EA_FMT " unable to add function\n", ea);
+    void make_function(const Exporter& exporter, const YaToolObjectVersion& version, ea_t ea)
+    {
+        auto ok = add_function(ea, version);
+        if(!ok)
+            LOG(ERROR, "make_function: 0x" EA_FMT " unable to add function\n", ea);
 
-    ok = !!analyze_area(ea, ea + 1);
-    if(!ok)
-        LOG(ERROR, "make_function: 0x" EA_FMT " unable to analyze area\n", ea);
+        ok = !!analyze_area(ea, ea + 1);
+        if(!ok)
+            LOG(ERROR, "make_function: 0x" EA_FMT " unable to analyze area\n", ea);
 
-    const auto flags = version->get_object_flags();
-    if(flags)
-        if(!set_function_flags(ea, flags))
-            LOG(ERROR, "make_function: 0x" EA_FMT " unable to set function flags 0x%08x\n", ea, flags);
+        const auto flags = version.get_object_flags();
+        if(flags)
+            if(!set_function_flags(ea, flags))
+                LOG(ERROR, "make_function: 0x" EA_FMT " unable to set function flags 0x%08x\n", ea, flags);
 
-    set_type(ea, version->get_prototype());
-}
+        set_type(&exporter, ea, version.get_prototype());
+    }
 
-namespace
-{
     bool begins_with_offset(const std::string& value)
     {
         static const char offset_prefix[] = "offset";
@@ -1087,29 +1036,26 @@ namespace
         if(!ok)
             LOG(ERROR, "make_hiddenarea: 0x" EA_FMT " unable to set hidden area " EA_FMT "-" EA_FMT " %s\n", ea, start, end, value.data());
     }
-}
 
-void Exporter::make_views(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
-{
-    for(const auto& it : version->get_offset_valueviews())
-        make_valueview(static_cast<ea_t>(ea + it.first.first), it.first.second, it.second);
-    for(const auto& it : version->get_offset_registerviews())
-        make_registerview(ea, it.first.first, it.first.second, it.second.first, it.second.second);
-    for(const auto& it : version->get_offset_hiddenareas())
-        make_hiddenarea(ea, it.first.first, it.first.second, it.second);
-}
+    void make_views(const YaToolObjectVersion& version, ea_t ea)
+    {
+        for(const auto& it : version.get_offset_valueviews())
+            make_valueview(static_cast<ea_t>(ea + it.first.first), it.first.second, it.second);
+        for(const auto& it : version.get_offset_registerviews())
+            make_registerview(ea, it.first.first, it.first.second, it.second.first, it.second.second);
+        for(const auto& it : version.get_offset_hiddenareas())
+            make_hiddenarea(ea, it.first.first, it.first.second, it.second);
+    }
 
-void Exporter::make_code(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
-{
-    del_func(ea);
-    create_insn(ea);
-    make_name(version, ea, false);
-    make_views(version, ea);
-}
+    void make_code(const YaToolObjectVersion& version, ea_t ea)
+    {
+        del_func(ea);
+        create_insn(ea);
+        make_name(version, ea, false);
+        make_views(version, ea);
+    }
 
-namespace
-{
-    void set_data_type(ea_t ea, YaToolObjectVersion& version, const Exporter::TidMap& struct_ids)
+    void set_data_type(const Exporter& exporter, const YaToolObjectVersion& version, ea_t ea)
     {
         const auto size = static_cast<size_t>(version.get_size());
         if(!size)
@@ -1145,8 +1091,8 @@ namespace
             for(const auto& it : version.get_xrefed_id_map())
                 for(const auto& xref : it.second)
                 {
-                    const auto fi = struct_ids.find(xref.object_id);
-                    if(fi == struct_ids.end())
+                    const auto fi = exporter.tids_.find(xref.object_id);
+                    if(fi == exporter.tids_.end())
                         continue;
 
                     do_unknown_range(ea, size, DOUNK_DELNAMES);
@@ -1169,110 +1115,107 @@ namespace
         if(!ok)
             LOG(ERROR, "make_data: 0x" EA_FMT " unable to set data type 0x%llx size %zd\n", ea, static_cast<uint64_t>(type_flags), size);
     }
-}
 
-void Exporter::make_data(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
-{
-    set_data_type(ea, *version, tids_);
-    make_name(version, ea, false);
-    set_type(ea, version->get_prototype());
-}
-
-void Exporter::make_enum(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
-{
-    const auto name = version->get_name();
-    const auto flags = version->get_object_flags();
-    auto eid = get_enum(name.data());
-    if(eid == BADADDR)
-        eid = add_enum(~0u, name.data(), flags & ~ENUM_FLAGS_IS_BF);
-
-    if(!set_enum_bf(eid, flags & ENUM_FLAGS_IS_BF))
-        LOG(ERROR, "make_enum: 0x" EA_FMT " unable to set as bitfield\n", ea);
-
-    const auto width = version->get_size();
-    if(width)
-        if(!set_enum_width(eid, static_cast<int>(width)))
-            LOG(ERROR, "make_enum: 0x" EA_FMT " unable to set width %lld\n", ea, width);
-
-    for(const auto rpt : {false, true})
-        if(!set_enum_cmt(eid, sanitize_comment_to_ascii(version->get_header_comment(rpt)).data(), rpt))
-        {
-            LOG(ERROR, "make_enum: 0x" EA_FMT " unable to set %s comment to %s\n", ea, rpt ? "repeatable" : "non-repeatable", version->get_header_comment(rpt).data());
-        }
-
-    const auto xref_ids = version->get_xrefed_ids();
-    qstring const_name;
-    qstring const_value;
-    ya::walk_enum_members(eid, [&](const_t cid, uval_t value, uchar serial, bmask_t bmask)
+    void make_data(const Exporter& exporter, const YaToolObjectVersion& version, ea_t ea)
     {
-        const auto it = enum_members_.find(cid);
-        if(it != enum_members_.end() && it->second == eid)
-            return;
-
-        get_enum_member_name(&const_name, cid);
-        to_py_hex(const_value, value);
-        const auto yaid = provider_.get_enum_member_id(eid, make_string_ref(name), cid, ya::to_string_ref(const_name), ya::to_string_ref(const_value), bmask, true);
-        if(xref_ids.count(yaid))
-            return;
-
-        if(!del_enum_member(eid, value, serial, bmask))
-            LOG(ERROR, "make_enum: 0x" EA_FMT ": unable to delete member " EA_FMT " " EA_FMT " %x " EA_FMT "\n", ea, cid, value, serial, bmask);
-    });
-
-    const auto id = version->get_id();
-    tids_.insert({id, {eid, OBJECT_TYPE_ENUM}});
-    provider_.put_hash_struc_or_enum(eid, id, false);
-}
-
-void Exporter::make_enum_member(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
-{
-    const auto parent_id = version->get_parent_object_id();
-    const auto it = tids_.find(parent_id);
-    if(it == tids_.end())
-    {
-        LOG(ERROR, "make_enum_member: 0x" EA_FMT " unable to find parent enum %016llx\n", ea, parent_id);
-        return;
+        set_data_type(exporter, version, ea);
+        make_name(version, ea, false);
+        set_type(&exporter, ea, version.get_prototype());
     }
 
-    const auto eid = it->second.tid;
-    const auto ename = get_enum_name(eid);
-    const auto name = version->get_name();
-    const auto id = version->get_id();
-    provider_.put_hash_enum_member(ya::to_string_ref(ename), make_string_ref(name), ea, id, false);
-
-    const auto bmask = is_bf(eid) ? version->get_object_flags() : DEFMASK;
-    auto mid = get_enum_member(eid, ea, 0, bmask);
-    if(mid == BADADDR)
+    void make_enum(Exporter& exporter, const YaToolObjectVersion& version, ea_t ea)
     {
-        const auto err = add_enum_member(eid, name.data(), ea, bmask);
-        if(err)
-            LOG(ERROR, "make_enum_member: 0x" EA_FMT " unable to add enum member %s bmask 0x" EA_FMT "\n", ea, name.data(), bmask);
-        mid = get_enum_member(eid, ea, 0, bmask);
+        const auto name = version.get_name();
+        const auto flags = version.get_object_flags();
+        auto eid = get_enum(name.data());
+        if(eid == BADADDR)
+            eid = add_enum(~0u, name.data(), flags & ~ENUM_FLAGS_IS_BF);
+
+        if(!set_enum_bf(eid, flags & ENUM_FLAGS_IS_BF))
+            LOG(ERROR, "make_enum: 0x" EA_FMT " unable to set as bitfield\n", ea);
+
+        const auto width = version.get_size();
+        if(width)
+            if(!set_enum_width(eid, static_cast<int>(width)))
+                LOG(ERROR, "make_enum: 0x" EA_FMT " unable to set width %lld\n", ea, width);
+
+        for(const auto rpt : {false, true})
+            if(!set_enum_cmt(eid, version.get_header_comment(rpt).data(), rpt))
+            {
+                LOG(ERROR, "make_enum: 0x" EA_FMT " unable to set %s comment to %s\n", ea, rpt ? "repeatable" : "non-repeatable", version.get_header_comment(rpt).data());
+            }
+
+        const auto xref_ids = version.get_xrefed_ids();
+        qstring const_name;
+        qstring const_value;
+        ya::walk_enum_members(eid, [&](const_t cid, uval_t value, uchar serial, bmask_t bmask)
+        {
+            const auto it = exporter.enum_members_.find(cid);
+            if(it != exporter.enum_members_.end() && it->second == eid)
+                return;
+
+            get_enum_member_name(&const_name, cid);
+            to_py_hex(const_value, value);
+            const auto yaid = exporter.provider_.get_enum_member_id(eid, make_string_ref(name), cid, ya::to_string_ref(const_name), ya::to_string_ref(const_value), bmask, true);
+            if(xref_ids.count(yaid))
+                return;
+
+            if(!del_enum_member(eid, value, serial, bmask))
+                LOG(ERROR, "make_enum: 0x" EA_FMT ": unable to delete member " EA_FMT " " EA_FMT " %x " EA_FMT "\n", ea, cid, value, serial, bmask);
+        });
+
+        const auto id = version.get_id();
+        exporter.tids_.insert({id, {eid, OBJECT_TYPE_ENUM}});
+        exporter.provider_.put_hash_struc_or_enum(eid, id, false);
     }
 
-    if(!set_enum_member_name(mid, name.data()))
-        LOG(ERROR, "make_enum_member: 0x" EA_FMT " unable to set enum member name to %s\n", ea, name.data());
-
-    for(const auto rpt : {false, true})
-        if(!set_enum_member_cmt(mid, sanitize_comment_to_ascii(version->get_header_comment(rpt)).data(), rpt))
+    void make_enum_member(Exporter& exporter, const YaToolObjectVersion& version, ea_t ea)
+    {
+        const auto parent_id = version.get_parent_object_id();
+        const auto it = exporter.tids_.find(parent_id);
+        if(it == exporter.tids_.end())
         {
-            LOG(ERROR, "make_enum_member: 0x" EA_FMT " unable to set %s comment to %s\n", ea, rpt ? "repeatable" : "non-repeatable", version->get_header_comment(rpt).data());
+            LOG(ERROR, "make_enum_member: 0x" EA_FMT " unable to find parent enum %016llx\n", ea, parent_id);
+            return;
         }
 
-    enum_members_.emplace(mid, eid);
-}
+        const auto eid = it->second.tid;
+        const auto ename = get_enum_name(eid);
+        const auto name = version.get_name();
+        const auto id = version.get_id();
+        exporter.provider_.put_hash_enum_member(ya::to_string_ref(ename), make_string_ref(name), ea, id, false);
 
-void Exporter::make_reference_info(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
-{
-    const auto id = version->get_id();
-    const auto flags = version->get_object_flags();
-    refinfo_t ref;
-    ref.init(flags, ea);
-    refs_.emplace(id, ref);
-}
+        const auto bmask = is_bf(eid) ? version.get_object_flags() : DEFMASK;
+        auto mid = get_enum_member(eid, ea, 0, bmask);
+        if(mid == BADADDR)
+        {
+            const auto err = add_enum_member(eid, name.data(), ea, bmask);
+            if(err)
+                LOG(ERROR, "make_enum_member: 0x" EA_FMT " unable to add enum member %s bmask 0x" EA_FMT "\n", ea, name.data(), bmask);
+            mid = get_enum_member(eid, ea, 0, bmask);
+        }
 
-namespace
-{
+        if(!set_enum_member_name(mid, name.data()))
+            LOG(ERROR, "make_enum_member: 0x" EA_FMT " unable to set enum member name to %s\n", ea, name.data());
+
+        for(const auto rpt : {false, true})
+            if(!set_enum_member_cmt(mid, version.get_header_comment(rpt).data(), rpt))
+            {
+                LOG(ERROR, "make_enum_member: 0x" EA_FMT " unable to set %s comment to %s\n", ea, rpt ? "repeatable" : "non-repeatable", version.get_header_comment(rpt).data());
+            }
+
+        exporter.enum_members_.emplace(mid, eid);
+    }
+
+    void make_reference_info(Exporter& exporter, const YaToolObjectVersion& version, ea_t ea)
+    {
+        const auto id = version.get_id();
+        const auto flags = version.get_object_flags();
+        refinfo_t ref;
+        ref.init(flags, ea);
+        exporter.refs_.emplace(id, ref);
+    }
+
     void set_stackframe_member_operand(ea_t ea, offset_t offset, operand_t operand)
     {
         const auto ok = op_stkvar(static_cast<ea_t>(ea + offset), operand);
@@ -1343,46 +1286,43 @@ namespace
         }
         LOG(ERROR, "make_basic_block: 0x" EA_FMT " unable to set path %s at offset %lld operand %d\n", ea, pathstr.data(), offset, operand);
     }
-}
 
-void Exporter::make_basic_block(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
-{
-    Path path;
-    IdaPath ida_path;
-    make_name(version, ea, true);
-    make_views(version, ea);
-    for(const auto& xrefs : version->get_xrefed_id_map())
+    void make_basic_block(Exporter& exporter, const YaToolObjectVersion& version, ea_t ea)
     {
-        const auto offset = xrefs.first.first;
-        const auto operand = xrefs.first.second;
-        path.clear();
-        for(const auto& xref : xrefs.second)
+        Path path;
+        IdaPath ida_path;
+        make_name(version, ea, true);
+        make_views(version, ea);
+        for(const auto& xrefs : version.get_xrefed_id_map())
         {
-            const auto key = get_tid(xref.object_id);
-            switch(key.type)
+            const auto offset = xrefs.first.first;
+            const auto operand = xrefs.first.second;
+            path.clear();
+            for(const auto& xref : xrefs.second)
             {
-                case OBJECT_TYPE_STRUCT:
-                case OBJECT_TYPE_STACKFRAME:
-                case OBJECT_TYPE_STRUCT_MEMBER:
-                    fill_path(path, key.tid, xref);
-                    break;
+                const auto key = get_tid(exporter, xref.object_id);
+                switch(key.type)
+                {
+                    case OBJECT_TYPE_STRUCT:
+                    case OBJECT_TYPE_STACKFRAME:
+                    case OBJECT_TYPE_STRUCT_MEMBER:
+                        fill_path(path, key.tid, xref);
+                        break;
 
-                case OBJECT_TYPE_STACKFRAME_MEMBER:
-                    set_stackframe_member_operand(ea, offset, operand);
-                    break;
+                    case OBJECT_TYPE_STACKFRAME_MEMBER:
+                        set_stackframe_member_operand(ea, offset, operand);
+                        break;
 
-                case OBJECT_TYPE_ENUM:
-                    set_enum_operand(ea, offset, operand, key.tid);
-                    break;
+                    case OBJECT_TYPE_ENUM:
+                        set_enum_operand(ea, offset, operand, key.tid);
+                        break;
+                }
+                set_path(path, ida_path, ea, offset, operand);
+                set_reference_info(exporter.refs_, ea, offset, operand, xref.object_id);
             }
-            set_path(path, ida_path, ea, offset, operand);
-            set_reference_info(refs_, ea, offset, operand, xref.object_id);
         }
     }
-}
 
-namespace
-{
 #define DECLARE_REF(name, value)\
     const char name ## _txt[] = value;\
     const const_string_ref name = {name ## _txt, sizeof name ## _txt - 1};
@@ -1403,88 +1343,85 @@ namespace
         if(!ok)
             LOG(ERROR, "%s: 0x" EA_FMT ":" EA_FMT " unable to set member type to 0x" EA_FMT " bytes\n", where, struc->id, ea, size);
     }
-}
 
-void Exporter::clear_struct_fields(std::shared_ptr<YaToolObjectVersion>& version, ea_t struct_id)
-{
-    begin_type_updating(UTP_STRUCT);
-
-    const auto size = version->get_size();
-    const auto struc = get_struc(struct_id);
-    const auto last_offset = get_struc_last_offset(struc);
-    const auto func_ea = get_func_by_frame(struct_id);
-    const auto func = get_func(func_ea);
-
-    // get existing members
-    std::set<offset_t> fields;
-    for(const auto& xref : version->get_xrefed_id_map())
-        fields.emplace(xref.first.first);
-
-    // create missing members first & prevent deleting all members
-    std::set<offset_t> new_fields;
-    qstring member_name;
-    for(const auto offset : fields)
+    void clear_struct_fields(const Exporter& exporter, const YaToolObjectVersion& version, ea_t struct_id)
     {
-        const auto aoff = static_cast<asize_t>(offset);
-        auto member = get_member(struc, aoff);
-        if(member && member->soff < offset)
-        {
-            set_member_type(struc, member->soff, FF_BYTE, nullptr, 1);
-            member = get_member(struc, aoff);
-        }
-        if(member && get_member_name2(&member_name, member->id) > 0)
-            continue;
+        begin_type_updating(UTP_STRUCT);
 
-        new_fields.insert(offset);
-        const auto defname = ya::get_default_name(member_name, aoff, func);
-        const auto field_size = offset == last_offset && offset == size ? 0 : 1;
-        const auto err = add_struc_member(struc, defname.value, aoff, FF_BYTE, nullptr, field_size);
-        if(err != STRUC_ERROR_MEMBER_OK)
-            LOG(ERROR, "clear_struct_fields: 0x" EA_FMT ":%llx unable to add member %s size %d\n", struct_id, offset, defname.value, field_size);
-    }
+        const auto size = version.get_size();
+        const auto struc = get_struc(struct_id);
+        const auto last_offset = get_struc_last_offset(struc);
+        const auto func_ea = get_func_by_frame(struct_id);
+        const auto func = get_func(func_ea);
 
-    for(size_t i = 0; i < struc->memqty; ++i)
-    {
-        auto& m = struc->members[i];
-        const auto offset = m.soff;
-        const auto is_known = fields.count(m.soff);
-        const auto is_new = new_fields.count(m.soff);
-        if(is_known && !is_new)
+        // get existing members
+        std::set<offset_t> fields;
+        for(const auto& xref : version.get_xrefed_id_map())
+            fields.emplace(xref.first.first);
+
+        // create missing members first & prevent deleting all members
+        std::set<offset_t> new_fields;
+        qstring member_name;
+        for(const auto offset : fields)
         {
-            const auto field_size = offset == last_offset && offset == size ? 0 : 1;
-            const auto id = struc->props & SF_FRAME ?
-                provider_.get_stackframe_member_object_id(struct_id, offset, func_ea) :
-                provider_.get_struc_member_id(struct_id, offset, g_empty);
-            const auto key = get_tid(id);
-            if(key.tid == BADADDR)
+            const auto aoff = static_cast<asize_t>(offset);
+            auto member = get_member(struc, aoff);
+            if(member && member->soff < offset)
             {
-                set_struct_member(member_name, "clear_struct_fields", struc, g_empty, offset, field_size, func, nullptr);
-                for(const auto repeat : {false, true})
+                set_member_type(struc, member->soff, FF_BYTE, nullptr, 1);
+                member = get_member(struc, aoff);
+            }
+            if(member && get_member_name2(&member_name, member->id) > 0)
+                continue;
+
+            new_fields.insert(offset);
+            const auto defname = ya::get_default_name(member_name, aoff, func);
+            const auto field_size = offset == last_offset && offset == size ? 0 : 1;
+            const auto err = add_struc_member(struc, defname.value, aoff, FF_BYTE, nullptr, field_size);
+            if(err != STRUC_ERROR_MEMBER_OK)
+                LOG(ERROR, "clear_struct_fields: 0x" EA_FMT ":%llx unable to add member %s size %d\n", struct_id, offset, defname.value, field_size);
+        }
+
+        for(size_t i = 0; i < struc->memqty; ++i)
+        {
+            auto& m = struc->members[i];
+            const auto offset = m.soff;
+            const auto is_known = fields.count(m.soff);
+            const auto is_new = new_fields.count(m.soff);
+            if(is_known && !is_new)
+            {
+                const auto field_size = offset == last_offset && offset == size ? 0 : 1;
+                const auto id = struc->props & SF_FRAME ?
+                    exporter.provider_.get_stackframe_member_object_id(struct_id, offset, func_ea) :
+                    exporter.provider_.get_struc_member_id(struct_id, offset, g_empty);
+                const auto key = get_tid(exporter, id);
+                if(key.tid == BADADDR)
                 {
-                    const auto ok = set_member_cmt(&m, g_empty.value, repeat);
+                    set_struct_member(member_name, "clear_struct_fields", struc, g_empty, offset, field_size, func, nullptr);
+                    for(const auto repeat : {false, true})
+                    {
+                        const auto ok = set_member_cmt(&m, g_empty.value, repeat);
+                        if(!ok)
+                            LOG(ERROR, "clear_struct_fields: 0x" EA_FMT ":" EA_FMT " unable to reset %s comment\n", struct_id, offset, repeat ? "repeatable" : "non-repeatable");
+                    }
+                }
+            }
+            else if(!is_new)
+            {
+                if(func_ea == BADADDR || !is_special_member(m.id))
+                {
+                    const auto ok = del_struc_member(struc, offset);
                     if(!ok)
-                        LOG(ERROR, "clear_struct_fields: 0x" EA_FMT ":" EA_FMT " unable to reset %s comment\n", struct_id, offset, repeat ? "repeatable" : "non-repeatable");
+                        LOG(ERROR, "clear_struct_fields: 0x" EA_FMT ":" EA_FMT " unable to delete member\n", struct_id, offset);
+                    else
+                        --i;
                 }
             }
         }
-        else if(!is_new)
-        {
-            if(func_ea == BADADDR || !is_special_member(m.id))
-            {
-                const auto ok = del_struc_member(struc, offset);
-                if(!ok)
-                    LOG(ERROR, "clear_struct_fields: 0x" EA_FMT ":" EA_FMT " unable to delete member\n", struct_id, offset);
-                else
-                    --i;
-            }
-        }
+
+        end_type_updating(UTP_STRUCT);
     }
 
-    end_type_updating(UTP_STRUCT);
-}
-
-namespace
-{
     template<typename T>
     ea_t find_hex(const T& data, const char* key)
     {
@@ -1530,25 +1467,22 @@ namespace
             set_frame_size(func, lvars, regvars, args);
         return get_frame(func);
     }
-}
 
-void Exporter::make_stackframe(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
-{
-    const auto frame = get_or_add_frame(*version, ea);
-    if(!frame)
+    void make_stackframe(Exporter& exporter, const YaToolObjectVersion& version, ea_t ea)
     {
-        LOG(ERROR, "make_stackframe: 0x" EA_FMT " unable to create function\n", ea);
-        return;
+        const auto frame = get_or_add_frame(version, ea);
+        if(!frame)
+        {
+            LOG(ERROR, "make_stackframe: 0x" EA_FMT " unable to create function\n", ea);
+            return;
+        }
+
+        const auto id = version.get_id();
+        set_tid(exporter, id, frame->id, OBJECT_TYPE_STACKFRAME);
+        clear_struct_fields(exporter, version, frame->id);
     }
 
-    const auto id = version->get_id();
-    set_tid(id, frame->id, OBJECT_TYPE_STACKFRAME);
-    clear_struct_fields(version, frame->id);
-}
-
-namespace
-{
-    const opinfo_t* get_member_info(opinfo_t* pop, Exporter& exporter, const YaToolObjectVersion& version, flags_t flags)
+    const opinfo_t* get_member_info(opinfo_t* pop, const Exporter& exporter, const YaToolObjectVersion& version, flags_t flags)
     {
         if(isASCII(flags))
         {
@@ -1562,7 +1496,7 @@ namespace
         if(it == xrefs.end())
             return nullptr;
 
-        const auto tid = exporter.get_tid(*it).tid;
+        const auto tid = get_tid(exporter, *it).tid;
         if(tid == BADADDR)
             return nullptr;
 
@@ -1585,78 +1519,75 @@ namespace
 
         return nullptr;
     }
-}
 
-void Exporter::make_struct_member(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
-{
-    const auto parent_id = version->get_parent_object_id();
-    const auto parent = get_tid(parent_id);
-    if(parent.tid == BADADDR)
+    void make_struct_member(Exporter& exporter, const YaToolObjectVersion& version, ea_t ea)
     {
-        LOG(ERROR, "make_struct_member: 0x" EA_FMT " missing parent struct 0x%llx\n", ea, parent_id);
-        return;
-    }
+        const auto parent_id = version.get_parent_object_id();
+        const auto parent = get_tid(exporter, parent_id);
+        if(parent.tid == BADADDR)
+        {
+            LOG(ERROR, "make_struct_member: 0x" EA_FMT " missing parent struct 0x%llx\n", ea, parent_id);
+            return;
+        }
 
-    const auto struc = get_struc(parent.tid);
-    if(!struc)
-    {
-        LOG(ERROR, "make_struct_member: 0x" EA_FMT ":" EA_FMT " missing struct\n", parent.tid, ea);
-        return;
-    }
+        const auto struc = get_struc(parent.tid);
+        if(!struc)
+        {
+            LOG(ERROR, "make_struct_member: 0x" EA_FMT ":" EA_FMT " missing struct\n", parent.tid, ea);
+            return;
+        }
 
-    qstring buffer;
-    const auto func = get_func(get_func_by_frame(struc->id));
-    for(auto it = get_struc_last_offset(struc); struc->is_union() && it != BADADDR && it < ea; ++it)
-    {
-        const auto offset = it + 1;
-        const auto defname = ya::get_default_name(buffer, offset, func);
-        const auto err = add_struc_member(struc, defname.value, BADADDR, FF_BYTE | FF_DATA, nullptr, 1);
-        if(err != STRUC_ERROR_MEMBER_OK)
-            LOG(ERROR, "make_struc_member: 0x" EA_FMT ":" EA_FMT " unable to add member %s " EA_FMT " (error %d)\n", struc->id, ea, defname.value, offset, err);
-    }
+        qstring buffer;
+        const auto func = get_func(get_func_by_frame(struc->id));
+        for(auto it = get_struc_last_offset(struc); struc->is_union() && it != BADADDR && it < ea; ++it)
+        {
+            const auto offset = it + 1;
+            const auto defname = ya::get_default_name(buffer, offset, func);
+            const auto err = add_struc_member(struc, defname.value, BADADDR, FF_BYTE | FF_DATA, nullptr, 1);
+            if(err != STRUC_ERROR_MEMBER_OK)
+                LOG(ERROR, "make_struc_member: 0x" EA_FMT ":" EA_FMT " unable to add member %s " EA_FMT " (error %d)\n", struc->id, ea, defname.value, offset, err);
+        }
 
-    const auto member_name = version->get_name();
-    if(!member_name.empty())
-    {
-        const auto ok = set_member_name(struc, ea, member_name.data());
+        const auto member_name = version.get_name();
+        if(!member_name.empty())
+        {
+            const auto ok = set_member_name(struc, ea, member_name.data());
+            if(!ok)
+                LOG(ERROR, "make_struc_member: 0x" EA_FMT ":" EA_FMT " unable to set member name %s\n", struc->id, ea, member_name.data());
+        }
+
+        opinfo_t op;
+        const auto flags = version.get_object_flags();
+        const auto size = version.get_size();
+        const auto pop = get_member_info(&op, exporter, version, flags);
+        auto ok = set_member_type(struc, ea, (flags & DT_TYPE) | FF_DATA, pop, static_cast<asize_t>(size));
         if(!ok)
-            LOG(ERROR, "make_struc_member: 0x" EA_FMT ":" EA_FMT " unable to set member name %s\n", struc->id, ea, member_name.data());
+            LOG(ERROR, "make_struc_member: 0x" EA_FMT ":" EA_FMT " unable to set member type & size %lld\n", struc->id, ea, size);
+
+        const auto member = get_member(struc, ea);
+        if(!member)
+        {
+            LOG(ERROR, "make_struc_member: 0x" EA_FMT ":" EA_FMT " missing member\n", struc->id, ea);
+            return;
+        }
+
+        for(const auto repeat : {false, true})
+        {
+            ok = set_member_cmt(member, version.get_header_comment(repeat).data(), repeat);
+            if(!ok)
+                LOG(ERROR, "make_struc_member: 0x" EA_FMT ":" EA_FMT " unable to set %s comment to '%s'\n", struc->id, ea, repeat ? "repeatable" : "non-repeatable", version.get_header_comment(repeat).data());
+        }
+
+        const auto prototype = version.get_prototype();
+        if(!prototype.empty())
+        {
+            ok = set_struct_member_type(&exporter, member->id, prototype);
+            if(!ok)
+                LOG(ERROR, "make_struc_member: 0x" EA_FMT ":" EA_FMT " unable to set prototype '%s'\n", struc->id, ea, prototype.data());
+        }
+        set_tid(exporter, version.get_id(), member->id, struc->props & SF_FRAME ? OBJECT_TYPE_STACKFRAME_MEMBER : OBJECT_TYPE_STRUCT_MEMBER);
     }
 
-    opinfo_t op;
-    const auto flags = version->get_object_flags();
-    const auto size = version->get_size();
-    const auto pop = get_member_info(&op, *this, *version, flags);
-    auto ok = set_member_type(struc, ea, (flags & DT_TYPE) | FF_DATA, pop, static_cast<asize_t>(size));
-    if(!ok)
-        LOG(ERROR, "make_struc_member: 0x" EA_FMT ":" EA_FMT " unable to set member type & size %lld\n", struc->id, ea, size);
-
-    const auto member = get_member(struc, ea);
-    if(!member)
-    {
-        LOG(ERROR, "make_struc_member: 0x" EA_FMT ":" EA_FMT " missing member\n", struc->id, ea);
-        return;
-    }
-
-    for(const auto repeat : {false, true})
-    {
-        ok = set_member_cmt(member, version->get_header_comment(repeat).data(), repeat);
-        if(!ok)
-            LOG(ERROR, "make_struc_member: 0x" EA_FMT ":" EA_FMT " unable to set %s comment to '%s'\n", struc->id, ea, repeat ? "repeatable" : "non-repeatable", version->get_header_comment(repeat).data());
-    }
-
-    const auto prototype = version->get_prototype();
-    if(!prototype.empty())
-    {
-        ok = set_struct_member_type(member->id, prototype);
-        if(!ok)
-            LOG(ERROR, "make_struc_member: 0x" EA_FMT ":" EA_FMT " unable to set prototype '%s'\n", struc->id, ea, prototype.data());
-    }
-    set_tid(version->get_id(), member->id, struc->props & SF_FRAME ? OBJECT_TYPE_STACKFRAME_MEMBER : OBJECT_TYPE_STRUCT_MEMBER);
-}
-
-namespace
-{
     struc_t* get_struc_from_name(const char* name)
     {
         return get_struc(netnode(name));
@@ -1678,60 +1609,59 @@ namespace
 
         return get_struc_from_name(name);
     }
+
+    void make_struct(Exporter& exporter, const YaToolObjectVersion& version, ea_t ea)
+    {
+        const auto name = version.get_name();
+        const auto struc = get_or_add_struct(version, ea, name.data());
+        if(!struc)
+        {
+            LOG(ERROR, "make_struct: 0x" EA_FMT " missing struct %s\n", ea, name.data());
+            return;
+        }
+
+        const auto id = version.get_id();
+        set_tid(exporter, id, struc->id, OBJECT_TYPE_STRUCT);
+        exporter.provider_.put_hash_struc_or_enum(struc->id, id, false);
+
+        if(struc->is_union())
+        {
+            // add a dummy field to avoid errors later on, maybe not on empty strucs
+            // FIXME check if still necessary
+            const auto ok = add_struc_member(struc, "yaco_filler", 0, FF_BYTE, nullptr, 1);
+            if(!ok)
+                LOG(ERROR, "make_struct: 0x" EA_FMT " %s unable to add filler byte\n", ea, name.data());
+            return;
+        }
+
+        clear_struct_fields(exporter, version, struc->id);
+    }
 }
 
-void Exporter::make_struct(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
+void Exporter::object_version_visited(YaToolObjectId id, const std::shared_ptr<YaToolObjectVersion>& version)
 {
-    const auto name = version->get_name();
-    const auto struc = get_or_add_struct(*version, ea, name.data());
-    if(!struc)
-    {
-        LOG(ERROR, "make_struct: 0x" EA_FMT " missing struct %s\n", ea, name.data());
-        return;
-    }
-
-    const auto id = version->get_id();
-    set_tid(id, struc->id, OBJECT_TYPE_STRUCT);
-    provider_.put_hash_struc_or_enum(struc->id, id, false);
-
-    if(struc->is_union())
-    {
-        // add a dummy field to avoid errors later on, maybe not on empty strucs
-        // FIXME check if still necessary
-        const auto ok = add_struc_member(struc, "yaco_filler", 0, FF_BYTE, nullptr, 1);
-        if(!ok)
-            LOG(ERROR, "make_struct: 0x" EA_FMT " %s unable to add filler byte\n", ea, name.data());
-        return;
-    }
-
-    clear_struct_fields(version, struc->id);
-}
-
-void Exporter::object_version_visited(YaToolObjectId id, const std::shared_ptr<YaToolObjectVersion>& const_version)
-{
-    auto version = const_version; // FIXME remove me
     const auto type = version->get_type();
     const auto ea = static_cast<ea_t>(version->get_object_address());
-    
+
     // version without addresses
     switch(type)
     {
         case OBJECT_TYPE_STRUCT:
-            make_struct(version, ea);
-            make_header_comments(version, ea);
+            make_struct(*this, *version, ea);
+            make_header_comments(*this, *version, ea);
             return;
 
         case OBJECT_TYPE_STACKFRAME:
             if(!use_frames_)
                 return;
 
-            make_struct(version, ea);
-            make_header_comments(version, ea);
+            make_struct(*this, *version, ea);
+            make_header_comments(*this, *version, ea);
             return;
-        
+
         case OBJECT_TYPE_ENUM:
-            make_enum(version, ea);
-            make_header_comments(version, ea);
+            make_enum(*this, *version, ea);
+            make_header_comments(*this, *version, ea);
             return;
     }
 
@@ -1744,50 +1674,50 @@ void Exporter::object_version_visited(YaToolObjectId id, const std::shared_ptr<Y
     switch(type)
     {
         case OBJECT_TYPE_CODE:
-            make_code(version, ea);
-            make_comments(version, ea);
+            make_code(*version, ea);
+            make_comments(tools_, *version, ea);
             break;
 
         case OBJECT_TYPE_FUNCTION:
-            make_function(version, ea);
+            make_function(*this, *version, ea);
             break;
 
         case OBJECT_TYPE_BASIC_BLOCK:
-            make_basic_block(version, ea);
-            make_comments(version, ea);
+            make_basic_block(*this, *version, ea);
+            make_comments(tools_, *version, ea);
             break;
 
         case OBJECT_TYPE_STRUCT_MEMBER:
-            make_struct_member(version, ea);
+            make_struct_member(*this, *version, ea);
             break;
 
         case OBJECT_TYPE_ENUM_MEMBER:
-            make_enum_member(version, ea);
+            make_enum_member(*this, *version, ea);
             break;
 
         case OBJECT_TYPE_STACKFRAME_MEMBER:
             if(use_frames_)
-                make_struct_member(version, ea);
+                make_struct_member(*this, *version, ea);
             break;
 
         case OBJECT_TYPE_DATA:
-            make_data(version, ea);
-            make_comments(version, ea);
+            make_data(*this, *version, ea);
+            make_comments(tools_, *version, ea);
             break;
 
         case OBJECT_TYPE_SEGMENT:
-            make_segment(version, ea);
+            make_segment(*version, ea);
             break;
 
         case OBJECT_TYPE_SEGMENT_CHUNK:
-            make_segment_chunk(version, ea);
+            make_segment_chunk(*version, ea);
             break;
 
         case OBJECT_TYPE_REFERENCE_INFO:
-            make_reference_info(version, ea);
+            make_reference_info(*this, *version, ea);
             break;
     }
-    make_header_comments(version, ea);
+    make_header_comments(*this, *version, ea);
 }
 
 void Exporter::deleted_object_version_visited(YaToolObjectId id)
@@ -1800,4 +1730,14 @@ void Exporter::default_object_version_visited(YaToolObjectId id)
 {
     // FIXME ?
     UNUSED(id);
+}
+
+bool set_type_at(ea_t ea, const std::string& prototype)
+{
+    return set_type(nullptr, ea, prototype);
+}
+
+bool set_struct_member_type_at(ea_t ea, const std::string& prototype)
+{
+    return set_struct_member_type(nullptr, ea, prototype);
 }
