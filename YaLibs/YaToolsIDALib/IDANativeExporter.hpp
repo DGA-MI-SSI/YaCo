@@ -21,12 +21,8 @@
 namespace std { template<typename T> class shared_ptr; }
 struct YaToolsHashProvider;
 
-struct IExporter
-    : public IObjectVisitorListener
-{
-    virtual bool set_type               (ea_t ea, const std::string& prototype) = 0;
-    virtual bool set_struct_member_type (ea_t ea, const std::string& prototype) = 0;
-};
+bool set_type_at                (ea_t ea, const std::string& prototype);
+bool set_struct_member_type_at  (ea_t ea, const std::string& prototype);
 
 enum FramePolicy
 {
@@ -34,4 +30,4 @@ enum FramePolicy
     SkipFrames,
 };
 
-std::shared_ptr<IExporter> MakeExporter(YaToolsHashProvider* provider, FramePolicy frame_policy);
+std::shared_ptr<IObjectVisitorListener> MakeExporter(YaToolsHashProvider* provider, FramePolicy frame_policy);

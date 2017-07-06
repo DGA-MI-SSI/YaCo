@@ -510,22 +510,22 @@ void YaToolObjectVersion::add_offset_hidden_area(std::pair<offset_t,offset_t> ar
     d->offset_hidden_area_.insert(std::make_pair(area_range, area_value));
 }
 
-const std::map<std::pair<offset_t, CommentType_e>, std::string>& YaToolObjectVersion::get_offset_comments()
+const std::map<std::pair<offset_t, CommentType_e>, std::string>& YaToolObjectVersion::get_offset_comments() const
 {
     return d->offset_comments_;
 }
 
-const std::map<std::pair<offset_t, operand_t>, std::string>& YaToolObjectVersion::get_offset_valueviews()
+const std::map<std::pair<offset_t, operand_t>, std::string>& YaToolObjectVersion::get_offset_valueviews() const
 {
     return d->offset_valueview_;
 }
 
-const std::map<std::pair<offset_t, std::string>, std::pair<offset_t, std::string>>& YaToolObjectVersion::get_offset_registerviews()
+const std::map<std::pair<offset_t, std::string>, std::pair<offset_t, std::string>>& YaToolObjectVersion::get_offset_registerviews() const
 {
     return d->offset_registerview_;
 }
 
-const std::map<std::pair<offset_t, offset_t>, std::string>& YaToolObjectVersion::get_offset_hiddenareas()
+const std::map<std::pair<offset_t, offset_t>, std::string>& YaToolObjectVersion::get_offset_hiddenareas() const
 {
     return d->offset_hidden_area_;
 }

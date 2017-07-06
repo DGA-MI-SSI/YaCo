@@ -33,7 +33,6 @@ else:
     import YaToolsPy32 as ya
 
 hash_provider = ya.YaToolsHashProvider()
-exporter = ya.MakeExporter(hash_provider, ya.UseFrames)
 
 def walk_datas():
     for seg_start in idautils.Segments():
@@ -116,13 +115,13 @@ class Fixture(unittest.TestCase):
             with open(fail, "wb") as ff:
                 # check functions
                 for ea in yasvg.get_all_functions():
-                    get_set_type("func", ea, fr, ff, get_ea, exporter.set_type)
+                    get_set_type("func", ea, fr, ff, get_ea, ya.set_type_at)
                 # check datas
                 for ea in walk_datas():
-                    get_set_type("data", ea, fr, ff, get_ea, exporter.set_type)
+                    get_set_type("data", ea, fr, ff, get_ea, ya.set_type_at)
                 # check struct members
                 for mid in walk_struct_members():
-                    get_set_type("stru", mid, fr, ff, get_member, exporter.set_struct_member_type)
+                    get_set_type("stru", mid, fr, ff, get_member, ya.set_struct_member_type_at)
         self.check_golden(fail)
         # do not check read values by default, as they change too much between ida versions
         if False:

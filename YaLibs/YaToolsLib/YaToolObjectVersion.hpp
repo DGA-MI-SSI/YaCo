@@ -131,10 +131,10 @@ class YaToolObjectVersion
         void add_offset_registerview(offset_t offset_range_start, offset_t offset_range_end, const std::string& original_name, const std::string& new_name);
         void add_offset_hidden_area(std::pair<offset_t, offset_t> area_range, const std::string& area_value);
 
-        const std::map<std::pair<offset_t, CommentType_e>, std::string>&                        get_offset_comments();
-        const std::map<std::pair<offset_t,operand_t>,std::string >&                             get_offset_valueviews();
-        const std::map<std::pair<offset_t, std::string>, std::pair<offset_t, std::string> >&    get_offset_registerviews();
-        const std::map<std::pair<offset_t, offset_t>, std::string>&                             get_offset_hiddenareas();
+        const std::map<std::pair<offset_t, CommentType_e>, std::string>&                        get_offset_comments() const;
+        const std::map<std::pair<offset_t,operand_t>,std::string >&                             get_offset_valueviews() const;
+        const std::map<std::pair<offset_t, std::string>, std::pair<offset_t, std::string> >&    get_offset_registerviews() const;
+        const std::map<std::pair<offset_t, offset_t>, std::string>&                             get_offset_hiddenareas() const;
 
         void addXRefFrom(const std::shared_ptr<YaToolReferencedObject>& object);
         void addXRef(const std::shared_ptr<YaToolReferencedObject>& object, offset_t offset, operand_t operand=0);
