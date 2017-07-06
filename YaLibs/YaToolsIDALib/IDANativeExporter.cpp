@@ -99,12 +99,12 @@ namespace
         using TidMap = std::unordered_map<YaToolObjectId, Tid>;
         using EnumMemberMap = std::unordered_map<uint64_t, enum_t>;
 
-        YaToolsHashProvider&    provider;
-        const bool              use_frames;
-        EnumMemberMap           enum_members;
-        YaToolsIDANativeLib     tools;
-        RefInfos                refs;
-        TidMap                  tids;
+        YaToolsHashProvider&    provider_;
+        const bool              use_frames_;
+        EnumMemberMap           enum_members_;
+        YaToolsIDANativeLib     tools_;
+        RefInfos                refs_;
+        TidMap                  tids_;
     };
 }
 
@@ -114,8 +114,8 @@ std::shared_ptr<IExporter> MakeExporter(YaToolsHashProvider* provider, FramePoli
 }
 
 Exporter::Exporter(YaToolsHashProvider* provider, FramePolicy frame_policy)
-    : provider(*provider)
-    , use_frames(frame_policy == UseFrames)
+    : provider_(*provider)
+    , use_frames_(frame_policy == UseFrames)
 {
 }
 
@@ -176,7 +176,7 @@ namespace
 
 void Exporter::make_comments(std::shared_ptr<YaToolObjectVersion>& version, ea_t address)
 {
-    const auto current_comments = tools.get_comments_in_area(address, static_cast<ea_t>(address + version->get_size()));
+    const auto current_comments = tools_.get_comments_in_area(address, static_cast<ea_t>(address + version->get_size()));
     const auto new_comments = version->get_offset_comments();
     for(const auto& current_cmt : current_comments)
     {
@@ -188,7 +188,7 @@ void Exporter::make_comments(std::shared_ptr<YaToolObjectVersion>& version, ea_t
             const auto it = new_comments.find(std::make_pair(static_cast<offset_t>(comment_offset), comment_type));
             if(it != new_comments.end() && it->second == current_comment_text)
                 continue;
-            tools.delete_comment_at_ea(address + current_cmt.first, comment_type);
+            tools_.delete_comment_at_ea(address + current_cmt.first, comment_type);
         }
     }
 
@@ -208,10 +208,10 @@ void Exporter::make_comments(std::shared_ptr<YaToolObjectVersion>& version, ea_t
                 set_cmt(ea, comment_text.c_str(), 0);
                 break;
             case COMMENT_ANTERIOR:
-                tools.make_extra_comment(ea, comment_text.data(), E_PREV);
+                tools_.make_extra_comment(ea, comment_text.data(), E_PREV);
                 break;
             case COMMENT_POSTERIOR:
-                tools.make_extra_comment(ea, comment_text.data(), E_NEXT);
+                tools_.make_extra_comment(ea, comment_text.data(), E_NEXT);
                 break;
             case COMMENT_BOOKMARK:
                 add_bookmark(ea, comment_text);
@@ -509,15 +509,15 @@ void Exporter::make_segment_chunk(std::shared_ptr<YaToolObjectVersion>& version,
 
 Tid Exporter::get_tid(YaToolObjectId id) const
 {
-    const auto it = tids.find(id);
-    if(it == tids.end())
+    const auto it = tids_.find(id);
+    if(it == tids_.end())
         return {BADADDR, OBJECT_TYPE_UNKNOWN};
     return it->second;
 }
 
 void Exporter::set_tid(YaToolObjectId id, ea_t tid, YaToolObjectType_e type)
 {
-    tids.insert({id, {tid, type}});
+    tids_.insert({id, {tid, type}});
 }
 
 namespace
@@ -555,8 +555,8 @@ std::string Exporter::patch_prototype(const std::string& src, ea_t ea)
         const auto name = it->str(1);
         // always remove special struct comment
         replace_inline(dst, "/*%" + name + "#" + id + "%*/", "");
-        const auto k = tids.find(to_yaid(id.data()));
-        if(k == tids.end())
+        const auto k = tids_.find(to_yaid(id.data()));
+        if(k == tids_.end())
         {
             LOG(WARNING, "make_prototype: 0x" EA_FMT " unknown struct %s id %s\n", ea, name.data(), id.data());
             continue;
@@ -859,11 +859,11 @@ void Exporter::make_header_comments(std::shared_ptr<YaToolObjectVersion>& versio
                 break;
 
             case OBJECT_TYPE_STRUCT:
-                ok = set_struct_comment(tids, id, comment.data(), rpt);
+                ok = set_struct_comment(tids_, id, comment.data(), rpt);
                 break;
 
             case OBJECT_TYPE_STRUCT_MEMBER:
-                ok = set_struct_member_comment(tids, id, comment.data(), rpt);
+                ok = set_struct_member_comment(tids_, id, comment.data(), rpt);
                 break;
 
             case OBJECT_TYPE_ENUM:              // done in make_enum
@@ -1173,7 +1173,7 @@ namespace
 
 void Exporter::make_data(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
 {
-    set_data_type(ea, *version, tids);
+    set_data_type(ea, *version, tids_);
     make_name(version, ea, false);
     set_type(ea, version->get_prototype());
 }
@@ -1205,13 +1205,13 @@ void Exporter::make_enum(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
     qstring const_value;
     ya::walk_enum_members(eid, [&](const_t cid, uval_t value, uchar serial, bmask_t bmask)
     {
-        const auto it = enum_members.find(cid);
-        if(it != enum_members.end() && it->second == eid)
+        const auto it = enum_members_.find(cid);
+        if(it != enum_members_.end() && it->second == eid)
             return;
 
         get_enum_member_name(&const_name, cid);
         to_py_hex(const_value, value);
-        const auto yaid = provider.get_enum_member_id(eid, make_string_ref(name), cid, ya::to_string_ref(const_name), ya::to_string_ref(const_value), bmask, true);
+        const auto yaid = provider_.get_enum_member_id(eid, make_string_ref(name), cid, ya::to_string_ref(const_name), ya::to_string_ref(const_value), bmask, true);
         if(xref_ids.count(yaid))
             return;
 
@@ -1220,15 +1220,15 @@ void Exporter::make_enum(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
     });
 
     const auto id = version->get_id();
-    tids.insert({id, {eid, OBJECT_TYPE_ENUM}});
-    provider.put_hash_struc_or_enum(eid, id, false);
+    tids_.insert({id, {eid, OBJECT_TYPE_ENUM}});
+    provider_.put_hash_struc_or_enum(eid, id, false);
 }
 
 void Exporter::make_enum_member(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
 {
     const auto parent_id = version->get_parent_object_id();
-    const auto it = tids.find(parent_id);
-    if(it == tids.end())
+    const auto it = tids_.find(parent_id);
+    if(it == tids_.end())
     {
         LOG(ERROR, "make_enum_member: 0x" EA_FMT " unable to find parent enum %016llx\n", ea, parent_id);
         return;
@@ -1238,7 +1238,7 @@ void Exporter::make_enum_member(std::shared_ptr<YaToolObjectVersion>& version, e
     const auto ename = get_enum_name(eid);
     const auto name = version->get_name();
     const auto id = version->get_id();
-    provider.put_hash_enum_member(ya::to_string_ref(ename), make_string_ref(name), ea, id, false);
+    provider_.put_hash_enum_member(ya::to_string_ref(ename), make_string_ref(name), ea, id, false);
 
     const auto bmask = is_bf(eid) ? version->get_object_flags() : DEFMASK;
     auto mid = get_enum_member(eid, ea, 0, bmask);
@@ -1259,7 +1259,7 @@ void Exporter::make_enum_member(std::shared_ptr<YaToolObjectVersion>& version, e
             LOG(ERROR, "make_enum_member: 0x" EA_FMT " unable to set %s comment to %s\n", ea, rpt ? "repeatable" : "non-repeatable", version->get_header_comment(rpt).data());
         }
 
-    enum_members.emplace(mid, eid);
+    enum_members_.emplace(mid, eid);
 }
 
 void Exporter::make_reference_info(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
@@ -1268,7 +1268,7 @@ void Exporter::make_reference_info(std::shared_ptr<YaToolObjectVersion>& version
     const auto flags = version->get_object_flags();
     refinfo_t ref;
     ref.init(flags, ea);
-    refs.emplace(id, ref);
+    refs_.emplace(id, ref);
 }
 
 namespace
@@ -1376,7 +1376,7 @@ void Exporter::make_basic_block(std::shared_ptr<YaToolObjectVersion>& version, e
                     break;
             }
             set_path(path, ida_path, ea, offset, operand);
-            set_reference_info(refs, ea, offset, operand, xref.object_id);
+            set_reference_info(refs_, ea, offset, operand, xref.object_id);
         }
     }
 }
@@ -1453,8 +1453,8 @@ void Exporter::clear_struct_fields(std::shared_ptr<YaToolObjectVersion>& version
         {
             const auto field_size = offset == last_offset && offset == size ? 0 : 1;
             const auto id = struc->props & SF_FRAME ?
-                provider.get_stackframe_member_object_id(struct_id, offset, func_ea) :
-                provider.get_struc_member_id(struct_id, offset, g_empty);
+                provider_.get_stackframe_member_object_id(struct_id, offset, func_ea) :
+                provider_.get_struc_member_id(struct_id, offset, g_empty);
             const auto key = get_tid(id);
             if(key.tid == BADADDR)
             {
@@ -1692,7 +1692,7 @@ void Exporter::make_struct(std::shared_ptr<YaToolObjectVersion>& version, ea_t e
 
     const auto id = version->get_id();
     set_tid(id, struc->id, OBJECT_TYPE_STRUCT);
-    provider.put_hash_struc_or_enum(struc->id, id, false);
+    provider_.put_hash_struc_or_enum(struc->id, id, false);
 
     if(struc->is_union())
     {
@@ -1722,7 +1722,7 @@ void Exporter::object_version_visited(YaToolObjectId id, const std::shared_ptr<Y
             return;
 
         case OBJECT_TYPE_STACKFRAME:
-            if(!use_frames)
+            if(!use_frames_)
                 return;
 
             make_struct(version, ea);
@@ -1766,7 +1766,7 @@ void Exporter::object_version_visited(YaToolObjectId id, const std::shared_ptr<Y
             break;
 
         case OBJECT_TYPE_STACKFRAME_MEMBER:
-            if(use_frames)
+            if(use_frames_)
                 make_struct_member(version, ea);
             break;
 
