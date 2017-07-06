@@ -217,7 +217,7 @@ function(add_yatools_py bits)
     # yaida swig
     get_files(files "${ya_dir}/YaLibs/YaToolsPy")
     filter_out(files "YaToolsPy${xbits_}.i")
-    set(yaswig_deps ${yatools_files} ${yaida_files})
+    set(yaswig_deps ${yatools_files} ${yaida_files} ${files})
     filter_in(yaswig_deps "[.]h$" "[.]hpp$")
     add_swig_mod(yatools_py${bits} YaToolsPy${bits} ${files} DEPS ${yaswig_deps} INCLUDES
         "${CMAKE_CURRENT_BINARY_DIR}/yatools_"
