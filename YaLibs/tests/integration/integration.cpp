@@ -23,7 +23,7 @@
 #include "XML/XMLExporter.hpp"
 #include "StdModel.hpp"
 #include "XML/XMLDatabaseModel.hpp"
-#include "utils.hpp"
+#include "FileUtils.hpp"
 #include "IVersionListener.hpp"
 #include "IModelVisitor.hpp"
 #include "DependencyResolverVisitor.hpp"
