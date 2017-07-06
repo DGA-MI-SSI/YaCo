@@ -32,7 +32,7 @@ struct IExporter
     virtual bool set_type               (ea_t ea, const std::string& prototype) = 0;
     virtual bool set_struct_member_type (ea_t ea, const std::string& prototype) = 0;
     virtual void set_tid                (YaToolObjectId id, ea_t tid, YaToolObjectType_e type) = 0;
-    virtual Tid  get_tid                (YaToolObjectId id) = 0;
+    virtual Tid  get_tid                (YaToolObjectId id) const = 0;
 
     virtual void make_function          (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) = 0;
     virtual void make_views             (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) = 0;
@@ -49,6 +49,7 @@ struct IExporter
     virtual void make_reference_info    (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) = 0;
     virtual void clear_struct_fields    (std::shared_ptr<YaToolObjectVersion>& version, ea_t struct_id) = 0;
     virtual void make_stackframe        (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) = 0;
+    virtual void make_struct_member     (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) = 0;
 };
 
 std::shared_ptr<IExporter> MakeExporter(YaToolsHashProvider* provider);
