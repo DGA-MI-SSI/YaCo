@@ -79,6 +79,7 @@ namespace
         void clear_struct_fields    (std::shared_ptr<YaToolObjectVersion>& version, ea_t struct_id) override;
         void make_stackframe        (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
         void make_struct_member     (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
+        void make_struct            (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
 
         //
         std::string patch_prototype(const std::string& prototype, ea_t ea);
@@ -1637,4 +1638,56 @@ void Exporter::make_struct_member(std::shared_ptr<YaToolObjectVersion>& version,
             LOG(ERROR, "make_struc_member: 0x" EA_FMT ":" EA_FMT " unable to set prototype '%s'\n", struc->id, ea, prototype.data());
     }
     set_tid(version->get_id(), member->id, struc->props & SF_FRAME ? OBJECT_TYPE_STACKFRAME_MEMBER : OBJECT_TYPE_STRUCT_MEMBER);
+}
+
+namespace
+{
+    struc_t* get_struc_from_name(const char* name)
+    {
+        return get_struc(netnode(name));
+    }
+
+    struc_t* get_or_add_struct(const YaToolObjectVersion& version, ea_t ea, const char* name)
+    {
+        const auto struc = get_struc_from_name(name);
+        if(struc)
+            return struc;
+
+        const auto is_union = !!(version.get_object_flags() & 1); // fixme use constant
+        const auto ok = add_struc(BADADDR, name, is_union);
+        if(!ok)
+        {
+            LOG(ERROR, "make_struct: 0x" EA_FMT " unable to add struct\n", ea);
+            return nullptr;
+        }
+
+        return get_struc_from_name(name);
+    }
+}
+
+void Exporter::make_struct(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
+{
+    const auto name = version->get_name();
+    const auto struc = get_or_add_struct(*version, ea, name.data());
+    if(!struc)
+    {
+        LOG(ERROR, "make_struct: 0x" EA_FMT " missing struct %s\n", ea, name.data());
+        return;
+    }
+
+    const auto id = version->get_id();
+    set_tid(id, struc->id, OBJECT_TYPE_STRUCT);
+    provider.put_hash_struc_or_enum(struc->id, id, false);
+
+    if(struc->is_union())
+    {
+        // add a dummy field to avoid errors later on, maybe not on empty strucs
+        // FIXME check if still necessary
+        const auto ok = add_struc_member(struc, "yaco_filler", 0, FF_BYTE, nullptr, 1);
+        if(!ok)
+            LOG(ERROR, "make_struct: 0x" EA_FMT " %s unable to add filler byte\n", ea, name.data());
+        return;
+    }
+
+    clear_struct_fields(version, struc->id);
 }

@@ -60,7 +60,7 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
             address = object_version.get_object_address()
             # create code
             if obj_type == ya.OBJECT_TYPE_STRUCT:
-                self.make_struc(object_version, address)
+                self.native.make_struct(object_version, address)
             elif self.use_stackframes and obj_type == ya.OBJECT_TYPE_STACKFRAME:
                 self.native.make_stackframe(object_version, address)
             elif obj_type == ya.OBJECT_TYPE_ENUM:
@@ -121,51 +121,3 @@ class YaToolIDAExporter(ya.IObjectVisitorListener):
             logger.error(traceback.format_exc())
             traceback.print_exc()
             raise e
-
-    def get_tid(self, id, *args):
-        key = self.native.get_tid(id)
-        for type in args:
-            if key.type == type:
-                return key.tid
-        return idc.BADADDR
-
-    def make_struc(self, object_version, address):
-        name = object_version.get_name()
-        object_id = object_version.get_id()
-        size = object_version.get_size()
-
-        struc_id = idc.GetStrucIdByName(name)
-        if struc_id == idc.BADADDR:
-            try:
-                is_union = object_version.get_object_flags()
-            except KeyError:
-                is_union = 0
-
-            struc_id = idc.AddStrucEx(0, name, is_union)
-            # add a dummy field.
-            # This is necessary to avoid an error is idc.SetType(struc*) is used on another struc
-            # member
-            # TODO not for empty strucs
-            if is_union:
-                idc.AddStrucMember(struc_id, "yaco_filler", 0, idc.FF_BYTE, 0, 1)
-
-        else:
-
-            is_union = idc.IsUnion(struc_id)
-        if not is_union or is_union == 0:
-            self.native.clear_struct_fields(object_version, struc_id)
-        else:
-            self.union_ids.add(struc_id)
-
-        if DEBUG_EXPORTER:
-            logger.debug("adding struc id %s : '0x%.016X' (%s)" %
-                         (self.hash_provider.hash_to_string(object_id), struc_id, name))
-        self.native.set_tid(object_id, struc_id, ya.OBJECT_TYPE_STRUCT)
-
-        self.hash_provider.put_hash_struc_or_enum(struc_id, object_id, False)
-
-    def sanitize_comment_to_ascii(self, comment):
-        try:
-            return comment.encode("ascii", "replace")
-        except UnicodeDecodeError:
-            return comment.decode("ascii", "replace").encode("ascii", "replace")
