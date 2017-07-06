@@ -62,7 +62,7 @@ namespace
         bool set_type               (ea_t ea, const std::string& prototype) override;
         bool set_struct_member_type (ea_t ea, const std::string& prototype) override;
         void set_tid                (YaToolObjectId id, ea_t tid, YaToolObjectType_e type) override;
-        Tid  get_tid                (YaToolObjectId id) override;
+        Tid  get_tid                (YaToolObjectId id) const override;
         void make_function          (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
         void make_views             (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
         void make_code              (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
@@ -78,6 +78,7 @@ namespace
         void make_reference_info    (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
         void clear_struct_fields    (std::shared_ptr<YaToolObjectVersion>& version, ea_t struct_id) override;
         void make_stackframe        (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
+        void make_struct_member     (std::shared_ptr<YaToolObjectVersion>& version, ea_t ea) override;
 
         //
         std::string patch_prototype(const std::string& prototype, ea_t ea);
@@ -490,7 +491,7 @@ void Exporter::make_segment_chunk(std::shared_ptr<YaToolObjectVersion>& version,
     }
 }
 
-Tid Exporter::get_tid(YaToolObjectId id)
+Tid Exporter::get_tid(YaToolObjectId id) const
 {
     const auto it = tids.find(id);
     if(it == tids.end())
@@ -1371,6 +1372,21 @@ namespace
     const const_string_ref name = {name ## _txt, sizeof name ## _txt - 1};
     DECLARE_REF(g_empty, "");
 #undef DECLARE_REF
+
+
+    void set_struct_member(qstring& buffer, const char* where, struc_t* struc, const const_string_ref& name, ea_t ea, asize_t size, func_t* func, const opinfo_t* pop)
+    {
+        if(!name.size)
+        {
+            const auto defname = ya::get_default_name(buffer, ea, func);
+            const auto ok = set_member_name(struc, ea, defname.value);
+            if(!ok)
+                LOG(ERROR, "%s: 0x" EA_FMT ":" EA_FMT " unable to set member name %s\n", where, struc->id, ea, defname.value);
+        }
+        const auto ok = set_member_type(struc, ea, FF_BYTE, pop, size);
+        if(!ok)
+            LOG(ERROR, "%s: 0x" EA_FMT ":" EA_FMT " unable to set member type to 0x" EA_FMT " bytes\n", where, struc->id, ea, size);
+    }
 }
 
 void Exporter::clear_struct_fields(std::shared_ptr<YaToolObjectVersion>& version, ea_t struct_id)
@@ -1380,6 +1396,8 @@ void Exporter::clear_struct_fields(std::shared_ptr<YaToolObjectVersion>& version
     const auto size = version->get_size();
     const auto struc = get_struc(struct_id);
     const auto last_offset = get_struc_last_offset(struc);
+    const auto func_ea = get_func_by_frame(struct_id);
+    const auto func = get_func(func_ea);
 
     // get existing members
     std::set<offset_t> fields;
@@ -1402,11 +1420,8 @@ void Exporter::clear_struct_fields(std::shared_ptr<YaToolObjectVersion>& version
             continue;
 
         new_fields.insert(offset);
-        const auto func_ea = get_func_by_frame(struct_id);
-        const auto func = get_func(func_ea);
         const auto defname = ya::get_default_name(member_name, aoff, func);
         const auto field_size = offset == last_offset && offset == size ? 0 : 1;
-        member_name.resize(defname.size);
         const auto err = add_struc_member(struc, defname.value, aoff, FF_BYTE, nullptr, field_size);
         if(err != STRUC_ERROR_MEMBER_OK)
             LOG(ERROR, "clear_struct_fields: 0x" EA_FMT ":%llx unable to add member %s size %d\n", struct_id, offset, defname.value, field_size);
@@ -1418,7 +1433,6 @@ void Exporter::clear_struct_fields(std::shared_ptr<YaToolObjectVersion>& version
         const auto offset = m.soff;
         const auto is_known = fields.count(m.soff);
         const auto is_new = new_fields.count(m.soff);
-        const auto func_ea = get_func_by_frame(struct_id);
         if(is_known && !is_new)
         {
             const auto field_size = offset == last_offset && offset == size ? 0 : 1;
@@ -1428,17 +1442,10 @@ void Exporter::clear_struct_fields(std::shared_ptr<YaToolObjectVersion>& version
             const auto key = get_tid(id);
             if(key.tid == BADADDR)
             {
-                const auto func = get_func(func_ea);
-                const auto defname = ya::get_default_name(member_name, offset, func);
-                auto ok = set_member_name(struc, offset, defname.value);
-                if(!ok)
-                    LOG(ERROR, "clear_struct_fields: 0x" EA_FMT ":" EA_FMT " unable to set member name %s\n", struct_id, offset, defname.value);
-                ok = set_member_type(struc, offset, FF_BYTE, nullptr, field_size);
-                if(!ok)
-                    LOG(ERROR, "clear_struct_fields: 0x" EA_FMT ":" EA_FMT " unable to set member type to %d bytes\n", struct_id, offset, field_size);
+                set_struct_member(member_name, "clear_struct_fields", struc, g_empty, offset, field_size, func, nullptr);
                 for(const auto repeat : {false, true})
                 {
-                    ok = set_member_cmt(&m, g_empty.value, repeat);
+                    const auto ok = set_member_cmt(&m, g_empty.value, repeat);
                     if(!ok)
                         LOG(ERROR, "clear_struct_fields: 0x" EA_FMT ":" EA_FMT " unable to reset %s comment\n", struct_id, offset, repeat ? "repeatable" : "non-repeatable");
                 }
@@ -1521,4 +1528,113 @@ void Exporter::make_stackframe(std::shared_ptr<YaToolObjectVersion>& version, ea
     const auto id = version->get_id();
     set_tid(id, frame->id, OBJECT_TYPE_STACKFRAME);
     clear_struct_fields(version, frame->id);
+}
+
+namespace
+{
+    const opinfo_t* get_member_info(opinfo_t* pop, Exporter& exporter, const YaToolObjectVersion& version, flags_t flags)
+    {
+        if(isASCII(flags))
+        {
+            pop->strtype = version.get_string_type();
+            return pop;
+        }
+
+        // if the sub field is a struct/enum then the first xref field is the struct/enum object id
+        const auto xrefs = version.getXRefIdsAt(0, 0);
+        const auto it = xrefs.begin();
+        if(it == xrefs.end())
+            return nullptr;
+
+        const auto tid = exporter.get_tid(*it).tid;
+        if(tid == BADADDR)
+            return nullptr;
+
+        if(isStruct(flags))
+        {
+            const auto struc = get_struc(tid);
+            if(!struc)
+                return nullptr;
+
+            pop->tid = struc->id;
+            return pop;
+        }
+
+        if(isEnum0(flags))
+        {
+            pop->ec.serial = 0; // FIXME ?
+            pop->ec.tid = tid;
+            return pop;
+        }
+
+        return nullptr;
+    }
+}
+
+void Exporter::make_struct_member(std::shared_ptr<YaToolObjectVersion>& version, ea_t ea)
+{
+    const auto parent_id = version->get_parent_object_id();
+    const auto parent = get_tid(parent_id);
+    if(parent.tid == BADADDR)
+    {
+        LOG(ERROR, "make_struct_member: 0x" EA_FMT " missing parent struct 0x%llx\n", ea, parent_id);
+        return;
+    }
+
+    const auto struc = get_struc(parent.tid);
+    if(!struc)
+    {
+        LOG(ERROR, "make_struct_member: 0x" EA_FMT ":" EA_FMT " missing struct\n", parent.tid, ea);
+        return;
+    }
+
+    qstring buffer;
+    const auto func = get_func(get_func_by_frame(struc->id));
+    for(auto it = get_struc_last_offset(struc); struc->is_union() && it != BADADDR && it < ea; ++it)
+    {
+        const auto offset = it + 1;
+        const auto defname = ya::get_default_name(buffer, offset, func);
+        const auto err = add_struc_member(struc, defname.value, BADADDR, FF_BYTE | FF_DATA, nullptr, 1);
+        if(err != STRUC_ERROR_MEMBER_OK)
+            LOG(ERROR, "make_struc_member: 0x" EA_FMT ":" EA_FMT " unable to add member %s " EA_FMT " (error %d)\n", struc->id, ea, defname.value, offset, err);
+    }
+
+    const auto member_name = version->get_name();
+    if(!member_name.empty())
+    {
+        const auto ok = set_member_name(struc, ea, member_name.data());
+        if(!ok)
+            LOG(ERROR, "make_struc_member: 0x" EA_FMT ":" EA_FMT " unable to set member name %s\n", struc->id, ea, member_name.data());
+    }
+
+    opinfo_t op;
+    const auto flags = version->get_object_flags();
+    const auto size = version->get_size();
+    const auto pop = get_member_info(&op, *this, *version, flags);
+    auto ok = set_member_type(struc, ea, (flags & DT_TYPE) | FF_DATA, pop, static_cast<asize_t>(size));
+    if(!ok)
+        LOG(ERROR, "make_struc_member: 0x" EA_FMT ":" EA_FMT " unable to set member type & size %lld\n", struc->id, ea, size);
+
+    const auto member = get_member(struc, ea);
+    if(!member)
+    {
+        LOG(ERROR, "make_struc_member: 0x" EA_FMT ":" EA_FMT " missing member\n", struc->id, ea);
+        return;
+    }
+
+    for(const auto repeat : {false, true})
+    {
+        ok = set_member_cmt(member, version->get_header_comment(repeat).data(), repeat);
+        if(!ok)
+            LOG(ERROR, "make_struc_member: 0x" EA_FMT ":" EA_FMT " unable to set %s comment to '%s'\n", struc->id, ea, repeat ? "repeatable" : "non-repeatable", version->get_header_comment(repeat).data());
+    }
+
+    const auto prototype = version->get_prototype();
+    if(!prototype.empty())
+    {
+        ok = set_struct_member_type(member->id, prototype);
+        if(!ok)
+            LOG(ERROR, "make_struc_member: 0x" EA_FMT ":" EA_FMT " unable to set prototype '%s'\n", struc->id, ea, prototype.data());
+    }
+    set_tid(version->get_id(), member->id, struc->props & SF_FRAME ? OBJECT_TYPE_STACKFRAME_MEMBER : OBJECT_TYPE_STRUCT_MEMBER);
 }
