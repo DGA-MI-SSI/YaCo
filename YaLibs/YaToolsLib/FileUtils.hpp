@@ -13,8 +13,8 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef UTILS_H__
-#define UTILS_H__
+#ifndef FILEUTILS_H__
+#define FILEUTILS_H__
 
 #include <stddef.h>
 #include <string>
