@@ -29,31 +29,6 @@
 #include "YaTypes.hpp"
 %}
 
-%template () std::pair<unsigned long long, int>;
-%template () std::pair<unsigned long long, unsigned long long>;
-%template () std::pair<long long unsigned int, unsigned long long>;
-%template () std::pair<long long unsigned int, int>;
-%template () std::map<std::pair<unsigned long long, int>,std::string>;
-%template () std::map<std::pair<unsigned long long, unsigned long long>,std::string>;
-%template () std::map<std::pair<long long unsigned int, int>,std::string>;
-%template () std::map<std::pair<long long unsigned int, unsigned long long>,std::string>;
-%template () std::map<long long,std::string>;
-%template () std::map<int,std::pair<int,int> >;
-%template () std::vector<unsigned char>;
-%template () std::vector<unsigned int>;
-%template () std::vector<unsigned long long>;
-%template () std::vector<long long unsigned int>;
-%template () std::vector<std::shared_ptr<IModelVisitor> >;
-%template () std::set<unsigned long long>;
-
-%template () std::pair<unsigned long int, int>;
-%template () std::pair<unsigned long int, unsigned long long>;
-%template () std::map<std::pair<unsigned long int, int>,std::string>;
-%template () std::map<std::pair<unsigned long int, unsigned long long>,std::string>;
-%template () std::map<long,std::string>;
-%template () std::vector<unsigned long int>;
-
-%template () std::map<string,string>;
 namespace std
 {
 	%template (StringVector) vector<string>;
@@ -67,121 +42,8 @@ namespace std
 %include "Yatools_swig.h"
 %include "Logger.h"
 
-%typemap(in) offset_t
-{
-	//printf("converting from 64b addr\n");
-	if (PyLong_Check($input))
-	{
-		$1 = (offset_t)PyLong_AsUnsignedLongLongMask($input);
-	    if (PyErr_Occurred())
-	    {
-		    printf("PyErr_Occurred on long converting 0x%p", &*$input);
-		}
-	}
-	else if(PyInt_Check($input))
-	{
-		$1 = PyInt_AsUnsignedLongMask($input);
-	    if (PyErr_Occurred())
-	    {
-		    printf("PyErr_Occurred on int converting 0x%p", &*$input);
-		}
-	}
-	else
-	{
-		printf("bad input : 0x%p\n", &*$input);
-	}
-}
-
-%typemap(directorin) offset_t{
-	//printf("converting from 64b addr\n");
-	if (PyLong_Check($input))
-	{
-		$1 = (offset_t)PyLong_AsUnsignedLongLongMask($input);
-	    if (PyErr_Occurred())
-	    {
-		    printf("PyErr_Occurred on long converting 0x%p", &*$input);
-		}
-	}
-	else if(PyInt_Check($input))
-	{
-		$1 = PyInt_AsUnsignedLongMask($input);
-	    if (PyErr_Occurred())
-	    {
-		    printf("PyErr_Occurred on int converting 0x%p", &*$input);
-		}
-	}
-	else
-	{
-		printf("bad input : 0x%p\n", &*$input);
-	}
-}
-
-
-%typemap(out) offset_t
-{
-	//printf("converting from 64b addr\n");
-	$result = PyLong_FromUnsignedLongLong((unsigned long long) $1);
-	Py_XINCREF($result);
-}
-
-
-//get_xrefed_id_map
-%typemap(out) std::map< std::pair< offset_t,operand_t >,std::vector< XrefedId_T,std::allocator< XrefedId_T > >,std::less< std::pair< offset_t,operand_t > >,std::allocator< std::pair< std::pair< offset_t,operand_t > const,std::vector< XrefedId_T,std::allocator< XrefedId_T > > > > > const & 
-{
-    $result = PyDict_New();
-    for(const auto& it : *$1)
-    {
-    	offset_t ea = (it).first.first;
-    	operand_t operand = (it).first.second;
-    	auto list_val = PyList_New(0);
-    	for (const XrefedId_T& elem : (it).second)
-    	{
-	    	YaToolObjectId xref_id = elem.object_id;
-	    	auto py_id = PyLong_FromUnsignedLongLong(xref_id);
-	    	
-	    	const std::map<std::string, std::string>& attributes = elem.attributes;
-	    	auto py_attributes = PyDict_New();
-	    	for(const auto& it_attr : attributes)
-	    	{
-	    		PyDict_SetItem(py_attributes, SWIG_From_std_string(it_attr.first), SWIG_From_std_string(it_attr.second)); 
-	    	}
-	    	
-	    	auto tuple_entry = PyTuple_New(2);
-	    	PyTuple_SetItem(tuple_entry, 0, py_id);
-	    	PyTuple_SetItem(tuple_entry, 1, py_attributes);
-	    	
-	    	PyList_Append(list_val, tuple_entry);
-	    }
-	    
-    	auto tuple_key = PyTuple_New(2);
-        PyTuple_SetItem(tuple_key, 0, PyLong_FromUnsignedLongLong(ea));
-    	PyTuple_SetItem(tuple_key, 1, PyLong_FromLong(operand));
-
-    	PyDict_SetItem($result, tuple_key, list_val);
-    }
-}
- 
-%typemap(in) (const void* blob, size_t len) {
-  if (!PyByteArray_Check($input)) {
-    SWIG_exception_fail(SWIG_TypeError, "in method '" "$symname" "', argument "
-                       "$argnum"" of type '" "$type""'");
-  }
-  $1 = PyByteArray_AsString($input);
-  $2 = PyByteArray_Size($input);
-}
- 
-%typemap(directorin) (const void* blob, size_t len) {
-  if (!PyByteArray_Check($input)) {
-    Swig::DirectorException::raise("in method '" "$symname" "', argument "
-                       "$argnum"" of type '" "$type""'");
-  }
-  $1 = PyByteArray_AsString($input);
-  $2 = PyByteArray_Size($input);
-}
-
 %cstring_output_allocate_size(char **buffer, size_t *len, free(*$1));
 %apply (char *STRING, size_t LENGTH) { (char *str, size_t len) };
-
 
 /**
 for YaToolObjectId_To_String : the caller needs to allocate a buffer (enventually in stack) and pass it as 
@@ -205,14 +67,6 @@ YaToolObjectId YaToolObjectId_From_String(const char* input, size_t input_len);
 %include <stdint.i>
 %include <std_shared_ptr.i>
 
-%shared_ptr(Hashable)
-%shared_ptr(Comparable)
-%shared_ptr(Comparable<ObjectSignature>)
-%shared_ptr(Comparable<YaToolObjectVersion>)
-%shared_ptr(Comparable<YaToolReferencedObject>)
-%shared_ptr(Comparable<VersionRelation>)
-%shared_ptr(ObjectSignature)
-%shared_ptr(CRC32FunctionSignature)
 %shared_ptr(IModelAccept)
 %shared_ptr(IModelIncremental)
 %shared_ptr(IModelVisitor)
@@ -220,74 +74,18 @@ YaToolObjectId YaToolObjectId_From_String(const char* input, size_t input_len);
 %shared_ptr(IModel)
 %shared_ptr(IObjectVisitorListener)
 %shared_ptr(YaToolObjectVersion)
-%shared_ptr(YaToolReferencedObject)
-%shared_ptr(VersionRelation)
 %shared_ptr(Yatools)
 %shared_ptr(IDeleter)
  
-%typemap(in) const const_string_ref& (const_string_ref temp)
-{
-	if(PyByteArray_Check($input))
-	{
-		temp = const_string_ref{PyByteArray_AsString($input), static_cast<size_t>(PyByteArray_Size($input))};
-		$1 = &temp;
-	}
-	else if(PyString_Check($input))
-	{
-		temp = const_string_ref{PyString_AsString($input), static_cast<size_t>(PyString_Size($input))};
-		$1 = &temp;
-	}
-	else
-	{
-		SWIG_exception_fail(SWIG_TypeError, "in method '" "$symname" "', argument "
-			"$argnum"" of type '" "$type""'");
-	}
-}
-
-%typemap(directorin) const const_string_ref&
-{
-	$input = PyByteArray_FromStringAndSize($1.value, $1.size);
-}
-
-%typemap(out) const_string_ref
-{
-	$result = PyByteArray_FromStringAndSize($1.value, $1.size);
-}
-
 %typemap(out) ExportedBuffer
 {
 	$result = PyBuffer_FromMemory(const_cast<void*>($1.value), $1.size);
 }
 
-%typemap(out) std::unordered_map< YaToolObjectId, std::shared_ptr< YaToolReferencedObject > > const &
-{
-	$result = PyList_New(0);
-	for (auto element : *$1)
-	{
-	    std::shared_ptr<  YaToolReferencedObject > *smartresult = new std::shared_ptr<  YaToolReferencedObject >(element.second);
-    	auto thisobj = SWIG_NewPointerObj(SWIG_as_voidptr(smartresult), SWIGTYPE_p_std__shared_ptrT_YaToolReferencedObject_t, SWIG_POINTER_OWN);
-        PyList_Append($result, thisobj);
-    }
-}  
-
-%typemap(out) std::unordered_set< std::shared_ptr< YaToolObjectVersion > > const &
-{
-	$result = PyList_New(0);
-	for (auto element : *$1)
-	{
-	    std::shared_ptr<  YaToolObjectVersion > *smartresult = new std::shared_ptr<  YaToolObjectVersion >(element);
-    	auto thisobj = SWIG_NewPointerObj(SWIG_as_voidptr(smartresult), SWIGTYPE_p_std__shared_ptrT_YaToolObjectVersion_t, SWIG_POINTER_OWN);
-        PyList_Append($result, thisobj);
-    }
-	//using typemap
-}                       
-
-
 %template () std::vector<YaToolObjectId>;
 %template () std::set<YaToolObjectId>;
+
 %{
-#include "Comparable.hpp"
-#include "Hashable.hpp"
 #include "Signature.hpp"
 #include "IModelAccept.hpp"
 #include "IModelVisitor.hpp"
@@ -313,12 +111,6 @@ YaToolObjectId YaToolObjectId_From_String(const char* input, size_t input_len);
 
 %feature("director:except") {
     if ($error != NULL) {
-//    	PyErr_Print();
-//  	PyObject *ptype;
-//  	PyObject *pvalue;
-//  	PyObject *ptraceback;
-//    	PyErr_Fetch(&ptype, &pvalue, &ptraceback);
-    	//PyObject_CallMethod(ptraceback, const_cast<char*>("print_exc"), NULL); 
         throw Swig::DirectorMethodException();
     }
 }
@@ -330,9 +122,7 @@ YaToolObjectId YaToolObjectId_From_String(const char* input, size_t input_len);
 		PyErr_SetString(PyExc_RuntimeError, const_cast<char*>(exc));
 		return NULL;
 	} catch(const Swig::DirectorException& /*exc*/) {
-//		PyErr_SetString(PyExc_RuntimeError, const_cast<char*>(exc.getMessage()));
  		SWIG_fail;
-//		return NULL;
 	} catch(const std::exception& exc) {
 		PyErr_SetString(PyExc_RuntimeError, const_cast<char*>(exc.what()));
 		return NULL;
@@ -345,23 +135,15 @@ YaToolObjectId YaToolObjectId_From_String(const char* input, size_t input_len);
  	}
  }
 
-%include "Hashable.hpp"
-%include "Comparable.hpp"
-%template (ComparableYaToolObjectVersion) Comparable<YaToolObjectVersion>;
-%template (ComparableYaToolReferencedObject) Comparable<YaToolReferencedObject>;
-%template (ComparableVersionRelation) Comparable<VersionRelation>;
-%include "Signature.hpp"
-
 %feature("director") IModelVisitor;
 %feature("director") IObjectVisitorListener;
 %feature("director") PromptMergeConflict;
+
 %include "IModelVisitor.hpp"
 %include "ExporterValidatorVisitor.hpp"
 %include "IModelAccept.hpp"
 
 %include "YaToolObjectId.hpp"
-%include "YaToolObjectVersion.hpp"
-
 %include "IObjectVisitorListener.hpp"
 
 %include "MultiplexerDelegatingVisitor.hpp"
@@ -390,10 +172,6 @@ YaToolObjectId YaToolObjectId_From_String(const char* input, size_t input_len);
 
 
 %include "YaToolObjectId.hpp"
-%include "YaToolObjectVersion.hpp"
-%include "YaToolReferencedObject.hpp"
-
-%include "VersionRelation.hpp"
 %include "Merger.hpp"
 
 // include other yatools python modules
