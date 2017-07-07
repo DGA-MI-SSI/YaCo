@@ -18,7 +18,7 @@ import os
 import shutil
 import time
 
-from ImportExport.YaToolRepoManager import YaToolRepoManager
+import repository
 
 
 def rescue():
@@ -141,7 +141,7 @@ if __name__ == "__main__":
 
     repo_path = os.path.dirname(idb_path)
 
-    repo_manager = YaToolRepoManager(None, repo_path)
+    repo_manager = repository.YaToolRepoManager(None, repo_path)
 
     # open repo
     repo_manager.repo_open(repo_path)

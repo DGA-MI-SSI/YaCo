@@ -33,9 +33,8 @@ if idc.__EA64__:
 else:
     import YaToolsPy32 as ya
 import hooks
+import repository
 import yatools
-
-from ImportExport.YaToolRepoManager import YaToolRepoManager
 
 logging.basicConfig()
 logger = None
@@ -292,7 +291,7 @@ class YaCo:
         idaapi.msg("YaCo %s\n" % YACO_VERSION)
 
         self.hash_provider = ya.YaToolsHashProvider()
-        self.repo_manager = YaToolRepoManager(idc.GetIdbPath())
+        self.repo_manager = repository.YaToolRepoManager(idc.GetIdbPath())
         self.repo_manager.check_valid_cache_startup()
 
         self.ida_hooks = hooks.Hooks(self.hash_provider, self.repo_manager)
