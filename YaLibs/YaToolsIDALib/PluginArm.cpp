@@ -15,23 +15,31 @@
 
 #include "YaTypes.hpp"
 #include "Ida.h"
-#include "PluginModel.hpp"
+#include "Plugins.hpp"
 
 #include "IModelVisitor.hpp"
+#include "YaToolObjectVersion.hpp"
+#include "Logger.h"
 
 #ifdef __EA64__
-#define SEL_FMT "%lld"
+#define EA_PREFIX "ll"
 #else
-#define SEL_FMT "%d"
+#define EA_PREFIX ""
 #endif
+#define EA_FMT  "%" EA_PREFIX "x"
+#define SEL_FMT "%" EA_PREFIX "d"
+
+#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("arm", (FMT), ## __VA_ARGS__)
 
 namespace
 {
-    struct Arm
-        : public PluginModel
+    struct ArmModel
+        : public IPluginModel
     {
-        Arm();
-        void accept_block(IModelVisitor& v, ea_t ea) override;
+        ArmModel();
+
+        // IPluginModel methods
+        void accept_block   (IModelVisitor& v, ea_t ea) override;
         void accept_function(IModelVisitor& v, ea_t ea) override;
 
         const int thumb_segment_register;
@@ -53,23 +61,91 @@ namespace
     }
 }
 
-std::shared_ptr<PluginModel> MakeArmPluginModel()
+std::shared_ptr<IPluginModel> MakeArmPluginModel()
 {
-    return std::make_shared<Arm>();
+    return std::make_shared<ArmModel>();
 }
 
-Arm::Arm()
+ArmModel::ArmModel()
     : thumb_segment_register(str2reg("T"))
 {
 }
 
-void Arm::accept_block(IModelVisitor& v, ea_t ea)
+void ArmModel::accept_block(IModelVisitor& v, ea_t ea)
 {
     accept_ea(v, ea, thumb_segment_register);
 
 }
 
-void Arm::accept_function(IModelVisitor& v, ea_t ea)
+void ArmModel::accept_function(IModelVisitor& v, ea_t ea)
 {
     accept_ea(v, ea, thumb_segment_register);
+}
+
+namespace
+{
+    struct ArmVisitor
+        : public IPluginVisitor
+    {
+        ArmVisitor();
+
+        // IPluginVisitor methods
+        void make_basic_block_enter (const YaToolObjectVersion& version, ea_t ea) override;
+        void make_basic_block_exit  (const YaToolObjectVersion& version, ea_t ea) override;
+        void make_function_enter    (const YaToolObjectVersion& version, ea_t ea) override;
+        void make_function_exit     (const YaToolObjectVersion& version, ea_t ea) override;
+
+        const int thumb_segment_register;
+    };
+}
+
+std::shared_ptr<IPluginVisitor> MakeArmPluginVisitor()
+{
+    return std::make_shared<ArmVisitor>();
+}
+
+ArmVisitor::ArmVisitor()
+    : thumb_segment_register(str2reg("T"))
+{
+}
+
+namespace
+{
+    void make_ea(const YaToolObjectVersion& version, ea_t ea, int thumb_segment_register)
+    {
+        const auto& attrs = version.get_attributes();
+        const auto it = attrs.find("thumb_flag");
+        if(it == attrs.end())
+            return;
+
+        sel_t thumb_flag = 0;
+        const auto n = sscanf(it->second.data(), SEL_FMT, &thumb_flag);
+        if(n != 1)
+            return;
+
+        const auto current_thumb_flag = get_segreg(ea, thumb_segment_register);
+        if(current_thumb_flag == thumb_flag)
+            return;
+
+        const auto end = static_cast<ea_t>(ea + version.get_size());
+        set_sreg_at_next_code(ea, end, thumb_segment_register, thumb_flag);
+    }
+}
+
+void ArmVisitor::make_basic_block_enter(const YaToolObjectVersion& /*version*/, ea_t /*ea*/)
+{
+}
+
+void ArmVisitor::make_basic_block_exit(const YaToolObjectVersion& version, ea_t ea)
+{
+    make_ea(version, ea, thumb_segment_register);
+}
+
+void ArmVisitor::make_function_enter(const YaToolObjectVersion& version, ea_t ea)
+{
+    make_ea(version, ea, thumb_segment_register);
+}
+
+void ArmVisitor::make_function_exit(const YaToolObjectVersion& /*version*/, ea_t /*ea*/)
+{
 }
