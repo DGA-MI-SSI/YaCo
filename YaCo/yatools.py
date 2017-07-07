@@ -16,7 +16,6 @@
 import idc
 import logging
 import os
-import sys
 
 logger = logging.getLogger("YaCo")
 
@@ -110,20 +109,3 @@ def copy_idb_to_original_file(suffix=None):
     idc.SaveBase(orig_file_name)
     remove_ida_temporary_files(orig_file_name)
     return orig_file_name
-
-
-if sys.platform == "linux2":
-    def get_mem_usage():
-        status_path = "/proc/%i/status" % os.getpid()
-        f_status = open(status_path, 'r')
-        lines = f_status.readlines()
-        for line in lines:
-            if "VmHWM" in line.split(':')[0]:
-                s_kmem = line.split(':')[1].split()[0]
-                return (int(s_kmem) / 1024)
-
-else:
-    from win32.get_process_memory import get_memory_usage
-
-    def get_mem_usage():
-        return get_memory_usage() / (1024 * 1024)
