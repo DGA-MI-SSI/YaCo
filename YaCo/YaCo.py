@@ -33,6 +33,7 @@ if idc.__EA64__:
 else:
     import YaToolsPy32 as ya
 import hooks
+import repository
 
 from ImportExport.YaToolRepoManager import YaToolRepoManager
 from ImportExport.YaToolIDATools import copy_idb_to_local_file, copy_idb_to_original_file
@@ -294,7 +295,7 @@ class YaCo:
 
         self.yatools = YaTools()
         self.hash_provider = ya.YaToolsHashProvider()
-        self.repo_manager = YaToolRepoManager(idc.GetIdbPath())
+        self.repo_manager = repository.YaToolRepoManager(idc.GetIdbPath())
         self.repo_manager.check_valid_cache_startup()
 
         self.ida_hooks = hooks.Hooks(self.hash_provider, self.repo_manager)

@@ -74,9 +74,9 @@ export CMAKE_C_FLAGS=-D_DEBUG
 export CMAKE_CXX_FLAGS=-D_DEBUG
 ./configure.sh
 cd ..
-sed -i -e "s/DEBUG_REPO=False/DEBUG_REPO=True/" YaCo/ImportExport/YaToolRepoManager.py
+sed -i -e "s/DEBUG_REPO=False/DEBUG_REPO=True/" YaCo/repository.py
 sed -i -e "s/VALIDATE_EXPORTER_VISITOR=False/VALIDATE_EXPORTER_VISITOR=True/" YaCo/YaCo.py
-sed -i -e "s/VALIDATE_EXPORTED_XML=False/VALIDATE_EXPORTED_XML=True/" YaCo/ImportExport/YaToolIDAHooks.py
+sed -i -e "s/VALIDATE_EXPORTED_XML=False/VALIDATE_EXPORTED_XML=True/" YaCo/hooks.py
 
 cd out
 make -j6
