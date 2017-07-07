@@ -18,13 +18,26 @@
 #include "YaTypes.hpp"
 
 class IModelVisitor;
+class YaToolObjectVersion;
 
-struct PluginModel
+struct IPluginModel
 {
-    virtual ~PluginModel() {}
+    virtual ~IPluginModel() {}
 
-    virtual void accept_block(IModelVisitor& v, ea_t ea) = 0;
+    virtual void accept_block   (IModelVisitor& v, ea_t ea) = 0;
     virtual void accept_function(IModelVisitor& v, ea_t ea) = 0;
 };
 
-std::shared_ptr<PluginModel> MakeArmPluginModel();
+std::shared_ptr<IPluginModel> MakeArmPluginModel();
+
+struct IPluginVisitor
+{
+    virtual ~IPluginVisitor() {}
+
+    virtual void make_basic_block_enter (const YaToolObjectVersion& version, ea_t ea) = 0;
+    virtual void make_basic_block_exit  (const YaToolObjectVersion& version, ea_t ea) = 0;
+    virtual void make_function_enter    (const YaToolObjectVersion& version, ea_t ea) = 0;
+    virtual void make_function_exit     (const YaToolObjectVersion& version, ea_t ea) = 0;
+};
+
+std::shared_ptr<IPluginVisitor> MakeArmPluginVisitor();

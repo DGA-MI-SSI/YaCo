@@ -27,6 +27,7 @@
 #include "../Helpers.h"
 #include "YaHelpers.hpp"
 #include "StringFormat.hpp"
+#include "Plugins.hpp"
 
 #include <string>
 #include <iostream>
@@ -72,12 +73,13 @@ namespace
         using TidMap = std::unordered_map<YaToolObjectId, Tid>;
         using EnumMemberMap = std::unordered_map<uint64_t, enum_t>;
 
-        YaToolsHashProvider&    provider_;
-        const bool              use_frames_;
-        EnumMemberMap           enum_members_;
-        YaToolsIDANativeLib     tools_;
-        RefInfos                refs_;
-        TidMap                  tids_;
+        YaToolsHashProvider&            provider_;
+        const bool                      use_frames_;
+        EnumMemberMap                   enum_members_;
+        YaToolsIDANativeLib             tools_;
+        RefInfos                        refs_;
+        TidMap                          tids_;
+        std::shared_ptr<IPluginVisitor> plugin_;
     };
 }
 
@@ -90,6 +92,8 @@ Exporter::Exporter(YaToolsHashProvider* provider, FramePolicy frame_policy)
     : provider_(*provider)
     , use_frames_(frame_policy == UseFrames)
 {
+    if(!strncmp(inf.procName, "ARM", sizeof inf.procName))
+        plugin_ = MakeArmPluginVisitor();
 }
 
 namespace
@@ -1679,12 +1683,20 @@ void Exporter::object_version_visited(YaToolObjectId id, const std::shared_ptr<Y
             break;
 
         case OBJECT_TYPE_FUNCTION:
+            if(plugin_)
+                plugin_->make_function_enter(*version, ea);
             make_function(*this, *version, ea);
+            if(plugin_)
+                plugin_->make_function_exit(*version, ea);
             break;
 
         case OBJECT_TYPE_BASIC_BLOCK:
+            if(plugin_)
+                plugin_->make_basic_block_enter(*version, ea);
             make_basic_block(*this, *version, ea);
             make_comments(tools_, *version, ea);
+            if(plugin_)
+                plugin_->make_basic_block_exit(*version, ea);
             break;
 
         case OBJECT_TYPE_STRUCT_MEMBER:

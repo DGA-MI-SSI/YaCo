@@ -25,7 +25,7 @@
 #include "../Helpers.h"
 #include "Pool.hpp"
 #include "StringFormat.hpp"
-#include "PluginModel.hpp"
+#include "Plugins.hpp"
 
 #include <Logger.h>
 #include <Yatools.h>
@@ -216,7 +216,7 @@ namespace
         Bookmarks                       bookmarks_;
         Xrefs                           xrefs_;
         RefInfos                        refs_;
-        std::shared_ptr<PluginModel>    plugin_;
+        std::shared_ptr<IPluginModel>   plugin_;
     };
 
     offset_t offset_from_ea(ea_t offset)
