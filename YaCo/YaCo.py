@@ -32,9 +32,8 @@ if idc.__EA64__:
     import YaToolsPy64 as ya
 else:
     import YaToolsPy32 as ya
+import hooks
 
-# from idaapi import ASKBTN_NO, ASKBTN_YES
-from ImportExport.YaToolIDAHooks import Hooks, YaCoUI_Hooks
 from ImportExport.YaToolRepoManager import YaToolRepoManager
 from ImportExport.YaToolIDATools import copy_idb_to_local_file, copy_idb_to_original_file
 from ImportExport.YaToolIDATools import get_original_idb_name, get_local_idb_name
@@ -298,9 +297,9 @@ class YaCo:
         self.repo_manager = YaToolRepoManager(idc.GetIdbPath())
         self.repo_manager.check_valid_cache_startup()
 
-        self.ida_hooks = Hooks(self.hash_provider, self.repo_manager)
+        self.ida_hooks = hooks.Hooks(self.hash_provider, self.repo_manager)
 
-        self.YaCoUI = YaCoUI_Hooks(self)
+        self.YaCoUI = hooks.YaCoUI_Hooks(self)
 
     yaco_menus = [
         ["yaco_toggle_rebase_push", "YaCo - Toggle YaCo auto rebase/push", toggle_auto_rebase_push, ""],
