@@ -94,6 +94,8 @@ protected:
     std::shared_ptr<xmlTextWriter>  writer_;
     std::shared_ptr<xmlDoc>         doc_;
     std::string                     tmp_value_;
+    std::string                     bufkey_;
+    std::string                     bufval_;
     YaToolObjectType_e              object_type_;
     bool                            delete_file_;
 };
@@ -218,6 +220,14 @@ void XMLExporter_common::visit_start_object(YaToolObjectType_e object_type)
 
 namespace
 {
+const char g_empty[] = "";
+
+const char* make_text(std::string& dst, const const_string_ref& src)
+{
+    dst.assign(src.value, src.size);
+    return dst.empty() ? g_empty : &dst[0];
+}
+
 void start_element(xmlTextWriter& xml, const char* name)
 {
     const auto err = xmlTextWriterStartElement(&xml, BAD_CAST name);
@@ -452,7 +462,7 @@ void XMLExporter_common::visit_name(const const_string_ref& name, int flags)
         add_attribute(*writer_, "flags", flags_buffer);
     }
     if(name.size)
-        write_string(*writer_, name.value);
+        write_string(*writer_, make_text(bufkey_, name));
     
     end_element(*writer_, "userdefinedname");
 }
@@ -474,7 +484,7 @@ void XMLExporter_common::visit_signature(SignatureMethod_e method, SignatureAlgo
     start_element(*writer_, "signature");
     add_attribute(*writer_, "algo", get_signature_algo_string(algo));
     add_attribute(*writer_, "method", get_signature_method_string(method));
-    write_string(*writer_, hex.value);
+    write_string(*writer_, make_text(bufkey_, hex));
     end_element(*writer_, "signature");
 }
 
@@ -485,7 +495,7 @@ void XMLExporter_common::visit_end_signatures()
 
 void XMLExporter_common::visit_prototype(const const_string_ref& prototype)
 {
-    add_element(*writer_, "proto", prototype.value);
+    add_element(*writer_, "proto", make_text(bufkey_, prototype));
 }
 
 void XMLExporter_common::visit_string_type(int str_type)
@@ -530,7 +540,7 @@ void XMLExporter_common::visit_offset_valueview(offset_t offset, operand_t opera
     start_element(*writer_, "valueview");
     add_attribute(*writer_, "offset", get_uint_hex(offset).data());
     add_attribute(*writer_, "operand", get_uint_hex(operand).data());
-    write_string(*writer_, view_value.value);
+    write_string(*writer_, make_text(bufkey_, view_value));
     end_element(*writer_, "valueview");
 }
 
@@ -539,8 +549,8 @@ void XMLExporter_common::visit_offset_registerview(offset_t offset, offset_t end
     start_element(*writer_, "registerview");
     add_attribute(*writer_, "offset", get_uint_hex(offset).data());
     add_attribute(*writer_, "end_offset", get_uint_hex(end_offset).data());
-    add_attribute(*writer_, "register", register_name.value);
-    write_string(*writer_, register_new_name.value);
+    add_attribute(*writer_, "register", make_text(bufkey_, register_name));
+    write_string(*writer_, make_text(bufkey_, register_new_name));
     end_element(*writer_, "registerview");
 }
 
@@ -549,7 +559,7 @@ void XMLExporter_common::visit_offset_hiddenarea(offset_t offset, offset_t area_
     start_element(*writer_, "hiddenarea");
     add_attribute(*writer_, "offset", get_uint_hex(offset).data());
     add_attribute(*writer_, "size", get_uint_hex(area_size).data());
-    write_string(*writer_, hidden_area_value.value);
+    write_string(*writer_, make_text(bufkey_, hidden_area_value));
     end_element(*writer_, "hiddenarea");
 }
 
@@ -589,8 +599,8 @@ void XMLExporter_common::visit_segments_end()
 void XMLExporter_common::visit_attribute(const const_string_ref& attr_name, const const_string_ref& attr_value)
 {
     start_element(*writer_, "attribute");
-    add_attribute(*writer_, "key", attr_name.value);
-    write_string(*writer_, attr_value.value);
+    add_attribute(*writer_, "key", make_text(bufkey_, attr_name));
+    write_string(*writer_, make_text(bufkey_, attr_value));
     end_element(*writer_, "attribute");
 }
 
@@ -616,7 +626,7 @@ void XMLExporter_common::visit_end_xref()
 
 void XMLExporter_common::visit_xref_attribute(const const_string_ref& attribute_key, const const_string_ref& attribute_value)
 {
-    add_attribute(*writer_, attribute_key.value, attribute_value.value);
+    add_attribute(*writer_, make_text(bufkey_, attribute_key), make_text(bufval_, attribute_value));
 }
 
 void XMLExporter_common::visit_start_matching_system(offset_t address)
@@ -628,7 +638,7 @@ void XMLExporter_common::visit_start_matching_system(offset_t address)
 
 void XMLExporter_common::visit_matching_system_description(const const_string_ref& description_key, const const_string_ref& description_value)
 {
-    add_element(*writer_, description_key.value, description_value.value);
+    add_element(*writer_, make_text(bufkey_, description_key), make_text(bufval_, description_value));
 }
 
 void XMLExporter_common::visit_end_matching_system()
