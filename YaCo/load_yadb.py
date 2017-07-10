@@ -77,10 +77,8 @@ logger.addHandler(handler)
 idc.Wait()
 hash_provider = ya.YaToolsHashProvider()
 hash_provider.populate_struc_enum_ids()
-ida_exporter = ya.MakeExporter(hash_provider, ya.SkipFrames)
 fbmodel = ya.MakeFlatBufferDatabaseModel(args.filename)
-exporter = ya.MakeSingleObjectVisitor(ida_exporter)
-fbmodel.accept(exporter)
+ya.export_to_ida(fbmodel, hash_provider, ya.SkipFrames)
 
 idc.Wait()
 idaapi.cvar.database_flags = idaapi.DBFL_COMP

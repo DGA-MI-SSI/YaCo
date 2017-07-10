@@ -102,7 +102,6 @@ YaToolObjectId YaToolObjectId_From_String(const char* input, size_t input_len);
 #include "YaToolObjectVersion.hpp"
 #include "YaToolReferencedObject.hpp"
 #include "HObject.hpp"
-#include "DependencyResolverVisitor.hpp"
 #include "VersionRelation.hpp"
 #include "Merger.hpp"
 #include <exception>
@@ -148,7 +147,6 @@ YaToolObjectId YaToolObjectId_From_String(const char* input, size_t input_len);
 
 %include "MultiplexerDelegatingVisitor.hpp"
 %include "PathDebuggerVisitor.hpp"
-%include "DependencyResolverVisitor.hpp"
 %include "IModel.hpp"
 %include "XML/XMLExporter.hpp"
 %include "FlatBufferExporter.hpp"

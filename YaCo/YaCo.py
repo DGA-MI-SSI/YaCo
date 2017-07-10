@@ -72,11 +72,7 @@ class YaCo:
         logger.debug("Initial load")
 
         # export to IDB
-        self.ida_exporter = ya.MakeExporter(self.hash_provider, ya.UseFrames)
-        self.ida_export = ya.MakeDependencyResolverVisitor(self.ida_exporter,
-                                                           VALIDATE_EXPORTER_VISITOR,
-                                                           "LoadVisitor")
-        ya.MakeXmlDatabaseModel("cache/").accept(self.ida_export.visitor)
+        ya.export_to_ida(ya.MakeXmlDatabaseModel("cache/"), self.hash_provider, ya.UseFrames)
 
         # TODO remove this call (it's done in the constructor)
         self.hash_provider.populate_struc_enum_ids()
@@ -99,10 +95,10 @@ class YaCo:
             deleted_object_ids.append(ya.YaToolObjectId_From_String(obj_id))
 
         logger.debug("delete objects")
-        self.ida_export.deleter.delete_objects(deleted_object_ids)
+        # fixme do something
 
         logger.debug("invalidate objects")
-        self.ida_export.deleter.invalidate_objects(modified_object_ids, True)
+        # fixme do something
 
         logger.debug("loading XML")
         logger.debug("modified files : %r", modified_files)
@@ -116,7 +112,7 @@ class YaCo:
         self.ida_hooks.unhook()
 
         logger.debug("export mem->ida")
-        memory_exporter.model.accept(self.ida_export.visitor)
+        ya.export_to_ida(memory_exporter.model, self.hash_provider, ya.UseFrames)
 
         idc.SetCharPrm(idc.INF_AUTO, True)
         idc.Wait()

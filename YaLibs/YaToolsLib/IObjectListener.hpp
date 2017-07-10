@@ -17,13 +17,13 @@
 
 #include "YaTypes.hpp"
 
-struct IVersionListener
+struct IObjectListener
 {
-    virtual ~IVersionListener() {}
+    virtual ~IObjectListener() {}
 
-    virtual void on_version(const HVersion& version) = 0;
-    virtual void on_deleted(YaToolObjectId version_id) = 0;
-    virtual void on_default(YaToolObjectId version_id) = 0;
+    virtual void on_object (const HObject& object) = 0;
+    virtual void on_deleted(YaToolObjectId object_id) = 0;
+    virtual void on_default(YaToolObjectId object_id) = 0;
 };
 
-std::shared_ptr<IModelVisitor> MakeVisitorFromListener(IVersionListener& listener);
+std::shared_ptr<IModelVisitor> MakeVisitorFromListener(IObjectListener& listener);
