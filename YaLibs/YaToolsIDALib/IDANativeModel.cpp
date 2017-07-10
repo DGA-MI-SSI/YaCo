@@ -94,6 +94,23 @@ namespace
     DECLARE_REF(g_octal, "octal");
     DECLARE_REF(g_offset, "offset");
     DECLARE_REF(g_path_idx, "path_idx");
+    DECLARE_REF(g_start_ea,"start_ea");
+    DECLARE_REF(g_end_ea, "end_ea");
+    DECLARE_REF(g_org_base, "org_base");
+    DECLARE_REF(g_align, "align");
+    DECLARE_REF(g_comb, "comb");
+    DECLARE_REF(g_perm, "perm");
+    DECLARE_REF(g_bitness, "bitness");
+    DECLARE_REF(g_flags, "flags");
+    DECLARE_REF(g_sel, "sel");
+    DECLARE_REF(g_es, "es");
+    DECLARE_REF(g_cs, "cs");
+    DECLARE_REF(g_ss, "ss");
+    DECLARE_REF(g_ds, "ds");
+    DECLARE_REF(g_fs, "fs");
+    DECLARE_REF(g_gs, "gs");
+    DECLARE_REF(g_type, "type");
+    DECLARE_REF(g_color, "color");
 
 #undef DECLARE_REF
 
@@ -1729,53 +1746,49 @@ namespace
         REG_ATTR_COUNT,
     };
 
-    const char g_seg_attributes[][12] =
+    const const_string_ref g_seg_attributes[] =
     {
-        "start_ea",
-        "end_ea",
-        "org_base",
-        "align",
-        "comb",
-        "perm",
-        "bitness",
-        "flags",
-        "sel",
-        "es",
-        "cs",
-        "ss",
-        "ds",
-        "fs",
-        "gs",
-        "type",
-        "color",
+        g_start_ea,
+        g_end_ea,
+        g_org_base,
+        g_align,
+        g_comb,
+        g_perm,
+        g_bitness,
+        g_flags,
+        g_sel,
+        g_es,
+        g_cs,
+        g_ss,
+        g_ds,
+        g_fs,
+        g_gs,
+        g_type,
+        g_color,
     };
 
     static_assert(COUNT_OF(g_seg_attributes) == SEG_ATTR_COUNT, "invalid number of g_seg_attributes entries");
 
     void accept_segment_attributes(IModelVisitor& v, const segment_t* seg)
     {
-        const auto get_key = [](auto attr)
-        {
-            return const_string_ref{g_seg_attributes[attr], sizeof g_seg_attributes[attr]};
-        };
         char buf[32];
-        v.visit_attribute(get_key(SEG_ATTR_BASE), str_ea(buf, sizeof buf, get_segm_base(seg)));
-        v.visit_attribute(get_key(SEG_ATTR_COMB), str_uchar(buf, sizeof buf, seg->comb));
+        v.visit_attribute(g_seg_attributes[SEG_ATTR_BASE], str_ea(buf, sizeof buf, get_segm_base(seg)));
+        v.visit_attribute(g_seg_attributes[SEG_ATTR_COMB], str_uchar(buf, sizeof buf, seg->comb));
         if(seg->color != DEFCOLOR)
-            v.visit_attribute(get_key(SEG_ATTR_COLOR), str_bgcolor(buf, sizeof buf, seg->color));
-        v.visit_attribute(get_key(SEG_ATTR_ALIGN), str_uchar(buf, sizeof buf, seg->align));
-        v.visit_attribute(get_key(SEG_ATTR_START), str_ea(buf, sizeof buf, seg->startEA));
-        v.visit_attribute(get_key(SEG_ATTR_PERM), str_uchar(buf, sizeof buf, seg->perm));
-        v.visit_attribute(get_key(SEG_ATTR_BITNESS), str_uchar(buf, sizeof buf, seg->bitness));
-        v.visit_attribute(get_key(SEG_ATTR_FLAGS), str_ushort(buf, sizeof buf, seg->flags));
-        v.visit_attribute(get_key(SEG_ATTR_END), str_ea(buf, sizeof buf, seg->endEA));
-        v.visit_attribute(get_key(SEG_ATTR_SEL), str_ea(buf, sizeof buf, seg->sel));
-        v.visit_attribute(get_key(SEG_ATTR_TYPE), str_uchar(buf, sizeof buf, seg->type));
+            v.visit_attribute(g_seg_attributes[SEG_ATTR_COLOR], str_bgcolor(buf, sizeof buf, seg->color));
+        v.visit_attribute(g_seg_attributes[SEG_ATTR_ALIGN], str_uchar(buf, sizeof buf, seg->align));
+        v.visit_attribute(g_seg_attributes[SEG_ATTR_START], str_ea(buf, sizeof buf, seg->startEA));
+        v.visit_attribute(g_seg_attributes[SEG_ATTR_PERM], str_uchar(buf, sizeof buf, seg->perm));
+        v.visit_attribute(g_seg_attributes[SEG_ATTR_BITNESS], str_uchar(buf, sizeof buf, seg->bitness));
+        v.visit_attribute(g_seg_attributes[SEG_ATTR_FLAGS], str_ushort(buf, sizeof buf, seg->flags));
+        v.visit_attribute(g_seg_attributes[SEG_ATTR_END], str_ea(buf, sizeof buf, seg->endEA));
+        v.visit_attribute(g_seg_attributes[SEG_ATTR_SEL], str_ea(buf, sizeof buf, seg->sel));
+        v.visit_attribute(g_seg_attributes[SEG_ATTR_TYPE], str_uchar(buf, sizeof buf, seg->type));
 
         // FIXME flaky link between REG_ATTR, SEG_ATTR & defsr...
         for(size_t i = 0; i < REG_ATTR_COUNT; ++i)
             if(seg->defsr[i] != BADADDR)
-                v.visit_attribute(get_key(SEG_ATTR_ES + i), str_ea(buf, sizeof buf, seg->defsr[i]));
+                v.visit_attribute(g_seg_attributes[SEG_ATTR_ES + i], str_ea(buf, sizeof buf, seg->defsr[i]));
     }
 
     template<typename Ctx>
