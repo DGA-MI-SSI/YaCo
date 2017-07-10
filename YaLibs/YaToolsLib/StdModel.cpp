@@ -20,7 +20,7 @@
 #include "HObject.hpp"
 #include "HVersion.hpp"
 #include "HSignature.hpp"
-#include "IVersionListener.hpp"
+#include "IObjectListener.hpp"
 #include "ModelIndex.hpp"
 
 #include <functional>
@@ -427,7 +427,7 @@ struct StdModel
     : public IModelVisitor
     , public IModel
 {
-    StdModel(IVersionListener* listener);
+    StdModel(IObjectListener* listener);
 
     // IModelVisitor
     void visit_start() override;
@@ -489,7 +489,7 @@ struct StdModel
     void    walk_systems                    (const OnSystemFn& fnWalk) const override;
     void    walk_matching_versions          (const HObject& object, size_t min_size, const OnVersionPairFn& fnWalk) const override;
 
-    IVersionListener*           listener_;
+    IObjectListener*            listener_;
     ViewObjects                 view_objects_;
     ViewVersions                view_versions_;
     ViewSignatures              view_signatures_;
@@ -504,7 +504,7 @@ struct StdModel
 };
 }
 
-StdModel::StdModel(IVersionListener* listener)
+StdModel::StdModel(IObjectListener* listener)
     : listener_         (listener)
     , view_objects_     (*this)
     , view_versions_    (*this)
@@ -518,7 +518,7 @@ StdModelAndVisitor MakeStdModel()
     return {ptr, ptr};
 }
 
-std::shared_ptr<IModelVisitor> MakeVisitorFromListener(IVersionListener& listener)
+std::shared_ptr<IModelVisitor> MakeVisitorFromListener(IObjectListener& listener)
 {
     return std::make_shared<StdModel>(&listener);
 }
@@ -714,9 +714,18 @@ void finish_index(StdModel& db)
 
 void StdModel::visit_end()
 {
-    if(!listener_)
-        finish_index(*this);
+    finish_index(*this);
     current_.reset();
+    if(!listener_)
+        return;
+
+    for(HObject_id_t id = 0, end = static_cast<HObject_id_t>(objects_.size()); id < end; ++id)
+        listener_->on_object({&view_objects_, id});
+    for(const auto id : default_)
+        listener_->on_default(id);
+    for(const auto id : deleted_)
+        listener_->on_deleted(id);
+
 }
 
 void StdModel::visit_start_object(YaToolObjectType_e type)
@@ -759,35 +768,16 @@ void StdModel::visit_end_reference_object()
     if(current_->is_deleted)
     {
         deleted_.emplace_back(current_->object.id);
+        return;
     }
-    else if(current_->is_default)
+    if(current_->is_default)
     {
         default_.emplace_back(current_->object.id);
-    }
-    else
-    {
-        objects_.emplace_back(current_->object);
-        if(!listener_)
-            add_object(index_, current_->object.id, current_->object.idx);
-    }
-    if(!listener_)
         return;
+    }
 
-    // iterate on current versions
-    for(HVersion_id_t id = 0, end = static_cast<HVersion_id_t>(versions_.size()); id < end; ++id)
-        listener_->on_version({&view_versions_, id});
-    for(const auto id : default_)
-        listener_->on_default(id);
-    for(const auto id : deleted_)
-        listener_->on_deleted(id);
-
-    // clear state
-    objects_.clear();
-    versions_.clear();
-    signatures_.clear();
-    systems_.clear();
-    deleted_.clear();
-    default_.clear();
+    objects_.emplace_back(current_->object);
+    add_object(index_, current_->object.id, current_->object.idx);
 }
 
 void StdModel::visit_id(YaToolObjectId id)

@@ -15,9 +15,8 @@
 
 #include <FlatBufferDatabaseModel.hpp>
 #include <FlatBufferExporter.hpp>
-#include <DependencyResolverVisitor.hpp>
 #include <IModel.hpp>
-#include <IVersionListener.hpp>
+#include <IObjectListener.hpp>
 #include <Yatools.h>
 #include <Logger.h>
 
@@ -34,9 +33,9 @@
 
 namespace
 {
-struct Listener : public IVersionListener
+struct Listener : public IObjectListener
 {
-    virtual void on_version(const HVersion&)
+    virtual void on_object(const HObject&)
     {
     }
 
@@ -97,10 +96,7 @@ int main(int argc, const char* argv[])
 
     LOG(INFO, "transfer model\n");
     Benchmark("accept", [&]{
-        if(true)
-            input->accept(*MakeVisitorFromListener(listener));
-        else
-            input->accept(*MakeDependencyResolverVisitor(output).visitor);
+        input->accept(*MakeVisitorFromListener(listener));
     });
 
     LOG(INFO, "exit\n");

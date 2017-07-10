@@ -56,20 +56,19 @@ namespace
     static const std::vector<std::string> gFolders =
     {
         "binary",
-        "segment",
-        "segment_chunk",
         "struc",
         "strucmember",
         "enum",
         "enum_member",
+        "segment",
+        "segment_chunk",
         "function",
         "stackframe",
         "stackframe_member",
-        "basic_block",
-        "data",
-        "code",
         "reference_info",
-        "database",
+        "code",
+        "data",
+        "basic_block",
     };
 
     class XMLDatabaseModelImpl : public IModelAccept

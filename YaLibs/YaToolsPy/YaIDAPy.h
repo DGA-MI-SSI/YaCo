@@ -105,7 +105,6 @@
 #include "YaToolObjectId.hpp"
 #include "YaToolObjectVersion.hpp"
 #include "YaToolReferencedObject.hpp"
-#include "DependencyResolverVisitor.hpp"
 #include "VersionRelation.hpp"
 
 

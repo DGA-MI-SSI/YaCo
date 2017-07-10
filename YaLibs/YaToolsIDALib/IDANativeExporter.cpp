@@ -20,8 +20,9 @@
 
 #include "YaToolsIDANativeLib.hpp"
 #include "YaToolsHashProvider.hpp"
-#include <YaToolObjectVersion.hpp>
-#include <MultiplexerDelegatingVisitor.hpp>
+#include "YaToolObjectVersion.hpp"
+#include "IObjectVisitorListener.hpp"
+#include "MultiplexerDelegatingVisitor.hpp"
 #include "Logger.h"
 #include "Yatools.h"
 #include "../Helpers.h"
@@ -81,11 +82,6 @@ namespace
         TidMap                          tids_;
         std::shared_ptr<IPluginVisitor> plugin_;
     };
-}
-
-std::shared_ptr<IObjectVisitorListener> MakeExporter(YaToolsHashProvider* provider, FramePolicy frame_policy)
-{
-    return std::make_shared<Exporter>(provider, frame_policy);
 }
 
 Exporter::Exporter(YaToolsHashProvider* provider, FramePolicy frame_policy)
@@ -1752,4 +1748,11 @@ bool set_type_at(ea_t ea, const std::string& prototype)
 bool set_struct_member_type_at(ea_t ea, const std::string& prototype)
 {
     return set_struct_member_type(nullptr, ea, prototype);
+}
+
+void export_to_ida(IModelAccept* model, YaToolsHashProvider* provider, FramePolicy frame_policy)
+{
+    auto exporter = Exporter(provider, frame_policy);
+    const auto visitor = MakeSingleObjectVisitor(exporter);
+    model->accept(*visitor);
 }

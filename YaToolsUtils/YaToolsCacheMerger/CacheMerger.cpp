@@ -21,7 +21,6 @@
 #include "StdModel.hpp"
 #include "IModelAccept.hpp"
 #include "IModel.hpp"
-#include "DependencyResolverVisitor.hpp"
 #include "DelegatingVisitor.hpp"
 using namespace std;
 
@@ -34,10 +33,7 @@ void usage(char* name) {
 int main_func(const std::string& folder, const std::string&  output_path) {
 
     auto db = MakeStdModel();
-    auto db_depend_resol = MakeDependencyResolverVisitor(db.visitor);
-
-    MakeXmlAllDatabaseModel(folder)->accept(*db_depend_resol.visitor);
-
+    MakeXmlAllDatabaseModel(folder)->accept(*db.visitor);
     auto file_exporter = MakeFileXmlExporter(output_path);
     db.model->accept(*file_exporter);
     return 0;

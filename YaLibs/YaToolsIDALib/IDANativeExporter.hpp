@@ -16,10 +16,10 @@
 #pragma once
 
 #include "YaTypes.hpp"
-#include "IObjectVisitorListener.hpp"
 
 namespace std { template<typename T> class shared_ptr; }
 struct YaToolsHashProvider;
+class IModelAccept;
 
 bool set_type_at                (ea_t ea, const std::string& prototype);
 bool set_struct_member_type_at  (ea_t ea, const std::string& prototype);
@@ -30,4 +30,4 @@ enum FramePolicy
     SkipFrames,
 };
 
-std::shared_ptr<IObjectVisitorListener> MakeExporter(YaToolsHashProvider* provider, FramePolicy frame_policy);
+void export_to_ida(IModelAccept* model, YaToolsHashProvider* provider, FramePolicy frame_policy);
