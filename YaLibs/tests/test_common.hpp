@@ -38,12 +38,12 @@ protected:
         snprintf(tmp, 32, "tmp_%x", ++index);
         current_dir = fs::current_path() / "temp_folder_unittest" / tmp;
         fs::create_directories(current_dir);
-        chdir(current_dir.string().data());
+        ASSERT_EQ(chdir(current_dir.string().data()), 0);
     }
 
     virtual void TearDown()
     {
-        chdir(orig_dir.string().data());
+        ASSERT_EQ(chdir(orig_dir.string().data()), 0);
         std::error_code ec;
         fs::remove_all(current_dir, ec);
     }

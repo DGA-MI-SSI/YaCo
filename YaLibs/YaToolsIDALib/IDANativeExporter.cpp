@@ -373,7 +373,7 @@ void IDANativeExporter::make_segment(std::shared_ptr<YaToolObjectVersion> versio
 
     if(!name.empty())
     {
-        const auto ok = set_segm_name(seg, name.data());
+        const auto ok = set_segm_name(seg, "%s", name.data());
         if(!ok)
             LOG(ERROR, "make_segment: 0x" EA_FMT " unable to set name %s\n", ea, name.data());
     }
