@@ -70,11 +70,8 @@
 %include <stdint.i>
 %include <std_shared_ptr.i>
 
-%shared_ptr(YaToolsIDANativeLib)
 %shared_ptr(IExporter)
 
-%template () std::shared_ptr<YaToolsIDANativeLib>;
-%template () std::vector<std::shared_ptr<YaToolsIDANativeLib> >;
 %{
 //in pro.h, they forbid use of some functions that SWIG needs : use them anyway and f*** ida!
 #define USE_DANGEROUS_FUNCTIONS
@@ -82,7 +79,6 @@
 #include <memory>
 #include <pro.h>
 #include <kernwin.hpp>
-#include "YaToolsIDANativeLib.hpp"
 #include "IDANativeExporter.hpp"
 #include "IDANativeModel.hpp"
 
@@ -139,7 +135,6 @@
     }
  }
 
-%include "YaToolsIDANativeLib.hpp"
 %include "IDANativeExporter.hpp"
 %include "IDANativeModel.hpp"
 %include "YaToolsHashProvider.hpp"

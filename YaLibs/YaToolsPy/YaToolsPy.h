@@ -72,7 +72,6 @@ YaToolObjectId YaToolObjectId_From_String(const char* input, size_t input_len);
 %shared_ptr(IModelVisitor)
 %shared_ptr(IFlatExporter)
 %shared_ptr(IModel)
-%shared_ptr(YaToolObjectVersion)
 %shared_ptr(Yatools)
 %shared_ptr(IDeleter)
  
@@ -80,9 +79,6 @@ YaToolObjectId YaToolObjectId_From_String(const char* input, size_t input_len);
 {
 	$result = PyBuffer_FromMemory(const_cast<void*>($1.value), $1.size);
 }
-
-%template () std::vector<YaToolObjectId>;
-%template () std::set<YaToolObjectId>;
 
 %{
 #include "Signature.hpp"
