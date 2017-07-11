@@ -134,22 +134,6 @@ namespace
         return values;
     }
 
-    StringModel walk_fast_model(IModel& db)
-    {
-        StringModel values;
-
-        db.walk_objects([&](const YaToolObjectId&, const HObject& href)
-        {
-            href.walk_versions([&](const HVersion& hver)
-            {
-                values.insert(std::make_tuple("version", str(hver), str(hver.address()), str(hver.parent_id())));
-                return WALK_CONTINUE;
-            });
-            return WALK_CONTINUE;
-        });
-        return values;
-    }
-
     struct Listener
         : public IObjectListener
     {
