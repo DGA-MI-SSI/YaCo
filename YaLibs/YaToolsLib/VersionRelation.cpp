@@ -13,9 +13,6 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <stddef.h>
-#include <stdio.h>
-#include "YaToolObjectId.hpp"
 #include "VersionRelation.hpp"
 
 VersionRelation::VersionRelation(HVersion version, RelationType_e type, RelationConfidence_T confidence, RelationDirection_e RelationDirection)
@@ -23,17 +20,6 @@ VersionRelation::VersionRelation(HVersion version, RelationType_e type, Relation
     , type_(type)
     , confidence_(confidence)
     , direction_(RelationDirection)
-{
-    const auto conf = std::to_string(confidence_);
-    const auto type_str = std::to_string(type_);
-
-    char buffer[sizeof(YaToolObjectId)*2+1];
-    // FIXME confusion between HVersion_id_t & YaToolObjectId
-    YaToolObjectId_To_String(buffer, sizeof(YaToolObjectId)*2+1, version.id_);
-    comparable_value_ = std::string(buffer) + std::string("-") + conf + std::string("-") + type_str;
-}
-
-VersionRelation::~VersionRelation()
 {
 }
 
@@ -69,16 +55,6 @@ HVersion VersionRelation::getMatchingObject() const
 RelationDirection_e VersionRelation::getDirection() const
 {
     return direction_;
-}
-
-const std::string& VersionRelation::getComparableValue() const
-{
-    return comparable_value_;
-}
-
-void VersionRelation::buildHashCode() const
-{
-    hashUpdate(getComparableValue().c_str());
 }
 
 std::ostream & operator<<(std::ostream& oss, VersionRelation_p pVersionRelation)
