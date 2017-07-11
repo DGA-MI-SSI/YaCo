@@ -30,12 +30,12 @@
 #include "ExporterValidatorVisitor.hpp"
 #include "DelegatingVisitor.hpp"
 #include "MatchingSystem.hpp"
-#include "StdModel.hpp"
+#include "Model.hpp"
 #include "FlatBufferDatabaseModel.hpp"
 #include "FlatBufferExporter.hpp"
 #include "FileUtils.hpp"
 
-#include "model.hpp"
+#include "test_model.hpp"
 
 #include <functional>
 
@@ -155,7 +155,7 @@ void create_model(std::shared_ptr<IModelVisitor> visitor)
 
 std::shared_ptr<IModel> create_memorySignatureDB()
 {
-    auto db = MakeStdModel();
+    auto db = MakeModel();
     create_model(db.visitor);
     return db.model;
 }
@@ -197,7 +197,7 @@ TEST_F(TestYaToolDatabaseModel, model) {
      * This test ensures that the model created with create_model is consistent and passes
      * validation through ExporterValidatorVisitor
      */
-    auto db = MakeStdModel();
+    auto db = MakeModel();
     auto validator = MakeExporterValidatorVisitor();
     auto exporter = make_shared<DelegatingVisitor>();
     exporter->add_delegate(db.visitor);
@@ -322,7 +322,7 @@ private:
 
 struct Ctx
 {
-    std::vector<StdModelAndVisitor> models;
+    std::vector<ModelAndVisitor> models;
     std::vector<std::shared_ptr<MockSignatureDatabase1>> mocks;
 };
 
@@ -414,7 +414,7 @@ static auto create_object(YaToolObjectId id)
 
 static auto create_href(Ctx& ctx, YaToolReferencedObject& object)
 {
-    ctx.models.push_back(MakeStdModel());
+    ctx.models.push_back(MakeModel());
     auto& db = ctx.models.back();
     db.visitor->visit_start();
     object.accept(*db.visitor);
@@ -1000,7 +1000,7 @@ static void testObjectWithoutVersion(IModel& db)
 
 TEST_F(TestYaToolDatabaseModel, memoryModel_objectWithoutVersion)
 {
-    const auto db = MakeStdModel();
+    const auto db = MakeModel();
     create_model_objects_without_versions(*db.visitor);
     testObjectWithoutVersion(*db.model);
 }

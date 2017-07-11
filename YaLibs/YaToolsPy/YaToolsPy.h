@@ -95,7 +95,7 @@ YaToolObjectId YaToolObjectId_From_String(const char* input, size_t input_len);
 #include "XML/XMLExporter.hpp"
 #include "FlatBufferExporter.hpp"
 #include "FlatBufferDatabaseModel.hpp"
-#include "StdModel.hpp"
+#include "Model.hpp"
 #include "YaToolObjectId.hpp"
 #include "YaToolObjectVersion.hpp"
 #include "YaToolReferencedObject.hpp"
@@ -147,7 +147,7 @@ YaToolObjectId YaToolObjectId_From_String(const char* input, size_t input_len);
 %include "XML/XMLExporter.hpp"
 %include "FlatBufferExporter.hpp"
 %include "FlatBufferDatabaseModel.hpp"
-%include "StdModel.hpp"
+%include "Model.hpp"
 %include "yatools_/git_version.h"
 
 %pythonprepend MakeXmlFilesDatabaseModel %{

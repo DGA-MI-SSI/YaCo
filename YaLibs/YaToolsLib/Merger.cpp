@@ -18,7 +18,7 @@
 #include "HVersion.hpp"
 #include "HObject.hpp"
 #include "IModelVisitor.hpp"
-#include "StdModel.hpp"
+#include "Model.hpp"
 #include "XML/XMLDatabaseModel.hpp"
 #include "XML/XMLExporter.hpp"
 #include "VersionRelation.hpp"
@@ -59,8 +59,8 @@ MergeStatus_e Merger::smartMerge(   const char* input_file1, const char* input_f
     auto file_vect2 = std::vector<std::string>();
     file_vect2.push_back(std::string(input_file2));
 
-    auto database1 = MakeStdModel();
-    auto database2 = MakeStdModel();
+    auto database1 = MakeModel();
+    auto database2 = MakeModel();
 
     // reload two databases with one object version in each database
     MakeXmlFilesDatabaseModel(file_vect1)->accept(*database1.visitor);
@@ -113,7 +113,7 @@ MergeStatus_e Merger::smartMerge(   const char* input_file1, const char* input_f
         throw("PythonResolveFileConflictCallback: callback: invalid number of object version in reference object");
     }
 
-    auto visitor1 = MakeStdModel();
+    auto visitor1 = MakeModel();
 
     /* Build relation */
     Relation relation;

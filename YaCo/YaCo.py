@@ -100,7 +100,7 @@ class YaCo:
         logger.debug("loading XML")
         logger.debug("modified files : %r", modified_files)
 
-        memory_exporter = ya.MakeStdModel()
+        memory_exporter = ya.MakeModel()
 
         logger.debug("exporting XML to memory")
         ya.MakeXmlFilesDatabaseModel(modified_files).accept(memory_exporter.visitor)
