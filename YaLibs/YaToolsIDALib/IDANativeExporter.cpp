@@ -1916,7 +1916,7 @@ bool set_struct_member_type_at(ea_t ea, const std::string& prototype)
 
 void export_to_ida(IModelAccept* model, YaToolsHashProvider* provider, FramePolicy frame_policy)
 {
-    auto exporter = Exporter(provider, frame_policy);
+    Exporter exporter{provider, frame_policy};
     const auto visitor = MakeVisitorFromListener(exporter);
     model->accept(*visitor);
 }
