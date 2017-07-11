@@ -361,7 +361,7 @@ class Fixture(unittest.TestCase):
 
             # create union
             uid = idc.AddStrucEx(-1, 'apply_union_%x' % (k + 1), 1)
-            self.assertNotEqual(sid, -1)
+            self.assertNotEqual(uid, -1)
             for x in xrange(1, 0x10):
                 self.assertEqual(idc.AddStrucMember(uid, 'union_%x' % x, -1, ftype, -1, 1), 0)
 
@@ -406,8 +406,7 @@ class Fixture(unittest.TestCase):
             self.assertNotEqual(fid, -1)
 
             # check union is applied
-            self.assertEqual(ti.path.ids[0], sid)
-            self.assertEqual(ti.path.ids[1], fid)
+            self.assertEqual([x for x in ti.path.ids if x], [sid, fid])
 
     # create complex struct
     def get_function_sid(self, in_stack, local_size=1):

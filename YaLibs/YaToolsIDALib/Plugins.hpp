@@ -18,7 +18,7 @@
 #include "YaTypes.hpp"
 
 class IModelVisitor;
-class YaToolObjectVersion;
+struct HVersion;
 
 struct IPluginModel
 {
@@ -34,10 +34,10 @@ struct IPluginVisitor
 {
     virtual ~IPluginVisitor() {}
 
-    virtual void make_basic_block_enter (const YaToolObjectVersion& version, ea_t ea) = 0;
-    virtual void make_basic_block_exit  (const YaToolObjectVersion& version, ea_t ea) = 0;
-    virtual void make_function_enter    (const YaToolObjectVersion& version, ea_t ea) = 0;
-    virtual void make_function_exit     (const YaToolObjectVersion& version, ea_t ea) = 0;
+    virtual void make_basic_block_enter (const HVersion& version, ea_t ea) = 0;
+    virtual void make_basic_block_exit  (const HVersion& version, ea_t ea) = 0;
+    virtual void make_function_enter    (const HVersion& version, ea_t ea) = 0;
+    virtual void make_function_exit     (const HVersion& version, ea_t ea) = 0;
 };
 
 std::shared_ptr<IPluginVisitor> MakeArmPluginVisitor();

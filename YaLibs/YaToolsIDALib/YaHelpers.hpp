@@ -111,4 +111,56 @@ namespace ya
     {
         return {q.c_str(), q.length()};
     }
+
+
+    template<typename Ctx, typename T>
+    void walk_comments(Ctx& ctx, ea_t ea, flags_t flags, const T& operand)
+    {
+        const auto qbuf = ctx.qpool_.acquire();
+        for(const auto repeat : {false, true})
+        {
+            const auto cmt = read_string_from(*qbuf, [&](char* buf, size_t szbuf)
+            {
+                return get_cmt(ea, repeat, buf, szbuf);
+            });
+            if(cmt.size)
+                operand(cmt, repeat ? COMMENT_REPEATABLE : COMMENT_NON_REPEATABLE);
+        }
+
+        auto& b = ctx.buffer_;
+        b.clear();
+        if(hasExtra(flags))
+            for(const auto from : {E_PREV, E_NEXT})
+            {
+                const auto end = get_first_free_extra_cmtidx(ea, from);
+                for(int i = from; i < end; ++i)
+                {
+                    const auto extra = read_string_from(*qbuf, [&](char* buf, size_t szbuf)
+                    {
+                        return get_extra_cmt(ea, i, buf, szbuf);
+                    });
+                    if(!extra.size)
+                        continue;
+                    const auto size = b.size();
+                    b.resize(size + extra.size);
+                    memcpy(&b[size], extra.value, extra.size);
+                    b.push_back('\n');
+                }
+                if(b.empty())
+                    continue;
+                const auto cmt = const_string_ref{reinterpret_cast<char*>(&b[0]), b.size() - 1};
+                operand(cmt, from == E_PREV ? COMMENT_ANTERIOR : COMMENT_POSTERIOR);
+                b.clear();
+            }
+
+        int i = -1;
+        for(const auto& it : ctx.bookmarks_)
+        {
+            ++i;
+            if(ea != it.ea)
+                return;
+            if(!it.value.empty())
+                operand(make_string_ref(it.value), COMMENT_BOOKMARK);
+        }
+    }
 }
