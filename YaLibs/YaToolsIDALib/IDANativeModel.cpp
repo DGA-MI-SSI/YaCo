@@ -113,24 +113,26 @@ namespace
 
 #undef DECLARE_REF
 
-    template<typename T>
-    const_string_ref str_hex(char* buf, size_t /*szbuf*/, T x)
+    template<size_t szdst, typename T>
+    const_string_ref str_hex(char (&buf)[szdst], T x)
     {
         return to_hex<LowerCase, RemovePadding>(buf, x);
     }
 
-    const_string_ref str_crc32(char* buf, size_t /*szbuf*/, uint32_t x)
+    template<size_t szdst>
+    const_string_ref str_crc32(char (&buf)[szdst], uint32_t x)
     {
         return to_hex(buf, x);
     }
 
-    const_string_ref str_defname(char* buf, size_t /*szbuf*/, ea_t ea)
+    template<size_t szdst>
+    const_string_ref str_defname(char (&buf)[szdst], ea_t ea)
     {
-        // make sure we have one byte to put '-'
-        const auto str = to_hex<UpperCase, RemovePadding>(buf + 1, ea);
-        auto ptr = buf + (str.value - buf - 1);
-        *ptr = '_';
-        return {ptr, 1 + str.size};
+        char subbuf[sizeof ea * 2];
+        const auto str = to_hex<UpperCase, RemovePadding>(subbuf, ea);
+        buf[0] = '_';
+        memcpy(&buf[1], str.value, str.size);
+        return {buf, 1 + str.size};
     }
 
 #define DECLARE_STRINGER(NAME, FMT, VALUE_TYPE)\
@@ -723,11 +725,11 @@ namespace
     }
 
     template<typename Ctx>
-    void accept_signature(Ctx& ctx, IModelVisitor& v, uint32_t crc)
+    void accept_signature(Ctx& /*ctx*/, IModelVisitor& v, uint32_t crc)
     {
-        const auto qbuf = ctx.qpool_.acquire();
-        qbuf->resize(std::max(qbuf->size(), 32u));
-        v.visit_signature(SIGNATURE_FIRSTBYTE, SIGNATURE_ALGORITHM_CRC32, str_crc32(&(*qbuf)[0], qbuf->size(), crc));
+        char buf[32];
+        const auto strcrc = str_crc32(buf, crc);
+        v.visit_signature(SIGNATURE_FIRSTBYTE, SIGNATURE_ALGORITHM_CRC32, strcrc);
     }
 
     template<typename T>
@@ -840,9 +842,9 @@ namespace
         // FIXME python version does not check for default names on datas...
         if(!EMULATE_PYTHON_MODEL_BEHAVIOR || epolicy != DataNamePolicy)
         {
-            ctx.buffer_.resize(32);
             const auto nameref = ya::to_string_ref(*qbuf);
-            const auto defref = str_defname(reinterpret_cast<char*>(&ctx.buffer_[0]), ctx.buffer_.size(), ea);
+            char buf[32];
+            const auto defref = str_defname(buf, ea);
             if(nameref.size >=  defref.size)
                 if(!strncmp(nameref.value + nameref.size - defref.size, defref.value, defref.size))
                     if(IsDefaultName(nameref))
@@ -937,13 +939,13 @@ namespace
                     return;
                 }
                 crcs->firstbyte = std_crc32(crcs->firstbyte, buffer, 1);
-                const auto itypehex = str_hex(hexbuf, sizeof hexbuf, cmd.itype);
+                const auto itypehex = str_hex(hexbuf, cmd.itype);
                 crcs->operands = std_crc32(crcs->operands, itypehex.value, itypehex.size);
                 for(const auto& op : cmd.Operands)
                 {
                     if(op.type == o_void)
                         continue;
-                    const auto ophex = str_hex(hexbuf, sizeof hexbuf, op.type);
+                    const auto ophex = str_hex(hexbuf, op.type);
                     crcs->operands = std_crc32(crcs->operands, ophex.value, ophex.size);
                 }
                 ea += cmd.size;
