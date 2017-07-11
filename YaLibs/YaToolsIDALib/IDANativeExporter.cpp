@@ -818,81 +818,6 @@ namespace
         });
     }
 
-    bool set_function_comment(ea_t ea, const char* comment, bool repeatable)
-    {
-        const auto func = get_func(ea);
-        if(!func)
-            return false;
-        return set_func_cmt(func, comment, repeatable);
-    }
-
-    bool set_struct_comment(const Exporter& exporter, YaToolObjectId id, const char* comment, bool repeatable)
-    {
-        const auto it = exporter.tids_.find(id);
-        if(it == exporter.tids_.end())
-            return false;
-        return set_struc_cmt(it->second.tid, comment, repeatable);
-    }
-
-    bool set_struct_member_comment(const Exporter& exporter, YaToolObjectId id, const char* comment, bool repeatable)
-    {
-        const auto it = exporter.tids_.find(id);
-        if(it == exporter.tids_.end())
-            return false;
-        const auto member = get_member_by_id(it->second.tid);
-        if(!member)
-            return false;
-        return set_member_cmt(member, comment, repeatable);
-     }
-
-    void make_header_comments(Exporter& exporter, const HVersion& version, ea_t ea)
-    {
-        const auto type = version.type();
-        const auto id = version.id();
-        for(const auto rpt : {false, true})
-        {
-            const auto comment = version.header_comment(rpt);
-            const auto strcmt = make_string(comment);
-            auto ok = false;
-            switch(type)
-            {
-                case OBJECT_TYPE_FUNCTION:
-                    ok = set_function_comment(ea, strcmt.data(), rpt);
-                    break;
-
-                case OBJECT_TYPE_STRUCT:
-                    ok = set_struct_comment(exporter, id, strcmt.data(), rpt);
-                    break;
-
-                case OBJECT_TYPE_STRUCT_MEMBER:
-                    ok = set_struct_member_comment(exporter, id, strcmt.data(), rpt);
-                    break;
-
-                case OBJECT_TYPE_ENUM:              // done in make_enum
-                case OBJECT_TYPE_ENUM_MEMBER:       // done in make_enum_member
-                    ok = true;
-                    break;
-
-                // unsupported yet
-                case OBJECT_TYPE_UNKNOWN:
-                case OBJECT_TYPE_BINARY:
-                case OBJECT_TYPE_DATA:
-                case OBJECT_TYPE_CODE:
-                case OBJECT_TYPE_BASIC_BLOCK:
-                case OBJECT_TYPE_SEGMENT:
-                case OBJECT_TYPE_SEGMENT_CHUNK:
-                case OBJECT_TYPE_STACKFRAME:
-                case OBJECT_TYPE_STACKFRAME_MEMBER:
-                case OBJECT_TYPE_REFERENCE_INFO:
-                case OBJECT_TYPE_COUNT:
-                    ok = !comment.size;
-                    break;
-            }
-            if(!ok)
-                LOG(ERROR, "make_header_comments: 0x" EA_FMT " unable to set %s %s comment: %s\n", ea, get_object_type_string(type), rpt ? "repeatable" : "non-repeatable", strcmt.data());
-        }
-    }
-
     void clear_function(const HVersion& version, ea_t ea)
     {
         version.walk_xrefs([&](offset_t offset, operand_t /*operand*/, YaToolObjectId /*id*/, const XrefAttributes* attrs)
@@ -930,10 +855,9 @@ namespace
         return update_func(func);
     }
 
-    bool add_function(ea_t ea, const HVersion& version)
+    bool add_function(ea_t ea, const HVersion& version, func_t* func)
     {
         const auto flags = getFlags(ea);
-        const auto func = get_func(ea);
         if(isFunc(flags) && func && func->startEA == ea)
             return true;
 
@@ -957,7 +881,8 @@ namespace
 
     void make_function(const Exporter& exporter, const HVersion& version, ea_t ea)
     {
-        auto ok = add_function(ea, version);
+        const auto func = get_func(ea);
+        auto ok = add_function(ea, version, func);
         if(!ok)
             LOG(ERROR, "make_function: 0x" EA_FMT " unable to add function\n", ea);
 
@@ -971,6 +896,15 @@ namespace
                 LOG(ERROR, "make_function: 0x" EA_FMT " unable to set function flags 0x%08x\n", ea, flags);
 
         set_type(&exporter, ea, make_string(version.prototype()));
+
+        for(const auto repeat : {false, true})
+        {
+            const auto cmt = version.header_comment(repeat);
+            const auto strcmt = make_string(cmt);
+            ok = set_func_cmt(func, strcmt.data(), repeat);
+            if(!ok)
+                LOG(ERROR, "make_function: 0x" EA_FMT " unable to set %s comment to '%s'\n", ea, repeat ? "repeatable" : "non-repeatable", strcmt.data());
+        }
     }
 
     bool begins_with_offset(const std::string& value)
@@ -1755,6 +1689,15 @@ namespace
         set_tid(exporter, id, struc->id, OBJECT_TYPE_STRUCT);
         exporter.provider_.put_hash_struc_or_enum(struc->id, id, false);
 
+        for(const auto repeat : {false, true})
+        {
+            const auto cmt = version.header_comment(repeat);
+            const auto strcmt = make_string(cmt);
+            const auto ok = set_struc_cmt(struc->id, strcmt.data(), repeat);
+            if(!ok)
+                LOG(ERROR, "make_struct: 0x" EA_FMT " unable to set %s comment to '%s'\n", ea, repeat ? "repeatable" : "non-repeatable", strcmt.data());
+        }
+
         if(struc->is_union())
         {
             // add a dummy field to avoid errors later on, maybe not on empty strucs
@@ -1795,7 +1738,6 @@ void Exporter::on_version(const HVersion& version)
 
         case OBJECT_TYPE_STRUCT:
             make_struct(*this, version, ea);
-            make_header_comments(*this, version, ea);
             return;
 
         case OBJECT_TYPE_STACKFRAME:
@@ -1803,15 +1745,12 @@ void Exporter::on_version(const HVersion& version)
                 return;
 
             make_stackframe(*this, version, ea);
-            make_header_comments(*this, version, ea);
             return;
 
         case OBJECT_TYPE_ENUM:
             make_enum(*this, version, ea);
-            make_header_comments(*this, version, ea);
             return;
     }
-
     if(ea == BADADDR)
     {
         LOG(ERROR, "object_version_visited: object %llx type %s has an invalid address\n", id, get_object_type_string(type));
@@ -1880,7 +1819,6 @@ void Exporter::on_version(const HVersion& version)
             make_reference_info(*this, version, ea);
             break;
     }
-    make_header_comments(*this, version, ea);
 }
 
 void Exporter::on_object(const HObject& object)
