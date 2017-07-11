@@ -79,3 +79,5 @@ struct Pool
 
     std::vector<std::unique_ptr<T>> pool_;
 };
+
+void pool_item_clear(qstring& item);

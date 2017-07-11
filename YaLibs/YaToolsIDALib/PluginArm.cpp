@@ -18,8 +18,10 @@
 #include "Plugins.hpp"
 
 #include "IModelVisitor.hpp"
-#include "YaToolObjectVersion.hpp"
+#include "HVersion.hpp"
 #include "Logger.h"
+
+#include <functional>
 
 #ifdef __EA64__
 #define EA_PREFIX "ll"
@@ -49,6 +51,7 @@ namespace
     const char name ## _txt[] = value;\
     const const_string_ref name = {name ## _txt, sizeof name ## _txt - 1};
     DECLARE_REF(g_thumb_mode_flag, "thumb_mode_flag");
+    DECLARE_REF(g_thumb_flag, "thumb_flag");
 #undef DECLARE_REF
 
     void accept_ea(IModelVisitor& v, ea_t ea, int thumb_segment_register)
@@ -90,10 +93,10 @@ namespace
         ArmVisitor();
 
         // IPluginVisitor methods
-        void make_basic_block_enter (const YaToolObjectVersion& version, ea_t ea) override;
-        void make_basic_block_exit  (const YaToolObjectVersion& version, ea_t ea) override;
-        void make_function_enter    (const YaToolObjectVersion& version, ea_t ea) override;
-        void make_function_exit     (const YaToolObjectVersion& version, ea_t ea) override;
+        void make_basic_block_enter (const HVersion& version, ea_t ea) override;
+        void make_basic_block_exit  (const HVersion& version, ea_t ea) override;
+        void make_function_enter    (const HVersion& version, ea_t ea) override;
+        void make_function_exit     (const HVersion& version, ea_t ea) override;
 
         const int thumb_segment_register;
     };
@@ -111,15 +114,21 @@ ArmVisitor::ArmVisitor()
 
 namespace
 {
-    void make_ea(const YaToolObjectVersion& version, ea_t ea, int thumb_segment_register)
+    void make_ea(const HVersion& version, ea_t ea, int thumb_segment_register)
     {
-        const auto& attrs = version.get_attributes();
-        const auto it = attrs.find("thumb_flag");
-        if(it == attrs.end())
+        std::string strthumb_flag;
+        version.walk_attributes([&](const const_string_ref& key, const const_string_ref& val)
+        {
+            if(!(key == g_thumb_flag))
+                return WALK_CONTINUE;
+            strthumb_flag = make_string(val);
+            return WALK_STOP;
+        });
+        if(strthumb_flag.empty())
             return;
 
         sel_t thumb_flag = 0;
-        const auto n = sscanf(it->second.data(), SEL_FMT, &thumb_flag);
+        const auto n = sscanf(strthumb_flag.data(), SEL_FMT, &thumb_flag);
         if(n != 1)
             return;
 
@@ -127,25 +136,25 @@ namespace
         if(current_thumb_flag == thumb_flag)
             return;
 
-        const auto end = static_cast<ea_t>(ea + version.get_size());
+        const auto end = static_cast<ea_t>(ea + version.size());
         set_sreg_at_next_code(ea, end, thumb_segment_register, thumb_flag);
     }
 }
 
-void ArmVisitor::make_basic_block_enter(const YaToolObjectVersion& /*version*/, ea_t /*ea*/)
+void ArmVisitor::make_basic_block_enter(const HVersion& /*version*/, ea_t /*ea*/)
 {
 }
 
-void ArmVisitor::make_basic_block_exit(const YaToolObjectVersion& version, ea_t ea)
-{
-    make_ea(version, ea, thumb_segment_register);
-}
-
-void ArmVisitor::make_function_enter(const YaToolObjectVersion& version, ea_t ea)
+void ArmVisitor::make_basic_block_exit(const HVersion& version, ea_t ea)
 {
     make_ea(version, ea, thumb_segment_register);
 }
 
-void ArmVisitor::make_function_exit(const YaToolObjectVersion& /*version*/, ea_t /*ea*/)
+void ArmVisitor::make_function_enter(const HVersion& version, ea_t ea)
+{
+    make_ea(version, ea, thumb_segment_register);
+}
+
+void ArmVisitor::make_function_exit(const HVersion& /*version*/, ea_t /*ea*/)
 {
 }

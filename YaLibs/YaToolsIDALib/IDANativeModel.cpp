@@ -852,62 +852,11 @@ namespace
         v.visit_name(ya::to_string_ref(*qbuf), get_name_flags(ea, qbuf->c_str(), flags));
     }
 
-    template<typename Ctx, typename T>
-    void walk_comments(Ctx& ctx, ea_t ea, flags_t flags, const T& operand)
-    {
-        const auto qbuf = ctx.qpool_.acquire();
-        for(const auto repeat : {false, true})
-        {
-            const auto cmt = ya::read_string_from(*qbuf, [&](char* buf, size_t szbuf)
-            {
-                return get_cmt(ea, repeat, buf, szbuf);
-            });
-            if(cmt.size)
-                operand(cmt, repeat ? COMMENT_REPEATABLE : COMMENT_NON_REPEATABLE);
-        }
-
-        auto& b = ctx.buffer_;
-        b.clear();
-        if(hasExtra(flags))
-            for(const auto from : {E_PREV, E_NEXT})
-            {
-                const auto end = get_first_free_extra_cmtidx(ea, from);
-                for(int i = from; i < end; ++i)
-                {
-                    const auto extra = ya::read_string_from(*qbuf, [&](char* buf, size_t szbuf)
-                    {
-                        return get_extra_cmt(ea, i, buf, szbuf);
-                    });
-                    if(!extra.size)
-                        continue;
-                    const auto size = b.size();
-                    b.resize(size + extra.size);
-                    memcpy(&b[size], extra.value, extra.size);
-                    b.push_back('\n');
-                }
-                if(b.empty())
-                    continue;
-                const auto cmt = const_string_ref{reinterpret_cast<char*>(&b[0]), b.size() - 1};
-                operand(cmt, from == E_PREV ? COMMENT_ANTERIOR : COMMENT_POSTERIOR);
-                b.clear();
-            }
-
-        int i = -1;
-        for(const auto& it : ctx.bookmarks_)
-        {
-            ++i;
-            if(ea != it.ea)
-                return;
-            if(!it.value.empty())
-                operand(make_string_ref(it.value), COMMENT_BOOKMARK);
-        }
-    }
-
     template<typename Ctx>
     void accept_comments(Ctx& ctx, IModelVisitor& v, ea_t ea, ea_t root, flags_t flags)
     {
         const auto offset = ea - root;
-        walk_comments(ctx, ea, flags, [&](const const_string_ref& cmt, CommentType_e type)
+        ya::walk_comments(ctx, ea, flags, [&](const const_string_ref& cmt, CommentType_e type)
         {
             v.visit_offset_comments(offset, type, cmt);
         });
@@ -1369,7 +1318,7 @@ namespace
         dedup(ctx.refs_);
         for(const auto& r : ctx.refs_)
         {
-            start_object(v, OBJECT_TYPE_REFERENCE_INFO, r.id, 0, 0);
+            start_object(v, OBJECT_TYPE_REFERENCE_INFO, r.id, 0, r.base);
             v.visit_flags(r.flags);
             finish_object(v, r.base);
         }
