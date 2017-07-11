@@ -1430,38 +1430,44 @@ namespace
 
         for(size_t i = 0; i < struc->memqty; ++i)
         {
+            // ignore new fields
             auto& m = struc->members[i];
             const auto offset = m.soff;
-            const auto is_known = fields.count(m.soff);
-            const auto is_new = new_fields.count(m.soff);
-            if(is_known && !is_new)
+            const auto is_new = new_fields.count(offset);
+            if(is_new)
+                continue;
+
+            // remove unknown fields
+            const auto is_known = fields.count(offset);
+            if(!is_known)
             {
-                const auto field_size = offset == last_offset && offset == size ? 0 : 1;
-                const auto id = struc->props & SF_FRAME ?
-                    exporter.provider_.get_stackframe_member_object_id(struct_id, offset, func_ea) :
-                    exporter.provider_.get_struc_member_id(struct_id, offset, g_empty);
-                const auto key = get_tid(exporter, id);
-                if(key.tid == BADADDR)
-                {
-                    set_struct_member(member_name, "clear_struct_fields", struc, g_empty, offset, field_size, func, nullptr);
-                    for(const auto repeat : {false, true})
-                    {
-                        const auto ok = set_member_cmt(&m, g_empty.value, repeat);
-                        if(!ok)
-                            LOG(ERROR, "clear_struct_fields: 0x" EA_FMT ":" EA_FMT " unable to reset %s comment\n", struct_id, offset, repeat ? "repeatable" : "non-repeatable");
-                    }
-                }
+                // ignore special stack frame members
+                if(func_ea != BADADDR && is_special_member(m.id))
+                    continue;
+                const auto ok = del_struc_member(struc, offset);
+                if(!ok)
+                    LOG(ERROR, "clear_struct_fields: 0x" EA_FMT ":" EA_FMT " unable to delete member\n", struct_id, offset);
+                else
+                    --i;
+                continue;
             }
-            else if(!is_new)
+
+            // reset known fields
+            const auto field_size = offset == last_offset && offset == size ? 0 : 1;
+            const auto id = struc->props & SF_FRAME ?
+                exporter.provider_.get_stackframe_member_object_id(struct_id, offset, func_ea) :
+                exporter.provider_.get_struc_member_id(struct_id, offset, g_empty);
+            const auto key = get_tid(exporter, id);
+            // skip fields which have already been exported
+            if(key.tid != BADADDR)
+                continue;
+
+            set_struct_member(member_name, "clear_struct_fields", struc, g_empty, offset, field_size, func, nullptr);
+            for(const auto repeat : {false, true})
             {
-                if(func_ea == BADADDR || !is_special_member(m.id))
-                {
-                    const auto ok = del_struc_member(struc, offset);
-                    if(!ok)
-                        LOG(ERROR, "clear_struct_fields: 0x" EA_FMT ":" EA_FMT " unable to delete member\n", struct_id, offset);
-                    else
-                        --i;
-                }
+                const auto ok = set_member_cmt(&m, g_empty.value, repeat);
+                if(!ok)
+                    LOG(ERROR, "clear_struct_fields: 0x" EA_FMT ":" EA_FMT " unable to reset %s comment\n", struct_id, offset, repeat ? "repeatable" : "non-repeatable");
             }
         }
 
