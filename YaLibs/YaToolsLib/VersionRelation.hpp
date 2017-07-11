@@ -13,23 +13,14 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef VERSIONRELATION_H_
-#define VERSIONRELATION_H_
+#pragma once
 
-#include <set>
-#include <unordered_set>
-#include <unordered_map>
-#include <utility>
-
+#include "YaTypes.hpp"
 #include "HVersion.hpp"
 
-#include "Hashable.hpp"
-#include "Comparable.hpp"
-#include "YaTypes.hpp"
+#include <unordered_set>
 
-#include "../Helpers.h"
-
-//TODO: make bit mask for RelationType_e
+// TODO: make bit mask for RelationType_e
 enum RelationType_e
 {
     /**
@@ -56,46 +47,30 @@ typedef int RelationConfidence_T;
 #define RELATION_CONFIDENCE_BAD     1
 #define RELATION_CONFIDENCE_GOOD    4
 
-class YaToolObjectVersion;
-
-class VersionRelation;
-typedef std::shared_ptr<VersionRelation> VersionRelation_p;
 
 class VersionRelation
-    : public Hashable
-    , public Comparable<VersionRelation>
 {
     public:
         VersionRelation(HVersion version, RelationType_e type, RelationConfidence_T confidence, RelationDirection_e RelationDirection);
 
-        ~VersionRelation() override;
-
         void increaseConfidence(RelationConfidence_T confidence);
 
-        RelationType_e getType() const;
-        void setType(RelationType_e type);
-        RelationConfidence_T getConfidence() const;
-        HVersion getMatchingObject() const;
-        RelationDirection_e getDirection() const;
-
-        // Comparable
-        const std::string& getComparableValue() const override;
-
-        // Hashable
-        void buildHashCode() const override;
+        RelationType_e          getType() const;
+        void                    setType(RelationType_e type);
+        RelationConfidence_T    getConfidence() const;
+        HVersion                getMatchingObject() const;
+        RelationDirection_e     getDirection() const;
 
     private:
-        HVersion          matching_;
+        HVersion                matching_;
         RelationType_e          type_;
-        std::string             comparable_value_;
         RelationConfidence_T    confidence_;
         RelationDirection_e     direction_;
 
 #ifndef SWIG
-        friend std::ostream & operator<<(std::ostream& oss, VersionRelation_p pVersionRelation);
-        friend std::ostream & operator<<(std::ostream& oss, VersionRelation& VersionRelation);
-
-        friend std::ostream & operator<<(std::ostream& oss, const std::unordered_set<VersionRelation_p>& VersionsRelations);
+        friend std::ostream & operator<<(std::ostream& oss, std::shared_ptr<VersionRelation>);
+        friend std::ostream & operator<<(std::ostream& oss, VersionRelation&);
+        friend std::ostream & operator<<(std::ostream& oss, const std::unordered_set<std::shared_ptr<VersionRelation>>&);
 #endif//SWIG
 };
 
@@ -109,5 +84,4 @@ struct Relation
     uint32_t                flags_;
 };
 
-#endif /* VERSIONRELATION_H_ */
-
+typedef std::shared_ptr<VersionRelation> VersionRelation_p;

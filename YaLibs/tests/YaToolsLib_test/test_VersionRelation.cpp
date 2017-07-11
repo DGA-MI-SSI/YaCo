@@ -58,8 +58,3 @@ TEST_F(TestVersionRelation, IncreaseConfidence) {
     EXPECT_NO_THROW(pRelation->increaseConfidence(1));
     EXPECT_EQ(pRelation->getConfidence(), DEFAULT_CONFIDENCE + 1);
 }
-
-TEST_F(TestVersionRelation, GetComparableValue) {
-    std::string ref("0000000001234567-12-0");
-    EXPECT_STREQ(pRelation->getComparableValue().c_str(), ref.c_str());
-}

@@ -39,12 +39,10 @@ namespace std
 #include <pro.h>
 #include <kernwin.hpp>
 
-#include "Comparable.hpp"
 #include "ExporterValidatorVisitor.hpp"
 #include "FlatBufferDatabaseModel.hpp"
 #include "FlatBufferExporter.hpp"
 #include "git_version.h"
-#include "Hashable.hpp"
 #include "HObject.hpp"
 #include "IDANativeExporter.hpp"
 #include "IDANativeModel.hpp"
@@ -57,7 +55,6 @@ namespace std
 #include "PathDebuggerVisitor.hpp"
 #include "ResolveFileConflictCallback.hpp"
 #include "Signature.hpp"
-#include "VersionRelation.hpp"
 #include "XML/XMLDatabaseModel.hpp"
 #include "XML/XMLExporter.hpp"
 #include "YaGitLib.hpp"
