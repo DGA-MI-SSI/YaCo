@@ -92,7 +92,6 @@ namespace
     DECLARE_REF(g_char, "char");
     DECLARE_REF(g_binary, "binary");
     DECLARE_REF(g_octal, "octal");
-    DECLARE_REF(g_offset, "offset");
     DECLARE_REF(g_path_idx, "path_idx");
     DECLARE_REF(g_start_ea,"start_ea");
     DECLARE_REF(g_end_ea, "end_ea");
