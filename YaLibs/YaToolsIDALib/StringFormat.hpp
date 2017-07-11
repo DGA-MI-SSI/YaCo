@@ -32,9 +32,10 @@ namespace
         RemovePadding,
     };
 
-    template<CasePolicy casep, PadPolicy padp, size_t size>
-    const_string_ref binhex(char* dst, const void* vsrc)
+    template<CasePolicy casep, PadPolicy padp, size_t size, size_t szdst>
+    const_string_ref binhex(char (&dst)[szdst], const void* vsrc)
     {
+        static_assert(szdst >= size * 2, "invalid destination size");
         const uint8_t* src = static_cast<const uint8_t*>(vsrc);
         const auto& hexchars = casep == UpperCase ? hexchars_upper : hexchars_lower;
         for(size_t i = 0; i < size; ++i)
@@ -72,8 +73,8 @@ namespace
         return swap(uint32_t(x >> 32)) | (uint64_t(swap(uint32_t(x & 0xFFFFFFFF))) << 32);
     }
 
-    template<CasePolicy casep = UpperCase, PadPolicy padp = IgnorePadding, typename T>
-    const_string_ref to_hex(char* dst, T x)
+    template<CasePolicy casep = UpperCase, PadPolicy padp = IgnorePadding, size_t szdst, typename T>
+    const_string_ref to_hex(char (&dst)[szdst], T x)
     {
         x = swap(x);
         return binhex<casep, padp, sizeof x>(dst, &x);
