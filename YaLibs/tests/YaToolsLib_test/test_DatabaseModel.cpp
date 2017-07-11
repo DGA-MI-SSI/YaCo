@@ -28,7 +28,6 @@
 #include "PathDebuggerVisitor.hpp"
 #include "ExporterValidatorVisitor.hpp"
 #include "DelegatingVisitor.hpp"
-#include "MatchingSystem.hpp"
 #include "Model.hpp"
 #include "FlatBufferDatabaseModel.hpp"
 #include "FlatBufferExporter.hpp"
@@ -37,6 +36,7 @@
 #include "test_model.hpp"
 
 #include <functional>
+#include <map>
 
 #ifdef _MSC_VER
 #   include <optional.hpp>
@@ -50,14 +50,39 @@ using namespace std::experimental;
 
 using namespace std;
 
-class TestYaToolDatabaseModel: public testing::Test {
+class TestYaToolDatabaseModel
+    : public testing::Test
+{
 protected:
-    virtual void SetUp() {
+    virtual void SetUp()
+    {
     }
 
-    virtual void TearDown() {
+    virtual void TearDown()
+    {
     }
 };
+
+namespace
+{
+    struct MatchingSystem
+    {
+        MatchingSystem(int id, const std::map<std::string, std::string>& attributes)
+            : id(id)
+            , attributes(attributes)
+        {
+        }
+
+        void accept(IModelVisitor& visitor)
+        {
+            for(const auto& it : attributes)
+                visitor.visit_matching_system_description(make_string_ref(it.first), make_string_ref(it.second));
+        }
+
+        int id;
+        std::map<std::string, std::string> attributes;
+    };
+}
 
 static const std::string gEmpty;
 

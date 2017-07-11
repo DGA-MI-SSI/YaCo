@@ -17,7 +17,6 @@
 
 #include "../Helpers.h"
 #include "HVersion.hpp"
-#include "YaToolReferencedObject.hpp"
 #include "HObject.hpp"
 #include "YaToolObjectId.hpp"
 #include "XML/XMLExporter.hpp"

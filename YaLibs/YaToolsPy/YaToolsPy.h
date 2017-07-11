@@ -97,8 +97,6 @@ YaToolObjectId YaToolObjectId_From_String(const char* input, size_t input_len);
 #include "FlatBufferDatabaseModel.hpp"
 #include "Model.hpp"
 #include "YaToolObjectId.hpp"
-#include "YaToolObjectVersion.hpp"
-#include "YaToolReferencedObject.hpp"
 #include "HObject.hpp"
 #include "VersionRelation.hpp"
 #include "Merger.hpp"
