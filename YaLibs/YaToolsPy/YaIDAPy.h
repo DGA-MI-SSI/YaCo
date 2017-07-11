@@ -101,7 +101,6 @@
 #include "XML/XMLExporter.hpp"
 #include "FlatBufferExporter.hpp"
 #include "FlatBufferDatabaseModel.hpp"
-#include "IObjectVisitorListener.hpp"
 #include "YaToolObjectId.hpp"
 #include "YaToolObjectVersion.hpp"
 #include "YaToolReferencedObject.hpp"

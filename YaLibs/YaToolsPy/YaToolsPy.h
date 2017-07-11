@@ -72,7 +72,6 @@ YaToolObjectId YaToolObjectId_From_String(const char* input, size_t input_len);
 %shared_ptr(IModelVisitor)
 %shared_ptr(IFlatExporter)
 %shared_ptr(IModel)
-%shared_ptr(IObjectVisitorListener)
 %shared_ptr(YaToolObjectVersion)
 %shared_ptr(Yatools)
 %shared_ptr(IDeleter)
@@ -97,7 +96,6 @@ YaToolObjectId YaToolObjectId_From_String(const char* input, size_t input_len);
 #include "FlatBufferExporter.hpp"
 #include "FlatBufferDatabaseModel.hpp"
 #include "StdModel.hpp"
-#include "IObjectVisitorListener.hpp"
 #include "YaToolObjectId.hpp"
 #include "YaToolObjectVersion.hpp"
 #include "YaToolReferencedObject.hpp"
@@ -135,7 +133,6 @@ YaToolObjectId YaToolObjectId_From_String(const char* input, size_t input_len);
  }
 
 %feature("director") IModelVisitor;
-%feature("director") IObjectVisitorListener;
 %feature("director") PromptMergeConflict;
 
 %include "IModelVisitor.hpp"
@@ -143,7 +140,6 @@ YaToolObjectId YaToolObjectId_From_String(const char* input, size_t input_len);
 %include "IModelAccept.hpp"
 
 %include "YaToolObjectId.hpp"
-%include "IObjectVisitorListener.hpp"
 
 %include "MultiplexerDelegatingVisitor.hpp"
 %include "PathDebuggerVisitor.hpp"
