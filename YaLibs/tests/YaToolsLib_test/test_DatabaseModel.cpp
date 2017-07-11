@@ -23,7 +23,6 @@
 #include "../Helpers.h"
 
 #include "HVersion.hpp"
-#include "YaToolReferencedObject.hpp"
 #include "HObject.hpp"
 #include "YaToolObjectId.hpp"
 #include "PathDebuggerVisitor.hpp"
@@ -394,32 +393,95 @@ TEST_F(TestYaToolDatabaseModel, FBModel_ReferencedObjectsBySignature) {
     ReferencedObjectsBySignature_Impl(create_FBSignatureDB());
 }
 
-static auto create_version(YaToolObjectId id, uint32_t crc, size_t size)
+namespace
 {
-    auto version = std::make_shared<YaToolObjectVersion>();
-    version->set_id(id);
-    version->set_size(size);
+    struct Version
+    {
+        YaToolObjectId          id;
+        size_t                  size;
+        std::vector<Signature>  sigs;
+
+        Version(YaToolObjectId id, uint32_t crc, size_t size);
+
+        void add_signature(const Signature& sig);
+        void accept(IModelVisitor& visitor);
+    };
+
+    struct Object
+    {
+        YaToolObjectId  id;
+        std::vector<std::shared_ptr<Version>> versions;
+
+        Object(YaToolObjectId id);
+
+        void putVersion(const std::shared_ptr<Version>& version);
+        void accept(IModelVisitor& visitor);
+    };
+}
+
+Version::Version(YaToolObjectId id, uint32_t crc, size_t size)
+    : id(id)
+    , size(size)
+{
     char buf[32];
     sprintf(buf, "%X", crc);
-    version->add_signature(MakeSignature(SIGNATURE_ALGORITHM_CRC32, SIGNATURE_OPCODE_HASH, make_string_ref(buf)));
-    return version;
+    add_signature(MakeSignature(SIGNATURE_ALGORITHM_CRC32, SIGNATURE_OPCODE_HASH, make_string_ref(buf)));
 }
 
-static auto create_object(YaToolObjectId id)
+static std::shared_ptr<Version> create_version(YaToolObjectId id, uint32_t crc, size_t size)
 {
-    auto object = std::make_shared<YaToolReferencedObject>(OBJECT_TYPE_DATA);
-    object->setId(id);
-    return object;
+    return std::make_shared<Version>(id, crc, size);
 }
 
-static auto create_href(Ctx& ctx, YaToolReferencedObject& object)
+void Version::add_signature(const Signature& sig)
+{
+    sigs.push_back(sig);
+}
+
+void Version::accept(IModelVisitor& visitor)
+{
+    visitor.visit_start_object_version();
+    if(size)
+        visitor.visit_size(size);
+    visitor.visit_start_signatures();
+    for(const auto& sig : sigs)
+        visitor.visit_signature(sig.method, sig.algo, make_string_ref(sig));
+    visitor.visit_end_signatures();
+    visitor.visit_end_object_version();
+}
+
+Object::Object(YaToolObjectId id)
+    : id(id)
+{
+}
+
+static std::shared_ptr<Object> create_object(YaToolObjectId id)
+{
+    return std::make_shared<Object>(id);
+}
+
+void Object::putVersion(const std::shared_ptr<Version>& version)
+{
+    versions.push_back(version);
+}
+
+void Object::accept(IModelVisitor& visitor)
+{
+    visitor.visit_start_reference_object(OBJECT_TYPE_DATA);
+    visitor.visit_id(id);
+    for(const auto& version : versions)
+        version->accept(visitor);
+    visitor.visit_end_reference_object();
+}
+
+static HObject create_href(Ctx& ctx, Object& object)
 {
     ctx.models.push_back(MakeModel());
     auto& db = ctx.models.back();
     db.visitor->visit_start();
     object.accept(*db.visitor);
     db.visitor->visit_end();
-    return db.model->get_object(object.getId());
+    return db.model->get_object(object.id);
 }
 
 void walkMatchingVersions_Impl(std::shared_ptr<IModel> db)
