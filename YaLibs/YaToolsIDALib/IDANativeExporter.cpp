@@ -1342,7 +1342,7 @@ namespace
         if(it != paths.end())
             return *it;
 
-        paths.push_back({offset, operand});
+        paths.push_back({offset, operand, {}});
         return paths.back();
     }
 
