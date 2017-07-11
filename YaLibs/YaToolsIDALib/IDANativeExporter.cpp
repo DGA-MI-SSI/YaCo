@@ -1405,6 +1405,19 @@ namespace
             const auto key = get_tid(exporter, xref_id);
             switch(key.type)
             {
+                case OBJECT_TYPE_UNKNOWN:
+                case OBJECT_TYPE_BINARY:
+                case OBJECT_TYPE_DATA:
+                case OBJECT_TYPE_CODE:
+                case OBJECT_TYPE_FUNCTION:
+                case OBJECT_TYPE_ENUM_MEMBER:
+                case OBJECT_TYPE_BASIC_BLOCK:
+                case OBJECT_TYPE_SEGMENT:
+                case OBJECT_TYPE_SEGMENT_CHUNK:
+                case OBJECT_TYPE_REFERENCE_INFO:
+                case OBJECT_TYPE_COUNT:
+                    break;
+
                 case OBJECT_TYPE_STRUCT:
                 case OBJECT_TYPE_STACKFRAME:
                 case OBJECT_TYPE_STRUCT_MEMBER:
@@ -1765,6 +1778,21 @@ void Exporter::on_version(const HVersion& version)
     // version without addresses
     switch(type)
     {
+        case OBJECT_TYPE_UNKNOWN:
+        case OBJECT_TYPE_BINARY:
+        case OBJECT_TYPE_DATA:
+        case OBJECT_TYPE_CODE:
+        case OBJECT_TYPE_FUNCTION:
+        case OBJECT_TYPE_ENUM_MEMBER:
+        case OBJECT_TYPE_BASIC_BLOCK:
+        case OBJECT_TYPE_SEGMENT:
+        case OBJECT_TYPE_SEGMENT_CHUNK:
+        case OBJECT_TYPE_STRUCT_MEMBER:
+        case OBJECT_TYPE_STACKFRAME_MEMBER:
+        case OBJECT_TYPE_REFERENCE_INFO:
+        case OBJECT_TYPE_COUNT:
+            break;
+
         case OBJECT_TYPE_STRUCT:
             make_struct(*this, version, ea);
             make_header_comments(*this, version, ea);
@@ -1792,6 +1820,14 @@ void Exporter::on_version(const HVersion& version)
 
     switch(type)
     {
+        case OBJECT_TYPE_UNKNOWN:
+        case OBJECT_TYPE_BINARY:
+        case OBJECT_TYPE_STRUCT:
+        case OBJECT_TYPE_ENUM:
+        case OBJECT_TYPE_STACKFRAME:
+        case OBJECT_TYPE_COUNT:
+            break;
+
         case OBJECT_TYPE_CODE:
             make_code(version, ea);
             make_comments(*this, version, ea);
