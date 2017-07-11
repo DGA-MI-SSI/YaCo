@@ -18,7 +18,7 @@
 
 #include "XML/XMLDatabaseModel.hpp"
 #include "XML/XMLExporter.hpp"
-#include "StdModel.hpp"
+#include "Model.hpp"
 #include "IModelAccept.hpp"
 #include "IModel.hpp"
 #include "DelegatingVisitor.hpp"
@@ -32,7 +32,7 @@ void usage(char* name) {
 
 int main_func(const std::string& folder, const std::string&  output_path) {
 
-    auto db = MakeStdModel();
+    auto db = MakeModel();
     MakeXmlAllDatabaseModel(folder)->accept(*db.visitor);
     auto file_exporter = MakeFileXmlExporter(output_path);
     db.model->accept(*file_exporter);

@@ -358,7 +358,7 @@ class YaToolIDAHooks(object):
         """
         logger.debug("YaToolIDAHooks.save()")
 
-        db = ya.MakeStdModel()
+        db = ya.MakeModel()
         memory_exporter = db.visitor
         if VALIDATE_EXPORTED_XML:
             memory_exporter = ya.MakeMultiplexerDebugger(db.visitor)

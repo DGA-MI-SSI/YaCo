@@ -21,10 +21,10 @@ namespace std { template<typename T> class shared_ptr; }
 struct IModel;
 class IModelVisitor;
 
-struct StdModelAndVisitor
+struct ModelAndVisitor
 {
     std::shared_ptr<IModel>         model;
     std::shared_ptr<IModelVisitor>  visitor;
 };
 
-StdModelAndVisitor MakeStdModel();
+ModelAndVisitor MakeModel();

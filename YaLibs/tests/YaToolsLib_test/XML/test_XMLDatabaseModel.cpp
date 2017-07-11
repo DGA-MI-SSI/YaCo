@@ -28,7 +28,7 @@
 #include "XML/XMLExporter.hpp"
 #include "XML/common.hpp"
 #include "IModel.hpp"
-#include "StdModel.hpp"
+#include "Model.hpp"
 
 #include "gtest/gtest.h"
 #include <queue>
@@ -827,7 +827,7 @@ TEST_F (TestXMLDatabaseModel, TestOneFileWithCommentsThroughMemory) {
     EXPECT_FALSE(call_queue->empty());
     string output_path("output");
     auto visitor_2 = MakeXmlExporter(output_path);
-    auto visitor_model = MakeStdModel();
+    auto visitor_model = MakeModel();
     MakeXmlFilesDatabaseModel(input_files)->accept(*visitor_model.visitor);
 
     visitor_model.model->accept(*visitor_2);
@@ -963,7 +963,7 @@ TEST_F (TestXMLDatabaseModel, TestOneFileWithXrefsThroughMemory) {
     EXPECT_FALSE(call_queue->empty());
     string output_path("output");
     auto visitor_2 = MakeXmlExporter(output_path);
-    auto visitor_model = MakeStdModel();
+    auto visitor_model = MakeModel();
     MakeXmlFilesDatabaseModel(input_files)->accept(*visitor_model.visitor);
 
     visitor_model.model->accept(*visitor_2);

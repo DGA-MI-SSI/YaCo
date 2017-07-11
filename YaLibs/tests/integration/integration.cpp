@@ -21,14 +21,14 @@
 #include "HObject.hpp"
 #include "YaToolObjectId.hpp"
 #include "XML/XMLExporter.hpp"
-#include "StdModel.hpp"
+#include "Model.hpp"
 #include "XML/XMLDatabaseModel.hpp"
 #include "FileUtils.hpp"
 #include "IObjectListener.hpp"
 #include "IModelVisitor.hpp"
 #include "FlatBufferDatabaseModel.hpp"
 #include "FlatBufferExporter.hpp"
-#include "../YaToolsLib_test/model.hpp"
+#include "../YaToolsLib_test/test_model.hpp"
 #include "Yatools.h"
 #include "Logger.h"
 
@@ -199,7 +199,7 @@ namespace
         // check fb -> std conversions
         auto stdmodel = [&]
         {
-            const auto db = MakeStdModel();
+            const auto db = MakeModel();
             expected_model->accept(*db.visitor);
             return walk_model(*db.model);
         }();
@@ -211,7 +211,7 @@ namespace
             const TmpDir dir;
             const auto xml = (dir.path / "database.xml").string();
             expected_model->accept(*MakeFileXmlExporter({xml}));
-            const auto db = MakeStdModel();
+            const auto db = MakeModel();
             db.visitor->visit_start();
             Listener listener(*db.visitor);
             create_fbmodel_with([&](const auto& visitor)
