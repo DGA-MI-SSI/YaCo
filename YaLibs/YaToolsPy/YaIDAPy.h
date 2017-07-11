@@ -102,8 +102,6 @@
 #include "FlatBufferExporter.hpp"
 #include "FlatBufferDatabaseModel.hpp"
 #include "YaToolObjectId.hpp"
-#include "YaToolObjectVersion.hpp"
-#include "YaToolReferencedObject.hpp"
 #include "VersionRelation.hpp"
 
 

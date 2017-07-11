@@ -22,9 +22,11 @@
 #include "XML/XMLDatabaseModel.hpp"
 #include "XML/XMLExporter.hpp"
 #include "VersionRelation.hpp"
+
 #include <functional>
 #include <string>
 #include <iostream>
+#include <map>
 
 Merger::Merger(PromptMergeConflict* MergePrompt, ObjectVersionMergeStrategy_e MergeStrategy) :
             mpMergePrompt(MergePrompt),

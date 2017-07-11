@@ -15,7 +15,6 @@
 
 #include <iostream>
 #include "VersionRelation.hpp"
-#include "YaToolObjectVersion.hpp"
 #include "YaToolObjectId.hpp"
 
 #include "gtest/gtest.h"

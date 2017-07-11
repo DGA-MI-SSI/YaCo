@@ -21,7 +21,6 @@
 #include <unordered_map>
 #include <utility>
 
-#include "YaToolObjectVersion.hpp"
 #include "HVersion.hpp"
 
 #include "Hashable.hpp"

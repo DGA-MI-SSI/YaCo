@@ -17,7 +17,6 @@
 #include <stdio.h>
 #include "YaToolObjectId.hpp"
 #include "VersionRelation.hpp"
-#include "YaToolObjectVersion.hpp"
 
 VersionRelation::VersionRelation(HVersion version, RelationType_e type, RelationConfidence_T confidence, RelationDirection_e RelationDirection)
     : matching_(version)
