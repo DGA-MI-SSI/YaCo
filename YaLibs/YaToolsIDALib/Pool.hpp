@@ -77,6 +77,11 @@ struct Pool
         pool_.push_back(std::move(str));
     }
 
+private:
+    // disable pool copies
+    Pool(const Pool&);
+    Pool& operator=(const Pool&);
+
     std::vector<std::unique_ptr<T>> pool_;
 };
 
