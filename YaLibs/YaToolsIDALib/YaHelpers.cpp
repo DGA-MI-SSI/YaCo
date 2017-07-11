@@ -44,7 +44,7 @@ namespace
 
     const struct { cm_t cc; const_string_ref name; } cc_names[] =
     {
-#define DECL_CC_NAME(VALUE, NAME) {VALUE, NAME, sizeof NAME - 1},
+#define DECL_CC_NAME(VALUE, NAME) {VALUE, {NAME, sizeof NAME - 1}},
         DECL_CC_NAME(CM_CC_CDECL,       "__cdecl")
         DECL_CC_NAME(CM_CC_STDCALL,     "__stdcall")
         DECL_CC_NAME(CM_CC_PASCAL,      "__pascal")
