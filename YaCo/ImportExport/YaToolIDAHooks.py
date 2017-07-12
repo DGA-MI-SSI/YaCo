@@ -20,8 +20,7 @@ import time
 import traceback
 import os
 import YaCo
-
-from ImportExport import YaToolIDATools
+import yatools
 
 if idc.__EA64__:
     import YaToolsPy64 as ya
@@ -41,8 +40,8 @@ hooks = None
 
 
 class Hooks(object):
-    def __init__(self, yatools, hash_provider, repo_manager, equipment=None, operating_system=None):
-        self.ida = YaToolIDAHooks(yatools, hash_provider, repo_manager, equipment, operating_system)
+    def __init__(self, hash_provider, repo_manager, equipment=None, operating_system=None):
+        self.ida = YaToolIDAHooks(hash_provider, repo_manager, equipment, operating_system)
         self.idb = YaToolIDB_Hooks()
         self.idp = YaToolIDP_Hooks()
         self.current_rename_infos = {}
@@ -65,13 +64,12 @@ class YaToolIDAHooks(object):
     classdocs
     '''
 
-    def __init__(self, yatools, hash_provider, repo_manager, equipement=None, operating_system=None):
+    def __init__(self, hash_provider, repo_manager, equipement=None, operating_system=None):
         '''
         Constructor
         '''
         self.equipement = equipement
         self.os = operating_system
-        self.yatools = yatools
         self.hash_provider = hash_provider
         self.repo_manager = repo_manager
 
@@ -211,7 +209,7 @@ class YaToolIDAHooks(object):
 
     def enum_updated(self, enum):
         if LOG_IDA_HOOKS_EVENTS:
-            logger.debug("enum_updated : %s" % self.yatools.address_to_hex_string(enum))
+            logger.debug("enum_updated : %s" % yatools.ea_to_hex(enum))
         self.enums_to_process.add(enum)
         self.repo_manager.add_auto_comment(enum, "Updated")
 

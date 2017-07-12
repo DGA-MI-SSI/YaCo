@@ -20,9 +20,7 @@ import shutil
 import time
 import traceback
 import xml.dom.minidom
-
-from ImportExport.YaToolIDATools import copy_idb_to_local_file, \
-    get_original_idb_name
+import yatools
 
 if idc.__EA64__:
     import YaToolsPy64 as ya
@@ -193,11 +191,10 @@ class YaToolRepoManager(object):
     classdocs
     '''
 
-    def __init__(self, yatools, idb_path, ask_for_remote=True):
+    def __init__(self, idb_path, ask_for_remote=True):
         '''
         Constructor
         '''
-        self.yatools = yatools
         self.idb_filename = os.path.basename(idb_path)
         self.idb_directory = os.path.dirname(idb_path)
 
@@ -220,7 +217,7 @@ class YaToolRepoManager(object):
         checkout_head = False
         for modified_object in self.repo.get_modified_objects():
             # check if modified file is original idb
-            original_idb = get_original_idb_name(idc.GetIdbPath())
+            original_idb = yatools.get_original_idb_name(idc.GetIdbPath())
             if original_idb == modified_object:
                 # original idb modification detected, create a backup
                 try:
@@ -272,9 +269,9 @@ class YaToolRepoManager(object):
             else:
                 foffset = idc.GetFuncOffset(ea)
                 if foffset is None:
-                    prefix = self.yatools.address_to_hex_string(ea)
+                    prefix = yatools.ea_to_hex(ea)
                 else:
-                    prefix = "%s,%s" % (self.yatools.address_to_hex_string(ea), foffset)
+                    prefix = "%s,%s" % (yatools.ea_to_hex(ea), foffset)
             self.auto_comments.add((prefix, text))
         else:
             self.auto_comments.add(("", text))
@@ -318,7 +315,7 @@ class YaToolRepoManager(object):
                                 temp_repo.init_bare()
 
                 # copy idb to local idb
-                copy_idb_to_local_file()
+                yatools.copy_idb_to_local_file()
 
             # push master to remote
             self.push_origin_master()
@@ -430,7 +427,7 @@ class YaToolRepoManager(object):
             if not idbname_prefix.endswith('_local'):
                 local_idb_name = "%s_local%s" % (idbname_prefix, idbname_extension)
                 if not os.path.exists(local_idb_name):
-                    copy_idb_to_local_file()
+                    yatools.copy_idb_to_local_file()
                 if IDA_IS_INTERACTIVE:
                     message = "To use YaCo you must name your IDB with _local suffix. "
                     message += "YaCo will create one for you.\nRestart IDA and open %s." % local_idb_name

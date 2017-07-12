@@ -32,14 +32,11 @@ if idc.__EA64__:
     import YaToolsPy64 as ya
 else:
     import YaToolsPy32 as ya
+import yatools
 
 # from idaapi import ASKBTN_NO, ASKBTN_YES
-from ImportExport import YaToolIDATools
 from ImportExport.YaToolIDAHooks import Hooks, YaCoUI_Hooks
-from ImportExport.YaTools import YaTools
 from ImportExport.YaToolRepoManager import YaToolRepoManager
-from ImportExport.YaToolIDATools import copy_idb_to_local_file, copy_idb_to_original_file
-from ImportExport.YaToolIDATools import get_original_idb_name, get_local_idb_name
 
 logging.basicConfig()
 logger = None
@@ -195,10 +192,10 @@ class YaCo:
         self.YaCoUI.unhook()
 
         # create a backup of current idb
-        copy_idb_to_local_file("_bkp_%s" % time.ctime().replace(" ", "_").replace(":", "_"))
+        yatools.copy_idb_to_local_file("_bkp_%s" % time.ctime().replace(" ", "_").replace(":", "_"))
 
         # restore original idb
-        original_file = copy_idb_to_original_file()
+        original_file = yatools.copy_idb_to_original_file()
 
         # get xml files
         xml_files = []
@@ -232,7 +229,7 @@ class YaCo:
         self.YaCoUI.unhook()
 
         # create a backup of current idb
-        copy_idb_to_local_file("_bkp_%s" % time.ctime().replace(" ", "_").replace(":", "_"))
+        yatools.copy_idb_to_local_file("_bkp_%s" % time.ctime().replace(" ", "_").replace(":", "_"))
 
         # delete all modified objects
         self.repo_manager.repo.checkout_head()
@@ -241,13 +238,13 @@ class YaCo:
         self.repo_manager.fetch_origin()
         self.repo_manager.rebase_from_origin()
 
-        original_idb_name = get_original_idb_name(idc.GetIdbPath())
+        original_idb_name = yatools.get_original_idb_name(idc.GetIdbPath())
 
         # remove current idb
         os.remove(idc.GetIdbPath())
 
         # recreate local idb
-        shutil.copy(original_idb_name, get_local_idb_name(original_idb_name))
+        shutil.copy(original_idb_name, yatools.get_local_idb_name(original_idb_name))
 
         # local should not be overwritten, so we have to close IDA brutally !
         idaapi.cvar.database_flags |= idaapi.DBFL_KILL
@@ -295,13 +292,11 @@ class YaCo:
         """
         idaapi.msg("YaCo %s\n" % YACO_VERSION)
 
-        self.yatools = YaTools()
         self.hash_provider = ya.YaToolsHashProvider()
-
-        self.repo_manager = YaToolRepoManager(self.yatools, idc.GetIdbPath())
+        self.repo_manager = YaToolRepoManager(idc.GetIdbPath())
         self.repo_manager.check_valid_cache_startup()
 
-        self.ida_hooks = Hooks(self.yatools, self.hash_provider, self.repo_manager)
+        self.ida_hooks = Hooks(self.hash_provider, self.repo_manager)
 
         self.YaCoUI = YaCoUI_Hooks(self)
 

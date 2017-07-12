@@ -36,8 +36,6 @@ if idc.__EA64__:
 else:
     import YaToolsPy32 as ya
 
-from ImportExport.YaTools import YaTools
-
 class YaLogHandler(logging.Handler):
     def __init__(self):
         logging.Handler.__init__(self)
