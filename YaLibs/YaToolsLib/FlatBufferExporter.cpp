@@ -245,6 +245,8 @@ std::shared_ptr<IFlatExporter> MakeFlatBufferExporter()
 FBExporter::FBExporter()
     : is_default_object_(false)
     , is_ready_(false)
+    , object_type_(OBJECT_TYPE_UNKNOWN)
+    , object_id_(0)
 {
 }
 
