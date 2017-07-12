@@ -1707,16 +1707,6 @@ namespace
                 LOG(ERROR, "make_struct: 0x" EA_FMT " unable to set %s comment to '%s'\n", ea, repeat ? "repeatable" : "non-repeatable", strcmt.data());
         }
 
-        if(struc->is_union())
-        {
-            // add a dummy field to avoid errors later on, maybe not on empty strucs
-            // FIXME check if still necessary
-            const auto ok = add_struc_member(struc, "yaco_filler", 0, FF_BYTE, nullptr, 1);
-            if(!ok)
-                LOG(ERROR, "make_struct: 0x" EA_FMT " %s unable to add filler byte\n", ea, name.data());
-            return;
-        }
-
         clear_struct_fields(exporter, version, struc->id);
     }
 }
