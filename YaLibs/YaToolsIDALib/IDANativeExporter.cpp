@@ -1592,39 +1592,42 @@ namespace
 
     void make_struct_member(Exporter& exporter, const HVersion& version, ea_t ea)
     {
+        const auto id = version.id();
+        const auto name = make_string(version.username());
         const auto parent_id = version.parent_id();
         const auto parent = get_tid(exporter, parent_id);
         if(parent.tid == BADADDR)
         {
-            LOG(ERROR, "make_struct_member: 0x" EA_FMT " missing parent struct 0x%llx\n", ea, parent_id);
+            LOG(ERROR, "make_struct_member: %016llx %s: missing parent struct %016llx\n", id, name.data(), parent_id);
             return;
         }
 
         const auto struc = get_struc(parent.tid);
         if(!struc)
         {
-            LOG(ERROR, "make_struct_member: 0x" EA_FMT ":" EA_FMT " missing struct\n", parent.tid, ea);
+            LOG(ERROR, "make_struct_member: %016llx %s: missing struct id %016llx tid_t " EA_FMT "\n", id, name.data(), parent_id, parent.tid);
             return;
         }
 
-        qstring buffer;
+        const auto sname = exporter.qpool_.acquire();
+        get_struc_name(&*sname, parent.tid);
+
+        const auto qbuf = exporter.qpool_.acquire();
         const auto func = get_func(get_func_by_frame(struc->id));
         for(auto it = get_struc_last_offset(struc); struc->is_union() && it != BADADDR && it < ea; ++it)
         {
             const auto offset = it + 1;
-            const auto defname = ya::get_default_name(buffer, offset, func);
+            const auto defname = ya::get_default_name(*qbuf, offset, func);
             const auto err = add_struc_member(struc, defname.value, BADADDR, FF_BYTE | FF_DATA, nullptr, 1);
             if(err != STRUC_ERROR_MEMBER_OK)
-                LOG(ERROR, "make_struc_member: 0x" EA_FMT ":" EA_FMT " unable to add member %s " EA_FMT " (error %d)\n", struc->id, ea, defname.value, offset, err);
+                LOG(ERROR, "make_struct_member: %s:" EA_FMT ": unable to add member %s " EA_FMT " (error %d)\n", sname->c_str(), ea, defname.value, offset, err);
         }
 
-        const auto member_name = version.username();
-        if(member_name.size)
+        if(!name.empty())
         {
-            const auto strname = make_string(member_name);
-            const auto ok = set_member_name(struc, ea, strname.data());
+            const auto ok = set_member_name(struc, ea, name.data());
             if(!ok)
-                LOG(ERROR, "make_struc_member: 0x" EA_FMT ":" EA_FMT " unable to set member name %s\n", struc->id, ea, strname.data());
+                LOG(ERROR, "make_struct_member: %s:" EA_FMT ": unable to set member name %s\n", sname->c_str(), ea, name.data());
         }
 
         opinfo_t op;
@@ -1633,12 +1636,12 @@ namespace
         const auto pop = get_member_info(&op, exporter, version, flags);
         auto ok = set_member_type(struc, ea, (flags & DT_TYPE) | FF_DATA, pop, static_cast<asize_t>(size));
         if(!ok)
-            LOG(ERROR, "make_struc_member: 0x" EA_FMT ":" EA_FMT " unable to set member type & size %lld\n", struc->id, ea, size);
+            LOG(ERROR, "make_struct_member: %s.%s: unable to set member type & size %lld\n", sname->c_str(), name.data(), size);
 
         const auto member = get_member(struc, ea);
         if(!member)
         {
-            LOG(ERROR, "make_struc_member: 0x" EA_FMT ":" EA_FMT " missing member\n", struc->id, ea);
+            LOG(ERROR, "make_struct_member: %s.%s: missing member\n", sname->c_str(), name.data());
             return;
         }
 
@@ -1648,7 +1651,7 @@ namespace
             const auto strcmt = make_string(cmt);
             ok = set_member_cmt(member, strcmt.data(), repeat);
             if(!ok)
-                LOG(ERROR, "make_struc_member: 0x" EA_FMT ":" EA_FMT " unable to set %s comment to '%s'\n", struc->id, ea, repeat ? "repeatable" : "non-repeatable", strcmt.data());
+                LOG(ERROR, "make_struct_member: %s.%s: unable to set %s comment to '%s'\n", sname->c_str(), name.data(), repeat ? "repeatable" : "non-repeatable", strcmt.data());
         }
 
         const auto prototype = version.prototype();
@@ -1657,7 +1660,7 @@ namespace
             const auto strtype = make_string(prototype);
             ok = set_struct_member_type(&exporter, member->id, strtype);
             if(!ok)
-                LOG(ERROR, "make_struc_member: 0x" EA_FMT ":" EA_FMT " unable to set prototype '%s'\n", struc->id, ea, strtype.data());
+                LOG(ERROR, "make_struct_member: %s.%s: unable to set prototype '%s'\n", sname->c_str(), name.data(), strtype.data());
         }
         set_tid(exporter, version.id(), member->id, struc->props & SF_FRAME ? OBJECT_TYPE_STACKFRAME_MEMBER : OBJECT_TYPE_STRUCT_MEMBER);
     }
