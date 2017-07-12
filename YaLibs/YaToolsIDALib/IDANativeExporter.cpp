@@ -734,8 +734,6 @@ namespace
 
     const std::regex r_function_definition  {"^(.+?)\\s*(__\\w+)\\s+sub\\((.*)\\)$"};
 
-    tinfo_t find_type(ea_t ea, const std::string& input);
-
     tinfo_t try_find_type(ea_t ea, const std::string& input)
     {
         auto tif = find_single_type(input);
@@ -753,7 +751,7 @@ namespace
         const auto args = match.str(3);
 
         func_type_data_t ft;
-        ft.rettype = find_type(ea, return_type);
+        ft.rettype = try_find_type(ea, return_type);
         if(ft.rettype.empty())
             return tinfo_t();
 
@@ -761,14 +759,14 @@ namespace
         for(const auto& token : split_args(args))
         {
             funcarg_t arg;
-            arg.type = find_type(ea, token);
+            arg.type = try_find_type(ea, token);
             if(arg.type.empty())
                 return tinfo_t();
 
             // FIXME try to parse argument name, it often work but is fundamentally broken
             std::string argname;
             const auto stripped = std::regex_replace(token, r_trailing_identifier, "");
-            tif = find_type(ea, "typedef " + token + " a b");
+            tif = try_find_type(ea, "typedef " + token + " a b");
             if(tif.empty())
                 argname = token.substr(stripped.size());
             argname = std::regex_replace(argname, r_leading_whitespace, "");
@@ -786,14 +784,6 @@ namespace
         return tif;
     }
 
-    tinfo_t find_type(ea_t ea, const std::string& input)
-    {
-        tinfo_t tif = try_find_type(ea, input);
-        if(tif.empty())
-            LOG(ERROR, "find_type: 0x" EA_FMT " unable to guess type for %s\n", ea, input.data());
-        return tif;
-    }
-
     template<typename T>
     bool try_set_type(const Exporter* exporter, ea_t ea, const std::string& value, const T& operand)
     {
@@ -801,7 +791,13 @@ namespace
             return false;
 
         const auto patched = exporter ? patch_prototype(*exporter, value, ea) : value;
-        const auto tif = find_type(ea, patched.data());
+        const auto tif = try_find_type(ea, patched.data());
+        if(tif.empty())
+        {
+            LOG(ERROR, "set_type: 0x" EA_FMT " unknown type %s\n", ea, patched.data());
+            return false;
+        }
+
         const auto ok = operand(tif);
         if(!ok)
             LOG(ERROR, "set_type: 0x" EA_FMT " unable to set type %s\n", ea, patched.data());
