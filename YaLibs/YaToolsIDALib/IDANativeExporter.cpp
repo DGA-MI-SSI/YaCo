@@ -1308,12 +1308,7 @@ namespace
         ida_path.clear();
         ida_path.reserve(path.types.size());
         for(const auto& it : path.types)
-        {
-            qstring name;
-            name = get_struc_name(it.tid);
-            name = get_member_name2(it.tid);
             ida_path.emplace_back(it.tid);
-        }
         const auto ok = op_stroff(static_cast<ea_t>(ea + path.offset), path.operand, &ida_path[0], ida_path.size(), 0);
         if(ok)
             return;
