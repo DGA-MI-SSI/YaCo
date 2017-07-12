@@ -40,6 +40,14 @@
 #include <chrono>
 #include <regex>
 
+#ifdef _MSC_VER
+#   include <optional.hpp>
+using namespace nonstd;
+#else
+#   include <experimental/optional>
+using namespace std::experimental;
+#endif
+
 #define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("ida_exporter", (FMT), ## __VA_ARGS__)
 
 #ifdef __EA64__
@@ -1529,18 +1537,18 @@ namespace
         clear_struct_fields(exporter, version, frame->id);
     }
 
-    YaToolObjectId get_xref_at(const HVersion& version, offset_t offset, operand_t operand)
+    optional<YaToolObjectId> get_xref_at(const HVersion& version, offset_t offset, operand_t operand)
     {
-        YaToolObjectId id = InvalidId;
+        optional<YaToolObjectId> reply;
         version.walk_xrefs([&](offset_t off, operand_t op, YaToolObjectId xref_id, const XrefAttributes* /*attrs*/)
         {
             if(off != offset || op != operand)
                 return WALK_CONTINUE;
 
-            id = xref_id;
+            reply = xref_id;
             return WALK_CONTINUE;
         });
-        return id;
+        return reply;
     }
 
     const opinfo_t* get_member_info(opinfo_t* pop, const Exporter& exporter, const HVersion& version, flags_t flags)
@@ -1555,10 +1563,10 @@ namespace
 
         // if the sub field is a struct/enum then the first xref field is the struct/enum object id
         const auto xref_id = get_xref_at(version, 0, 0);
-        if(xref_id == InvalidId)
+        if(!xref_id)
             return nullptr;
 
-        const auto tid = get_tid(exporter, xref_id).tid;
+        const auto tid = get_tid(exporter, *xref_id).tid;
         if(tid == BADADDR)
             return nullptr;
 

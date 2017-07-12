@@ -49,8 +49,6 @@ typedef uint32_t YaToolFlag_T;
 
 #define UNKNOWN_ADDR    static_cast<offset_t>(~0)
 
-static const YaToolObjectId InvalidId = ~0u;
-
 enum ContinueWalking_e
 {
     WALK_CONTINUE,
