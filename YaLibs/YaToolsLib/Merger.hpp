@@ -14,7 +14,7 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "HVersion.hpp"
-#include "VersionRelation.hpp"
+#include "Relation.hpp"
 
 #include <set>
 

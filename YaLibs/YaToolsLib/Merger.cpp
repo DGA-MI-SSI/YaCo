@@ -21,7 +21,6 @@
 #include "Model.hpp"
 #include "XML/XMLDatabaseModel.hpp"
 #include "XML/XMLExporter.hpp"
-#include "VersionRelation.hpp"
 #include "../Helpers.h"
 
 #include <functional>
