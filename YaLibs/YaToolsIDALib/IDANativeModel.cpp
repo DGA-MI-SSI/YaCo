@@ -727,7 +727,7 @@ namespace
     template<typename Ctx>
     void accept_signature(Ctx& /*ctx*/, IModelVisitor& v, uint32_t crc)
     {
-        char buf[32];
+        char buf[sizeof crc * 2];
         const auto strcrc = str_crc32(buf, crc);
         v.visit_signature(SIGNATURE_FIRSTBYTE, SIGNATURE_ALGORITHM_CRC32, strcrc);
     }
@@ -920,7 +920,8 @@ namespace
     template<typename Ctx>
     void get_crcs(Ctx& ctx, const char* where, Crcs* crcs, ea_t ea_func, area_t block)
     {
-        char hexbuf[32];
+        char hexcmditype[4];
+        char hexoptype[2];
         const auto buf = read_buffer(ctx, "accept_function", block.startEA, block.endEA);
         walk_contiguous_chunks(buf, [&](const uint8_t* buffer, size_t from, size_t to)
         {
@@ -939,13 +940,13 @@ namespace
                     return;
                 }
                 crcs->firstbyte = std_crc32(crcs->firstbyte, buffer, 1);
-                const auto itypehex = str_hex(hexbuf, cmd.itype);
+                const auto itypehex = str_hex(hexcmditype, cmd.itype);
                 crcs->operands = std_crc32(crcs->operands, itypehex.value, itypehex.size);
                 for(const auto& op : cmd.Operands)
                 {
                     if(op.type == o_void)
                         continue;
-                    const auto ophex = str_hex(hexbuf, op.type);
+                    const auto ophex = str_hex(hexoptype, op.type);
                     crcs->operands = std_crc32(crcs->operands, ophex.value, ophex.size);
                 }
                 ea += cmd.size;

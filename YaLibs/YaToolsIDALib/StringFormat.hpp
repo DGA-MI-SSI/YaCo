@@ -35,7 +35,7 @@ namespace
     template<CasePolicy casep, PadPolicy padp, size_t size, size_t szdst>
     const_string_ref binhex(char (&dst)[szdst], const void* vsrc)
     {
-        static_assert(szdst >= size * 2, "invalid destination size");
+        static_assert(szdst == size * 2, "invalid destination size");
         const uint8_t* src = static_cast<const uint8_t*>(vsrc);
         const auto& hexchars = casep == UpperCase ? hexchars_upper : hexchars_lower;
         for(size_t i = 0; i < size; ++i)
