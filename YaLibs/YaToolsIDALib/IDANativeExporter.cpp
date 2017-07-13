@@ -85,7 +85,14 @@ namespace
 
     struct Tid
     {
+        Tid(ea_t tid, asize_t size, YaToolObjectType_e type)
+            : tid(tid)
+            , size(size)
+            , type(type)
+        {
+        }
         ea_t                tid;
+        asize_t             size;
         YaToolObjectType_e  type;
     };
 
@@ -529,13 +536,13 @@ namespace
     {
         const auto it = exporter.tids_.find(id);
         if(it == exporter.tids_.end())
-            return {BADADDR, OBJECT_TYPE_UNKNOWN};
+            return {BADADDR, 0, OBJECT_TYPE_UNKNOWN};
         return it->second;
     }
 
-    void set_tid(Exporter& exporter, YaToolObjectId id, ea_t tid, YaToolObjectType_e type)
+    void set_tid(Exporter& exporter, YaToolObjectId id, ea_t tid, offset_t size, YaToolObjectType_e type)
     {
-        exporter.tids_.insert({id, {tid, type}});
+        exporter.tids_.insert({id, {tid, static_cast<asize_t>(size), type}});
     }
 
     const std::regex r_trailing_identifier{"\\s*<?[a-zA-Z_0-9]+>?\\s*$"};     // match c/c++ identifiers
@@ -1176,7 +1183,7 @@ namespace
         });
 
         const auto id = version.id();
-        exporter.tids_.insert({id, {eid, OBJECT_TYPE_ENUM}});
+        set_tid(exporter, id, eid, 0, OBJECT_TYPE_ENUM);
         exporter.provider_.put_hash_struc_or_enum(eid, id, false);
     }
 
@@ -1529,7 +1536,7 @@ namespace
         }
 
         const auto id = version.id();
-        set_tid(exporter, id, frame->id, OBJECT_TYPE_STACKFRAME);
+        set_tid(exporter, id, frame->id, version.size(), OBJECT_TYPE_STACKFRAME);
         clear_struct_fields(exporter, version, frame->id);
     }
 
@@ -1547,7 +1554,7 @@ namespace
         return reply;
     }
 
-    const opinfo_t* get_member_info(opinfo_t* pop, const Exporter& exporter, const HVersion& version, flags_t flags)
+    const opinfo_t* get_member_info(opinfo_t* pop, asize_t& size, const Exporter& exporter, const HVersion& version, flags_t flags)
     {
         if(isASCII(flags))
         {
@@ -1562,16 +1569,22 @@ namespace
         if(!xref_id)
             return nullptr;
 
-        const auto tid = get_tid(exporter, *xref_id).tid;
-        if(tid == BADADDR)
+        const auto xref = get_tid(exporter, *xref_id);
+        if(xref.tid == BADADDR)
             return nullptr;
 
         if(isStruct(flags))
         {
-            const auto struc = get_struc(tid);
+            const auto struc = get_struc(xref.tid);
             if(!struc)
                 return nullptr;
 
+            // as members are updated without ordering
+            // target struct may not have its final size
+            // yet ida MUST be given a struct size multiple
+            // so we must use the current structure size here
+            size *= get_struc_size(struc);
+            size /= std::max(1u, xref.size);
             pop->tid = struc->id;
             return pop;
         }
@@ -1579,7 +1592,7 @@ namespace
         if(isEnum0(flags))
         {
             pop->ec.serial = 0; // FIXME ?
-            pop->ec.tid = tid;
+            pop->ec.tid = xref.tid;
             return pop;
         }
 
@@ -1628,11 +1641,11 @@ namespace
 
         opinfo_t op;
         const auto flags = version.flags();
-        const auto size = version.size();
-        const auto pop = get_member_info(&op, exporter, version, flags);
-        auto ok = set_member_type(struc, ea, (flags & DT_TYPE) | FF_DATA, pop, static_cast<asize_t>(size));
+        auto size = static_cast<asize_t>(version.size());
+        const auto pop = get_member_info(&op, size, exporter, version, flags);
+        auto ok = set_member_type(struc, ea, (flags & DT_TYPE) | FF_DATA, pop, size);
         if(!ok)
-            LOG(ERROR, "make_struct_member: %s.%s: unable to set member type & size %lld\n", sname->c_str(), name.data(), size);
+            LOG(ERROR, "make_struct_member: %s.%s: unable to set member type %x to " SEL_FMT " bytes\n", sname->c_str(), name.data(), flags, size);
 
         const auto member = get_member(struc, ea);
         if(!member)
@@ -1658,7 +1671,7 @@ namespace
             if(!ok)
                 LOG(ERROR, "make_struct_member: %s.%s: unable to set prototype '%s'\n", sname->c_str(), name.data(), strtype.data());
         }
-        set_tid(exporter, version.id(), member->id, struc->props & SF_FRAME ? OBJECT_TYPE_STACKFRAME_MEMBER : OBJECT_TYPE_STRUCT_MEMBER);
+        set_tid(exporter, version.id(), member->id, 0, struc->props & SF_FRAME ? OBJECT_TYPE_STACKFRAME_MEMBER : OBJECT_TYPE_STRUCT_MEMBER);
     }
 
     struc_t* get_struc_from_name(const char* name)
@@ -1694,7 +1707,7 @@ namespace
         }
 
         const auto id = version.id();
-        set_tid(exporter, id, struc->id, OBJECT_TYPE_STRUCT);
+        set_tid(exporter, id, struc->id, version.size(), OBJECT_TYPE_STRUCT);
         exporter.provider_.put_hash_struc_or_enum(struc->id, id, false);
 
         for(const auto repeat : {false, true})
