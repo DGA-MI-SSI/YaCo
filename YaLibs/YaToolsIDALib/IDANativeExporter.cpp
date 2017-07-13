@@ -129,6 +129,8 @@ namespace
         Pool<qstring>                   qpool_;
         Bookmarks                       bookmarks_;
     };
+
+    const char ARM_txt[] = "ARM";
 }
 
 Exporter::Exporter(YaToolsHashProvider* provider, FramePolicy frame_policy)
@@ -136,7 +138,8 @@ Exporter::Exporter(YaToolsHashProvider* provider, FramePolicy frame_policy)
     , use_frames_(frame_policy == UseFrames)
     , qpool_(4)
 {
-    if(!strncmp(inf.procName, "ARM", sizeof inf.procName))
+    static_assert(sizeof ARM_txt <= sizeof inf.procName, "procName size mismatch");
+    if(!memcmp(inf.procName, ARM_txt, sizeof ARM_txt))
         plugin_ = MakeArmPluginVisitor();
 
     const auto qbuf = qpool_.acquire();
