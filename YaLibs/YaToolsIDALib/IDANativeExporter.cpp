@@ -61,7 +61,7 @@ using namespace std::experimental;
 #define EA_FMT          "%" EA_PREFIX "x"
 #define EA_DECIMAL_FMT  "%" EA_PREFIX "u"
 #define XMLEA_FMT       "%0" EA_SIZE EA_PREFIX "X"
-#define SEL_FMT         "%" EA_PREFIX "d"
+#define SEL_FMT         "%" EA_PREFIX "u"
 
 namespace
 {
@@ -252,13 +252,13 @@ namespace
     }
 
     MAKE_TO_TYPE_FUNCTION(to_ea,      ea_t,             EA_DECIMAL_FMT);
-    MAKE_TO_TYPE_FUNCTION(to_uchar,   uchar,            "%hhd");
-    MAKE_TO_TYPE_FUNCTION(to_ushort,  ushort,           "%hd");
+    MAKE_TO_TYPE_FUNCTION(to_uchar,   uchar,            "%hhu");
+    MAKE_TO_TYPE_FUNCTION(to_ushort,  ushort,           "%hu");
     MAKE_TO_TYPE_FUNCTION(to_int,     int,              "%d");
     MAKE_TO_TYPE_FUNCTION(to_sel,     sel_t,            SEL_FMT);
     MAKE_TO_TYPE_FUNCTION(to_bgcolor, bgcolor_t,        "%u");
     MAKE_TO_TYPE_FUNCTION(to_yaid,    YaToolObjectId,   "%llx");
-    MAKE_TO_TYPE_FUNCTION(to_path,    int,              "0x%08X");
+    MAKE_TO_TYPE_FUNCTION(to_path,    uint32_t,         "0x%08X");
     MAKE_TO_TYPE_FUNCTION(to_xmlea,   ea_t,             "0x" XMLEA_FMT);
 
     template<typename T>
@@ -1264,8 +1264,8 @@ namespace
 
     struct PathItem
     {
-        tid_t   tid;
-        int     idx;
+        tid_t    tid;
+        uint32_t idx;
     };
 
     struct Path
@@ -1294,7 +1294,7 @@ namespace
     void fill_path(Paths& paths, tid_t tid, offset_t offset, operand_t operand, const HVersion& version, const XrefAttributes* attrs)
     {
         auto& path = get_path_at(paths, offset, operand);
-        int path_idx = 0;
+        uint32_t path_idx = 0;
         version.walk_xref_attributes(attrs, [&](const const_string_ref& key, const const_string_ref& val)
         {
             if(!(g_path_idx == key))
