@@ -828,7 +828,11 @@ namespace
         {
             struc_t* s = nullptr;
             auto* m = get_member_by_id(ea, &s);
-            return s && m && set_member_tinfo2(s, m, 0, tif, 0);
+            if(!s || !m)
+                return false;
+            const auto err = set_member_tinfo2(s, m, 0, tif, 0);
+            static_assert(SMT_FAILED == 0, "smt_code_t has been modified");
+            return err > SMT_FAILED;
         });
     }
 
