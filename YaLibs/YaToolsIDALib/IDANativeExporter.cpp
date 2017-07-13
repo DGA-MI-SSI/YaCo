@@ -1588,10 +1588,14 @@ namespace
 
             // as members are updated without ordering
             // target struct may not have its final size
-            // yet ida MUST be given a struct size multiple
+            // yet IDA MUST be given a struct size multiple
             // so we must use the current structure size here
-            size *= get_struc_size(struc);
-            size /= std::max(1u, xref.size);
+            const auto current_size = get_struc_size(struc);
+            if(xref.size > 0 && current_size > 0)
+            {
+                size *= current_size;
+                size /= xref.size;
+            }
             pop->tid = struc->id;
             return pop;
         }
