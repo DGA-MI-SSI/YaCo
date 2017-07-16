@@ -456,34 +456,34 @@ MergeStatus_e Merger::mergeObjectVersions( IModelVisitor& visitor_db, std::set<Y
 
 
     /*********** attributes ***********************/
-    std::map<const_string_ref, const_string_ref> attributes;
+    std::map<std::string, std::string> attributes;
     switch(relation.type_)
     {
     case RELATION_TYPE_EXACT_MATCH:
         relation.version2_.walk_attributes([&](const const_string_ref& key_new, const const_string_ref& value_new)
         {
-            attributes[key_new] = value_new;
+            attributes[make_string(key_new)] = make_string(value_new);
             return WALK_CONTINUE;
         });
         relation.version1_.walk_attributes([&](const const_string_ref& key_ref, const const_string_ref& value_ref)
         {
-            const auto& search = attributes.find(key_ref);
+            const auto& search = attributes.find(make_string(key_ref));
             if(search == attributes.end())
             {
-                attributes[key_ref] = value_ref;
+                attributes[make_string(key_ref)] = make_string(value_ref);
             }
             else
             {
-                mergeAttributes("attribute", value_ref, search->second, [&](const const_string_ref& value)
+                mergeAttributes("attribute", value_ref, make_string_ref(search->second), [&](const const_string_ref& value)
                 {
-                    attributes[key_ref] = value;
+                    attributes[make_string(key_ref)] = make_string(value);
                 });
             }
             return WALK_CONTINUE;
         });
         for(const auto& attribute: attributes)
         {
-            visitor_db.visit_attribute(attribute.first, attribute.second);
+            visitor_db.visit_attribute(make_string_ref(attribute.first), make_string_ref(attribute.second));
         }
 
         break;
