@@ -18,7 +18,6 @@
 
 #include "IDANativeExporter.hpp"
 
-#include "YaToolsIDANativeLib.hpp"
 #include "YaToolsHashProvider.hpp"
 #include "IObjectListener.hpp"
 #include "HVersion.hpp"
@@ -121,7 +120,6 @@ namespace
         IHashProvider&                  provider_;
         const bool                      use_frames_;
         EnumMemberMap                   enum_members_;
-        YaToolsIDANativeLib             tools_;
         RefInfos                        refs_;
         TidMap                          tids_;
         std::shared_ptr<IPluginVisitor> plugin_;
@@ -203,6 +201,66 @@ namespace
         // FIXME add to bookmarks_ ?
     }
 
+    void clear_extra_comment(ea_t ea, int from)
+    {
+        for(int i = get_first_free_extra_cmtidx(ea, from) - 1; i >= from; i--)
+            del_extra_cmt(ea, i);
+    }
+
+    bool try_delete_comment(CommentType_e comment_type, ea_t ea)
+    {
+        LOG(DEBUG, "delete_comment: 0x%" PRIXEA " %s\n", ea, get_comment_type_string(comment_type));
+        switch(comment_type)
+        {
+            case COMMENT_REPEATABLE:
+                return set_cmt(ea, "", true);
+
+            case COMMENT_NON_REPEATABLE:
+                return set_cmt(ea, "", false);
+
+            case COMMENT_ANTERIOR:
+                clear_extra_comment(ea, E_PREV);
+                return true;
+
+            case COMMENT_POSTERIOR:
+                clear_extra_comment(ea, E_NEXT);
+                return true;
+
+            case COMMENT_BOOKMARK:
+                ya::walk_bookmarks([&](int i, ea_t locea, curloc& loc)
+                {
+                    if(locea == ea)
+                        loc.mark(i, "", "");
+                });
+                return true;
+
+            case COMMENT_UNKNOWN:
+            case COMMENT_COUNT:
+                break;
+        }
+        return false;
+    }
+
+    void delete_comment(CommentType_e comment_type, ea_t ea)
+    {
+        const auto ok = try_delete_comment(comment_type, ea);
+        if(!ok)
+            LOG(ERROR, "delete_comment: 0x%" PRIXEA " unable to delete %s comment\n", ea, get_comment_type_string(comment_type));
+    }
+
+    void make_extra_comment(ea_t ea, const std::string& comment, int from)
+    {
+        clear_extra_comment(ea, from);
+
+        std::stringstream istream(comment);
+        std::string line;
+        while(std::getline(istream, line))
+            update_extra_cmt(ea, from++, line.data());
+
+        // matches "doExtra" call from IDA python
+        setFlbits(ea, FF_LINE);
+    }
+
     void make_comments(Exporter& exporter, const HVersion& version, ea_t ea)
     {
         std::set<std::tuple<offset_t, CommentType_e, std::string>> comments;
@@ -222,10 +280,10 @@ namespace
                         LOG(ERROR, "make_comments: 0x" EA_FMT " unable to set non-repeatable comment '%s'\n", comment_ea, strcmt.data());
                     break;
                 case COMMENT_ANTERIOR:
-                    exporter.tools_.make_extra_comment(comment_ea, strcmt.data(), E_PREV);
+                    make_extra_comment(comment_ea, strcmt.data(), E_PREV);
                     break;
                 case COMMENT_POSTERIOR:
-                    exporter.tools_.make_extra_comment(comment_ea, strcmt.data(), E_NEXT);
+                    make_extra_comment(comment_ea, strcmt.data(), E_NEXT);
                     break;
                 case COMMENT_BOOKMARK:
                     add_bookmark(comment_ea, strcmt);
@@ -241,7 +299,7 @@ namespace
             ya::walk_comments(exporter, it, get_flags_novalue(it), [&](const const_string_ref& cmt, CommentType_e type)
             {
                 if(!comments.count(std::make_tuple(it - ea, type, make_string(cmt))))
-                    exporter.tools_.delete_comment_at_ea(it, type);
+                    delete_comment(type, it);
             });
     }
 
