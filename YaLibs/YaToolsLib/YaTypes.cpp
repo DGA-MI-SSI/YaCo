@@ -17,6 +17,8 @@
 #include "Hexa.h"
 #include "../Helpers.h"
 
+#include <farmhash.h>
+
 #include <type_traits>
 
 #ifdef _MSC_VER
@@ -123,3 +125,8 @@ std::string get_uint_hex(uint64_t value)
 }
 
 STATIC_ASSERT_POD(const_string_ref);
+
+size_t std::hash<const_string_ref>::operator()(const const_string_ref& v) const
+{
+    return util::Hash(v.value, v.size);
+}

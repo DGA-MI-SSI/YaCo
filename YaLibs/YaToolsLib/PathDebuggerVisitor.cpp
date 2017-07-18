@@ -20,6 +20,8 @@
 #include "Logger.h"
 #include "YaToolObjectId.hpp"
 
+#include <memory>
+
 #define LOG(FMT, ...) YALOG_INFO("path_debugger", (FMT), ## __VA_ARGS__)
 
 namespace

@@ -23,6 +23,7 @@
 #include "IObjectListener.hpp"
 #include "ModelIndex.hpp"
 
+#include <assert.h>
 #include <functional>
 
 #if 0

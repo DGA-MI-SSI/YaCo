@@ -17,6 +17,8 @@
 
 #include "../Helpers.h"
 
+#include <farmhash.h>
+
 YaToolObjectId YaToolObjectId_Hash(const std::string& s)
 {
     return util::Fingerprint64(s);

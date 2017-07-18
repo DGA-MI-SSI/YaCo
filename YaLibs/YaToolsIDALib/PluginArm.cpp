@@ -22,6 +22,7 @@
 #include "Logger.h"
 
 #include <functional>
+#include <memory>
 
 #ifdef __EA64__
 #define EA_PREFIX "ll"

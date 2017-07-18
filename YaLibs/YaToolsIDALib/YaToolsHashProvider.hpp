@@ -17,6 +17,8 @@
 
 #include "YaTypes.hpp"
 
+namespace std { template<typename T> class shared_ptr; }
+
 struct IHashProvider
 {
     virtual ~IHashProvider() {}

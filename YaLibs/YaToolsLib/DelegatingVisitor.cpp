@@ -15,6 +15,8 @@
 
 #include "DelegatingVisitor.hpp"
 
+#include <memory>
+
 DelegatingVisitor::DelegatingVisitor()
 {
 }

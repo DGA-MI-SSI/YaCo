@@ -18,11 +18,7 @@
 #include <stdint.h>
 #include <inttypes.h>
 #include <string>
-#include <memory>
-#include <assert.h>
-#include <unordered_map>
-#include <ostream>
-#include <farmhash.h>
+#include <string.h>
 
 class IModelVisitor;
 struct IModel;
@@ -102,16 +98,6 @@ const char* get_object_type_string(YaToolObjectType_e object_type);
 const char* get_object_swig_type_string(YaToolObjectType_e object_type);
 
 #ifndef SWIG
-inline std::ostream & operator<<(std::ostream& oss, YaToolObjectType_e type)
-{
-    return oss << get_object_swig_type_string(type);
-}
-
-inline std::string & operator<<(std::string& oss, YaToolObjectType_e type)
-{
-    return oss.append(get_object_swig_type_string(type));
-}
-
 namespace std
 {
     template<>
@@ -128,7 +114,7 @@ namespace std
 /*
  * Type of comments
  * When exporting informations, the order should always be that of the
- * enum members (first, repetable, the non_repeatable, anterior, posterior, bookmark...)
+ * enum members (first, repeatable, non_repeatable, anterior, posterior, bookmark...)
  */
 enum CommentType_e
 {
@@ -187,10 +173,7 @@ namespace std
     template<>
     struct hash<const_string_ref>
     {
-        size_t operator()(const const_string_ref& v) const
-        {
-            return util::Hash(v.value, v.size);
-        }
+        size_t operator()(const const_string_ref& v) const;
     };
 }
 #endif //SWIG

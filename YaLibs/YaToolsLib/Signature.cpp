@@ -18,9 +18,9 @@
 #include "IModel.hpp"
 #include "../Helpers.h"
 
+#include <farmhash.h>
 #include <sstream>
 #include <type_traits>
-
 
 #ifdef _MSC_VER
 #define stricmp _stricmp

@@ -17,6 +17,8 @@
 
 #include "YaTypes.hpp"
 
+namespace std { template<typename T> class shared_ptr; }
+
 class IModelVisitor;
 struct HVersion;
 

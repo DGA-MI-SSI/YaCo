@@ -38,6 +38,7 @@
 #include <set>
 #include <chrono>
 #include <regex>
+#include <unordered_map>
 
 #ifdef _MSC_VER
 #   include <optional.hpp>

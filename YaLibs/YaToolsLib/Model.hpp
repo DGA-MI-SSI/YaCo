@@ -16,8 +16,8 @@
 #pragma once
 
 #include "IModelVisitor.hpp"
+#include <memory>
 
-namespace std { template<typename T> class shared_ptr; }
 struct IModel;
 class IModelVisitor;
 

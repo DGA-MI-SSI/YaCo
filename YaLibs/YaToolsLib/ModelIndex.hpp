@@ -17,6 +17,7 @@
 
 #include <algorithm>
 #include <vector>
+#include <unordered_map>
 
 #ifdef _MSC_VER
 #   include <optional.hpp>

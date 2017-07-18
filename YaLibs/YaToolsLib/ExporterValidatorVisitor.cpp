@@ -20,6 +20,8 @@
 #include "Yatools.h"
 #include "Logger.h"
 
+#include <memory>
+
 #define validator_assert(CONDITION, FMT, ...) do {\
     if(CONDITION) break;\
     YALOG_ERROR(nullptr, " " FMT, ## __VA_ARGS__);\
