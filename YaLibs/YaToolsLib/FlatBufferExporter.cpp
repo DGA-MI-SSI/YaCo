@@ -17,7 +17,6 @@
 
 #include "IModelAccept.hpp"
 #include "IModelVisitor.hpp"
-#include "YaToolObjectId.hpp"
 #include "Hexa.h"
 #include "Signature.hpp"
 #include "Logger.h"
@@ -397,7 +396,7 @@ void FBExporter::visit_end_reference_object()
     }();
     if(!dstvec)
     {
-        YALOG_ERROR(nullptr, "unhandled object %s type %x dropped\n", YaToolObjectId_To_StdString(object_id_).data(), object_type_);
+        YALOG_ERROR(nullptr, "unhandled object %llx type %x dropped\n", object_id_, object_type_);
         return;
     }
 

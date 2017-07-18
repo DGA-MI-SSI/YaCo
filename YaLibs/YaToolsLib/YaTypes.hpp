@@ -131,7 +131,7 @@ CommentType_e get_comment_type(const char* comment_type);
 
 const char* get_comment_type_string(CommentType_e comment_type);
 
-std::string get_uint_hex(uint64_t value);
+YaToolObjectId YaToolObjectId_From_String(const char* input, size_t input_len);
 
 #ifndef SWIG
 /*

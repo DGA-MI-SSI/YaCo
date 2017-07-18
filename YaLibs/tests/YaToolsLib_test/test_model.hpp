@@ -15,6 +15,8 @@
 
 #pragma once
 
+#include "BinHex.hpp"
+
 namespace
 {
 struct Buffer : public Mmap_ABC
@@ -86,7 +88,8 @@ std::string str(const HSignature& sig)
 
 std::string str(YaToolObjectId id)
 {
-    return YaToolObjectId_To_StdString(id);
+    char buf[sizeof id * 2];
+    return make_string(to_hex(buf, id));
 }
 
 std::string str(const HVersion& hver)

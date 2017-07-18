@@ -21,6 +21,7 @@
 #include "Yatools.h"
 #include "MultiplexerDelegatingVisitor.hpp"
 #include "YaTypes.hpp"
+#include "BinHex.hpp"
 
 namespace
 {
@@ -119,5 +120,35 @@ TEST(yatools, test_is_default_name)
     };
     for(const auto& it : values)
         EXPECT_EQ(it.is_default, IsDefaultName(make_string_ref(it.value)));
+}
+
+TEST(yatools, test_binhex)
+{
+    char prefix_buf_end[2 + 16 + 1];
+    char prefix_buf[2 + 16];
+    char buf_end[16 + 1];
+    char buf[16];
+    static const auto input = 0xCAFEBABEFull;
+    static const auto zero = 0x0ull;
+
+    EXPECT_EQ("0000000CAFEBABEF", make_string(to_hex(buf, input)));
+    EXPECT_EQ("0000000CAFEBABEF", std::string(to_hex<NullTerminate>(buf_end, input).value));
+    EXPECT_EQ("0x0000000CAFEBABEF", make_string(to_hex<HexaPrefix>(prefix_buf, input)));
+    EXPECT_EQ("0x0000000CAFEBABEF", std::string(to_hex<HexaPrefix | NullTerminate>(prefix_buf_end, input).value));
+
+    EXPECT_EQ("CAFEBABEF", make_string(to_hex<RemovePadding>(buf, input)));
+    EXPECT_EQ("CAFEBABEF", std::string(to_hex<RemovePadding | NullTerminate>(buf_end, input).value));
+    EXPECT_EQ("0xCAFEBABEF", make_string(to_hex<RemovePadding | HexaPrefix>(prefix_buf, input)));
+    EXPECT_EQ("0xCAFEBABEF", std::string(to_hex<RemovePadding | HexaPrefix | NullTerminate>(prefix_buf_end, input).value));
+
+    EXPECT_EQ("0000000000000000", make_string(to_hex(buf, zero)));
+    EXPECT_EQ("0000000000000000", std::string(to_hex<NullTerminate>(buf_end, zero).value));
+    EXPECT_EQ("0x0000000000000000", make_string(to_hex<HexaPrefix>(prefix_buf, zero)));
+    EXPECT_EQ("0x0000000000000000", std::string(to_hex<HexaPrefix | NullTerminate>(prefix_buf_end, zero).value));
+
+    EXPECT_EQ("0", make_string(to_hex<RemovePadding>(buf, zero)));
+    EXPECT_EQ("0", std::string(to_hex<RemovePadding | NullTerminate>(buf_end, zero).value));
+    EXPECT_EQ("0x0", make_string(to_hex<RemovePadding | HexaPrefix>(prefix_buf, zero)));
+    EXPECT_EQ("0x0", std::string(to_hex<RemovePadding | HexaPrefix | NullTerminate>(prefix_buf_end, zero).value));
 }
 

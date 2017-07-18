@@ -24,7 +24,6 @@
 
 #include "HVersion.hpp"
 #include "HObject.hpp"
-#include "YaToolObjectId.hpp"
 #include "PathDebuggerVisitor.hpp"
 #include "ExporterValidatorVisitor.hpp"
 #include "DelegatingVisitor.hpp"

@@ -15,7 +15,6 @@
 
 #include "XMLDatabaseModel.hpp"
 
-#include "YaToolObjectId.hpp"
 #include "Hexa.h"
 #include "DelegatingVisitor.hpp"
 #include "Signature.hpp"

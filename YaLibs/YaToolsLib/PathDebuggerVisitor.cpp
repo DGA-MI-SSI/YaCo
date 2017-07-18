@@ -18,7 +18,6 @@
 #include "DelegatingVisitor.hpp"
 #include "Yatools.h"
 #include "Logger.h"
-#include "YaToolObjectId.hpp"
 
 #include <memory>
 
@@ -176,7 +175,7 @@ void PathDebuggerVisitor::visit_end_default_object()
 
 void PathDebuggerVisitor::visit_id(YaToolObjectId id)
 {
-    LOG("PathDebuggerVisitor:%x: in "  " -- id=%s\n", id_, YaToolObjectId_To_StdString(id).data());
+    LOG("PathDebuggerVisitor:%x: in "  " -- id=%llx\n", id_, id);
     DelegatingVisitor::visit_id(id);
     LOG_OUT();
 }
@@ -338,7 +337,7 @@ void PathDebuggerVisitor::visit_start_xrefs()
 void PathDebuggerVisitor::visit_start_xref(offset_t offset,
         YaToolObjectId offset_value, operand_t operand)
 {
-    LOG("PathDebuggerVisitor:%x: in "  " -- offset=%" PRIXOFFSET ":%x, offset_value=%s\n", id_, offset, operand, YaToolObjectId_To_StdString(offset_value).data());
+    LOG("PathDebuggerVisitor:%x: in "  " -- offset=%" PRIXOFFSET ":%x, offset_value=%llx\n", id_, offset, operand, offset_value);
     DelegatingVisitor::visit_start_xref(offset, offset_value, operand);
     LOG_OUT();
 }

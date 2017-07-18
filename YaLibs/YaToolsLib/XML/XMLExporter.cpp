@@ -22,8 +22,8 @@
 #include "Logger.h"
 #include "Yatools.h"
 #include "Signature.hpp"
-#include "YaToolObjectId.hpp"
 #include "IModelVisitor.hpp"
+#include "BinHex.hpp"
 
 #include <iostream>
 #include <stdexcept>
@@ -397,17 +397,17 @@ void FileXMLExporter::visit_end_reference_object()
 
 void XMLExporter::visit_id(YaToolObjectId object_id)
 {
-    char id_str[YATOOL_OBJECT_ID_STR_LEN + 1];
-    YaToolObjectId_To_String(id_str, YATOOL_OBJECT_ID_STR_LEN + 1, object_id);
+    char buf[sizeof object_id * 2 + 1];
+    to_hex<NullTerminate>(buf, object_id);
 
     filesystem::path tmp_path(current_xml_file_path_);
-    tmp_path /= string(id_str) + ".xml";
+    tmp_path /= string(buf) + ".xml";
     current_xml_file_path_ = tmp_path.string();
 
     if(delete_file_)
         return;
 
-    add_element(*writer_, "id", id_str);
+    add_element(*writer_, "id", buf);
 }
 
 void FileXMLExporter::visit_id(YaToolObjectId object_id)
@@ -415,9 +415,9 @@ void FileXMLExporter::visit_id(YaToolObjectId object_id)
     if(delete_file_)
         return;
 
-    char id_str[YATOOL_OBJECT_ID_STR_LEN+1];
-    YaToolObjectId_To_String(id_str, YATOOL_OBJECT_ID_STR_LEN+1, object_id);
-    add_element(*writer_, "id", id_str);
+    char buf[sizeof object_id * 2 + 1];
+    to_hex<NullTerminate>(buf, object_id);
+    add_element(*writer_, "id", buf);
 }
 
 void XMLExporter_common::visit_start_object_version()
@@ -427,24 +427,22 @@ void XMLExporter_common::visit_start_object_version()
 
 void XMLExporter_common::visit_parent_id(YaToolObjectId object_id)
 {
-    char buffer[64];
     if(!object_id)
         return;
 
-    memset(buffer, 0, sizeof buffer);
-    sprintf(buffer, "%016" PRIXOFFSET, object_id);
-    add_element(*writer_, "parent_id", buffer);
+    char buf[sizeof object_id * 2 + 1];
+    to_hex<NullTerminate>(buf, object_id);
+    add_element(*writer_, "parent_id", buf);
 }
 
 void XMLExporter_common::visit_address(offset_t address)
 {
-    char buffer[64];
     if(!address)
         return;
 
-    memset(buffer, 0, sizeof buffer);
-    sprintf(buffer, "%" PRIXOFFSET, address);
-    add_element(*writer_, "address", buffer);
+    char buf[sizeof address * 2 + 1];
+    const auto str = to_hex<RemovePadding | NullTerminate>(buf, address);
+    add_element(*writer_, "address", str.value);
 }
 
 void XMLExporter_common::visit_end_object_version()
@@ -457,9 +455,9 @@ void XMLExporter_common::visit_name(const const_string_ref& name, int flags)
     start_element(*writer_, "userdefinedname");
     if(flags)
     {
-        char flags_buffer[(sizeof(flags) + 3) * 2] = {0};
-        sprintf(flags_buffer, "0x%08X", flags);
-        add_attribute(*writer_, "flags", flags_buffer);
+        char buf[2 + sizeof flags * 2 + 1];
+        to_hex<HexaPrefix | NullTerminate>(buf, static_cast<uint32_t>(flags));
+        add_attribute(*writer_, "flags", buf);
     }
     if(name.size)
         write_string(*writer_, make_text(bufkey_, name));
@@ -469,9 +467,9 @@ void XMLExporter_common::visit_name(const const_string_ref& name, int flags)
 
 void XMLExporter_common::visit_size(offset_t size)
 {
-    char size_buffer[(sizeof(size) + 3) * 2] = { 0 };
-    sprintf(size_buffer, "0x%016" PRIXOFFSET, size);
-    add_element(*writer_, "size", size_buffer);
+    char buf[2 + sizeof size * 2 + 1];
+    to_hex<HexaPrefix | NullTerminate>(buf, size);
+    add_element(*writer_, "size", buf);
 }
 
 void  XMLExporter_common::visit_start_signatures()
@@ -528,8 +526,9 @@ void XMLExporter_common::visit_end_offsets()
 
 void XMLExporter_common::visit_offset_comments(offset_t offset, CommentType_e comment_type, const const_string_ref& comment)
 {
+    char buf[sizeof offset * 2 + 1];
     start_element(*writer_, "comments");
-    add_attribute(*writer_, "offset", get_uint_hex(offset).data());
+    add_attribute(*writer_, "offset", to_hex<NullTerminate>(buf, offset).value);
     add_attribute(*writer_, "type", get_comment_type_string(comment_type));
     write_string(*writer_, xml_escape(comment).data());
     end_element(*writer_, "comments");
@@ -537,18 +536,21 @@ void XMLExporter_common::visit_offset_comments(offset_t offset, CommentType_e co
 
 void XMLExporter_common::visit_offset_valueview(offset_t offset, operand_t operand, const const_string_ref& view_value)
 {
+    char offbuf[sizeof offset * 2 + 1];
+    char opbuf[sizeof operand * 2 + 1];
     start_element(*writer_, "valueview");
-    add_attribute(*writer_, "offset", get_uint_hex(offset).data());
-    add_attribute(*writer_, "operand", get_uint_hex(operand).data());
+    add_attribute(*writer_, "offset", to_hex<NullTerminate>(offbuf, offset).value);
+    add_attribute(*writer_, "operand", to_hex<NullTerminate>(opbuf, static_cast<uint32_t>(operand)).value);
     write_string(*writer_, make_text(bufkey_, view_value));
     end_element(*writer_, "valueview");
 }
 
 void XMLExporter_common::visit_offset_registerview(offset_t offset, offset_t end_offset, const const_string_ref& register_name, const const_string_ref& register_new_name)
 {
+    char buf[sizeof offset * 2 + 1];
     start_element(*writer_, "registerview");
-    add_attribute(*writer_, "offset", get_uint_hex(offset).data());
-    add_attribute(*writer_, "end_offset", get_uint_hex(end_offset).data());
+    add_attribute(*writer_, "offset", to_hex<NullTerminate>(buf, offset).value);
+    add_attribute(*writer_, "end_offset", to_hex<NullTerminate>(buf, end_offset).value);
     add_attribute(*writer_, "register", make_text(bufkey_, register_name));
     write_string(*writer_, make_text(bufkey_, register_new_name));
     end_element(*writer_, "registerview");
@@ -556,9 +558,10 @@ void XMLExporter_common::visit_offset_registerview(offset_t offset, offset_t end
 
 void XMLExporter_common::visit_offset_hiddenarea(offset_t offset, offset_t area_size, const const_string_ref& hidden_area_value)
 {
+    char buf[sizeof offset * 2 + 1];
     start_element(*writer_, "hiddenarea");
-    add_attribute(*writer_, "offset", get_uint_hex(offset).data());
-    add_attribute(*writer_, "size", get_uint_hex(area_size).data());
+    add_attribute(*writer_, "offset", to_hex<NullTerminate>(buf, offset).value);
+    add_attribute(*writer_, "size", to_hex<NullTerminate>(buf, area_size).value);
     write_string(*writer_, make_text(bufkey_, hidden_area_value));
     end_element(*writer_, "hiddenarea");
 }
@@ -606,16 +609,15 @@ void XMLExporter_common::visit_attribute(const const_string_ref& attr_name, cons
 
 void XMLExporter_common::visit_start_xref(offset_t offset, YaToolObjectId offset_value, operand_t operand)
 {
+    char offbuf[2 + sizeof offset * 2 + 1];
     start_element(*writer_, "xref");
-    add_attribute(*writer_, "offset", ("0x" + get_uint_hex(offset)).data());
+    add_attribute(*writer_, "offset", to_hex<NullTerminate | HexaPrefix>(offbuf, offset).value);
     if(operand)
-        add_attribute(*writer_, "operand", ("0x" + get_uint_hex(operand)).data());
+        add_attribute(*writer_, "operand", to_hex<NullTerminate | HexaPrefix>(offbuf, static_cast<offset_t>(operand)).value);
 
     // keep this value until we can write it (all attributes must be set before)
-    char id_str[YATOOL_OBJECT_ID_STR_LEN+1];
-    YaToolObjectId_To_String(id_str, YATOOL_OBJECT_ID_STR_LEN+1, offset_value);
-    tmp_value_ = id_str;
-
+    char buf[sizeof offset_value * 2];
+    tmp_value_ = make_string(to_hex(buf, offset_value));
 }
 
 void XMLExporter_common::visit_end_xref()
@@ -631,9 +633,10 @@ void XMLExporter_common::visit_xref_attribute(const const_string_ref& attribute_
 
 void XMLExporter_common::visit_start_matching_system(offset_t address)
 {
+    char buf[sizeof address * 2 + 1];
     start_element(*writer_, "matchingsystem");
     if(address != UNKNOWN_ADDR)
-        add_element(*writer_, "address", get_uint_hex(address).data());
+        add_element(*writer_, "address", to_hex<NullTerminate>(buf, address).value);
 }
 
 void XMLExporter_common::visit_matching_system_description(const const_string_ref& description_key, const const_string_ref& description_value)
@@ -655,8 +658,9 @@ void XMLExporter_common::visit_blob(offset_t offset, const void* blob, size_t le
 
     static_assert(sizeof offset == sizeof(uint64_t), "bad offset_t sizeof");
 
+    char buf[sizeof offset * 2 + 1];
     start_element(*writer_, "blob");
-    add_attribute(*writer_, "offset", get_uint_hex(offset).data());
+    add_attribute(*writer_, "offset", to_hex<NullTerminate>(buf, offset).value);
     write_string(*writer_, &buffer[0]);
     end_element(*writer_, "blob");
 }

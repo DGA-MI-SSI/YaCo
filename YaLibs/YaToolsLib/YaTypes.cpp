@@ -117,16 +117,20 @@ const char* get_comment_type_string(CommentType_e comment_type)
 }
 
 
-std::string get_uint_hex(uint64_t value)
-{
-    char buffer[20];
-    snprintf(buffer, sizeof buffer, "%016" PRIX64, value);
-    return std::string(buffer);
-}
-
 STATIC_ASSERT_POD(const_string_ref);
 
 size_t std::hash<const_string_ref>::operator()(const const_string_ref& v) const
 {
     return util::Hash(v.value, v.size);
+}
+
+YaToolObjectId YaToolObjectId_From_String(const char* input, size_t input_len)
+{
+    YaToolObjectId id;
+    UNUSED(input_len);
+    assert(input_len == 16);
+    int param = sscanf(input, "%016" PRIX64, &id);
+    UNUSED(param);
+    assert(param == 1);
+    return id;
 }

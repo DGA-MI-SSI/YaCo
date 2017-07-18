@@ -116,7 +116,7 @@ namespace
     template<size_t szdst, typename T>
     const_string_ref str_hex(char (&buf)[szdst], T x)
     {
-        return to_hex<LowerCase, RemovePadding>(buf, x);
+        return to_hex<LowerCase | RemovePadding>(buf, x);
     }
 
     template<size_t szdst>
@@ -129,10 +129,16 @@ namespace
     const_string_ref str_defname(char (&buf)[szdst], ea_t ea)
     {
         char subbuf[sizeof ea * 2];
-        const auto str = to_hex<UpperCase, RemovePadding>(subbuf, ea);
+        const auto str = to_hex<RemovePadding>(subbuf, ea);
         buf[0] = '_';
         memcpy(&buf[1], str.value, str.size);
         return {buf, 1 + str.size};
+    }
+
+    template<size_t szdst>
+    const_string_ref str_hexpath(char(&buf)[szdst], uint32_t path_idx)
+    {
+        return to_hex<HexaPrefix | RemovePadding>(buf, path_idx);
     }
 
 #define DECLARE_STRINGER(NAME, FMT, VALUE_TYPE)\
@@ -147,7 +153,6 @@ namespace
     DECLARE_STRINGER(str_uchar, "%hhd", uchar)
     DECLARE_STRINGER(str_ushort, "%hd", ushort)
     DECLARE_STRINGER(str_bgcolor, "%u", bgcolor_t)
-    DECLARE_STRINGER(str_hexpath, "0x%08X", int)
 
 #undef DECLARE_STRINGER
 
@@ -1300,15 +1305,14 @@ namespace
     template<typename Ctx>
     void accept_xrefs(Ctx& ctx, IModelVisitor& v)
     {
+        char hexabuf[2 + sizeof(uint32_t) * 2];
         dedup(ctx.xrefs_);
         v.visit_start_xrefs();
-        const auto qbuf = ctx.qpool_.acquire();
-        qbuf->resize(std::max(qbuf->size(), 32u));
         for(const auto& it : ctx.xrefs_)
         {
             v.visit_start_xref(it.offset, it.id, it.operand);
             if(it.path_idx)
-                v.visit_xref_attribute(g_path_idx, str_hexpath(&(*qbuf)[0], qbuf->size(), it.path_idx));
+                v.visit_xref_attribute(g_path_idx, str_hexpath(hexabuf, it.path_idx));
             v.visit_end_xref();
         }
         v.visit_end_xrefs();

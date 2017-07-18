@@ -58,27 +58,10 @@ namespace std
 #include "XML/XMLDatabaseModel.hpp"
 #include "XML/XMLExporter.hpp"
 #include "YaGitLib.hpp"
-#include "YaToolObjectId.hpp"
 #include "Yatools_swig.h"
 #include "YaToolsHashProvider.hpp"
 #include "YaTypes.hpp"
 %}
-
-%cstring_output_allocate_size(char **buffer, size_t *len, free(*$1));
-%apply (char *STRING, size_t LENGTH) { (char *str, size_t len) };
-
-/**
-for YaToolObjectId_To_String : the caller needs to allocate a buffer (enventually in stack) and pass it as
-argument to the function, along with its length.
-The buffer length must be >=YATOOL_OBJECT_ID_STR_LEN+1, which is also enough
-The first instruction tells SWIG to allocate a buffer in stack and use is as parameter
-The second instruction tells it to use a constant as second argument, with value fixed to YATOOL_OBJECT_ID_STR_LEN+1
-*/
-%cstring_bounded_output(char* YaToolObjectId_output, YATOOL_OBJECT_ID_STR_LEN)
-%typemap(in, numinputs=0) size_t YaToolObjectId_output_len {
-    $1 = YATOOL_OBJECT_ID_STR_LEN+1;
-}
-void YaToolObjectId_To_String(char* YaToolObjectId_output, size_t YaToolObjectId_output_len, YaToolObjectId id);
 
 /**
 YaToolObjectId_From_String compute an ID from a string, we need to pass the string length
@@ -219,7 +202,6 @@ namespace std
 %include "XML/XMLDatabaseModel.hpp"
 %include "XML/XMLExporter.hpp"
 %include "YaGitLib.hpp"
-%include "YaToolObjectId.hpp"
 %include "yatools_/git_version.h"
 %include "Yatools_swig.h"
 %include "YaToolsHashProvider.hpp"
