@@ -87,11 +87,6 @@ struct HVersion
     {
         return t1.id() > t2.id();
     }
-
-    friend std::ostream & operator<<(std::ostream& oss, HVersion version)
-    {
-        return oss << version.model_ << version.id_;
-    }
 #endif //SWIG
 
     const IVersions*    model_;
