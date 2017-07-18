@@ -23,8 +23,6 @@ struct IHashProvider
 {
     virtual ~IHashProvider() {}
 
-    virtual std::string     hash_to_string                  (YaToolObjectId id) = 0;
-    virtual void            populate_struc_enum_ids         () = 0;
     virtual void            put_hash_struc_or_enum          (ea_t item_id, YaToolObjectId id, bool in_persistent_cache) = 0;
     virtual YaToolObjectId  get_hash_for_ea                 (ea_t ea) = 0;
     virtual YaToolObjectId  get_stackframe_object_id        (ea_t sf_id, ea_t eaFunc) = 0;

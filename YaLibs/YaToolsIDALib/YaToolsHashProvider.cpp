@@ -113,8 +113,6 @@ namespace
     {
         YaToolsHashProvider();
 
-        std::string     hash_to_string                  (YaToolObjectId id) override;
-        void            populate_struc_enum_ids         () override;
         void            put_hash_struc_or_enum          (ea_t item_id, YaToolObjectId id, bool in_persistent_cache) override;
         YaToolObjectId  get_hash_for_ea                 (ea_t ea) override;
         YaToolObjectId  get_stackframe_object_id        (ea_t sf_id, ea_t eaFunc) override;
@@ -129,6 +127,7 @@ namespace
         YaToolObjectId  get_enum_member_id              (ea_t enum_id, const const_string_ref& enum_name, ea_t const_id, const const_string_ref& const_name, const const_string_ref& const_value, bmask_t bmask, bool use_time) override;
         void            put_hash_enum_member            (const const_string_ref& enum_name, const const_string_ref& const_name, uint64_t const_value, YaToolObjectId id, bool in_persistent_cache) override;
 
+        void            populate_struc_enum_ids();
         YaToolObjectId  hash_local_string(const const_string_ref& key_string, bool in_persistent_cache);
         YaToolObjectId  hash_string(const const_string_ref& key_string, bool in_persistent_cache);
         void            populate_persistent_cache();
@@ -164,6 +163,7 @@ YaToolsHashProvider::YaToolsHashProvider()
     string_start_.append(hexbuf, sizeof hash * 2);
     string_start_ += separator;
     string_start_ += separator; // FIXME double
+    populate_struc_enum_ids();
 }
 
 void YaToolsHashProvider::populate_persistent_cache()
@@ -459,10 +459,4 @@ YaToolObjectId YaToolsHashProvider::get_segment_chunk_id(YaToolObjectId seg_id, 
     *key += '-';
     append_int(*key, end);
     return hash_local_string(make_string_ref(*key), false);
-}
-
-std::string YaToolsHashProvider::hash_to_string(YaToolObjectId id)
-{
-    // FIXME remove me when conversion to python is done
-    return YaToolObjectId_To_StdString(id);
 }

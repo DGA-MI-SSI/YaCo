@@ -71,9 +71,6 @@ class YaCo:
         # export to IDB
         ya.export_to_ida(ya.MakeXmlDatabaseModel("cache/"), self.hash_provider, ya.UseFrames)
 
-        # TODO remove this call (it's done in the constructor)
-        self.hash_provider.populate_struc_enum_ids()
-
         end_time = time.time()
 
         logger.debug("YaCo cache loaded in %d seconds.", (end_time - start_time))

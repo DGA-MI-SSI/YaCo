@@ -76,7 +76,6 @@ logger.addHandler(handler)
 
 idc.Wait()
 hash_provider = ya.MakeHashProvider()
-hash_provider.populate_struc_enum_ids()
 fbmodel = ya.MakeFlatBufferDatabaseModel(args.filename)
 ya.export_to_ida(fbmodel, hash_provider, ya.SkipFrames)
 
