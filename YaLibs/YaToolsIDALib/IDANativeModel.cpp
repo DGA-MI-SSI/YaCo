@@ -1875,11 +1875,6 @@ namespace
 
         ModelIncremental(IHashProvider* provider);
 
-        // IModelIncremental methods
-        void export_id(YaToolObjectId id) override;
-        void unexport_id(YaToolObjectId id) override;
-        bool is_exported(YaToolObjectId id) const override;
-
         // IModelIncremental accept methods
         void accept_enum(IModelVisitor& v, ea_t enum_id) override;
         void accept_struct(IModelVisitor& v, ea_t struc_id, ea_t func_ea) override;
@@ -1924,21 +1919,6 @@ ModelIncremental::ModelIncremental(IHashProvider* provider)
 std::shared_ptr<IModelIncremental> MakeModelIncremental(IHashProvider* provider)
 {
     return std::make_shared<ModelIncremental>(provider);
-}
-
-void ModelIncremental::export_id(YaToolObjectId id)
-{
-    ids_.emplace(id);
-}
-
-void ModelIncremental::unexport_id(YaToolObjectId id)
-{
-    ids_.erase(id);
-}
-
-bool ModelIncremental::is_exported(YaToolObjectId id) const
-{
-    return !!ids_.count(id);
 }
 
 void ModelIncremental::accept_enum(IModelVisitor& v, ea_t enum_id)
