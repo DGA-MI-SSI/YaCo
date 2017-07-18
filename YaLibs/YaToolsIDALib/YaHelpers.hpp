@@ -18,7 +18,7 @@
 #include "YaTypes.hpp"
 #include <vector>
 
-struct YaToolsHashProvider;
+struct IHashProvider;
 
 namespace ya
 {
@@ -28,7 +28,7 @@ namespace ya
         tid_t           tid;
     };
     using Deps = std::vector<Dependency>;
-    void                print_type(qstring& dst, YaToolsHashProvider* provider, Deps* deps, const tinfo_t& tif, const const_string_ref& name);
+    void                print_type(qstring& dst, IHashProvider* provider, Deps* deps, const tinfo_t& tif, const const_string_ref& name);
     tinfo_t             get_tinfo(flags_t flags, const opinfo_t* op);
     tinfo_t             get_tinfo(ea_t ea);
     std::string         get_type(ea_t ea);

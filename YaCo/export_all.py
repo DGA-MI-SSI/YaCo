@@ -74,7 +74,7 @@ logger.addHandler(handler)
 
 idc.Wait()
 
-hash_provider = ya.YaToolsHashProvider()
+hash_provider = ya.MakeHashProvider()
 hash_provider.populate_struc_enum_ids()
 
 # ignore multithreaded python model as it is slower

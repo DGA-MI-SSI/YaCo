@@ -91,7 +91,7 @@ namespace
     const qstring comment_prefix = "/*%";
     const qstring comment_suffix = "%*/";
 
-    void simple_tif_to_string(qstring& dst, YaToolsHashProvider* provider, ya::Deps* deps, const tinfo_t& tif, const const_string_ref& name)
+    void simple_tif_to_string(qstring& dst, IHashProvider* provider, ya::Deps* deps, const tinfo_t& tif, const const_string_ref& name)
     {
         to_string(dst, tif, name.value, nullptr);
         if(!provider)
@@ -169,7 +169,7 @@ namespace
         return {&txt.value[skip], txt.size - skip};
     }
 
-    void tif_to_string(qstring& dst, YaToolsHashProvider* provider, ya::Deps* deps, const tinfo_t& tif, const const_string_ref& name)
+    void tif_to_string(qstring& dst, IHashProvider* provider, ya::Deps* deps, const tinfo_t& tif, const const_string_ref& name)
     {
         if(!tif.is_func())
             return simple_tif_to_string(dst, provider, deps, tif, name);
@@ -242,7 +242,7 @@ namespace
     }
 }
 
-void ya::print_type(qstring& dst, YaToolsHashProvider* provider, Deps* deps, const tinfo_t& tif, const const_string_ref& name)
+void ya::print_type(qstring& dst, IHashProvider* provider, Deps* deps, const tinfo_t& tif, const const_string_ref& name)
 {
     tif_to_string(dst, provider, deps, tif, name);
     if(deps)

@@ -24,8 +24,10 @@
 #include "YaHelpers.hpp"
 #include "Pool.hpp"
 #include "StringFormat.hpp"
+#include "YaToolObjectId.hpp"
 
 #include <chrono>
+#include <unordered_map>
 
 #define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("hash", (FMT), ## __VA_ARGS__)
 
@@ -105,6 +107,47 @@ namespace
         const auto param = snprintf(buffer, sizeof buffer, sizeof value == 8 ? "%lld" : "%d", value);
         dst.append(buffer, param);
     }
+
+    struct YaToolsHashProvider
+        : public IHashProvider
+    {
+        YaToolsHashProvider();
+
+        std::string     hash_to_string                  (YaToolObjectId id) override;
+        void            populate_struc_enum_ids         () override;
+        void            put_hash_struc_or_enum          (ea_t item_id, YaToolObjectId id, bool in_persistent_cache) override;
+        YaToolObjectId  get_hash_for_ea                 (ea_t ea) override;
+        YaToolObjectId  get_stackframe_object_id        (ea_t sf_id, ea_t eaFunc) override;
+        YaToolObjectId  get_struc_enum_object_id        (ea_t item_id, const const_string_ref& name, bool use_time) override;
+        YaToolObjectId  get_function_basic_block_hash   (ea_t block_ea, ea_t func_ea) override;
+        YaToolObjectId  get_reference_info_hash         (ea_t block_ea, uint64_t value) override;
+        YaToolObjectId  get_struc_member_id             (ea_t struc_id, ea_t offset, const const_string_ref& name) override;
+        YaToolObjectId  get_stackframe_member_object_id (ea_t stack_id, ea_t offset, ea_t func_ea) override;
+        YaToolObjectId  get_segment_id                  (const const_string_ref& name, ea_t ea) override;
+        YaToolObjectId  get_segment_chunk_id            (YaToolObjectId seg_id, ea_t start, ea_t end) override;
+        YaToolObjectId  get_binary_id                   () override;
+        YaToolObjectId  get_enum_member_id              (ea_t enum_id, const const_string_ref& enum_name, ea_t const_id, const const_string_ref& const_name, const const_string_ref& const_value, bmask_t bmask, bool use_time) override;
+        void            put_hash_enum_member            (const const_string_ref& enum_name, const const_string_ref& const_name, uint64_t const_value, YaToolObjectId id, bool in_persistent_cache) override;
+
+        YaToolObjectId  hash_local_string(const const_string_ref& key_string, bool in_persistent_cache);
+        YaToolObjectId  hash_string(const const_string_ref& key_string, bool in_persistent_cache);
+        void            populate_persistent_cache();
+        void            check_and_flush_cache_if_needed();
+        void            put_hash_cache(const const_string_ref& key_string, YaToolObjectId id, bool in_persistent_cache);
+        void            put_hash_cache_ea(ea_t key_string, YaToolObjectId id, bool in_persistent_cache);
+
+        std::shared_ptr<Pool<std::string>>              pool_;
+        std::string                                     string_start_;
+        std::unordered_map<std::string, YaToolObjectId> cache_by_string_;
+        std::unordered_map<std::string, YaToolObjectId> cache_by_string_persistent_;
+        std::unordered_map<ea_t, YaToolObjectId>        cache_stackframe_;
+        std::unordered_map<ea_t, YaToolObjectId>        cache_block_;
+    };
+}
+
+std::shared_ptr<IHashProvider> MakeHashProvider()
+{
+    return std::make_shared<YaToolsHashProvider>();
 }
 
 YaToolsHashProvider::YaToolsHashProvider()

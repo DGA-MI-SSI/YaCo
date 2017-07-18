@@ -18,7 +18,7 @@
 #include "YaTypes.hpp"
 
 namespace std { template<typename T> class shared_ptr; }
-struct YaToolsHashProvider;
+struct IHashProvider;
 class IModelAccept;
 
 bool set_type_at                (ea_t ea, const std::string& prototype);
@@ -30,4 +30,4 @@ enum FramePolicy
     SkipFrames,
 };
 
-void export_to_ida(IModelAccept* model, YaToolsHashProvider* provider, FramePolicy frame_policy);
+void export_to_ida(IModelAccept* model, IHashProvider* provider, FramePolicy frame_policy);

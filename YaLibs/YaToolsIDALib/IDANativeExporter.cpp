@@ -106,7 +106,7 @@ namespace
     struct Exporter
         : public IObjectListener
     {
-        Exporter(YaToolsHashProvider* provider, FramePolicy frame_policy);
+        Exporter(IHashProvider* provider, FramePolicy frame_policy);
 
         // IObjectListener
         void on_object (const HObject& object) override;
@@ -118,7 +118,7 @@ namespace
         using TidMap = std::unordered_map<YaToolObjectId, Tid>;
         using EnumMemberMap = std::unordered_map<uint64_t, enum_t>;
 
-        YaToolsHashProvider&            provider_;
+        IHashProvider&                  provider_;
         const bool                      use_frames_;
         EnumMemberMap                   enum_members_;
         YaToolsIDANativeLib             tools_;
@@ -133,7 +133,7 @@ namespace
     const char ARM_txt[] = "ARM";
 }
 
-Exporter::Exporter(YaToolsHashProvider* provider, FramePolicy frame_policy)
+Exporter::Exporter(IHashProvider* provider, FramePolicy frame_policy)
     : provider_(*provider)
     , use_frames_(frame_policy == UseFrames)
     , qpool_(4)
@@ -1874,7 +1874,7 @@ bool set_struct_member_type_at(ea_t ea, const std::string& prototype)
     return set_struct_member_type(nullptr, ea, prototype);
 }
 
-void export_to_ida(IModelAccept* model, YaToolsHashProvider* provider, FramePolicy frame_policy)
+void export_to_ida(IModelAccept* model, IHashProvider* provider, FramePolicy frame_policy)
 {
     Exporter exporter{provider, frame_policy};
     const auto visitor = MakeVisitorFromListener(exporter);

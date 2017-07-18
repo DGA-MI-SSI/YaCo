@@ -87,6 +87,7 @@ YaToolObjectId_From_String compute an ID from a string, we need to pass the stri
 YaToolObjectId YaToolObjectId_From_String(const char* input, size_t input_len);
 
 %shared_ptr(IFlatExporter)
+%shared_ptr(IHashProvider)
 %shared_ptr(IModel)
 %shared_ptr(IModelAccept)
 %shared_ptr(IModelIncremental)

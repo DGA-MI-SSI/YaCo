@@ -216,7 +216,7 @@ namespace
     {
         static const bool is_incremental = Parent::is_incremental;
 
-        Ctx(YaToolsHashProvider& provider, Parent& parent)
+        Ctx(IHashProvider& provider, Parent& parent)
             : provider_ (provider)
             , parent_   (parent)
             , qpool_    (4)
@@ -227,7 +227,7 @@ namespace
 
         inline bool skip_id(YaToolObjectId id) { return Parent::is_incremental ? parent_.skip_id(id) : false; }
 
-        YaToolsHashProvider&            provider_;
+        IHashProvider&                  provider_;
         Parent&                         parent_;
         Pool<qstring>                   qpool_;
         std::vector<uint8_t>            buffer_;
@@ -1858,7 +1858,7 @@ namespace
     {
         static const bool is_incremental = false;
 
-        Model(YaToolsHashProvider* provider);
+        Model(IHashProvider* provider);
 
         inline bool skip_id(YaToolObjectId) const { return false; }
 
@@ -1873,7 +1873,7 @@ namespace
     {
         static const bool is_incremental = true;
 
-        ModelIncremental(YaToolsHashProvider* provider);
+        ModelIncremental(IHashProvider* provider);
 
         // IModelIncremental methods
         void export_id(YaToolObjectId id) override;
@@ -1901,12 +1901,12 @@ namespace
     };
 }
 
-Model::Model(YaToolsHashProvider* provider)
+Model::Model(IHashProvider* provider)
     : ctx_(*provider, *this)
 {
 }
 
-std::shared_ptr<IModelAccept> MakeModel(YaToolsHashProvider* provider)
+std::shared_ptr<IModelAccept> MakeModel(IHashProvider* provider)
 {
     return std::make_shared<Model>(provider);
 }
@@ -1916,12 +1916,12 @@ void Model::accept(IModelVisitor& v)
     ::accept(ctx_, v);
 }
 
-ModelIncremental::ModelIncremental(YaToolsHashProvider* provider)
+ModelIncremental::ModelIncremental(IHashProvider* provider)
     : ctx_(*provider, *this)
 {
 }
 
-std::shared_ptr<IModelIncremental> MakeModelIncremental(YaToolsHashProvider* provider)
+std::shared_ptr<IModelIncremental> MakeModelIncremental(IHashProvider* provider)
 {
     return std::make_shared<ModelIncremental>(provider);
 }
