@@ -48,6 +48,7 @@ namespace
     DECLARE_REF(g_str_, "str_")
     DECLARE_REF(g_stru_, "stru_")
     DECLARE_REF(g_unk_, "unk_")
+    DECLARE_REF(g_def_, "def_")
 #undef DECLARE_REF
 
     const const_string_ref default_prefixes[] =
@@ -63,6 +64,7 @@ namespace
         g_str_,
         g_stru_,
         g_unk_,
+        g_def_,
     };
 
     const_string_ref has_default_prefix(const const_string_ref& value)

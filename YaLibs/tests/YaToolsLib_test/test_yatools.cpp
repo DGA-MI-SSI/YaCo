@@ -107,6 +107,7 @@ TEST(yatools, test_is_default_name)
         {"qword_AE0",   true},
         {"str_AE0",     true},
         {"unk_AE0",     true},
+        {"def_AE0",     true},
 
         {" str_AE0",    false},
         {"str_AE0 ",    false},
