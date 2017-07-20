@@ -106,7 +106,7 @@ namespace
     struct Exporter
         : public IObjectListener
     {
-        Exporter(IHashProvider* provider, FramePolicy frame_policy);
+        Exporter(IHashProvider* provider);
 
         // IObjectListener
         void on_object (const HObject& object) override;
@@ -119,7 +119,6 @@ namespace
         using EnumMemberMap = std::unordered_map<uint64_t, enum_t>;
 
         IHashProvider&                  provider_;
-        const bool                      use_frames_;
         EnumMemberMap                   enum_members_;
         RefInfos                        refs_;
         TidMap                          tids_;
@@ -132,9 +131,8 @@ namespace
     const char ARM_txt[] = "ARM";
 }
 
-Exporter::Exporter(IHashProvider* provider, FramePolicy frame_policy)
+Exporter::Exporter(IHashProvider* provider)
     : provider_(*provider)
-    , use_frames_(frame_policy == UseFrames)
     , qpool_(4)
 {
     static_assert(sizeof ARM_txt <= sizeof inf.procName, "procName size mismatch");
@@ -1822,9 +1820,6 @@ void Exporter::on_version(const HVersion& version)
             return;
 
         case OBJECT_TYPE_STACKFRAME:
-            if(!use_frames_)
-                return;
-
             make_stackframe(*this, version, ea);
             return;
 
@@ -1879,8 +1874,7 @@ void Exporter::on_version(const HVersion& version)
             break;
 
         case OBJECT_TYPE_STACKFRAME_MEMBER:
-            if(use_frames_)
-                make_struct_member(*this, version, ea);
+            make_struct_member(*this, version, ea);
             break;
 
         case OBJECT_TYPE_DATA:
@@ -1933,9 +1927,9 @@ bool set_struct_member_type_at(ea_t ea, const std::string& prototype)
     return set_struct_member_type(nullptr, ea, prototype);
 }
 
-void export_to_ida(IModelAccept* model, IHashProvider* provider, FramePolicy frame_policy)
+void export_to_ida(IModelAccept* model, IHashProvider* provider)
 {
-    Exporter exporter{provider, frame_policy};
+    Exporter exporter{provider};
     const auto visitor = MakeVisitorFromListener(exporter);
     model->accept(*visitor);
 }

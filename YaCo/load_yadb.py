@@ -77,7 +77,7 @@ logger.addHandler(handler)
 idc.Wait()
 hash_provider = ya.MakeHashProvider()
 fbmodel = ya.MakeFlatBufferDatabaseModel(args.filename)
-ya.export_to_ida(fbmodel, hash_provider, ya.SkipFrames)
+ya.export_to_ida(fbmodel, hash_provider)
 
 idc.Wait()
 idaapi.cvar.database_flags = idaapi.DBFL_COMP

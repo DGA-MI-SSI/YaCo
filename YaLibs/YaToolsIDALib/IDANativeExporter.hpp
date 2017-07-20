@@ -24,10 +24,4 @@ class IModelAccept;
 bool set_type_at                (ea_t ea, const std::string& prototype);
 bool set_struct_member_type_at  (ea_t ea, const std::string& prototype);
 
-enum FramePolicy
-{
-    UseFrames,
-    SkipFrames,
-};
-
-void export_to_ida(IModelAccept* model, IHashProvider* provider, FramePolicy frame_policy);
+void export_to_ida(IModelAccept* model, IHashProvider* provider);

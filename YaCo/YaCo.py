@@ -69,7 +69,7 @@ class YaCo:
         logger.debug("Initial load")
 
         # export to IDB
-        ya.export_to_ida(ya.MakeXmlDatabaseModel("cache/"), self.hash_provider, ya.UseFrames)
+        ya.export_to_ida(ya.MakeXmlDatabaseModel("cache/"), self.hash_provider)
 
         end_time = time.time()
 
@@ -106,7 +106,7 @@ class YaCo:
         self.ida_hooks.unhook()
 
         logger.debug("export mem->ida")
-        ya.export_to_ida(memory_exporter.model, self.hash_provider, ya.UseFrames)
+        ya.export_to_ida(memory_exporter.model, self.hash_provider)
 
         idc.SetCharPrm(idc.INF_AUTO, True)
         idc.Wait()
