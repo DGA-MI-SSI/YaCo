@@ -1793,54 +1793,24 @@ namespace
 
 void Exporter::on_version(const HVersion& version)
 {
-    const auto id = version.id();
-    const auto type = version.type();
     const auto ea = static_cast<ea_t>(version.address());
-
-    // version without addresses
-    switch(type)
+    switch(version.type())
     {
         case OBJECT_TYPE_UNKNOWN:
         case OBJECT_TYPE_BINARY:
-        case OBJECT_TYPE_DATA:
-        case OBJECT_TYPE_CODE:
-        case OBJECT_TYPE_FUNCTION:
-        case OBJECT_TYPE_ENUM_MEMBER:
-        case OBJECT_TYPE_BASIC_BLOCK:
-        case OBJECT_TYPE_SEGMENT:
-        case OBJECT_TYPE_SEGMENT_CHUNK:
-        case OBJECT_TYPE_STRUCT_MEMBER:
-        case OBJECT_TYPE_STACKFRAME_MEMBER:
-        case OBJECT_TYPE_REFERENCE_INFO:
         case OBJECT_TYPE_COUNT:
             break;
 
         case OBJECT_TYPE_STRUCT:
             make_struct(*this, version, ea);
-            return;
+            break;
 
         case OBJECT_TYPE_STACKFRAME:
             make_stackframe(*this, version, ea);
-            return;
+            break;
 
         case OBJECT_TYPE_ENUM:
             make_enum(*this, version, ea);
-            return;
-    }
-    if(ea == BADADDR)
-    {
-        LOG(ERROR, "object_version_visited: object %llx type %s has an invalid address\n", id, get_object_type_string(type));
-        return;
-    }
-
-    switch(type)
-    {
-        case OBJECT_TYPE_UNKNOWN:
-        case OBJECT_TYPE_BINARY:
-        case OBJECT_TYPE_STRUCT:
-        case OBJECT_TYPE_ENUM:
-        case OBJECT_TYPE_STACKFRAME:
-        case OBJECT_TYPE_COUNT:
             break;
 
         case OBJECT_TYPE_CODE:
