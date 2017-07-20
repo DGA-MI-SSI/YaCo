@@ -1457,7 +1457,7 @@ namespace
             LOG(ERROR, "%s: 0x" EA_FMT ":" EA_FMT " unable to set member type to 0x" EA_FMT " bytes\n", where, struc->id, ea, size);
     }
 
-    void clear_struct_fields(const Exporter& exporter, const HVersion& version, ea_t struct_id)
+    void clear_struct_fields(const Exporter& exporter, const char* where, const HVersion& version, ea_t struct_id)
     {
         begin_type_updating(UTP_STRUCT);
 
@@ -1495,7 +1495,7 @@ namespace
             const auto field_size = offset == last_offset && offset == size ? 0 : 1;
             const auto err = add_struc_member(struc, defname.value, aoff, FF_BYTE, nullptr, field_size);
             if(err != STRUC_ERROR_MEMBER_OK)
-                LOG(ERROR, "clear_struct_fields: 0x" EA_FMT ":%llx unable to add member %s size %d\n", struct_id, offset, defname.value, field_size);
+                LOG(ERROR, "clear_%s: 0x" EA_FMT ":%llx unable to add member %s size %d\n", where, struct_id, offset, defname.value, field_size);
         }
 
         for(size_t i = 0; i < struc->memqty; ++i)
@@ -1516,7 +1516,7 @@ namespace
                     continue;
                 const auto ok = del_struc_member(struc, offset);
                 if(!ok)
-                    LOG(ERROR, "clear_struct_fields: 0x" EA_FMT ":" EA_FMT " unable to delete member\n", struct_id, offset);
+                    LOG(ERROR, "clear_%s: 0x" EA_FMT ":" EA_FMT " unable to delete member\n", where, struct_id, offset);
                 else
                     --i;
                 continue;
@@ -1532,12 +1532,12 @@ namespace
             if(key.tid != BADADDR)
                 continue;
 
-            set_struct_member(member_name, "clear_struct_fields", struc, g_empty, offset, field_size, func, nullptr);
+            set_struct_member(member_name, where, struc, g_empty, offset, field_size, func, nullptr);
             for(const auto repeat : {false, true})
             {
                 const auto ok = set_member_cmt(&m, g_empty.value, repeat);
                 if(!ok)
-                    LOG(ERROR, "clear_struct_fields: 0x" EA_FMT ":" EA_FMT " unable to reset %s comment\n", struct_id, offset, repeat ? "repeatable" : "non-repeatable");
+                    LOG(ERROR, "clear_%s: 0x" EA_FMT ":" EA_FMT " unable to reset %s comment\n", where, struct_id, offset, repeat ? "repeatable" : "non-repeatable");
             }
         }
 
@@ -1601,7 +1601,7 @@ namespace
 
         const auto id = version.id();
         set_tid(exporter, id, frame->id, version.size(), OBJECT_TYPE_STACKFRAME);
-        clear_struct_fields(exporter, version, frame->id);
+        clear_struct_fields(exporter, "stackframe_fields", version, frame->id);
     }
 
     optional<YaToolObjectId> get_xref_at(const HVersion& version, offset_t offset, operand_t operand)
@@ -1667,7 +1667,7 @@ namespace
         return nullptr;
     }
 
-    void make_struct_member(Exporter& exporter, const HVersion& version, ea_t ea)
+    void make_struct_member(Exporter& exporter, const char* where, const HVersion& version, ea_t ea)
     {
         const auto id = version.id();
         const auto name = make_string(version.username());
@@ -1675,14 +1675,14 @@ namespace
         const auto parent = get_tid(exporter, parent_id);
         if(parent.tid == BADADDR)
         {
-            LOG(ERROR, "make_struct_member: %016llx %s: missing parent struct %016llx\n", id, name.data(), parent_id);
+            LOG(ERROR, "make_%s: %016llx %s: missing parent struct %016llx\n", where, id, name.data(), parent_id);
             return;
         }
 
         const auto struc = get_struc(parent.tid);
         if(!struc)
         {
-            LOG(ERROR, "make_struct_member: %016llx %s: missing struct id %016llx tid_t " EA_FMT "\n", id, name.data(), parent_id, parent.tid);
+            LOG(ERROR, "make_%s: %016llx %s: missing struct id %016llx tid_t " EA_FMT "\n", where, id, name.data(), parent_id, parent.tid);
             return;
         }
 
@@ -1697,14 +1697,14 @@ namespace
             const auto defname = ya::get_default_name(*qbuf, offset, func);
             const auto err = add_struc_member(struc, defname.value, BADADDR, FF_BYTE | FF_DATA, nullptr, 1);
             if(err != STRUC_ERROR_MEMBER_OK)
-                LOG(ERROR, "make_struct_member: %s:" EA_FMT ": unable to add member %s " EA_FMT " (error %d)\n", sname->c_str(), ea, defname.value, offset, err);
+                LOG(ERROR, "make_%s: %s:" EA_FMT ": unable to add member %s " EA_FMT " (error %d)\n", where, sname->c_str(), ea, defname.value, offset, err);
         }
 
         if(!name.empty())
         {
             const auto ok = set_member_name(struc, ea, name.data());
             if(!ok)
-                LOG(ERROR, "make_struct_member: %s:" EA_FMT ": unable to set member name %s\n", sname->c_str(), ea, name.data());
+                LOG(ERROR, "make_%s: %s:" EA_FMT ": unable to set member name %s\n", where, sname->c_str(), ea, name.data());
         }
 
         opinfo_t op;
@@ -1713,12 +1713,12 @@ namespace
         const auto pop = get_member_info(&op, size, exporter, version, flags);
         auto ok = set_member_type(struc, ea, (flags & DT_TYPE) | FF_DATA, pop, size);
         if(!ok)
-            LOG(ERROR, "make_struct_member: %s.%s: unable to set member type %x to " SEL_FMT " bytes\n", sname->c_str(), name.data(), flags, size);
+            LOG(ERROR, "make_%s: %s.%s: unable to set member type %x to " SEL_FMT " bytes\n", where, sname->c_str(), name.data(), flags, size);
 
         const auto member = get_member(struc, ea);
         if(!member)
         {
-            LOG(ERROR, "make_struct_member: %s.%s: missing member\n", sname->c_str(), name.data());
+            LOG(ERROR, "make_%s: %s.%s: missing member\n", where, sname->c_str(), name.data());
             return;
         }
 
@@ -1728,7 +1728,7 @@ namespace
             const auto strcmt = make_string(cmt);
             ok = set_member_cmt(member, strcmt.data(), repeat);
             if(!ok)
-                LOG(ERROR, "make_struct_member: %s.%s: unable to set %s comment to '%s'\n", sname->c_str(), name.data(), repeat ? "repeatable" : "non-repeatable", strcmt.data());
+                LOG(ERROR, "make_%s: %s.%s: unable to set %s comment to '%s'\n", where, sname->c_str(), name.data(), repeat ? "repeatable" : "non-repeatable", strcmt.data());
         }
 
         const auto prototype = version.prototype();
@@ -1737,7 +1737,7 @@ namespace
             const auto strtype = make_string(prototype);
             ok = set_struct_member_type(&exporter, member->id, strtype);
             if(!ok)
-                LOG(ERROR, "make_struct_member: %s.%s: unable to set prototype '%s'\n", sname->c_str(), name.data(), strtype.data());
+                LOG(ERROR, "make_%s: %s.%s: unable to set prototype '%s'\n", where, sname->c_str(), name.data(), strtype.data());
         }
         set_tid(exporter, version.id(), member->id, 0, struc->props & SF_FRAME ? OBJECT_TYPE_STACKFRAME_MEMBER : OBJECT_TYPE_STRUCT_MEMBER);
     }
@@ -1787,7 +1787,7 @@ namespace
                 LOG(ERROR, "make_struct: 0x" EA_FMT " unable to set %s comment to '%s'\n", ea, repeat ? "repeatable" : "non-repeatable", strcmt.data());
         }
 
-        clear_struct_fields(exporter, version, struc->id);
+        clear_struct_fields(exporter, "struct_fields", version, struc->id);
     }
 }
 
@@ -1866,7 +1866,7 @@ void Exporter::on_version(const HVersion& version)
             break;
 
         case OBJECT_TYPE_STRUCT_MEMBER:
-            make_struct_member(*this, version, ea);
+            make_struct_member(*this, "struct_member", version, ea);
             break;
 
         case OBJECT_TYPE_ENUM_MEMBER:
@@ -1874,7 +1874,7 @@ void Exporter::on_version(const HVersion& version)
             break;
 
         case OBJECT_TYPE_STACKFRAME_MEMBER:
-            make_struct_member(*this, version, ea);
+            make_struct_member(*this, "stackframe_member", version, ea);
             break;
 
         case OBJECT_TYPE_DATA:
