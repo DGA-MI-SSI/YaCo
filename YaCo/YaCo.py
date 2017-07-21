@@ -35,6 +35,7 @@ else:
 import hooks
 import repository
 import yatools
+from patch.YaCoPatch import patch_ida_module
 
 logging.basicConfig()
 logger = None
@@ -285,6 +286,16 @@ class YaCo:
         Create and initialize Python subsystem
         """
         idaapi.msg("YaCo %s\n" % YACO_VERSION)
+
+        try:
+            patch_ida_module()
+        except Exception, e:
+            cont = idc.AskYN(
+                -1,
+                "An Error occurred while patching IDA module:\n%s\nDo you want to ignore this error and continue?\n"
+                % e.message)
+            if cont != 1:
+                raise
 
         self.hash_provider = ya.YaToolsHashProvider()
         self.repo_manager = repository.YaToolRepoManager(idc.GetIdbPath())
