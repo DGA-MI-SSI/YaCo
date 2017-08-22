@@ -27,6 +27,7 @@
 
 #include <iostream>
 #include <stdexcept>
+#include <vector>
 
 #define LIBXML_WRITER_ENABLED
 #define LIBXML_OUTPUT_ENABLED
