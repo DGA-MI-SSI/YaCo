@@ -396,7 +396,7 @@ void FBExporter::visit_end_reference_object()
     }();
     if(!dstvec)
     {
-        YALOG_ERROR(nullptr, "unhandled object %llx type %x dropped\n", object_id_, object_type_);
+        YALOG_ERROR(nullptr, "unhandled object %" PRIx64 " type %x dropped\n", object_id_, object_type_);
         return;
     }
 

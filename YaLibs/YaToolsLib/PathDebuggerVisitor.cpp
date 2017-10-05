@@ -175,7 +175,7 @@ void PathDebuggerVisitor::visit_end_default_object()
 
 void PathDebuggerVisitor::visit_id(YaToolObjectId id)
 {
-    LOG("PathDebuggerVisitor:%x: in "  " -- id=%llx\n", id_, id);
+    LOG("PathDebuggerVisitor:%x: in "  " -- id=%" PRIx64 "\n", id_, id);
     DelegatingVisitor::visit_id(id);
     LOG_OUT();
 }
@@ -284,7 +284,7 @@ void PathDebuggerVisitor::visit_offset_comments(offset_t offset,
     LOG_IN();
     if(print_values_)
     {
-        LOG(" : %" PRIXOFFSET ":%x\"%s\"\n", offset, comment_type, comment.value);
+        LOG(" : %" PRIX64 ":%x\"%s\"\n", offset, comment_type, comment.value);
     }
     DelegatingVisitor::visit_offset_comments(offset, comment_type, comment);
     LOG_OUT();
@@ -296,7 +296,7 @@ void PathDebuggerVisitor::visit_offset_valueview(offset_t offset, operand_t oper
     LOG_IN();
     if(print_values_)
     {
-        LOG(" : %" PRIXOFFSET ":%x\n", offset, operand);
+        LOG(" : %" PRIX64 ":%x\n", offset, operand);
     }
     DelegatingVisitor::visit_offset_valueview(offset, operand, view_value);
     LOG_OUT();
@@ -337,7 +337,7 @@ void PathDebuggerVisitor::visit_start_xrefs()
 void PathDebuggerVisitor::visit_start_xref(offset_t offset,
         YaToolObjectId offset_value, operand_t operand)
 {
-    LOG("PathDebuggerVisitor:%x: in "  " -- offset=%" PRIXOFFSET ":%x, offset_value=%llx\n", id_, offset, operand, offset_value);
+    LOG("PathDebuggerVisitor:%x: in "  " -- offset=%" PRIX64 ":%x, offset_value=%" PRIx64 "\n", id_, offset, operand, offset_value);
     DelegatingVisitor::visit_start_xref(offset, offset_value, operand);
     LOG_OUT();
 }

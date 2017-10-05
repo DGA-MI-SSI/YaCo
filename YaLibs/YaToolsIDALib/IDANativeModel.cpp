@@ -44,14 +44,16 @@ extern "C"
 #define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("ida_model", (FMT), ## __VA_ARGS__)
 
 #ifdef __EA64__
-#define EA_PREFIX "ll"
-#define EA_SIZE   "16"
+#define PRIxEA "llx"
+#define PRIXEA "llX"
+#define PRIuEA "llu"
+#define EA_SIZE "16"
 #else
-#define EA_PREFIX ""
-#define EA_SIZE   "8"
+#define PRIxEA "x"
+#define PRIXEA "X"
+#define PRIuEA "u"
+#define EA_SIZE "8"
 #endif
-#define EA_FMT      "%" EA_PREFIX "x"
-#define XMLEA_FMT   "%0" EA_SIZE EA_PREFIX "X"
 
 std::string get_type(ea_t ea)
 {
@@ -128,8 +130,9 @@ namespace
     template<size_t szdst>
     const_string_ref str_defname(char (&buf)[szdst], ea_t ea)
     {
-        char subbuf[sizeof ea * 2];
-        const auto str = to_hex<RemovePadding>(subbuf, ea);
+        const uint64_t uea = ea;
+        char subbuf[sizeof uea * 2];
+        const auto str = to_hex<RemovePadding>(subbuf, uea);
         buf[0] = '_';
         memcpy(&buf[1], str.value, str.size);
         return {buf, 1 + str.size};
@@ -149,7 +152,7 @@ namespace
             return {nullptr, 0};\
         return {buf, static_cast<size_t>(n)};\
     }
-    DECLARE_STRINGER(str_ea, "%" EA_PREFIX "u", ea_t);
+    DECLARE_STRINGER(str_ea, "%" PRIuEA, ea_t);
     DECLARE_STRINGER(str_uchar, "%hhd", uchar)
     DECLARE_STRINGER(str_ushort, "%hd", ushort)
     DECLARE_STRINGER(str_bgcolor, "%u", bgcolor_t)
@@ -447,7 +450,7 @@ namespace
 
         const auto mtype = get_member_type(member, has_op ? &op : nullptr);
         if(mtype.tif.empty())
-            LOG(WARNING, "accept_struct_member: 0x" EA_FMT " unable to get member type info\n", member->id);
+            LOG(WARNING, "accept_struct_member: 0x%" PRIxEA " unable to get member type info\n", member->id);
 
         const auto qbuf = ctx.qpool_.acquire();
         // FIXME is_ascii vs visit_prototype confusion
@@ -466,7 +469,7 @@ namespace
         // FIXME add missing dependencies?
         const auto size = deps.size();
         if(size > 1)
-            LOG(WARNING, "accept_struct_member: 0x" EA_FMT " ignoring %zd dependencies\n", member->id, size);
+            LOG(WARNING, "accept_struct_member: 0x%" PRIxEA " ignoring %zd dependencies\n", member->id, size);
 
         if(size != 1)
             return;
@@ -593,7 +596,7 @@ namespace
             char buf[64];
             const auto int_to_ref = [&](uint64_t value)
             {
-                const auto n = snprintf(buf, sizeof buf, "0x" XMLEA_FMT, (ea_t) value);
+                const auto n = snprintf(buf, sizeof buf, "0x%0" EA_SIZE PRIXEA, (ea_t) value);
                 return const_string_ref{buf, static_cast<size_t>(std::max(0, n))};
             };
             v.visit_attribute(g_stack_lvars,    int_to_ref(func->frsize));
@@ -630,7 +633,7 @@ namespace
             const auto struc = get_struc(tid);
             if(!struc)
             {
-                LOG(ERROR, "accept_struc: 0x" EA_FMT " missing struct at index " EA_FMT "\n", tid, idx);
+                LOG(ERROR, "accept_struc: 0x%" PRIxEA " missing struct at index %" PRIxEA "\n", tid, idx);
                 continue;
             }
             accept_struct(ctx, v, {}, struc, nullptr);
@@ -683,7 +686,7 @@ namespace
         const auto err = get_bytes(pbuf, size, ea, GMB_READALL, pbitmap);
         if(err < 0)
         {
-            LOG(ERROR, "%s: 0x" EA_FMT " unable to get %zd bytes\n", where, ea, size);
+            LOG(ERROR, "%s: 0x%" PRIxEA " unable to get %zd bytes\n", where, ea, size);
             return {};
         }
 
@@ -774,7 +777,7 @@ namespace
         const auto ntxt = get_strlit_contents(&buf, ea, n, strtype);
         if(ntxt == -1)
         {
-            LOG(ERROR, "accept_string_type: 0x" EA_FMT " unable to get ascii contents %zd bytes %x strtype\n", ea, n, strtype);
+            LOG(ERROR, "accept_string_type: 0x%" PRIxEA " unable to get ascii contents %zd bytes %x strtype\n", ea, n, strtype);
             return;
         }
 
@@ -797,7 +800,7 @@ namespace
         else if(has_dummy_name(ea_flags))
             flags |= SN_AUTO;
         else if(ea_flags && name && *name)
-            LOG(WARNING, "get_name_flags: 0x" EA_FMT " unhandled name flags %x on %s\n", ea, ea_flags, name);
+            LOG(WARNING, "get_name_flags: 0x%" PRIxEA " unhandled name flags %x on %s\n", ea, ea_flags, name);
         uval_t ignore = 0;
         const auto code = get_name_value(&ignore, ea, name);
         if(code == NT_LOCAL)
@@ -934,7 +937,7 @@ namespace
                 const auto err = decode_insn(&cmd, ea);
                 if(!err)
                 {
-                    LOG(WARNING, "%s: 0x" EA_FMT " invalid instruction at offset 0x" EA_FMT "\n", where, ea_func, ea);
+                    LOG(WARNING, "%s: 0x%" PRIxEA " invalid instruction at offset 0x%" PRIxEA "\n", where, ea_func, ea);
                     return;
                 }
                 crcs->firstbyte = std_crc32(crcs->firstbyte, &buffer[ea - offset], 1);
@@ -1931,7 +1934,7 @@ void ModelIncremental::accept_struct(IModelVisitor& v, ea_t func_ea, ea_t struc_
     const auto struc = get_struc(struc_id);
     if(!struc)
     {
-        LOG(ERROR, "accept_struct: 0x" EA_FMT " unable to get struct\n", struc_id);
+        LOG(ERROR, "accept_struct: 0x%" PRIxEA " unable to get struct\n", struc_id);
         return;
     }
 
@@ -1945,7 +1948,7 @@ void ModelIncremental::accept_struct_member(IModelVisitor& v, ea_t func_ea, ea_t
     const auto member = get_member_by_id(member_id, &struc);
     if(!member)
     {
-        LOG(ERROR, "accept_member: 0x" EA_FMT " unable to get member or struc (m %p s %p)\n", member_id, member, struc);
+        LOG(ERROR, "accept_member: 0x%" PRIxEA " unable to get member or struc (m %p s %p)\n", member_id, member, struc);
         return;
     }
     const auto func = get_func(func_ea);
@@ -1972,14 +1975,14 @@ void ModelIncremental::accept_function(IModelVisitor& v, ea_t ea)
     const auto func = get_func(ea);
     if(!func)
     {
-        LOG(ERROR, "accept_function: 0x" EA_FMT " unable to get function\n", ea);
+        LOG(ERROR, "accept_function: 0x%" PRIxEA " unable to get function\n", ea);
         return;
     }
 
     const auto seg = getseg(func->start_ea);
     if(!seg)
     {
-        LOG(ERROR, "accept_function: 0x" EA_FMT " unable to get segment\n", func->start_ea);
+        LOG(ERROR, "accept_function: 0x%" PRIxEA " unable to get segment\n", func->start_ea);
         return;
     }
 
@@ -1997,7 +2000,7 @@ void ModelIncremental::accept_ea(IModelVisitor& v, ea_t ea)
     const auto seg = getseg(ea);
     if(!seg)
     {
-        LOG(ERROR, "accept_ea: 0x" EA_FMT " unable to get segment\n", ea);
+        LOG(ERROR, "accept_ea: 0x%" PRIxEA " unable to get segment\n", ea);
         return;
     }
 
@@ -2010,7 +2013,7 @@ void ModelIncremental::accept_segment(IModelVisitor& v, ea_t ea)
     const auto seg = getseg(ea);
     if(!seg)
     {
-        LOG(ERROR, "accept_segment: 0x" EA_FMT " unable to get segment\n", ea);
+        LOG(ERROR, "accept_segment: 0x%" PRIxEA " unable to get segment\n", ea);
         return;
     }
 

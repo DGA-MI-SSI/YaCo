@@ -129,8 +129,8 @@ TEST(yatools, test_binhex)
     char prefix_buf[2 + 16];
     char buf_end[16 + 1];
     char buf[16];
-    static const auto input = 0xCAFEBABEFull;
-    static const auto zero = 0x0ull;
+    static const uint64_t input = 0xCAFEBABEF;
+    static const uint64_t zero = 0x0;
 
     EXPECT_EQ("0000000CAFEBABEF", make_string(to_hex(buf, input)));
     EXPECT_EQ("0000000CAFEBABEF", std::string(to_hex<NullTerminate>(buf_end, input).value));

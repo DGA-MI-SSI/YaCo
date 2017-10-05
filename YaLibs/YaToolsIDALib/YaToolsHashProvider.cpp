@@ -105,7 +105,7 @@ namespace
     void append_int(std::string& dst, T value)
     {
         char buffer[100];
-        const auto param = snprintf(buffer, sizeof buffer, sizeof value == 8 ? "%lld" : "%d", value);
+        const auto param = snprintf(buffer, sizeof buffer, "%" PRId64, static_cast<int64_t>(value));
         dst.append(buffer, param);
     }
 
@@ -190,7 +190,7 @@ void YaToolsHashProvider::put_hash_cache(const const_string_ref& key_string, YaT
     if(in_persistent_cache)
         cache_by_string_persistent_[*key] = id;
 
-    LOG(DEBUG, "put_hash_cache: %s --> %llx\n", key->c_str(), id);
+    LOG(DEBUG, "put_hash_cache: %s --> %" PRIx64 "\n", key->c_str(), id);
 }
 
 YaToolObjectId YaToolsHashProvider::hash_string(const const_string_ref& key_string, bool in_persistent_cache)
@@ -237,7 +237,7 @@ YaToolObjectId YaToolsHashProvider::get_stackframe_object_id(ea_t ea_frame, ea_t
     const auto cache_it = cache_by_string_.find(*key);
     if(cache_it != cache_by_string_.end())
     {
-        LOG(DEBUG, "get_stackframe_object_id cache hit: 0x%016llX (%s) --> %llx\n",
+        LOG(DEBUG, "get_stackframe_object_id cache hit: 0x%016" PRIX64 " (%s) --> %" PRIx64 "\n",
                 (uint64_t) ea_frame, get_struc_name(ea_frame).c_str(), cache_it->second);
         return cache_it->second;
     }
@@ -248,7 +248,7 @@ YaToolObjectId YaToolsHashProvider::get_stackframe_object_id(ea_t ea_frame, ea_t
     key->insert(0, stackframe_prefix);
     const auto id = hash_local_string(make_string_ref(*key), false);
     put_hash_struc_or_enum(ea_frame, id, false);
-    LOG(DEBUG, "get_stackframe_object_id cache miss: 0x%016llX (%s) --> %llx\n",
+    LOG(DEBUG, "get_stackframe_object_id cache miss: 0x%016" PRIX64 " (%s) --> %" PRIx64 "\n",
             (uint64_t) ea_frame, get_struc_name(ea_frame).c_str(), id);
     cache_stackframe_.emplace(ea_func, id);
     return id;
@@ -299,7 +299,7 @@ YaToolObjectId YaToolsHashProvider::get_struc_enum_object_id(ea_t item_id, const
     const auto cache_it = cache_by_string_.find(*key);
     if(cache_it != cache_by_string_.end())
     {
-        LOG(DEBUG, "get_struc_enum_object_id cache hit: 0x%016llX (%s) --> %llx\n",
+        LOG(DEBUG, "get_struc_enum_object_id cache hit: 0x%016" PRIX64 " (%s) --> %" PRIx64 "\n",
                 (uint64_t) item_id, get_name(name, item_id).c_str(), cache_it->second);
         return cache_it->second;
     }
@@ -317,7 +317,7 @@ YaToolObjectId YaToolsHashProvider::get_struc_enum_object_id(ea_t item_id, const
     *prefix += *key;
     const auto id = hash_local_string(make_string_ref(*prefix), false);
     put_hash_struc_or_enum(item_id, id, use_time);
-    LOG(DEBUG, "get_struc_enum_object_id cache miss: 0x%016llX (%p) --> %llx\n",
+    LOG(DEBUG, "get_struc_enum_object_id cache miss: 0x%016" PRIX64 " (%p) --> %" PRIx64 "\n",
         (uint64_t) item_id, get_name(name, item_id).c_str(), id);
     return id;
 }
@@ -329,7 +329,7 @@ YaToolObjectId YaToolsHashProvider::get_enum_member_id(ea_t enum_id, const const
     const auto cache_it = cache_by_string_.find(*key);
     if(cache_it != cache_by_string_.end())
     {
-        LOG(DEBUG, "get_enum_member_id cache hit: 0x%016llX (%s) --> %llx\n",
+        LOG(DEBUG, "get_enum_member_id cache hit: 0x%016" PRIX64 " (%s) --> %" PRIx64 "\n",
                 (uint64_t) const_id, enum_name.value, cache_it->second);
         return cache_it->second;
     }
@@ -357,7 +357,7 @@ YaToolObjectId YaToolsHashProvider::get_enum_member_id(ea_t enum_id, const const
 
     const auto id = hash_local_string(make_string_ref(*str), false);
     put_hash_cache(make_string_ref(*key), id, true);
-    LOG(DEBUG, "get_enum_member_id cache miss: 0x%016llX (%s) --> %llx\n",
+    LOG(DEBUG, "get_enum_member_id cache miss: 0x%016" PRIX64 " (%s) --> %" PRIx64 "\n",
             (uint64_t) const_id, (make_string(enum_name) + "." + make_string(const_name)).c_str(), id);
     return id;
 }

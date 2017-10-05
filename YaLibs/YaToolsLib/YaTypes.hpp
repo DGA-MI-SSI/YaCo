@@ -40,9 +40,6 @@ typedef uint32_t flags_t;
 typedef uint64_t YaToolObjectId;
 typedef uint32_t YaToolFlag_T;
 
-#define PRIXOFFSET  PRIX64
-#define PRIiOFFSET  PRIi64
-
 #define UNKNOWN_ADDR    static_cast<offset_t>(~0)
 
 enum ContinueWalking_e

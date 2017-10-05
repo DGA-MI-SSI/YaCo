@@ -51,17 +51,16 @@ using namespace std::experimental;
 #define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("ida_exporter", (FMT), ## __VA_ARGS__)
 
 #ifdef __EA64__
-#define EA_PREFIX "ll"
-#define EA_SIZE   "16"
+#define PRIxEA "llx"
+#define PRIXEA "llX"
+#define PRIuEA "llu"
+#define EA_SIZE "16"
 #else
-#define EA_PREFIX ""
-#define EA_SIZE   "8"
+#define PRIxEA "x"
+#define PRIXEA "X"
+#define PRIuEA "u"
+#define EA_SIZE "8"
 #endif
-
-#define EA_FMT          "%" EA_PREFIX "x"
-#define EA_DECIMAL_FMT  "%" EA_PREFIX "u"
-#define XMLEA_FMT       "%0" EA_SIZE EA_PREFIX "X"
-#define SEL_FMT         "%" EA_PREFIX "u"
 
 namespace
 {
@@ -162,7 +161,7 @@ namespace
         set_name(ea, "", reset_flags);
         if(!name.size || IsDefaultName(name))
         {
-            LOG(DEBUG, "make_name: 0x" EA_FMT " resetting name %s\n", ea, strname.data());
+            LOG(DEBUG, "make_name: 0x%" PRIxEA " resetting name %s\n", ea, strname.data());
             return;
         }
 
@@ -170,7 +169,7 @@ namespace
         if(ok)
             return;
 
-        LOG(WARNING, "make_name: 0x" EA_FMT " unable to set name flags 0x%08x '%s'\n", ea, flags, strname.data());
+        LOG(WARNING, "make_name: 0x%" PRIxEA " unable to set name flags 0x%08x '%s'\n", ea, flags, strname.data());
         set_name(ea, qbuf->c_str(), SN_CHECK | SN_NOWARN);
     }
 
@@ -179,14 +178,14 @@ namespace
         const auto title = make_string_ref(comment_text);
         ya::walk_bookmarks([&](int i, ea_t locea, const auto& loc, const qstring& desc)
         {
-            LOG(DEBUG, "add_bookmark: 0x" EA_FMT " found bookmark[%d]\n", ea, i);
+            LOG(DEBUG, "add_bookmark: 0x%" PRIxEA " found bookmark[%d]\n", ea, i);
             if(locea != ea)
                 return;
 
             if(ya::to_string_ref(desc) == title)
                 return;
 
-            LOG(DEBUG, "add_bookmark: 0x" EA_FMT " bookmark[%d] = %s\n", ea, i, title.value);
+            LOG(DEBUG, "add_bookmark: 0x%" PRIxEA " bookmark[%d] = %s\n", ea, i, title.value);
             bookmarks_t::mark(loc, i, title.value, title.value, nullptr);
         });
         // FIXME add to bookmarks_ ?
@@ -261,11 +260,11 @@ namespace
             {
                 case COMMENT_REPEATABLE:
                     if(!set_cmt(comment_ea, strcmt.data(), 1))
-                        LOG(ERROR, "make_comments: 0x" EA_FMT " unable to set repeatable comment '%s'\n", comment_ea, strcmt.data());
+                        LOG(ERROR, "make_comments: 0x%" PRIxEA " unable to set repeatable comment '%s'\n", comment_ea, strcmt.data());
                     break;
                 case COMMENT_NON_REPEATABLE:
                     if(!set_cmt(comment_ea, strcmt.data(), 0))
-                        LOG(ERROR, "make_comments: 0x" EA_FMT " unable to set non-repeatable comment '%s'\n", comment_ea, strcmt.data());
+                        LOG(ERROR, "make_comments: 0x%" PRIxEA " unable to set non-repeatable comment '%s'\n", comment_ea, strcmt.data());
                     break;
                 case COMMENT_ANTERIOR:
                     make_extra_comment(comment_ea, strcmt.data(), E_PREV);
@@ -277,7 +276,7 @@ namespace
                     add_bookmark(comment_ea, strcmt);
                     break;
                 default:
-                    LOG(ERROR, "make_comments: 0x" EA_FMT " unknown %s comment\n", comment_ea, get_comment_type_string(type));
+                    LOG(ERROR, "make_comments: 0x%" PRIxEA " unknown %s comment\n", comment_ea, get_comment_type_string(type));
                     break;
             }
             return WALK_CONTINUE;
@@ -300,15 +299,15 @@ namespace
         return reply;\
     }
 
-    MAKE_TO_TYPE_FUNCTION(to_ea,      ea_t,             EA_DECIMAL_FMT);
+    MAKE_TO_TYPE_FUNCTION(to_ea,      ea_t,             "%" PRIuEA);
     MAKE_TO_TYPE_FUNCTION(to_uchar,   uchar,            "%hhu");
     MAKE_TO_TYPE_FUNCTION(to_ushort,  ushort,           "%hu");
     MAKE_TO_TYPE_FUNCTION(to_int,     int,              "%d");
-    MAKE_TO_TYPE_FUNCTION(to_sel,     sel_t,            SEL_FMT);
+    MAKE_TO_TYPE_FUNCTION(to_sel,     sel_t,            "%" PRIuEA);
     MAKE_TO_TYPE_FUNCTION(to_bgcolor, bgcolor_t,        "%u");
-    MAKE_TO_TYPE_FUNCTION(to_yaid,    YaToolObjectId,   "%llx");
+    MAKE_TO_TYPE_FUNCTION(to_yaid,    YaToolObjectId,   "%" PRIx64);
     MAKE_TO_TYPE_FUNCTION(to_path,    uint32_t,         "0x%08X");
-    MAKE_TO_TYPE_FUNCTION(to_xmlea,   ea_t,             "0x" XMLEA_FMT);
+    MAKE_TO_TYPE_FUNCTION(to_xmlea,   ea_t,             "0x%0" EA_SIZE PRIXEA);
 
     template<typename T>
     int find_int(const T& data, const char* key)
@@ -511,7 +510,7 @@ namespace
             seg = add_seg(ea, end, 0, 1, align, comb);
             if(!seg)
             {
-                LOG(ERROR, "make_segment: 0x" EA_FMT " unable to add segment [0x" EA_FMT ", 0x" EA_FMT "] align:%d comb:%d\n", ea, ea, end, align, comb);
+                LOG(ERROR, "make_segment: 0x%" PRIxEA " unable to add segment [0x%" PRIxEA ", 0x%" PRIxEA "] align:%d comb:%d\n", ea, ea, end, align, comb);
                 return;
             }
         }
@@ -521,7 +520,7 @@ namespace
             const auto strname = make_string(name);
             const auto ok = set_segm_name(seg, strname.data());
             if(!ok)
-                LOG(ERROR, "make_segment: 0x" EA_FMT " unable to set name %s\n", ea, strname.data());
+                LOG(ERROR, "make_segment: 0x%" PRIxEA " unable to set name %s\n", ea, strname.data());
         }
 
         static const const_string_ref read_only_attributes[] =
@@ -548,7 +547,7 @@ namespace
 
         const auto ok = seg->update();
         if(!ok)
-            LOG(ERROR, "make_segment: 0x" EA_FMT " unable to update segment\n", ea);
+            LOG(ERROR, "make_segment: 0x%" PRIxEA " unable to update segment\n", ea);
     }
 
     void make_segment_chunk(Exporter& exporter, const HVersion& version, ea_t ea)
@@ -565,7 +564,7 @@ namespace
             auto ok = get_bytes(&exporter.buffer_[0], szbuf, blob_ea, GMB_READALL);
             if(!ok)
             {
-                LOG(ERROR, "make_segment_chunk: 0x" EA_FMT " unable to read %zd bytes\n", blob_ea, szbuf);
+                LOG(ERROR, "make_segment_chunk: 0x%" PRIxEA " unable to read %zd bytes\n", blob_ea, szbuf);
                 return WALK_CONTINUE;
             }
             if(!memcmp(&exporter.buffer_[0], pbuf, szbuf))
@@ -575,7 +574,7 @@ namespace
             put_bytes(blob_ea, pbuf, szbuf);
             ok = get_bytes(&exporter.buffer_[0], szbuf, blob_ea, GMB_READALL);
             if(!ok || memcmp(&exporter.buffer_[0], pbuf, szbuf))
-                LOG(ERROR, "make_segment_chunk: 0x" EA_FMT " unable to write %zd bytes\n", blob_ea, szbuf);
+                LOG(ERROR, "make_segment_chunk: 0x%" PRIxEA " unable to write %zd bytes\n", blob_ea, szbuf);
 
             return WALK_CONTINUE;
         });
@@ -629,7 +628,7 @@ namespace
             const auto k = exporter.tids_.find(to_yaid(id.data()));
             if(k == exporter.tids_.end())
             {
-                LOG(WARNING, "make_prototype: 0x" EA_FMT " unknown struct %s id %s\n", ea, name.data(), id.data());
+                LOG(WARNING, "make_prototype: 0x%" PRIxEA " unknown struct %s id %s\n", ea, name.data(), id.data());
                 continue;
             }
             if(k->second.type != OBJECT_TYPE_STRUCT)
@@ -850,13 +849,13 @@ namespace
         const auto tif = try_find_type(ea, patched.data());
         if(tif.empty())
         {
-            LOG(ERROR, "set_type: 0x" EA_FMT " unknown type %s\n", ea, patched.data());
+            LOG(ERROR, "set_type: 0x%" PRIxEA " unknown type %s\n", ea, patched.data());
             return false;
         }
 
         const auto ok = operand(tif);
         if(!ok)
-            LOG(ERROR, "set_type: 0x" EA_FMT " unable to set type %s\n", ea, patched.data());
+            LOG(ERROR, "set_type: 0x%" PRIxEA " unable to set type %s\n", ea, patched.data());
         return ok;
     }
 
@@ -904,7 +903,7 @@ namespace
 
             const auto ok = remove_func_tail(func, ea);
             if(!ok)
-                LOG(ERROR, "clear_function: 0x" EA_FMT " unable to remove func tail at " EA_FMT "\n", ea, xref_ea);
+                LOG(ERROR, "clear_function: 0x%" PRIxEA " unable to remove func tail at %" PRIxEA "\n", ea, xref_ea);
             // FIXME check if we need for i in xrange(ea, ea + size): idc.MakeUnkn(i)
             return WALK_CONTINUE;
         });
@@ -925,9 +924,9 @@ namespace
         if(is_func(flags) && func && func->start_ea == ea)
             return true;
 
-        LOG(DEBUG, "make_function: 0x" EA_FMT " flags 0x%08X current flags 0x%08x\n", ea, version.flags(), flags);
+        LOG(DEBUG, "make_function: 0x%" PRIxEA " flags 0x%08X current flags 0x%08x\n", ea, version.flags(), flags);
         if(func)
-            LOG(DEBUG, "make_function: 0x" EA_FMT " func [0x" EA_FMT ", 0x" EA_FMT "] size 0x%08llX\n", ea, func->start_ea, func->end_ea, version.size());
+            LOG(DEBUG, "make_function: 0x%" PRIxEA " func [0x%" PRIxEA ", 0x%" PRIxEA "] size 0x%08" PRIX64 "\n", ea, func->start_ea, func->end_ea, version.size());
 
         auto ok = add_func(ea, BADADDR);
         if(ok)
@@ -935,7 +934,7 @@ namespace
 
         if(!has_value(flags))
         {
-            LOG(ERROR, "make_function: 0x" EA_FMT " unable to add function, missing data\n", ea);
+            LOG(ERROR, "make_function: 0x%" PRIxEA " unable to add function, missing data\n", ea);
             return false;
         }
 
@@ -948,16 +947,16 @@ namespace
         const auto func = get_func(ea);
         auto ok = add_function(ea, version, func);
         if(!ok)
-            LOG(ERROR, "make_function: 0x" EA_FMT " unable to add function\n", ea);
+            LOG(ERROR, "make_function: 0x%" PRIxEA " unable to add function\n", ea);
 
         ok = !!plan_and_wait(ea, ea + 1);
         if(!ok)
-            LOG(ERROR, "make_function: 0x" EA_FMT " unable to analyze area\n", ea);
+            LOG(ERROR, "make_function: 0x%" PRIxEA " unable to analyze area\n", ea);
 
         const auto flags = version.flags();
         if(flags)
             if(!set_function_flags(ea, flags))
-                LOG(ERROR, "make_function: 0x" EA_FMT " unable to set function flags 0x%08x\n", ea, flags);
+                LOG(ERROR, "make_function: 0x%" PRIxEA " unable to set function flags 0x%08x\n", ea, flags);
 
         set_type(&exporter, ea, make_string(version.prototype()));
 
@@ -967,7 +966,7 @@ namespace
             const auto strcmt = make_string(cmt);
             ok = set_func_cmt(func, strcmt.data(), repeat);
             if(!ok)
-                LOG(ERROR, "make_function: 0x" EA_FMT " unable to set %s comment to '%s'\n", ea, repeat ? "repeatable" : "non-repeatable", strcmt.data());
+                LOG(ERROR, "make_function: 0x%" PRIxEA " unable to set %s comment to '%s'\n", ea, repeat ? "repeatable" : "non-repeatable", strcmt.data());
         }
     }
 
@@ -1039,7 +1038,7 @@ namespace
             return !!op_offset_ex(ea, operand, &ri);
         }
 
-        LOG(ERROR, "make_valueview: 0x" EA_FMT " unexpected value view type %s\n", ea, view.data());
+        LOG(ERROR, "make_valueview: 0x%" PRIxEA " unexpected value view type %s\n", ea, view.data());
         return false;
     }
 
@@ -1047,7 +1046,7 @@ namespace
     {
         const auto ok = try_make_valueview(ea, operand, view);
         if(!ok)
-            LOG(ERROR, "make_valueview: 0x" EA_FMT " unable to make value view\n", ea);
+            LOG(ERROR, "make_valueview: 0x%" PRIxEA " unable to make value view\n", ea);
     }
 
     void make_registerview(ea_t ea, offset_t offset, const std::string& name, offset_t end, const std::string& newname)
@@ -1055,7 +1054,7 @@ namespace
         const auto func = get_func(ea);
         if(!func)
         {
-            LOG(ERROR, "make_registerview: 0x" EA_FMT " missing function\n", ea);
+            LOG(ERROR, "make_registerview: 0x%" PRIxEA " missing function\n", ea);
             return;
         }
 
@@ -1069,13 +1068,13 @@ namespace
 
             const auto err = del_regvar(func, ea0, ea1, regvar->canon);
             if(err)
-                LOG(ERROR, "make_registerview: 0x" EA_FMT " unable to del regvar 0x%p 0x" EA_FMT "-0x" EA_FMT " %s -> %s error %d\n",
+                LOG(ERROR, "make_registerview: 0x%" PRIxEA " unable to del regvar 0x%p 0x%" PRIxEA "-0x%" PRIxEA " %s -> %s error %d\n",
                     ea, func, ea0, ea1, name.data(), newname.data(), err);
         }
 
         const auto err = add_regvar(func, ea0, ea1, name.data(), newname.data(), nullptr);
         if(err)
-            LOG(ERROR, "make_registerview: 0x" EA_FMT " unable to add regvar 0x%p 0x" EA_FMT "-0x" EA_FMT " %s -> %s error %d\n",
+            LOG(ERROR, "make_registerview: 0x%" PRIxEA " unable to add regvar 0x%p 0x%" PRIxEA "-0x%" PRIxEA " %s -> %s error %d\n",
                 ea, func, ea0, ea1, name.data(), newname.data(), err);
     }
 
@@ -1085,7 +1084,7 @@ namespace
         const auto end = static_cast<ea_t>(ea + offset_end);
         const auto ok = add_hidden_range(start, end, value.data(), nullptr, nullptr, ~0u);
         if(!ok)
-            LOG(ERROR, "make_hiddenarea: 0x" EA_FMT " unable to set hidden area " EA_FMT "-" EA_FMT " %s\n", ea, start, end, value.data());
+            LOG(ERROR, "make_hiddenarea: 0x%" PRIxEA " unable to set hidden area %" PRIxEA "-%" PRIxEA " %s\n", ea, start, end, value.data());
     }
 
     void make_views(const HVersion& version, ea_t ea)
@@ -1122,7 +1121,7 @@ namespace
         {
             const auto ok = del_items(ea, DELIT_EXPAND);
             if(!ok)
-                LOG(ERROR, "make_data: 0x" EA_FMT " unable to set unknown\n", ea);
+                LOG(ERROR, "make_data: 0x%" PRIxEA " unable to set unknown\n", ea);
             return;
         }
 
@@ -1131,7 +1130,7 @@ namespace
         {
             const auto ok = create_byte(ea, static_cast<asize_t>(size));
             if(!ok)
-                LOG(ERROR, "make_data: 0x" EA_FMT " unable to set data size %zd\n", ea, size);
+                LOG(ERROR, "make_data: 0x%" PRIxEA " unable to set data size %zd\n", ea, size);
             return;
         }
 
@@ -1140,7 +1139,7 @@ namespace
             const auto strtype = version.string_type();
             auto ok = create_strlit(ea, size, strtype == UINT8_MAX ? STRTYPE_C : strtype);
             if(!ok)
-                LOG(ERROR, "make_data: 0x" EA_FMT " unable to make ascii string size %zd type %d\n", ea, size, strtype);
+                LOG(ERROR, "make_data: 0x%" PRIxEA " unable to make ascii string size %zd type %d\n", ea, size, strtype);
             return;
         }
 
@@ -1160,19 +1159,19 @@ namespace
                 auto ok = create_struct(ea, static_cast<asize_t>(size), fi->second.tid);
                 inf.s_genflags = prev;
                 if(!ok)
-                    LOG(ERROR, "make_data: 0x" EA_FMT " unable to set struct %016llx size %zd\n", ea, id, size);
+                    LOG(ERROR, "make_data: 0x%" PRIxEA " unable to set struct %016" PRIx64 " size %zd\n", ea, id, size);
                 found = true;
                 return WALK_CONTINUE;
             });
             if(!found)
-                LOG(ERROR, "make_data: 0x" EA_FMT " unknown struct %016llx %s\n", ea, version.id(), make_string(version.username()).data());
+                LOG(ERROR, "make_data: 0x%" PRIxEA " unknown struct %016" PRIx64 " %s\n", ea, version.id(), make_string(version.username()).data());
             return;
         }
 
         const auto type_flags = flags & (DT_TYPE | get_optype_flags0(~0u));
         const auto ok = create_data(ea, type_flags, static_cast<asize_t>(size), 0);
         if(!ok)
-            LOG(ERROR, "make_data: 0x" EA_FMT " unable to set data type 0x%llx size %zd\n", ea, static_cast<uint64_t>(type_flags), size);
+            LOG(ERROR, "make_data: 0x%" PRIxEA " unable to set data type 0x%" PRIx64 " size %zd\n", ea, static_cast<uint64_t>(type_flags), size);
     }
 
     void make_data(Exporter& exporter, const HVersion& version, ea_t ea)
@@ -1191,18 +1190,18 @@ namespace
             eid = add_enum(~0u, name.data(), flags & ~0x1);
 
         if(!set_enum_bf(eid, flags & 0x1))
-            LOG(ERROR, "make_enum: 0x" EA_FMT " unable to set as bitfield\n", ea);
+            LOG(ERROR, "make_enum: 0x%" PRIxEA " unable to set as bitfield\n", ea);
 
         const auto width = version.size();
         if(width)
             if(!set_enum_width(eid, static_cast<int>(width)))
-                LOG(ERROR, "make_enum: 0x" EA_FMT " unable to set width %lld\n", ea, width);
+                LOG(ERROR, "make_enum: 0x%" PRIxEA " unable to set width %" PRId64 "\n", ea, width);
 
         for(const auto rpt : {false, true})
         {
             const auto cmt = make_string(version.header_comment(rpt));
             if(!set_enum_cmt(eid, cmt.data(), rpt))
-                LOG(ERROR, "make_enum: 0x" EA_FMT " unable to set %s comment to %s\n", ea, rpt ? "repeatable" : "non-repeatable", cmt.data());
+                LOG(ERROR, "make_enum: 0x%" PRIxEA " unable to set %s comment to %s\n", ea, rpt ? "repeatable" : "non-repeatable", cmt.data());
         }
 
         const auto has_xref = [&](YaToolObjectId id)
@@ -1231,7 +1230,7 @@ namespace
                 return;
 
             if(!del_enum_member(eid, value, serial, bmask))
-                LOG(ERROR, "make_enum: 0x" EA_FMT ": unable to delete member " EA_FMT " " EA_FMT " %x " EA_FMT "\n", ea, cid, value, serial, bmask);
+                LOG(ERROR, "make_enum: 0x%" PRIxEA ": unable to delete member %" PRIxEA " %" PRIxEA " %x %" PRIxEA "\n", ea, cid, value, serial, bmask);
         });
 
         const auto id = version.id();
@@ -1245,7 +1244,7 @@ namespace
         const auto it = exporter.tids_.find(parent_id);
         if(it == exporter.tids_.end())
         {
-            LOG(ERROR, "make_enum_member: 0x" EA_FMT " unable to find parent enum %016llx\n", ea, parent_id);
+            LOG(ERROR, "make_enum_member: 0x%" PRIxEA " unable to find parent enum %016" PRIx64 "\n", ea, parent_id);
             return;
         }
 
@@ -1262,18 +1261,18 @@ namespace
         {
             const auto err = add_enum_member(eid, strname.data(), ea, bmask);
             if(err)
-                LOG(ERROR, "make_enum_member: 0x" EA_FMT " unable to add enum member %s bmask 0x" EA_FMT "\n", ea, strname.data(), bmask);
+                LOG(ERROR, "make_enum_member: 0x%" PRIxEA " unable to add enum member %s bmask 0x%" PRIxEA "\n", ea, strname.data(), bmask);
             mid = get_enum_member(eid, ea, 0, bmask);
         }
 
         if(!set_enum_member_name(mid, strname.data()))
-            LOG(ERROR, "make_enum_member: 0x" EA_FMT " unable to set enum member name to %s\n", ea, strname.data());
+            LOG(ERROR, "make_enum_member: 0x%" PRIxEA " unable to set enum member name to %s\n", ea, strname.data());
 
         for(const auto rpt : {false, true})
         {
             const auto cmt = make_string(version.header_comment(rpt));
             if(!set_enum_member_cmt(mid, cmt.data(), rpt))
-                LOG(ERROR, "make_enum_member: 0x" EA_FMT " unable to set %s comment to %s\n", ea, rpt ? "repeatable" : "non-repeatable", cmt.data());
+                LOG(ERROR, "make_enum_member: 0x%" PRIxEA " unable to set %s comment to %s\n", ea, rpt ? "repeatable" : "non-repeatable", cmt.data());
         }
 
         exporter.enum_members_.emplace(mid, eid);
@@ -1292,7 +1291,7 @@ namespace
     {
         const auto ok = op_stkvar(static_cast<ea_t>(ea + offset), operand);
         if(!ok)
-            LOG(ERROR, "make_basic_block: 0x" EA_FMT " unable to set stackframe member at offset %lld operand %d\n", ea, offset, operand);
+            LOG(ERROR, "make_basic_block: 0x%" PRIxEA " unable to set stackframe member at offset %" PRId64 " operand %d\n", ea, offset, operand);
     }
 
     void set_enum_operand(ea_t ea, offset_t offset, operand_t operand, enum_t enum_id)
@@ -1300,7 +1299,7 @@ namespace
         // FIXME serial
         const auto ok = op_enum(static_cast<ea_t>(ea + offset), operand, enum_id, 0);
         if(!ok)
-            LOG(ERROR, "make_basic_block: 0x" EA_FMT " unable to set enum 0x" EA_FMT " at offset %lld operand %d\n", ea, enum_id, offset, operand);
+            LOG(ERROR, "make_basic_block: 0x%" PRIxEA " unable to set enum 0x%" PRIxEA " at offset %" PRId64 " operand %d\n", ea, enum_id, offset, operand);
     }
 
     void set_reference_info(RefInfos& refs, ea_t ea, offset_t offset, operand_t operand, YaToolObjectId id)
@@ -1311,7 +1310,7 @@ namespace
         const auto& ref = it_ref->second;
         const auto ok = op_offset_ex(static_cast<ea_t>(ea + offset), operand, &ref);
         if(!ok)
-            LOG(ERROR, "make_basic_block: 0x" EA_FMT " unable to set reference info " EA_FMT ":%x at offset %lld operand %d\n", ea, ref.base, ref.flags, offset, operand);
+            LOG(ERROR, "make_basic_block: 0x%" PRIxEA " unable to set reference info %" PRIxEA ":%x at offset %" PRId64 " operand %d\n", ea, ref.base, ref.flags, offset, operand);
     }
 
     struct PathItem
@@ -1389,7 +1388,7 @@ namespace
                 pathstr += ":";
             pathstr += std::to_string(tid);
         }
-        LOG(ERROR, "make_basic_block: 0x" EA_FMT " unable to set path %s at offset %lld operand %d\n", ea, pathstr.data(), path.offset, path.operand);
+        LOG(ERROR, "make_basic_block: 0x%" PRIxEA " unable to set path %s at offset %" PRId64 " operand %d\n", ea, pathstr.data(), path.offset, path.operand);
     }
 
     void make_basic_block(Exporter& exporter, const HVersion& version, ea_t ea)
@@ -1443,11 +1442,11 @@ namespace
             const auto defname = ya::get_default_name(buffer, ea, func);
             const auto ok = set_member_name(struc, ea, defname.value);
             if(!ok)
-                LOG(ERROR, "%s: 0x" EA_FMT ":" EA_FMT " unable to set member name %s\n", where, struc->id, ea, defname.value);
+                LOG(ERROR, "%s: 0x%" PRIxEA ":%" PRIxEA " unable to set member name %s\n", where, struc->id, ea, defname.value);
         }
         const auto ok = set_member_type(struc, ea, FF_BYTE, pop, size);
         if(!ok)
-            LOG(ERROR, "%s: 0x" EA_FMT ":" EA_FMT " unable to set member type to 0x" EA_FMT " bytes\n", where, struc->id, ea, size);
+            LOG(ERROR, "%s: 0x%" PRIxEA ":%" PRIxEA " unable to set member type to 0x%" PRIxEA " bytes\n", where, struc->id, ea, size);
     }
 
     void clear_struct_fields(const Exporter& exporter, const char* where, const HVersion& version, ea_t struct_id)
@@ -1488,7 +1487,7 @@ namespace
             const auto field_size = offset == last_offset && offset == size ? 0 : 1;
             const auto err = add_struc_member(struc, defname.value, aoff, FF_BYTE, nullptr, field_size);
             if(err != STRUC_ERROR_MEMBER_OK)
-                LOG(ERROR, "clear_%s: 0x" EA_FMT ":%llx unable to add member %s size %d\n", where, struct_id, offset, defname.value, field_size);
+                LOG(ERROR, "clear_%s: 0x%" PRIxEA ":%" PRIx64 " unable to add member %s size %d\n", where, struct_id, offset, defname.value, field_size);
         }
 
         for(size_t i = 0; i < struc->memqty; ++i)
@@ -1509,7 +1508,7 @@ namespace
                     continue;
                 const auto ok = del_struc_member(struc, offset);
                 if(!ok)
-                    LOG(ERROR, "clear_%s: 0x" EA_FMT ":" EA_FMT " unable to delete member\n", where, struct_id, offset);
+                    LOG(ERROR, "clear_%s: 0x%" PRIxEA ":%" PRIxEA " unable to delete member\n", where, struct_id, offset);
                 else
                     --i;
                 continue;
@@ -1530,7 +1529,7 @@ namespace
             {
                 const auto ok = set_member_cmt(&m, g_empty.value, repeat);
                 if(!ok)
-                    LOG(ERROR, "clear_%s: 0x" EA_FMT ":" EA_FMT " unable to reset %s comment\n", where, struct_id, offset, repeat ? "repeatable" : "non-repeatable");
+                    LOG(ERROR, "clear_%s: 0x%" PRIxEA ":%" PRIxEA " unable to reset %s comment\n", where, struct_id, offset, repeat ? "repeatable" : "non-repeatable");
             }
         }
 
@@ -1546,7 +1545,7 @@ namespace
         ya::walk_function_chunks(func_ea, [=](range_t area)
         {
             if(!plan_and_wait(area.start_ea, area.end_ea))
-                LOG(ERROR, "analyze_function: 0x" EA_FMT " unable to analyze area " EA_FMT "-" EA_FMT "\n", func_ea, area.start_ea, area.end_ea);
+                LOG(ERROR, "analyze_function: 0x%" PRIxEA " unable to analyze area %" PRIxEA "-%" PRIxEA "\n", func_ea, area.start_ea, area.end_ea);
         });
         frame = get_frame(func_ea);
         if(frame)
@@ -1588,7 +1587,7 @@ namespace
         const auto frame = get_or_add_frame(version, ea);
         if(!frame)
         {
-            LOG(ERROR, "make_stackframe: 0x" EA_FMT " unable to create function\n", ea);
+            LOG(ERROR, "make_stackframe: 0x%" PRIxEA " unable to create function\n", ea);
             return;
         }
 
@@ -1668,14 +1667,14 @@ namespace
         const auto parent = get_tid(exporter, parent_id);
         if(parent.tid == BADADDR)
         {
-            LOG(ERROR, "make_%s: %016llx %s: missing parent struct %016llx\n", where, id, name.data(), parent_id);
+            LOG(ERROR, "make_%s: %016" PRIx64 " %s: missing parent struct %016" PRIx64 "\n", where, id, name.data(), parent_id);
             return;
         }
 
         const auto struc = get_struc(parent.tid);
         if(!struc)
         {
-            LOG(ERROR, "make_%s: %016llx %s: missing struct id %016llx tid_t " EA_FMT "\n", where, id, name.data(), parent_id, parent.tid);
+            LOG(ERROR, "make_%s: %016" PRIx64 " %s: missing struct id %016" PRIx64 " tid_t %" PRIxEA "\n", where, id, name.data(), parent_id, parent.tid);
             return;
         }
 
@@ -1690,14 +1689,14 @@ namespace
             const auto defname = ya::get_default_name(*qbuf, offset, func);
             const auto err = add_struc_member(struc, defname.value, BADADDR, FF_BYTE | FF_DATA, nullptr, 1);
             if(err != STRUC_ERROR_MEMBER_OK)
-                LOG(ERROR, "make_%s: %s:" EA_FMT ": unable to add member %s " EA_FMT " (error %d)\n", where, sname->c_str(), ea, defname.value, offset, err);
+                LOG(ERROR, "make_%s: %s:%" PRIxEA ": unable to add member %s %" PRIxEA " (error %d)\n", where, sname->c_str(), ea, defname.value, offset, err);
         }
 
         if(!name.empty())
         {
             const auto ok = set_member_name(struc, ea, name.data());
             if(!ok)
-                LOG(ERROR, "make_%s: %s:" EA_FMT ": unable to set member name %s\n", where, sname->c_str(), ea, name.data());
+                LOG(ERROR, "make_%s: %s:%" PRIxEA ": unable to set member name %s\n", where, sname->c_str(), ea, name.data());
         }
 
         opinfo_t op;
@@ -1707,7 +1706,7 @@ namespace
         auto ok = set_member_type(struc, ea, (flags & DT_TYPE) | FF_DATA, pop, size);
         const auto is_struct_applied = ok && is_struct(flags);
         if(!ok)
-            LOG(ERROR, "make_%s: %s.%s: unable to set member type %x to " SEL_FMT " bytes\n", where, sname->c_str(), name.data(), flags, size);
+            LOG(ERROR, "make_%s: %s.%s: unable to set member type %x to %" PRIuEA " bytes\n", where, sname->c_str(), name.data(), flags, size);
 
         const auto member = get_member(struc, ea);
         if(!member)
@@ -1752,7 +1751,7 @@ namespace
         const auto ok = add_struc(BADADDR, name, is_union);
         if(!ok)
         {
-            LOG(ERROR, "make_struct: 0x" EA_FMT " unable to add struct\n", ea);
+            LOG(ERROR, "make_struct: 0x%" PRIxEA " unable to add struct\n", ea);
             return nullptr;
         }
 
@@ -1765,7 +1764,7 @@ namespace
         const auto struc = get_or_add_struct(version, ea, name.data());
         if(!struc)
         {
-            LOG(ERROR, "make_struct: 0x" EA_FMT " missing struct %s\n", ea, name.data());
+            LOG(ERROR, "make_struct: 0x%" PRIxEA " missing struct %s\n", ea, name.data());
             return;
         }
 
@@ -1779,7 +1778,7 @@ namespace
             const auto strcmt = make_string(cmt);
             const auto ok = set_struc_cmt(struc->id, strcmt.data(), repeat);
             if(!ok)
-                LOG(ERROR, "make_struct: 0x" EA_FMT " unable to set %s comment to '%s'\n", ea, repeat ? "repeatable" : "non-repeatable", strcmt.data());
+                LOG(ERROR, "make_struct: 0x%" PRIxEA " unable to set %s comment to '%s'\n", ea, repeat ? "repeatable" : "non-repeatable", strcmt.data());
         }
 
         clear_struct_fields(exporter, "struct_fields", version, struc->id);

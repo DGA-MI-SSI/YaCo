@@ -43,12 +43,6 @@
 #include <typeinf.hpp>
 #undef snprintf // ida disable this...
 
-#ifdef __EA64__
-#define PRIXEA  PRIX64
-#else
-#define PRIXEA  PRIX32
-#endif
-
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif

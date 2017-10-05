@@ -314,7 +314,7 @@ void ExporterValidatorVisitor::visit_offset_comments(offset_t offset, CommentTyp
     UNUSED(comment_type);
     validator_assert(state[current_state_depth] == VISIT_OFFSETS, "Bad state");
 	static_assert(sizeof(offset) == sizeof(uint64_t), "bad static assert");
-    validator_assert(last_offset_ea==UNKNOWN_ADDR || offset >= last_offset_ea, "Bad offset : 0x%" PRIXOFFSET " < 0x%" PRIXOFFSET " (comment='%s')", offset, last_offset_ea, comment.value);
+    validator_assert(last_offset_ea==UNKNOWN_ADDR || offset >= last_offset_ea, "Bad offset : 0x%" PRIX64 " < 0x%" PRIX64 " (comment='%s')", offset, last_offset_ea, comment.value);
     last_offset_ea = offset;
 }
 
@@ -323,7 +323,7 @@ void ExporterValidatorVisitor::visit_offset_valueview(offset_t offset, operand_t
     UNUSED(operand);
     UNUSED(view_value);
     validator_assert(state[current_state_depth] == VISIT_OFFSETS, "Bad state");
-    validator_assert(last_offset_ea==UNKNOWN_ADDR || offset >= last_offset_ea, "Bad offset : 0x%" PRIXOFFSET " < 0x%" PRIXOFFSET "", offset, last_offset_ea);
+    validator_assert(last_offset_ea==UNKNOWN_ADDR || offset >= last_offset_ea, "Bad offset : 0x%" PRIX64 " < 0x%" PRIX64 "", offset, last_offset_ea);
     last_offset_ea = offset;
 }
 
@@ -334,7 +334,7 @@ void ExporterValidatorVisitor::visit_offset_registerview(offset_t offset, offset
     UNUSED(register_name);
     UNUSED(register_new_name);
     validator_assert(state[current_state_depth] == VISIT_OFFSETS, "Bad state");
-    validator_assert(last_offset_ea==UNKNOWN_ADDR || offset >= last_offset_ea, "Bad offset : 0x%" PRIXOFFSET " < 0x%" PRIXOFFSET "", offset, last_offset_ea);
+    validator_assert(last_offset_ea==UNKNOWN_ADDR || offset >= last_offset_ea, "Bad offset : 0x%" PRIX64 " < 0x%" PRIX64 "", offset, last_offset_ea);
     last_offset_ea = offset;
 }
 
@@ -343,7 +343,7 @@ void ExporterValidatorVisitor::visit_offset_hiddenarea(offset_t offset, offset_t
     UNUSED(area_size);
     UNUSED(hidden_area_value);
     validator_assert(state[current_state_depth] == VISIT_OFFSETS, "Bad state");
-    validator_assert(last_offset_ea==UNKNOWN_ADDR || offset >= last_offset_ea, "Bad offset : 0x%" PRIXOFFSET " < 0x%" PRIXOFFSET "", offset, last_offset_ea);
+    validator_assert(last_offset_ea==UNKNOWN_ADDR || offset >= last_offset_ea, "Bad offset : 0x%" PRIX64 " < 0x%" PRIX64 "", offset, last_offset_ea);
     last_offset_ea = offset;
 }
 
