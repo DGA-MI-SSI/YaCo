@@ -168,7 +168,7 @@ class YaToolIDAHooks(object):
     def add_func(self, ea):
         # invalid all addresses in this function (they depend (relatively) on this function now, no on code)
         logger.warning("Warning : deletion of objects not implemented")
-        # TODO : implement deletion of objects inside newly created function area
+        # TODO : implement deletion of objects inside newly created function range
         # TODO : use function chunks to iterate over function code
         ea_index = int(ea)
         while ea_index < int(idc.FindFuncEnd(ea)):
@@ -229,7 +229,7 @@ class YaToolIDAHooks(object):
             logger.warning("op_type_changed at 0x%08X : code but not in a function : not implemented")
 
     def segment_added(self, segment):
-        self.updated_segments.add((segment.startEA, segment.endEA))
+        self.updated_segments.add((segment.start_ea, segment.end_ea))
 
     def ti_changed(self, ea):
         if idaapi.is_member_id(ea):
@@ -447,10 +447,10 @@ class YaToolIDP_Hooks(idaapi.IDP_Hooks):
         self.unhook()
         hooks.idb.unhook()
 
-        idc.SetCharPrm(idc.INF_AUTO, True)
+        idc.set_inf_attr(idc.INFFL_AUTO, True)
         idc.Wait()
         idaapi.request_refresh(idaapi.IWID_STRUCTS | idaapi.IWID_ENUMS | idaapi.IWID_XREFS)
-        idc.SetCharPrm(idc.INF_AUTO, False)
+        idc.set_inf_attr(idc.INFFL_AUTO, False)
         idaapi.request_refresh(idaapi.IWID_STRUCTS | idaapi.IWID_ENUMS | idaapi.IWID_XREFS)
 
         self.hook()
@@ -459,23 +459,7 @@ class YaToolIDP_Hooks(idaapi.IDP_Hooks):
     def __init__(self):
         idaapi.IDP_Hooks.__init__(self)
 
-    def savebase(self, *args):
-        logger.debug("savebase")
-        YaCo.save()
-        return idaapi.IDP_Hooks.savebase(self, *args)
-
-    def closebase(self, *args):
-        logger.debug("closebase")
-        """
-        closebase(self) -> int
-
-
-        The database will be closed now
-        """
-        YaCo.close()
-        return idaapi.IDP_Hooks.closebase(self, *args)
-
-    def rename(self, ea, new_name):
+    def ev_rename(self, ea, new_name):
         """
         This function only records information about the element *before* it is renamed
         """
@@ -495,6 +479,53 @@ class YaToolIDP_Hooks(idaapi.IDP_Hooks):
         hooks.current_rename_infos[ea] = name
 
         return 0
+
+    def ev_undefine(self, ea):
+        self.pre_hook()
+        if LOG_IDP_EVENTS:
+            self.debug_event("Undefine at 0x%08x" % ea)
+        self.unhook()
+        hooks.idb.unhook()
+        hooks.ida.undefine(ea)
+        self.hook()
+        hooks.idb.hook()
+        return idaapi.IDP_Hooks.undefine(self, ea)
+
+
+class YaToolIDB_Hooks(idaapi.IDB_Hooks):
+    def __init__(self):
+        idaapi.IDB_Hooks.__init__(self)
+        # hooks.ida = model
+
+    def pre_hook(self):
+        hooks.idp.unhook()
+        self.unhook()
+
+        idc.set_inf_attr(idc.INFFL_AUTO, True)
+        idc.Wait()
+        idaapi.request_refresh(idaapi.IWID_STRUCTS | idaapi.IWID_ENUMS | idaapi.IWID_XREFS)
+        idc.set_inf_attr(idc.INFFL_AUTO, False)
+
+        idaapi.request_refresh(idaapi.IWID_STRUCTS | idaapi.IWID_ENUMS | idaapi.IWID_XREFS)
+
+        hooks.idp.hook()
+        self.hook()
+
+    def savebase(self, *args):
+        logger.debug("savebase")
+        YaCo.save()
+        return idaapi.IDB_Hooks.savebase(self, *args)
+
+    def closebase(self, *args):
+        logger.debug("closebase")
+        """
+        closebase(self) -> int
+
+
+        The database will be closed now
+        """
+        YaCo.close()
+        return idaapi.IDB_Hooks.closebase(self, *args)
 
     def renamed(self, ea, new_name, local_name):
         if LOG_IDP_EVENTS:
@@ -527,72 +558,41 @@ class YaToolIDP_Hooks(idaapi.IDP_Hooks):
 
         return idaapi.IDP_Hooks.rename(self, ea, new_name)
 
-    def undefine(self, ea):
-        self.pre_hook()
-        if LOG_IDP_EVENTS:
-            self.debug_event("Undefine at 0x%08x" % ea)
-        self.unhook()
-        hooks.idb.unhook()
-        hooks.ida.undefine(ea)
-        self.hook()
-        hooks.idb.hook()
-        return idaapi.IDP_Hooks.undefine(self, ea)
-
     def make_code(self, ea, size):
         self.pre_hook()
         if LOG_IDP_EVENTS:
             self.debug_event("Make code at 0x%08x" % ea)
         hooks.ida.make_code(ea)
-        return idaapi.IDP_Hooks.make_code(self, ea, size)
+        return idaapi.IDB_Hooks.make_code(self, ea, size)
 
     def make_data(self, ea, flags, tid, length):
         self.pre_hook()
         if LOG_IDP_EVENTS:
             self.debug_event("Make data at 0x%08x, length : 0x%08x" % (ea, length))
         hooks.ida.make_data(ea)
-        return idaapi.IDP_Hooks.make_data(self, ea, flags, tid, length)
+        return idaapi.IDB_Hooks.make_data(self, ea, flags, tid, length)
 
-    def add_func(self, func):
+    def func_added(self, func):
         self.pre_hook()
         if LOG_IDP_EVENTS:
             self.debug_event("Add func")
         self.unhook()
         hooks.idb.unhook()
-        hooks.ida.add_func(func.startEA)
+        hooks.ida.add_func(func.start_ea)
         self.hook()
         hooks.idb.hook()
-        return idaapi.IDP_Hooks.add_func(self, func)
+        return idaapi.IDB_Hooks.func_added(self, func)
 
-    def del_func(self, func):
+    def deleting_func(self, func):
         self.pre_hook()
         if LOG_IDP_EVENTS:
-            self.debug_event("Del func : 0x%08x" % func.startEA)
+            self.debug_event("Del func : 0x%08x" % func.start_ea)
         self.unhook()
         hooks.idb.unhook()
-        hooks.ida.del_func(func.startEA)
+        hooks.ida.del_func(func.start_ea)
         self.hook()
         hooks.idb.hook()
-        return idaapi.IDP_Hooks.del_func(self, func)
-
-
-class YaToolIDB_Hooks(idaapi.IDB_Hooks):
-    def __init__(self):
-        idaapi.IDB_Hooks.__init__(self)
-        # hooks.ida = model
-
-    def pre_hook(self):
-        hooks.idp.unhook()
-        self.unhook()
-
-        idc.SetCharPrm(idc.INF_AUTO, True)
-        idc.Wait()
-        idaapi.request_refresh(idaapi.IWID_STRUCTS | idaapi.IWID_ENUMS | idaapi.IWID_XREFS)
-        idc.SetCharPrm(idc.INF_AUTO, False)
-
-        idaapi.request_refresh(idaapi.IWID_STRUCTS | idaapi.IWID_ENUMS | idaapi.IWID_XREFS)
-
-        hooks.idp.hook()
-        self.hook()
+        return idaapi.IDB_Hooks.deleting_func(self, func)
 
     def debug_event(self, text):
         auto_display = idaapi.auto_display_t()
@@ -621,14 +621,14 @@ class YaToolIDB_Hooks(idaapi.IDB_Hooks):
 
         return idaapi.IDB_Hooks.extra_cmt_changed(self, ea, line_idx, cmt)
 
-    def area_cmt_changed(self, areacb, area, cmt, repeatable):
+    def range_cmt_changed(self, rangecb, range, cmt, repeatable):
         self.pre_hook()
-        ea = area.startEA
+        ea = range.start_ea
 
         if LOG_IDB_EVENTS:
-            self.debug_event("area comment at 0x%08X" % ea)
+            self.debug_event("range comment at 0x%08X" % ea)
         hooks.ida.comment_changed(ea)
-        return idaapi.IDB_Hooks.area_cmt_changed(self, areacb, area, cmt, repeatable)
+        return idaapi.IDB_Hooks.range_cmt_changed(self, rangecb, range, cmt, repeatable)
 
     def ti_changed(self, ea, arg1, arg2):
         self.pre_hook()

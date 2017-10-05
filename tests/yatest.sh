@@ -14,9 +14,9 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #!/bin/bash
-BIN_DIR=../bin/yaco_x86/YaTools/bin
+BIN_DIR=../bin/yaco_x64/YaTools/bin
 OUT_DIR=../out
-IDAQ=idaq64
+IDAQ=ida64
 PREFIX=ya
 EXT=\.i64
 

@@ -40,7 +40,7 @@ class Fixture(unittest.TestCase):
                     eas.append((ea, operand, key))
                     func = idaapi.get_func(ea)
                     self.assertIsNotNone(func)
-                    end = ea + idc.ItemSize(ea) if i == 0 else func.endEA
+                    end = ea + idc.ItemSize(ea) if i == 0 else func.end_ea
                     text = idc.GetOpnd(ea, operand)
                     self.assertEqual(idaapi.add_regvar(func, ea, end, text, key, None), idaapi.REGVAR_ERROR_OK)
         yaunit.save('registers', eas)

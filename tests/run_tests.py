@@ -82,7 +82,7 @@ def main():
 
     # import exec_ida
     import_yaco_path(os.path.dirname(bin_dir))
-    is64 = idaq.find("idaq64") != -1
+    is64 = idaq.find("64") != -1
 
     # run all tests
     err = 0

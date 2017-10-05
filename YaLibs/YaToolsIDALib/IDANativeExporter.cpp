@@ -135,24 +135,20 @@ Exporter::Exporter(IHashProvider* provider)
     : provider_(*provider)
     , qpool_(4)
 {
-    static_assert(sizeof ARM_txt <= sizeof inf.procName, "procName size mismatch");
-    if(!memcmp(inf.procName, ARM_txt, sizeof ARM_txt))
+    static_assert(sizeof ARM_txt <= sizeof inf.procname, "procname size mismatch");
+    if(!memcmp(inf.procname, ARM_txt, sizeof ARM_txt))
         plugin_ = MakeArmPluginVisitor();
 
     const auto qbuf = qpool_.acquire();
-    ya::walk_bookmarks([&](int i, ea_t ea, const curloc& loc)
+    ya::walk_bookmarks([&](int, ea_t ea, const auto&, const qstring& desc)
     {
-        const auto value = ya::read_string_from(*qbuf, [&](char* buf, size_t szbuf)
-        {
-            return loc.markdesc(i, buf, szbuf);
-        });
-        bookmarks_.push_back({make_string(value), ea});
+        bookmarks_.push_back({ya::to_string(desc), ea});
     });
 }
 
 namespace
 {
-    void make_name(const HVersion& version, ea_t ea, bool is_in_func)
+    void make_name(Exporter& exporter, const HVersion& version, ea_t ea, bool is_in_func)
     {
         const auto name = version.username();
         const auto strname = make_string(name);
@@ -161,7 +157,8 @@ namespace
             flags = SN_CHECK;
 
         const auto reset_flags = SN_CHECK | (is_in_func ? SN_LOCAL : 0);
-        const auto previous = get_true_name(ea);
+        const auto qbuf = exporter.qpool_.acquire();
+        get_ea_name(&*qbuf, ea);
         set_name(ea, "", reset_flags);
         if(!name.size || IsDefaultName(name))
         {
@@ -174,28 +171,23 @@ namespace
             return;
 
         LOG(WARNING, "make_name: 0x" EA_FMT " unable to set name flags 0x%08x '%s'\n", ea, flags, strname.data());
-        set_name(ea, previous.c_str(), SN_CHECK | SN_NOWARN);
+        set_name(ea, qbuf->c_str(), SN_CHECK | SN_NOWARN);
     }
 
-    void add_bookmark(ea_t ea, std::string comment_text)
+    void add_bookmark(ea_t ea, const std::string& comment_text)
     {
-        char buffer[1024];
-        ya::walk_bookmarks([&](int i, ea_t locea, curloc loc)
+        const auto title = make_string_ref(comment_text);
+        ya::walk_bookmarks([&](int i, ea_t locea, const auto& loc, const qstring& desc)
         {
             LOG(DEBUG, "add_bookmark: 0x" EA_FMT " found bookmark[%d]\n", ea, i);
             if(locea != ea)
                 return;
 
-            loc.markdesc(i, buffer, sizeof buffer);
-            if(comment_text == buffer)
+            if(ya::to_string_ref(desc) == title)
                 return;
 
-            LOG(DEBUG, "add_bookmark: 0x" EA_FMT " bookmark[%d] = %s\n", ea, i, comment_text.data());
-            loc.ea = ea;
-            loc.x = 0;
-            loc.y = 0;
-            loc.lnnum = 0;
-            loc.mark(i, comment_text.data(), comment_text.data());
+            LOG(DEBUG, "add_bookmark: 0x" EA_FMT " bookmark[%d] = %s\n", ea, i, title.value);
+            bookmarks_t::mark(loc, i, title.value, title.value, nullptr);
         });
         // FIXME add to bookmarks_ ?
     }
@@ -226,10 +218,10 @@ namespace
                 return true;
 
             case COMMENT_BOOKMARK:
-                ya::walk_bookmarks([&](int i, ea_t locea, curloc& loc)
+                ya::walk_bookmarks([&](uint32_t i, ea_t locea, const auto& loc, const qstring&)
                 {
                     if(locea == ea)
-                        loc.mark(i, "", "");
+                        bookmarks_t::erase(loc, i, nullptr);
                 });
                 return true;
 
@@ -255,9 +247,6 @@ namespace
         std::string line;
         while(std::getline(istream, line))
             update_extra_cmt(ea, from++, line.data());
-
-        // matches "doExtra" call from IDA python
-        setFlbits(ea, FF_LINE);
     }
 
     void make_comments(Exporter& exporter, const HVersion& version, ea_t ea)
@@ -295,7 +284,7 @@ namespace
         });
         // delete obsolete comments
         for(ea_t it = ea, end = static_cast<ea_t>(ea + version.size()); it != BADADDR && it < end; it = get_item_end(it))
-            ya::walk_comments(exporter, it, get_flags_novalue(it), [&](const const_string_ref& cmt, CommentType_e type)
+            ya::walk_comments(exporter, it, get_flags(it), [&](const const_string_ref& cmt, CommentType_e type)
             {
                 if(!comments.count(std::make_tuple(it - ea, type, make_string(cmt))))
                     delete_comment(type, it);
@@ -336,7 +325,7 @@ namespace
         if(!segment)
             return nullptr;
 
-        if(segment->startEA != ea || segment->endEA != end)
+        if(segment->start_ea != ea || segment->end_ea != end)
             return nullptr;
 
         return segment;
@@ -345,8 +334,8 @@ namespace
     segment_t* add_seg(ea_t start, ea_t end, ea_t base, int bitness, int align, int comb)
     {
         segment_t seg;
-        seg.startEA = start;
-        seg.endEA = end;
+        seg.start_ea = start;
+        seg.end_ea = end;
         seg.sel = setup_selector(base);
         seg.bitness = static_cast<uchar>(bitness);
         seg.align = static_cast<uchar>(align);
@@ -427,11 +416,11 @@ namespace
         switch(get_segment_attribute(key))
         {
             case SEG_ATTR_START:
-                seg->startEA = to_ea(value);
+                seg->start_ea = to_ea(value);
                 break;
 
             case SEG_ATTR_END:
-                seg->endEA = to_ea(value);
+                seg->end_ea = to_ea(value);
                 break;
 
             case SEG_ATTR_BASE:
@@ -530,7 +519,7 @@ namespace
         if(name.size)
         {
             const auto strname = make_string(name);
-            const auto ok = set_segm_name(seg, "%s", strname.data());
+            const auto ok = set_segm_name(seg, strname.data());
             if(!ok)
                 LOG(ERROR, "make_segment: 0x" EA_FMT " unable to set name %s\n", ea, strname.data());
         }
@@ -573,20 +562,20 @@ namespace
 
             const auto blob_ea = static_cast<ea_t>(ea + offset);
             exporter.buffer_.resize(szbuf);
-            auto ok = get_many_bytes(blob_ea, &exporter.buffer_[0], szbuf);
+            auto ok = get_bytes(&exporter.buffer_[0], szbuf, blob_ea, GMB_READALL);
             if(!ok)
             {
-                LOG(ERROR, "make_segment_chunk: 0x" EA_FMT " unable to read %d bytes\n", blob_ea, szbuf);
+                LOG(ERROR, "make_segment_chunk: 0x" EA_FMT " unable to read %zd bytes\n", blob_ea, szbuf);
                 return WALK_CONTINUE;
             }
             if(!memcmp(&exporter.buffer_[0], pbuf, szbuf))
                 return WALK_CONTINUE;
 
             // put_many_bytes does not return any error code...
-            put_many_bytes(blob_ea, pbuf, szbuf);
-            ok = get_many_bytes(blob_ea, &exporter.buffer_[0], szbuf);
+            put_bytes(blob_ea, pbuf, szbuf);
+            ok = get_bytes(&exporter.buffer_[0], szbuf, blob_ea, GMB_READALL);
             if(!ok || memcmp(&exporter.buffer_[0], pbuf, szbuf))
-                LOG(ERROR, "make_segment_chunk: 0x" EA_FMT " unable to write %d bytes\n", blob_ea, szbuf);
+                LOG(ERROR, "make_segment_chunk: 0x" EA_FMT " unable to write %zd bytes\n", blob_ea, szbuf);
 
             return WALK_CONTINUE;
         });
@@ -667,12 +656,12 @@ namespace
     {
         tinfo_t tif;
         std::string decl = value;
-        auto ok = parse_decl2(idati, (decl + ";").data(), nullptr, &tif, PT_SIL);
+        auto ok = parse_decl(&tif, nullptr, nullptr, (decl + ";").data(), PT_SIL);
         if(ok)
             return tif;
 
         tif.clear();
-        ok = tif.get_named_type(idati, value);
+        ok = tif.get_named_type(get_idati(), value);
         if(ok)
             return tif;
 
@@ -875,7 +864,7 @@ namespace
     {
         return try_set_type(exporter, ea, value, [&](const tinfo_t& tif)
         {
-            return apply_tinfo2(ea, tif, TINFO_DEFINITE);
+            return apply_tinfo(ea, tif, TINFO_DEFINITE);
         });
     }
 
@@ -887,7 +876,7 @@ namespace
             auto* m = get_member_by_id(ea, &s);
             if(!s || !m)
                 return false;
-            const auto err = set_member_tinfo2(s, m, 0, tif, 0);
+            const auto err = set_member_tinfo(s, m, 0, tif, 0);
             static_assert(SMT_FAILED == 0, "smt_code_t has been modified");
             return err > SMT_FAILED;
         });
@@ -910,7 +899,7 @@ namespace
             const auto func = get_func(xref_ea);
             if(!func)
                 return WALK_CONTINUE;
-            if(func->startEA != ea)
+            if(func->start_ea != ea)
                 return WALK_CONTINUE;
 
             const auto ok = remove_func_tail(func, ea);
@@ -932,19 +921,19 @@ namespace
 
     bool add_function(ea_t ea, const HVersion& version, func_t* func)
     {
-        const auto flags = getFlags(ea);
-        if(isFunc(flags) && func && func->startEA == ea)
+        const auto flags = get_flags(ea);
+        if(is_func(flags) && func && func->start_ea == ea)
             return true;
 
         LOG(DEBUG, "make_function: 0x" EA_FMT " flags 0x%08X current flags 0x%08x\n", ea, version.flags(), flags);
         if(func)
-            LOG(DEBUG, "make_function: 0x" EA_FMT " func [0x" EA_FMT ", 0x" EA_FMT "] size 0x%08llX\n", ea, func->startEA, func->endEA, version.size());
+            LOG(DEBUG, "make_function: 0x" EA_FMT " func [0x" EA_FMT ", 0x" EA_FMT "] size 0x%08llX\n", ea, func->start_ea, func->end_ea, version.size());
 
         auto ok = add_func(ea, BADADDR);
         if(ok)
             return true;
 
-        if(!hasValue(flags))
+        if(!has_value(flags))
         {
             LOG(ERROR, "make_function: 0x" EA_FMT " unable to add function, missing data\n", ea);
             return false;
@@ -961,7 +950,7 @@ namespace
         if(!ok)
             LOG(ERROR, "make_function: 0x" EA_FMT " unable to add function\n", ea);
 
-        ok = !!analyze_area(ea, ea + 1);
+        ok = !!plan_and_wait(ea, ea + 1);
         if(!ok)
             LOG(ERROR, "make_function: 0x" EA_FMT " unable to analyze area\n", ea);
 
@@ -997,8 +986,8 @@ namespace
         {"LOW16",   REF_LOW16},
         {"HIGH8",   REF_HIGH8},
         {"HIGH16",  REF_HIGH16},
-        {"VHIGH",   REF_VHIGH},
-        {"VLOW",    REF_VLOW},
+        {"VHIGH",   V695_REF_VHIGH},
+        {"VLOW",    V695_REF_VLOW},
         {"OFF64",   REF_OFF64},
     };
 
@@ -1018,7 +1007,7 @@ namespace
 
     bool set_sign(ea_t ea, operand_t operand, SignToggle_e toggle)
     {
-        if(is_invsign(ea, getFlags(ea), operand) == !!toggle)
+        if(is_invsign(ea, get_flags(ea), operand) == !!toggle)
             return true;
         return toggle_sign(ea, operand);
     }
@@ -1070,12 +1059,12 @@ namespace
             return;
         }
 
-        const auto ea0 = static_cast<ea_t>(func->startEA + offset);
-        const auto ea1 = static_cast<ea_t>(func->startEA + end);
+        const auto ea0 = static_cast<ea_t>(func->start_ea + offset);
+        const auto ea1 = static_cast<ea_t>(func->start_ea + end);
         const auto regvar = find_regvar(func, ea0, ea1, name.data(), newname.data());
         if(regvar)
         {
-            if(regvar->startEA == ea0 && regvar->endEA == ea1)
+            if(regvar->start_ea == ea0 && regvar->end_ea == ea1)
                 return;
 
             const auto err = del_regvar(func, ea0, ea1, regvar->canon);
@@ -1094,7 +1083,7 @@ namespace
     {
         const auto start = static_cast<ea_t>(ea + offset);
         const auto end = static_cast<ea_t>(ea + offset_end);
-        const auto ok = add_hidden_area(start, end, value.data(), nullptr, nullptr, ~0u);
+        const auto ok = add_hidden_range(start, end, value.data(), nullptr, nullptr, ~0u);
         if(!ok)
             LOG(ERROR, "make_hiddenarea: 0x" EA_FMT " unable to set hidden area " EA_FMT "-" EA_FMT " %s\n", ea, start, end, value.data());
     }
@@ -1118,11 +1107,11 @@ namespace
         });
     }
 
-    void make_code(const HVersion& version, ea_t ea)
+    void make_code(Exporter& exporter, const HVersion& version, ea_t ea)
     {
         del_func(ea);
         create_insn(ea);
-        make_name(version, ea, false);
+        make_name(exporter, version, ea, false);
         make_views(version, ea);
     }
 
@@ -1131,7 +1120,7 @@ namespace
         const auto size = static_cast<size_t>(version.size());
         if(!size)
         {
-            const auto ok = do_unknown(ea, DOUNK_EXPAND);
+            const auto ok = del_items(ea, DELIT_EXPAND);
             if(!ok)
                 LOG(ERROR, "make_data: 0x" EA_FMT " unable to set unknown\n", ea);
             return;
@@ -1140,23 +1129,22 @@ namespace
         const auto flags = version.flags();
         if(!flags)
         {
-            const auto ok = doByte(ea, size);
+            const auto ok = create_byte(ea, static_cast<asize_t>(size));
             if(!ok)
                 LOG(ERROR, "make_data: 0x" EA_FMT " unable to set data size %zd\n", ea, size);
             return;
         }
 
-        if(isASCII(flags))
+        if(is_strlit(flags))
         {
             const auto strtype = version.string_type();
-            auto ok = make_ascii_string(ea, size, strtype == UINT8_MAX ? ASCSTR_C : strtype);
+            auto ok = create_strlit(ea, size, strtype == UINT8_MAX ? STRTYPE_C : strtype);
             if(!ok)
                 LOG(ERROR, "make_data: 0x" EA_FMT " unable to make ascii string size %zd type %d\n", ea, size, strtype);
-            setFlags(ea, flags);
             return;
         }
 
-        if(isStruct(flags))
+        if(is_struct(flags))
         {
             bool found = false;
             version.walk_xrefs([&](offset_t /*offset*/, operand_t /*operand*/, YaToolObjectId id, const XrefAttributes* /*attrs*/)
@@ -1165,14 +1153,14 @@ namespace
                 if(fi == exporter.tids_.end())
                     return WALK_CONTINUE;
 
-                do_unknown_range(ea, size, DOUNK_DELNAMES);
-                const auto prev = inf.s_auto;
-                inf.s_auto = true;
-                autoWait();
-                auto ok = doStruct(ea, size, fi->second.tid);
-                inf.s_auto = prev;
+                del_items(ea, DELIT_DELNAMES, static_cast<asize_t>(size));
+                const auto prev = inf.s_genflags;
+                inf.s_genflags &= ~INFFL_AUTO;
+                auto_wait();
+                auto ok = create_struct(ea, static_cast<asize_t>(size), fi->second.tid);
+                inf.s_genflags = prev;
                 if(!ok)
-                    LOG(ERROR, "make_data: 0x" EA_FMT " unable to set struct %016llx size %d\n", ea, id, size);
+                    LOG(ERROR, "make_data: 0x" EA_FMT " unable to set struct %016llx size %zd\n", ea, id, size);
                 found = true;
                 return WALK_CONTINUE;
             });
@@ -1182,15 +1170,15 @@ namespace
         }
 
         const auto type_flags = flags & (DT_TYPE | get_optype_flags0(~0u));
-        const auto ok = do_data_ex(ea, type_flags, size, 0);
+        const auto ok = create_data(ea, type_flags, static_cast<asize_t>(size), 0);
         if(!ok)
             LOG(ERROR, "make_data: 0x" EA_FMT " unable to set data type 0x%llx size %zd\n", ea, static_cast<uint64_t>(type_flags), size);
     }
 
-    void make_data(const Exporter& exporter, const HVersion& version, ea_t ea)
+    void make_data(Exporter& exporter, const HVersion& version, ea_t ea)
     {
         set_data_type(exporter, version, ea);
-        make_name(version, ea, false);
+        make_name(exporter, version, ea, false);
         set_type(&exporter, ea, make_string(version.prototype()));
     }
 
@@ -1200,9 +1188,9 @@ namespace
         const auto flags = version.flags();
         auto eid = get_enum(name.data());
         if(eid == BADADDR)
-            eid = add_enum(~0u, name.data(), flags & ~ENUM_FLAGS_IS_BF);
+            eid = add_enum(~0u, name.data(), flags & ~0x1);
 
-        if(!set_enum_bf(eid, flags & ENUM_FLAGS_IS_BF))
+        if(!set_enum_bf(eid, flags & 0x1))
             LOG(ERROR, "make_enum: 0x" EA_FMT " unable to set as bitfield\n", ea);
 
         const auto width = version.size();
@@ -1372,6 +1360,7 @@ namespace
 
     void set_path(Path& path, ea_t ea)
     {
+        insn_t insn;
         if(path.types.empty())
             return;
 
@@ -1384,7 +1373,11 @@ namespace
         ida_path.reserve(path.types.size());
         for(const auto& it : path.types)
             ida_path.emplace_back(it.tid);
-        const auto ok = op_stroff(static_cast<ea_t>(ea + path.offset), path.operand, &ida_path[0], ida_path.size(), 0);
+        auto ok = decode_insn(&insn, static_cast<ea_t>(ea + path.offset));
+        if(!ok)
+            return;
+
+        ok = op_stroff(insn, path.operand, &ida_path[0], static_cast<int>(ida_path.size()), 0);
         if(ok)
             return;
 
@@ -1402,7 +1395,7 @@ namespace
     void make_basic_block(Exporter& exporter, const HVersion& version, ea_t ea)
     {
         Paths paths;
-        make_name(version, ea, true);
+        make_name(exporter, version, ea, true);
         make_views(version, ea);
         version.walk_xrefs([&](offset_t offset, operand_t operand, YaToolObjectId xref_id, const XrefAttributes* attrs)
         {
@@ -1487,7 +1480,7 @@ namespace
                 set_member_type(struc, member->soff, FF_BYTE, nullptr, 1);
                 member = get_member(struc, aoff);
             }
-            if(member && get_member_name2(&member_name, member->id) > 0)
+            if(member && get_member_name(&member_name, member->id) > 0)
                 continue;
 
             new_fields.insert(offset);
@@ -1550,19 +1543,19 @@ namespace
         if(frame)
             return frame;
 
-        ya::walk_function_chunks(func_ea, [=](area_t area)
+        ya::walk_function_chunks(func_ea, [=](range_t area)
         {
-            if(!analyze_area(area.startEA, area.endEA))
-                LOG(ERROR, "analyze_function: 0x" EA_FMT " unable to analyze area " EA_FMT "-" EA_FMT "\n", func_ea, area.startEA, area.endEA);
+            if(!plan_and_wait(area.start_ea, area.end_ea))
+                LOG(ERROR, "analyze_function: 0x" EA_FMT " unable to analyze area " EA_FMT "-" EA_FMT "\n", func_ea, area.start_ea, area.end_ea);
         });
         frame = get_frame(func_ea);
         if(frame)
             return frame;
 
-        const auto prev = inf.s_auto;
-        inf.s_auto = true;
-        autoWait();
-        inf.s_auto = prev;
+        const auto prev = inf.s_genflags;
+        inf.s_genflags &= INFFL_AUTO;
+        auto_wait();
+        inf.s_genflags = prev;
         frame = get_frame(func_ea);
         if(frame)
             return frame;
@@ -1620,11 +1613,11 @@ namespace
 
     const opinfo_t* get_member_info(opinfo_t* pop, asize_t& size, const Exporter& exporter, const HVersion& version, flags_t flags)
     {
-        if(isASCII(flags))
+        if(is_strlit(flags))
         {
             pop->strtype = version.string_type();
             if(pop->strtype == UINT8_MAX)
-                pop->strtype = ASCSTR_C;
+                pop->strtype = STRTYPE_C;
             return pop;
         }
 
@@ -1637,7 +1630,7 @@ namespace
         if(xref.tid == BADADDR)
             return nullptr;
 
-        if(isStruct(flags))
+        if(is_struct(flags))
         {
             const auto struc = get_struc(xref.tid);
             if(!struc)
@@ -1657,7 +1650,7 @@ namespace
             return pop;
         }
 
-        if(isEnum0(flags))
+        if(is_enum0(flags))
         {
             pop->ec.serial = 0; // FIXME ?
             pop->ec.tid = xref.tid;
@@ -1712,6 +1705,7 @@ namespace
         auto size = static_cast<asize_t>(version.size());
         const auto pop = get_member_info(&op, size, exporter, version, flags);
         auto ok = set_member_type(struc, ea, (flags & DT_TYPE) | FF_DATA, pop, size);
+        const auto is_struct_applied = ok && is_struct(flags);
         if(!ok)
             LOG(ERROR, "make_%s: %s.%s: unable to set member type %x to " SEL_FMT " bytes\n", where, sname->c_str(), name.data(), flags, size);
 
@@ -1732,7 +1726,8 @@ namespace
         }
 
         const auto prototype = version.prototype();
-        if(prototype.size)
+        // do not reapply prototype if struct member was already applied
+        if(prototype.size && !is_struct_applied)
         {
             const auto strtype = make_string(prototype);
             ok = set_struct_member_type(&exporter, member->id, strtype);
@@ -1814,7 +1809,7 @@ void Exporter::on_version(const HVersion& version)
             break;
 
         case OBJECT_TYPE_CODE:
-            make_code(version, ea);
+            make_code(*this, version, ea);
             make_comments(*this, version, ea);
             break;
 

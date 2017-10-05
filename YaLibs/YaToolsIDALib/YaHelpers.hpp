@@ -42,7 +42,7 @@ namespace ya
         const_t first_cid;
         uchar serial = 0;
         for(auto value = get_first_enum_member(eid, bmask); value != BADADDR; value = get_next_enum_member(eid, value, bmask))
-            for(auto cid = first_cid = get_first_serial_enum_member(eid, value, &serial, bmask); cid != BADADDR; cid = get_next_serial_enum_member(first_cid, &serial))
+            for(auto cid = first_cid = get_first_serial_enum_member(&serial, eid, value, bmask); cid != BADADDR; cid = get_next_serial_enum_member(&serial, first_cid))
                 operand(cid, value, serial, bmask);
     }
 
@@ -70,17 +70,20 @@ namespace ya
         return true;
     }
 
-    // call void(int i, ea_t locea, curloc loc) on every bookmarks
+    // call void(int i, ea_t locea, const lochist_entry_t& loc, const qstring& desc) on every bookmarks
     template<typename T>
     void walk_bookmarks(const T& operand)
     {
-        curloc loc;
-        for(int i = 1; i < 1024; ++i)
+        idaplace_t place;
+        renderer_info_t rinfo;
+        lochist_entry_t loc(&place, rinfo);
+        qstring desc;
+        for(uint32_t i = 0; i < bookmarks_t::size(loc, nullptr); ++i)
         {
-            const auto ea = loc.markedpos(&i);
-            if(ea == BADADDR)
-                return;
-            operand(i, ea, loc);
+            const auto ok = bookmarks_t::get(&loc, &desc, &i, nullptr);
+            if(!ok)
+                continue;
+            operand(i, loc.place()->toea(), loc, desc);
         }
     }
 
@@ -119,28 +122,23 @@ namespace ya
         const auto qbuf = ctx.qpool_.acquire();
         for(const auto repeat : {false, true})
         {
-            const auto cmt = read_string_from(*qbuf, [&](char* buf, size_t szbuf)
-            {
-                return get_cmt(ea, repeat, buf, szbuf);
-            });
-            if(cmt.size)
-                operand(cmt, repeat ? COMMENT_REPEATABLE : COMMENT_NON_REPEATABLE);
+            get_cmt(&*qbuf, ea, repeat);
+            if(!qbuf->empty())
+                operand(ya::to_string_ref(*qbuf), repeat ? COMMENT_REPEATABLE : COMMENT_NON_REPEATABLE);
         }
 
         auto& b = ctx.buffer_;
         b.clear();
-        if(hasExtra(flags))
+        if(has_extra_cmts(flags))
             for(const auto from : {E_PREV, E_NEXT})
             {
                 const auto end = get_first_free_extra_cmtidx(ea, from);
                 for(int i = from; i < end; ++i)
                 {
-                    const auto extra = read_string_from(*qbuf, [&](char* buf, size_t szbuf)
-                    {
-                        return get_extra_cmt(ea, i, buf, szbuf);
-                    });
-                    if(!extra.size)
+                    get_extra_cmt(&*qbuf, ea, i);
+                    if(qbuf->empty())
                         continue;
+                    const auto extra = ya::to_string_ref(*qbuf);
                     const auto size = b.size();
                     b.resize(size + extra.size);
                     memcpy(&b[size], extra.value, extra.size);

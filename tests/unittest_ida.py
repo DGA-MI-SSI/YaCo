@@ -41,7 +41,7 @@ def main():
     prefix = idc.ARGV[3]
     import_yaco_path(os.path.dirname(bin_dir))
     err = run_tests(inspect.getsourcefile(lambda:0), module, prefix)
-    idaapi.cvar.database_flags |= idaapi.DBFL_KILL
+    idaapi.set_database_flag(idaapi.DBFL_KILL)
     if not debug:
         idc.Exit(err)
 

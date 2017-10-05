@@ -232,7 +232,7 @@ namespace
             , parent_   (parent)
             , qpool_    (4)
         {
-            if(!strncmp(inf.procName, "ARM", sizeof inf.procName))
+            if(!strncmp(inf.procname, "ARM", sizeof inf.procname))
                 plugin_ = MakeArmPluginModel();
         }
 
@@ -281,12 +281,9 @@ namespace
     {
         for(const auto rpt : {false, true})
         {
-            const auto comment = ya::read_string_from(buffer, [&](char* buf, size_t szbuf)
-            {
-                return read(buf, szbuf, rpt);
-            });
-            if(comment.size)
-                v.visit_header_comment(rpt, comment);
+            read(buffer, rpt);
+            if(!buffer.empty())
+                v.visit_header_comment(rpt, ya::to_string_ref(buffer));
         }
     }
 
@@ -299,9 +296,9 @@ namespace
         v.visit_name(ya::to_string_ref(*qbuf), DEFAULT_NAME_FLAGS);
         if(em.bmask != BADADDR)
             v.visit_flags(static_cast<flags_t>(em.bmask));
-        visit_header_comments(v, *qbuf, [&](char* buf, size_t szbuf, bool repeated)
+        visit_header_comments(v, *qbuf, [&](qstring& buffer, bool repeated)
         {
-            return get_enum_member_cmt(em.const_id, repeated, buf, szbuf);
+            get_enum_member_cmt(&buffer, em.const_id, repeated);
         });
         finish_object(v, em.value);
     }
@@ -320,13 +317,13 @@ namespace
         v.visit_size(get_enum_width(eid));
         v.visit_name(ya::to_string_ref(*enum_name), DEFAULT_NAME_FLAGS);
         const auto flags = get_enum_flag(eid);
-        const auto bitfield = is_bf(eid) ? ENUM_FLAGS_IS_BF : 0;
+        const auto bitfield = static_cast<flags_t>(!!is_bf(eid));
         v.visit_flags(flags | bitfield);
 
         const auto qbuf = ctx.qpool_.acquire();
-        visit_header_comments(v, *qbuf, [&](char* buf, size_t szbuf, bool repeated)
+        visit_header_comments(v, *qbuf, [&](qstring& buffer, bool repeated)
         {
-            return get_enum_cmt(eid, repeated, buf, szbuf);
+            get_enum_cmt(&buffer, eid, repeated);
         });
 
         v.visit_start_xrefs();
@@ -365,7 +362,7 @@ namespace
     MemberType get_member_type(member_t* member, opinfo_t* pop)
     {
         tinfo_t tif;
-        auto ok = get_member_tinfo2(member, &tif);
+        auto ok = get_member_tinfo(&tif, member);
         if(ok)
             return {tif, false};
 
@@ -373,7 +370,7 @@ namespace
         if(!tif.empty())
             return {tif, true};
 
-        const auto guess = guess_tinfo2(member->id, &tif);
+        const auto guess = guess_tinfo(&tif, member->id);
         if(guess == GUESS_FUNC_OK)
             return {tif, true};
 
@@ -404,7 +401,7 @@ namespace
         if(struc->is_union())
             return false;
 
-        if(!isData(member->flag))
+        if(!is_data(member->flag))
             return false;
 
         if(get_member_size(member) != 1)
@@ -412,11 +409,8 @@ namespace
 
         for(const auto rpt : {false, true})
         {
-            const auto cmt = ya::read_string_from(buffer, [&](char* buf, size_t szbuf)
-            {
-                return get_member_cmt(member->id, rpt, buf, szbuf);
-            });
-            if(cmt.size)
+            get_member_cmt(&buffer, member->id, rpt);
+            if(!buffer.empty())
                 return false;
         }
 
@@ -428,7 +422,7 @@ namespace
             return false;
 
         opinfo_t op;
-        const auto ok = retrieve_member_info(member, &op);
+        const auto ok = retrieve_member_info(&op, member);
         const auto mtype = get_member_type(member, ok ? &op : nullptr);
         return is_trivial_member_type(mtype);
     }
@@ -446,8 +440,8 @@ namespace
     {
         opinfo_t op;
         const auto flags = member->flag;
-        const auto is_ascii = isASCII(flags);
-        const auto has_op = !!retrieve_member_info(member, &op);
+        const auto is_ascii = is_strlit(flags);
+        const auto has_op = !!retrieve_member_info(&op, member);
         if(is_ascii && has_op && op.strtype > 0)
             v.visit_string_type(op.strtype);
 
@@ -472,7 +466,7 @@ namespace
         // FIXME add missing dependencies?
         const auto size = deps.size();
         if(size > 1)
-            LOG(WARNING, "accept_struct_member: 0x" EA_FMT " ignoring %d dependencies\n", member->id, size);
+            LOG(WARNING, "accept_struct_member: 0x" EA_FMT " ignoring %zd dependencies\n", member->id, size);
 
         if(size != 1)
             return;
@@ -480,7 +474,7 @@ namespace
         v.visit_start_xrefs();
         v.visit_start_xref(0, deps.front().id, 0);
 
-        if(has_op && isEnum0(flags))
+        if(has_op && is_enum0(flags))
         {
             const auto seref = op.ec.serial ? to_hex_ref(&*qbuf, op.ec.serial) : g_empty;
             if(seref.size)
@@ -514,12 +508,12 @@ namespace
         const auto qbuf = ctx.qpool_.acquire();
         get_struc_name(&*qbuf, sid);
         const auto id = func ?
-            ctx.provider_.get_stackframe_member_object_id(sid, member->soff, func->startEA) :
+            ctx.provider_.get_stackframe_member_object_id(sid, member->soff, func->start_ea) :
             ctx.provider_.get_struc_member_id(sid, offset, ya::to_string_ref(*qbuf));
         if(ctx.skip_id(id))
             return;
 
-        get_member_name2(&*qbuf, member->id);
+        get_member_name(&*qbuf, member->id);
 
         // we need to skip default members else we explode on structures with thousand of default fields
         const auto obtype = func ? OBJECT_TYPE_STACKFRAME_MEMBER : OBJECT_TYPE_STRUCT_MEMBER;
@@ -539,9 +533,9 @@ namespace
         ya::Deps deps;
         visit_member_type(ctx, v, deps, member);
 
-        visit_header_comments(v, *qbuf, [&](char* buf, size_t szbuf, bool repeat)
+        visit_header_comments(v, *qbuf, [&](qstring& buffer, bool repeat)
         {
-            return get_member_cmt(member->id, repeat, buf, szbuf);
+            get_member_cmt(&buffer, member->id, repeat);
         });
         finish_object(v, offset);
         accept_dependencies(ctx, v, deps);
@@ -554,12 +548,12 @@ namespace
         const auto sid = struc->id;
         get_struc_name(&*struc_name, sid);
         const auto id = func ?
-            ctx.provider_.get_stackframe_object_id(sid, func->startEA) :
+            ctx.provider_.get_stackframe_object_id(sid, func->start_ea) :
             ctx.provider_.get_struc_enum_object_id(sid, ya::to_string_ref(*struc_name), true);
         if(ctx.skip_id(id))
             return id;
 
-        const auto ea = func ? func->startEA : 0;
+        const auto ea = func ? func->start_ea : 0;
         start_object(v, func ? OBJECT_TYPE_STACKFRAME : OBJECT_TYPE_STRUCT, id, parent.id, ea);
         const auto size = get_struc_size(struc);
         v.visit_size(size);
@@ -568,9 +562,9 @@ namespace
             v.visit_flags(1); // FIXME constant
 
         const auto qbuf = ctx.qpool_.acquire();
-        visit_header_comments(v, *qbuf, [&](char* buf, size_t szbuf, bool repeated)
+        visit_header_comments(v, *qbuf, [&](qstring& buffer, bool repeated)
         {
-            return get_struc_cmt(sid, repeated, buf, szbuf);
+            get_struc_cmt(&buffer, sid, repeated);
         });
 
         v.visit_start_xrefs();
@@ -581,12 +575,12 @@ namespace
             if(func && is_special_member(member->id))
                 continue;
 
-            get_member_name2(&*qbuf, member->id);
+            get_member_name(&*qbuf, member->id);
             if(qbuf->empty())
                 continue;
 
             const auto mid = func ?
-                ctx.provider_.get_stackframe_member_object_id(sid, off, func->startEA) :
+                ctx.provider_.get_stackframe_member_object_id(sid, off, func->start_ea) :
                 ctx.provider_.get_struc_member_id(sid, off, ya::to_string_ref(*struc_name));
             v.visit_start_xref(struc->is_union() ? 0 : off, mid, DEFAULT_OPERAND);
             v.visit_end_xref();
@@ -686,10 +680,10 @@ namespace
         ctx.buffer_.back() = 0;
         auto* pbuf = &ctx.buffer_[0];
         auto* pbitmap = &ctx.buffer_[size];
-        const auto err = get_many_bytes_ex(ea, pbuf, size, pbitmap);
+        const auto err = get_bytes(pbuf, size, ea, GMB_READALL, pbitmap);
         if(err < 0)
         {
-            LOG(ERROR, "%s: 0x" EA_FMT " unable to get %d bytes\n", where, ea, size);
+            LOG(ERROR, "%s: 0x" EA_FMT " unable to get %zd bytes\n", where, ea, size);
             return {};
         }
 
@@ -753,43 +747,41 @@ namespace
     template<typename T>
     static uint32_t std_crc32(uint32_t crc, const T* data, size_t szdata)
     {
-        return crc32(crc, reinterpret_cast<const Bytef*>(data), szdata);
+        return crc32(crc, reinterpret_cast<const Bytef*>(data), static_cast<uInt>(szdata));
     }
 
     template<typename Ctx>
     void accept_string(Ctx& ctx, IModelVisitor& v, ea_t ea, flags_t flags)
     {
-        if(!isASCII(flags))
+        if(!is_strlit(flags))
             return;
 
         opinfo_t op;
-        auto ok = !!get_opinfo(ea, 0, flags, &op);
+        auto ok = !!get_opinfo(&op, ea, 0, flags);
         if(!ok)
             return;
 
-        const auto strtype = op.strtype == -1 ? ASCSTR_C : op.strtype;
+        const auto strtype = op.strtype == -1 ? STRTYPE_C : op.strtype;
         if(strtype > 0)
             v.visit_string_type(strtype);
 
-        const auto n = get_max_ascii_length(ea, strtype, ALOPT_IGNHEADS);
+        const auto n = get_max_strlit_length(ea, strtype, ALOPT_IGNHEADS);
         if(!n)
             return;
 
-        auto& buf = ctx.buffer_;
-        buf.resize(n + 1);
-        auto* pbuf = &buf[0];
-        memset(pbuf, 0, buf.size());
-        ok = get_ascii_contents2(ea, n, strtype, pbuf, buf.size(), NULL, ACFOPT_UTF8);
-        if(!ok)
+        const auto txt = ctx.qpool_.acquire();
+        auto& buf = *txt;
+        const auto ntxt = get_strlit_contents(&buf, ea, n, strtype);
+        if(ntxt == -1)
         {
-            LOG(ERROR, "accept_string_type: 0x" EA_FMT " unable to get ascii contents %d bytes %x strtype\n", ea, n, strtype);
+            LOG(ERROR, "accept_string_type: 0x" EA_FMT " unable to get ascii contents %zd bytes %x strtype\n", ea, n, strtype);
             return;
         }
 
         // string signatures are compatible with all signature methods
         v.visit_start_signatures();
         Crcs crcs = {};
-        crcs.firstbyte = std_crc32(0, pbuf, buf.size());
+        crcs.firstbyte = std_crc32(0, buf.c_str(), buf.size());
         crcs.invariants = crcs.firstbyte;
         accept_signature(ctx, v, crcs);
         v.visit_end_signatures();
@@ -807,7 +799,7 @@ namespace
         else if(ea_flags && name && *name)
             LOG(WARNING, "get_name_flags: 0x" EA_FMT " unhandled name flags %x on %s\n", ea, ea_flags, name);
         uval_t ignore = 0;
-        const auto code = get_name_value(ea, name, &ignore);
+        const auto code = get_name_value(&ignore, ea, name);
         if(code == NT_LOCAL)
             return flags | SN_LOCAL | SN_NON_PUBLIC | SN_NON_WEAK | SN_NOLIST;
         flags |= is_public_name(ea) ? SN_PUBLIC : SN_NON_PUBLIC;
@@ -845,7 +837,7 @@ namespace
     {
         const auto qbuf = ctx.qpool_.acquire();
         // IDA only accept mangled names
-        const auto ok = !!get_true_name(&*qbuf, ea, GN_LOCAL);
+        const auto ok = !!get_ea_name(&*qbuf, ea, GN_LOCAL);
         if(!ok)
             return;
 
@@ -877,7 +869,7 @@ namespace
     template<typename Ctx>
     void accept_data(Ctx& ctx, IModelVisitor& v, const Parent& parent, ea_t ea)
     {
-        const auto flags = getFlags(ea);
+        const auto flags = get_flags(ea);
         const auto id = ctx.provider_.get_hash_for_ea(ea);
         if(ctx.skip_id(id))
             return;
@@ -906,12 +898,12 @@ namespace
     qflow_chart_t get_flow(func_t* func)
     {
         // FIXME maybe use a cache or a buffer
-        qflow_chart_t flow(nullptr, func, func->startEA, func->endEA, 0);
+        qflow_chart_t flow(nullptr, func, func->start_ea, func->end_ea, 0);
         auto& blocks = flow.blocks;
         // sort blocks in increasing offset order
         std::sort(blocks.begin(), blocks.end(), [](const auto& a, const auto& b)
         {
-            return a.startEA < b.startEA;
+            return a.start_ea < b.start_ea;
         });
         // remove empty blocks
         blocks.erase(std::remove_if(blocks.begin(), blocks.end(), [](const auto& a)
@@ -922,23 +914,24 @@ namespace
     }
 
     template<typename Ctx>
-    void get_crcs(Ctx& ctx, const char* where, Crcs* crcs, ea_t ea_func, area_t block)
+    void get_crcs(Ctx& ctx, const char* where, Crcs* crcs, ea_t ea_func, range_t block)
     {
+        insn_t cmd;
         char hexcmditype[4];
         char hexoptype[2];
-        const auto buf = read_buffer(ctx, "accept_function", block.startEA, block.endEA);
+        const auto buf = read_buffer(ctx, "accept_function", block.start_ea, block.end_ea);
         walk_contiguous_chunks(buf, [&](const uint8_t* buffer, size_t from, size_t to)
         {
-            const auto end = block.startEA + to;
-            const auto offset = static_cast<ea_t>(block.startEA + from);
+            const auto end = block.start_ea + to;
+            const auto offset = static_cast<ea_t>(block.start_ea + from);
             auto ea = offset;
             while(ea < end)
             {
                 // skip non-code bytes
-                for(; !isCode(get_flags_novalue(ea)); ea = get_item_end(ea))
+                for(; !is_code(get_flags(ea)); ea = get_item_end(ea))
                     if(ea >= end)
                         return;
-                const auto err = decode_insn(ea);
+                const auto err = decode_insn(&cmd, ea);
                 if(!err)
                 {
                     LOG(WARNING, "%s: 0x" EA_FMT " invalid instruction at offset 0x" EA_FMT "\n", where, ea_func, ea);
@@ -947,7 +940,7 @@ namespace
                 crcs->firstbyte = std_crc32(crcs->firstbyte, &buffer[ea - offset], 1);
                 const auto itypehex = str_hex(hexcmditype, cmd.itype);
                 crcs->invariants = std_crc32(crcs->invariants, itypehex.value, itypehex.size);
-                for(const auto& op : cmd.Operands)
+                for(const auto& op : cmd.ops)
                 {
                     if(op.type == o_void)
                         continue;
@@ -972,8 +965,8 @@ namespace
         const auto qbuf = ctx.qpool_.acquire();
         for(const auto& block : blocks)
         {
-            const auto bid = ctx.provider_.get_function_basic_block_hash(block.startEA, ea);
-            const auto offset = block.startEA - ea;
+            const auto bid = ctx.provider_.get_function_basic_block_hash(block.start_ea, ea);
+            const auto offset = block.start_ea - ea;
             // FIXME a block does not necessarily start after the first function basic block
             // in which case offset is negative but offset_t is unsigned...
             // for now, keep compatibility with python version
@@ -995,8 +988,8 @@ namespace
         {"low16",   REF_LOW16},
         {"high8",   REF_HIGH8},
         {"high16",  REF_HIGH16},
-        {"vhigh",   REF_VHIGH},
-        {"vlow",    REF_VLOW},
+        {"vhigh",   V695_REF_VHIGH},
+        {"vlow",    V695_REF_VLOW},
         {"off64",   REF_OFF64},
     };
 
@@ -1010,7 +1003,7 @@ namespace
 
     const_string_ref get_off_value(qstring* qbuf, ea_t ea, int i, flags_t flags, opinfo_t* pop)
     {
-        const auto ok = get_opinfo(ea, i, flags, pop);
+        const auto ok = get_opinfo(pop, ea, i, flags);
         if(!ok)
             return {nullptr, 0};
 
@@ -1090,10 +1083,10 @@ namespace
         xrefblk_t xb;
         for(auto ok = xb.first_from(ea, XREF_FAR); ok; ok = xb.next_from())
         {
-            const auto xflags = get_flags_novalue(xb.to);
+            const auto xflags = get_flags(xb.to);
             // xref.to must point to a segment because ida also put internal struc ids as xb.to
             // FIXME maybe we could use to struct ids here instead of accept_insn_xrefs
-            const auto is_valid = getseg(xb.to) && (!isCode(xflags) || isFunc(xflags));
+            const auto is_valid = getseg(xb.to) && (!is_code(xflags) || is_func(xflags));
             //const auto dump = ya::dump_flags(xflags);
             if(!is_valid)
                 continue;
@@ -1111,7 +1104,7 @@ namespace
         const auto next = prev_not_tail(end);
         for(auto ea = get_first_cref_from(next); ea != BADADDR; ea = get_next_cref_from(next, ea))
         {
-            const auto id = ctx.provider_.get_function_basic_block_hash(ea, func->startEA);
+            const auto id = ctx.provider_.get_function_basic_block_hash(ea, func->start_ea);
             ctx.xrefs_.push_back({ea - start, id, DEFAULT_OPERAND, 0});
         }
     }
@@ -1119,7 +1112,7 @@ namespace
     template<typename Ctx>
     void accept_enum_operand(Ctx& ctx, ea_t ea, ea_t root, ya::Deps* deps, flags_t flags, int opidx, opinfo_t* pop)
     {
-        const auto ok = get_opinfo(ea, opidx, flags, pop);
+        const auto ok = get_opinfo(pop, ea, opidx, flags);
         if(!ok)
             return;
 
@@ -1134,7 +1127,7 @@ namespace
     template<typename Ctx>
     void accept_struc_operand(Ctx& ctx, ea_t ea, ea_t root, ya::Deps* deps, flags_t flags, int opidx, opinfo_t* pop)
     {
-        const auto ok = get_opinfo(ea, opidx, flags, pop);
+        const auto ok = get_opinfo(pop, ea, opidx, flags);
         if(!ok)
             return;
 
@@ -1158,21 +1151,21 @@ namespace
             const auto mid = pop->path.ids[i];
             get_member_fullname(&*qbuf, mid);
             struc_t* mstruc = nullptr;
-            const auto member = get_member_by_fullname(qbuf->c_str(), &mstruc);
+            const auto member = get_member_by_fullname(&mstruc, qbuf->c_str());
             if(!member)
                 break;
 
-            get_member_name2(&*qbuf, mid);
+            get_member_name(&*qbuf, mid);
             const auto xmid = ctx.provider_.get_struc_member_id(mstruc->id, member->soff, ya::to_string_ref(*qbuf));
             ctx.xrefs_.push_back({ea - root, xmid, opidx, i});
         }
     }
 
     template<typename Ctx>
-    void accept_stackframe_operand(Ctx& ctx, ea_t ea, ea_t root, func_t* func, struc_t* frame, const op_t& operand, int opidx)
+    void accept_stackframe_operand(Ctx& ctx, ea_t ea, ea_t root, func_t* func, struc_t* frame, const insn_t& cmd, const op_t& operand, int opidx)
     {
         sval_t val = 0;
-        const auto member = get_stkvar(operand, operand.addr, &val);
+        const auto member = get_stkvar(&val, cmd, operand, operand.addr);
         if(!member)
             return;
 
@@ -1183,41 +1176,41 @@ namespace
             if(is_special_member(member->id))
                 return;
 
-            get_member_name2(&*qbuf, member->id);
+            get_member_name(&*qbuf, member->id);
             if(is_default_member(*ctx.qpool_.acquire(), frame, member, ya::to_string_ref(*qbuf)))
                 return;
         }
 
-        const auto xid = ctx.provider_.get_stackframe_member_object_id(frame->id, member->soff, func->startEA);
+        const auto xid = ctx.provider_.get_stackframe_member_object_id(frame->id, member->soff, func->start_ea);
         ctx.xrefs_.push_back({ea - root, xid, opidx, 0});
     }
 
     template<typename Ctx>
-    void accept_insn_xrefs(Ctx& ctx, ea_t ea, ea_t root, ya::Deps* deps, flags_t flags, func_t* func, struc_t* frame, opinfo_t* pop)
+    void accept_insn_xrefs(Ctx& ctx, ea_t ea, ea_t root, ya::Deps* deps, flags_t flags, func_t* func, struc_t* frame, opinfo_t* pop, insn_t* cmd)
     {
         // check for content before decoding
-        if(!isEnum0(flags)
-        && !isEnum1(flags)
-        && !isStkvar0(flags)
-        && !isStkvar1(flags)
-        && !isStroff0(flags)
-        && !isStroff1(flags))
+        if(!is_enum0(flags)
+        && !is_enum1(flags)
+        && !is_stkvar0(flags)
+        && !is_stkvar1(flags)
+        && !is_stroff0(flags)
+        && !is_stroff1(flags))
             return;
 
         // FIXME memoize decode instructions
-        const auto insn_size = decode_insn(ea);
+        const auto insn_size = decode_insn(cmd, ea);
         if(!insn_size)
             return;
 
-        for(size_t i = 0; i < 2; ++i)
-            if(cmd.Operands[i].type == o_void)
+        for(int i = 0; i < 2; ++i)
+            if(cmd->ops[i].type == o_void)
                 continue;
-            else if(isEnum(flags, i))
+            else if(is_enum(flags, i))
                 accept_enum_operand(ctx, ea, root, deps, flags, i, pop);
-            else if(isStroff(flags, i))
+            else if(is_stroff(flags, i))
                 accept_struc_operand(ctx, ea, root, deps, flags, i, pop);
-            else if(func && isStkvar(flags, i))
-                accept_stackframe_operand(ctx, ea, root, func, frame, cmd.Operands[i], i);
+            else if(func && is_stkvar(flags, i))
+                accept_stackframe_operand(ctx, ea, root, func, frame, *cmd, cmd->ops[i], i);
     }
 
     template<typename Ctx>
@@ -1230,7 +1223,7 @@ namespace
             ++i;
             if(opflags != FF_0OFF)
                 continue;
-            const auto ok = get_opinfo(ea, i, flags, pop);
+            const auto ok = get_opinfo(pop, ea, i, flags);
             if(!ok)
                 continue;
             if(!pop->ri.base)
@@ -1247,15 +1240,15 @@ namespace
     template<typename Ctx>
     void accept_hiddenareas(Ctx& /*ctx*/, IModelVisitor& v, ea_t ea, ea_t root)
     {
-        const auto area = get_hidden_area(ea);
+        const auto area = get_hidden_range(ea);
         if(!area)
             return;
-        if(area->startEA != ea)
+        if(area->start_ea != ea)
             return;
         v.visit_offset_hiddenarea(ea - root, area->size(), make_string_ref(area->description));
     }
 
-    void accept_registerviews(IModelVisitor& v, ea_t block_start, area_t insn, func_t* func)
+    void accept_registerviews(IModelVisitor& v, ea_t block_start, range_t insn, func_t* func)
     {
         for(int i = 0; func && func->regvars && i < func->regvarqty; ++i)
         {
@@ -1263,9 +1256,9 @@ namespace
             if(!r.user)
                 continue;
             // handled by another instruction
-            if(!insn.contains(r.startEA))
+            if(!insn.contains(r.start_ea))
                 continue;
-            v.visit_offset_registerview(r.startEA - block_start, r.endEA - block_start, make_string_ref(r.canon), make_string_ref(r.user));
+            v.visit_offset_registerview(r.start_ea - block_start, r.end_ea - block_start, make_string_ref(r.canon), make_string_ref(r.user));
         }
     }
 
@@ -1273,6 +1266,7 @@ namespace
     void accept_offsets(Ctx& ctx, IModelVisitor& v, ya::Deps* deps, ea_t start, ea_t end)
     {
         opinfo_t op;
+        insn_t cmd;
 
         const auto func = get_func(start);
         const auto frame = get_frame(func);
@@ -1282,13 +1276,13 @@ namespace
         for(auto ea = start, ea_end = BADADDR; ea < end; ea = ea_end)
         {
             ea_end = get_item_end(ea);
-            const auto flags = get_flags_novalue(ea);
+            const auto flags = get_flags(ea);
             accept_comments(ctx, v, ea, start, flags);
             accept_registerviews(v, start, {ea, ea_end}, func);
             accept_hiddenareas(ctx, v, ea, start);
             accept_value_views(ctx, v, ea, start, flags);
             accept_from_xrefs(ctx, ea, start);
-            accept_insn_xrefs(ctx, ea, start, deps, flags, func, frame, &op);
+            accept_insn_xrefs(ctx, ea, start, deps, flags, func, frame, &op, &cmd);
             accept_references(ctx, ea, start, flags, &op);
         }
         v.visit_end_offsets();
@@ -1334,16 +1328,16 @@ namespace
 
     bool is_code_end(ea_t ea)
     {
-        const auto flags = get_flags_novalue(ea);
-        if(!isCode(flags))
+        const auto flags = get_flags(ea);
+        if(!is_code(flags))
             return true;
-        else if(isData(flags))
+        else if(is_data(flags))
             return true;
-        else if(isUnknown(flags))
+        else if(is_unknown(flags))
             return true;
-        if(isFunc(flags))
+        if(is_func(flags))
             return true;
-        if(isCode(flags) && get_func(ea))
+        if(is_code(flags) && get_func(ea))
             return true;
         return false;
     }
@@ -1384,10 +1378,10 @@ namespace
 
         start_object(v, OBJECT_TYPE_CODE, id, parent.id, ea);
         const auto seg = getseg(ea);
-        const auto end = get_code_end(ea, seg ? seg->endEA : BADADDR);
+        const auto end = get_code_end(ea, seg ? seg->end_ea : BADADDR);
         const auto size = end - ea;
         v.visit_size(size);
-        const auto flags = get_flags_novalue(ea);
+        const auto flags = get_flags(ea);
         accept_name(ctx, v, ea, flags, BasicBlockNamePolicy);
 
         ya::Deps deps;
@@ -1400,9 +1394,9 @@ namespace
     }
 
     template<typename Ctx>
-    void accept_block(Ctx& ctx, IModelVisitor& v, const Parent& parent, const qflow_chart_t& flow, size_t idx, area_t block)
+    void accept_block(Ctx& ctx, IModelVisitor& v, const Parent& parent, const qflow_chart_t& flow, size_t idx, range_t block)
     {
-        const auto ea = block.startEA;
+        const auto ea = block.start_ea;
         const auto id = ctx.provider_.get_function_basic_block_hash(ea, parent.ea);
         if(ctx.skip_id(id))
             return;
@@ -1410,7 +1404,7 @@ namespace
         start_object(v, OBJECT_TYPE_BASIC_BLOCK, id, parent.id, ea);
         v.visit_size(block.size());
 
-        accept_name(ctx, v, ea, get_flags_novalue(ea), BasicBlockNamePolicy);
+        accept_name(ctx, v, ea, get_flags(ea), BasicBlockNamePolicy);
 
         const auto type = flow.calc_block_type(idx);
         v.visit_flags(type);
@@ -1423,7 +1417,7 @@ namespace
         v.visit_end_signatures();
 
         ya::Deps deps;
-        accept_offsets(ctx, v, &deps, block.startEA, block.endEA);
+        accept_offsets(ctx, v, &deps, block.start_ea, block.end_ea);
         accept_xrefs(ctx, v);
 
         if(ctx.plugin_)
@@ -1436,7 +1430,7 @@ namespace
     template<typename Ctx>
     void accept_function(Ctx& ctx, IModelVisitor& v, const Parent& parent, func_t* func, ea_t block_ea)
     {
-        const auto ea = func->startEA;
+        const auto ea = func->start_ea;
         const auto id = ctx.provider_.get_hash_for_ea(ea);
         if(ctx.skip_id(id))
             return;
@@ -1465,17 +1459,13 @@ namespace
         accept_signature(ctx, v, crcs);
         v.visit_end_signatures();
 
-        for(const auto repeat : {false, true})
+        visit_header_comments(v, *qbuf, [&](qstring& buffer, bool repeat)
         {
-            const auto cmt = get_func_cmt(func, repeat);
-            if(!cmt)
-                continue;
-            v.visit_header_comment(repeat, make_string_ref(cmt));
-            qfree(cmt);
-        }
+            get_func_cmt(&buffer, func, repeat);
+        });
 
         const auto frame = get_frame(func);
-        accept_function_xrefs(ctx, v, func->startEA, frame, flow.blocks);
+        accept_function_xrefs(ctx, v, func->start_ea, frame, flow.blocks);
 
         if(ctx.plugin_)
             ctx.plugin_->accept_function(v, ea);
@@ -1502,11 +1492,11 @@ namespace
     template<typename Ctx>
     void accept_ea(Ctx& ctx, IModelVisitor& v, const Parent& parent, ea_t ea)
     {
-        const auto flags = getFlags(ea);
+        const auto flags = get_flags(ea);
         const auto func = get_func(ea);
         if(func)
             accept_function(ctx, v, parent, func, ea);
-        else if(isCode(flags))
+        else if(is_code(flags))
             accept_code(ctx, v, parent, ea);
         else
             accept_data(ctx, v, parent, ea);
@@ -1521,19 +1511,19 @@ std::vector<ea_t> get_all_items(ea_t start, ea_t end)
     auto ea = start;
     while(ea != BADADDR && ea < end)
     {
-        const auto flags = get_flags_novalue(ea);
-        if(isCode(flags) || isFunc(flags))
+        const auto flags = get_flags(ea);
+        if(is_code(flags) || is_func(flags))
         {
             const auto func = get_func(ea);
             if(func)
             {
-                const auto eaFunc = func->startEA;
+                const auto eaFunc = func->start_ea;
                 if(eaFunc >= start && eaFunc < end)
                     items.push_back(eaFunc);
             }
         }
         const auto func = get_next_func(ea);
-        ea = func ? func->startEA : BADADDR;
+        ea = func ? func->start_ea : BADADDR;
     }
 
     // try to add previous overlapped item
@@ -1549,8 +1539,8 @@ std::vector<ea_t> get_all_items(ea_t start, ea_t end)
     // iterate on every ea
     while(ea != BADADDR && ea < end)
     {
-        const auto flags = get_flags_novalue(ea);
-        if(isData(flags))
+        const auto flags = get_flags(ea);
+        if(is_data(flags))
         {
             if(ea >= start && ea < end)
                 items.push_back(ea);
@@ -1559,21 +1549,21 @@ std::vector<ea_t> get_all_items(ea_t start, ea_t end)
         }
 
         auto size = BADADDR;
-        const auto func = isFunc(flags) || isCode(flags) ? get_func(ea) : nullptr;
+        const auto func = is_func(flags) || is_code(flags) ? get_func(ea) : nullptr;
         if(func)
         {
             const auto chunk = get_fchunk(ea);
             if(chunk)
-                size = chunk->endEA - ea;
+                size = chunk->end_ea - ea;
         }
-        else if(isCode(flags))
+        else if(is_code(flags))
         {
             size = get_code_end(ea, end) - ea;
             const auto chunk_start_ea = get_code_start(ea, start);
             if(chunk_start_ea != BADADDR && chunk_start_ea >= start && ea < end)
                 items.push_back(ea);
         }
-        else if(has_any_name(flags) && hasRef(flags))
+        else if(has_any_name(flags) && has_xref(flags))
         {
             if(ea >= start && ea < end)
                 items.push_back(ea);
@@ -1581,7 +1571,7 @@ std::vector<ea_t> get_all_items(ea_t start, ea_t end)
 
         if(size == 0 || size == 1)
         {
-            if(!flags || hasValue(flags))
+            if(!flags || has_value(flags))
                 ea = next_not_tail(ea);
             else
                 ++ea;
@@ -1647,11 +1637,11 @@ namespace
     void walk_segment_chunks(const segment_t* seg, const T& operand)
     {
         // do not chunk empty loader segments
-        if(!isEnabled(seg->startEA))
+        if(!is_mapped(seg->start_ea))
             return;
-        for(auto ea = seg->startEA; ea < seg->endEA; ea += SEGMENT_CHUNK_MAX_SIZE)
+        for(auto ea = seg->start_ea; ea < seg->end_ea; ea += SEGMENT_CHUNK_MAX_SIZE)
         {
-            const auto end = std::min(ea + SEGMENT_CHUNK_MAX_SIZE, seg->endEA);
+            const auto end = std::min(ea + SEGMENT_CHUNK_MAX_SIZE, seg->end_ea);
             operand(ea, end);
         }
     }
@@ -1730,11 +1720,11 @@ namespace
         if(seg->color != DEFCOLOR)
             v.visit_attribute(g_seg_attributes[SEG_ATTR_COLOR], str_bgcolor(buf, sizeof buf, seg->color));
         v.visit_attribute(g_seg_attributes[SEG_ATTR_ALIGN], str_uchar(buf, sizeof buf, seg->align));
-        v.visit_attribute(g_seg_attributes[SEG_ATTR_START], str_ea(buf, sizeof buf, seg->startEA));
+        v.visit_attribute(g_seg_attributes[SEG_ATTR_START], str_ea(buf, sizeof buf, seg->start_ea));
         v.visit_attribute(g_seg_attributes[SEG_ATTR_PERM], str_uchar(buf, sizeof buf, seg->perm));
         v.visit_attribute(g_seg_attributes[SEG_ATTR_BITNESS], str_uchar(buf, sizeof buf, seg->bitness));
         v.visit_attribute(g_seg_attributes[SEG_ATTR_FLAGS], str_ushort(buf, sizeof buf, seg->flags));
-        v.visit_attribute(g_seg_attributes[SEG_ATTR_END], str_ea(buf, sizeof buf, seg->endEA));
+        v.visit_attribute(g_seg_attributes[SEG_ATTR_END], str_ea(buf, sizeof buf, seg->end_ea));
         v.visit_attribute(g_seg_attributes[SEG_ATTR_SEL], str_ea(buf, sizeof buf, seg->sel));
         v.visit_attribute(g_seg_attributes[SEG_ATTR_TYPE], str_uchar(buf, sizeof buf, seg->type));
 
@@ -1747,31 +1737,29 @@ namespace
     template<typename Ctx>
     Parent accept_segment(Ctx& ctx, IModelVisitor& v, const Parent& parent, segment_t* seg)
     {
-        const auto segname = ya::read_string_from(*ctx.qpool_.acquire(), [&](char* buf, size_t szbuf)
-        {
-            return get_true_segm_name(seg, buf, szbuf);
-        });
-        const auto id = ctx.provider_.get_segment_id(segname, seg->startEA);
-        const auto current = Parent{id, seg->startEA};
+        const auto qbuf = ctx.qpool_.acquire();
+        get_segm_name(&*qbuf, seg);
+        const auto id = ctx.provider_.get_segment_id(ya::to_string_ref(*qbuf), seg->start_ea);
+        const auto current = Parent{id, seg->start_ea};
         if(ctx.skip_id(id))
             return current;
 
-        start_object(v, OBJECT_TYPE_SEGMENT, id, parent.id, seg->startEA);
-        v.visit_size(seg->endEA - seg->startEA);
-        v.visit_name(segname, DEFAULT_NAME_FLAGS);
+        start_object(v, OBJECT_TYPE_SEGMENT, id, parent.id, seg->start_ea);
+        v.visit_size(seg->end_ea - seg->start_ea);
+        v.visit_name(ya::to_string_ref(*qbuf), DEFAULT_NAME_FLAGS);
 
         v.visit_start_xrefs();
         walk_segment_chunks(seg, [&](ea_t ea, ea_t end)
         {
             const auto chunk_id = ctx.provider_.get_segment_chunk_id(id, ea, end);
-            v.visit_start_xref(ea - seg->startEA, chunk_id, DEFAULT_OPERAND);
+            v.visit_start_xref(ea - seg->start_ea, chunk_id, DEFAULT_OPERAND);
             v.visit_end_xref();
 
         });
         v.visit_end_xrefs();
 
         accept_segment_attributes(v, seg);
-        finish_object(v, seg->startEA - parent.ea);
+        finish_object(v, seg->start_ea - parent.ea);
 
         if(Ctx::is_incremental)
             return current;
@@ -1784,7 +1772,7 @@ namespace
     void accept_segments(Ctx& ctx, IModelVisitor& v, const Parent& parent)
     {
         v.visit_segments_start();
-        for(auto seg = get_first_seg(); seg; seg = get_next_seg(seg->endEA - 1))
+        for(auto seg = get_first_seg(); seg; seg = get_next_seg(seg->end_ea - 1))
             accept_segment(ctx, v, parent, seg);
         v.visit_segments_end();
     }
@@ -1802,7 +1790,7 @@ namespace
         start_object(v, OBJECT_TYPE_BINARY, id, 0, base);
         const auto first = get_first_seg();
         if(first)
-            v.visit_size(get_last_seg()->endEA - first->startEA);
+            v.visit_size(get_last_seg()->end_ea - first->start_ea);
 
         const auto filename = ya::read_string_from(*qbuf, [&](char* buf, size_t szbuf)
         {
@@ -1812,14 +1800,11 @@ namespace
             v.visit_name(filename, DEFAULT_NAME_FLAGS);
 
         v.visit_start_xrefs();
-        for(auto seg = first; seg; seg = get_next_seg(seg->endEA - 1))
+        for(auto seg = first; seg; seg = get_next_seg(seg->end_ea - 1))
         {
-            const auto segname = ya::read_string_from(*qbuf, [&](char* buf, size_t szbuf)
-            {
-                return get_true_segm_name(seg, buf, szbuf);
-            });
-            const auto seg_id = ctx.provider_.get_segment_id(segname, seg->startEA);
-            v.visit_start_xref(seg->startEA - base, seg_id, DEFAULT_OPERAND);
+            get_segm_name(&*qbuf, seg);
+            const auto seg_id = ctx.provider_.get_segment_id(ya::to_string_ref(*qbuf), seg->start_ea);
+            v.visit_start_xref(seg->start_ea - base, seg_id, DEFAULT_OPERAND);
             v.visit_end_xref();
         }
         v.visit_end_xrefs();
@@ -1839,13 +1824,9 @@ namespace
     void accept(Ctx& ctx, IModelVisitor& v)
     {
         const auto qbuf = ctx.qpool_.acquire();
-        ya::walk_bookmarks([&](int i, ea_t ea, const curloc& loc)
+        ya::walk_bookmarks([&](uint32_t, ea_t ea, const auto&, const qstring& desc)
         {
-            const auto value = ya::read_string_from(*qbuf, [&](char* buf, size_t szbuf)
-            {
-                return loc.markdesc(i, buf, szbuf);
-            });
-            ctx.bookmarks_.push_back({make_string(value), ea});
+            ctx.bookmarks_.push_back({ya::to_string(desc), ea});
         });
         v.visit_start();
         accept_binary(ctx, v);
@@ -1979,8 +1960,8 @@ namespace
     {
         const auto binary = ::accept_binary(ctx, v);
         const auto segment = ::accept_segment(ctx, v, binary, seg);
-        const auto chunk_start = ea - ((ea - seg->startEA) % SEGMENT_CHUNK_MAX_SIZE);
-        const auto chunk_end = std::min(chunk_start + SEGMENT_CHUNK_MAX_SIZE, seg->endEA);
+        const auto chunk_start = ea - ((ea - seg->start_ea) % SEGMENT_CHUNK_MAX_SIZE);
+        const auto chunk_end = std::min(chunk_start + SEGMENT_CHUNK_MAX_SIZE, seg->end_ea);
         return ::accept_segment_chunk(ctx, v, segment, chunk_start, chunk_end);
     }
 }
@@ -1995,14 +1976,14 @@ void ModelIncremental::accept_function(IModelVisitor& v, ea_t ea)
         return;
     }
 
-    const auto seg = getseg(func->startEA);
+    const auto seg = getseg(func->start_ea);
     if(!seg)
     {
-        LOG(ERROR, "accept_function: 0x" EA_FMT " unable to get segment\n", func->startEA);
+        LOG(ERROR, "accept_function: 0x" EA_FMT " unable to get segment\n", func->start_ea);
         return;
     }
 
-    const auto chunk = accept_binary_to_chunk(ctx_, v, seg, func->startEA);
+    const auto chunk = accept_binary_to_chunk(ctx_, v, seg, func->start_ea);
     ::accept_function(ctx_, v, chunk, func, ea);
 }
 

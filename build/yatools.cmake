@@ -197,7 +197,8 @@ function(add_yatools_py bits)
     make_target(yaida${bits} yatools ${yaida_files} OPTIONS static_runtime)
     setup_yatools(yaida${bits})
     target_include_directories(yaida${bits} PUBLIC "${idasdk_dir}/include")
-    target_compile_definitions(yaida${bits} PUBLIC __${os_}__ __IDP__)
+    string(TOUPPER ${ARCH} arch_upper)
+    target_compile_definitions(yaida${bits} PUBLIC __${os_}__ __IDP__ __${arch_upper}__)
     target_link_libraries(yaida${bits}
         PUBLIC
         yatools
@@ -205,9 +206,10 @@ function(add_yatools_py bits)
         zlib
     )
     if(WIN32)
+        string(REGEX REPLACE "^x" "" arch_bits ${ARCH})
         target_link_libraries(yaida${bits} PRIVATE
-            "${idasdk_dir}/lib/x86_win_vc_${bits}/ida.lib"
-            "${idasdk_dir}/lib/x86_win_vc_32/pro.lib"
+            "${idasdk_dir}/lib/x${arch_bits}_win_vc_${bits}/ida.lib"
+            "${idasdk_dir}/lib/x${arch_bits}_win_vc_${arch_bits}/pro.lib"
         )
     endif()
     if(bits EQUAL 64)
@@ -230,61 +232,48 @@ function(add_yatools_py bits)
         yagit
         yaida${bits}
     )
-
-    # disable target on x64
-    if("${ARCH}" STREQUAL "x64")
-        exclude_target(yaida${bits})
-        exclude_target(_yatools_py${bits})
-    endif()
 endfunction()
 add_yatools_py(32)
 add_yatools_py(64)
 
+set(idabin "idaq")
+if("${ARCH}" STREQUAL "x64")
+    set(idabin "ida")
+endif()
+
 # testdata
 find_package(PythonInterp)
 function(make_testdata dst dir dll idaq)
-    if("${ARCH}" STREQUAL "x86")
-        set(dst_ ${${dst}})
-        set(output "${root_dir}/testdata/${dir}/database/database.yadb")
-        list(APPEND dst_ ${output})
-        add_test(NAME "make_${dir}_testdata"
-            COMMAND ${PYTHON_EXECUTABLE} "${ya_dir}/tests/make_testdata.py"
-            "${root_dir}" "${deploy_dir}" "${dir}/${dll}" "${ida_dir}/${idaq}"
-            WORKING_DIRECTORY "${ya_dir}/tests"
-        )
-        set(${dst} ${dst_} PARENT_SCOPE)
-    else()
-        message("make_${dir}_testdata is disabled on ${ARCH}")
-    endif()
+    set(dst_ ${${dst}})
+    set(output "${root_dir}/testdata/${dir}/database/database.yadb")
+    list(APPEND dst_ ${output})
+    add_test(NAME "make_${dir}_testdata"
+        COMMAND ${PYTHON_EXECUTABLE} "${ya_dir}/tests/make_testdata.py"
+        "${root_dir}" "${deploy_dir}" "${dir}/${dll}" "${ida_dir}/${idaq}"
+        WORKING_DIRECTORY "${ya_dir}/tests"
+    )
+    set(${dst} ${dst_} PARENT_SCOPE)
 endfunction()
 set(testdata_outputs)
-make_testdata(testdata_outputs "qt54_svg" "Qt5Svgd.dll" "idaq64")
-make_testdata(testdata_outputs "qt57_svg" "Qt5Svgd.dll" "idaq")
+make_testdata(testdata_outputs "qt54_svg" "Qt5Svgd.dll" "${idabin}64")
+make_testdata(testdata_outputs "qt57_svg" "Qt5Svgd.dll" "${idabin}")
 
 # integration_tests
-if("${ARCH}" STREQUAL "x86")
-    add_target(integration_tests yatools/tests "${ya_dir}/YaLibs/tests/integration" OPTIONS test static_runtime)
-    setup_yatools(integration_tests)
-    target_include_directories(integration_tests PRIVATE
-        "${ya_dir}/YaLibs/tests"
-    )
-    target_link_libraries(integration_tests PRIVATE
-        gtest
-        yatools
-    )
-    set_property(TEST integration_tests APPEND PROPERTY DEPENDS make_qt54_svg_testdata)
-    set_property(TEST integration_tests APPEND PROPERTY DEPENDS make_qt57_svg_testdata)
-else()
-    message("integration_tests are disabled on ${ARCH}")
-endif()
+add_target(integration_tests yatools/tests "${ya_dir}/YaLibs/tests/integration" OPTIONS test static_runtime)
+setup_yatools(integration_tests)
+target_include_directories(integration_tests PRIVATE
+    "${ya_dir}/YaLibs/tests"
+)
+target_link_libraries(integration_tests PRIVATE
+    gtest
+    yatools
+)
+set_property(TEST integration_tests APPEND PROPERTY DEPENDS make_qt54_svg_testdata)
+set_property(TEST integration_tests APPEND PROPERTY DEPENDS make_qt57_svg_testdata)
 
 # yaco_tests
 function(make_yaco_test bitness idaq)
     set(suffix ${bitness}_tests)
-    if(NOT "${ARCH}" STREQUAL "x86")
-        message("${name} are disabled on ${ARCH}")
-        return()
-    endif()
     add_test(NAME yaco${suffix}
         COMMAND ${PYTHON_EXECUTABLE} ${ya_dir}/tests/run_tests.py
         ${deploy_dir} ya ${CMAKE_CURRENT_BINARY_DIR} ${idaq}
@@ -296,5 +285,5 @@ function(make_yaco_test bitness idaq)
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     )
 endfunction()
-make_yaco_test(32 idaq)
-make_yaco_test(64 idaq64)
+make_yaco_test(32 "${idabin}64")
+make_yaco_test(64 "${idabin}")

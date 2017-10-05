@@ -108,9 +108,9 @@ class YaCo:
         logger.debug("export mem->ida")
         ya.export_to_ida(memory_exporter.model, self.hash_provider)
 
-        idc.SetCharPrm(idc.INF_AUTO, True)
+        idc.set_inf_attr(idc.INFFL_AUTO, True)
         idc.Wait()
-        idc.SetCharPrm(idc.INF_AUTO, False)
+        idc.set_inf_attr(idc.INFFL_AUTO, False)
         idc.Refresh()
         logger.debug("hook")
         self.ida_hooks.hook()
@@ -238,7 +238,7 @@ class YaCo:
         shutil.copy(original_idb_name, yatools.get_local_idb_name(original_idb_name))
 
         # local should not be overwritten, so we have to close IDA brutally !
-        idaapi.cvar.database_flags |= idaapi.DBFL_KILL
+        idaapi.set_database_flag(idaapi.DBFL_KILL)
         idc.Warning("Force pull complete, you can restart IDA")
         idc.Exit(0)
 
@@ -313,7 +313,7 @@ class YaCo:
             self.ida_hooks.unhook()
             logger.error('Error during load cache, YaCo is disabled !')
 
-        idc.SetCharPrm(idc.INF_AUTO, False)
+        idc.set_inf_attr(idc.INFFL_AUTO, False)
 
         for menu_item in self.yaco_menus:
             name = menu_item[0]

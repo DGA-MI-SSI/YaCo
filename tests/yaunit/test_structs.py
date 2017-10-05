@@ -13,6 +13,7 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import ida_ua
 import idaapi
 import idautils
 import idc
@@ -244,12 +245,12 @@ class Fixture(unittest.TestCase):
         for k in range(offset, offset + size):
             self.assertEqual(idc.GetMemberName(sid, k), name)
             self.assertEqual(idc.GetMemberSize(sid, k), size)
-            self.assertEqual(idc.GetMemberFlag(sid, k) & idaapi.DT_TYPE, ftype)
+            self.assertEqual(idc.GetMemberFlag(sid, k) & idaapi.DT_TYPE, ftype & 0xFFFFFFFF)
             if strid != -1:
                 st = idaapi.get_struc(sid)
                 mb = idaapi.get_member(st, offset)
                 op = idaapi.opinfo_t()
-                idaapi.retrieve_member_info(mb, op)
+                idaapi.retrieve_member_info(op, mb)
                 self.assertEqual(op.tid, strid)
         self.assertNotEqual(idc.GetMemberName(sid, offset + size), name)
 
@@ -337,6 +338,12 @@ class Fixture(unittest.TestCase):
                 if idaapi.isNum1(flags):
                     return ea
 
+    def custom_op_stroff(self, ea, path, path_len):
+        insn = ida_ua.insn_t()
+        insn_len = ida_ua.decode_insn(insn, ea)
+        self.assertNotEqual(insn_len, 0)
+        return idaapi.op_stroff(insn, 1, path, path_len, 0)
+
     def yatest_apply_struct(self):
         addrs = []
         # -1: struct, n: union
@@ -355,8 +362,9 @@ class Fixture(unittest.TestCase):
                 # add struct fields
                 for x in xrange(0, 0x60):
                     self.assertEqual(idc.AddStrucMember(sid, 'field_%x' % x, -1, ftype, -1, 1), 0)
-                # apply struct
-                self.assertNotEqual(idc.OpStroffEx(addr, 1, sid, 0), idaapi.BADADDR)
+                path = idaapi.tid_array(1)
+                path[0] = sid
+                self.assertNotEqual(self.custom_op_stroff(addr, path.cast(), 1), idaapi.BADADDR)
                 continue
 
             # create union
@@ -375,7 +383,7 @@ class Fixture(unittest.TestCase):
             path = idaapi.tid_array(2)
             path[0] = sid
             path[1] = fid
-            self.assertNotEqual(idaapi.op_stroff(addr, 1, path.cast(), 2, 0), idaapi.BADADDR)
+            self.assertNotEqual(self.custom_op_stroff(addr, path.cast(), 2), idaapi.BADADDR)
         yaunit.save('apply_struct', addrs)
 
     def yacheck_apply_struct(self):

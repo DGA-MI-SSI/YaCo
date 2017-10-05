@@ -58,7 +58,7 @@ namespace
     void accept_ea(IModelVisitor& v, ea_t ea, int thumb_segment_register)
     {
         char buf[100];
-        const auto thumb_flag = get_segreg(ea, thumb_segment_register);
+        const auto thumb_flag = get_sreg(ea, thumb_segment_register);
         const auto n = snprintf(buf, sizeof buf, SEL_FMT, thumb_flag);
         if(n > 0)
             v.visit_attribute(g_thumb_mode_flag, {buf, static_cast<size_t>(n)});
@@ -133,7 +133,7 @@ namespace
         if(n != 1)
             return;
 
-        const auto current_thumb_flag = get_segreg(ea, thumb_segment_register);
+        const auto current_thumb_flag = get_sreg(ea, thumb_segment_register);
         if(current_thumb_flag == thumb_flag)
             return;
 

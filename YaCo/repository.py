@@ -432,7 +432,7 @@ class YaToolRepoManager(object):
                     message = "To use YaCo you must name your IDB with _local suffix. "
                     message += "YaCo will create one for you.\nRestart IDA and open %s." % local_idb_name
                     logger.debug(message)
-                    idaapi.cvar.database_flags |= idaapi.DBFL_KILL
+                    idaapi.set_database_flag(idaapi.DBFL_KILL)
                     idc.Warning(message)
                     idc.Exit(0)
 

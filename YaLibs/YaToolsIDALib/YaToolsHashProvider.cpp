@@ -370,7 +370,7 @@ void YaToolsHashProvider::populate_struc_enum_ids()
     qstring enum_name;
     qstring enum_member_name;
     const auto pyhex = pool_->acquire();
-    for(auto idx = 0u, end = get_enum_qty(); idx < end; ++idx)
+    for(size_t idx = 0, end = get_enum_qty(); idx < end; ++idx)
     {
         const auto enum_id = getn_enum(idx);
         get_enum_name(&enum_name, enum_id);

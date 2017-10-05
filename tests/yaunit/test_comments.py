@@ -36,11 +36,11 @@ tests = [
 
 # comment, repeatable, post, ant
 tests_data = [
-    ('aaa', None,  None,   None),
-    (None,  'bbb', None,   None),
-    (None,  None,  'e\n#', None),
-    (None,  None,  None,   'f\n#'),
-    ('ggg', 'hhh', 'iii',  'jj'),
+    ('mmm', None,  None,   None),
+    (None,  'nnn', None,   None),
+    (None,  None,  'o\n#', None),
+    (None,  None,  None,   'p\n#'),
+    ('qqq', 'rrr', 'sss',  'tt'),
 ]
 
 tests_code = tests_data
@@ -62,13 +62,13 @@ def get_code_item():
     return yaunit.get_next_code()
 
 # workaround ida 6.95 bugs...
-def try_ext_lin(operand, ea, n, line):
-    try:
-        operand(ea, n, line)
-    except AttributeError:
-        idc.SetFlags(ea, idc.GetFlags(ea) | idaapi.FF_LINE)
-
 class Fixture(unittest.TestCase):
+
+    def try_ext_lin(self, operand, ea, n, line):
+        try:
+            self.assertEqual(operand(ea, n, line), None)
+        except AttributeError:
+            idc.SetFlags(ea, idc.GetFlags(ea) | idaapi.FF_LINE)
 
     def yatest_comments(self):
         eas = []
@@ -78,19 +78,19 @@ class Fixture(unittest.TestCase):
                 eas.append(ea)
                 logger.debug("setting at 0x%08X : %r, %r, %r, %r, %r, %r" % (ea, fn_cmt, fn_rpt, cmt, rpt, post, ant))
                 if fn_cmt != None:
-                    idc.SetFunctionCmt(ea, fn_cmt, False)
+                    self.assertEqual(idc.SetFunctionCmt(ea, fn_cmt, False), True)
                 if fn_rpt != None:
-                    idc.SetFunctionCmt(ea, fn_rpt, True)
+                    self.assertEqual(idc.SetFunctionCmt(ea, fn_rpt, True), True)
                 if cmt != None:
-                    idc.MakeComm(ea, cmt)
+                    self.assertEqual(idc.MakeComm(ea, cmt), True)
                 if rpt != None:
-                    idc.MakeRptCmt(ea, rpt)
+                    self.assertEqual(idc.MakeRptCmt(ea, rpt), True)
                 if post != None:
                     for i, txt in enumerate(post.split('\n')):
-                        try_ext_lin(idc.ExtLinB, ea, i, txt)
+                        self.try_ext_lin(idc.ExtLinB, ea, i, txt)
                 if ant != None:
                     for i, txt in enumerate(ant.split('\n')):
-                        try_ext_lin(idc.ExtLinA, ea, i, txt)
+                        self.try_ext_lin(idc.ExtLinA, ea, i, txt)
         yaunit.save('comments', eas)
 
     @unittest.skipIf(sys.platform == "linux2", "unsupported")
@@ -125,15 +125,15 @@ class Fixture(unittest.TestCase):
                 eas.append(ea)
                 logger.debug("setting code comment at 0x%08X : %r, %r, %r, %r" % (ea, cmt, rpt, post, ant))
                 if cmt != None:
-                    idc.MakeComm(ea, cmt)
+                    self.assertEqual(idc.MakeComm(ea, cmt), True)
                 if rpt != None:
-                    idc.MakeRptCmt(ea, rpt)
+                    self.assertEqual(idc.MakeRptCmt(ea, rpt), True)
                 if post != None:
                     for i, txt in enumerate(post.split('\n')):
-                        try_ext_lin(idc.ExtLinB, ea, i, txt)
+                        self.try_ext_lin(idc.ExtLinB, ea, i, txt)
                 if ant != None:
                     for i, txt in enumerate(ant.split('\n')):
-                        try_ext_lin(idc.ExtLinA, ea, i, txt)
+                        self.try_ext_lin(idc.ExtLinA, ea, i, txt)
         yaunit.save('code_comments', eas)
 
     def yacheck_code_comments(self):
@@ -163,15 +163,15 @@ class Fixture(unittest.TestCase):
                 eas.append(ea)
                 logger.debug("setting data comment at 0x%08X : %r, %r, %r, %r" % (ea, cmt, rpt, post, ant))
                 if cmt != None:
-                    idc.MakeComm(ea, cmt)
+                    self.assertEqual(idc.MakeComm(ea, cmt), True)
                 if rpt != None:
-                    idc.MakeRptCmt(ea, rpt)
+                    self.assertEqual(idc.MakeRptCmt(ea, rpt), True)
                 if post != None:
                     for i, txt in enumerate(post.split('\n')):
-                        try_ext_lin(idc.ExtLinB, ea, i, txt)
+                        self.try_ext_lin(idc.ExtLinB, ea, i, txt)
                 if ant != None:
                     for i, txt in enumerate(ant.split('\n')):
-                        try_ext_lin(idc.ExtLinA, ea, i, txt)
+                        self.try_ext_lin(idc.ExtLinA, ea, i, txt)
         yaunit.save('data_comments', eas)
 
     @unittest.skipIf(sys.platform == "linux2", "unsupported")

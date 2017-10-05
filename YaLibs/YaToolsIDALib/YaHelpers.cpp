@@ -261,7 +261,7 @@ namespace
         if(struc->ordinal == -1)
             return tif;
 
-        const auto ok = tif.get_numbered_type(idati, struc->ordinal);
+        const auto ok = tif.get_numbered_type(get_idati(), struc->ordinal);
         if(!ok)
             tif.clear();
 
@@ -271,7 +271,7 @@ namespace
     tinfo_t get_tinfo_from_enum_tid(tid_t tid)
     {
         tinfo_t tif;
-        const auto guess = guess_tinfo2(tid, &tif);
+        const auto guess = guess_tinfo(&tif, tid);
         if(guess != GUESS_FUNC_OK)
             tif.clear();
 
@@ -291,21 +291,20 @@ namespace
     {
         {DT_TYPE,   FF_BYTE,        "byte"},
         {DT_TYPE,   FF_WORD,        "word"},
-        {DT_TYPE,   FF_DWRD,        "dword"},
-        {DT_TYPE,   FF_QWRD,        "qword"},
-        {DT_TYPE,   FF_TBYT,        "tbyte"},
-        {DT_TYPE,   FF_ASCI,        "ascii"},
-        {DT_TYPE,   FF_STRU,        "struct"},
-        {DT_TYPE,   FF_OWRD,        "oword"},
+        {DT_TYPE,   FF_DWORD,       "dword"},
+        {DT_TYPE,   FF_QWORD,       "qword"},
+        {DT_TYPE,   FF_TBYTE,       "tbyte"},
+        {DT_TYPE,   FF_STRLIT,      "ascii"},
+        {DT_TYPE,   FF_STRUCT,      "struct"},
+        {DT_TYPE,   FF_OWORD,       "oword"},
         {DT_TYPE,   FF_FLOAT,       "float"},
         {DT_TYPE,   FF_DOUBLE,      "double"},
         {DT_TYPE,   FF_PACKREAL,    "packreal"},
         {DT_TYPE,   FF_ALIGN,       "align"},
-        {DT_TYPE,   FF_3BYTE,       "3byte"},
         {DT_TYPE,   FF_CUSTOM,      "custom"},
-        {DT_TYPE,   FF_YWRD,        "yword"},
-#ifdef FF_ZWRD
-        {DT_TYPE,   FF_ZWRD,        "zword"},
+        {DT_TYPE,   FF_YWORD,        "yword"},
+#ifdef FF_ZWORD
+        {DT_TYPE,   FF_ZWORD,        "zword"},
 #endif
     };
 
@@ -319,7 +318,7 @@ namespace
         {MS_COMM,   FF_FLOW,        "exec_flow_from_prev_instruction"},
         {MS_COMM,   FF_SIGN,        "inverted_sign_of_operands"},
         {MS_COMM,   FF_BNOT,        "bitwise_negation_of_operands"},
-        {MS_COMM,   FF_VAR,         "is_variable_byte"},
+        {MS_COMM,   FF_UNUSED,      "unused"},
     };
 
     static const FlagName g_operandflags[] =
@@ -382,11 +381,11 @@ std::string ya::dump_flags(flags_t flags)
     for(const auto it : g_types)
         if((flags & it.mask) == it.value)
             add(it.name);
-    if(isCode(flags))
+    if(is_code(flags))
         for(const auto it : g_codeflags)
             if(flags & it.mask & it.value)
                 add(it.name);
-    if(isData(flags))
+    if(is_data(flags))
         for(const auto it : g_dataflags)
             if((flags & it.mask) == it.value)
                 add(it.name);
@@ -408,10 +407,10 @@ tinfo_t ya::get_tinfo(flags_t flags, const opinfo_t* op)
     if(!op)
         return empty;
 
-    if(isStruct(flags))
+    if(is_struct(flags))
         return get_tinfo_from_struct_tid(op->tid);
 
-    if(isEnum0(flags))
+    if(is_enum0(flags))
         return get_tinfo_from_enum_tid(op->ec.tid);
 
     return empty;
@@ -420,19 +419,19 @@ tinfo_t ya::get_tinfo(flags_t flags, const opinfo_t* op)
 tinfo_t ya::get_tinfo(ea_t ea)
 {
 #ifdef _DEBUG
-    const auto dump = dump_flags(getFlags(ea));
+    const auto dump = dump_flags(get_flags(ea));
     UNUSED(dump);
 #endif
 
     tinfo_t tif;
-    auto ok = get_tinfo2(ea, &tif);
+    auto ok = get_tinfo(&tif, ea);
     if(ok)
         return tif;
 
     // try harder
     opinfo_t op;
-    const auto flags = getFlags(ea);
-    const auto has_op = get_opinfo(ea, 0, flags, &op);
+    const auto flags = get_flags(ea);
+    const auto has_op = get_opinfo(&op, ea, 0, flags);
     return get_tinfo(flags, has_op ? &op : nullptr);
 }
 
@@ -464,7 +463,7 @@ namespace
 
 const_string_ref ya::get_default_name(qstring& buffer, ea_t offset, func_t* func)
 {
-    buffer.resize(std::max(buffer.size(), 32u));
+    buffer.resize(std::max(buffer.size(), static_cast<size_t>(32)));
     if(!func)
         return to_fmt(buffer, "field_%X", offset);
     if(offset <= func->frsize)
