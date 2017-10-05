@@ -31,10 +31,6 @@ message("-- Using IDA_DIR=${ida_dir}")
 if(MSVC)
     # disable 'conditional expression is constant'
     set_cx_flags("" "/wd4127" "/wd4127")
-    # enable large address aware flag on 32-bit binaries
-    if("${ARCH}" STREQUAL "x86")
-        set_flag_all(LINKER_FLAGS "/LARGEADDRESSAWARE(:NO)?" "/LARGEADDRESSAWARE" DEBUG RELEASE RELWITHDEBINFO)
-    endif()
     include_directories("${ya_dir}/deps/optional-lite")
 endif()
 
@@ -197,8 +193,7 @@ function(add_yatools_py bits)
     make_target(yaida${bits} yatools ${yaida_files} OPTIONS static_runtime)
     setup_yatools(yaida${bits})
     target_include_directories(yaida${bits} PUBLIC "${idasdk_dir}/include")
-    string(TOUPPER ${ARCH} arch_upper)
-    target_compile_definitions(yaida${bits} PUBLIC __${os_}__ __IDP__ __${arch_upper}__)
+    target_compile_definitions(yaida${bits} PUBLIC __${os_}__ __IDP__ __X64__)
     target_link_libraries(yaida${bits}
         PUBLIC
         yatools
@@ -206,10 +201,9 @@ function(add_yatools_py bits)
         zlib
     )
     if(WIN32)
-        string(REGEX REPLACE "^x" "" arch_bits ${ARCH})
         target_link_libraries(yaida${bits} PRIVATE
-            "${idasdk_dir}/lib/x${arch_bits}_win_vc_${bits}/ida.lib"
-            "${idasdk_dir}/lib/x${arch_bits}_win_vc_${arch_bits}/pro.lib"
+            "${idasdk_dir}/lib/x64_win_vc_${bits}/ida.lib"
+            "${idasdk_dir}/lib/x64_win_vc_64/pro.lib"
         )
     endif()
     if(bits EQUAL 64)
@@ -236,11 +230,6 @@ endfunction()
 add_yatools_py(32)
 add_yatools_py(64)
 
-set(idabin "idaq")
-if("${ARCH}" STREQUAL "x64")
-    set(idabin "ida")
-endif()
-
 # testdata
 find_package(PythonInterp)
 function(make_testdata dst dir dll idaq)
@@ -255,8 +244,8 @@ function(make_testdata dst dir dll idaq)
     set(${dst} ${dst_} PARENT_SCOPE)
 endfunction()
 set(testdata_outputs)
-make_testdata(testdata_outputs "qt54_svg" "Qt5Svgd.dll" "${idabin}64")
-make_testdata(testdata_outputs "qt57_svg" "Qt5Svgd.dll" "${idabin}")
+make_testdata(testdata_outputs "qt54_svg" "Qt5Svgd.dll" "ida64")
+make_testdata(testdata_outputs "qt57_svg" "Qt5Svgd.dll" "ida")
 
 # integration_tests
 add_target(integration_tests yatools/tests "${ya_dir}/YaLibs/tests/integration" OPTIONS test static_runtime)
@@ -285,5 +274,5 @@ function(make_yaco_test bitness idaq)
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     )
 endfunction()
-make_yaco_test(32 "${idabin}64")
-make_yaco_test(64 "${idabin}")
+make_yaco_test(32 "ida64")
+make_yaco_test(64 "ida")
