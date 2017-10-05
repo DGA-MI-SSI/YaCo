@@ -19,7 +19,6 @@ import idc
 import inspect
 import os
 import re
-import sys
 import unittest
 import YaCo
 
@@ -59,7 +58,7 @@ class Fixture(unittest.TestCase):
         with open(path, 'rb') as fh:
             data = bytearray(fh.read())
         root = yadb.Root.Root.GetRootAsRoot(data, 0)
-        read = "export." + sys.platform + "." + str(idaapi.IDA_SDK_VERSION)
+        read = "export." + str(idaapi.IDA_SDK_VERSION)
         def tostr(index):
             return root.Strings(index).decode()
         def getname(version):
