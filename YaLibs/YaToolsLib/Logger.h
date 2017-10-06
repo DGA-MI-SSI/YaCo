@@ -70,7 +70,6 @@ struct ALIGN(LOG_ALIGN) LOG_Ctx
 
 bool    LOG_Init    (LOG_Ctx* pCtx, const LOG_Cfg* pCfg);
 bool    LOG_Exit    (LOG_Ctx* pCtx);
-bool    LOG_Printv  (LOG_Ctx* pCtx, const char* pModule, LOG_ELevel eLevel, const char* pFmt, va_list argptr);
 bool    LOG_Print   (LOG_Ctx* pCtx, const char* pModule, LOG_ELevel eLevel, const char* pFmt, ...);
 
 // ex: LOG_(pCtx, "memory", INFO, "%s %d %p\n", "something", 0x60, some_pointer);

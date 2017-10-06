@@ -140,7 +140,7 @@ static bool AcceptModule(LOG_PrivCtx* pCtx, const char* pModule)
     return !pCtx->ModulesIn[0];
 }
 
-bool LOG_Printv(LOG_Ctx* pvCtx, const char* pModule, LOG_ELevel eLevel, const char* pFmt, va_list argptr)
+bool LOG_Print(LOG_Ctx* pvCtx, const char* pModule, LOG_ELevel eLevel, const char* pFmt, ...)
 {
     LOG_PrivCtx*    pCtx    = GetCtx(pvCtx);
     tm*             pNow    = nullptr;
@@ -150,6 +150,9 @@ bool LOG_Printv(LOG_Ctx* pvCtx, const char* pModule, LOG_ELevel eLevel, const ch
     char            Fmt[1024];
     char            TxtTime[64];
     time_t          Now;
+
+    if(eLevel > LOG_eMaxLevel)
+        return true;
 
     if(!pCtx)
         return false;
@@ -186,21 +189,11 @@ bool LOG_Printv(LOG_Ctx* pvCtx, const char* pModule, LOG_ELevel eLevel, const ch
     for(size_t i = 0; i < COUNT_OF(pCtx->hFiles); ++i)
         if(pCtx->hFiles[i])
         {
-            ok &= -1 != vfprintf(pCtx->hFiles[i], Fmt, argptr);
+            va_list args;
+            va_start(args, pFmt);
+            ok &= -1 != vfprintf(pCtx->hFiles[i], Fmt, args);
+            va_end(args);
             fflush(pCtx->hFiles[i]);
         }
-    return ok;
-}
-
-bool LOG_Print(LOG_Ctx* pvCtx, const char* pModule, LOG_ELevel eLevel, const char* pFmt, ...)
-{
-    va_list argptr;
-
-    if(eLevel > LOG_eMaxLevel)
-        return true;
-
-    va_start(argptr, pFmt);
-    const bool ok = LOG_Printv(pvCtx, pModule, eLevel, pFmt, argptr);
-    va_end(argptr);
     return ok;
 }
