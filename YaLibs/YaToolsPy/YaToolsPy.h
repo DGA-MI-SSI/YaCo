@@ -53,6 +53,7 @@ namespace std
 #include "Model.hpp"
 #include "MultiplexerDelegatingVisitor.hpp"
 #include "PathDebuggerVisitor.hpp"
+#include "RepoManager.hpp"
 #include "ResolveFileConflictCallback.hpp"
 #include "Signature.hpp"
 #include "XML/XMLDatabaseModel.hpp"
@@ -75,6 +76,7 @@ YaToolObjectId YaToolObjectId_From_String(const char* input, size_t input_len);
 %shared_ptr(IModelAccept)
 %shared_ptr(IModelIncremental)
 %shared_ptr(IModelVisitor)
+%shared_ptr(IRepoManager)
 %shared_ptr(Yatools)
 
 %typemap(out) ExportedBuffer
@@ -198,6 +200,7 @@ namespace std
 %include "Model.hpp"
 %include "MultiplexerDelegatingVisitor.hpp"
 %include "PathDebuggerVisitor.hpp"
+%include "RepoManager.hpp"
 %include "ResolveFileConflictCallback.hpp"
 %include "XML/XMLDatabaseModel.hpp"
 %include "XML/XMLExporter.hpp"
