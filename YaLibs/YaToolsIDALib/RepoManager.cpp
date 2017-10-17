@@ -26,8 +26,21 @@ namespace
     {
         RepoManager() = default;
 
+        void fetch_origin(GitRepo& repo) override;
+        void fetch(GitRepo& repo, const std::string& origin) override;
+
         void checkout_master(GitRepo& repo) override;
     };
+}
+
+void RepoManager::fetch_origin(GitRepo& repo)
+{
+    repo.fetch();
+}
+
+void RepoManager::fetch(GitRepo& repo, const std::string& origin)
+{
+    repo.fetch(origin);
 }
 
 void RepoManager::checkout_master(GitRepo& repo)
