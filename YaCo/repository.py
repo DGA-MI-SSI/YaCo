@@ -212,6 +212,8 @@ class YaToolRepoManager(object):
 
         self.options = YaToolRepoOptions()
 
+        self.native = ya.MakeRepoManager()
+
     def ask_to_checkout_modified_files(self):
         modified_objects = ""
         checkout_head = False
@@ -405,7 +407,7 @@ class YaToolRepoManager(object):
                 idc.Warning("Couldn't push to remote origin")
 
     def checkout_master(self):
-        self.repo.checkout("master")
+        self.native.checkout_master(self.repo)
 
     def check_valid_cache_startup(self):
         logger.debug("check_valid_cache_startup")
