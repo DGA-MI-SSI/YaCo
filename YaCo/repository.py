@@ -378,10 +378,10 @@ class YaToolRepoManager(object):
         return (modified_files, deleted_files)
 
     def get_master_commit(self):
-        return self.repo.get_commit('master')
+        return self.native.get_master_commit(repo)
 
     def get_origin_master_commit(self):
-        return self.repo.get_commit('origin/master')
+        return self.native.get_origin_master_commit(repo)
 
     def fetch_origin(self):
         self.native.fetch_origin(self.repo)

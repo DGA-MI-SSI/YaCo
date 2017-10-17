@@ -26,8 +26,12 @@ struct IRepoManager
 {
     virtual ~IRepoManager() = default;
 
+    virtual std::string get_master_commit(GitRepo& repo) = 0;
+    virtual std::string get_origin_master_commit(GitRepo& repo) = 0;
+
     virtual void fetch_origin(GitRepo& repo) = 0;
     virtual void fetch(GitRepo& repo, const std::string& origin) = 0;
+
     virtual void checkout_master(GitRepo& repo) = 0;
 };
 
