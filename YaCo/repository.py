@@ -384,10 +384,10 @@ class YaToolRepoManager(object):
         return self.repo.get_commit('origin/master')
 
     def fetch_origin(self):
-        self.repo.fetch()
+        self.native.fetch_origin(self.repo)
 
     def fetch(self, origin):
-        self.repo.fetch(origin)
+        self.native.fetch(self.repo, origin)
 
     def rebase_from_origin(self):
         cb = PythonResolveFileConflictCallback()
