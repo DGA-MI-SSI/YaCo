@@ -335,9 +335,8 @@ class YaToolRepoManager(object):
             raise exc
 
     def repo_open(self, path="."):
-        self.repo = ya.GitRepo(path)
-        self.repo.init()
-        self.ensure_git_globals()
+        self.repo = ya.GitRepo(path) # can't be moved to native for the moment
+        self.native.repo_open(self.repo)
 
     def repo_get_cache_files_status(self):
         untracked_files = self.repo.get_untracked_objects_in_path("cache/")

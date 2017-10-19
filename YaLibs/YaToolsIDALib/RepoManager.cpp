@@ -38,6 +38,8 @@ namespace
 
         void ensure_git_globals(GitRepo& repo) override;
 
+        void repo_open(GitRepo& repo, const std::string path) override;
+
         std::string get_master_commit(GitRepo& repo) override;
         std::string get_origin_master_commit(GitRepo& repo) override;
 
@@ -75,6 +77,13 @@ void RepoManager::ensure_git_globals(GitRepo& repo)
         while (userEmail.empty());
         GITREPO_TRY(repo.config_set_string("user.email", userEmail), "Couldn't set git user email.");
     }
+}
+
+void RepoManager::repo_open(GitRepo& repo, const std::string path)
+{
+    //repo = GitRepo(path); // still in Python
+    GITREPO_TRY(repo.init(), "Couldn't init repository.");
+    ensure_git_globals(repo);
 }
 
 std::string RepoManager::get_master_commit(GitRepo& repo)
