@@ -195,6 +195,8 @@ class YaToolRepoManager(object):
         '''
         Constructor
         '''
+        self.native = ya.MakeRepoManager()
+
         self.idb_filename = os.path.basename(idb_path)
         self.idb_directory = os.path.dirname(idb_path)
 
@@ -211,8 +213,6 @@ class YaToolRepoManager(object):
         self.repo_auto_sync = REPO_AUTO_SYNC
 
         self.options = YaToolRepoOptions()
-
-        self.native = ya.MakeRepoManager()
 
     def ask_to_checkout_modified_files(self):
         modified_objects = ""
@@ -244,19 +244,7 @@ class YaToolRepoManager(object):
             self.repo.checkout_head()
 
     def ensure_git_globals(self):
-
-        user_name = self.repo.config_get_string("user.name")
-        user_email = self.repo.config_get_string("user.email")
-        if user_name in [None, ""]:
-            new_username = None
-            while new_username is None:
-                new_username = idaapi.askstr(0, "username", "Entrer git user.name")
-            self.repo.config_set_string("user.name", new_username)
-        if user_email in [None, ""]:
-            new_user_email = None
-            while new_user_email is None:
-                new_user_email = idaapi.askstr(0, "username@localdomain", "Entrer git user.email")
-            self.repo.config_set_string("user.email", new_user_email)
+        self.native.ensure_git_globals(self.repo)
 
     def add_auto_comment(self, ea, text):
         if ea is not None:

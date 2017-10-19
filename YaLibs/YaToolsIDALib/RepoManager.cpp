@@ -36,6 +36,8 @@ namespace
     {
         RepoManager() = default;
 
+        void ensure_git_globals(GitRepo& repo) override;
+
         std::string get_master_commit(GitRepo& repo) override;
         std::string get_origin_master_commit(GitRepo& repo) override;
 
@@ -46,6 +48,33 @@ namespace
 
         void checkout_master(GitRepo& repo) override;
     };
+}
+
+void RepoManager::ensure_git_globals(GitRepo& repo)
+{
+    std::string userName{ repo.config_get_string("user.name") };
+    if (userName.empty())
+    {
+        do
+        {
+            const char* tmp = askstr(0, "username", "Entrer git user.name");
+            userName = tmp != nullptr ? tmp : "";
+        }
+        while (userName.empty());
+        GITREPO_TRY(repo.config_set_string("user.name", userName), "Couldn't set git user name.");
+    }
+
+    std::string userEmail{ repo.config_get_string("user.email") };
+    if (userEmail.empty())
+    {
+        do
+        {
+            const char* tmp = askstr(0, "username@localdomain", "Entrer git user.email");
+            userEmail = tmp != nullptr ? tmp : "";
+        }
+        while (userEmail.empty());
+        GITREPO_TRY(repo.config_set_string("user.email", userEmail), "Couldn't set git user email.");
+    }
 }
 
 std::string RepoManager::get_master_commit(GitRepo& repo)
