@@ -16,8 +16,18 @@
 #include "RepoManager.hpp"
 
 #include "../YaGitLib/YaGitLib.hpp"
+#include "Ida.h"
 
 #include <memory>
+
+#define GITREPO_TRY(call, msg) \
+try { \
+    call; \
+} \
+catch (const std::runtime_error& error) \
+{ \
+    warning(msg "\n\n%s", error.what()); \
+}
 
 namespace
 {
@@ -32,36 +42,51 @@ namespace
         void fetch_origin(GitRepo& repo) override;
         void fetch(GitRepo& repo, const std::string& origin) override;
 
+        void push_origin_master(GitRepo& repo) override;
+
         void checkout_master(GitRepo& repo) override;
     };
 }
 
 std::string RepoManager::get_master_commit(GitRepo& repo)
 {
-    return repo.get_commit("master");
+    std::string result;
+    GITREPO_TRY(result = repo.get_commit("master"), "Couldn't get commit from master.");
+    return result;
 }
 
 std::string RepoManager::get_origin_master_commit(GitRepo& repo)
 {
-    return repo.get_commit("origin/master");
+    std::string result;
+    GITREPO_TRY(result = repo.get_commit("origin/master"), "Couldn't get commit from origin/master.");
+    return result;
 }
 
 void RepoManager::fetch_origin(GitRepo& repo)
 {
-    repo.fetch();
+    GITREPO_TRY(repo.fetch(), "Couldn't fetch remote origin.");
 }
 
 void RepoManager::fetch(GitRepo& repo, const std::string& origin)
 {
-    repo.fetch(origin);
+    GITREPO_TRY(repo.fetch(origin), "Couldn't fetch remote.");
+}
+
+void RepoManager::push_origin_master(GitRepo& repo)
+{
+    const std::map<std::string, std::string> remotes{ repo.get_remotes() };
+    if (remotes.find(std::string("origin")) != remotes.end())
+    {
+        GITREPO_TRY(repo.push("master", "master"), "Couldn't push to remote origin.");
+    }
 }
 
 void RepoManager::checkout_master(GitRepo& repo)
 {
-    repo.checkout("master");
+    GITREPO_TRY(repo.checkout("master"), "Couldn't checkout master.");
 }
 
 std::shared_ptr<IRepoManager> MakeRepoManager()
 {
-    return std::shared_ptr<RepoManager>();
+    return std::make_shared<RepoManager>();
 }

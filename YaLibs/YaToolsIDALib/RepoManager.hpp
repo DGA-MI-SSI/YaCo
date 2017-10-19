@@ -32,6 +32,8 @@ struct IRepoManager
     virtual void fetch_origin(GitRepo& repo) = 0;
     virtual void fetch(GitRepo& repo, const std::string& origin) = 0;
 
+    virtual void push_origin_master(GitRepo& repo) = 0;
+
     virtual void checkout_master(GitRepo& repo) = 0;
 };
 
