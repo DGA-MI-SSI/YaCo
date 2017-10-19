@@ -378,10 +378,10 @@ class YaToolRepoManager(object):
         return (modified_files, deleted_files)
 
     def get_master_commit(self):
-        return self.native.get_master_commit(repo)
+        return self.native.get_master_commit(self.repo)
 
     def get_origin_master_commit(self):
-        return self.native.get_origin_master_commit(repo)
+        return self.native.get_origin_master_commit(self.repo)
 
     def fetch_origin(self):
         self.native.fetch_origin(self.repo)
@@ -400,11 +400,7 @@ class YaToolRepoManager(object):
         return
 
     def push_origin_master(self):
-        if "origin" in self.repo.get_remotes():
-            try:
-                self.repo.push("master", "master")
-            except:
-                idc.Warning("Couldn't push to remote origin")
+        self.native.push_origin_master(self.repo)
 
     def checkout_master(self):
         self.native.checkout_master(self.repo)
