@@ -17,6 +17,11 @@ import idc
 import logging
 import os
 
+if idc.__EA64__:
+    import YaToolsPy64 as ya
+else:
+    import YaToolsPy32 as ya
+
 logger = logging.getLogger("YaCo")
 
 def ea_to_hex(ea):
@@ -27,14 +32,10 @@ def ea_to_hex(ea):
     return hex(ea)
 
 
-def get_original_idb_name(local_idb_name, suffix=None):
-    idbname = os.path.basename(local_idb_name)
-    idbname_prefix = os.path.splitext(idbname)[0]
-    idbname_extension = os.path.splitext(idbname)[1]
-    if suffix is None:
-        suffix = "_local"
-    orig_file_name = "%s%s" % (idbname_prefix.replace(suffix, ""), idbname_extension)
-    return orig_file_name
+def get_original_idb_name(local_idb_name, suffix=""):
+    if suffix == None:
+        suffix = ""
+    return ya.get_original_idb_name(local_idb_name, suffix)
 
 
 def get_local_idb_name(original_idb_name, suffix=None, subdir=None):
