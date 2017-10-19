@@ -20,6 +20,14 @@
 
 #include <memory>
 
+#ifdef _MSC_VER
+#   include <filesystem>
+#else
+#   include <experimental/filesystem>
+#endif
+
+namespace fs = std::experimental::filesystem;
+
 #define GITREPO_TRY(call, msg) \
 try { \
     call; \
@@ -138,4 +146,16 @@ void RepoManager::checkout_master(GitRepo& repo)
 std::shared_ptr<IRepoManager> MakeRepoManager()
 {
     return std::make_shared<RepoManager>();
+}
+
+std::string get_original_idb_name(const std::string& local_idb_name, const std::string& suffix)
+{
+    std::string orig_file_name{ fs::path{ local_idb_name }.filename().string() };
+
+    if (suffix.empty())
+        orig_file_name.erase(orig_file_name.find("_local"), 6);
+    else
+        orig_file_name.erase(orig_file_name.find(suffix), suffix.size());
+
+    return orig_file_name;
 }
