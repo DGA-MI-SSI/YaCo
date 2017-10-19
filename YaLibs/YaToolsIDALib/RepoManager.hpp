@@ -16,6 +16,8 @@
 #pragma once
 
 #include <string>
+#include <tuple>
+#include <set>
 
 // Forward declarations
 class GitRepo;
@@ -29,6 +31,8 @@ struct IRepoManager
     virtual void ensure_git_globals(GitRepo& repo) = 0;
 
     virtual void repo_open(GitRepo& repo, const std::string path = ".") = 0;
+
+    virtual std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>> repo_get_cache_files_status(GitRepo& repo) = 0;
 
     virtual std::string get_master_commit(GitRepo& repo) = 0;
     virtual std::string get_origin_master_commit(GitRepo& repo) = 0;
