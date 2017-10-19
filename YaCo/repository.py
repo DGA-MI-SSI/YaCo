@@ -339,11 +339,7 @@ class YaToolRepoManager(object):
         self.native.repo_open(self.repo)
 
     def repo_get_cache_files_status(self):
-        untracked_files = self.repo.get_untracked_objects_in_path("cache/")
-        deleted_files = self.repo.get_deleted_objects_in_path("cache/")
-        modified_files = self.repo.get_modified_objects_in_path("cache/")
-
-        return (modified_files, deleted_files, untracked_files)
+        return self.native.repo_get_cache_files_status(self.repo)
 
     def get_file_status_from_commits(self, commit):
         raise NotImplementedError("do not use this function")

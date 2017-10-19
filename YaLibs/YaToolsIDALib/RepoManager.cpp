@@ -40,6 +40,8 @@ namespace
 
         void repo_open(GitRepo& repo, const std::string path) override;
 
+        std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>> repo_get_cache_files_status(GitRepo& repo) override;
+
         std::string get_master_commit(GitRepo& repo) override;
         std::string get_origin_master_commit(GitRepo& repo) override;
 
@@ -84,6 +86,15 @@ void RepoManager::repo_open(GitRepo& repo, const std::string path)
     //repo = GitRepo(path); // still in Python
     GITREPO_TRY(repo.init(), "Couldn't init repository.");
     ensure_git_globals(repo);
+}
+
+std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>> RepoManager::repo_get_cache_files_status(GitRepo & repo)
+{
+    return std::make_tuple(
+        repo.get_untracked_objects_in_path("cache/"),
+        repo.get_deleted_objects_in_path("cache/"),
+        repo.get_modified_objects_in_path("cache/")
+    );
 }
 
 std::string RepoManager::get_master_commit(GitRepo& repo)
