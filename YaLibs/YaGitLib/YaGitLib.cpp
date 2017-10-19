@@ -128,7 +128,7 @@ std::shared_ptr<const git_signature> GitRepo::make_signature()
 {
     if (repository == nullptr)
     {
-        throw string("could not get signature, no repository configured");
+        throw std::runtime_error("could not get signature, no repository configured");
     }
     const auto signature = MakeAutoFree<git_signature>([&](git_signature** sign){
         return git_signature_default(sign, repository);
@@ -146,7 +146,7 @@ void GitRepo::init(bool bare)
 {
     if (repository != nullptr)
     {
-        throw string("already open or init repository");
+        throw std::runtime_error("already open or init repository");
     }
     check_git_error(git_repository_init(&repository, repo_path.c_str(), static_cast<unsigned int>(bare)));
     git_signature* sig = nullptr;
@@ -905,7 +905,7 @@ void GitRepo::merge()
 std::string GitRepo::config_get_string(const std::string& name)
 {
     if(repository == nullptr) {
-        throw "repository must be init first";
+        throw std::runtime_error("repository must be init first");
     }
     auto config = MakeAutoFree<git_config>(
             [&](git_config** config){
@@ -925,7 +925,7 @@ std::string GitRepo::config_get_string(const std::string& name)
 void GitRepo::config_set_string(const std::string& name, const std::string& value)
 {
     if(repository == nullptr) {
-        throw "repository must be init first";
+        throw std::runtime_error("repository must be init first");
     }
     auto config = MakeAutoFree<git_config>(
                 [&](git_config** config){
@@ -992,11 +992,11 @@ plop.txt content line 2
 
     const auto f1 = CreateTempFile();
     if(!f1)
-        throw runtime_error("unable to create temp2 file");
+        throw std::runtime_error("unable to create temp2 file");
 
     const auto f2 = CreateTempFile();
     if(!f2)
-        throw runtime_error("unable to create temp2 file");
+        throw std::runtime_error("unable to create temp2 file");
 
     typedef std::function<void(const std::string& line)> Writer;
     const Writer write_input1 = [&](const std::string& line)
@@ -1049,7 +1049,7 @@ plop.txt content line 2
 void GitRepo::rebase(const std::string& upstream, const std::string& dst, ResolveFileConflictCallback& ResolveFileConflict)
 {
     if(repository == nullptr) {
-        throw "repository must be init first";
+        throw std::runtime_error("repository must be init first");
     }
     git_rebase* rebase = nullptr;
     git_rebase_options options = make_git_rebase_options();
@@ -1177,7 +1177,7 @@ std::set<std::string> GitRepo::get_tags(const std::string& pattern) {
 
 void GitRepo::remove_tag(const std::string& tag_name) {
     if(tag_name.empty()) {
-        throw "tag name required";
+        throw std::runtime_error("tag name required");
     }
     check_git_error(git_tag_delete(repository, tag_name.c_str()));
 }
@@ -1190,7 +1190,7 @@ void GitRepo::create_tag(const std::string& target, const std::string& tag_name,
     auto tagger = make_signature();
     git_oid oid;
     if(tag_name.empty()) {
-        throw "tag_name required";
+        throw std::runtime_error("tag_name required");
     }
 
     string target_name = "HEAD";
