@@ -53,13 +53,13 @@ void set_user_config(GitRepo& repo)
 }
 
 TEST_F (TestYaGitLib, TestInit) {
-    auto repo = GitRepo("test");
+    GitRepo repo{ "test" };
     repo.init();
     set_user_config(repo);
 }
 
 TEST_F (TestYaGitLib, CreateTag) {
-    auto repo = GitRepo("test");
+    GitRepo repo{ "test" };
     repo.init();
     set_user_config(repo);
     std::ofstream test_file;
@@ -72,7 +72,7 @@ TEST_F (TestYaGitLib, CreateTag) {
 }
 
 TEST_F (TestYaGitLib, ListTag) {
-    auto repo = GitRepo("test");
+    GitRepo repo{ "test" };
     repo.init();
     set_user_config(repo);
     std::ofstream test_file;
@@ -95,7 +95,7 @@ TEST_F (TestYaGitLib, ListTag) {
 }
 
 TEST_F (TestYaGitLib, RemoveTag) {
-    auto repo = GitRepo("test");
+    GitRepo repo{ "test" };
     repo.init();
     set_user_config(repo);
     std::ofstream test_file;
@@ -123,7 +123,7 @@ TEST_F (TestYaGitLib, RemoveTag) {
 
 
 TEST_F (TestYaGitLib, test_get_modified_objects) {
-    auto repo = GitRepo("test");
+    GitRepo repo{ "test" };
     repo.init();
     set_user_config(repo);
     std::ofstream test_file;
@@ -152,7 +152,7 @@ TEST_F (TestYaGitLib, test_get_modified_objects) {
 }
 
 TEST_F (TestYaGitLib, get_commit) {
-    auto repo = GitRepo("test");
+    GitRepo repo{ "test" };
     repo.init();
     set_user_config(repo);
     std::ofstream test_file;
@@ -206,7 +206,7 @@ TEST_F(TestYaGitLib, create_temp_files)
 
 
 //TEST_F (TestYaGitLib, test_get_modified_objects2) {
-//  auto repo = GitRepo("test");
+//  GitRepo repo{ "test" };
 //  repo.init();
 //  std::ofstream test_file;
 //  test_file.open("test/file1.txt");

@@ -79,6 +79,12 @@ static std::shared_ptr<T> MakeAutoFree_unchecked(const Init_T& Init, const Exit_
     return std::shared_ptr<T>(pPtr, Exit);
 }
 
+GitRepo::GitRepo(GitRepo && repo)
+{
+    // use of the move assignement operator
+    *this = std::move(repo);
+}
+
 GitRepo::GitRepo(const std::string& path)
     : repo_path         (path)
     , repository        (nullptr)
@@ -949,6 +955,25 @@ std::map<std::string, std::string> GitRepo::get_remotes()
     }
     git_strarray_free(&remote_array);
     return remotes;
+}
+
+GitRepo& GitRepo::operator=(GitRepo&& repo)
+{
+    if (repository != nullptr)
+        git_repository_free(repository);
+    if (idx != nullptr)
+        git_index_free(idx);
+    
+    repo_path = std::move(repo.repo_path);
+    repository = repo.repository;
+    current_remote = repo.current_remote;
+    idx = repo.idx;
+
+    repo.repository = nullptr;
+    repo.current_remote = nullptr;
+    repo.idx = nullptr;
+
+    return *this;
 }
 
 static bool handle_conflict(const filesystem::path& file_path, ResolveFileConflictCallback& ResolveFileConflict)

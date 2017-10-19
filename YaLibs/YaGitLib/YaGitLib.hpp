@@ -43,6 +43,8 @@ struct git_oid;
 class GitRepo
 {
 public:
+    GitRepo(const GitRepo&) = delete;
+    GitRepo(GitRepo&& repo);
     GitRepo(const std::string& path);
     ~GitRepo();
     void open();
@@ -106,11 +108,13 @@ public:
 
     std::map<std::string, std::string> get_remotes();
 
+    GitRepo& operator=(const GitRepo&) = delete;
+    GitRepo& operator=(GitRepo&& repo);
+
 private:
     std::string repo_path;
     git_repository* repository;
     git_remote* current_remote;
-    git_signature*  get_signature();
     git_index*  idx;
     git_remote_callbacks*   remote_callbacks;
 
