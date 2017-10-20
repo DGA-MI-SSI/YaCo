@@ -38,23 +38,10 @@ def get_original_idb_name(local_idb_name, suffix=""):
     return ya.get_original_idb_name(local_idb_name, suffix)
 
 
-def get_local_idb_name(original_idb_name, suffix=None, subdir=None):
-    idbname = os.path.basename(original_idb_name)
-    idbname_prefix = os.path.splitext(idbname)[0]
-    idbname_extension = os.path.splitext(idbname)[1]
-    if suffix is None:
-        suffix = "_local"
-    local_file_name = "%s%s%s" % (idbname_prefix, suffix, idbname_extension)
-
-    if subdir is not None:
-        (head, tail) = os.path.split(local_file_name)
-        local_file_name = os.path.join(head, subdir, tail)
-        # create directory if necessary
-        (head, tail) = os.path.split(local_file_name)
-        if os.path.exists(head) is False:
-            os.mkdir(head)
-
-    return local_file_name
+def get_local_idb_name(original_idb_name, suffix=""):
+    if suffix == None:
+        suffix = ""
+    return ya.get_local_idb_name(original_idb_name, suffix)
 
 
 def remove_ida_temporary_files(idb_path):
