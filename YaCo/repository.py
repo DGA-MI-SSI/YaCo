@@ -315,25 +315,6 @@ class YaToolRepoManager(object):
     def repo_get_cache_files_status(self):
         return self.native.repo_get_cache_files_status(self.repo)
 
-    def get_file_status_from_commits(self, commit):
-        raise NotImplementedError("do not use this function")
-        output = self.repo.git.diff(commit, "--name-status", "cache/")
-        deleted_files = list()
-        modified_files = list()
-
-        for line in output.split("\n"):
-            print(line)
-            line_params = line.split('\t')
-            if len(line_params) > 1:
-                status = line_params[0]
-                filename = line_params[1]
-                if (status == "A") or (status == "M"):
-                    modified_files.append(filename)
-                if status == "D":
-                    deleted_files.append(filename)
-
-        return (modified_files, deleted_files)
-
     def get_master_commit(self):
         return self.native.get_master_commit(self.repo)
 
