@@ -217,9 +217,9 @@ std::string get_original_idb_name(const std::string& local_idb_name, const std::
     std::string orig_file_name{ fs::path{ local_idb_name }.filename().string() };
 
     if (suffix.empty())
-        orig_file_name.erase(orig_file_name.find("_local"), 6);
+        orig_file_name.erase(orig_file_name.rfind("_local"), 6);
     else
-        orig_file_name.erase(orig_file_name.find(suffix), suffix.size());
+        orig_file_name.erase(orig_file_name.rfind(suffix), suffix.size());
 
     return orig_file_name;
 }
@@ -229,7 +229,7 @@ std::string get_local_idb_name(const std::string& original_idb_name, const std::
     fs::path idb_path{ original_idb_name };
     std::string idb_name{ idb_path.filename().string() };
     std::string idb_extension{ idb_path.extension().string() };
-    idb_name.erase(idb_name.find(idb_extension), idb_extension.size());
+    idb_name.erase(idb_name.rfind(idb_extension), idb_extension.size());
 
     std::string local_idb_name{ idb_name };
     if (suffix.empty())
