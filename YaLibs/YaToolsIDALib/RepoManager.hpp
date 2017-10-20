@@ -28,6 +28,8 @@ struct IRepoManager
 {
     virtual ~IRepoManager() = default;
 
+    virtual bool ask_to_checkout_modified_files(GitRepo& repo, bool repo_auto_sync) = 0;
+
     virtual void ensure_git_globals(GitRepo& repo) = 0;
 
     virtual void repo_open(GitRepo& repo, const std::string path = ".") = 0;

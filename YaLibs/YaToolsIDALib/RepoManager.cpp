@@ -19,6 +19,8 @@
 #include "Ida.h"
 
 #include <memory>
+#include <sstream>
+#include <ctime>
 
 #ifdef _MSC_VER
 #   include <filesystem>
@@ -44,6 +46,8 @@ namespace
     {
         RepoManager() = default;
 
+        bool ask_to_checkout_modified_files(GitRepo& repo, bool repo_auto_sync) override;
+
         void ensure_git_globals(GitRepo& repo) override;
 
         void repo_open(GitRepo& repo, const std::string path) override;
@@ -60,6 +64,66 @@ namespace
 
         void checkout_master(GitRepo& repo) override;
     };
+}
+
+// TODO: move repo_auto_sync from python to RepoManager
+bool RepoManager::ask_to_checkout_modified_files(GitRepo& repo, bool repo_auto_sync)
+{
+    std::string modified_objects;
+    bool checkout_head{ false };
+
+    std::string original_idb = get_original_idb_name(database_idb);
+    for (std::string modified_object : repo.get_modified_objects())
+    {
+        if (modified_object == original_idb)
+        {
+            std::string new_idb{ original_idb };
+            new_idb += "_bkp_";
+            std::time_t now{ std::time(nullptr) };
+            std::string date{ std::ctime(&now) };
+            std::replace(date.begin(), date.end(), ' ', '_');
+            std::replace(date.begin(), date.end(), ':', '_');
+            new_idb += date;
+            try
+            {
+                fs::copy_file(original_idb, new_idb);
+            }
+            catch (fs::filesystem_error error)
+            {
+                warning("Couldn't create backup idb file.\n\n%s", error.what());
+                throw std::runtime_error(error);
+            }
+            checkout_head = true;
+        }
+        else
+        {
+            modified_objects += modified_object;
+            modified_objects += '\n';
+        }
+    }
+
+    if (!modified_objects.empty())
+    {
+        // modified_objects is now the message
+        modified_objects += "\nhas been modified, this is not normal, do you want to checkout these files ? (Rebasing will be disabled if you answer no)";
+        if (askyn_c(true, modified_objects.c_str()) != ASKBTN_NO)
+        {
+            repo.checkout_head();
+        }
+        else
+        {
+            //repo_auto_sync = false;
+            return false;
+        }
+    }
+
+    if (checkout_head)
+    {
+        // checkout silently
+        repo.checkout_head();
+    }
+
+    return repo_auto_sync;
 }
 
 void RepoManager::ensure_git_globals(GitRepo& repo)
