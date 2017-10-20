@@ -223,3 +223,20 @@ std::string get_original_idb_name(const std::string& local_idb_name, const std::
 
     return orig_file_name;
 }
+
+std::string get_local_idb_name(const std::string& original_idb_name, const std::string& suffix)
+{
+    fs::path idb_path{ original_idb_name };
+    std::string idb_name{ idb_path.filename().string() };
+    std::string idb_extension{ idb_path.extension().string() };
+    idb_name.erase(idb_name.find(idb_extension), idb_extension.size());
+
+    std::string local_idb_name{ idb_name };
+    if (suffix.empty())
+        local_idb_name += "_local";
+    else
+        local_idb_name += suffix;
+    local_idb_name += idb_extension;
+
+    return local_idb_name;
+}
