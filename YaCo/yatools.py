@@ -45,13 +45,7 @@ def get_local_idb_name(original_idb_name, suffix=""):
 
 
 def remove_ida_temporary_files(idb_path):
-    dot = idb_path.rfind(".")
-    file_name = idb_path[:dot]
-    for del_ext in ["id0", "id1", "id2", "nam", "til"]:
-        try:
-            os.remove(file_name + "." + del_ext)
-        except:
-            pass
+    ya.remove_ida_temporary_files(idb_path)
 
 
 def copy_idb_to_local_file(suffix=None, subdir=None, use_hardlink=False):

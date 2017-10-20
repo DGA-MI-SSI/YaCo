@@ -240,3 +240,20 @@ std::string get_local_idb_name(const std::string& original_idb_name, const std::
 
     return local_idb_name;
 }
+
+void remove_ida_temporary_files(const std::string& idb_path)
+{
+    std::string idb_no_ext{ idb_path };
+    std::string idb_extension{ fs::path{ idb_path }.extension().string() };
+    idb_no_ext.erase(idb_no_ext.rfind(idb_extension), idb_extension.size());
+
+    const char* extentions_to_delete[] = { ".id0", ".id1", ".id2", ".nam", ".til" };
+    for (const char* ext : extentions_to_delete)
+    {
+        try
+        {
+            fs::remove(fs::path{ idb_no_ext + ext });
+        }
+        catch (fs::filesystem_error){}
+    }
+}
