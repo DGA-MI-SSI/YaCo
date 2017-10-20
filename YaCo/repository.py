@@ -215,33 +215,7 @@ class YaToolRepoManager(object):
         self.options = YaToolRepoOptions()
 
     def ask_to_checkout_modified_files(self):
-        modified_objects = ""
-        checkout_head = False
-        for modified_object in self.repo.get_modified_objects():
-            # check if modified file is original idb
-            original_idb = yatools.get_original_idb_name(idc.GetIdbPath())
-            if original_idb == modified_object:
-                # original idb modification detected, create a backup
-                try:
-                    shutil.copy(original_idb, "%s_bkp_%s" %
-                                (original_idb, time.ctime().replace(" ", "_").replace(":", "_")))
-                except Exception as e:
-                    traceback.print_exc()
-                    raise e
-                checkout_head = True
-            else:
-                modified_objects += "%s\n" % modified_object
-        if len(modified_objects) > 0:
-            message = "%s\nhas been modified, this is not normal, do you want to checkout these files ? "
-            message += "(Rebasing will be disabled if you answer no)"
-            if idaapi.askyn_c(True, message % modified_objects):
-                self.repo.checkout_head()
-            else:
-                self.repo_auto_sync = False
-                return
-        if checkout_head:
-            # checkout silently
-            self.repo.checkout_head()
+        self.repo_auto_sync = self.native.ask_to_checkout_modified_files(self.repo, self.repo_auto_sync)
 
     def ensure_git_globals(self):
         self.native.ensure_git_globals(self.repo)
