@@ -53,3 +53,5 @@ std::shared_ptr<IRepoManager> MakeRepoManager();
 std::string get_original_idb_name(const std::string& local_idb_name, const std::string& suffix = "");
 
 std::string get_local_idb_name(const std::string& original_idb_name, const std::string& suffix = "");
+
+void remove_ida_temporary_files(const std::string& idb_path);
