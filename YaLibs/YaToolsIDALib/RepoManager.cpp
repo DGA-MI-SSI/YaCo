@@ -65,6 +65,8 @@ namespace
 
         void ensure_git_globals() override;
 
+        bool repo_exists() override;
+
 
         void repo_open(const std::string path) override;
 
@@ -179,6 +181,17 @@ void RepoManager::ensure_git_globals()
         while (userEmail.empty());
         GITREPO_TRY(repo_.config_set_string("user.email", userEmail), "Couldn't set git user email.");
     }
+}
+
+bool RepoManager::repo_exists()
+{
+    bool is_directory = false;
+    try
+    {
+        is_directory = fs::is_directory(fs::path{ ".git" });
+    }
+    catch (fs::filesystem_error) {}
+    return is_directory;
 }
 
 void RepoManager::repo_open(const std::string path)
