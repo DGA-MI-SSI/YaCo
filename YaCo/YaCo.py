@@ -195,15 +195,15 @@ class YaCo:
                 xml_files.append("%s/%s" % (root, file))
 
         # add idb
-        self.repo_manager.repo.add_file(original_file)
+        self.repo_manager.native.get_repo().add_file(original_file)
 
         # remove xml cache
-        self.repo_manager.repo.remove_files(xml_files)
+        self.repo_manager.native.get_repo().remove_files(xml_files)
         for xml_file in xml_files:
             os.remove(xml_file)
 
         # create commit
-        self.repo_manager.repo.commit("YaCo force push")
+        self.repo_manager.native.get_repo().commit("YaCo force push")
 
         # push commit
         self.repo_manager.push_origin_master()
@@ -223,7 +223,7 @@ class YaCo:
         yatools.copy_idb_to_local_file("_bkp_%s" % time.ctime().replace(" ", "_").replace(":", "_"))
 
         # delete all modified objects
-        self.repo_manager.repo.checkout_head()
+        self.repo_manager.native.get_repo().checkout_head()
 
         # get reset
         self.repo_manager.fetch_origin()

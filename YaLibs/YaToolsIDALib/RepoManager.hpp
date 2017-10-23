@@ -28,23 +28,27 @@ struct IRepoManager
 {
     virtual ~IRepoManager() = default;
 
-    virtual bool ask_to_checkout_modified_files(GitRepo& repo, bool repo_auto_sync) = 0;
+    virtual bool ask_to_checkout_modified_files(bool repo_auto_sync) = 0;
 
-    virtual void ensure_git_globals(GitRepo& repo) = 0;
+    virtual void ensure_git_globals() = 0;
 
-    virtual void repo_open(GitRepo& repo, const std::string path = ".") = 0;
+    virtual void repo_open(const std::string path = ".") = 0;
 
-    virtual std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>> repo_get_cache_files_status(GitRepo& repo) = 0;
+    virtual std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>> repo_get_cache_files_status() = 0;
 
-    virtual std::string get_master_commit(GitRepo& repo) = 0;
-    virtual std::string get_origin_master_commit(GitRepo& repo) = 0;
+    virtual std::string get_master_commit() = 0;
+    virtual std::string get_origin_master_commit() = 0;
 
-    virtual void fetch_origin(GitRepo& repo) = 0;
-    virtual void fetch(GitRepo& repo, const std::string& origin) = 0;
+    virtual void fetch_origin() = 0;
+    virtual void fetch(const std::string& origin) = 0;
 
-    virtual void push_origin_master(GitRepo& repo) = 0;
+    virtual void push_origin_master() = 0;
 
-    virtual void checkout_master(GitRepo& repo) = 0;
+    virtual void checkout_master() = 0;
+
+    //tmp
+    virtual GitRepo& get_repo() = 0;
+    virtual void new_repo(const std::string& path) = 0;
 };
 
 

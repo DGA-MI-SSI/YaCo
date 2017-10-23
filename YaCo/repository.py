@@ -215,10 +215,10 @@ class YaToolRepoManager(object):
         self.options = YaToolRepoOptions()
 
     def ask_to_checkout_modified_files(self):
-        self.repo_auto_sync = self.native.ask_to_checkout_modified_files(self.repo, self.repo_auto_sync)
+        self.repo_auto_sync = self.native.ask_to_checkout_modified_files(self.repo_auto_sync)
 
     def ensure_git_globals(self):
-        self.native.ensure_git_globals(self.repo)
+        self.native.ensure_git_globals()
 
     def add_auto_comment(self, ea, text):
         if ea is not None:
@@ -249,16 +249,16 @@ class YaToolRepoManager(object):
     def repo_init(self, ask_for_remote=True):
         # create git
         try:
-            self.repo = ya.GitRepo(".")
-            self.repo.init()
+            self.native.new_repo(".")
+            self.native.get_repo().init()
 
             self.ensure_git_globals()
 
             # add current IDB to repo
-            self.repo.add_file(self.idb_filename)
+            self.native.get_repo().add_file(self.idb_filename)
 
             # create an initial commit with IDB
-            self.repo.commit("Initial commit")
+            self.native.get_repo().commit("Initial commit")
 
             if IDA_RUNNING and IDA_IS_INTERACTIVE:
                 # add a remote to git repo
@@ -268,7 +268,7 @@ class YaToolRepoManager(object):
                 else:
                     url = None
                 if url not in [None, ""]:
-                    self.repo.create_remote("origin", url)
+                    self.native.get_repo().create_remote("origin", url)
 
                     if not url.startswith("ssh://"):
                         if not os.path.exists(url):
@@ -295,8 +295,8 @@ class YaToolRepoManager(object):
                             url = url.strip()
                             while url.endswith("/"):
                                 url = url[:-1]
-                            self.repo.remove_remote("origin")
-                            self.repo.create_remote("origin", url)
+                            self.native.get_repo().remove_remote("origin")
+                            self.native.get_repo().create_remote("origin", url)
                         # push master to remote
                         self.push_origin_master()
                         return
@@ -309,46 +309,45 @@ class YaToolRepoManager(object):
             raise exc
 
     def repo_open(self, path="."):
-        self.repo = ya.GitRepo(path) # can't be moved to native for the moment
-        self.native.repo_open(self.repo)
+        self.native.repo_open()
 
     def repo_get_cache_files_status(self):
-        return self.native.repo_get_cache_files_status(self.repo)
+        return self.native.repo_get_cache_files_status()
 
     def get_master_commit(self):
-        return self.native.get_master_commit(self.repo)
+        return self.native.get_master_commit()
 
     def get_origin_master_commit(self):
-        return self.native.get_origin_master_commit(self.repo)
+        return self.native.get_origin_master_commit()
 
     def fetch_origin(self):
-        self.native.fetch_origin(self.repo)
+        self.native.fetch_origin()
 
     def fetch(self, origin):
-        self.native.fetch(self.repo, origin)
+        self.native.fetch(origin)
 
     def rebase_from_origin(self):
         cb = PythonResolveFileConflictCallback()
-        self.repo.rebase("origin/master", "master", cb)
+        self.native.get_repo().rebase("origin/master", "master", cb)
         return
 
     def rebase(self, origin, branch):
         cb = PythonResolveFileConflictCallback()
-        self.repo.rebase(origin, branch, cb)
+        self.native.get_repo().rebase(origin, branch, cb)
         return
 
     def push_origin_master(self):
-        self.native.push_origin_master(self.repo)
+        self.native.push_origin_master()
 
     def checkout_master(self):
-        self.native.checkout_master(self.repo)
+        self.native.checkout_master()
 
     def check_valid_cache_startup(self):
         logger.debug("check_valid_cache_startup")
-        if "origin" not in self.repo.get_remotes():
+        if "origin" not in self.native.get_repo().get_remotes():
             logger.debug("WARNING origin not defined : ignoring origin and master sync check !")
         else:
-            if self.repo.get_commit("origin/master") != self.repo.get_commit("master"):
+            if self.native.get_repo().get_commit("origin/master") != self.native.get_repo().get_commit("master"):
                 message = "Master and origin/master doesn't point to the same commit, please update your master."
                 logger.debug(message)
 
@@ -374,7 +373,7 @@ class YaToolRepoManager(object):
 
     def update_cache(self):
         logger.info("updating cache")
-        if "origin" not in self.repo.get_remotes():
+        if "origin" not in self.native.get_repo().get_remotes():
             return ([], [], [], [])
 
         try:
@@ -411,9 +410,9 @@ class YaToolRepoManager(object):
                         return ([], [], [], [])
 
                     # get modified files from origin
-                    modified_files = self.repo.get_modified_objects(master_commit)
-                    deleted_files = self.repo.get_deleted_objects(master_commit)
-                    new_files = self.repo.get_new_objects(master_commit)
+                    modified_files = self.native.get_repo().get_modified_objects(master_commit)
+                    deleted_files = self.native.get_repo().get_deleted_objects(master_commit)
+                    new_files = self.native.get_repo().get_new_objects(master_commit)
                     for f in new_files:
                         logger.info("added    %s" % os.path.relpath(f, "cache"))
                     for f in modified_files:
@@ -426,7 +425,7 @@ class YaToolRepoManager(object):
                     # if all done, we can push to origin
                     if self.repo_auto_sync:
                         try:
-                            self.repo.push("master", "master")
+                            self.native.get_repo().push("master", "master")
                             logger.debug("[update_cache] push done")
                             logger.debug("Your cache was successfully sent to origin master.")
                             break
@@ -478,9 +477,9 @@ class YaToolRepoManager(object):
     def repo_commit(self, commit_msg=None):
 
         logger.info("committing changes")
-        untracked_files = self.repo.get_untracked_objects_in_path("cache/")
-        modified_files = self.repo.get_modified_objects_in_path("cache/")
-        deleted_files = self.repo.get_deleted_objects_in_path("cache/")
+        untracked_files = self.native.get_repo().get_untracked_objects_in_path("cache/")
+        modified_files = self.native.get_repo().get_modified_objects_in_path("cache/")
+        deleted_files = self.native.get_repo().get_deleted_objects_in_path("cache/")
 
         if not len(modified_files) and not len(deleted_files) and not len(untracked_files):
             return False
@@ -491,9 +490,9 @@ class YaToolRepoManager(object):
             logger.info("modified %s" % os.path.relpath(f, "cache"))
         for f in deleted_files:
             logger.info("deleted  %s" % os.path.relpath(f, "cache"))
-        self.repo.add_files(untracked_files)
-        self.repo.add_files(modified_files)
-        self.repo.remove_files(deleted_files)
+        self.native.get_repo().add_files(untracked_files)
+        self.native.get_repo().add_files(modified_files)
+        self.native.get_repo().remove_files(deleted_files)
 
         # warning in test mode idaapi.asktext will be overrided to return "dummy message"
         max_prefix_len = 0
@@ -515,7 +514,7 @@ class YaToolRepoManager(object):
                 commit_msg = idaapi.asktext(len(commit_msg) * 2 + 256, commit_msg, "Commit message :")
 
         if commit_msg != "":
-            self.repo.commit(commit_msg)
+            self.native.get_repo().commit(commit_msg)
             self.auto_comments = set()
             return True
 

@@ -59,36 +59,50 @@ namespace
     struct RepoManager
         : public IRepoManager
     {
-        RepoManager() = default;
+        RepoManager();
 
-        bool ask_to_checkout_modified_files(GitRepo& repo, bool repo_auto_sync) override;
+        bool ask_to_checkout_modified_files(bool repo_auto_sync) override;
 
-        void ensure_git_globals(GitRepo& repo) override;
+        void ensure_git_globals() override;
 
-        void repo_open(GitRepo& repo, const std::string path) override;
 
-        std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>> repo_get_cache_files_status(GitRepo& repo) override;
+        void repo_open(const std::string path) override;
 
-        std::string get_master_commit(GitRepo& repo) override;
-        std::string get_origin_master_commit(GitRepo& repo) override;
+        std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>> repo_get_cache_files_status() override;
 
-        void fetch_origin(GitRepo& repo) override;
-        void fetch(GitRepo& repo, const std::string& origin) override;
+        std::string get_master_commit() override;
+        std::string get_origin_master_commit() override;
 
-        void push_origin_master(GitRepo& repo) override;
+        void fetch_origin() override;
+        void fetch(const std::string& origin) override;
 
-        void checkout_master(GitRepo& repo) override;
+        void push_origin_master() override;
+
+        void checkout_master() override;
+
+        //tmp
+        GitRepo& get_repo() override;
+        void new_repo(const std::string& path) override;
+
+    private:
+        GitRepo repo_;
     };
 }
 
+RepoManager::RepoManager()
+    : repo_{ "." }
+{
+
+}
+
 // TODO: move repo_auto_sync from python to RepoManager
-bool RepoManager::ask_to_checkout_modified_files(GitRepo& repo, bool repo_auto_sync)
+bool RepoManager::ask_to_checkout_modified_files(bool repo_auto_sync)
 {
     std::string modified_objects;
     bool checkout_head{ false };
 
     std::string original_idb = get_original_idb_name(database_idb);
-    for (std::string modified_object : repo.get_modified_objects())
+    for (std::string modified_object : repo_.get_modified_objects())
     {
         if (modified_object == original_idb)
         {
@@ -123,7 +137,7 @@ bool RepoManager::ask_to_checkout_modified_files(GitRepo& repo, bool repo_auto_s
         modified_objects += "\nhas been modified, this is not normal, do you want to checkout these files ? (Rebasing will be disabled if you answer no)";
         if (askyn_c(true, modified_objects.c_str()) != ASKBTN_NO)
         {
-            repo.checkout_head();
+            repo_.checkout_head();
         }
         else
         {
@@ -135,15 +149,15 @@ bool RepoManager::ask_to_checkout_modified_files(GitRepo& repo, bool repo_auto_s
     if (checkout_head)
     {
         // checkout silently
-        repo.checkout_head();
+        repo_.checkout_head();
     }
 
     return repo_auto_sync;
 }
 
-void RepoManager::ensure_git_globals(GitRepo& repo)
+void RepoManager::ensure_git_globals()
 {
-    std::string userName{ repo.config_get_string("user.name") };
+    std::string userName{ repo_.config_get_string("user.name") };
     if (userName.empty())
     {
         do
@@ -152,10 +166,10 @@ void RepoManager::ensure_git_globals(GitRepo& repo)
             userName = tmp != nullptr ? tmp : "";
         }
         while (userName.empty());
-        GITREPO_TRY(repo.config_set_string("user.name", userName), "Couldn't set git user name.");
+        GITREPO_TRY(repo_.config_set_string("user.name", userName), "Couldn't set git user name.");
     }
 
-    std::string userEmail{ repo.config_get_string("user.email") };
+    std::string userEmail{ repo_.config_get_string("user.email") };
     if (userEmail.empty())
     {
         do
@@ -164,62 +178,72 @@ void RepoManager::ensure_git_globals(GitRepo& repo)
             userEmail = tmp != nullptr ? tmp : "";
         }
         while (userEmail.empty());
-        GITREPO_TRY(repo.config_set_string("user.email", userEmail), "Couldn't set git user email.");
+        GITREPO_TRY(repo_.config_set_string("user.email", userEmail), "Couldn't set git user email.");
     }
 }
 
-void RepoManager::repo_open(GitRepo& repo, const std::string path)
+void RepoManager::repo_open(const std::string path)
 {
-    //repo = GitRepo(path); // still in Python
-    GITREPO_TRY(repo.init(), "Couldn't init repository.");
-    ensure_git_globals(repo);
+    repo_ = GitRepo(path);
+    GITREPO_TRY(repo_.init(), "Couldn't init repository.");
+    ensure_git_globals();
 }
 
-std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>> RepoManager::repo_get_cache_files_status(GitRepo & repo)
+std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>> RepoManager::repo_get_cache_files_status()
 {
     return std::make_tuple(
-        repo.get_untracked_objects_in_path("cache/"),
-        repo.get_deleted_objects_in_path("cache/"),
-        repo.get_modified_objects_in_path("cache/")
+        repo_.get_untracked_objects_in_path("cache/"),
+        repo_.get_deleted_objects_in_path("cache/"),
+        repo_.get_modified_objects_in_path("cache/")
     );
 }
 
-std::string RepoManager::get_master_commit(GitRepo& repo)
+std::string RepoManager::get_master_commit()
 {
     std::string result;
-    GITREPO_TRY(result = repo.get_commit("master"), "Couldn't get commit from master.");
+    GITREPO_TRY(result = repo_.get_commit("master"), "Couldn't get commit from master.");
     return result;
 }
 
-std::string RepoManager::get_origin_master_commit(GitRepo& repo)
+std::string RepoManager::get_origin_master_commit()
 {
     std::string result;
-    GITREPO_TRY(result = repo.get_commit("origin/master"), "Couldn't get commit from origin/master.");
+    GITREPO_TRY(result = repo_.get_commit("origin/master"), "Couldn't get commit from origin/master.");
     return result;
 }
 
-void RepoManager::fetch_origin(GitRepo& repo)
+void RepoManager::fetch_origin()
 {
-    GITREPO_TRY(repo.fetch(), "Couldn't fetch remote origin.");
+    GITREPO_TRY(repo_.fetch(), "Couldn't fetch remote origin.");
 }
 
-void RepoManager::fetch(GitRepo& repo, const std::string& origin)
+void RepoManager::fetch(const std::string& origin)
 {
-    GITREPO_TRY(repo.fetch(origin), "Couldn't fetch remote.");
+    GITREPO_TRY(repo_.fetch(origin), "Couldn't fetch remote.");
 }
 
-void RepoManager::push_origin_master(GitRepo& repo)
+void RepoManager::push_origin_master()
 {
-    const std::map<std::string, std::string> remotes{ repo.get_remotes() };
+    const std::map<std::string, std::string> remotes{ repo_.get_remotes() };
     if (remotes.find(std::string("origin")) != remotes.end())
     {
-        GITREPO_TRY(repo.push("master", "master"), "Couldn't push to remote origin.");
+        GITREPO_TRY(repo_.push("master", "master"), "Couldn't push to remote origin.");
     }
 }
 
-void RepoManager::checkout_master(GitRepo& repo)
+void RepoManager::checkout_master()
 {
-    GITREPO_TRY(repo.checkout("master"), "Couldn't checkout master.");
+    GITREPO_TRY(repo_.checkout("master"), "Couldn't checkout master.");
+}
+
+GitRepo& RepoManager::get_repo()
+{
+    return repo_;
+}
+
+void RepoManager::new_repo(const std::string& path)
+{
+    repo_ = GitRepo{ path };
 }
 
 std::shared_ptr<IRepoManager> MakeRepoManager()
