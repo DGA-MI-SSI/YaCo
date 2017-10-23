@@ -39,6 +39,21 @@ catch (const std::runtime_error& error) \
     warning(msg "\n\n%s", error.what()); \
 }
 
+static bool remove_substring(std::string& str, const std::string& substr)
+{
+    if (substr.empty())
+        return false;
+
+    const unsigned int pos = str.rfind(substr);
+    if (pos != std::string::npos)
+    {
+        str.erase(pos, substr.size());
+        return true;
+    }
+
+    return false;
+}
+
 namespace
 {
     struct RepoManager
@@ -217,9 +232,9 @@ std::string get_original_idb_name(const std::string& local_idb_name, const std::
     std::string orig_file_name{ fs::path{ local_idb_name }.filename().string() };
 
     if (suffix.empty())
-        orig_file_name.erase(orig_file_name.rfind("_local"), 6);
+        remove_substring(orig_file_name, "_local");
     else
-        orig_file_name.erase(orig_file_name.rfind(suffix), suffix.size());
+        remove_substring(orig_file_name, suffix);
 
     return orig_file_name;
 }
@@ -229,7 +244,7 @@ std::string get_local_idb_name(const std::string& original_idb_name, const std::
     fs::path idb_path{ original_idb_name };
     std::string idb_name{ idb_path.filename().string() };
     std::string idb_extension{ idb_path.extension().string() };
-    idb_name.erase(idb_name.rfind(idb_extension), idb_extension.size());
+    remove_substring(idb_name, idb_extension);
 
     std::string local_idb_name{ idb_name };
     if (suffix.empty())
@@ -245,7 +260,7 @@ void remove_ida_temporary_files(const std::string& idb_path)
 {
     std::string idb_no_ext{ idb_path };
     std::string idb_extension{ fs::path{ idb_path }.extension().string() };
-    idb_no_ext.erase(idb_no_ext.rfind(idb_extension), idb_extension.size());
+    remove_substring(idb_no_ext, idb_extension);
 
     const char* extentions_to_delete[] = { ".id0", ".id1", ".id2", ".nam", ".til" };
     for (const char* ext : extentions_to_delete)
