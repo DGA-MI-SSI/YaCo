@@ -32,6 +32,8 @@ struct IRepoManager
 
     virtual void ensure_git_globals() = 0;
 
+    virtual bool repo_exists() = 0;
+
     virtual void repo_open(const std::string path = ".") = 0;
 
     virtual std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>> repo_get_cache_files_status() = 0;

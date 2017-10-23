@@ -244,7 +244,7 @@ class YaToolRepoManager(object):
     # Repo
     # ==================================================================#
     def repo_exists(self):
-        return os.path.isdir(".git")
+        return self.native.repo_exists()
 
     def repo_init(self, ask_for_remote=True):
         # create git
