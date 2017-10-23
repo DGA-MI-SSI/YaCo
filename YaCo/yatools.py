@@ -48,42 +48,10 @@ def remove_ida_temporary_files(idb_path):
     ya.remove_ida_temporary_files(idb_path)
 
 
-def copy_idb_to_local_file(suffix=None, subdir=None, use_hardlink=False):
-    local_file_name = get_local_idb_name(idc.GetIdbPath(), suffix)
-    if subdir is not None:
-        (head, tail) = os.path.split(local_file_name)
-        local_file_name = os.path.join(head, subdir, tail)
-        (head, tail) = os.path.split(local_file_name)
-        if os.path.exists(head) is False:
-            os.mkdir(head)
-
-    if use_hardlink:
-        (idb_dir, idb_name) = os.path.split(idc.GetIdbPath())
-        original_idb_name = os.path.splitext(idb_name)[0]
-        new_idb_name = os.path.splitext(local_file_name)[0]
-        (head, tail) = os.path.split(local_file_name)
-        logger.info("looking for copy-possible files in %s" % head)
-        for f in os.listdir(head):
-            (list_file_name, list_file_ext) = os.path.splitext(f)
-            logger.info("checking if %s:%s is to be copied to %s as source name" % (
-                list_file_name, list_file_ext, original_idb_name))
-            if (list_file_name == original_idb_name and
-                    (
-                        list_file_ext in set([".nam", ".til"]) or
-                        (list_file_ext.startswith(".id") and list_file_ext[-1:].isdigit()))):
-                new_name = os.path.join(idb_dir, new_idb_name + list_file_ext)
-                f = os.path.join(idb_dir, f)
-                logger.info("Linking %s to %s" % (f, new_name))
-
-                try:
-                    os.remove(new_name)
-                except:
-                    pass
-                os.system("/bin/cp --reflink=auto %s %s" % (f, new_name))
-    else:
-        idc.SaveBase(local_file_name)
-        remove_ida_temporary_files(local_file_name)
-    return local_file_name
+def copy_idb_to_local_file(suffix=None):
+    if suffix == None:
+        suffix = ""
+    return ya.copy_idb_to_local_file(suffix)
 
 
 def copy_idb_to_original_file(suffix=None):

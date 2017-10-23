@@ -55,3 +55,5 @@ std::string get_original_idb_name(const std::string& local_idb_name, const std::
 std::string get_local_idb_name(const std::string& original_idb_name, const std::string& suffix = "");
 
 void remove_ida_temporary_files(const std::string& idb_path);
+
+std::string copy_idb_to_local_file(const std::string& suffix = "");
