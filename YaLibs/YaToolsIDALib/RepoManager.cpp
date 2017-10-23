@@ -106,13 +106,12 @@ bool RepoManager::ask_to_checkout_modified_files(bool repo_auto_sync)
     {
         if (modified_object == original_idb)
         {
-            std::string new_idb{ original_idb };
-            new_idb += "_bkp_";
             std::time_t now{ std::time(nullptr) };
             std::string date{ std::ctime(&now) };
             std::replace(date.begin(), date.end(), ' ', '_');
             std::replace(date.begin(), date.end(), ':', '_');
-            new_idb += date;
+            std::string suffix = "_bkp_" + date;
+            std::string new_idb = get_local_idb_name(original_idb, suffix);
             try
             {
                 fs::copy_file(original_idb, new_idb);
