@@ -19,6 +19,8 @@
 #include <tuple>
 #include <set>
 
+#include <pro.h>
+
 // Forward declarations
 class GitRepo;
 namespace std { template<typename T> class shared_ptr; }
@@ -57,6 +59,8 @@ struct IRepoManager
 
 
 std::shared_ptr<IRepoManager> MakeRepoManager(bool ida_is_interactive);
+
+std::string ea_to_hex(ea_t ea);
 
 std::string get_original_idb_name(const std::string& local_idb_name, const std::string& suffix = "");
 

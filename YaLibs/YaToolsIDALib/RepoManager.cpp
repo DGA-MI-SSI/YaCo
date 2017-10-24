@@ -33,6 +33,15 @@
 
 namespace fs = std::experimental::filesystem;
 
+#ifdef __EA64__
+#define EA_PREFIX   "ll"
+#define EA_SIZE     "16"
+#else
+#define EA_PREFIX   ""
+#define EA_SIZE     "8"
+#endif
+#define EA_FMT      "%0" EA_SIZE EA_PREFIX "X"
+
 #define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("repo_manager", (FMT "\n"), ## __VA_ARGS__)
 
 #define GITREPO_TRY(call, msg) \
@@ -336,6 +345,13 @@ void RepoManager::new_repo(const std::string& path)
 std::shared_ptr<IRepoManager> MakeRepoManager(bool ida_is_interactive)
 {
     return std::make_shared<RepoManager>(ida_is_interactive);
+}
+
+std::string ea_to_hex(ea_t ea)
+{
+    char buffer[19]; // size for 0x%016X + \0
+    std::snprintf(buffer, COUNT_OF(buffer), "0x" EA_FMT, ea);
+    return std::string{ buffer };
 }
 
 std::string get_original_idb_name(const std::string& local_idb_name, const std::string& suffix)
