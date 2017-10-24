@@ -311,8 +311,8 @@ void remove_ida_temporary_files(const std::string& idb_path)
 
 std::string copy_idb_to_local_file(const std::string& suffix)
 {
-    std::string orig_file_name{ get_original_idb_name(database_idb, suffix) };
-    save_database_ex(orig_file_name.c_str(), 0);
-    remove_ida_temporary_files(orig_file_name);
-    return orig_file_name;
+    std::string local_file_name{ get_local_idb_name(database_idb, suffix) };
+    save_database_ex(local_file_name.c_str(), 0);
+    remove_ida_temporary_files(local_file_name);
+    return local_file_name;
 }
