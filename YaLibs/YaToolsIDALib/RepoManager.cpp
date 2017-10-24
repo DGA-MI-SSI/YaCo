@@ -17,10 +17,13 @@
 
 #include "../YaGitLib/YaGitLib.hpp"
 #include "Ida.h"
+#include "Logger.h"
+#include "Yatools.h"
 
 #include <memory>
 #include <sstream>
 #include <ctime>
+#include <regex>
 
 #ifdef _MSC_VER
 #   include <filesystem>
@@ -29,6 +32,8 @@
 #endif
 
 namespace fs = std::experimental::filesystem;
+
+#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("repo_manager", (FMT "\n"), ## __VA_ARGS__)
 
 #define GITREPO_TRY(call, msg) \
 try { \
@@ -59,7 +64,7 @@ namespace
     struct RepoManager
         : public IRepoManager
     {
-        RepoManager();
+        RepoManager(bool ida_is_interactive);
 
         bool ask_to_checkout_modified_files(bool repo_auto_sync) override;
 
@@ -67,6 +72,7 @@ namespace
 
         bool repo_exists() override;
 
+        void repo_init(const std::string& idb_filename, bool ask_for_remote = true) override;
 
         void repo_open(const std::string path) override;
 
@@ -87,12 +93,14 @@ namespace
         void new_repo(const std::string& path) override;
 
     private:
+        bool ida_is_interactive_;
         GitRepo repo_;
     };
 }
 
-RepoManager::RepoManager()
-    : repo_{ "." }
+RepoManager::RepoManager(bool ida_is_interactive)
+    : ida_is_interactive_{ ida_is_interactive },
+    repo_{ "." }
 {
 
 }
@@ -194,6 +202,73 @@ bool RepoManager::repo_exists()
     return is_directory;
 }
 
+void RepoManager::repo_init(const std::string& idb_filename, bool ask_for_remote)
+{
+    try
+    {
+        repo_ = GitRepo{ "." };
+        repo_.init();
+        ensure_git_globals();
+
+        //add current IDB to repo
+        repo_.add_file(idb_filename);
+
+        //create an initial commit with IDB
+        repo_.commit("Initial commit");
+    }
+    catch (std::runtime_error _error)
+    {
+        LOG(ERROR, "An error occured during repo init, error: %s", _error.what());
+        error("An error occured during repo init, error: %s", _error.what());
+        return;
+    }
+
+    if (ida_is_interactive_)
+    {
+        if (ask_for_remote)
+        {
+            const char* tmp = askstr(0, "ssh://gitolite@repo/", "Specify a remote origin :");
+            std::string url = tmp != nullptr ? tmp : "";
+            if (!url.empty())
+            {
+                try
+                {
+                    repo_.create_remote("origin", url);
+                }
+                catch (std::runtime_error _error)
+                {
+                    LOG(ERROR, "An error occured during remote creation, error: %s", _error.what());
+                    error("An error occured during remote creation, error: %s", _error.what());
+                    return;
+                }
+
+                if (!std::regex_match(url, std::regex("^ssh://"))) // add http/https to regex ? ("^((ssh)|(https?))://")
+                {
+                    fs::path path{ url };
+                    if (!fs::exists(path))
+                    {
+                        if (askyn_c(true, "The target directory doesn't exist, do you want to create it ?") == ASKBTN_YES)
+                        {
+                            if (fs::create_directories(path))
+                            {
+                                GitRepo tmp_repo{ url };
+                                tmp_repo.init_bare();//TODO
+                            }
+                            else
+                            {
+                                warning("Directory %s creation failed.", url.c_str());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        copy_idb_to_local_file();
+    }
+
+    push_origin_master();
+}
+
 void RepoManager::repo_open(const std::string path)
 {
     repo_ = GitRepo(path);
@@ -258,9 +333,9 @@ void RepoManager::new_repo(const std::string& path)
     repo_ = GitRepo{ path };
 }
 
-std::shared_ptr<IRepoManager> MakeRepoManager()
+std::shared_ptr<IRepoManager> MakeRepoManager(bool ida_is_interactive)
 {
-    return std::make_shared<RepoManager>();
+    return std::make_shared<RepoManager>(ida_is_interactive);
 }
 
 std::string get_original_idb_name(const std::string& local_idb_name, const std::string& suffix)
