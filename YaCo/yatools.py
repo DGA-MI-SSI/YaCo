@@ -14,22 +14,14 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import idc
-import logging
-import os
 
 if idc.__EA64__:
     import YaToolsPy64 as ya
 else:
     import YaToolsPy32 as ya
 
-logger = logging.getLogger("YaCo")
-
 def ea_to_hex(ea):
-    if idc.BADADDR == 0xFFFFFFFF:
-        return "0x%08X" % ea
-    if idc.BADADDR == 0xFFFFFFFFFFFFFFFF:
-        return "0x%016X" % ea
-    return hex(ea)
+    return ya.ea_to_hex(ea)
 
 
 def get_original_idb_name(local_idb_name, suffix=""):
