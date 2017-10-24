@@ -34,6 +34,8 @@ struct IRepoManager
 
     virtual bool repo_exists() = 0;
 
+    virtual void repo_init(const std::string& idb_filename, bool ask_for_remote = true) = 0;
+
     virtual void repo_open(const std::string path = ".") = 0;
 
     virtual std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>> repo_get_cache_files_status() = 0;
@@ -54,7 +56,7 @@ struct IRepoManager
 };
 
 
-std::shared_ptr<IRepoManager> MakeRepoManager();
+std::shared_ptr<IRepoManager> MakeRepoManager(bool ida_is_interactive);
 
 std::string get_original_idb_name(const std::string& local_idb_name, const std::string& suffix = "");
 

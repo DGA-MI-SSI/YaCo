@@ -195,7 +195,7 @@ class YaToolRepoManager(object):
         '''
         Constructor
         '''
-        self.native = ya.MakeRepoManager()
+        self.native = ya.MakeRepoManager(IDA_IS_INTERACTIVE)
 
         self.idb_filename = os.path.basename(idb_path)
         self.idb_directory = os.path.dirname(idb_path)
@@ -247,66 +247,7 @@ class YaToolRepoManager(object):
         return self.native.repo_exists()
 
     def repo_init(self, ask_for_remote=True):
-        # create git
-        try:
-            self.native.new_repo(".")
-            self.native.get_repo().init()
-
-            self.ensure_git_globals()
-
-            # add current IDB to repo
-            self.native.get_repo().add_file(self.idb_filename)
-
-            # create an initial commit with IDB
-            self.native.get_repo().commit("Initial commit")
-
-            if IDA_RUNNING and IDA_IS_INTERACTIVE:
-                # add a remote to git repo
-
-                if ask_for_remote:
-                    url = idaapi.askstr(0, "ssh://gitolite@repo/", "Specify a remote origin :")
-                else:
-                    url = None
-                if url not in [None, ""]:
-                    self.native.get_repo().create_remote("origin", url)
-
-                    if not url.startswith("ssh://"):
-                        if not os.path.exists(url):
-                            if idaapi.askyn_c(True,
-                                              "The target directory doesn't exist, do you want to create it ?") == 1:
-                                os.mkdir(url)
-                                temp_repo = ya.GitRepo(url)
-                                temp_repo.init_bare()
-
-                # copy idb to local idb
-                yatools.copy_idb_to_local_file()
-
-            # push master to remote
-            self.push_origin_master()
-            return
-        except Exception as exc:
-            logger.error("an error occured during repo_init, error :%s" % exc)
-            traceback.print_exc()
-            if idaapi.askyn_c(True, "could not initialised repo, try again ?") == 1:
-                while True:
-                    try:
-                        url = idaapi.askstr(0, "ssh://gitolite@repo/", "Specify a remote origin :")
-                        if url is not None:
-                            url = url.strip()
-                            while url.endswith("/"):
-                                url = url[:-1]
-                            self.native.get_repo().remove_remote("origin")
-                            self.native.get_repo().create_remote("origin", url)
-                        # push master to remote
-                        self.push_origin_master()
-                        return
-                    except Exception as exc:
-                        logger.error("an error occured during repo_init, error :%s" % exc)
-                        traceback.print_exc()
-                        if idaapi.askyn_c(True, "could not initialised repo, try again ?") != 1:
-                            raise exc
-
-            raise exc
+        self.native.repo_init(self.idb_filename, ask_for_remote)
 
     def repo_open(self, path="."):
         self.native.repo_open()
