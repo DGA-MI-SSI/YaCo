@@ -55,7 +55,6 @@ def copy_idb_to_local_file(suffix=None):
 
 
 def copy_idb_to_original_file(suffix=None):
-    orig_file_name = get_original_idb_name(idc.GetIdbPath(), suffix)
-    idc.SaveBase(orig_file_name)
-    remove_ida_temporary_files(orig_file_name)
-    return orig_file_name
+    if suffix == None:
+        suffix = ""
+    return ya.copy_idb_to_original_file(suffix)
