@@ -34,6 +34,8 @@ struct IRepoManager
 
     virtual void ensure_git_globals() = 0;
 
+    virtual void add_auto_comment(ea_t ea, const std::string& text) = 0;
+
     virtual bool repo_exists() = 0;
 
     virtual void repo_init(const std::string& idb_filename, bool ask_for_remote = true) = 0;

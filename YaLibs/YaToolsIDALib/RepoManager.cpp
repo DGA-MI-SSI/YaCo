@@ -79,6 +79,8 @@ namespace
 
         void ensure_git_globals() override;
 
+        void add_auto_comment(ea_t ea, const std::string& text) override;
+
         bool repo_exists() override;
 
         void repo_init(const std::string& idb_filename, bool ask_for_remote = true) override;
@@ -103,7 +105,10 @@ namespace
 
     private:
         bool ida_is_interactive_;
+
         GitRepo repo_;
+
+        std::vector<std::tuple<std::string, std::string>> auto_comments_;
     };
 }
 
@@ -198,6 +203,45 @@ void RepoManager::ensure_git_globals()
         while (userEmail.empty());
         GITREPO_TRY(repo_.config_set_string("user.email", userEmail), "Couldn't set git user email.");
     }
+}
+
+void RepoManager::add_auto_comment(ea_t ea, const std::string & text)
+{
+    std::string prefix;
+    if (get_struc(ea))
+    {
+        if (get_struc_idx(ea) == BADADDR)
+        {
+            prefix += "stackframe '";
+            qstring func_name;
+            get_func_name2(&func_name, get_func_by_frame(ea));
+            prefix += func_name.c_str();
+            prefix += "'";
+        }
+        else
+        {
+            prefix += "structure '";
+            prefix += get_struc_name(ea).c_str();
+            prefix += "'";
+        }
+    }
+    else if (get_enum_idx(ea) != BADADDR)
+    {
+        prefix += "enum '";
+        prefix += get_enum_name(ea).c_str();
+        prefix += "'";
+    }
+    else
+    {
+        prefix += ea_to_hex(ea);
+        char foffset[100];
+        if (a2funcoff(ea, foffset, sizeof(foffset)))
+        {
+            prefix += ',';
+            prefix += foffset;
+        }
+    }
+    auto_comments_.emplace_back(std::move(prefix), text);
 }
 
 bool RepoManager::repo_exists()

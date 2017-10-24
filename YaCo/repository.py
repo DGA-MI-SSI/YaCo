@@ -221,6 +221,7 @@ class YaToolRepoManager(object):
         self.native.ensure_git_globals()
 
     def add_auto_comment(self, ea, text):
+        #self.native.add_auto_comment(ea, text)
         if ea is not None:
             prefix = ""
             if idaapi.get_struc(ea) is not None:
