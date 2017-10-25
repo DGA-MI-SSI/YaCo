@@ -54,6 +54,8 @@ struct IRepoManager
 
     virtual void checkout_master() = 0;
 
+    virtual bool repo_commit(std::string commit_msg = "") = 0;
+
     //tmp
     virtual GitRepo& get_repo() = 0;
     virtual void new_repo(const std::string& path) = 0;

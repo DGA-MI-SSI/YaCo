@@ -43,41 +43,10 @@ DEBUG_REPO = False
 REPO_AUTO_PUSH = True
 
 MAX_GIT_COMMAND_FILE_COUNT = 50
-TRUNCATE_COMMIT_MESSAGE_LENGTH = 4000
 
 RUN_IDA_SCRIPT_FILENAME = "run-ida.run"
 
 IDA_IS_INTERACTIVE = True
-
-
-class YaToolRepoOptions(object):
-    __instance__ = None
-
-    def __new__(cls, *args, **kwargs):
-        class YaToolRepoOptions_(object):
-            def __init__(self, *args, **kwargs):
-                self.ask_commit_msg = False
-
-            def enable_ask_commit_msg(self):
-                self.ask_commit_msg = True
-
-            def disable_ask_commit_msg(self):
-                self.ask_commit_msg = False
-
-        if cls.__instance__ is None:
-            cls.__instance__ = YaToolRepoOptions_(*args, **kwargs)
-        return cls.__instance__
-
-
-def yaco_commit_msg_enable():
-    option = YaToolRepoOptions()
-    option.enable_ask_commit_msg()
-
-
-def yaco_commit_msg_disable():
-    option = YaToolRepoOptions()
-    option.disable_ask_commit_msg()
-
 
 COMMIT_RETRIES = 3
 
@@ -200,8 +169,6 @@ class YaToolRepoManager(object):
         self.idb_filename = os.path.basename(idb_path)
         self.idb_directory = os.path.dirname(idb_path)
 
-        self.auto_comments = set()
-
         if not self.repo_exists():
             logger.warning("No repo found ! Creating repo.")
             self.repo_init(ask_for_remote)
@@ -212,8 +179,6 @@ class YaToolRepoManager(object):
 
         self.repo_auto_sync = REPO_AUTO_SYNC
 
-        self.options = YaToolRepoOptions()
-
     def ask_to_checkout_modified_files(self):
         self.repo_auto_sync = self.native.ask_to_checkout_modified_files(self.repo_auto_sync)
 
@@ -221,25 +186,7 @@ class YaToolRepoManager(object):
         self.native.ensure_git_globals()
 
     def add_auto_comment(self, ea, text):
-        #self.native.add_auto_comment(ea, text)
-        if ea is not None:
-            prefix = ""
-            if idaapi.get_struc(ea) is not None:
-                if idc.GetStrucIdx(ea) == idc.BADADDR:
-                    prefix = "stackframe '%s'" % idc.GetFunctionName(idaapi.get_func_by_frame(ea))
-                else:
-                    prefix = "structure '%s'" % idc.GetStrucName(ea)
-            elif idc.GetEnumIdx(ea) != idc.BADADDR:
-                prefix = "enum '%s'" % idc.GetEnumName(ea)
-            else:
-                foffset = idc.GetFuncOffset(ea)
-                if foffset is None:
-                    prefix = yatools.ea_to_hex(ea)
-                else:
-                    prefix = "%s,%s" % (yatools.ea_to_hex(ea), foffset)
-            self.auto_comments.add((prefix, text))
-        else:
-            self.auto_comments.add(("", text))
+        self.native.add_auto_comment(ea, text)
 
     # ==================================================================#
     # Repo
@@ -417,47 +364,6 @@ class YaToolRepoManager(object):
         return ([], [], [], [])
 
     def repo_commit(self, commit_msg=None):
-
-        logger.info("committing changes")
-        untracked_files = self.native.get_repo().get_untracked_objects_in_path("cache/")
-        modified_files = self.native.get_repo().get_modified_objects_in_path("cache/")
-        deleted_files = self.native.get_repo().get_deleted_objects_in_path("cache/")
-
-        if not len(modified_files) and not len(deleted_files) and not len(untracked_files):
-            return False
-
-        for f in untracked_files:
-            logger.info("added    %s" % os.path.relpath(f, "cache"))
-        for f in modified_files:
-            logger.info("modified %s" % os.path.relpath(f, "cache"))
-        for f in deleted_files:
-            logger.info("deleted  %s" % os.path.relpath(f, "cache"))
-        self.native.get_repo().add_files(untracked_files)
-        self.native.get_repo().add_files(modified_files)
-        self.native.get_repo().remove_files(deleted_files)
-
-        # warning in test mode idaapi.asktext will be overrided to return "dummy message"
-        max_prefix_len = 0
-        for (prefix, text) in self.auto_comments:
-            max_prefix_len = max(len(prefix), max_prefix_len)
-        prefix_format = "[%-" + ("%d" % max_prefix_len) + "s] "
-        sorted_comments = list()
-        for (prefix, text) in self.auto_comments:
-            sorted_comments.append((prefix_format % prefix) + text)
-
-        if commit_msg is None:
+        if commit_msg == None:
             commit_msg = ""
-            sorted_comments.sort()
-            for msg in sorted_comments:
-                commit_msg += msg + '\n'
-            if len(commit_msg) > TRUNCATE_COMMIT_MESSAGE_LENGTH:
-                commit_msg = commit_msg[:TRUNCATE_COMMIT_MESSAGE_LENGTH] + "\n...truncated"
-            if self.options.ask_commit_msg is True:
-                commit_msg = idaapi.asktext(len(commit_msg) * 2 + 256, commit_msg, "Commit message :")
-
-        if commit_msg != "":
-            self.native.get_repo().commit(commit_msg)
-            self.auto_comments = set()
-            return True
-
-        return False
+        return self.native.repo_commit(commit_msg)
