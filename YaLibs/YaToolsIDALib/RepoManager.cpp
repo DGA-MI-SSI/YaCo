@@ -53,6 +53,8 @@ catch (const std::runtime_error& error) \
     warning(msg "\n\n%s", error.what()); \
 }
 
+static constexpr size_t truncate_commit_message_length = 4000;
+
 static bool remove_substring(std::string& str, const std::string& substr)
 {
     if (substr.empty())
@@ -98,6 +100,8 @@ namespace
         void push_origin_master() override;
 
         void checkout_master() override;
+
+        bool repo_commit(std::string commit_msg = "") override;
 
         //tmp
         GitRepo& get_repo() override;
@@ -374,6 +378,90 @@ void RepoManager::push_origin_master()
 void RepoManager::checkout_master()
 {
     GITREPO_TRY(repo_.checkout("master"), "Couldn't checkout master.");
+}
+
+bool RepoManager::repo_commit(std::string commit_msg)
+{
+    LOG(INFO, "committing changes");
+
+    std::set<std::string> untracked_files{ repo_.get_untracked_objects_in_path("cache/") };
+    std::set<std::string> modified_files{ repo_.get_modified_objects_in_path("cache/") };
+    std::set<std::string> deleted_files{ repo_.get_deleted_objects_in_path("cache/") };
+
+    if (untracked_files.empty() && modified_files.empty() && deleted_files.empty())
+        return false;
+
+    for (std::string f : untracked_files)
+    {
+        repo_.add_file(f);
+        LOG(INFO, "added    %s", f.c_str());
+    }
+    for (std::string f : modified_files)
+    {
+        repo_.add_file(f);
+        LOG(INFO, "modified %s", f.c_str());
+    }
+    for (std::string f : deleted_files)
+    {
+        repo_.remove_file(f);
+        LOG(INFO, "deleted  %s", f.c_str());
+    }
+
+    size_t max_prefix_len = 0;
+    size_t max_txt_len = 0;
+    for (const std::tuple<std::string, std::string>& comment : auto_comments_)
+    {
+        max_prefix_len = std::max(std::get<0>(comment).size(), max_prefix_len);
+        max_txt_len = std::max(std::get<1>(comment).size(), max_txt_len);
+    }
+
+    std::sort(auto_comments_.begin(), auto_comments_.end(), 
+        [](const std::tuple<std::string, std::string>& a, const std::tuple<std::string, std::string>& b) {
+        int cmp = std::get<0>(a).compare(std::get<0>(b));
+        if (cmp == 0)
+        {
+            cmp = std::get<1>(a).compare(std::get<1>(b));
+        }
+        return cmp < 0;
+    });
+
+    size_t max_total_len = max_prefix_len + max_txt_len + 4; // for '[', ']', ' ', '\0'
+    std::unique_ptr<char[]> buffer = std::make_unique<char[]>(max_total_len);
+    if (commit_msg.empty())
+    {
+        bool need_trucate = false;
+        for (const std::tuple<std::string, std::string>& comment : auto_comments_)
+        {
+            snprintf(buffer.get(), max_total_len, "[%-*s] %s", max_prefix_len, std::get<0>(comment).c_str(), std::get<1>(comment).c_str());
+            commit_msg += buffer.get();
+            commit_msg += '\n';
+            need_trucate = commit_msg.size() > truncate_commit_message_length;
+            if (need_trucate)
+                break;
+        }
+        if (need_trucate)
+        {
+            commit_msg.erase(truncate_commit_message_length);
+            commit_msg += "\n...truncated";
+        }
+    }
+
+    if (commit_msg.empty())
+        return false;
+
+    try
+    {
+        repo_.commit(commit_msg);
+    }
+    catch (std::runtime_error _error)
+    {
+        LOG(ERROR, "An error occured during commit, error: %s", _error.what());
+        error("An error occured during commit, error: %s", _error.what());
+        return false;
+    }
+    auto_comments_.clear();
+
+    return true;
 }
 
 GitRepo& RepoManager::get_repo()
