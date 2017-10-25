@@ -81,21 +81,6 @@ class PythonGuiPromptMergeConflict(ya.PromptMergeConflict):
         return ya.PROMPT_MERGE_CONFLICT_SOLVED
 
 
-def print_args_file(f):
-    def inner(*args, **kwargs):
-        for input in args:
-            if type(input) in [str]:
-                logger.debug("input: %r" % input)
-                if os.path.exists(input) and os.path.isfile(input):
-                    with open(input, "r") as finput:
-                        logger.debug("%s content:" % input)
-                        for line in finput.readlines():
-                            logger.debug("[###]%r" % line)
-        return f(*args, **kwargs)
-
-    return inner
-
-
 class PythonResolveFileConflictCallback(ya.ResolveFileConflictCallback):
     def __init__(self):
         ya.ResolveFileConflictCallback.__init__(self)
