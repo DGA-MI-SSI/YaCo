@@ -101,6 +101,8 @@ namespace
 
         void checkout_master() override;
 
+        void check_valid_cache_startup() override;
+
         bool repo_commit(std::string commit_msg = "") override;
 
         //tmp
@@ -299,7 +301,7 @@ void RepoManager::repo_init(const std::string& idb_filename, bool ask_for_remote
                     return;
                 }
 
-                if (!std::regex_match(url, std::regex("^ssh://"))) // add http/https to regex ? ("^((ssh)|(https?))://")
+                if (!std::regex_match(url, std::regex("^ssh://.*"))) // add http/https to regex ? ("^((ssh)|(https?))://.*")
                 {
                     fs::path path{ url };
                     if (!fs::exists(path))
@@ -378,6 +380,67 @@ void RepoManager::push_origin_master()
 void RepoManager::checkout_master()
 {
     GITREPO_TRY(repo_.checkout("master"), "Couldn't checkout master.");
+}
+
+void RepoManager::check_valid_cache_startup()
+{
+    LOG(INFO, "check valid cache startup");
+
+    std::map<std::string, std::string> remotes;
+    try
+    {
+        remotes = repo_.get_remotes();
+    }
+    catch (std::runtime_error error)
+    {
+        LOG(WARNING, "Couldn't get repo remotes, error: %s", error.what());
+    }
+
+    if (remotes.find("origin") == remotes.end())
+    {
+        LOG(WARNING, "origin not defined: ignoring origin and master sync check!");
+    }
+    else
+    {
+        if (repo_.get_commit("origin/master") != repo_.get_commit("master"))
+        {
+            LOG(WARNING, "Master and origin/master doesn't point to the same commit, please update your master.");
+        }
+    }
+
+    try
+    {
+        fs::create_directory("cache");
+    }
+    catch (fs::filesystem_error){}
+
+    fs::path idb_path{ database_idb };
+    std::string idb_prefix{ idb_path.filename().string() };
+    std::string idb_extension{ idb_path.extension().string() };
+    remove_substring(idb_prefix, idb_extension);
+
+    if (!std::regex_match(idb_prefix, std::regex{ ".*_local$" }))
+    {
+        std::string local_idb_name = idb_prefix + "_local" + idb_extension;
+        bool local_idb_exist = false;
+        try
+        {
+            local_idb_exist = fs::exists(local_idb_name);
+        }
+        catch (fs::filesystem_error) {}
+        if (!local_idb_exist)
+            copy_idb_to_local_file();
+
+        if (ida_is_interactive_)
+        {
+            std::string msg = "To use YaCo you must name your IDB with _local suffix. YaCo will create one for you.\nRestart IDA and open ";
+            msg += local_idb_name;
+            msg += '.';
+            database_flags |= DBFL_KILL;
+            warning(msg.c_str());
+            qexit(0);
+        }
+    }
 }
 
 bool RepoManager::repo_commit(std::string commit_msg)

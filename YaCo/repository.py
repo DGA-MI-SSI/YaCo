@@ -232,33 +232,7 @@ class YaToolRepoManager(object):
         self.native.checkout_master()
 
     def check_valid_cache_startup(self):
-        logger.debug("check_valid_cache_startup")
-        if "origin" not in self.native.get_repo().get_remotes():
-            logger.debug("WARNING origin not defined : ignoring origin and master sync check !")
-        else:
-            if self.native.get_repo().get_commit("origin/master") != self.native.get_repo().get_commit("master"):
-                message = "Master and origin/master doesn't point to the same commit, please update your master."
-                logger.debug(message)
-
-        if IDA_RUNNING is True:
-            try:
-                os.mkdir("cache/")
-            except OSError:
-                pass
-            idbname = os.path.basename(idc.GetIdbPath())
-            idbname_prefix = os.path.splitext(idbname)[0]
-            idbname_extension = os.path.splitext(idbname)[1]
-            if not idbname_prefix.endswith('_local'):
-                local_idb_name = "%s_local%s" % (idbname_prefix, idbname_extension)
-                if not os.path.exists(local_idb_name):
-                    yatools.copy_idb_to_local_file()
-                if IDA_IS_INTERACTIVE:
-                    message = "To use YaCo you must name your IDB with _local suffix. "
-                    message += "YaCo will create one for you.\nRestart IDA and open %s." % local_idb_name
-                    logger.debug(message)
-                    idaapi.set_database_flag(idaapi.DBFL_KILL)
-                    idc.Warning(message)
-                    idc.Exit(0)
+        self.native.check_valid_cache_startup()
 
     def update_cache(self):
         logger.info("updating cache")
