@@ -54,6 +54,8 @@ struct IRepoManager
 
     virtual void checkout_master() = 0;
 
+    virtual void check_valid_cache_startup() = 0;
+
     virtual bool repo_commit(std::string commit_msg = "") = 0;
 
     //tmp
