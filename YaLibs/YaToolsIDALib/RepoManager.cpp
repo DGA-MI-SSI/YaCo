@@ -311,10 +311,19 @@ void RepoManager::repo_init(const std::string& idb_filename, bool ask_for_remote
                             if (fs::create_directories(path))
                             {
                                 GitRepo tmp_repo{ url };
-                                tmp_repo.init_bare();//TODO
+                                try
+                                {
+                                    tmp_repo.init_bare();
+                                }
+                                catch (std::runtime_error error)
+                                {
+                                    LOG(WARNING, "Couldn't init remote repo, error: %s", error.what());
+                                    warning("Couldn't init remote repo, error: %s", error.what());
+                                }
                             }
                             else
                             {
+                                LOG(WARNING, "Directory %s creation failed.", url.c_str());
                                 warning("Directory %s creation failed.", url.c_str());
                             }
                         }
