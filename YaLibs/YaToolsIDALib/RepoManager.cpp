@@ -19,6 +19,7 @@
 #include "Ida.h"
 #include "Logger.h"
 #include "Yatools.h"
+#include "Merger.hpp"
 
 #include <memory>
 #include <sstream>
@@ -68,6 +69,32 @@ static bool remove_substring(std::string& str, const std::string& substr)
     }
 
     return false;
+}
+
+namespace
+{
+    struct IDAPromptMergeConflict : public PromptMergeConflict
+    {
+        std::string merge_attributes_callback(const char* message_info, const char* input_attribute1, const char* input_attribute2) override;
+    };
+}
+
+std::string IDAPromptMergeConflict::merge_attributes_callback(const char* message_info, const char* input_attribute1, const char* input_attribute2)
+{
+    char buffer[4096];
+    char* answer = asktext(
+        4096,
+        buffer,
+        input_attribute1,
+        "%s\nValue from local : %s\nValue from remote : %s\n",
+        message_info,
+        input_attribute1,
+        input_attribute2
+    );
+    if (answer == nullptr)
+        return std::string{ input_attribute1 };
+    else
+        return std::string{ answer };
 }
 
 namespace
