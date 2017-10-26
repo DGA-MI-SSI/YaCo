@@ -36,8 +36,6 @@ except:
 
 logger = logging.getLogger("YaCo")
 
-REPO_AUTO_SYNC = True
-
 DEBUG_REPO = False
 
 REPO_AUTO_PUSH = True
@@ -162,10 +160,8 @@ class YaToolRepoManager(object):
             self.repo_open()
         logger.debug('Opening repo.')
 
-        self.repo_auto_sync = REPO_AUTO_SYNC
-
     def ask_to_checkout_modified_files(self):
-        self.repo_auto_sync = self.native.ask_to_checkout_modified_files(self.repo_auto_sync)
+        self.native.ask_to_checkout_modified_files()
 
     def ensure_git_globals(self):
         self.native.ensure_git_globals()
@@ -229,7 +225,7 @@ class YaToolRepoManager(object):
             # check if files has been modified in background
             self.ask_to_checkout_modified_files()
 
-            if self.repo_auto_sync:
+            if self.native.get_repo_auto_sync():
 
                 for _ in range(COMMIT_RETRIES):
                     # get master commit
@@ -271,7 +267,7 @@ class YaToolRepoManager(object):
                     modified_files = set(new_files).union(modified_files)
 
                     # if all done, we can push to origin
-                    if self.repo_auto_sync:
+                    if self.native.get_repo_auto_sync():
                         try:
                             self.native.get_repo().push("master", "master")
                             logger.debug("[update_cache] push done")
@@ -280,7 +276,7 @@ class YaToolRepoManager(object):
                         except Exception as e:
                             logger.debug("[update_cache] push failed")
                             # disable auto sync (when closing database)
-                            self.repo_auto_sync = False
+                            self.native.set_repo_auto_sync(False)
                             message = "You have errors during push to origin. You have to resolve it manually."
                             logger.debug(message)
                             logger.debug("%s" % e)

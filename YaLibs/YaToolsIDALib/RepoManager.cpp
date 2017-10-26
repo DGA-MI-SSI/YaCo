@@ -77,7 +77,7 @@ namespace
     {
         RepoManager(bool ida_is_interactive);
 
-        bool ask_to_checkout_modified_files(bool repo_auto_sync) override;
+        void ask_to_checkout_modified_files() override;
 
         void ensure_git_globals() override;
 
@@ -105,9 +105,12 @@ namespace
 
         bool repo_commit(std::string commit_msg = "") override;
 
+        void set_repo_auto_sync(bool repo_auto_sync) override;
+
         //tmp
         GitRepo& get_repo() override;
         void new_repo(const std::string& path) override;
+        bool get_repo_auto_sync() override;
 
     private:
         bool ida_is_interactive_;
@@ -115,18 +118,21 @@ namespace
         GitRepo repo_;
 
         std::vector<std::tuple<std::string, std::string>> auto_comments_;
+
+        bool repo_auto_sync_;
     };
 }
 
-RepoManager::RepoManager(bool ida_is_interactive)
-    : ida_is_interactive_{ ida_is_interactive },
-    repo_{ "." }
+RepoManager::RepoManager(bool ida_is_interactive): 
+    ida_is_interactive_{ ida_is_interactive },
+    repo_{ "." },
+    repo_auto_sync_{ true }
 {
 
 }
 
 // TODO: move repo_auto_sync from python to RepoManager
-bool RepoManager::ask_to_checkout_modified_files(bool repo_auto_sync)
+void RepoManager::ask_to_checkout_modified_files()
 {
     std::string modified_objects;
     bool checkout_head{ false };
@@ -170,8 +176,8 @@ bool RepoManager::ask_to_checkout_modified_files(bool repo_auto_sync)
         }
         else
         {
-            //repo_auto_sync = false;
-            return false;
+            repo_auto_sync_ = false;
+            return;
         }
     }
 
@@ -180,8 +186,6 @@ bool RepoManager::ask_to_checkout_modified_files(bool repo_auto_sync)
         // checkout silently
         repo_.checkout_head();
     }
-
-    return repo_auto_sync;
 }
 
 void RepoManager::ensure_git_globals()
@@ -536,6 +540,11 @@ bool RepoManager::repo_commit(std::string commit_msg)
     return true;
 }
 
+void RepoManager::set_repo_auto_sync(bool repo_auto_sync)
+{
+    repo_auto_sync_ = repo_auto_sync;
+}
+
 GitRepo& RepoManager::get_repo()
 {
     return repo_;
@@ -544,6 +553,11 @@ GitRepo& RepoManager::get_repo()
 void RepoManager::new_repo(const std::string& path)
 {
     repo_ = GitRepo{ path };
+}
+
+bool RepoManager::get_repo_auto_sync()
+{
+    return repo_auto_sync_;
 }
 
 std::shared_ptr<IRepoManager> MakeRepoManager(bool ida_is_interactive)

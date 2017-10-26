@@ -30,7 +30,7 @@ struct IRepoManager
 {
     virtual ~IRepoManager() = default;
 
-    virtual bool ask_to_checkout_modified_files(bool repo_auto_sync) = 0;
+    virtual void ask_to_checkout_modified_files() = 0;
 
     virtual void ensure_git_globals() = 0;
 
@@ -58,9 +58,12 @@ struct IRepoManager
 
     virtual bool repo_commit(std::string commit_msg = "") = 0;
 
+    virtual void set_repo_auto_sync(bool repo_auto_sync) = 0;
+
     //tmp
     virtual GitRepo& get_repo() = 0;
     virtual void new_repo(const std::string& path) = 0;
+    virtual bool get_repo_auto_sync() = 0;
 };
 
 
