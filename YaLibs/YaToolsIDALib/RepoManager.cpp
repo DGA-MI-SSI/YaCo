@@ -15,7 +15,11 @@
 
 #include "RepoManager.hpp"
 
+// disable IDA defines to use <fstream>
+#define USE_STANDARD_FILE_FUNCTIONS
+
 #include "../YaGitLib/YaGitLib.hpp"
+#include "../YaGitLib/ResolveFileConflictCallback.hpp"
 #include "Ida.h"
 #include "Logger.h"
 #include "Yatools.h"
@@ -26,6 +30,7 @@
 #include <sstream>
 #include <ctime>
 #include <regex>
+#include <fstream>
 
 #ifdef _MSC_VER
 #   include <filesystem>
@@ -75,6 +80,17 @@ static bool remove_substring(std::string& str, const std::string& substr)
 static bool is_valid_xml_memory(const char* txt, size_t txt_size)
 {
     std::shared_ptr<xmlTextReader> reader(xmlReaderForMemory(txt, txt_size, "", NULL, 0), &xmlFreeTextReader);
+    int ret = 1;
+    while (ret == 1)
+    {
+        ret = xmlTextReaderRead(reader.get());
+    }
+    return !(ret == -1 || xmlTextReaderIsValid(reader.get()) != 1);
+}
+
+static bool is_valid_xml_file(const std::string& filename)
+{
+    std::shared_ptr<xmlTextReader> reader(xmlReaderForFile(filename.c_str(), NULL, 0), &xmlFreeTextReader);
     int ret = 1;
     while (ret == 1)
     {
