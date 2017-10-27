@@ -49,95 +49,6 @@ IDA_IS_INTERACTIVE = True
 COMMIT_RETRIES = 3
 
 
-def try_and_debug(f):
-    def inner(*args, **kwargs):
-        try:
-            return f(*args, **kwargs)
-        except Exception as exc:
-            logger.error("an error occured during %s call, error: %s" % (f.__name__, exc))
-            traceback.print_exc()
-            raise exc
-
-    return inner
-
-
-class PythonGuiPromptMergeConflict(ya.PromptMergeConflict):
-    def __init__(self):
-        ya.PromptMergeConflict.__init__(self)
-
-    @try_and_debug
-    def merge_attributes_callback(self, message_info, input_attribute1, input_attribute2):
-        message = "%s\n" % message_info
-        message += "Value from local : %s\n" % input_attribute1
-        message += "Value from remote : %s\n" % input_attribute2
-        output_attribute_result = idaapi.asktext(4096, input_attribute1, message)
-        if output_attribute_result is None:
-            output_attribute_result = ""
-        return output_attribute_result
-        if output_attribute_result is None:
-            return ya.PROMPT_MERGE_CONFLICT_UNSOLVED
-        return ya.PROMPT_MERGE_CONFLICT_SOLVED
-
-
-class PythonResolveFileConflictCallback(ya.ResolveFileConflictCallback):
-    def __init__(self):
-        ya.ResolveFileConflictCallback.__init__(self)
-        pass
-
-    @try_and_debug
-    def callback(self, input_file1, input_file2, output_file_result):
-        logger.debug("PythonResolveFileConflictCallback.callback(%s, %s, %s)" %
-                     (input_file1, input_file2, output_file_result))
-        if not output_file_result.endswith(".xml"):
-            return True
-
-        merger_conflict = PythonGuiPromptMergeConflict()
-        merger = ya.Merger(merger_conflict, ya.OBJECT_VERSION_MERGE_PROMPT)
-        merge_flag = merger.smartMerge(input_file1, input_file2, output_file_result)
-
-        if merge_flag == ya.OBJECT_MERGE_STATUS_NOT_UPDATED:
-            logger.error("PythonResolveFileConflictCallback: callback: object version was not updated")
-            with open(output_file_result, 'r') as foutput:
-                input_content = foutput.read()
-                while True:
-                    if len(input_content) >= 65536:
-                        idc.Warning(
-                            "[File too big to be edited, please edit manually %s then continue]" % output_file_result)
-                        merged_content = open(output_file_result, 'r').read()
-                    else:
-                        merged_content = idaapi.asktext(len(input_content) * 2, input_content, "manual merge stuff")
-
-                    if merged_content not in [None, ""]:
-                        try:
-                            xml.dom.minidom.parseString(merged_content)
-                        except:
-                            logger.warning("invalid xml content")
-                            logger.warning(traceback.format_exc())
-                            idc.Warning("invalid xml content")
-
-                            # loop again in while
-                            continue
-
-                        with open(output_file_result, 'w') as foutput_:
-                            foutput_.write(merged_content)
-
-                        # Everything worked : stop endless while
-                        break
-
-                    else:
-                        return False
-
-        # endif merge_flag == OBJECT_MERGE_STATUS_NOT_UPDATED:
-
-        try:
-            xml.dom.minidom.parse(output_file_result)
-        except:
-            logger.error("invalid xml output generate by PythonResolveFileConflictCallback")
-            idaapi.msg("invalid xml output generate by PythonResolveFileConflictCallback")
-            return False
-        return True
-
-
 class YaToolRepoManager(object):
     '''
     classdocs
@@ -197,14 +108,10 @@ class YaToolRepoManager(object):
         self.native.fetch(origin)
 
     def rebase_from_origin(self):
-        cb = PythonResolveFileConflictCallback()
-        self.native.get_repo().rebase("origin/master", "master", cb)
-        return
+        self.native.rebase_from_origin()
 
     def rebase(self, origin, branch):
-        cb = PythonResolveFileConflictCallback()
-        self.native.get_repo().rebase(origin, branch, cb)
-        return
+        self.native.rebase_from_origin(origin, branch)
 
     def push_origin_master(self):
         self.native.push_origin_master()
