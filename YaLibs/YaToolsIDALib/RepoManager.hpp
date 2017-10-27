@@ -50,6 +50,9 @@ struct IRepoManager
     virtual void fetch_origin() = 0;
     virtual void fetch(const std::string& origin) = 0;
 
+    virtual void rebase_from_origin() = 0;
+    virtual void rebase(const std::string& origin, const std::string& branch) = 0;
+
     virtual void push_origin_master() = 0;
 
     virtual void checkout_master() = 0;
