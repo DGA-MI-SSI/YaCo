@@ -21,6 +21,7 @@
 #include "Yatools.h"
 #include "Merger.hpp"
 
+#include <libxml/xmlreader.h>
 #include <memory>
 #include <sstream>
 #include <ctime>
@@ -69,6 +70,17 @@ static bool remove_substring(std::string& str, const std::string& substr)
     }
 
     return false;
+}
+
+static bool is_valid_xml_memory(const char* txt, size_t txt_size)
+{
+    std::shared_ptr<xmlTextReader> reader(xmlReaderForMemory(txt, txt_size, "", NULL, 0), &xmlFreeTextReader);
+    int ret = 1;
+    while (ret == 1)
+    {
+        ret = xmlTextReaderRead(reader.get());
+    }
+    return !(ret == -1 || xmlTextReaderIsValid(reader.get()) != 1);
 }
 
 namespace
