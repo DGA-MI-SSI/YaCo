@@ -127,6 +127,79 @@ std::string IDAPromptMergeConflict::merge_attributes_callback(const char* messag
 
 namespace
 {
+    struct IDAInteractiveFileConflictResolver : public ResolveFileConflictCallback
+    {
+        bool callback(const std::string& input_file1, const std::string& input_file2, const std::string& output_file_result) override;
+    };
+}
+
+bool IDAInteractiveFileConflictResolver::callback(const std::string& input_file1, const std::string& input_file2, const std::string& output_file_result)
+{
+    if (!std::regex_match(output_file_result, std::regex{ ".*\\.xml$" }))
+        return true;
+
+    IDAPromptMergeConflict merger_conflict;
+    Merger merger{ &merger_conflict, ObjectVersionMergeStrategy_e::OBJECT_VERSION_MERGE_PROMPT };
+    if (merger.smartMerge(input_file1.c_str(), input_file2.c_str(), output_file_result.c_str()) == MergeStatus_e::OBJECT_MERGE_STATUS_NOT_UPDATED)
+    {
+        std::ifstream foutput{ output_file_result, std::ios::ate };
+        size_t foutput_size = static_cast<size_t>(foutput.tellg());
+        if (foutput_size > 65536)
+        {
+            foutput.close();
+            warning("File too big to be edited, please edit manually %s then continue", output_file_result.c_str());
+        }
+        else
+        {
+            foutput.seekg(0);
+            std::string input_content(foutput_size + 1, '\0' );
+            foutput.read(&input_content[0], foutput_size);
+            foutput.close();
+
+            const size_t buffer_size = 2 * input_content.size();
+            std::unique_ptr<char[]> buffer = std::make_unique<char[]>(buffer_size);
+
+            while (true)
+            {
+                char* merged_content = asktext(buffer_size, buffer.get(), input_content.c_str(), "manual merge stuff");
+                if (merged_content != nullptr)
+                {
+                    if (is_valid_xml_memory(buffer.get(), buffer_size))
+                    {
+                        std::ofstream foutput_{ output_file_result, std::ios::trunc };
+                        foutput_ << buffer.get();
+                        foutput_.close();
+                        break;
+                    }
+                    else
+                    {
+                        LOG(WARNING, "Invalid xml content");
+                        warning("Invalid xml content");
+                    }
+                }
+                else
+                {
+                    LOG(WARNING, "Conflict not solved");
+                    return false;
+                }
+            }
+        }
+    }
+    else
+    {
+        if (is_valid_xml_file(output_file_result))
+        {
+            LOG(ERROR, "Merger generated invalid xml file");
+            error("Merger generated invalid xml file");
+            return false;
+        }
+    }
+
+    return true;
+}
+
+namespace
+{
     struct RepoManager
         : public IRepoManager
     {
