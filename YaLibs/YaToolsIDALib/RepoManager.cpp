@@ -62,6 +62,8 @@ catch (const std::runtime_error& error) \
 
 static constexpr size_t truncate_commit_message_length = 4000;
 
+static constexpr int commit_reties = 3;
+
 static bool remove_substring(std::string& str, const std::string& substr)
 {
     if (substr.empty())
@@ -75,6 +77,13 @@ static bool remove_substring(std::string& str, const std::string& substr)
     }
 
     return false;
+}
+
+static std::string extract_filename(const fs::path& file_path)
+{
+    std::string file_name{ file_path.filename().string() };
+    remove_substring(file_name, file_path.extension().string());
+    return file_name;
 }
 
 static bool is_valid_xml_memory(const char* txt, size_t txt_size)
@@ -233,6 +242,8 @@ namespace
         void checkout_master() override;
 
         void check_valid_cache_startup() override;
+
+        std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>, std::set<std::string>> update_cache() override;
 
         bool repo_commit(std::string commit_msg = "") override;
 
@@ -615,6 +626,110 @@ void RepoManager::check_valid_cache_startup()
             qexit(0);
         }
     }
+}
+
+std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>, std::set<std::string>> RepoManager::update_cache()
+{
+    LOG(INFO, "updating cache");
+
+    std::map<std::string, std::string> remotes;
+    try
+    {
+        remotes = repo_.get_remotes();
+    }
+    catch (std::runtime_error error)
+    {
+        LOG(WARNING, "Couldn't get repo remotes, error: %s", error.what());
+    }
+
+    if (remotes.find("origin") == remotes.end())
+    {
+        return std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>, std::set<std::string>>();
+    }
+
+    // check if files has been modified in background
+    ask_to_checkout_modified_files();
+
+    if (repo_auto_sync_)
+    {
+        // get master commit
+        std::string master_commit{ get_master_commit() };
+        if(master_commit.empty())
+            return std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>, std::set<std::string>>();
+        LOG(DEBUG, "Current master commit: %s", master_commit.c_str());
+
+        // fetch remote
+        fetch_origin();
+        LOG(DEBUG, "Fetched origin/master: %s", get_origin_master_commit().c_str());
+
+        // rebase in master
+        if (!rebase_from_origin())
+        {
+            LOG(DEBUG, "Rebase from origin: failed");
+            // disable auto sync (when closing database)
+            warning("You have errors during rebase. You have to resolve it manually.\nSee git_rebase.log for details.\nThen run save on IDA to complete rebase and update master");
+            return std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>, std::set<std::string>>();
+        }
+        else
+        {
+            LOG(DEBUG, "Rebase from origin: done");
+        }
+
+        // get modified files from origin
+        std::set<std::string> modified_files{ repo_.get_modified_objects(master_commit) };
+        std::set<std::string> deleted_files{ repo_.get_deleted_objects(master_commit) };
+        std::set<std::string> new_files{ repo_.get_new_objects(master_commit) };
+
+        for (std::string f : new_files)
+            LOG(INFO, "added    %s", f.c_str());
+        for (std::string f : modified_files)
+            LOG(INFO, "modified %s", f.c_str());
+        for (std::string f : deleted_files)
+            LOG(INFO, "deleted  %s", f.c_str());
+
+        modified_files.insert(new_files.begin(), new_files.end());
+
+        // push to origin
+        int nb_try = 0;
+        for (; nb_try < commit_reties; ++nb_try)
+        {
+            try
+            {
+                repo_.push("master", "master");
+                LOG(DEBUG, "Push to master: done");
+                break;
+            }
+            catch (std::runtime_error error)
+            {
+                LOG(DEBUG, "Push to master: failed");
+                LOG(DEBUG, "%s", error.what());
+            }
+        }
+        if (nb_try == commit_reties)
+        {
+            repo_auto_sync_ = false;
+            LOG(WARNING, "You have errors during push to origin. You have to resolve it manually.");
+            warning("You have errors during push to origin. You have to resolve it manually.");
+            return std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>, std::set<std::string>>();
+        }
+
+        std::set<std::string> modified_objects_id;
+        for (std::string modified_file : modified_files)
+            modified_objects_id.insert(extract_filename(fs::path{ modified_file }));
+
+        std::set<std::string> deleted_objects_id;
+        for (std::string deleted_file : deleted_files)
+            deleted_objects_id.insert(extract_filename(fs::path{ deleted_file }));
+
+        return std::make_tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>, std::set<std::string>>(
+            std::move(modified_objects_id),
+            std::move(deleted_objects_id),
+            std::move(modified_files),
+            std::move(deleted_files)
+            );
+    }
+
+    return std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>, std::set<std::string>>();
 }
 
 bool RepoManager::repo_commit(std::string commit_msg)

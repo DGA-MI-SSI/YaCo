@@ -36,8 +36,6 @@ except:
 
 logger = logging.getLogger("YaCo")
 
-DEBUG_REPO = False
-
 REPO_AUTO_PUSH = True
 
 MAX_GIT_COMMAND_FILE_COUNT = 50
@@ -123,107 +121,7 @@ class YaToolRepoManager(object):
         self.native.check_valid_cache_startup()
 
     def update_cache(self):
-        logger.info("updating cache")
-        if "origin" not in self.native.get_repo().get_remotes():
-            return ([], [], [], [])
-
-        try:
-
-            # check if files has been modified in background
-            self.ask_to_checkout_modified_files()
-
-            if self.native.get_repo_auto_sync():
-
-                for _ in range(COMMIT_RETRIES):
-                    # get master commit
-                    master_commit = self.get_master_commit()
-                    logger.debug("Current master: %s" % master_commit)
-
-                    # fetch remote
-                    self.fetch_origin()
-                    logger.debug("Fetched origin/master: %s" % self.get_origin_master_commit())
-
-                    # rebase in master
-                    try:
-                        self.rebase_from_origin()
-                        logger.debug("[update_cache] rebase_from_origin done")
-                    except Exception as e:
-                        logger.debug("[update_cache] rebase_from_origin failed")
-                        # disable auto sync (when closing database)
-                        message = "You have errors during rebase. You have to resolve it manually.\n"
-                        message += "See git_rebase.log for details.\n"
-                        message += "Then run save on IDA to complete rebase and update master"
-                        logger.debug(message)
-                        logger.debug("%s" % e)
-                        idc.Warning(message)
-                        idc.Warning("%s" % e)
-                        traceback.print_exc()
-                        return ([], [], [], [])
-
-                    # get modified files from origin
-                    modified_files = self.native.get_repo().get_modified_objects(master_commit)
-                    deleted_files = self.native.get_repo().get_deleted_objects(master_commit)
-                    new_files = self.native.get_repo().get_new_objects(master_commit)
-                    for f in new_files:
-                        logger.info("added    %s" % os.path.relpath(f, "cache"))
-                    for f in modified_files:
-                        logger.info("modified %s" % os.path.relpath(f, "cache"))
-                    for f in deleted_files:
-                        logger.info("deleted  %s" % os.path.relpath(f, "cache"))
-
-                    modified_files = set(new_files).union(modified_files)
-
-                    # if all done, we can push to origin
-                    if self.native.get_repo_auto_sync():
-                        try:
-                            self.native.get_repo().push("master", "master")
-                            logger.debug("[update_cache] push done")
-                            logger.debug("Your cache was successfully sent to origin master.")
-                            break
-                        except Exception as e:
-                            logger.debug("[update_cache] push failed")
-                            # disable auto sync (when closing database)
-                            self.native.set_repo_auto_sync(False)
-                            message = "You have errors during push to origin. You have to resolve it manually."
-                            logger.debug(message)
-                            logger.debug("%s" % e)
-                            # idc.Warning(message)
-                            # idc.Warning("%s" % e)
-                            traceback.print_exc()
-                            continue
-                            # return ([], [], [], [])
-                else:
-                    message = "You have errors during push to origin. You have to resolve it manually."
-                    logger.debug(message)
-                    idc.Warning(message)
-                    return ([], [], [], [])
-
-                modified_objects_id = set()
-                deleted_objects_id = set()
-
-                for modified_file in modified_files:
-                    modified_objects_id.add(modified_file.split(".xml")[0].split("/")[-1])
-
-                for deleted_file in deleted_files:
-                    deleted_objects_id.add(deleted_file.split(".xml")[0].split("/")[-1])
-
-                if DEBUG_REPO:
-                    logger.debug("modified object :")
-                    logger.debug(modified_objects_id)
-
-                    logger.debug("deleted object :")
-                    logger.debug(deleted_objects_id)
-
-                return (modified_objects_id, deleted_objects_id, modified_files, deleted_files)
-        except Exception as e:
-            message = "An error happened with git. Check error log."
-            logger.debug(message)
-            logger.debug("%s" % e)
-            idc.Warning(message)
-            idc.Warning("%s" % e)
-            traceback.print_exc()
-
-        return ([], [], [], [])
+        self.native.update_cache()
 
     def repo_commit(self, commit_msg=None):
         if commit_msg == None:
