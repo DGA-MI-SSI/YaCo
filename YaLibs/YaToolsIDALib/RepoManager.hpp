@@ -59,6 +59,8 @@ struct IRepoManager
 
     virtual void check_valid_cache_startup() = 0;
 
+    virtual std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>, std::set<std::string>> update_cache() = 0;
+
     virtual bool repo_commit(std::string commit_msg = "") = 0;
 
     virtual void set_repo_auto_sync(bool repo_auto_sync) = 0;
