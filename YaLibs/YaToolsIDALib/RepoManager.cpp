@@ -225,8 +225,8 @@ namespace
         void fetch_origin() override;
         void fetch(const std::string& origin) override;
 
-        void rebase_from_origin() override;
-        void rebase(const std::string& origin, const std::string& branch) override;
+        bool rebase_from_origin() override;
+        bool rebase(const std::string& origin, const std::string& branch) override;
 
         void push_origin_master() override;
 
@@ -512,16 +512,34 @@ void RepoManager::fetch(const std::string& origin)
     GITREPO_TRY(repo_.fetch(origin), "Couldn't fetch remote.");
 }
 
-void RepoManager::rebase_from_origin()
+bool RepoManager::rebase_from_origin()
 {
     IDAInteractiveFileConflictResolver resolver;
-    repo_.rebase("origin/master", "master", resolver);
+    try
+    {
+        repo_.rebase("origin/master", "master", resolver);
+    }
+    catch (std::runtime_error error)
+    {
+        LOG(WARNING, "Couldn't rebase master from origin/master, error: %s", error.what());
+        return false;
+    }
+    return true;
 }
 
-void RepoManager::rebase(const std::string& origin, const std::string& branch)
+bool RepoManager::rebase(const std::string& origin, const std::string& branch)
 {
     IDAInteractiveFileConflictResolver resolver;
-    repo_.rebase(origin, branch, resolver);
+    try
+    {
+        repo_.rebase(origin, branch, resolver);
+    }
+    catch (std::runtime_error error)
+    {
+        LOG(WARNING, "Couldn't rebase %s from %s, error: %s", branch.c_str(), origin.c_str(), error.what());
+        return false;
+    }
+    return true;
 }
 
 void RepoManager::push_origin_master()
