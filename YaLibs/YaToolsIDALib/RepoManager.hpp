@@ -21,6 +21,10 @@
 
 #include <pro.h>
 
+#include "XML\XMLDatabaseModel.hpp" 
+#include "Model.hpp" 
+#include "RepoManager.hpp" 
+
 // Forward declarations
 class GitRepo;
 namespace std { template<typename T> class shared_ptr; }
@@ -85,3 +89,7 @@ void remove_ida_temporary_files(const std::string& idb_path);
 std::string copy_idb_to_local_file(const std::string& suffix = "");
 
 std::string copy_idb_to_original_file(const std::string& suffix = "");
+
+
+// temporary helper until hooks are moved to native
+void yaco_update_helper(const std::shared_ptr<IRepoManager>& repo_manager, ModelAndVisitor& memory_exporter);

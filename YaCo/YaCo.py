@@ -1,4 +1,4 @@
-#   Copyright (C) 2017 The YaCo Authors
+#   Copyright (C) 2017 The YaCo Authors 
 #
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -78,15 +78,15 @@ class YaCo:
     def update(self):
         # pydevd.settrace()
         logger.debug("Yaco.update()")
-        (modified_object_ids_str, deleted_object_ids_str, modified_files,
-         _deleted_files) = self.repo_manager.update_cache()
-        modified_object_ids = []
-        deleted_object_ids = []
-        for obj_id in modified_object_ids_str:
-            modified_object_ids.append(ya.YaToolObjectId_From_String(obj_id))
+        # (modified_object_ids_str, deleted_object_ids_str, modified_files,
+        #  _deleted_files) = self.repo_manager.update_cache()
+        # modified_object_ids = []
+        # deleted_object_ids = []
+        # for obj_id in modified_object_ids_str:
+        #     modified_object_ids.append(ya.YaToolObjectId_From_String(obj_id))
 
-        for obj_id in deleted_object_ids_str:
-            deleted_object_ids.append(ya.YaToolObjectId_From_String(obj_id))
+        # for obj_id in deleted_object_ids_str:
+        #     deleted_object_ids.append(ya.YaToolObjectId_From_String(obj_id))
 
         logger.debug("delete objects")
         # fixme do something
@@ -95,12 +95,15 @@ class YaCo:
         # fixme do something
 
         logger.debug("loading XML")
-        logger.debug("modified files : %r", modified_files)
+        #logger.debug("modified files : %r", modified_files)
 
         memory_exporter = ya.MakeModel()
 
         logger.debug("exporting XML to memory")
-        ya.MakeXmlFilesDatabaseModel(modified_files).accept(memory_exporter.visitor)
+        #ya.MakeXmlFilesDatabaseModel(modified_files).accept(memory_exporter.visitor)
+
+        # use of temporary helper until hooks are moved to native:
+        ya.yaco_update_helper(self.repo_manager.native, memory_exporter)
 
         logger.debug("unhook")
         self.ida_hooks.unhook()

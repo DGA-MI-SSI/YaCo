@@ -24,6 +24,7 @@
 #include "Logger.h"
 #include "Yatools.h"
 #include "Merger.hpp"
+#include "IModelAccept.hpp" 
 
 #include <libxml/xmlreader.h>
 #include <memory>
@@ -908,4 +909,13 @@ std::string copy_idb_to_original_file(const std::string& suffix)
     save_database_ex(orig_file_name.c_str(), 0);
     remove_ida_temporary_files(orig_file_name);
     return orig_file_name;
+}
+
+
+// temporary helper until hooks are moved to native
+void yaco_update_helper(const std::shared_ptr<IRepoManager>& repo_manager, ModelAndVisitor& memory_exporter)
+{
+    std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>, std::set<std::string>> info = repo_manager->update_cache();
+    std::vector<std::string> modified_files(std::get<2>(info).begin(), std::get<2>(info).end());
+    MakeXmlFilesDatabaseModel(modified_files)->accept(*(memory_exporter.visitor.get()));
 }
