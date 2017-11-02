@@ -156,6 +156,12 @@ namespace
 
 #undef DECLARE_STRINGER
 
+    struct Crcs
+    {
+        uint32_t firstbyte;  // first byte of each ins
+        uint32_t invariants; // ida cmd.itype of each ins
+    };
+
     struct Parent
     {
         YaToolObjectId  id;
@@ -730,11 +736,18 @@ namespace
     }
 
     template<typename Ctx>
-    void accept_signature(Ctx& /*ctx*/, IModelVisitor& v, uint32_t crc)
+    void accept_signature(Ctx& /*ctx*/, IModelVisitor& v, Crcs& crc)
     {
-        char buf[sizeof crc * 2];
-        const auto strcrc = str_crc32(buf, crc);
-        v.visit_signature(SIGNATURE_FIRSTBYTE, SIGNATURE_ALGORITHM_CRC32, strcrc);
+        char buf[sizeof crc.invariants * 2];
+        const auto strcrc_invariants = str_crc32(buf, crc.invariants);
+        v.visit_signature(SIGNATURE_INVARIANTS, SIGNATURE_ALGORITHM_CRC32, strcrc_invariants);
+
+        // for now we do not handle multiple signatures
+        if(false)
+        {
+            const auto strcrc_first = str_crc32(buf, crc.firstbyte);
+            v.visit_signature(SIGNATURE_FIRSTBYTE, SIGNATURE_ALGORITHM_CRC32, strcrc_first);
+        }
     }
 
     template<typename T>
@@ -773,8 +786,12 @@ namespace
             return;
         }
 
+        // string signatures are compatible with all signature methods
         v.visit_start_signatures();
-        accept_signature(ctx, v, std_crc32(0, pbuf, buf.size()));
+        Crcs crcs = {};
+        crcs.firstbyte = std_crc32(0, pbuf, buf.size());
+        crcs.invariants = crcs.firstbyte;
+        accept_signature(ctx, v, crcs);
         v.visit_end_signatures();
     }
 
@@ -904,12 +921,6 @@ namespace
         return flow;
     }
 
-    struct Crcs
-    {
-        uint32_t firstbyte;
-        uint32_t operands;
-    };
-
     template<typename Ctx>
     void get_crcs(Ctx& ctx, const char* where, Crcs* crcs, ea_t ea_func, area_t block)
     {
@@ -919,7 +930,8 @@ namespace
         walk_contiguous_chunks(buf, [&](const uint8_t* buffer, size_t from, size_t to)
         {
             const auto end = block.startEA + to;
-            auto ea = block.startEA + from;
+            const auto offset = static_cast<ea_t>(block.startEA + from);
+            auto ea = offset;
             while(ea < end)
             {
                 // skip non-code bytes
@@ -932,15 +944,15 @@ namespace
                     LOG(WARNING, "%s: 0x" EA_FMT " invalid instruction at offset 0x" EA_FMT "\n", where, ea_func, ea);
                     return;
                 }
-                crcs->firstbyte = std_crc32(crcs->firstbyte, buffer, 1);
+                crcs->firstbyte = std_crc32(crcs->firstbyte, &buffer[ea - offset], 1);
                 const auto itypehex = str_hex(hexcmditype, cmd.itype);
-                crcs->operands = std_crc32(crcs->operands, itypehex.value, itypehex.size);
+                crcs->invariants = std_crc32(crcs->invariants, itypehex.value, itypehex.size);
                 for(const auto& op : cmd.Operands)
                 {
                     if(op.type == o_void)
                         continue;
                     const auto ophex = str_hex(hexoptype, op.type);
-                    crcs->operands = std_crc32(crcs->operands, ophex.value, ophex.size);
+                    crcs->invariants = std_crc32(crcs->invariants, ophex.value, ophex.size);
                 }
                 ea += cmd.size;
             }
@@ -1407,8 +1419,7 @@ namespace
         v.visit_start_signatures();
         Crcs crcs = {};
         get_crcs(ctx, "accept_block", &crcs, parent.ea, block);
-        // FIXME use ops hash but tell firstbyte...
-        accept_signature(ctx, v, crcs.operands);
+        accept_signature(ctx, v, crcs);
         v.visit_end_signatures();
 
         ya::Deps deps;
@@ -1451,8 +1462,7 @@ namespace
         v.visit_flags(func->flags);
 
         v.visit_start_signatures();
-        // FIXME use ops hash but tell firstbyte...
-        accept_signature(ctx, v, crcs.operands);
+        accept_signature(ctx, v, crcs);
         v.visit_end_signatures();
 
         for(const auto repeat : {false, true})
