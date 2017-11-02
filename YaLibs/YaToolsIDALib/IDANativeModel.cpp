@@ -766,24 +766,12 @@ namespace
         buf.resize(n + 1);
         auto* pbuf = &buf[0];
         memset(pbuf, 0, buf.size());
-        ok = get_ascii_contents2(ea, n, strtype, pbuf, buf.size());
+        ok = get_ascii_contents2(ea, n, strtype, pbuf, buf.size(), NULL, ACFOPT_UTF8);
         if(!ok)
         {
             LOG(ERROR, "accept_string_type: 0x" EA_FMT " unable to get ascii contents %d bytes %x strtype\n", ea, n, strtype);
             return;
         }
-
-        // remove invalid characters
-        buf.erase(std::remove_if(buf.begin(), buf.end(), [](uint8_t c)
-        {
-            return !((c >= 'A' && c <= 'Z')
-                || (c >= 'a' && c <= 'z')
-                || (c >= '0' && c <= '9'));
-        }), buf.end());
-
-        // convert to uppercase
-        for(auto& value : buf)
-            value = static_cast<uint8_t>(toupper(value));
 
         v.visit_start_signatures();
         accept_signature(ctx, v, std_crc32(0, pbuf, buf.size()));
