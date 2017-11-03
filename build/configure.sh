@@ -18,7 +18,7 @@ then
 fi
 echo OUT=$OUT
 
-FLAGS="-fPIC -pg"
+FLAGS="-fPIC"
 C_FLAGS="${CMAKE_C_FLAGS} $FLAGS"
 CXX_FLAGS="${CMAKE_CXX_FLAGS} $FLAGS"
 
