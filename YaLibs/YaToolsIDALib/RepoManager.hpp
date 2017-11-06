@@ -42,7 +42,7 @@ struct IRepoManager
 
     virtual bool repo_exists() = 0;
 
-    virtual void repo_init(const std::string& idb_filename, bool ask_for_remote = true) = 0;
+    virtual void repo_init() = 0;
 
     virtual void repo_open(const std::string path = ".") = 0;
 
