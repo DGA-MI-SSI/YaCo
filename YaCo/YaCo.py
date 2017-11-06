@@ -46,6 +46,8 @@ PROFILE_YACO_SAVING = False
 CHECKOUT_IDB_ON_CLOSE = False
 VALIDATE_EXPORTER_VISITOR = False
 
+IDA_IS_INTERACTIVE = True
+
 
 class YaCoHandler(idaapi.action_handler_t):
     def __init__(self, yaco, callback):
@@ -287,7 +289,7 @@ class YaCo:
         idaapi.msg("YaCo %s\n" % YACO_VERSION)
 
         self.hash_provider = ya.MakeHashProvider()
-        self.repo_manager = repository.YaToolRepoManager()
+        self.repo_manager = repository.YaToolRepoManager(IDA_IS_INTERACTIVE)
         self.repo_manager.check_valid_cache_startup()
 
         self.ida_hooks = hooks.Hooks(self.hash_provider, self.repo_manager)
