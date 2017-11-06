@@ -415,7 +415,7 @@ class YaToolIDAHooks(object):
         """
         logger.debug("Exporting from memory to XML")
         # now export to XML
-        xml_exporter = ya.MakeXmlExporter(os.path.join(self.repo_manager.idb_directory, "cache"))
+        xml_exporter = ya.MakeXmlExporter(os.path.join(os.path.dirname(idc.GetIdbPath()), "cache"))
         if VALIDATE_EXPORTED_XML_2:
             db.model.accept(ya.MakePathDebuggerVisitor("SaveXMLValidator", ya.MakeExporterValidatorVisitor(), False))
 

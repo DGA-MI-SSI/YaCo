@@ -27,43 +27,24 @@ if idc.__EA64__:
 else:
     import YaToolsPy32 as ya
 
-try:
-    import idaapi
-
-    IDA_RUNNING = True
-except:
-    IDA_RUNNING = False
-
 logger = logging.getLogger("YaCo")
 
-REPO_AUTO_PUSH = True
-
-MAX_GIT_COMMAND_FILE_COUNT = 50
-
-RUN_IDA_SCRIPT_FILENAME = "run-ida.run"
-
 IDA_IS_INTERACTIVE = True
-
-COMMIT_RETRIES = 3
-
 
 class YaToolRepoManager(object):
     '''
     classdocs
     '''
 
-    def __init__(self, idb_path, ask_for_remote=True):
+    def __init__(self):
         '''
         Constructor
         '''
         self.native = ya.MakeRepoManager(IDA_IS_INTERACTIVE)
 
-        self.idb_filename = os.path.basename(idb_path)
-        self.idb_directory = os.path.dirname(idb_path)
-
         if not self.repo_exists():
             logger.warning("No repo found ! Creating repo.")
-            self.repo_init(ask_for_remote)
+            self.repo_init()
             logger.warning('Creation done.')
         else:
             self.repo_open()
@@ -84,8 +65,8 @@ class YaToolRepoManager(object):
     def repo_exists(self):
         return self.native.repo_exists()
 
-    def repo_init(self, ask_for_remote=True):
-        self.native.repo_init(self.idb_filename, ask_for_remote)
+    def repo_init(self):
+        self.native.repo_init()
 
     def repo_open(self, path="."):
         self.native.repo_open()

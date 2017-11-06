@@ -223,7 +223,7 @@ namespace
 
         bool repo_exists() override;
 
-        void repo_init(const std::string& idb_filename, bool ask_for_remote = true) override;
+        void repo_init() override;
 
         void repo_open(const std::string path) override;
 
@@ -406,7 +406,7 @@ bool RepoManager::repo_exists()
     return is_directory;
 }
 
-void RepoManager::repo_init(const std::string& idb_filename, bool ask_for_remote)
+void RepoManager::repo_init()
 {
     try
     {
@@ -415,7 +415,7 @@ void RepoManager::repo_init(const std::string& idb_filename, bool ask_for_remote
         ensure_git_globals();
 
         //add current IDB to repo
-        repo_.add_file(idb_filename);
+        repo_.add_file(fs::path{ database_idb }.filename().string());
 
         //create an initial commit with IDB
         repo_.commit("Initial commit");
@@ -429,48 +429,45 @@ void RepoManager::repo_init(const std::string& idb_filename, bool ask_for_remote
 
     if (ida_is_interactive_)
     {
-        if (ask_for_remote)
+        const char* tmp = askstr(0, "ssh://gitolite@repo/", "Specify a remote origin :");
+        std::string url = tmp != nullptr ? tmp : "";
+        if (!url.empty())
         {
-            const char* tmp = askstr(0, "ssh://gitolite@repo/", "Specify a remote origin :");
-            std::string url = tmp != nullptr ? tmp : "";
-            if (!url.empty())
+            try
             {
-                try
-                {
-                    repo_.create_remote("origin", url);
-                }
-                catch (std::runtime_error _error)
-                {
-                    LOG(ERROR, "An error occured during remote creation, error: %s", _error.what());
-                    error("An error occured during remote creation, error: %s", _error.what());
-                    return;
-                }
+                repo_.create_remote("origin", url);
+            }
+            catch (std::runtime_error _error)
+            {
+                LOG(ERROR, "An error occured during remote creation, error: %s", _error.what());
+                error("An error occured during remote creation, error: %s", _error.what());
+                return;
+            }
 
-                if (!std::regex_match(url, std::regex("^ssh://.*"))) // add http/https to regex ? ("^((ssh)|(https?))://.*")
+            if (!std::regex_match(url, std::regex("^ssh://.*"))) // add http/https to regex ? ("^((ssh)|(https?))://.*")
+            {
+                fs::path path{ url };
+                if (!fs::exists(path))
                 {
-                    fs::path path{ url };
-                    if (!fs::exists(path))
+                    if (askyn_c(true, "The target directory doesn't exist, do you want to create it ?") == ASKBTN_YES)
                     {
-                        if (askyn_c(true, "The target directory doesn't exist, do you want to create it ?") == ASKBTN_YES)
+                        if (fs::create_directories(path))
                         {
-                            if (fs::create_directories(path))
+                            GitRepo tmp_repo{ url };
+                            try
                             {
-                                GitRepo tmp_repo{ url };
-                                try
-                                {
-                                    tmp_repo.init_bare();
-                                }
-                                catch (std::runtime_error error)
-                                {
-                                    LOG(WARNING, "Couldn't init remote repo, error: %s", error.what());
-                                    warning("Couldn't init remote repo, error: %s", error.what());
-                                }
+                                tmp_repo.init_bare();
                             }
-                            else
+                            catch (std::runtime_error error)
                             {
-                                LOG(WARNING, "Directory %s creation failed.", url.c_str());
-                                warning("Directory %s creation failed.", url.c_str());
+                                LOG(WARNING, "Couldn't init remote repo, error: %s", error.what());
+                                warning("Couldn't init remote repo, error: %s", error.what());
                             }
+                        }
+                        else
+                        {
+                            LOG(WARNING, "Directory %s creation failed.", url.c_str());
+                            warning("Directory %s creation failed.", url.c_str());
                         }
                     }
                 }
@@ -870,11 +867,10 @@ std::string get_local_idb_name(const std::string& original_idb_name, const std::
 void remove_ida_temporary_files(const std::string& idb_path)
 {
     std::string idb_no_ext{ idb_path };
-    std::string idb_extension{ fs::path{ idb_path }.extension().string() };
-    remove_substring(idb_no_ext, idb_extension);
+    remove_substring(idb_no_ext, fs::path{ idb_path }.extension().string());
 
-    const char* extentions_to_delete[] = { ".id0", ".id1", ".id2", ".nam", ".til" };
-    for (const char* ext : extentions_to_delete)
+    const char* extensions_to_delete[] = { ".id0", ".id1", ".id2", ".nam", ".til" };
+    for (const char* ext : extensions_to_delete)
     {
         try
         {

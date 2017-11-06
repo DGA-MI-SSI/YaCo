@@ -287,7 +287,7 @@ class YaCo:
         idaapi.msg("YaCo %s\n" % YACO_VERSION)
 
         self.hash_provider = ya.MakeHashProvider()
-        self.repo_manager = repository.YaToolRepoManager(idc.GetIdbPath())
+        self.repo_manager = repository.YaToolRepoManager()
         self.repo_manager.check_valid_cache_startup()
 
         self.ida_hooks = hooks.Hooks(self.hash_provider, self.repo_manager)
