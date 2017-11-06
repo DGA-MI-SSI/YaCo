@@ -29,18 +29,17 @@ else:
 
 logger = logging.getLogger("YaCo")
 
-IDA_IS_INTERACTIVE = True
 
 class YaToolRepoManager(object):
     '''
     classdocs
     '''
 
-    def __init__(self):
+    def __init__(self, ida_is_interactive):
         '''
         Constructor
         '''
-        self.native = ya.MakeRepoManager(IDA_IS_INTERACTIVE)
+        self.native = ya.MakeRepoManager(ida_is_interactive)
 
         if not self.repo_exists():
             logger.warning("No repo found ! Creating repo.")
