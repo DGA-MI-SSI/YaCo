@@ -46,8 +46,6 @@ struct IRepoManager
 
     virtual void repo_open(const std::string path = ".") = 0;
 
-    virtual std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>> repo_get_cache_files_status() = 0;
-
     virtual std::string get_master_commit() = 0;
     virtual std::string get_origin_master_commit() = 0;
 

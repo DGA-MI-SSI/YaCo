@@ -90,9 +90,6 @@ class YaToolRepoManager(object):
     def repo_open(self, path="."):
         self.native.repo_open()
 
-    def repo_get_cache_files_status(self):
-        return self.native.repo_get_cache_files_status()
-
     def get_master_commit(self):
         return self.native.get_master_commit()
 
