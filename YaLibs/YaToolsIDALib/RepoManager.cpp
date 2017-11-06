@@ -227,8 +227,6 @@ namespace
 
         void repo_open(const std::string path) override;
 
-        std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>> repo_get_cache_files_status() override;
-
         std::string get_master_commit() override;
         std::string get_origin_master_commit() override;
 
@@ -489,15 +487,6 @@ void RepoManager::repo_open(const std::string path)
     repo_ = GitRepo(path);
     GITREPO_TRY(repo_.init(), "Couldn't init repository.");
     ensure_git_globals();
-}
-
-std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>> RepoManager::repo_get_cache_files_status()
-{
-    return std::make_tuple(
-        repo_.get_untracked_objects_in_path("cache/"),
-        repo_.get_deleted_objects_in_path("cache/"),
-        repo_.get_modified_objects_in_path("cache/")
-    );
 }
 
 std::string RepoManager::get_master_commit()
