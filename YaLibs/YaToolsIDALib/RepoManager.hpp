@@ -65,12 +65,13 @@ struct IRepoManager
 
     virtual bool repo_commit(std::string commit_msg = "") = 0;
 
-    virtual void set_repo_auto_sync(bool repo_auto_sync) = 0;
+    virtual bool repo_auto_sync_enabled() = 0;
+
+    virtual void toggle_repo_auto_sync() = 0;
 
     //tmp
     virtual GitRepo& get_repo() = 0;
     virtual void new_repo(const std::string& path) = 0;
-    virtual bool get_repo_auto_sync() = 0;
 };
 
 

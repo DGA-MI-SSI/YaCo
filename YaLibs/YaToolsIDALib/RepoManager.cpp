@@ -246,12 +246,13 @@ namespace
 
         bool repo_commit(std::string commit_msg = "") override;
 
-        void set_repo_auto_sync(bool repo_auto_sync) override;
+        bool repo_auto_sync_enabled() override;
+
+        void toggle_repo_auto_sync() override;
 
         //tmp
         GitRepo& get_repo() override;
         void new_repo(const std::string& path) override;
-        bool get_repo_auto_sync() override;
 
     private:
         bool ida_is_interactive_;
@@ -811,9 +812,18 @@ bool RepoManager::repo_commit(std::string commit_msg)
     return true;
 }
 
-void RepoManager::set_repo_auto_sync(bool repo_auto_sync)
+bool RepoManager::repo_auto_sync_enabled()
 {
-    repo_auto_sync_ = repo_auto_sync;
+    return repo_auto_sync_;
+}
+
+void RepoManager::toggle_repo_auto_sync()
+{
+    repo_auto_sync_ = !repo_auto_sync_;
+    if (repo_auto_sync_)
+        msg("Auto rebase/push enabled\n");
+    else
+        msg("Auto rebase/push disabled\n");
 }
 
 GitRepo& RepoManager::get_repo()
@@ -824,11 +834,6 @@ GitRepo& RepoManager::get_repo()
 void RepoManager::new_repo(const std::string& path)
 {
     repo_ = GitRepo{ path };
-}
-
-bool RepoManager::get_repo_auto_sync()
-{
-    return repo_auto_sync_;
 }
 
 std::shared_ptr<IRepoManager> MakeRepoManager(bool ida_is_interactive)
