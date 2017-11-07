@@ -109,6 +109,24 @@ static bool is_valid_xml_file(const std::string& filename)
     return !(ret == -1 || xmlTextReaderIsValid(reader.get()) != 1);
 }
 
+static void add_filename_suffix(std::string& file_path, const std::string& suffix)
+{
+    std::string file_extension{ fs::path{ file_path }.extension().string() };
+    remove_substring(file_path, file_extension);
+    file_path += suffix;
+    file_path += file_extension;
+}
+
+static bool remove_filename_suffix(std::string& file_path, const std::string& suffix)
+{
+    // only remove the suffix from the filename even if it appear in the extention
+    std::string file_extension{ fs::path{ file_path }.extension().string() };
+    remove_substring(file_path, file_extension);
+    const bool removed = remove_substring(file_path, suffix);
+    file_path += file_extension;
+    return removed;
+}
+
 namespace
 {
     struct IDAPromptMergeConflict : public PromptMergeConflict
@@ -844,31 +862,26 @@ std::string ea_to_hex(ea_t ea)
 
 std::string get_original_idb_name(const std::string& local_idb_name, const std::string& suffix)
 {
-    std::string orig_file_name{ fs::path{ local_idb_name }.filename().string() };
+    std::string idb_name{ fs::path{ local_idb_name }.filename().string() };
 
     if (suffix.empty())
-        remove_substring(orig_file_name, "_local");
+        remove_filename_suffix(idb_name, "_local");
     else
-        remove_substring(orig_file_name, suffix);
+        remove_filename_suffix(idb_name, suffix);
 
-    return orig_file_name;
+    return idb_name;
 }
 
 std::string get_local_idb_name(const std::string& original_idb_name, const std::string& suffix)
 {
-    fs::path idb_path{ original_idb_name };
-    std::string idb_name{ idb_path.filename().string() };
-    std::string idb_extension{ idb_path.extension().string() };
-    remove_substring(idb_name, idb_extension);
+    std::string idb_name{ fs::path{ original_idb_name }.filename().string() };
 
-    std::string local_idb_name{ idb_name };
     if (suffix.empty())
-        local_idb_name += "_local";
+        add_filename_suffix(idb_name, "_local");
     else
-        local_idb_name += suffix;
-    local_idb_name += idb_extension;
+        add_filename_suffix(idb_name, suffix);
 
-    return local_idb_name;
+    return idb_name;
 }
 
 void remove_ida_temporary_files(const std::string& idb_path)
