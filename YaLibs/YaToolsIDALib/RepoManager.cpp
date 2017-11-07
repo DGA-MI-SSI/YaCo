@@ -281,7 +281,6 @@ RepoManager::RepoManager(bool ida_is_interactive):
     LOG(INFO, "Opening repo.");
 }
 
-// TODO: move repo_auto_sync from python to RepoManager
 void RepoManager::ask_to_checkout_modified_files()
 {
     std::string modified_objects;
