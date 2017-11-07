@@ -209,7 +209,7 @@ class YaToolIDAHooks(object):
 
     def enum_updated(self, enum):
         if LOG_IDA_HOOKS_EVENTS:
-            logger.debug("enum_updated : %s" % yatools.ea_to_hex(enum))
+            logger.debug("enum_updated : %s" % ya.ea_to_hex(enum))
         self.enums_to_process.add(enum)
         self.repo_manager.add_auto_comment(enum, "Updated")
 
