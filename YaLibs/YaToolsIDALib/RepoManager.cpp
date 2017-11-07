@@ -269,7 +269,16 @@ RepoManager::RepoManager(bool ida_is_interactive):
     repo_{ "." },
     repo_auto_sync_{ true }
 {
-
+    if (!repo_exists())
+    {
+        LOG(INFO, "No repo found ! Creating repo.");
+        repo_init();
+    }
+    else
+    {
+        repo_open(".");
+    }
+    LOG(INFO, "Opening repo.");
 }
 
 // TODO: move repo_auto_sync from python to RepoManager

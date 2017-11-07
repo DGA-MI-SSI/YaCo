@@ -41,14 +41,6 @@ class YaToolRepoManager(object):
         '''
         self.native = ya.MakeRepoManager(ida_is_interactive)
 
-        if not self.repo_exists():
-            logger.warning("No repo found ! Creating repo.")
-            self.repo_init()
-            logger.warning('Creation done.')
-        else:
-            self.repo_open()
-        logger.debug('Opening repo.')
-
     def ask_to_checkout_modified_files(self):
         self.native.ask_to_checkout_modified_files()
 
