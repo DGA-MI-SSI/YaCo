@@ -105,7 +105,7 @@ class YaCo:
         #ya.MakeXmlFilesDatabaseModel(modified_files).accept(memory_exporter.visitor)
 
         # use of temporary helper until hooks are moved to native:
-        ya.yaco_update_helper(self.repo_manager.native, memory_exporter)
+        ya.yaco_update_helper(self.repo_manager, memory_exporter)
 
         logger.debug("unhook")
         self.ida_hooks.unhook()
@@ -200,15 +200,15 @@ class YaCo:
                 xml_files.append("%s/%s" % (root, file))
 
         # add idb
-        self.repo_manager.native.get_repo().add_file(original_file)
+        self.repo_manager.get_repo().add_file(original_file)
 
         # remove xml cache
-        self.repo_manager.native.get_repo().remove_files(xml_files)
+        self.repo_manager.get_repo().remove_files(xml_files)
         for xml_file in xml_files:
             os.remove(xml_file)
 
         # create commit
-        self.repo_manager.native.get_repo().commit("YaCo force push")
+        self.repo_manager.get_repo().commit("YaCo force push")
 
         # push commit
         self.repo_manager.push_origin_master()
@@ -228,7 +228,7 @@ class YaCo:
         yatools.copy_idb_to_local_file("_bkp_%s" % time.ctime().replace(" ", "_").replace(":", "_"))
 
         # delete all modified objects
-        self.repo_manager.native.get_repo().checkout_head()
+        self.repo_manager.get_repo().checkout_head()
 
         # get reset
         self.repo_manager.fetch_origin()
@@ -289,7 +289,7 @@ class YaCo:
         idaapi.msg("YaCo %s\n" % YACO_VERSION)
 
         self.hash_provider = ya.MakeHashProvider()
-        self.repo_manager = repository.YaToolRepoManager(IDA_IS_INTERACTIVE)
+        self.repo_manager = ya.MakeRepoManager(IDA_IS_INTERACTIVE)
         self.repo_manager.check_valid_cache_startup()
 
         self.ida_hooks = hooks.Hooks(self.hash_provider, self.repo_manager)
