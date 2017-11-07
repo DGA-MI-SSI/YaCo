@@ -157,12 +157,7 @@ class YaCo:
             f.close()
 
     def toggle_auto_rebase_push(self, *args):
-        if self.repo_manager.get_repo_auto_sync():
-            self.repo_manager.set_repo_auto_sync(False)
-            idc.Message('Auto rebase/push disabled')
-        else:
-            self.repo_manager.set_repo_auto_sync(True)
-            idc.Message('Auto rebase/push enabled')
+        self.repo_manager.toggle_repo_auto_sync()
 
     def export_single_cache(self, *args):
         logger.info("Exporting database using one core")
