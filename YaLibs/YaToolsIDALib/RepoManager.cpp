@@ -252,7 +252,6 @@ namespace
 
         //tmp
         GitRepo& get_repo() override;
-        void new_repo(const std::string& path) override;
 
     private:
         bool ida_is_interactive_;
@@ -829,11 +828,6 @@ void RepoManager::toggle_repo_auto_sync()
 GitRepo& RepoManager::get_repo()
 {
     return repo_;
-}
-
-void RepoManager::new_repo(const std::string& path)
-{
-    repo_ = GitRepo{ path };
 }
 
 std::shared_ptr<IRepoManager> MakeRepoManager(bool ida_is_interactive)

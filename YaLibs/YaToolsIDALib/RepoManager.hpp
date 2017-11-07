@@ -71,7 +71,6 @@ struct IRepoManager
 
     //tmp
     virtual GitRepo& get_repo() = 0;
-    virtual void new_repo(const std::string& path) = 0;
 };
 
 
