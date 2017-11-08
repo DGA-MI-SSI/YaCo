@@ -309,21 +309,7 @@ void RepoManager::ask_to_checkout_modified_files()
     {
         if (modified_object == original_idb)
         {
-            std::time_t now{ std::time(nullptr) };
-            std::string date{ std::ctime(&now) };
-            std::replace(date.begin(), date.end(), ' ', '_');
-            std::replace(date.begin(), date.end(), ':', '_');
-            std::string suffix = "_bkp_" + date;
-            std::string new_idb = get_local_idb_name(original_idb, suffix);
-            try
-            {
-                fs::copy_file(original_idb, new_idb);
-            }
-            catch (fs::filesystem_error error)
-            {
-                warning("Couldn't create backup idb file.\n\n%s", error.what());
-                throw std::runtime_error(error);
-            }
+            backup_original_idb();
             checkout_head = true;
         }
         else
@@ -867,6 +853,42 @@ std::string ea_to_hex(ea_t ea)
     char buffer[19]; // size for 0x%016X + \0
     std::snprintf(buffer, COUNT_OF(buffer), "0x" EA_FMT, ea);
     return std::string{ buffer };
+}
+
+bool backup_file(const std::string& file_path)
+{
+    std::time_t now{ std::time(nullptr) };
+    std::string date{ std::ctime(&now) };
+    date = date.substr(0, date.size() - 1); //remove final \n from ctime
+    std::replace(date.begin(), date.end(), ' ', '_');
+    std::replace(date.begin(), date.end(), ':', '_');
+    std::string suffix = "_bkp_" + date;
+    std::string backup_file_path = file_path;
+    add_filename_suffix(backup_file_path, suffix);
+
+    try
+    {
+        fs::copy_file(file_path, backup_file_path);
+    }
+    catch (fs::filesystem_error error)
+    {
+        LOG(WARNING, "Couldn't create backup for %s, error: %s", file_path.c_str(), error.what());
+        return false;
+    }
+
+    return true;
+}
+
+bool backup_current_idb()
+{
+    return backup_file(database_idb);
+}
+
+bool backup_original_idb()
+{
+    std::string original_idb_path{ database_idb };
+    remove_filename_suffix(original_idb_path, "_local");
+    return backup_file(original_idb_path);
 }
 
 std::string get_original_idb_name()

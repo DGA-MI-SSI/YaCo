@@ -78,6 +78,12 @@ std::shared_ptr<IRepoManager> MakeRepoManager(bool ida_is_interactive);
 
 std::string ea_to_hex(ea_t ea);
 
+bool backup_file(const std::string& file_path);
+
+bool backup_current_idb();
+
+bool backup_original_idb();
+
 std::string get_original_idb_name();
 
 std::string get_current_idb_name();
