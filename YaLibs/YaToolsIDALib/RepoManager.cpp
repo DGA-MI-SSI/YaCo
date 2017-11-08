@@ -268,6 +268,8 @@ namespace
 
         void toggle_repo_auto_sync() override;
 
+        void sync_and_push_original_idb() override;
+
         //tmp
         GitRepo& get_repo() override;
 
@@ -627,7 +629,7 @@ void RepoManager::check_valid_cache_startup()
         if (ida_is_interactive_)
         {
             std::string msg = "To use YaCo you must name your IDB with _local suffix. YaCo will create one for you.\nRestart IDA and open ";
-            msg += fs::path{ local_idb_path }.filename().string();
+            msg += fs::path{ local_idb_path }.filename().generic_string();
             msg += '.';
             database_flags |= DBFL_KILL;
             warning(msg.c_str());
@@ -838,6 +840,46 @@ void RepoManager::toggle_repo_auto_sync()
         msg("Auto rebase/push disabled\n");
 }
 
+void RepoManager::sync_and_push_original_idb()
+{
+    // sync original idb to current idb
+    backup_original_idb();
+    copy_current_idb_to_original_file();
+
+    // remove xml cache files
+    for (const fs::directory_entry& file_path : fs::recursive_directory_iterator("cache"))
+    {
+        bool is_regular_file = false;
+        try
+        {
+            is_regular_file = fs::is_regular_file(file_path.path());
+        }
+        catch (fs::filesystem_error) {}
+        if (!is_regular_file)
+            continue;
+
+        // git remove xml
+        repo_.remove_file(file_path.path().generic_string());
+
+        // filesystem remove xml
+        try
+        {
+            fs::remove(file_path.path());
+        }
+        catch (fs::filesystem_error error)
+        {
+            LOG(WARNING, "Couldn't remove %s, error: %s", file_path.path().generic_string().c_str(), error.what());
+        }
+    }
+
+    // git add original idb file
+    repo_.add_file(get_original_idb_name());
+
+    // git commit and push
+    repo_.commit("YaCo force push");
+    push_origin_master();
+}
+
 GitRepo& RepoManager::get_repo()
 {
     return repo_;
@@ -857,8 +899,7 @@ std::string ea_to_hex(ea_t ea)
 
 std::string get_current_idb_path()
 {
-    // just wrap IDA API to make it easy to change later
-    return database_idb;
+    return fs::path{ database_idb }.generic_string();
 }
 
 std::string get_original_idb_path()
