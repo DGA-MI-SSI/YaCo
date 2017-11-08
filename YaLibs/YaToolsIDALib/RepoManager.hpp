@@ -78,9 +78,9 @@ std::shared_ptr<IRepoManager> MakeRepoManager(bool ida_is_interactive);
 
 std::string ea_to_hex(ea_t ea);
 
-std::string get_original_idb_name(const std::string& local_idb_name, const std::string& suffix = "");
+std::string get_original_idb_name();
 
-std::string get_local_idb_name(const std::string& original_idb_name, const std::string& suffix = "");
+std::string get_current_idb_name();
 
 void remove_ida_temporary_files(const std::string& idb_path);
 

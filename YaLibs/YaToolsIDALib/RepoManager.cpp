@@ -304,7 +304,7 @@ void RepoManager::ask_to_checkout_modified_files()
     std::string modified_objects;
     bool checkout_head{ false };
 
-    std::string original_idb = get_original_idb_name(database_idb);
+    std::string original_idb = get_original_idb_name();
     for (std::string modified_object : repo_.get_modified_objects())
     {
         if (modified_object == original_idb)
@@ -860,28 +860,16 @@ std::string ea_to_hex(ea_t ea)
     return std::string{ buffer };
 }
 
-std::string get_original_idb_name(const std::string& local_idb_name, const std::string& suffix)
+std::string get_original_idb_name()
 {
-    std::string idb_name{ fs::path{ local_idb_name }.filename().string() };
-
-    if (suffix.empty())
-        remove_filename_suffix(idb_name, "_local");
-    else
-        remove_filename_suffix(idb_name, suffix);
-
+    std::string idb_name{ fs::path{ database_idb }.filename().string() };
+    remove_filename_suffix(idb_name, "_local");
     return idb_name;
 }
 
-std::string get_local_idb_name(const std::string& original_idb_name, const std::string& suffix)
+std::string get_current_idb_name()
 {
-    std::string idb_name{ fs::path{ original_idb_name }.filename().string() };
-
-    if (suffix.empty())
-        add_filename_suffix(idb_name, "_local");
-    else
-        add_filename_suffix(idb_name, suffix);
-
-    return idb_name;
+    return fs::path{ database_idb }.filename().string();
 }
 
 void remove_ida_temporary_files(const std::string& idb_path)
