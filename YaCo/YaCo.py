@@ -182,8 +182,8 @@ class YaCo:
         # disable all yaco hooks
         self.YaCoUI.unhook()
 
-        # create a backup of current idb
-        ya.copy_idb_to_local_file("_bkp_%s" % time.ctime().replace(" ", "_").replace(":", "_"))
+        # create a backup of original idb
+        ya.backup_original_idb()
 
         # restore original idb
         ya.copy_current_idb_to_original_file()
@@ -221,7 +221,7 @@ class YaCo:
         self.YaCoUI.unhook()
 
         # create a backup of current idb
-        ya.copy_idb_to_local_file("_bkp_%s" % time.ctime().replace(" ", "_").replace(":", "_"))
+        ya.backup_current_idb()
 
         # delete all modified objects
         self.repo_manager.get_repo().checkout_head()
