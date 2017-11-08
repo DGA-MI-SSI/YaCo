@@ -195,25 +195,9 @@ class YaCo:
         # disable all yaco hooks
         self.YaCoUI.unhook()
 
-        # create a backup of current idb
-        ya.backup_current_idb()
+        self.repo_manager.discard_and_pull_idb()
 
-        # delete all modified objects
-        self.repo_manager.get_repo().checkout_head()
-
-        # get reset
-        self.repo_manager.fetch_origin()
-        self.repo_manager.rebase_from_origin()
-
-        original_idb_name = ya.get_original_idb_name()
-
-        # remove current idb
-        os.remove(idc.GetIdbPath())
-
-        # recreate local idb
-        ya.copy_original_idb_to_current_file()
-
-        # local should not be overwritten, so we have to close IDA brutally !
+        # current idb should not be overwritten, so we have to close IDA brutally !
         idaapi.set_database_flag(idaapi.DBFL_KILL)
         idc.Warning("Force pull complete, you can restart IDA")
         idc.Exit(0)

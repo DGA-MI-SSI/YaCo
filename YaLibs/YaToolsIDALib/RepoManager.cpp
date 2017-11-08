@@ -270,6 +270,8 @@ namespace
 
         void sync_and_push_original_idb() override;
 
+        void discard_and_pull_idb() override;
+
         //tmp
         GitRepo& get_repo() override;
 
@@ -878,6 +880,22 @@ void RepoManager::sync_and_push_original_idb()
     // git commit and push
     repo_.commit("YaCo force push");
     push_origin_master();
+}
+
+void RepoManager::discard_and_pull_idb()
+{
+    backup_current_idb();
+    backup_original_idb();
+
+    // delete all modified objects
+    repo_.checkout_head();
+
+    // get synced original idb
+    fetch_origin();
+    rebase_from_origin();
+
+    // sync current idb to original idb
+    copy_original_idb_to_current_file();
 }
 
 GitRepo& RepoManager::get_repo()
