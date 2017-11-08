@@ -229,13 +229,13 @@ class YaCo:
         self.repo_manager.fetch_origin()
         self.repo_manager.rebase_from_origin()
 
-        original_idb_name = ya.get_original_idb_name(idc.GetIdbPath())
+        original_idb_name = ya.get_original_idb_name()
 
         # remove current idb
         os.remove(idc.GetIdbPath())
 
         # recreate local idb
-        shutil.copy(original_idb_name, ya.get_local_idb_name(original_idb_name))
+        shutil.copy(original_idb_name, ya.get_current_idb_name())
 
         # local should not be overwritten, so we have to close IDA brutally !
         idaapi.set_database_flag(idaapi.DBFL_KILL)
