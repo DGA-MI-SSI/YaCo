@@ -304,10 +304,10 @@ void RepoManager::ask_to_checkout_modified_files()
     std::string modified_objects;
     bool checkout_head{ false };
 
-    std::string original_idb = get_original_idb_name();
+    std::string original_idb_name = get_original_idb_name();
     for (std::string modified_object : repo_.get_modified_objects())
     {
-        if (modified_object == original_idb)
+        if (modified_object == original_idb_name)
         {
             backup_original_idb();
             checkout_head = true;
@@ -427,7 +427,7 @@ void RepoManager::repo_init()
         ensure_git_globals();
 
         //add current IDB to repo
-        repo_.add_file(fs::path{ database_idb }.filename().string());
+        repo_.add_file(get_current_idb_name());
 
         //create an initial commit with IDB
         repo_.commit("Initial commit");
@@ -598,9 +598,9 @@ void RepoManager::check_valid_cache_startup()
     }
     catch (fs::filesystem_error){}
 
-    fs::path idb_path{ database_idb };
-    std::string idb_extension{ idb_path.extension().string() };
-    std::string idb_prefix{ database_idb };
+    fs::path current_idb_path{ get_current_idb_path() };
+    std::string idb_extension{ current_idb_path.extension().string() };
+    std::string idb_prefix{ get_current_idb_path() };
     remove_substring(idb_prefix, idb_extension);
 
     if (!std::regex_match(idb_prefix, std::regex{ ".*_local$" }))
@@ -616,7 +616,7 @@ void RepoManager::check_valid_cache_startup()
         {
             try
             {
-                fs::copy_file(idb_path, local_idb_path);
+                fs::copy_file(current_idb_path, local_idb_path);
             }
             catch (fs::filesystem_error error)
             {
@@ -855,6 +855,31 @@ std::string ea_to_hex(ea_t ea)
     return std::string{ buffer };
 }
 
+std::string get_current_idb_path()
+{
+    // just wrap IDA API to make it easy to change later
+    return database_idb;
+}
+
+std::string get_original_idb_path()
+{
+    std::string original_idb_path{ get_current_idb_path() };
+    remove_filename_suffix(original_idb_path, "_local");
+    return original_idb_path;
+}
+
+std::string get_current_idb_name()
+{
+    return fs::path{ get_current_idb_path() }.filename().string();
+}
+
+std::string get_original_idb_name()
+{
+    std::string original_idb_name{ get_current_idb_name() };
+    remove_filename_suffix(original_idb_name, "_local");
+    return original_idb_name;
+}
+
 bool backup_file(const std::string& file_path)
 {
     std::time_t now{ std::time(nullptr) };
@@ -881,26 +906,12 @@ bool backup_file(const std::string& file_path)
 
 bool backup_current_idb()
 {
-    return backup_file(database_idb);
+    return backup_file(get_current_idb_path());
 }
 
 bool backup_original_idb()
 {
-    std::string original_idb_path{ database_idb };
-    remove_filename_suffix(original_idb_path, "_local");
-    return backup_file(original_idb_path);
-}
-
-std::string get_original_idb_name()
-{
-    std::string idb_name{ fs::path{ database_idb }.filename().string() };
-    remove_filename_suffix(idb_name, "_local");
-    return idb_name;
-}
-
-std::string get_current_idb_name()
-{
-    return fs::path{ database_idb }.filename().string();
+    return backup_file(get_original_idb_path());
 }
 
 void remove_ida_temporary_files(const std::string& idb_path)
@@ -921,9 +932,8 @@ void remove_ida_temporary_files(const std::string& idb_path)
 
 bool copy_original_idb_to_current_file()
 {
-    std::string current_idb_path{ database_idb };
-    std::string original_idb_path{ database_idb };
-    remove_filename_suffix(original_idb_path, "_local");
+    std::string current_idb_path{ get_current_idb_path() };
+    std::string original_idb_path{ get_original_idb_path() };
     try
     {
         fs::copy_file(original_idb_path, current_idb_path, fs::copy_options::overwrite_existing);
@@ -931,7 +941,7 @@ bool copy_original_idb_to_current_file()
     }
     catch (fs::filesystem_error error)
     {
-        LOG(WARNING, "Couldn't copy original idb to local idb, error: %s", error.what());
+        LOG(WARNING, "Couldn't copy original idb to current idb, error: %s", error.what());
         return false;
     }
     return true;
@@ -939,9 +949,8 @@ bool copy_original_idb_to_current_file()
 
 bool copy_current_idb_to_original_file()
 {
-    std::string current_idb_path{ database_idb };
-    std::string original_idb_path{ database_idb };
-    remove_filename_suffix(original_idb_path, "_local");
+    std::string current_idb_path{ get_current_idb_path() };
+    std::string original_idb_path{ get_original_idb_path() };
     try
     {
         fs::copy_file(current_idb_path, original_idb_path, fs::copy_options::overwrite_existing);
@@ -949,7 +958,7 @@ bool copy_current_idb_to_original_file()
     }
     catch (fs::filesystem_error error)
     {
-        LOG(WARNING, "Couldn't copy local idb to original idb, error: %s", error.what());
+        LOG(WARNING, "Couldn't copy current idb to original idb, error: %s", error.what());
         return false;
     }
     return true;
