@@ -69,6 +69,8 @@ struct IRepoManager
 
     virtual void toggle_repo_auto_sync() = 0;
 
+    virtual void sync_and_push_original_idb() = 0;
+
     //tmp
     virtual GitRepo& get_repo() = 0;
 };

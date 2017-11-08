@@ -182,32 +182,7 @@ class YaCo:
         # disable all yaco hooks
         self.YaCoUI.unhook()
 
-        # create a backup of original idb
-        ya.backup_original_idb()
-
-        # restore original idb
-        ya.copy_current_idb_to_original_file()
-
-        # get xml files
-        xml_files = []
-        for root, dirs, files in os.walk('cache/'):
-            for file in files:
-                xml_files.append("%s/%s" % (root, file))
-
-        # add idb
-        original_file = ya.get_original_idb_name()
-        self.repo_manager.get_repo().add_file(original_file)
-
-        # remove xml cache
-        self.repo_manager.get_repo().remove_files(xml_files)
-        for xml_file in xml_files:
-            os.remove(xml_file)
-
-        # create commit
-        self.repo_manager.get_repo().commit("YaCo force push")
-
-        # push commit
-        self.repo_manager.push_origin_master()
+        self.repo_manager.sync_and_push_original_idb()
 
         idc.Warning("Force push complete, you can restart IDA and other YaCo users can \"Force pull\"")
 
