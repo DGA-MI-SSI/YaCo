@@ -186,7 +186,7 @@ class YaCo:
         ya.copy_idb_to_local_file("_bkp_%s" % time.ctime().replace(" ", "_").replace(":", "_"))
 
         # restore original idb
-        original_file = ya.copy_idb_to_original_file()
+        ya.copy_current_idb_to_original_file()
 
         # get xml files
         xml_files = []
@@ -195,6 +195,7 @@ class YaCo:
                 xml_files.append("%s/%s" % (root, file))
 
         # add idb
+        original_file = ya.get_original_idb_name()
         self.repo_manager.get_repo().add_file(original_file)
 
         # remove xml cache
@@ -235,7 +236,7 @@ class YaCo:
         os.remove(idc.GetIdbPath())
 
         # recreate local idb
-        shutil.copy(original_idb_name, ya.get_current_idb_name())
+        ya.copy_original_idb_to_current_file()
 
         # local should not be overwritten, so we have to close IDA brutally !
         idaapi.set_database_flag(idaapi.DBFL_KILL)

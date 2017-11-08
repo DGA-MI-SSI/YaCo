@@ -84,9 +84,9 @@ std::string get_current_idb_name();
 
 void remove_ida_temporary_files(const std::string& idb_path);
 
-std::string copy_idb_to_local_file(const std::string& suffix = "");
+bool copy_original_idb_to_current_file();
 
-std::string copy_idb_to_original_file(const std::string& suffix = "");
+bool copy_current_idb_to_original_file();
 
 
 // temporary helper until hooks are moved to native

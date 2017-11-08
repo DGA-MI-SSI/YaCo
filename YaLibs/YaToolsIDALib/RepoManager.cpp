@@ -499,7 +499,7 @@ void RepoManager::repo_init()
                 }
             }
         }
-        copy_idb_to_local_file();
+        copy_original_idb_to_current_file();
     }
 
     push_origin_master();
@@ -613,26 +613,35 @@ void RepoManager::check_valid_cache_startup()
     catch (fs::filesystem_error){}
 
     fs::path idb_path{ database_idb };
-    std::string idb_prefix{ idb_path.filename().string() };
     std::string idb_extension{ idb_path.extension().string() };
+    std::string idb_prefix{ database_idb };
     remove_substring(idb_prefix, idb_extension);
 
     if (!std::regex_match(idb_prefix, std::regex{ ".*_local$" }))
     {
-        std::string local_idb_name = idb_prefix + "_local" + idb_extension;
+        std::string local_idb_path = idb_prefix + "_local" + idb_extension;
         bool local_idb_exist = false;
         try
         {
-            local_idb_exist = fs::exists(local_idb_name);
+            local_idb_exist = fs::exists(local_idb_path);
         }
         catch (fs::filesystem_error) {}
         if (!local_idb_exist)
-            copy_idb_to_local_file();
+        {
+            try
+            {
+                fs::copy_file(idb_path, local_idb_path);
+            }
+            catch (fs::filesystem_error error)
+            {
+                LOG(WARNING, "Couldn't create local idb file, error: %s", error.what());
+            }
+        }
 
         if (ida_is_interactive_)
         {
             std::string msg = "To use YaCo you must name your IDB with _local suffix. YaCo will create one for you.\nRestart IDA and open ";
-            msg += local_idb_name;
+            msg += fs::path{ local_idb_path }.filename().string();
             msg += '.';
             database_flags |= DBFL_KILL;
             warning(msg.c_str());
@@ -888,20 +897,40 @@ void remove_ida_temporary_files(const std::string& idb_path)
     }
 }
 
-std::string copy_idb_to_local_file(const std::string& suffix)
+bool copy_original_idb_to_current_file()
 {
-    std::string local_file_name{ get_local_idb_name(database_idb, suffix) };
-    save_database_ex(local_file_name.c_str(), 0);
-    remove_ida_temporary_files(local_file_name);
-    return local_file_name;
+    std::string current_idb_path{ database_idb };
+    std::string original_idb_path{ database_idb };
+    remove_filename_suffix(original_idb_path, "_local");
+    try
+    {
+        fs::copy_file(original_idb_path, current_idb_path, fs::copy_options::overwrite_existing);
+        remove_ida_temporary_files(current_idb_path);
+    }
+    catch (fs::filesystem_error error)
+    {
+        LOG(WARNING, "Couldn't copy original idb to local idb, error: %s", error.what());
+        return false;
+    }
+    return true;
 }
 
-std::string copy_idb_to_original_file(const std::string& suffix)
+bool copy_current_idb_to_original_file()
 {
-    std::string orig_file_name{ get_original_idb_name(database_idb, suffix) };
-    save_database_ex(orig_file_name.c_str(), 0);
-    remove_ida_temporary_files(orig_file_name);
-    return orig_file_name;
+    std::string current_idb_path{ database_idb };
+    std::string original_idb_path{ database_idb };
+    remove_filename_suffix(original_idb_path, "_local");
+    try
+    {
+        fs::copy_file(current_idb_path, original_idb_path, fs::copy_options::overwrite_existing);
+        remove_ida_temporary_files(original_idb_path);
+    }
+    catch (fs::filesystem_error error)
+    {
+        LOG(WARNING, "Couldn't copy local idb to original idb, error: %s", error.what());
+        return false;
+    }
+    return true;
 }
 
 
