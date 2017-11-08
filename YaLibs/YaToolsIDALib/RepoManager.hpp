@@ -71,6 +71,8 @@ struct IRepoManager
 
     virtual void sync_and_push_original_idb() = 0;
 
+    virtual void discard_and_pull_idb() = 0;
+
     //tmp
     virtual GitRepo& get_repo() = 0;
 };
