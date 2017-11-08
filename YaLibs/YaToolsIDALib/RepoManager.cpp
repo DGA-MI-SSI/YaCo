@@ -272,9 +272,6 @@ namespace
 
         void discard_and_pull_idb() override;
 
-        //tmp
-        GitRepo& get_repo() override;
-
     private:
         bool ida_is_interactive_;
 
@@ -896,11 +893,6 @@ void RepoManager::discard_and_pull_idb()
 
     // sync current idb to original idb
     copy_original_idb_to_current_file();
-}
-
-GitRepo& RepoManager::get_repo()
-{
-    return repo_;
 }
 
 std::shared_ptr<IRepoManager> MakeRepoManager(bool ida_is_interactive)
