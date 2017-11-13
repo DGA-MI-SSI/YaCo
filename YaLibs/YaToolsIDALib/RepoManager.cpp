@@ -289,6 +289,8 @@ namespace
         void discard_and_pull_idb() override;
 
     private:
+        void ask_for_remote();
+
         bool ida_is_interactive_;
 
         GitRepo repo_;
@@ -465,50 +467,7 @@ void RepoManager::repo_init()
     }
 
     if (ida_is_interactive_)
-    {
-        const char* tmp = askstr(0, "ssh://gitolite@repo/", "Specify a remote origin :");
-        std::string url = tmp != nullptr ? tmp : "";
-        if (!url.empty())
-        {
-            try
-            {
-                repo_.create_remote("origin", url);
-            }
-            catch (const std::runtime_error& _error)
-            {
-                IDA_LOG_GUI_ERROR("An error occured during remote creation, error: %s", _error.what());
-                return;
-            }
-
-            if (!std::regex_match(url, std::regex("^ssh://.*"))) // add http/https to regex ? ("^((ssh)|(https?))://.*")
-            {
-                fs::path path{ url };
-                if (!fs::exists(path))
-                {
-                    if (askyn_c(true, "The target directory doesn't exist, do you want to create it ?") == ASKBTN_YES)
-                    {
-                        if (fs::create_directories(path))
-                        {
-                            GitRepo tmp_repo{ url };
-                            try
-                            {
-                                tmp_repo.init_bare();
-                            }
-                            catch (std::runtime_error error)
-                            {
-                                IDA_LOG_GUI_WARNING("Couldn't init remote repo, error: %s", error.what());
-                            }
-                        }
-                        else
-                        {
-                            IDA_LOG_GUI_WARNING("Directory %s creation failed.", url.c_str());
-                        }
-                    }
-                }
-            }
-        }
-        copy_original_idb_to_current_file();
-    }
+        ask_for_remote();
 
     push_origin_master();
 }
@@ -969,6 +928,50 @@ void RepoManager::discard_and_pull_idb()
 
     // sync current idb to original idb
     copy_original_idb_to_current_file();
+}
+
+void RepoManager::ask_for_remote()
+{
+    const char* tmp = askstr(0, "ssh://gitolite@repo/", "Specify a remote origin :");
+    std::string url = tmp != nullptr ? tmp : "";
+    if (url.empty())
+        return;
+    
+    try
+    {
+        repo_.create_remote("origin", url);
+    }
+    catch (const std::runtime_error& _error)
+    {
+        IDA_LOG_GUI_ERROR("An error occured during remote creation, error: %s", _error.what());
+        return;
+    }
+
+    if (std::regex_match(url, std::regex("^ssh://.*"))) // add http/https to regex ? ("^((ssh)|(https?))://.*")
+        return;
+
+    fs::path path{ url };
+    if (fs::exists(path))
+        return;
+
+    if (askyn_c(true, "The target directory doesn't exist, do you want to create it ?") != ASKBTN_YES)
+        return;
+
+    if (!fs::create_directories(path))
+    {
+        IDA_LOG_GUI_WARNING("Directory %s creation failed.", url.c_str());
+        return;
+    }
+    
+    GitRepo tmp_repo{ url };
+    try
+    {
+        tmp_repo.init_bare();
+    }
+    catch (std::runtime_error error)
+    {
+        IDA_LOG_GUI_WARNING("Couldn't init remote repo, error: %s", error.what());
+    }
 }
 
 std::shared_ptr<IRepoManager> MakeRepoManager(bool ida_is_interactive)
