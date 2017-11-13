@@ -79,9 +79,13 @@ namespace fs = std::experimental::filesystem;
     error(FMT, ## __VA_ARGS__); \
 } while(0)
 
-static constexpr size_t truncate_commit_message_length = 4000;
-
-static constexpr int commit_reties = 3;
+namespace
+{
+    static constexpr size_t MERGE_ATTRIBUTES_TXT_MAX_LENGTH        = 4096;
+    static constexpr size_t TRUNCATE_COMMIT_MSG_LENGTH             = 4000;
+    static constexpr int    GIT_PUSH_RETRIES                       = 3;
+    static constexpr int    CONFLICT_RESOLVER_EDIT_MAX_FILE_LENGTH = 65536;
+}
 
 static bool remove_substring(std::string& str, const std::string& substr)
 {
@@ -153,9 +157,9 @@ namespace
 
 std::string IDAPromptMergeConflict::merge_attributes_callback(const char* message_info, const char* input_attribute1, const char* input_attribute2)
 {
-    char buffer[4096];
+    char buffer[MERGE_ATTRIBUTES_TXT_MAX_LENGTH];
     char* answer = asktext(
-        4096,
+        sizeof buffer,
         buffer,
         input_attribute1,
         "%s\nValue from local : %s\nValue from remote : %s\n",
@@ -184,57 +188,55 @@ bool IDAInteractiveFileConflictResolver::callback(const std::string& input_file1
 
     IDAPromptMergeConflict merger_conflict;
     Merger merger{ &merger_conflict, ObjectVersionMergeStrategy_e::OBJECT_VERSION_MERGE_PROMPT };
-    if (merger.smartMerge(input_file1.c_str(), input_file2.c_str(), output_file_result.c_str()) == MergeStatus_e::OBJECT_MERGE_STATUS_NOT_UPDATED)
+    if (merger.smartMerge(input_file1.c_str(), input_file2.c_str(), output_file_result.c_str()) != MergeStatus_e::OBJECT_MERGE_STATUS_NOT_UPDATED)
     {
-        std::ifstream foutput{ output_file_result, std::ios::ate };
-        size_t foutput_size = static_cast<size_t>(foutput.tellg());
-        if (foutput_size > 65536)
-        {
-            foutput.close();
-            warning("File too big to be edited, please edit manually %s then continue", output_file_result.c_str());
-        }
-        else
-        {
-            foutput.seekg(0);
-            std::string input_content(foutput_size + 1, '\0' );
-            foutput.read(&input_content[0], foutput_size);
-            foutput.close();
-
-            const size_t buffer_size = 2 * input_content.size();
-            std::unique_ptr<char[]> buffer = std::make_unique<char[]>(buffer_size);
-
-            while (true)
-            {
-                char* merged_content = asktext(buffer_size, buffer.get(), input_content.c_str(), "manual merge stuff");
-                if (merged_content != nullptr)
-                {
-                    if (is_valid_xml_memory(buffer.get(), buffer_size))
-                    {
-                        std::ofstream foutput_{ output_file_result, std::ios::trunc };
-                        foutput_ << buffer.get();
-                        foutput_.close();
-                        break;
-                    }
-                    else
-                    {
-                        IDA_LOG_GUI_WARNING("Invalid xml content");
-                    }
-                }
-                else
-                {
-                    IDA_LOG_GUI_ERROR("Conflict not solved");
-                    return false;
-                }
-            }
-        }
-    }
-    else
-    {
-        if (is_valid_xml_file(output_file_result))
+        if (!is_valid_xml_file(output_file_result))
         {
             IDA_LOG_GUI_ERROR("Merger generated invalid xml file");
             return false;
         }
+        return true;
+    }
+
+    std::ifstream foutput{ output_file_result, std::ios::ate };
+    size_t foutput_size = static_cast<size_t>(foutput.tellg());
+    if (foutput_size > CONFLICT_RESOLVER_EDIT_MAX_FILE_LENGTH)
+    {
+        foutput.close();
+        warning("File too big to be edited, please edit manually %s then continue", output_file_result.c_str());
+        while (!is_valid_xml_file(output_file_result))
+        {
+            IDA_LOG_GUI_ERROR("%s is an invalid xml file", output_file_result.c_str());
+            return false;
+        }
+        return true;
+    }
+
+    foutput.seekg(0);
+    std::string input_content(foutput_size + 1, '\0');
+    foutput.read(&input_content[0], foutput_size);
+    foutput.close();
+
+    const size_t buffer_size = 2 * input_content.size();
+    std::unique_ptr<char[]> buffer = std::make_unique<char[]>(buffer_size);
+    while (true)
+    {
+        char* merged_content = asktext(buffer_size, buffer.get(), input_content.c_str(), "manual merge stuff");
+        if (merged_content == nullptr)
+        {
+            IDA_LOG_GUI_ERROR("Conflict not solved");
+            return false;
+        }
+
+        if (is_valid_xml_memory(buffer.get(), buffer_size))
+        {
+            std::ofstream foutput_{ output_file_result, std::ios::trunc };
+            foutput_ << buffer.get();
+            foutput_.close();
+            break;
+        }
+
+        IDA_LOG_GUI_WARNING("Invalid xml content");
     }
 
     return true;
@@ -777,7 +779,7 @@ std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>, 
         {
             LOG(DEBUG, "Push to master: fail, error: %s", error.what());
             ++nb_try;
-            if (nb_try < commit_reties)
+            if (nb_try < GIT_PUSH_RETRIES)
                 continue;
 
             IDA_LOG_WARNING("Errors occured during push to origin, they need to be resolved manually.");
@@ -857,13 +859,13 @@ bool RepoManager::repo_commit(std::string commit_msg)
             snprintf(buffer.get(), max_total_len, "[%-*s] %s", max_prefix_len, std::get<0>(comment).c_str(), std::get<1>(comment).c_str());
             commit_msg += buffer.get();
             commit_msg += '\n';
-            need_trucate = commit_msg.size() > truncate_commit_message_length;
+            need_trucate = commit_msg.size() > TRUNCATE_COMMIT_MSG_LENGTH;
             if (need_trucate)
                 break;
         }
         if (need_trucate)
         {
-            commit_msg.erase(truncate_commit_message_length);
+            commit_msg.erase(TRUNCATE_COMMIT_MSG_LENGTH);
             commit_msg += "\n...truncated";
         }
     }
