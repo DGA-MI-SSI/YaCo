@@ -105,26 +105,24 @@ static std::string extract_filename(const fs::path& file_path)
     return file_name;
 }
 
+static bool is_valid_xml(std::shared_ptr<xmlTextReader> reader)
+{
+    int ret = 1;
+    while (ret == 1)
+        ret = xmlTextReaderRead(reader.get());
+    return ret != -1 && xmlTextReaderIsValid(reader.get()) == 1;
+}
+
 static bool is_valid_xml_memory(const char* txt, size_t txt_size)
 {
     std::shared_ptr<xmlTextReader> reader(xmlReaderForMemory(txt, txt_size, "", NULL, 0), &xmlFreeTextReader);
-    int ret = 1;
-    while (ret == 1)
-    {
-        ret = xmlTextReaderRead(reader.get());
-    }
-    return !(ret == -1 || xmlTextReaderIsValid(reader.get()) != 1);
+    return is_valid_xml(reader);
 }
 
 static bool is_valid_xml_file(const std::string& filename)
 {
     std::shared_ptr<xmlTextReader> reader(xmlReaderForFile(filename.c_str(), NULL, 0), &xmlFreeTextReader);
-    int ret = 1;
-    while (ret == 1)
-    {
-        ret = xmlTextReaderRead(reader.get());
-    }
-    return !(ret == -1 || xmlTextReaderIsValid(reader.get()) != 1);
+    return is_valid_xml(reader);
 }
 
 static void add_filename_suffix(std::string& file_path, const std::string& suffix)
