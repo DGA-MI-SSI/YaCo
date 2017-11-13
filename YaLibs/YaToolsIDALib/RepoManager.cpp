@@ -167,10 +167,9 @@ std::string IDAPromptMergeConflict::merge_attributes_callback(const char* messag
         input_attribute1,
         input_attribute2
     );
-    if (answer == nullptr)
+    if (answer != buffer)
         return std::string{ input_attribute1 };
-    else
-        return std::string{ answer };
+    return std::string{ answer };
 }
 
 namespace
@@ -321,7 +320,7 @@ RepoManager::RepoManager(bool ida_is_interactive):
 void RepoManager::ask_to_checkout_modified_files()
 {
     std::string modified_objects;
-    bool checkout_head{ false };
+    bool checkout_head = false;
 
     std::string original_idb_name = get_original_idb_name();
     for (std::string modified_object : repo_.get_modified_objects())
@@ -354,10 +353,7 @@ void RepoManager::ask_to_checkout_modified_files()
     }
 
     if (checkout_head)
-    {
-        // checkout silently
-        repo_.checkout_head();
-    }
+        repo_.checkout_head(); // checkout silently
 }
 
 void RepoManager::ensure_git_globals()
@@ -633,7 +629,7 @@ void RepoManager::check_valid_cache_startup()
     if (!std::regex_match(idb_prefix, std::regex{ ".*_local$" }))
     {
         IDA_LOG_INFO("Current IDB does not have _local suffix");
-        std::string local_idb_path = idb_prefix + "_local" + idb_extension;
+        std::string local_idb_path{ idb_prefix + "_local" + idb_extension };
         bool local_idb_exist = fs::exists(local_idb_path, ec);
         if (!local_idb_exist)
         {
@@ -646,7 +642,7 @@ void RepoManager::check_valid_cache_startup()
         if (ida_is_interactive_)
         {
             IDA_LOG_INFO("IDA need to restart with local IDB.");
-            std::string msg = "To use YaCo you must name your IDB with _local suffix. YaCo will create one for you.\nRestart IDA and open ";
+            std::string msg{ "To use YaCo you must name your IDB with _local suffix. YaCo will create one for you.\nRestart IDA and open " };
             msg += fs::path{ local_idb_path }.filename().generic_string();
             msg += '.';
             database_flags |= DBFL_KILL;
@@ -933,7 +929,7 @@ void RepoManager::discard_and_pull_idb()
 void RepoManager::ask_for_remote()
 {
     const char* tmp = askstr(0, "ssh://gitolite@repo/", "Specify a remote origin :");
-    std::string url = tmp != nullptr ? tmp : "";
+    std::string url{ tmp != nullptr ? tmp : "" };
     if (url.empty())
         return;
     
@@ -1017,8 +1013,8 @@ bool backup_file(const std::string& file_path)
     date = date.substr(0, date.size() - 1); //remove final \n from ctime
     std::replace(date.begin(), date.end(), ' ', '_');
     std::replace(date.begin(), date.end(), ':', '_');
-    std::string suffix = "_bkp_" + date;
-    std::string backup_file_path = file_path;
+    std::string suffix{ "_bkp_" + date };
+    std::string backup_file_path{ file_path };
     add_filename_suffix(backup_file_path, suffix);
 
     std::error_code ec;
