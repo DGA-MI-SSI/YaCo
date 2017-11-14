@@ -20,6 +20,9 @@
 #pragma GCC system_header
 #endif
 
+// FIXME: disable IDA defines to use <fstream>
+#define USE_STANDARD_FILE_FUNCTIONS
+
 #define BYTES_SOURCE        // access byte flags
 #define ENUM_SOURCE         // access enum flags
 #define NO_OBSOLETE_FUNCS   // disable obsolete functions
@@ -41,6 +44,7 @@
 #include <segregs.hpp>
 #include <struct.hpp>
 #include <typeinf.hpp>
+#include <pro.h>
 #undef snprintf // ida disable this...
 
 #ifdef _MSC_VER

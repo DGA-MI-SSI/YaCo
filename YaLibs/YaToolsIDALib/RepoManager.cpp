@@ -15,12 +15,8 @@
 
 #include "RepoManager.hpp"
 
-// disable IDA defines to use <fstream>
-#define USE_STANDARD_FILE_FUNCTIONS
-
 #include "../YaGitLib/YaGitLib.hpp"
 #include "../YaGitLib/ResolveFileConflictCallback.hpp"
-#include "Ida.h"
 #include "Logger.h"
 #include "Yatools.h"
 #include "Merger.hpp"
@@ -81,7 +77,6 @@ namespace fs = std::experimental::filesystem;
 
 namespace
 {
-    static constexpr size_t MERGE_ATTRIBUTES_TXT_MAX_LENGTH        = 4096;
     static constexpr size_t TRUNCATE_COMMIT_MSG_LENGTH             = 4000;
     static constexpr int    GIT_PUSH_RETRIES                       = 3;
     static constexpr int    CONFLICT_RESOLVER_EDIT_MAX_FILE_LENGTH = 65536;
@@ -92,7 +87,7 @@ static bool remove_substring(std::string& str, const std::string& substr)
     if (substr.empty())
         return false;
 
-    const unsigned int pos = str.rfind(substr);
+    const size_t pos = str.rfind(substr);
     if (pos != std::string::npos)
     {
         str.erase(pos, substr.size());
@@ -119,7 +114,7 @@ static bool is_valid_xml(std::shared_ptr<xmlTextReader> reader)
 
 static bool is_valid_xml_memory(const char* txt, size_t txt_size)
 {
-    std::shared_ptr<xmlTextReader> reader(xmlReaderForMemory(txt, txt_size, "", NULL, 0), &xmlFreeTextReader);
+    std::shared_ptr<xmlTextReader> reader(xmlReaderForMemory(txt, static_cast<int>(txt_size), "", NULL, 0), &xmlFreeTextReader);
     return is_valid_xml(reader);
 }
 
@@ -157,19 +152,18 @@ namespace
 
 std::string IDAPromptMergeConflict::merge_attributes_callback(const char* message_info, const char* input_attribute1, const char* input_attribute2)
 {
-    char buffer[MERGE_ATTRIBUTES_TXT_MAX_LENGTH];
-    char* answer = asktext(
-        sizeof buffer,
-        buffer,
+    qstring buffer;
+    if(!ask_text(
+        &buffer,
+        0,
         input_attribute1,
         "%s\nValue from local : %s\nValue from remote : %s\n",
         message_info,
         input_attribute1,
         input_attribute2
-    );
-    if (answer != buffer)
+    ))
         return std::string{ input_attribute1 };
-    return std::string{ answer };
+    return std::string{ buffer.c_str() };
 }
 
 namespace
@@ -216,21 +210,19 @@ bool IDAInteractiveFileConflictResolver::callback(const std::string& input_file1
     foutput.read(&input_content[0], foutput_size);
     foutput.close();
 
-    const size_t buffer_size = 2 * input_content.size();
-    std::unique_ptr<char[]> buffer = std::make_unique<char[]>(buffer_size);
     while (true)
     {
-        char* merged_content = asktext(buffer_size, buffer.get(), input_content.c_str(), "manual merge stuff");
-        if (merged_content == nullptr)
+        qstring answer;
+        if (!ask_text(&answer, 0, input_content.c_str(), "manual merge stuff"))
         {
             IDA_LOG_GUI_ERROR("Conflict not solved");
             return false;
         }
 
-        if (is_valid_xml_memory(buffer.get(), buffer_size))
+        if (is_valid_xml_memory(answer.c_str(), answer.size()))
         {
             std::ofstream foutput_{ output_file_result, std::ios::trunc };
-            foutput_ << buffer.get();
+            foutput_ << answer.c_str();
             foutput_.close();
             break;
         }
@@ -341,7 +333,7 @@ void RepoManager::ask_to_checkout_modified_files()
     {
         // modified_objects is now the message
         modified_objects += "\nhas been modified, this is not normal, do you want to checkout these files ? (Rebasing will be disabled if you answer no)";
-        if (askyn_c(true, modified_objects.c_str()) != ASKBTN_NO)
+        if (ask_yn(true, modified_objects.c_str()) != ASKBTN_NO)
         {
             repo_.checkout_head();
         }
@@ -358,18 +350,18 @@ void RepoManager::ask_to_checkout_modified_files()
 
 void RepoManager::ensure_git_globals()
 {
-    std::string userName{ repo_.config_get_string("user.name") };
-    if (userName.empty())
+    std::string user_name{ repo_.config_get_string("user.name") };
+    if (user_name.empty())
     {
+        qstring tmp;
         do
-        {
-            const char* tmp = askstr(0, "username", "Entrer git user.name");
-            userName = tmp != nullptr ? tmp : "";
-        }
-        while (userName.empty());
+            tmp = "username";
+        while (!ask_str(&tmp, 0, "Entrer git user.name") || tmp.empty());
+
+        user_name = tmp.c_str();
         try
         {
-            repo_.config_set_string("user.name", userName);
+            repo_.config_set_string("user.name", user_name);
         }
         catch (const std::runtime_error& error)
         {
@@ -377,18 +369,18 @@ void RepoManager::ensure_git_globals()
         }
     }
 
-    std::string userEmail{ repo_.config_get_string("user.email") };
-    if (userEmail.empty())
+    std::string user_email{ repo_.config_get_string("user.email") };
+    if (user_email.empty())
     {
+        qstring tmp;
         do
-        {
-            const char* tmp = askstr(0, "username@localdomain", "Entrer git user.email");
-            userEmail = tmp != nullptr ? tmp : "";
-        }
-        while (userEmail.empty());
+            tmp = "username@localdomain";
+        while (!ask_str(&tmp, 0, "Entrer git user.email") || tmp.empty());
+
+        user_email = tmp.c_str();
         try
         {
-            repo_.config_set_string("user.email", userEmail);
+            repo_.config_set_string("user.email", user_email);
         }
         catch (const std::runtime_error& error)
         {
@@ -406,7 +398,7 @@ void RepoManager::add_auto_comment(ea_t ea, const std::string & text)
         {
             prefix += "stackframe '";
             qstring func_name;
-            get_func_name2(&func_name, get_func_by_frame(ea));
+            get_func_name(&func_name, get_func_by_frame(ea));
             prefix += func_name.c_str();
             prefix += "'";
         }
@@ -426,11 +418,31 @@ void RepoManager::add_auto_comment(ea_t ea, const std::string & text)
     else
     {
         prefix += ea_to_hex(ea);
-        char foffset[100];
-        if (a2funcoff(ea, foffset, sizeof(foffset)))
+        func_t* func = get_func(ea);
+        if (func)
         {
-            prefix += ',';
-            prefix += foffset;
+            qstring func_name;
+            get_func_name(&func_name, ea);
+            if (!func_name.empty())
+            {
+                prefix += ',';
+                prefix += func_name.c_str();
+
+                if (ea != func->start_ea)
+                {
+                    qstring ea_name;
+                    if (get_ea_name(&ea_name, ea, GN_LOCAL) && !ea_name.empty())
+                    {
+                        prefix += ':';
+                        prefix += ea_name.c_str();
+                    }
+                    else
+                    {
+                        prefix += '+';
+                        prefix += ea_to_hex(ea - func->start_ea);
+                    }
+                }
+            }
         }
     }
     auto_comments_.emplace_back(std::move(prefix), text);
@@ -645,7 +657,7 @@ void RepoManager::check_valid_cache_startup()
             std::string msg{ "To use YaCo you must name your IDB with _local suffix. YaCo will create one for you.\nRestart IDA and open " };
             msg += fs::path{ local_idb_path }.filename().generic_string();
             msg += '.';
-            database_flags |= DBFL_KILL;
+            set_database_flag(DBFL_KILL);
             warning(msg.c_str());
             qexit(0);
         }
@@ -811,7 +823,7 @@ bool RepoManager::repo_commit(std::string commit_msg)
         bool need_trucate = false;
         for (const std::tuple<std::string, std::string>& comment : auto_comments_)
         {
-            snprintf(buffer.get(), max_total_len, "[%-*s] %s", max_prefix_len, std::get<0>(comment).c_str(), std::get<1>(comment).c_str());
+            snprintf(buffer.get(), max_total_len, "[%-*s] %s", static_cast<int>(max_prefix_len), std::get<0>(comment).c_str(), std::get<1>(comment).c_str());
             commit_msg += buffer.get();
             commit_msg += '\n';
             need_trucate = commit_msg.size() > TRUNCATE_COMMIT_MSG_LENGTH;
@@ -928,11 +940,11 @@ void RepoManager::discard_and_pull_idb()
 
 void RepoManager::ask_for_remote()
 {
-    const char* tmp = askstr(0, "ssh://gitolite@repo/", "Specify a remote origin :");
-    std::string url{ tmp != nullptr ? tmp : "" };
-    if (url.empty())
+    qstring tmp{ "ssh://gitolite@repo/" };
+    if (!ask_str(&tmp, 0, "Specify a remote origin :"))
         return;
-    
+
+    std::string url{ tmp.c_str() };
     try
     {
         repo_.create_remote("origin", url);
@@ -950,7 +962,7 @@ void RepoManager::ask_for_remote()
     if (fs::exists(path))
         return;
 
-    if (askyn_c(true, "The target directory doesn't exist, do you want to create it ?") != ASKBTN_YES)
+    if (ask_yn(true, "The target directory doesn't exist, do you want to create it ?") != ASKBTN_YES)
         return;
 
     if (!fs::create_directories(path))
@@ -984,7 +996,7 @@ std::string ea_to_hex(ea_t ea)
 
 std::string get_current_idb_path()
 {
-    return fs::path{ database_idb }.generic_string();
+    return fs::path{ get_path(PATH_TYPE_IDB) }.generic_string();
 }
 
 std::string get_original_idb_path()
