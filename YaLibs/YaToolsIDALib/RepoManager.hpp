@@ -19,11 +19,9 @@
 #include <tuple>
 #include <set>
 
-#include <pro.h>
-
 #include "XML\XMLDatabaseModel.hpp" 
 #include "Model.hpp" 
-#include "RepoManager.hpp" 
+#include "Ida.h"
 
 // Forward declarations
 class GitRepo;
