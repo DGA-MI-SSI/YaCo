@@ -36,6 +36,7 @@ namespace std
 
 //in pro.h, they forbid use of some functions that SWIG needs : use them anyway and f*** ida!
 #define USE_DANGEROUS_FUNCTIONS
+#define USE_STANDARD_FILE_FUNCTIONS
 #include <pro.h>
 #include <kernwin.hpp>
 

@@ -27,7 +27,6 @@
 #include <sstream>
 #include <ctime>
 #include <regex>
-#include <fstream>
 
 #ifdef _MSC_VER
 #   include <filesystem>
@@ -180,45 +179,12 @@ bool IDAInteractiveFileConflictResolver::callback(const std::string& input_file1
         return true;
     }
 
-    std::ifstream foutput{ output_file_result, std::ios::ate };
-    size_t foutput_size = static_cast<size_t>(foutput.tellg());
-    if (foutput_size > CONFLICT_RESOLVER_EDIT_MAX_FILE_LENGTH)
+    warning("Auto merge failed, please edit manually %s then continue", output_file_result.c_str());
+    if (!is_valid_xml_file(output_file_result))
     {
-        foutput.close();
-        warning("File too big to be edited, please edit manually %s then continue", output_file_result.c_str());
-        while (!is_valid_xml_file(output_file_result))
-        {
-            IDA_LOG_GUI_ERROR("%s is an invalid xml file", output_file_result.c_str());
-            return false;
-        }
-        return true;
+        IDA_LOG_GUI_ERROR("%s is an invalid xml file", output_file_result.c_str());
+        return false;
     }
-
-    foutput.seekg(0);
-    std::string input_content(foutput_size + 1, '\0');
-    foutput.read(&input_content[0], foutput_size);
-    foutput.close();
-
-    while (true)
-    {
-        qstring answer;
-        if (!ask_text(&answer, 0, input_content.c_str(), "manual merge stuff"))
-        {
-            IDA_LOG_GUI_ERROR("Conflict not solved");
-            return false;
-        }
-
-        if (is_valid_xml_memory(answer.c_str(), answer.size()))
-        {
-            std::ofstream foutput_{ output_file_result, std::ios::trunc };
-            foutput_ << answer.c_str();
-            foutput_.close();
-            break;
-        }
-
-        IDA_LOG_GUI_WARNING("Invalid xml content");
-    }
-
     return true;
 }
 
