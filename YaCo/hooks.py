@@ -93,14 +93,14 @@ class YaToolIDAHooks(object):
         if type is not None:
             prefix = "%s " % type
         old_name_txt = ""
-        if old_name is not None:
+        if old_name not in [None, ""]:
             old_name_txt = "from %s" % old_name
         self.repo_manager.add_auto_comment(ea, "%srenamed %s to %s" % (prefix, old_name_txt, new_name))
 
     def comment_changed(self, ea):
         # TODO: Fix this when we received end undefined event !
         # logger.debug("comment_changed(%.016X)" % ea)
-        self.comments_to_process[ea] = "Add comment"
+        self.comments_to_process.add(ea)
 
     def undefine(self, ea):
         # TODO: Fix this when we received end undefined event !
@@ -338,11 +338,11 @@ class YaToolIDAHooks(object):
             self.repo_manager.add_auto_comment(removed_marked_pos, "Removed marked comment")
 
         # process comments
-        for (ea, value) in self.comments_to_process.iteritems():
+        for ea in self.comments_to_process:
             # do not save comments coming from function prototype
             # if not idaapi.is_tilcmt(ea):
             self.addresses_to_process.add(ea)
-            self.repo_manager.add_auto_comment(ea, value)
+            self.repo_manager.add_auto_comment(ea, "Changed comment")
 
         """
         Next, export strucs and enums
@@ -390,7 +390,7 @@ class YaToolIDAHooks(object):
         self.structures_to_process = set()
         self.enums_to_process = set()
         self.enummember_to_process = {}
-        self.comments_to_process = {}
+        self.comments_to_process = set()
         self.marked_pos = self.new_marked_pos
         self.updated_segments = set()
 
