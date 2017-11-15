@@ -24,7 +24,6 @@
 #include "Ida.h"
 
 // Forward declarations
-class GitRepo;
 namespace std { template<typename T> class shared_ptr; }
 
 
