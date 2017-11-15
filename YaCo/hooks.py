@@ -39,8 +39,8 @@ hooks = None
 
 
 class Hooks(object):
-    def __init__(self, hash_provider, repo_manager, equipment=None, operating_system=None):
-        self.ida = YaToolIDAHooks(hash_provider, repo_manager, equipment, operating_system)
+    def __init__(self, hash_provider, repo_manager):
+        self.ida = YaToolIDAHooks(hash_provider, repo_manager)
         self.idb = YaToolIDB_Hooks()
         self.idp = YaToolIDP_Hooks()
         self.current_rename_infos = {}
@@ -63,12 +63,10 @@ class YaToolIDAHooks(object):
     classdocs
     '''
 
-    def __init__(self, hash_provider, repo_manager, equipement=None, operating_system=None):
+    def __init__(self, hash_provider, repo_manager):
         '''
         Constructor
         '''
-        self.equipement = equipement
-        self.os = operating_system
         self.hash_provider = hash_provider
         self.repo_manager = repo_manager
 
