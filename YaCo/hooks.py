@@ -105,24 +105,20 @@ class YaToolIDAHooks(object):
     def undefine(self, ea):
         # TODO: Fix this when we received end undefined event !
         self.addresses_to_process.add(ea)
-        self.segment_address_to_process.add(ea)
         self.repo_manager.add_auto_comment(ea, "Undefine")
 
     def del_func(self, ea):
         self.addresses_to_process.add(ea)
-        self.segment_address_to_process.add(ea)
         self.repo_manager.add_auto_comment(ea, "Delete function")
 
     def make_code(self, ea):
         # TODO: Fix this when we received end function created event !
         self.addresses_to_process.add(ea)
-        self.segment_address_to_process.add(ea)
         self.repo_manager.add_auto_comment(ea, "Create code")
 
     def make_data(self, ea):
         # TODO: Fix this when we received end function created event !
         self.addresses_to_process.add(ea)
-        self.segment_address_to_process.add(ea)
         self.repo_manager.add_auto_comment(ea, "Create data")
 
     def add_func(self, ea):
@@ -137,7 +133,6 @@ class YaToolIDAHooks(object):
 
         # self.update_object_version_from_idb(ea)
         self.addresses_to_process.add(ea)
-        self.segment_address_to_process.add(ea)
         self.repo_manager.add_auto_comment(ea, "Create function")
 
     # =================== STRUCTURES ===================================#
@@ -391,7 +386,6 @@ class YaToolIDAHooks(object):
 
     def flush(self):
         self.addresses_to_process = set()
-        self.segment_address_to_process = set()
         self.strucmember_to_process = {}
         self.structures_to_process = set()
         self.enums_to_process = set()
