@@ -72,13 +72,6 @@ class YaToolIDAHooks(object):
         self.hash_provider = hash_provider
         self.repo_manager = repo_manager
 
-        self.new_marked_pos = set()
-        # load marked pos
-        for i in xrange(1, 1024):
-            if idc.GetMarkedPos(i) == idc.BADADDR:
-                break
-            else:
-                self.new_marked_pos.add(idc.GetMarkedPos(i))
         self.flush()
 
     # ==================================================================#
@@ -126,12 +119,7 @@ class YaToolIDAHooks(object):
         logger.warning("Warning : deletion of objects not implemented")
         # TODO : implement deletion of objects inside newly created function range
         # TODO : use function chunks to iterate over function code
-        ea_index = int(ea)
-        while ea_index < int(idc.FindFuncEnd(ea)):
-            self.delete_object_version_for_ea(ea_index)
-            ea_index += 1
 
-        # self.update_object_version_from_idb(ea)
         self.addresses_to_process.add(ea)
         self.repo_manager.add_auto_comment(ea, "Create function")
 
@@ -323,20 +311,8 @@ class YaToolIDAHooks(object):
             memory_exporter = ya.MakeMultiplexerDebugger(db.visitor)
         memory_exporter.visit_start()
         """
-        First, find modified informations : marked positions, comments, ...
+        First, find modified informations : comments, ...
         """
-        # some marked comment may have been deleted
-        self.new_marked_pos = set()
-        for i in xrange(1, 1024):
-            if idc.GetMarkedPos(i) == idc.BADADDR:
-                break
-            else:
-                self.new_marked_pos.add(idc.GetMarkedPos(i))
-        # get remove marked comments
-        for removed_marked_pos in (self.marked_pos - self.new_marked_pos):
-            self.addresses_to_process.add(removed_marked_pos)
-            self.repo_manager.add_auto_comment(removed_marked_pos, "Removed marked comment")
-
         # process comments
         for ea in self.comments_to_process:
             # do not save comments coming from function prototype
@@ -391,7 +367,6 @@ class YaToolIDAHooks(object):
         self.enums_to_process = set()
         self.enummember_to_process = {}
         self.comments_to_process = set()
-        self.marked_pos = self.new_marked_pos
         self.updated_segments = set()
 
 
