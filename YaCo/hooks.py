@@ -82,45 +82,6 @@ class YaToolIDAHooks(object):
         self.flush()
 
     # ==================================================================#
-    # DB Accessors
-    # ==================================================================#
-
-    def get_object_version_for_ea(self, ea):
-        for (object_id, objects_version) in self.reference_objects.values():  # @UnusedVariable
-            for object_version in objects_version:
-                matchingsystems = object_version['matchingsystems']
-                for matchingsystem in matchingsystems:
-                    if (
-                            (matchingsystem['equipement'] == self.equipement) and
-                            (matchingsystem['os'] == self.os) and
-                            (matchingsystem['address'] == ea)
-                    ):
-                        return object_version
-        return None
-
-    def delete_object_version_for_ea(self, ea):
-        pass
-
-    # for (key, (object_id, objects_version)) in self.reference_objects.items():  # @UnusedVariable
-    #             for object_version in objects_version:
-    #                 matchingsystems = object_version['matchingsystems']
-    #                 for matchingsystem in matchingsystems:
-    #                     if  (matchingsystem['equipement'] == self.equipement) and (matchingsystem['os'] == self.os)
-    #                           and (matchingsystem['address'] == ea) :
-    #                         del self.reference_objects[key]
-
-    # ==================================================================#
-    # DB Updaters
-    # ==================================================================#
-    # update all informations for a given address from the IDB
-
-    def is_valid_name(self, name):
-        if (name is None or name == '' or name.startswith('loc_') or name.startswith('sub_') or name.startswith(
-                'unk_')):
-            return False
-        return True
-
-    # ==================================================================#
     # Hook forward
     # ==================================================================#
     # ==================== FUNCTIONS ===================================#
