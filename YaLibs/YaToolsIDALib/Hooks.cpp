@@ -19,21 +19,48 @@
 #include "Repository.hpp"
 #include "YaToolsHashProvider.hpp"
 #include "IModel.hpp"
+#include "Model.hpp"
 #include "IDANativeModel.hpp"
+#include "XML/XMLExporter.hpp"
+#include "Logger.h"
+#include "Yatools.h"
+#include "Utils.hpp"
+
+#define MODULE_NAME "hooks"
+#include "IDAUtils.hpp"
 
 #include <memory>
 #include <tuple>
+#include <chrono>
+
+#ifdef _MSC_VER
+#   include <filesystem>
+#else
+#   include <experimental/filesystem>
+#endif
+
+namespace fs = std::experimental::filesystem;
 
 namespace
 {
+    std::string get_cache_folder_path()
+    {
+        std::string cache_folder_path = get_path(PATH_TYPE_IDB);
+        remove_substring(cache_folder_path, fs::path(cache_folder_path).filename().string());
+        cache_folder_path += "cache";
+        return cache_folder_path;
+    }
+
     struct Hooks
         : public IHooks
     {
 
         Hooks(const std::shared_ptr<IHashProvider>& hash_provider, const std::shared_ptr<IRepository>& repo_manager);
 
+        void save() override;
 
     private:
+        void add_address_to_process(ea_t ea, const std::string& message);
         void save_structures(std::shared_ptr<IModelIncremental>& ida_model, IModelVisitor* memory_exporter);
         void save_enums(std::shared_ptr<IModelIncremental>& ida_model, IModelVisitor* memory_exporter);
 
@@ -55,6 +82,48 @@ Hooks::Hooks(const std::shared_ptr<IHashProvider>& hash_provider, const std::sha
     , repo_manager_{ repo_manager }
 {
 
+}
+
+void Hooks::save()
+{
+    const auto time_start = std::chrono::system_clock::now();
+
+    std::shared_ptr<IModelIncremental> ida_model = MakeModelIncremental(hash_provider_.get());
+    ModelAndVisitor db = MakeModel();
+
+    db.visitor->visit_start();
+
+    // add comments to adresses to process
+    for (ea_t ea : comments_to_process_)
+        add_address_to_process(ea, "Changed comment");
+
+    // process structures
+    save_structures(ida_model, db.visitor.get());
+
+    // process enums
+    save_enums(ida_model, db.visitor.get());
+
+    // process addresses
+    for (ea_t ea : addresses_to_process_)
+        ida_model->accept_ea(*db.visitor, ea);
+
+    // process segments
+    for (const std::tuple<ea_t, ea_t>& segment_ea : segments_to_process_)
+        ida_model->accept_segment(*db.visitor, std::get<0>(segment_ea));
+
+    db.visitor->visit_end();
+
+    db.model->accept(*MakeXmlExporter(get_cache_folder_path()));
+
+    const auto time_end = std::chrono::system_clock::now();
+    const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(time_end - time_start);
+    IDA_LOG_INFO("Saved in %lld seconds", elapsed.count());
+}
+
+void Hooks::add_address_to_process(ea_t ea, const std::string& message)
+{
+    addresses_to_process_.insert(ea);
+    repo_manager_->add_auto_comment(ea, message);
 }
 
 void Hooks::save_structures(std::shared_ptr<IModelIncremental>& ida_model, IModelVisitor* memory_exporter)
@@ -82,7 +151,7 @@ void Hooks::save_structures(std::shared_ptr<IModelIncremental>& ida_model, IMode
         }
         // if structure
         ida_model->delete_struct(*memory_exporter, struct_id);
-    } 
+    }
 
     // structures members : update modified ones, remove deleted ones
     for (const std::pair<const tid_t, std::tuple<tid_t, ea_t>>& struct_info : structmember_to_process_)
