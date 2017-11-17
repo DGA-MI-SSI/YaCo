@@ -59,6 +59,8 @@ namespace
 
         void save() override;
 
+        void flush() override;
+
     private:
         void add_address_to_process(ea_t ea, const std::string& message);
         void save_structures(std::shared_ptr<IModelIncremental>& ida_model, IModelVisitor* memory_exporter);
@@ -118,6 +120,17 @@ void Hooks::save()
     const auto time_end = std::chrono::system_clock::now();
     const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(time_end - time_start);
     IDA_LOG_INFO("Saved in %lld seconds", elapsed.count());
+}
+
+void Hooks::flush()
+{
+    addresses_to_process_.clear();
+    structures_to_process_.clear();
+    structmember_to_process_.clear();
+    enums_to_process_.clear();
+    enummember_to_process_.clear();
+    comments_to_process_.clear();
+    segments_to_process_.clear();
 }
 
 void Hooks::add_address_to_process(ea_t ea, const std::string& message)
