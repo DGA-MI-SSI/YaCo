@@ -22,12 +22,20 @@ namespace std { template<typename T> class shared_ptr; }
 
 struct IHooks
 {
+    virtual void rename(ea_t ea, const std::string& new_name, const std::string& type = "", const std::string& old_name = "") = 0;
     virtual void change_comment(ea_t ea) = 0;
+    virtual void undefine(ea_t ea) = 0;
+    virtual void delete_function(ea_t ea) = 0;
+    virtual void make_code(ea_t ea) = 0;
+    virtual void make_data(ea_t ea) = 0;
+    virtual void add_function(ea_t ea) = 0;
     virtual void update_structure(ea_t struct_id) = 0;
     virtual void update_structure_member(ea_t struct_id, ea_t member_id, ea_t member_offset) = 0;
     virtual void delete_structure_member(ea_t struct_id, ea_t member_id, ea_t offset) = 0;
     virtual void update_enum(ea_t enum_id) = 0;
+    virtual void change_operand_type(ea_t ea) = 0;
     virtual void add_segment(ea_t start_ea, ea_t end_ea) = 0;
+    virtual void change_type_information(ea_t ea) = 0;
 
     virtual void save() = 0;
 

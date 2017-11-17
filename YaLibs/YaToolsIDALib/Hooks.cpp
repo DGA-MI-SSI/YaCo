@@ -57,12 +57,20 @@ namespace
 
         Hooks(const std::shared_ptr<IHashProvider>& hash_provider, const std::shared_ptr<IRepository>& repo_manager);
 
+        void rename(ea_t ea, const std::string& new_name, const std::string& type, const std::string& old_name) override;
         void change_comment(ea_t ea) override;
+        void undefine(ea_t ea) override;
+        void delete_function(ea_t ea) override;
+        void make_code(ea_t ea) override;
+        void make_data(ea_t ea) override;
+        void add_function(ea_t ea) override;
         void update_structure(ea_t struct_id) override;
         void update_structure_member(tid_t struct_id, tid_t member_id, ea_t member_offset) override;
         void delete_structure_member(tid_t struct_id, tid_t member_id, ea_t offset) override;
         void update_enum(enum_t enum_id) override;
+        void change_operand_type(ea_t ea) override;
         void add_segment(ea_t start_ea, ea_t end_ea) override;
+        void change_type_information(ea_t ea) override;
 
         void save() override;
 
@@ -95,9 +103,55 @@ Hooks::Hooks(const std::shared_ptr<IHashProvider>& hash_provider, const std::sha
 
 }
 
+void Hooks::rename(ea_t ea, const std::string& new_name, const std::string& type, const std::string& old_name)
+{
+    std::string message{ type };
+    if (!type.empty())
+        message += ' ';
+    message += "renamed ";
+    if (!old_name.empty())
+    {
+        message += "from ";
+        message += old_name;
+    }
+    message += "to ";
+    message += new_name;
+    add_address_to_process(ea, message);
+}
+
 void Hooks::change_comment(ea_t ea)
 {
     comments_to_process_.insert(ea);
+}
+
+void Hooks::undefine(ea_t ea)
+{
+    add_address_to_process(ea, "Undefne");
+}
+
+void Hooks::delete_function(ea_t ea)
+{
+    add_address_to_process(ea, "Delete function");
+}
+
+void Hooks::make_code(ea_t ea)
+{
+    add_address_to_process(ea, "Create code");
+}
+
+void Hooks::make_data(ea_t ea)
+{
+    add_address_to_process(ea, "Create data");
+}
+
+void Hooks::add_function(ea_t ea)
+{
+    // Comments from Python:
+    // invalid all addresses in this function(they depend(relatively) on this function now, no on code)
+    // Warning : deletion of objects not implemented
+    // TODO : implement deletion of objects inside newly created function range
+    // TODO : use function chunks to iterate over function code
+    add_address_to_process(ea, "Create function");
 }
 
 void Hooks::update_structure(ea_t struct_id)
@@ -128,9 +182,29 @@ void Hooks::update_enum(enum_t enum_id)
     repo_manager_->add_auto_comment(enum_id, "Updated");
 }
 
+void Hooks::change_operand_type(ea_t ea)
+{
+    if (get_func(ea) || is_code(get_flags(ea)))
+    {
+        addresses_to_process_.insert(ea);
+        repo_manager_->add_auto_comment(ea, "Operand type change");
+        return;
+    }
+
+    if (is_member_id(ea))
+        return; // this is a member id: hook already present (update_structure_member)
+
+    IDA_LOG_WARNING("Operand type changed at %s, code out of a function: not implemented", ea_to_hex(ea).c_str());
+}
+
 void Hooks::add_segment(ea_t start_ea, ea_t end_ea)
 {
     segments_to_process_.insert(std::make_tuple(start_ea, end_ea));
+}
+
+void Hooks::change_type_information(ea_t ea)
+{
+    add_address_to_process(ea, "Type information changed");
 }
 
 void Hooks::save()
