@@ -285,6 +285,8 @@ class YaToolIDAHooks(object):
         """
 
     def save(self):
+        self.native.save()
+
         start_time = time.time()
         ida_model = ya.MakeModelIncremental(self.hash_provider)
         """
