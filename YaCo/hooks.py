@@ -363,6 +363,8 @@ class YaToolIDAHooks(object):
         logger.debug("YaCo saved in %d seconds." % (end_time - start_time))
 
     def flush(self):
+        self.native.flush()
+
         self.addresses_to_process = set()
         self.strucmember_to_process = {}
         self.structures_to_process = set()
