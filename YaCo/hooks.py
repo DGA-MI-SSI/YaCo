@@ -126,26 +126,10 @@ class YaToolIDAHooks(object):
         self.native.update_structure(struc)
 
     def struc_member_updated(self, struc_id, member_id, member_offset):
-        try:
-            struc_set = self.strucmember_to_process[struc_id]
-        except KeyError:
-            struc_set = set()
-            self.strucmember_to_process[struc_id] = struc_set
-        struc_set.add((member_id, member_offset))
-        self.repo_manager.add_auto_comment(struc_id, "Member updated at offset 0x%X : %s" % (
-            member_offset, idaapi.get_member_fullname(member_id)))
+        self.native.update_structure_member(struc_id, member_id, member_offset)
 
     def struc_member_deleted(self, struc_id, member_id, offset):
-        self.struc_updated(struc_id)
-        try:
-            struc_set = self.strucmember_to_process[struc_id]
-        except KeyError:
-            struc_set = set()
-            self.strucmember_to_process[struc_id] = struc_set
-        struc_set.add((member_id, offset))
-        # trigger struc file regeneration
-        self.struc_updated(struc_id)
-        self.repo_manager.add_auto_comment(struc_id, "Member deleted")
+        self.native.delete_structure_member(struc_id, member_id, offset)
 
     def enum_updated(self, enum):
         self.native.update_enum(enum)
@@ -179,59 +163,6 @@ class YaToolIDAHooks(object):
         self.addresses_to_process.add(ea)
         self.repo_manager.add_auto_comment(ea, "Function updated")
 
-    def save_strucs(self, ida_model, memory_exporter):
-        logger.debug("Walking members")
-        """
-        Structure members : update modified ones, and remove deleted ones
-        We iterate over members :
-            -if the parent struc has been deleted, delete the member
-            -otherwise, detect if the member has been updated or removed
-                -updated : accept struc_member + accept_struct if not already exported!
-                -removed : accept struc_member_deleted
-        """
-        for (struc_id, member_set) in self.strucmember_to_process.iteritems():
-            ida_struc = idaapi.get_struc(struc_id)
-            logger.debug("Walking struc 0x%08X" % struc_id)
-            sidx = idc.GetStrucIdx(struc_id)
-            is_stackframe = False
-            struc_deleted = False
-            if sidx is None or sidx == idc.BADADDR:
-                f = idaapi.get_func_by_frame(struc_id)
-                if f is not None and f != idc.BADADDR:
-                    is_stackframe = True
-                else:
-                    struc_deleted = True
-
-            stackframe_func_addr = idc.BADADDR
-            if is_stackframe:
-                eaFunc = idaapi.get_func_by_frame(struc_id)
-                stackframe_func_addr = eaFunc
-                ida_model.accept_function(memory_exporter, eaFunc)
-
-            if struc_deleted:
-                # The structure has been deleted : we need to delete the members
-                # Note: at first sight, it is not a stackframe
-                # TODO: handle function->stackframe deletion here
-                for (member_id, offset) in member_set:
-                    ida_model.delete_struct_member(memory_exporter, idc.BADADDR, struc_id, offset)
-            else:
-                # The structure or stackframe has been modified
-                for (member_id, offset) in member_set:
-                    ida_member = idaapi.get_member(ida_struc, offset)
-                    if ida_member is None:
-                        new_member_id = -1
-                    else:
-                        new_member_id = ida_member.id
-                    if new_member_id == -1:
-                        # the member has been deleted : delete it
-                        ida_model.delete_struct_member(memory_exporter, stackframe_func_addr, struc_id, offset)
-                    elif offset > 0 and idc.GetMemberId(struc_id, offset - 1) == new_member_id:
-                        # the member was deleted, and replaced by a member starting above it
-                        ida_model.delete_struct_member(memory_exporter, stackframe_func_addr, struc_id, offset)
-                    else:
-                        # the member has just been modified
-                        ida_model.accept_struct_member(memory_exporter, stackframe_func_addr, ida_member.id)
-
     def save(self):
         self.native.save()
 
@@ -260,12 +191,6 @@ class YaToolIDAHooks(object):
         if VALIDATE_EXPORTED_XML:
             memory_exporter = ya.MakeMultiplexerDebugger(db.visitor)
         memory_exporter.visit_start()
-
-        """
-        Next, export strucs and enums
-        This will also delete unneeded files
-        """
-        self.save_strucs(ida_model, memory_exporter)
 
         """
         explore IDA yacoHooks for logged ea
@@ -301,7 +226,6 @@ class YaToolIDAHooks(object):
         self.native.flush()
 
         self.addresses_to_process = set()
-        self.strucmember_to_process = {}
 
 
 class YaToolIDP_Hooks(idaapi.IDP_Hooks):

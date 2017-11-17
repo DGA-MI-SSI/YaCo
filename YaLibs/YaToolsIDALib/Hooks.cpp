@@ -59,6 +59,8 @@ namespace
 
         void change_comment(ea_t ea) override;
         void update_structure(ea_t struct_id) override;
+        void update_structure_member(tid_t struct_id, tid_t member_id, ea_t member_offset) override;
+        void delete_structure_member(tid_t struct_id, tid_t member_id, ea_t offset) override;
         void update_enum(enum_t enum_id) override;
         void add_segment(ea_t start_ea, ea_t end_ea) override;
 
@@ -68,6 +70,8 @@ namespace
 
     private:
         void add_address_to_process(ea_t ea, const std::string& message);
+        void add_strucmember_to_process(ea_t struct_id, tid_t member_id, ea_t member_offset, const std::string& message);
+
         void save_structures(std::shared_ptr<IModelIncremental>& ida_model, IModelVisitor* memory_exporter);
         void save_enums(std::shared_ptr<IModelIncremental>& ida_model, IModelVisitor* memory_exporter);
 
@@ -100,6 +104,22 @@ void Hooks::update_structure(ea_t struct_id)
 {
     structures_to_process_.insert(struct_id);
     repo_manager_->add_auto_comment(struct_id, "Updated");
+}
+
+void Hooks::update_structure_member(tid_t struct_id, tid_t member_id, ea_t member_offset)
+{
+    std::string message{ "Member updated at offset " };
+    message += ea_to_hex(member_offset);
+    message += " : ";
+    qstring member_id_fullname;
+    get_member_fullname(&member_id_fullname, member_id);
+    message += member_id_fullname.c_str();
+    add_strucmember_to_process(struct_id, member_id, member_offset, message);
+}
+
+void Hooks::delete_structure_member(tid_t struct_id, tid_t member_id, ea_t offset)
+{
+    add_strucmember_to_process(struct_id, member_id, offset, "Member deleted");
 }
 
 void Hooks::update_enum(enum_t enum_id)
@@ -164,6 +184,12 @@ void Hooks::add_address_to_process(ea_t ea, const std::string& message)
 {
     addresses_to_process_.insert(ea);
     repo_manager_->add_auto_comment(ea, message);
+}
+
+void Hooks::add_strucmember_to_process(ea_t struct_id, tid_t member_id, ea_t member_offset, const std::string& message)
+{
+    structmember_to_process_[struct_id] = std::make_tuple(member_id, member_offset);
+    repo_manager_->add_auto_comment(struct_id, message);
 }
 
 void Hooks::save_structures(std::shared_ptr<IModelIncremental>& ida_model, IModelVisitor* memory_exporter)
