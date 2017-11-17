@@ -57,6 +57,8 @@ namespace
 
         Hooks(const std::shared_ptr<IHashProvider>& hash_provider, const std::shared_ptr<IRepository>& repo_manager);
 
+        void add_segment(ea_t start_ea, ea_t end_ea) override;
+
         void save() override;
 
         void flush() override;
@@ -84,6 +86,11 @@ Hooks::Hooks(const std::shared_ptr<IHashProvider>& hash_provider, const std::sha
     , repo_manager_{ repo_manager }
 {
 
+}
+
+void Hooks::add_segment(ea_t start_ea, ea_t end_ea)
+{
+    segments_to_process_.insert(std::make_tuple(start_ea, end_ea));
 }
 
 void Hooks::save()

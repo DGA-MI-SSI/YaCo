@@ -172,7 +172,7 @@ class YaToolIDAHooks(object):
             logger.warning("op_type_changed at 0x%08X : code but not in a function : not implemented")
 
     def segment_added(self, segment):
-        self.updated_segments.add((segment.start_ea, segment.end_ea))
+        self.native.add_segment(ea)
 
     def ti_changed(self, ea):
         if idaapi.is_member_id(ea):
@@ -335,9 +335,6 @@ class YaToolIDAHooks(object):
         for ea in self.addresses_to_process:
             ida_model.accept_ea(memory_exporter, ea)
 
-        for seg_ea_start, seg_ea_end in self.updated_segments:
-            ida_model.accept_segment(memory_exporter, seg_ea_start)
-
         memory_exporter.visit_end()
         """
         #before saving, we remove all cache (some files may have been deleted)
@@ -371,7 +368,6 @@ class YaToolIDAHooks(object):
         self.enums_to_process = set()
         self.enummember_to_process = {}
         self.comments_to_process = set()
-        self.updated_segments = set()
 
 
 class YaToolIDP_Hooks(idaapi.IDP_Hooks):
