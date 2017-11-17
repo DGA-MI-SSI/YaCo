@@ -149,10 +149,7 @@ class YaToolIDAHooks(object):
         self.repo_manager.add_auto_comment(struc_id, "Member deleted")
 
     def enum_updated(self, enum):
-        if LOG_IDA_HOOKS_EVENTS:
-            logger.debug("enum_updated : %s" % ya.ea_to_hex(enum))
-        self.enums_to_process.add(enum)
-        self.repo_manager.add_auto_comment(enum, "Updated")
+        self.native.update_enum(enum)
 
     def op_type_changed(self, ea):
         # TODO: Fix this when we received end function created event !
@@ -256,32 +253,6 @@ class YaToolIDAHooks(object):
                         # the member has just been modified
                         ida_model.accept_struct_member(memory_exporter, stackframe_func_addr, ida_member.id)
 
-    def save_enums(self, ida_model, memory_exporter):
-        """
-        export modified enums and delete those who have been deleted
-        """
-        for enum_id in self.enums_to_process:
-            eidx = idc.GetEnumIdx(enum_id)
-            if eidx is None or eidx == idc.BADADDR:
-                # it is a deleted enum
-                logger.debug("Accepting deleted enum: 0x%08X" % enum_id)
-                ida_model.delete_enum(memory_exporter, enum_id)
-            else:
-                logger.debug("Accepting enum: 0x%08X" % enum_id)
-                ida_model.accept_enum(memory_exporter, enum_id)
-
-        """
-        This is not fully implemented yet, as we have no way of detecting
-        which enum members are deleted. Thus enummember_to_process remains empty
-
-        Enum members : update modified ones, and remove deleted ones
-        We iterate over members :
-            -if the parent enum has been deleted, delete the member
-            -otherwise, detect if the member has been updated or removed
-                -updated : accept enum_member
-                -removed : accept enum_member_deleted
-        """
-
     def save(self):
         self.native.save()
 
@@ -316,7 +287,6 @@ class YaToolIDAHooks(object):
         This will also delete unneeded files
         """
         self.save_strucs(ida_model, memory_exporter)
-        self.save_enums(ida_model, memory_exporter)
 
         """
         explore IDA yacoHooks for logged ea
@@ -354,8 +324,6 @@ class YaToolIDAHooks(object):
         self.addresses_to_process = set()
         self.strucmember_to_process = {}
         self.structures_to_process = set()
-        self.enums_to_process = set()
-        self.enummember_to_process = {}
 
 
 class YaToolIDP_Hooks(idaapi.IDP_Hooks):
