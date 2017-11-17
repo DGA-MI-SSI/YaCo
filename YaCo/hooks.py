@@ -123,8 +123,7 @@ class YaToolIDAHooks(object):
 
     # =================== STRUCTURES ===================================#
     def struc_updated(self, struc):
-        self.structures_to_process.add(struc)
-        self.repo_manager.add_auto_comment(struc, "Updated")
+        self.native.update_structure(struc)
 
     def struc_member_updated(self, struc_id, member_id, member_offset):
         try:
@@ -181,26 +180,6 @@ class YaToolIDAHooks(object):
         self.repo_manager.add_auto_comment(ea, "Function updated")
 
     def save_strucs(self, ida_model, memory_exporter):
-        """
-        Structures : export modified structures and delete those who have been deleted
-        """
-        for struc_id in self.structures_to_process:
-            sidx = idc.GetStrucIdx(struc_id)
-            if sidx is None or sidx == idc.BADADDR:
-                # it is a deleted structure or a stackframe
-                # in this last case we need to export the parent (function)
-                eaFunc = idaapi.get_func_by_frame(struc_id)
-                if eaFunc != idc.BADADDR:
-                    # OK, it is a stackframe
-                    ida_model.accept_struct(memory_exporter, eaFunc, struc_id)
-                    ida_model.accept_ea(memory_exporter, eaFunc)
-                else:
-                    # it is a deleted structure
-                    ida_model.delete_struct(memory_exporter, struc_id)
-            else:
-
-                ida_model.accept_struct(memory_exporter, idc.BADADDR, struc_id)
-
         logger.debug("Walking members")
         """
         Structure members : update modified ones, and remove deleted ones
@@ -323,7 +302,6 @@ class YaToolIDAHooks(object):
 
         self.addresses_to_process = set()
         self.strucmember_to_process = {}
-        self.structures_to_process = set()
 
 
 class YaToolIDP_Hooks(idaapi.IDP_Hooks):
