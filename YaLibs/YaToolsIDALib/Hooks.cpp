@@ -34,6 +34,7 @@ namespace
 
 
     private:
+        void save_structures(std::shared_ptr<IModelIncremental>& ida_model, IModelVisitor* memory_exporter);
         void save_enums(std::shared_ptr<IModelIncremental>& ida_model, IModelVisitor* memory_exporter);
 
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -54,6 +55,84 @@ Hooks::Hooks(const std::shared_ptr<IHashProvider>& hash_provider, const std::sha
     , repo_manager_{ repo_manager }
 {
 
+}
+
+void Hooks::save_structures(std::shared_ptr<IModelIncremental>& ida_model, IModelVisitor* memory_exporter)
+{
+    // structures: export modified ones, delete deleted ones
+    for (tid_t struct_id : structures_to_process_)
+    {
+        uval_t struct_idx = get_struc_idx(struct_id);
+        if (struct_idx != BADADDR)
+        {
+            // structure or stackframe modified
+            ida_model->accept_struct(*memory_exporter, BADADDR, struct_id);
+            continue;
+        }
+
+        // structure or stackframe deleted
+        // need to export the parent (function)
+        ea_t func_ea = get_func_by_frame(struct_id);
+        if (func_ea != BADADDR)
+        {
+            // if stackframe
+            ida_model->accept_struct(*memory_exporter, func_ea, struct_id);
+            ida_model->accept_ea(*memory_exporter, func_ea);
+            continue;
+        }
+        // if structure
+        ida_model->delete_struct(*memory_exporter, struct_id);
+    } 
+
+    // structures members : update modified ones, remove deleted ones
+    for (const std::pair<const tid_t, std::tuple<tid_t, ea_t>>& struct_info : structmember_to_process_)
+    {
+        tid_t struct_id = struct_info.first;
+        ea_t member_offset = std::get<1>(struct_info.second);
+
+        struc_t* ida_struct = get_struc(struct_id);
+        uval_t struct_idx = get_struc_idx(struct_id);
+
+        ea_t stackframe_func_addr = BADADDR;
+
+        if (!ida_struct || struct_idx == BADADDR)
+        {
+            // structure or stackframe deleted
+            ea_t func_ea = get_func_by_frame(struct_id);
+            if (func_ea == BADADDR)
+            {
+                // if structure
+                ida_model->delete_struct_member(*memory_exporter, BADADDR, struct_id, member_offset);
+                continue;
+            }
+            // if stackframe
+            stackframe_func_addr = func_ea;
+            ida_model->accept_function(*memory_exporter, stackframe_func_addr);
+        }
+
+        // structure or stackframe modified
+        member_t* ida_member = get_member(ida_struct, member_offset);
+        if (!ida_member || ida_member->id == -1)
+        {
+            // if member deleted
+            ida_model->delete_struct_member(*memory_exporter, stackframe_func_addr, struct_id, member_offset);
+            continue;
+        }
+
+        if (member_offset > 0)
+        {
+            member_t* ida_prev_member = get_member(ida_struct, member_offset - 1);
+            if (ida_prev_member && ida_prev_member->id == ida_member->id)
+            {
+                // if member deleted and replaced by member starting above it
+                ida_model->delete_struct_member(*memory_exporter, stackframe_func_addr, struct_id, member_offset);
+                continue;
+            }
+        }
+
+        // if member updated
+        ida_model->accept_struct_member(*memory_exporter, stackframe_func_addr, ida_member->id);
+    }
 }
 
 void Hooks::save_enums(std::shared_ptr<IModelIncremental>& ida_model, IModelVisitor* memory_exporter)
