@@ -57,6 +57,7 @@ namespace
 
         Hooks(const std::shared_ptr<IHashProvider>& hash_provider, const std::shared_ptr<IRepository>& repo_manager);
 
+        void change_comment(ea_t ea) override;
         void add_segment(ea_t start_ea, ea_t end_ea) override;
 
         void save() override;
@@ -86,6 +87,11 @@ Hooks::Hooks(const std::shared_ptr<IHashProvider>& hash_provider, const std::sha
     , repo_manager_{ repo_manager }
 {
 
+}
+
+void Hooks::change_comment(ea_t ea)
+{
+    comments_to_process_.insert(ea);
 }
 
 void Hooks::add_segment(ea_t start_ea, ea_t end_ea)

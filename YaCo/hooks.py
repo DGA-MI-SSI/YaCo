@@ -91,9 +91,7 @@ class YaToolIDAHooks(object):
         self.repo_manager.add_auto_comment(ea, "%srenamed %s to %s" % (prefix, old_name_txt, new_name))
 
     def comment_changed(self, ea):
-        # TODO: Fix this when we received end undefined event !
-        # logger.debug("comment_changed(%.016X)" % ea)
-        self.comments_to_process.add(ea)
+        self.native.change_comment(ea)
 
     def undefine(self, ea):
         # TODO: Fix this when we received end undefined event !
@@ -312,15 +310,6 @@ class YaToolIDAHooks(object):
         if VALIDATE_EXPORTED_XML:
             memory_exporter = ya.MakeMultiplexerDebugger(db.visitor)
         memory_exporter.visit_start()
-        """
-        First, find modified informations : comments, ...
-        """
-        # process comments
-        for ea in self.comments_to_process:
-            # do not save comments coming from function prototype
-            # if not idaapi.is_tilcmt(ea):
-            self.addresses_to_process.add(ea)
-            self.repo_manager.add_auto_comment(ea, "Changed comment")
 
         """
         Next, export strucs and enums
@@ -367,7 +356,6 @@ class YaToolIDAHooks(object):
         self.structures_to_process = set()
         self.enums_to_process = set()
         self.enummember_to_process = {}
-        self.comments_to_process = set()
 
 
 class YaToolIDP_Hooks(idaapi.IDP_Hooks):
