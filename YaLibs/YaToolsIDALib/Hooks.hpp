@@ -24,6 +24,8 @@ struct IHooks
 {
     virtual void change_comment(ea_t ea) = 0;
     virtual void update_structure(ea_t struct_id) = 0;
+    virtual void update_structure_member(ea_t struct_id, ea_t member_id, ea_t member_offset) = 0;
+    virtual void delete_structure_member(ea_t struct_id, ea_t member_id, ea_t offset) = 0;
     virtual void update_enum(ea_t enum_id) = 0;
     virtual void add_segment(ea_t start_ea, ea_t end_ea) = 0;
 
