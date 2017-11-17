@@ -69,57 +69,34 @@ class YaToolIDAHooks(object):
         '''
         self.native = ya.MakeHooks(hash_provider, repo_manager)
 
-        self.hash_provider = hash_provider
-        self.repo_manager = repo_manager
-
-        self.flush()
-
     # ==================================================================#
     # Hook forward
     # ==================================================================#
     # ==================== FUNCTIONS ===================================#
-    def rename(self, ea, new_name, type=None, old_name=None):
-        # TODO: Fix this when we received end function created event !
-        # logger.debug("rename at 0x%.016X" % ea)
-        self.addresses_to_process.add(ea)
-        prefix = ""
-        if type is not None:
-            prefix = "%s " % type
-        old_name_txt = ""
-        if old_name not in [None, ""]:
-            old_name_txt = "from %s" % old_name
-        self.repo_manager.add_auto_comment(ea, "%srenamed %s to %s" % (prefix, old_name_txt, new_name))
+    def rename(self, ea, new_name, type="", old_name=""):
+        if type is None:
+            type = ""
+        if old_name is None:
+            old_name = ""
+        self.native.rename(ea, new_name, type, old_name)
 
     def comment_changed(self, ea):
         self.native.change_comment(ea)
 
     def undefine(self, ea):
-        # TODO: Fix this when we received end undefined event !
-        self.addresses_to_process.add(ea)
-        self.repo_manager.add_auto_comment(ea, "Undefine")
+        self.native.undefine(ea)
 
     def del_func(self, ea):
-        self.addresses_to_process.add(ea)
-        self.repo_manager.add_auto_comment(ea, "Delete function")
+        self.native.delete_function(ea)
 
     def make_code(self, ea):
-        # TODO: Fix this when we received end function created event !
-        self.addresses_to_process.add(ea)
-        self.repo_manager.add_auto_comment(ea, "Create code")
+        self.native.make_code(ea)
 
     def make_data(self, ea):
-        # TODO: Fix this when we received end function created event !
-        self.addresses_to_process.add(ea)
-        self.repo_manager.add_auto_comment(ea, "Create data")
+        self.native.make_data(ea)
 
     def add_func(self, ea):
-        # invalid all addresses in this function (they depend (relatively) on this function now, no on code)
-        logger.warning("Warning : deletion of objects not implemented")
-        # TODO : implement deletion of objects inside newly created function range
-        # TODO : use function chunks to iterate over function code
-
-        self.addresses_to_process.add(ea)
-        self.repo_manager.add_auto_comment(ea, "Create function")
+        self.native.add_function(ea)
 
     # =================== STRUCTURES ===================================#
     def struc_updated(self, struc):
@@ -135,29 +112,13 @@ class YaToolIDAHooks(object):
         self.native.update_enum(enum)
 
     def op_type_changed(self, ea):
-        # TODO: Fix this when we received end function created event !
-        func = idaapi.get_func(ea)
-        if func is not None:
-            self.addresses_to_process.add(ea)
-            self.repo_manager.add_auto_comment(ea, "Operand type change")
-        elif idaapi.is_member_id(ea):
-            # this is a member id : hook already present (struc_member_renamed)
-            pass
-        elif not idc.isCode(idc.GetFlags(ea)):
-            self.addresses_to_process.add(ea)
-            self.repo_manager.add_auto_comment(ea, "Operand type change")
-        else:
-            logger.warning("op_type_changed at 0x%08X : code but not in a function : not implemented")
+        self.native.change_operand_type(ea)
 
     def segment_added(self, segment):
         self.native.add_segment(ea)
 
     def ti_changed(self, ea):
-        if idaapi.is_member_id(ea):
-            # ti_changed might be called for struc members??
-            return
-        self.addresses_to_process.add(ea)
-        self.repo_manager.add_auto_comment(ea, "Type info changed")
+        self.native.change_type_information(ea)
 
     def func_updated(self, ea):
         self.addresses_to_process.add(ea)
@@ -166,66 +127,8 @@ class YaToolIDAHooks(object):
     def save(self):
         self.native.save()
 
-        start_time = time.time()
-        ida_model = ya.MakeModelIncremental(self.hash_provider)
-        """
-        TODO : improve cache re-generation
-        pb : we should not regenerate the whole cache everytime
-        pb : when we load strucmembers (from the cache) and they are
-        later deleted, we get stalled XML files (they are not referenced
-        in the parent struc/stackframe, which is good, but they still
-        exist)
-
-
-        *do not store objects here : store them in the memory exporter
-        *make 3 pass :
-            -delete deleted objects
-            -create updated objects
-            -create new objects
-
-        """
-        logger.debug("YaToolIDAHooks.save()")
-
-        db = ya.MakeModel()
-        memory_exporter = db.visitor
-        if VALIDATE_EXPORTED_XML:
-            memory_exporter = ya.MakeMultiplexerDebugger(db.visitor)
-        memory_exporter.visit_start()
-
-        """
-        explore IDA yacoHooks for logged ea
-        """
-        for ea in self.addresses_to_process:
-            ida_model.accept_ea(memory_exporter, ea)
-
-        memory_exporter.visit_end()
-        """
-        #before saving, we remove all cache (some files may have been deleted)
-        order = ("struc", "strucmember", "enum", "enum_member", "segment", "function",
-                "stackframe", "stackframe_member", "basic_block", "data", "code")
-        for obj_type in order:
-            current_dir = os.path.join(self.idb_directory, "cache", obj_type)
-            if not os.path.isdir(current_dir):
-                continue
-            for f in os.listdir(current_dir):
-                os.remove(os.path.join(current_dir, f))
-        """
-        logger.debug("Exporting from memory to XML")
-        # now export to XML
-        xml_exporter = ya.MakeXmlExporter(os.path.join(os.path.dirname(idc.GetIdbPath()), "cache"))
-        if VALIDATE_EXPORTED_XML_2:
-            db.model.accept(ya.MakePathDebuggerVisitor("SaveXMLValidator", ya.MakeExporterValidatorVisitor(), False))
-
-        db.model.accept(xml_exporter)
-
-        end_time = time.time()
-
-        logger.debug("YaCo saved in %d seconds." % (end_time - start_time))
-
     def flush(self):
         self.native.flush()
-
-        self.addresses_to_process = set()
 
 
 class YaToolIDP_Hooks(idaapi.IDP_Hooks):
