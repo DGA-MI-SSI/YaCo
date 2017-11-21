@@ -94,20 +94,6 @@ class YaCo:
         logger.debug("hook")
         self.ida_hooks.hook()
 
-    def save_and_commit(self):
-        try:
-            idc.SaveBase("")
-            self.commit_cache()
-        except Exception, e:
-            ex = traceback.format_exc()
-            logger.error("An error occurred during YaCo commit")
-            logger.error("%s", ex)
-
-            traceback.print_exc()
-            Warning("An error occured during YaCo commit : please relaunch IDA")
-
-            raise e
-
     def commit_cache(self):
         if PROFILE_YACO_SAVING:
             pr = cProfile.Profile()
@@ -323,18 +309,6 @@ def start(init_logging=True):
         logger.warning("Not starting YaCo: already done")
         yaco_starting = False
         return False
-
-
-def commit():
-    global yaco
-    logger.info("YaCo.commit()")
-    try:
-        # try to commit cache
-        yaco.commit_cache()
-    except Exception, e:
-        traceback.print_exc()
-        raise e
-    logger.info("YaCo.commit() done")
 
 
 def save():
