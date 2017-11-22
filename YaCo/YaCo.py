@@ -39,7 +39,6 @@ logger = None
 
 YACO_VERSION = ya.GitVersion
 
-CHECKOUT_IDB_ON_CLOSE = False
 VALIDATE_EXPORTER_VISITOR = False
 
 IDA_IS_INTERACTIVE = ya.IS_INTERACTIVE
@@ -262,13 +261,6 @@ def close():
         return
 
     logger.info("YaCo.close()")
-    try:
-        # on shutdown, restoring original IDB
-        if CHECKOUT_IDB_ON_CLOSE:
-            yaco.repo_manager.repo_restore_idb()
-    except Exception, e:
-        traceback.print_exc()
-        raise e
     yaco.close()
     print("YaCo.close() done")
     yaco = None
