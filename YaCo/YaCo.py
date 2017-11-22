@@ -39,8 +39,6 @@ logger = None
 
 YACO_VERSION = ya.GitVersion
 
-PROFILE_YACO_LOADING = False
-PROFILE_YACO_SAVING = False
 CHECKOUT_IDB_ON_CLOSE = False
 VALIDATE_EXPORTER_VISITOR = False
 
@@ -126,11 +124,6 @@ class YaCo:
     # ======================================================================#
 
     def __init__(self):
-
-        if PROFILE_YACO_LOADING:
-            self.pr = cProfile.Profile()
-            self.pr.enable()
-
         """
         Create and initialize native subsystem
         """
@@ -203,13 +196,6 @@ class YaCo:
             action = idaapi.action_desc_t(name, text, handler, shortcut, "")
             idaapi.register_action(action)
             idaapi.attach_action_to_menu("Edit/YaTools/", name, idaapi.SETMENU_APP)
-
-        if PROFILE_YACO_LOADING:
-            self.pr.disable()
-            f = open("yaco-loading.profile", 'w')
-            ps = pstats.Stats(self.pr, stream=f).sort_stats('time')
-            ps.print_stats()
-            f.close()
 
     def close(self):
         self.YaCoUI.unhook()
