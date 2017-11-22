@@ -49,11 +49,13 @@ class Hooks(object):
 
     def hook(self):
         logger.debug("Hooks:hook")
+        self.ida.hook() # native
         self.idb.hook()
         self.idp.hook()
 
     def unhook(self):
         logger.debug("Hooks:unhook")
+        self.ida.unhook() # native
         self.idp.unhook()
         self.idb.unhook()
 

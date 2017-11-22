@@ -73,6 +73,9 @@ namespace
         void add_segment(ea_t start_ea, ea_t end_ea) override;
         void change_type_information(ea_t ea) override;
 
+        void hook() override;
+        void unhook() override;
+
         void save() override;
 
         void flush() override;
@@ -95,6 +98,24 @@ namespace
         std::set<ea_t> comments_to_process_;
         std::set<std::tuple<ea_t, ea_t>> segments_to_process_; // set<tuple<seg_ea_start, seg_ea_end>>
     };
+}
+
+static ssize_t idp_event_handler(void* user_data, int notification_code, va_list va)
+{
+    Hooks* hooks = static_cast<Hooks*>(user_data);
+    (void)hooks;
+    (void)notification_code;
+    (void)va;
+    return 0;
+}
+
+static ssize_t idb_event_handler(void* user_data, int notification_code, va_list va)
+{
+    Hooks* hooks = static_cast<Hooks*>(user_data);
+    (void)hooks;
+    (void)notification_code;
+    (void)va;
+    return 0;
 }
 
 Hooks::Hooks(const std::shared_ptr<IHashProvider>& hash_provider, const std::shared_ptr<IRepository>& repo_manager)
@@ -211,6 +232,18 @@ void Hooks::add_segment(ea_t start_ea, ea_t end_ea)
 void Hooks::change_type_information(ea_t ea)
 {
     add_address_to_process(ea, "Type information changed");
+}
+
+void Hooks::hook()
+{
+    hook_to_notification_point(HT_IDP, &idp_event_handler, this);
+    hook_to_notification_point(HT_IDB, &idb_event_handler, this);
+}
+
+void Hooks::unhook()
+{
+    unhook_from_notification_point(HT_IDP, &idp_event_handler, this);
+    unhook_from_notification_point(HT_IDB, &idb_event_handler, this);
 }
 
 void Hooks::save()
