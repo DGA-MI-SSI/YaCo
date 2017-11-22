@@ -82,7 +82,18 @@ Setup **YaCo** environment:
   6. launch **IDA** for your FILE_local.idb file
   7. save database
   8. start working as usual
+  
+### How it works
+**YaCo** use a git server to synchronize changes between users.
 
+In the local repository, **YaCo** stores the original IDB and incremental changes as xml files & commits.
+
+Note that the database is not modified anymore unless you force a synchronisation.
+When saving the database, we fetch remote changes, rebase local changes on top of those, import this new state into IDA and push this state to the remote git server.
+
+Any git server should work, like github, gitlab or gitea instances.
+
+Currently, **YaCo** only support SSH authentication. To keep the plugin user-friendly, there is no mechanism which ask for passwords & passphrases on every git operation. Instead, it is recommended to use an ssh agent, like pageant under windows or ssh-agent under linux.
 
 ## Contributors
 
