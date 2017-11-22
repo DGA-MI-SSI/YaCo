@@ -38,6 +38,9 @@ struct IHooks
     virtual void add_segment(ea_t start_ea, ea_t end_ea) = 0;
     virtual void change_type_information(ea_t ea) = 0;
 
+    virtual void hook() = 0;
+    virtual void unhook() = 0;
+
     virtual void save() = 0;
 
     virtual void flush() = 0;
