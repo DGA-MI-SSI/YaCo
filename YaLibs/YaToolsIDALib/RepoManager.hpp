@@ -54,8 +54,6 @@ struct IRepoManager
 
     virtual void push_origin_master() = 0;
 
-    virtual void checkout_master() = 0;
-
     virtual void check_valid_cache_startup() = 0;
 
     virtual std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>, std::set<std::string>> update_cache() = 0;

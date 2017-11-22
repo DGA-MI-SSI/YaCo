@@ -218,8 +218,6 @@ namespace
 
         void push_origin_master() override;
 
-        void checkout_master() override;
-
         void check_valid_cache_startup() override;
 
         std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>, std::set<std::string>> update_cache() override;
@@ -544,18 +542,6 @@ void RepoManager::push_origin_master()
         {
             IDA_LOG_WARNING("Couldn't push to remote origin, error: %s", error.what());
         }
-    }
-}
-
-void RepoManager::checkout_master()
-{
-    try
-    {
-        repo_.checkout("master");
-    }
-    catch (std::runtime_error error)
-    {
-        IDA_LOG_WARNING("Couldn't checkout master, error: %s", error.what());
     }
 }
 
