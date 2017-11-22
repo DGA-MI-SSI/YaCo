@@ -17,48 +17,42 @@ During large malware analysis, we had to use a team of reversers and manual sync
 ## Installation
 
 ### Debian stretch/x64
-As **IDA** is a 32bits software, **YaCo** must be built for 32 bits architecture.
+
+**YaCo** like **IDA** 7.0 is 64-bit only.
 
 Install dependencies
 ```
-sudo apt install build-essential git cmake g++-multilib
-```
-
-Add i386 architecture and install dependencies
-```
-sudo dpkg --add-architecture i386
-sudo apt update
-sudo apt install libpython2.7-dev:i386
+sudo apt install build-essential git cmake libpython-2.7
 ```
 
 Set IDA_DIR & IDASDK_DIR environment variables
 ```
-export IDA_DIR=/opt/ida6.8/
-export IDASDK_DIR=/opt/idasdk/
+export IDA_DIR=/opt/ida7.0/
+export IDASDK_DIR=/opt/idasdk70/
 ```
 
 Clone, configure & build **YaCo**
 ```
 ~/YaCo (master) $ cd build
 ~/YaCo/build (master) $ ./configure.sh
-~/YaCo/build (master) $ pushd ../out/x86_64_Release
-~/YaCo/out/x86_64_Release (master) $ make -j4
-~/YaCo/out/x86_64_Release (master) $ pushd $IDA_DIR/plugin
+~/YaCo/build (master) $ pushd ../out/x64_Release
+~/YaCo/out/x64_Release (master) $ make -j4
+~/YaCo/out/x64_Release (master) $ pushd $IDA_DIR/plugin
 $IDA_DIR/plugin $ ~/YaCo/build/deploy.sh
 ```
 
 ### Windows
 
 CMake must be installed and in the PATH
-Only visual studio 2015 is currently supported
+Only visual studio 2015 & 2017 are currently supported
 
 Configure and build **YaCo**
 ```
-set IDA_DIR=C:\Program Files (x86)\IDA Pro 6.8
-set IDASDK_DIR=C:\idasdk68
-build> configure_2015.cmd
-out/x86> cmake --build . --config RelWithDebInfo
-out/x86> ctest . --output-on-failure -C RelWithDebInfo -j4
+set IDA_DIR=C:\Program Files\IDA Pro 7.0
+set IDASDK_DIR=C:\idasdk70
+build> configure_2017.cmd
+out/x64> cmake --build . --config RelWithDebInfo
+out/x64> ctest . --output-on-failure -C RelWithDebInfo -j4
 ```
 
 ## Usage
