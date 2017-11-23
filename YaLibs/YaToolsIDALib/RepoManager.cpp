@@ -616,9 +616,10 @@ std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>, 
 
     // fetch remote
     fetch("origin");
-    LOG(DEBUG, "Fetched origin/master: %s", get_origin_master_commit().c_str());
+    LOG(DEBUG, "Fetched origin/master commit: %s", get_origin_master_commit().c_str());
 
     // rebase in master
+    IDA_LOG_INFO("Rebasing from origin/master");
     if (!rebase("origin/master", "master"))
     {
         IDA_LOG_INFO("Cache update failed");
@@ -638,6 +639,7 @@ std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>, 
         IDA_LOG_INFO("modified %s", f.c_str());
     for (std::string f : deleted_files)
         IDA_LOG_INFO("deleted  %s", f.c_str());
+    IDA_LOG_INFO("Rebased from origin/master");
 
     modified_files.insert(new_files.begin(), new_files.end());
 
@@ -667,7 +669,7 @@ std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>, 
         }
     }
     while (!push_success);
-    IDA_LOG_INFO("Pushed to master");
+    IDA_LOG_INFO("Pushed to origin/master");
 
     std::set<std::string> modified_objects_id;
     for (std::string modified_file : modified_files)
@@ -683,26 +685,29 @@ std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>, 
 
 bool RepoManager::repo_commit(std::string commit_msg)
 {
-    IDA_LOG_INFO("Committing changes.");
+    IDA_LOG_INFO("Committing changes");
 
     std::set<std::string> untracked_files{ repo_.get_untracked_objects_in_path("cache/") };
     std::set<std::string> modified_files{ repo_.get_modified_objects_in_path("cache/") };
     std::set<std::string> deleted_files{ repo_.get_deleted_objects_in_path("cache/") };
 
     if (untracked_files.empty() && modified_files.empty() && deleted_files.empty())
-        return false;
+    {
+        IDA_LOG_INFO("No changes to commit");
+        return true;
+    }
 
-    for (std::string f : untracked_files)
+    for (const std::string& f : untracked_files)
     {
         repo_.add_file(f);
         IDA_LOG_INFO("added    %s", f.c_str());
     }
-    for (std::string f : modified_files)
+    for (const std::string& f : modified_files)
     {
         repo_.add_file(f);
         IDA_LOG_INFO("modified %s", f.c_str());
     }
-    for (std::string f : deleted_files)
+    for (const std::string& f : deleted_files)
     {
         repo_.remove_file(f);
         IDA_LOG_INFO("deleted  %s", f.c_str());
@@ -761,7 +766,7 @@ bool RepoManager::repo_commit(std::string commit_msg)
     }
     auto_comments_.clear();
 
-    IDA_LOG_INFO("Changes commited.");
+    IDA_LOG_INFO("Changes commited");
     return true;
 }
 
