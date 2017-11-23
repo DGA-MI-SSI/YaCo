@@ -46,7 +46,6 @@ struct IRepoManager
     virtual std::string get_master_commit() = 0;
     virtual std::string get_origin_master_commit() = 0;
 
-    virtual void fetch_origin() = 0;
     virtual void fetch(const std::string& origin) = 0;
 
     virtual bool rebase(const std::string& origin, const std::string& branch) = 0;

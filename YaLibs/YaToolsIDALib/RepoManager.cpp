@@ -210,7 +210,6 @@ namespace
         std::string get_master_commit() override;
         std::string get_origin_master_commit() override;
 
-        void fetch_origin() override;
         void fetch(const std::string& origin) override;
 
         bool rebase(const std::string& origin, const std::string& branch) override;
@@ -474,18 +473,6 @@ std::string RepoManager::get_origin_master_commit()
     return result;
 }
 
-void RepoManager::fetch_origin()
-{
-    try
-    {
-        repo_.fetch();
-    }
-    catch (std::runtime_error error)
-    {
-        IDA_LOG_WARNING("Couldn't fetch remote origin, error: %s", error.what());
-    }
-}
-
 void RepoManager::fetch(const std::string& origin)
 {
     try
@@ -630,7 +617,7 @@ std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>, 
     LOG(DEBUG, "Current master commit: %s", master_commit.c_str());
 
     // fetch remote
-    fetch_origin();
+    fetch("origin");
     LOG(DEBUG, "Fetched origin/master: %s", get_origin_master_commit().c_str());
 
     // rebase in master
@@ -856,7 +843,7 @@ void RepoManager::discard_and_pull_idb()
     repo_.checkout_head();
 
     // get synced original idb
-    fetch_origin();
+    fetch("origin");
     rebase("origin/master", "master");
 
     // sync current idb to original idb
