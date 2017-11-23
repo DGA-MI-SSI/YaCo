@@ -263,7 +263,7 @@ RepoManager::RepoManager(bool ida_is_interactive):
 void RepoManager::ask_to_checkout_modified_files()
 {
     std::string modified_objects;
-    bool checkout_head = false;
+    bool idb_modified = false;
 
     std::string original_idb_name = get_original_idb_name();
     for (std::string modified_object : repo_.get_modified_objects())
@@ -271,32 +271,30 @@ void RepoManager::ask_to_checkout_modified_files()
         if (modified_object == original_idb_name)
         {
             backup_original_idb();
-            checkout_head = true;
+            idb_modified = true;
+            continue;
         }
-        else
-        {
-            modified_objects += modified_object;
-            modified_objects += '\n';
-        }
+        modified_objects += modified_object;
+        modified_objects += '\n';
     }
 
-    if (!modified_objects.empty())
+
+    if (modified_objects.empty())
     {
-        // modified_objects is now the message
-        modified_objects += "\nhas been modified, this is not normal, do you want to checkout these files ? (Rebasing will be disabled if you answer no)";
-        if (ask_yn(true, modified_objects.c_str()) != ASKBTN_NO)
-        {
-            repo_.checkout_head();
-        }
-        else
-        {
-            repo_auto_sync_ = false;
-            return;
-        }
+        if (idb_modified)
+            repo_.checkout_head(); // checkout silently
+        return;
     }
 
-    if (checkout_head)
-        repo_.checkout_head(); // checkout silently
+    // modified_objects is now the message
+    modified_objects += "\nhas been modified, this is not normal, do you want to checkout these files ? (Rebasing will be disabled if you answer no)";
+    if (ask_yn(true, modified_objects.c_str()) != ASKBTN_NO)
+    {
+        repo_.checkout_head();
+        return;
+    }
+
+    repo_auto_sync_ = false;
 }
 
 void RepoManager::ensure_git_globals()
