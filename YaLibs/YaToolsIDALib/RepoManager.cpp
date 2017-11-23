@@ -96,13 +96,6 @@ static bool remove_substring(std::string& str, const std::string& substr)
     return false;
 }
 
-static std::string extract_filename(const fs::path& file_path)
-{
-    std::string file_name{ file_path.filename().string() };
-    remove_substring(file_name, file_path.extension().string());
-    return file_name;
-}
-
 static bool is_valid_xml_file(const std::string& filename)
 {
     std::shared_ptr<xmlTextReader> reader(xmlReaderForFile(filename.c_str(), NULL, 0), &xmlFreeTextReader);
@@ -217,7 +210,7 @@ namespace
 
         void check_valid_cache_startup() override;
 
-        std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>, std::set<std::string>> update_cache() override;
+        std::vector<std::string> update_cache() override; //yaco_update_helper
 
         bool repo_commit(std::string commit_msg = "") override;
 
@@ -561,9 +554,8 @@ void RepoManager::check_valid_cache_startup()
     IDA_LOG_INFO("Cache validity check ended");
 }
 
-std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>, std::set<std::string>> RepoManager::update_cache()
+std::vector<std::string> RepoManager::update_cache()
 {
-    using return_type = std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>, std::set<std::string>>;
     std::map<std::string, std::string> remotes;
     try
     {
@@ -574,11 +566,9 @@ std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>, 
         IDA_LOG_ERROR("Couldn't get repo remotes, error: %s", error.what());
     }
 
+    std::vector<std::string> modified_files;
     if (remotes.find("origin") == remotes.end())
-    {
-        // No remote
-        return return_type{};
-    }
+        return modified_files; // No remote
 
     // check if files has been modified in background
     ask_to_checkout_modified_files();
@@ -586,7 +576,7 @@ std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>, 
     if (!repo_auto_sync_)
     {
         IDA_LOG_INFO("Repo auto sync disabled, ignoring cache update");
-        return return_type{};
+        return modified_files;
     }
 
     IDA_LOG_INFO("Cache update started");
@@ -595,7 +585,7 @@ std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>, 
     if (master_commit.empty())
     {
         IDA_LOG_INFO("Cache update failed");
-        return return_type{};
+        return modified_files;
     }
     LOG(DEBUG, "Current master commit: %s", master_commit.c_str());
 
@@ -610,23 +600,27 @@ std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>, 
         IDA_LOG_INFO("Cache update failed");
         // disable auto sync (when closing database)
         warning("You have errors during rebase. You have to resolve it manually.\nSee git_rebase.log for details.\nThen run save on IDA to complete rebase and update master");
-        return return_type{};
+        return modified_files;
     }
 
     // get modified files from origin
-    std::set<std::string> modified_files{ repo_.get_modified_objects(master_commit) };
-    std::set<std::string> deleted_files{ repo_.get_deleted_objects(master_commit) };
-    std::set<std::string> new_files{ repo_.get_new_objects(master_commit) };
+    std::set<std::string> new_objects{ repo_.get_new_objects(master_commit) };
+    std::set<std::string> modified_objects{ repo_.get_modified_objects(master_commit) };
+    std::set<std::string> deleted_objects{ repo_.get_deleted_objects(master_commit) };
 
-    for (std::string f : new_files)
+    for (const std::string& f : new_objects)
+    {
         IDA_LOG_INFO("added    %s", f.c_str());
-    for (std::string f : modified_files)
+        modified_files.push_back(f);
+    }
+    for (const std::string& f : modified_objects)
+    {
         IDA_LOG_INFO("modified %s", f.c_str());
-    for (std::string f : deleted_files)
+        modified_files.push_back(f);
+    }
+    for (const std::string& f : deleted_objects)
         IDA_LOG_INFO("deleted  %s", f.c_str());
     IDA_LOG_INFO("Rebased from origin/master");
-
-    modified_files.insert(new_files.begin(), new_files.end());
 
     // push to origin
     bool push_success = false;
@@ -650,22 +644,14 @@ std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>, 
             repo_auto_sync_ = false;
             IDA_LOG_INFO("Auto rebase/push disabled");
             warning("You have errors during push to origin. You have to resolve it manually.");
-            return return_type{};
+            return modified_files;
         }
     }
     while (!push_success);
     IDA_LOG_INFO("Pushed to origin/master");
 
-    std::set<std::string> modified_objects_id;
-    for (std::string modified_file : modified_files)
-        modified_objects_id.insert(extract_filename(fs::path{ modified_file }));
-
-    std::set<std::string> deleted_objects_id;
-    for (std::string deleted_file : deleted_files)
-        deleted_objects_id.insert(extract_filename(fs::path{ deleted_file }));
-
     IDA_LOG_INFO("Cache update success");
-    return std::make_tuple(modified_objects_id, deleted_objects_id, modified_files, deleted_files);
+    return modified_files;
 }
 
 bool RepoManager::repo_commit(std::string commit_msg)
@@ -1000,7 +986,6 @@ bool copy_current_idb_to_original_file()
 // temporary helper until hooks are moved to native
 void yaco_update_helper(const std::shared_ptr<IRepoManager>& repo_manager, ModelAndVisitor& memory_exporter)
 {
-    std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>, std::set<std::string>> info = repo_manager->update_cache();
-    std::vector<std::string> modified_files(std::get<2>(info).begin(), std::get<2>(info).end());
+    std::vector<std::string> modified_files = repo_manager->update_cache();
     MakeXmlFilesDatabaseModel(modified_files)->accept(*(memory_exporter.visitor.get()));
 }
