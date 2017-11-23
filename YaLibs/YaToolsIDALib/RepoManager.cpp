@@ -213,7 +213,6 @@ namespace
         void fetch_origin() override;
         void fetch(const std::string& origin) override;
 
-        bool rebase_from_origin() override;
         bool rebase(const std::string& origin, const std::string& branch) override;
 
         void push_origin_master() override;
@@ -499,31 +498,16 @@ void RepoManager::fetch(const std::string& origin)
     }
 }
 
-bool RepoManager::rebase_from_origin()
+bool RepoManager::rebase(const std::string& upstream, const std::string& destination)
 {
     IDAInteractiveFileConflictResolver resolver;
     try
     {
-        repo_.rebase("origin/master", "master", resolver);
+        repo_.rebase(upstream, destination, resolver);
     }
     catch (std::runtime_error error)
     {
-        IDA_LOG_WARNING("Couldn't rebase master from origin/master, error: %s", error.what());
-        return false;
-    }
-    return true;
-}
-
-bool RepoManager::rebase(const std::string& origin, const std::string& branch)
-{
-    IDAInteractiveFileConflictResolver resolver;
-    try
-    {
-        repo_.rebase(origin, branch, resolver);
-    }
-    catch (std::runtime_error error)
-    {
-        IDA_LOG_WARNING("Couldn't rebase %s from %s, error: %s", branch.c_str(), origin.c_str(), error.what());
+        IDA_LOG_WARNING("Couldn't rebase %s from %s, error: %s", destination.c_str(), upstream.c_str(), error.what());
         return false;
     }
     return true;
@@ -650,7 +634,7 @@ std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>, 
     LOG(DEBUG, "Fetched origin/master: %s", get_origin_master_commit().c_str());
 
     // rebase in master
-    if (!rebase_from_origin())
+    if (!rebase("origin/master", "master"))
     {
         IDA_LOG_INFO("Cache update failed");
         // disable auto sync (when closing database)
@@ -873,7 +857,7 @@ void RepoManager::discard_and_pull_idb()
 
     // get synced original idb
     fetch_origin();
-    rebase_from_origin();
+    rebase("origin/master", "master");
 
     // sync current idb to original idb
     copy_original_idb_to_current_file();
