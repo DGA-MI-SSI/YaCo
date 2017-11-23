@@ -205,7 +205,7 @@ namespace
 
         void repo_init() override;
 
-        void repo_open(const std::string path) override;
+        void repo_open(const std::string& path) override;
 
         std::string get_master_commit() override;
         std::string get_origin_master_commit() override;
@@ -433,7 +433,7 @@ void RepoManager::repo_init()
     push_origin_master();
 }
 
-void RepoManager::repo_open(const std::string path)
+void RepoManager::repo_open(const std::string& path)
 {
     repo_ = GitRepo(path);
     try

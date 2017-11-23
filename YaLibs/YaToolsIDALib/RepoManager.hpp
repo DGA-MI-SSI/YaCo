@@ -41,7 +41,7 @@ struct IRepoManager
 
     virtual void repo_init() = 0;
 
-    virtual void repo_open(const std::string path = ".") = 0;
+    virtual void repo_open(const std::string& path = ".") = 0;
 
     virtual std::string get_master_commit() = 0;
     virtual std::string get_origin_master_commit() = 0;
