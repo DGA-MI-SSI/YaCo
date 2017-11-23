@@ -207,8 +207,7 @@ namespace
 
         void repo_open(const std::string& path) override;
 
-        std::string get_master_commit() override;
-        std::string get_origin_master_commit() override;
+        std::string get_commit(const std::string& ref) override;
 
         void fetch(const std::string& origin) override;
 
@@ -443,32 +442,18 @@ void RepoManager::repo_open(const std::string& path)
     ensure_git_globals();
 }
 
-std::string RepoManager::get_master_commit()
+std::string RepoManager::get_commit(const std::string& ref)
 {
-    std::string result;
+    std::string commit;
     try
     {
-        result = repo_.get_commit("master");
+        commit = repo_.get_commit(ref);
     }
     catch (std::runtime_error error)
     {
         IDA_LOG_WARNING("Couldn't get commit from master, error: %s", error.what());
     }
-    return result;
-}
-
-std::string RepoManager::get_origin_master_commit()
-{
-    std::string result;
-    try
-    {
-        result = repo_.get_commit("origin/master");
-    }
-    catch (std::runtime_error error)
-    {
-        IDA_LOG_WARNING("Couldn't get commit from origin/master, error: %s", error.what());
-    }
-    return result;
+    return commit;
 }
 
 void RepoManager::fetch(const std::string& origin)
@@ -606,7 +591,7 @@ std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>, 
 
     IDA_LOG_INFO("Cache update started");
     // get master commit
-    std::string master_commit{ get_master_commit() };
+    std::string master_commit{ get_commit("master") };
     if (master_commit.empty())
     {
         IDA_LOG_INFO("Cache update failed");
@@ -616,7 +601,7 @@ std::tuple<std::set<std::string>, std::set<std::string>, std::set<std::string>, 
 
     // fetch remote
     fetch("origin");
-    LOG(DEBUG, "Fetched origin/master commit: %s", get_origin_master_commit().c_str());
+    LOG(DEBUG, "Fetched origin/master commit: %s", get_commit("origin/master").c_str());
 
     // rebase in master
     IDA_LOG_INFO("Rebasing from origin/master");
