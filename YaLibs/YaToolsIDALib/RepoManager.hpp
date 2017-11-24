@@ -47,7 +47,7 @@ struct IRepoManager
 };
 
 
-std::shared_ptr<IRepoManager> MakeRepoManager(bool ida_is_interactive);
+std::shared_ptr<IRepoManager> MakeRepoManager(const std::string& path, bool ida_is_interactive);
 
 std::string ea_to_hex(ea_t ea);
 
