@@ -139,7 +139,7 @@ class YaCo:
             pr = cProfile.Profile()
             pr.enable()
         self.ida_hooks.ida.save()
-        if self.repo_manager.repo_commit():
+        if self.repo_manager.commit_cache():
             self.ida_hooks.ida.flush()
             logger.debug("YaCo commit saved.")
         try:

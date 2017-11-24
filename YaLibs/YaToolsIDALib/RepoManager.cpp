@@ -198,7 +198,7 @@ namespace
         void add_auto_comment(ea_t ea, const std::string& text) override;
         void check_valid_cache_startup() override;
         std::vector<std::string> update_cache() override;
-        bool repo_commit(std::string commit_msg = "") override;
+        bool commit_cache() override;
         void toggle_repo_auto_sync() override;
         void sync_and_push_original_idb() override;
         void discard_and_pull_idb() override;
@@ -470,13 +470,13 @@ std::vector<std::string> RepoManager::update_cache()
     return modified_files;
 }
 
-bool RepoManager::repo_commit(std::string commit_msg)
+bool RepoManager::commit_cache()
 {
     IDA_LOG_INFO("Committing changes");
 
-    std::set<std::string> untracked_files{ repo_.get_untracked_objects_in_path("cache/") };
-    std::set<std::string> modified_files{ repo_.get_modified_objects_in_path("cache/") };
-    std::set<std::string> deleted_files{ repo_.get_deleted_objects_in_path("cache/") };
+    const std::set<std::string> untracked_files{ repo_.get_untracked_objects_in_path("cache/") };
+    const std::set<std::string> modified_files{ repo_.get_modified_objects_in_path("cache/") };
+    const std::set<std::string> deleted_files{ repo_.get_deleted_objects_in_path("cache/") };
 
     if (untracked_files.empty() && modified_files.empty() && deleted_files.empty())
     {
@@ -520,28 +520,26 @@ bool RepoManager::repo_commit(std::string commit_msg)
     });
 
     size_t max_total_len = max_prefix_len + max_txt_len + 4; // for '[', ']', ' ', '\0'
-    std::unique_ptr<char[]> buffer = std::make_unique<char[]>(max_total_len);
-    if (commit_msg.empty())
+    std::vector<char> buffer(max_total_len);
+    std::string commit_msg;
+    bool need_truncate = false;
+    for (const std::tuple<std::string, std::string>& comment : auto_comments_)
     {
-        bool need_trucate = false;
-        for (const std::tuple<std::string, std::string>& comment : auto_comments_)
-        {
-            snprintf(buffer.get(), max_total_len, "[%-*s] %s", static_cast<int>(max_prefix_len), std::get<0>(comment).c_str(), std::get<1>(comment).c_str());
-            commit_msg += buffer.get();
-            commit_msg += '\n';
-            need_trucate = commit_msg.size() > TRUNCATE_COMMIT_MSG_LENGTH;
-            if (need_trucate)
-                break;
-        }
-        if (need_trucate)
-        {
-            commit_msg.erase(TRUNCATE_COMMIT_MSG_LENGTH);
-            commit_msg += "\n...truncated";
-        }
+        snprintf(buffer.data(), max_total_len, "[%-*s] %s", static_cast<int>(max_prefix_len), std::get<0>(comment).c_str(), std::get<1>(comment).c_str());
+        commit_msg += buffer.data();
+        commit_msg += '\n';
+        need_truncate = commit_msg.size() > TRUNCATE_COMMIT_MSG_LENGTH;
+        if (need_truncate)
+            break;
+    }
+    if (need_truncate)
+    {
+        commit_msg.erase(TRUNCATE_COMMIT_MSG_LENGTH);
+        commit_msg += "\n...truncated";
     }
 
     if (commit_msg.empty())
-        return false;
+        commit_msg = "Undefined changes";
 
     try
     {
