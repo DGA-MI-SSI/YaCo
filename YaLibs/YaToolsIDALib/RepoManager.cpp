@@ -96,6 +96,12 @@ static bool remove_substring(std::string& str, const std::string& substr)
     return false;
 }
 
+static bool is_git_working_dir(const std::string& path)
+{
+    std::error_code ec;
+    return fs::is_directory(path + "/.git", ec) && !ec;
+}
+
 static bool is_valid_xml_file(const std::string& filename)
 {
     std::shared_ptr<xmlTextReader> reader(xmlReaderForFile(filename.c_str(), NULL, 0), &xmlFreeTextReader);
@@ -186,7 +192,7 @@ namespace
     struct RepoManager
         : public IRepoManager
     {
-        explicit RepoManager(bool ida_is_interactive);
+        RepoManager(const std::string& path, bool ida_is_interactive);
 
         // IRepoManager
         void add_auto_comment(ea_t ea, const std::string& text) override;
@@ -199,9 +205,6 @@ namespace
 
         void ask_to_checkout_modified_files();
         void ensure_git_globals();
-        bool repo_exists();
-        void repo_init();
-        void repo_open(const std::string& path);
         std::string get_commit(const std::string& ref);
         void fetch(const std::string& origin);
         bool rebase(const std::string& origin, const std::string& branch);
@@ -215,21 +218,35 @@ namespace
     };
 }
 
-RepoManager::RepoManager(bool ida_is_interactive): 
-    ida_is_interactive_{ ida_is_interactive },
-    repo_{ "." },
-    repo_auto_sync_{ true }
+RepoManager::RepoManager(const std::string& path, bool ida_is_interactive)
+    : repo_{ path }
+    , ida_is_interactive_{ ida_is_interactive }
+    , repo_auto_sync_{ true }
 {
-    if (!repo_exists())
+    const bool repo_already_exist = is_git_working_dir(path);
+
+    repo_.init();
+    ensure_git_globals();
+
+    if (repo_already_exist)
     {
-        IDA_LOG_INFO("No repo found ! Creating repo");
-        repo_init();
+        IDA_LOG_INFO("Repo opened");
+        return;
     }
-    else
-    {
-        repo_open(".");
-    }
-    IDA_LOG_INFO("Repo opened");
+    IDA_LOG_INFO("Repo created");
+
+    //add current IDB to repo
+    repo_.add_file(get_current_idb_name());
+
+    //create an initial commit with IDB
+    repo_.commit("Initial commit");
+
+    IDA_LOG_INFO("Commited IDB");
+
+    if (ida_is_interactive_)
+        ask_for_remote();
+
+    push("master", "master");
 }
 
 void RepoManager::add_auto_comment(ea_t ea, const std::string & text)
@@ -696,52 +713,6 @@ void RepoManager::ensure_git_globals()
     }
 }
 
-bool RepoManager::repo_exists()
-{
-    std::error_code ec;
-    return fs::is_directory(".git", ec) && !ec;
-}
-
-void RepoManager::repo_init()
-{
-    try
-    {
-        repo_ = GitRepo{ "." };
-        repo_.init();
-        ensure_git_globals();
-
-        //add current IDB to repo
-        repo_.add_file(get_current_idb_name());
-
-        //create an initial commit with IDB
-        repo_.commit("Initial commit");
-    }
-    catch (std::runtime_error _error)
-    {
-        IDA_LOG_GUI_ERROR("An error occured during repo init, error: %s", _error.what());
-        return;
-    }
-
-    if (ida_is_interactive_)
-        ask_for_remote();
-
-    push("mater", "master");
-}
-
-void RepoManager::repo_open(const std::string& path)
-{
-    repo_ = GitRepo(path);
-    try
-    {
-        repo_.init();
-    }
-    catch (std::runtime_error error)
-    {
-        IDA_LOG_WARNING("Couldn't init repository, error: %s", error.what());
-    }
-    ensure_git_globals();
-}
-
 std::string RepoManager::get_commit(const std::string& ref)
 {
     std::string commit;
@@ -842,9 +813,9 @@ void RepoManager::ask_for_remote()
     }
 }
 
-std::shared_ptr<IRepoManager> MakeRepoManager(bool ida_is_interactive)
+std::shared_ptr<IRepoManager> MakeRepoManager(const std::string& path, bool ida_is_interactive)
 {
-    return std::make_shared<RepoManager>(ida_is_interactive);
+    return std::make_shared<RepoManager>(path, ida_is_interactive);
 }
 
 std::string ea_to_hex(ea_t ea)
