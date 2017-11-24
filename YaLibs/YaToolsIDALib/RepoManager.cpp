@@ -205,7 +205,7 @@ namespace
         std::string get_commit(const std::string& ref);
         void fetch(const std::string& origin);
         bool rebase(const std::string& origin, const std::string& branch);
-        void push_origin_master();
+        void push(const std::string& src_branch, const std::string& dst_branch);
         void ask_for_remote();
 
         bool ida_is_interactive_;
@@ -599,7 +599,7 @@ void RepoManager::sync_and_push_original_idb()
     {
         IDA_LOG_WARNING("Couldn't commit, error: %s", error.what());
     }
-    push_origin_master();
+    push("master", "master");
 }
 
 void RepoManager::discard_and_pull_idb()
@@ -725,7 +725,7 @@ void RepoManager::repo_init()
     if (ida_is_interactive_)
         ask_for_remote();
 
-    push_origin_master();
+    push("mater", "master");
 }
 
 void RepoManager::repo_open(const std::string& path)
@@ -783,19 +783,18 @@ bool RepoManager::rebase(const std::string& upstream, const std::string& destina
     return true;
 }
 
-void RepoManager::push_origin_master()
+void RepoManager::push(const std::string& src_branch, const std::string& dst_branch)
 {
-    const std::map<std::string, std::string> remotes{ repo_.get_remotes() };
-    if (remotes.find(std::string("origin")) != remotes.end())
+    if (repo_.get_remotes().empty())
+        return;
+
+    try
     {
-        try
-        {
-            repo_.push("master", "master");
-        }
-        catch (std::runtime_error error)
-        {
-            IDA_LOG_WARNING("Couldn't push to remote origin, error: %s", error.what());
-        }
+        repo_.push(src_branch, dst_branch);
+    }
+    catch (std::runtime_error error)
+    {
+        IDA_LOG_WARNING("Couldn't push to remote, error: %s", error.what());
     }
 }
 
