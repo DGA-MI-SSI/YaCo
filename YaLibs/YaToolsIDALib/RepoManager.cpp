@@ -317,7 +317,7 @@ void RepoManager::check_valid_cache_startup()
     {
         remotes = repo_.get_remotes();
     }
-    catch (std::runtime_error error)
+    catch (const std::runtime_error& error)
     {
         IDA_LOG_WARNING("Couldn't get repo remotes, error: %s", error.what());
     }
@@ -377,7 +377,7 @@ std::vector<std::string> RepoManager::update_cache()
     {
         remotes = repo_.get_remotes();
     }
-    catch (std::runtime_error error)
+    catch (const std::runtime_error& error)
     {
         IDA_LOG_ERROR("Couldn't get repo remotes, error: %s", error.what());
     }
@@ -449,7 +449,7 @@ std::vector<std::string> RepoManager::update_cache()
             LOG(DEBUG, "Push to master: success");
             push_success = true;
         }
-        catch (std::runtime_error error)
+        catch (const std::runtime_error& error)
         {
             LOG(DEBUG, "Push to master: fail, error: %s", error.what());
             ++nb_try;
@@ -545,7 +545,7 @@ bool RepoManager::commit_cache()
     {
         repo_.commit(commit_msg);
     }
-    catch (std::runtime_error _error)
+    catch (const std::runtime_error& _error)
     {
         IDA_LOG_GUI_ERROR("An error occured during commit, error: %s", _error.what());
         return false;
@@ -584,7 +584,7 @@ void RepoManager::sync_and_push_original_idb()
         {
             repo_.remove_file(file_path.path().generic_string());
         }
-        catch (std::runtime_error error)
+        catch (const std::runtime_error& error)
         {
             IDA_LOG_WARNING("Couldn't remove %s from git, error: %s", file_path.path().generic_string().c_str(), error.what());
         }
@@ -600,7 +600,7 @@ void RepoManager::sync_and_push_original_idb()
     {
         repo_.add_file(get_original_idb_name());
     }
-    catch (std::runtime_error error)
+    catch (const std::runtime_error& error)
     {
         IDA_LOG_WARNING("Couldn't add original idb file to git, error: %s", error.what());
     }
@@ -610,7 +610,7 @@ void RepoManager::sync_and_push_original_idb()
     {
         repo_.commit("YaCo force push");
     }
-    catch (std::runtime_error error)
+    catch (const std::runtime_error& error)
     {
         IDA_LOG_WARNING("Couldn't commit, error: %s", error.what());
     }
@@ -718,7 +718,7 @@ std::string RepoManager::get_commit(const std::string& ref)
     {
         commit = repo_.get_commit(ref);
     }
-    catch (std::runtime_error error)
+    catch (const std::runtime_error& error)
     {
         IDA_LOG_WARNING("Couldn't get commit from master, error: %s", error.what());
     }
@@ -731,7 +731,7 @@ void RepoManager::fetch(const std::string& origin)
     {
         repo_.fetch(origin);
     }
-    catch (std::runtime_error error)
+    catch (const std::runtime_error& error)
     {
         IDA_LOG_WARNING("Couldn't fetch remote, error: %s", error.what());
     }
@@ -744,7 +744,7 @@ bool RepoManager::rebase(const std::string& upstream, const std::string& destina
     {
         repo_.rebase(upstream, destination, resolver);
     }
-    catch (std::runtime_error error)
+    catch (const std::runtime_error& error)
     {
         IDA_LOG_WARNING("Couldn't rebase %s from %s, error: %s", destination.c_str(), upstream.c_str(), error.what());
         return false;
@@ -761,7 +761,7 @@ void RepoManager::push(const std::string& src_branch, const std::string& dst_bra
     {
         repo_.push(src_branch, dst_branch);
     }
-    catch (std::runtime_error error)
+    catch (const std::runtime_error& error)
     {
         IDA_LOG_WARNING("Couldn't push to remote, error: %s", error.what());
     }
@@ -805,7 +805,7 @@ void RepoManager::ask_for_remote()
     {
         tmp_repo.init_bare();
     }
-    catch (std::runtime_error error)
+    catch (const std::runtime_error& error)
     {
         IDA_LOG_GUI_WARNING("Couldn't init remote repo, error: %s", error.what());
     }
