@@ -37,7 +37,7 @@ struct IRepoManager
 
     virtual std::vector<std::string> update_cache() = 0;
 
-    virtual bool repo_commit(std::string commit_msg = "") = 0;
+    virtual bool commit_cache() = 0;
 
     virtual void toggle_repo_auto_sync() = 0;
 
