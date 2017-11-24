@@ -203,13 +203,21 @@ namespace
         void sync_and_push_original_idb() override;
         void discard_and_pull_idb() override;
 
+        // Retrieve informations whith IDA GUI
         void ask_to_checkout_modified_files();
-        void ensure_git_globals();
-        std::string get_commit(const std::string& ref);
-        void fetch(const std::string& origin);
-        bool rebase(const std::string& origin, const std::string& branch);
-        void push(const std::string& src_branch, const std::string& dst_branch);
         void ask_for_remote();
+        void ensure_git_globals();
+
+        // GitRepo wrappers
+        bool init();
+        bool fetch(const std::string& remote);
+        bool rebase(const std::string& origin, const std::string& branch);
+        bool add_file_to_index(const std::string& path);
+        bool remove_file_for_index(const std::string& path); // the file may exist, it is removed for the index but unchanged on the disk
+        bool commit(const std::string& message);
+        bool push(const std::string& src_branch, const std::string& dst_branch);
+        bool remote_exist(const std::string& remote);
+        std::string get_commit(const std::string& ref);
 
         bool ida_is_interactive_;
         GitRepo repo_;
@@ -225,7 +233,7 @@ RepoManager::RepoManager(const std::string& path, bool ida_is_interactive)
 {
     const bool repo_already_exist = is_git_working_dir(path);
 
-    repo_.init();
+    init();
     ensure_git_globals();
 
     if (repo_already_exist)
@@ -235,18 +243,17 @@ RepoManager::RepoManager(const std::string& path, bool ida_is_interactive)
     }
     IDA_LOG_INFO("Repo created");
 
-    //add current IDB to repo
-    repo_.add_file(get_current_idb_name());
-
-    //create an initial commit with IDB
-    repo_.commit("Initial commit");
-
-    IDA_LOG_INFO("Commited IDB");
+    // add current IDB to repo, and create an initial commit
+    if (add_file_to_index(get_current_idb_name()) && commit("Initial commit"))
+        IDA_LOG_INFO("Commited IDB");
+    else
+        IDA_LOG_ERROR("Unable to commit IDB");
 
     if (ida_is_interactive_)
         ask_for_remote();
 
-    push("master", "master");
+    if (!push("master", "master"))
+        IDA_LOG_ERROR("Unable to push");
 }
 
 void RepoManager::add_auto_comment(ea_t ea, const std::string & text)
@@ -312,26 +319,16 @@ void RepoManager::check_valid_cache_startup()
 {
     IDA_LOG_INFO("Cache validity check started");
 
-    std::map<std::string, std::string> remotes;
-    try
+    if (!remote_exist("origin"))
     {
-        remotes = repo_.get_remotes();
-    }
-    catch (const std::runtime_error& error)
-    {
-        IDA_LOG_WARNING("Couldn't get repo remotes, error: %s", error.what());
-    }
-
-    if (remotes.find("origin") == remotes.end())
-    {
-        IDA_LOG_WARNING("origin not defined: ignoring origin and master sync check!");
+        IDA_LOG_INFO("origin remote not defined: ignoring origin and master sync check");
     }
     else
     {
-        if (repo_.get_commit("origin/master") != repo_.get_commit("master"))
-        {
-            IDA_LOG_WARNING("Master and origin/master doesn't point to the same commit, please update your master.");
-        }
+        const std::string master_commit = get_commit("master");
+        const std::string origin_master_commit = get_commit("origin/master");
+        if (master_commit.empty() || origin_master_commit.empty() || master_commit != origin_master_commit)
+            IDA_LOG_WARNING("Master and origin/master doesn't point to the same commit, please update your master");
     }
 
     std::error_code ec;
@@ -372,19 +369,9 @@ void RepoManager::check_valid_cache_startup()
 
 std::vector<std::string> RepoManager::update_cache()
 {
-    std::map<std::string, std::string> remotes;
-    try
-    {
-        remotes = repo_.get_remotes();
-    }
-    catch (const std::runtime_error& error)
-    {
-        IDA_LOG_ERROR("Couldn't get repo remotes, error: %s", error.what());
-    }
-
     std::vector<std::string> modified_files;
-    if (remotes.find("origin") == remotes.end())
-        return modified_files; // No remote
+    if (!remote_exist("origin"))
+        return modified_files;
 
     // check if files has been modified in background
     ask_to_checkout_modified_files();
@@ -439,34 +426,21 @@ std::vector<std::string> RepoManager::update_cache()
     IDA_LOG_INFO("Rebased from origin/master");
 
     // push to origin
-    bool push_success = false;
-    int nb_try = 0;
-    do
+    for (int nb_try = 0; nb_try < GIT_PUSH_RETRIES; ++nb_try)
     {
-        try
-        {
-            repo_.push("master", "master");
-            LOG(DEBUG, "Push to master: success");
-            push_success = true;
-        }
-        catch (const std::runtime_error& error)
-        {
-            LOG(DEBUG, "Push to master: fail, error: %s", error.what());
-            ++nb_try;
-            if (nb_try < GIT_PUSH_RETRIES)
-                continue;
+        if (!push("master", "master"))
+            continue;
 
-            IDA_LOG_WARNING("Errors occured during push to origin, they need to be resolved manually.");
-            repo_auto_sync_ = false;
-            IDA_LOG_INFO("Auto rebase/push disabled");
-            warning("You have errors during push to origin. You have to resolve it manually.");
-            return modified_files;
-        }
+        IDA_LOG_INFO("Pushed to origin/master");
+        IDA_LOG_INFO("Cache update success");
+        return modified_files;
     }
-    while (!push_success);
-    IDA_LOG_INFO("Pushed to origin/master");
 
-    IDA_LOG_INFO("Cache update success");
+    IDA_LOG_WARNING("Errors occured during push to origin, they need to be resolved manually.");
+    repo_auto_sync_ = false;
+    IDA_LOG_INFO("Auto rebase/push disabled");
+
+    warning("You have errors during push to origin. You have to resolve it manually.");
     return modified_files;
 }
 
@@ -486,18 +460,24 @@ bool RepoManager::commit_cache()
 
     for (const std::string& f : untracked_files)
     {
-        repo_.add_file(f);
-        IDA_LOG_INFO("added    %s", f.c_str());
+        if (add_file_to_index(f))
+            IDA_LOG_INFO("added    %s", f.c_str());
+        else
+            IDA_LOG_ERROR("unable to add %s to index", f.c_str());
     }
     for (const std::string& f : modified_files)
     {
-        repo_.add_file(f);
-        IDA_LOG_INFO("modified %s", f.c_str());
+        if (add_file_to_index(f))
+            IDA_LOG_INFO("modified %s", f.c_str());
+        else
+            IDA_LOG_ERROR("unable to add %s to index", f.c_str());
     }
     for (const std::string& f : deleted_files)
     {
-        repo_.remove_file(f);
-        IDA_LOG_INFO("deleted  %s", f.c_str());
+        if (remove_file_for_index(f))
+            IDA_LOG_INFO("deleted  %s", f.c_str());
+        else
+            IDA_LOG_ERROR("unable to remove %s for index", f.c_str());
     }
 
     size_t max_prefix_len = 0;
@@ -541,17 +521,13 @@ bool RepoManager::commit_cache()
     if (commit_msg.empty())
         commit_msg = "Undefined changes";
 
-    try
+    if (!commit(commit_msg))
     {
-        repo_.commit(commit_msg);
-    }
-    catch (const std::runtime_error& _error)
-    {
-        IDA_LOG_GUI_ERROR("An error occured during commit, error: %s", _error.what());
+        IDA_LOG_ERROR("Unable to commit");
         return false;
     }
-    auto_comments_.clear();
 
+    auto_comments_.clear();
     IDA_LOG_INFO("Changes commited");
     return true;
 }
@@ -580,13 +556,10 @@ void RepoManager::sync_and_push_original_idb()
             continue;
 
         // git remove xml
-        try
+        if (!remove_file_for_index(file_path.path().generic_string()))
         {
-            repo_.remove_file(file_path.path().generic_string());
-        }
-        catch (const std::runtime_error& error)
-        {
-            IDA_LOG_WARNING("Couldn't remove %s from git, error: %s", file_path.path().generic_string().c_str(), error.what());
+            IDA_LOG_ERROR("Unable to remove %s for index", file_path.path().generic_string().c_str());
+            return;
         }
 
         // filesystem remove xml
@@ -596,25 +569,25 @@ void RepoManager::sync_and_push_original_idb()
     }
 
     // git add original idb file
-    try
+    if (!add_file_to_index(get_original_idb_name()))
     {
-        repo_.add_file(get_original_idb_name());
-    }
-    catch (const std::runtime_error& error)
-    {
-        IDA_LOG_WARNING("Couldn't add original idb file to git, error: %s", error.what());
+        IDA_LOG_ERROR("Unable to add original idb file to index");
+        return;
     }
 
-    // git commit and push
-    try
+    // git commit
+    if (!commit("YaCo force push"))
     {
-        repo_.commit("YaCo force push");
+        IDA_LOG_ERROR("Unable to commit");
+        return;
     }
-    catch (const std::runtime_error& error)
-    {
-        IDA_LOG_WARNING("Couldn't commit, error: %s", error.what());
-    }
-    push("master", "master");
+    
+    if (!remote_exist("origin"))
+        return;
+    
+    // git push
+    if (!push("master", "master"))
+        IDA_LOG_ERROR("Unable to push");
 }
 
 void RepoManager::discard_and_pull_idb()
@@ -626,8 +599,16 @@ void RepoManager::discard_and_pull_idb()
     repo_.checkout_head();
 
     // get synced original idb
-    fetch("origin");
-    rebase("origin/master", "master");
+    if (!fetch("origin"))
+    {
+        IDA_LOG_ERROR("Unable to fetch origin");
+        return;
+    }
+    if (!rebase("origin/master", "master"))
+    {
+        IDA_LOG_ERROR("Unable to rebase master from origin/master");
+        return;
+    }
 
     // sync current idb to original idb
     copy_original_idb_to_current_file();
@@ -668,6 +649,50 @@ void RepoManager::ask_to_checkout_modified_files()
     }
 
     repo_auto_sync_ = false;
+}
+
+void RepoManager::ask_for_remote()
+{
+    qstring tmp{ "ssh://gitolite@repo/" };
+    if (!ask_str(&tmp, 0, "Specify a remote origin :"))
+        return;
+
+    std::string url{ tmp.c_str() };
+    try
+    {
+        repo_.create_remote("origin", url);
+    }
+    catch (const std::runtime_error& _error)
+    {
+        IDA_LOG_GUI_ERROR("An error occured during remote creation, error: %s", _error.what());
+        return;
+    }
+
+    if (std::regex_match(url, std::regex("^ssh://.*"))) // add http/https to regex ? ("^((ssh)|(https?))://.*")
+        return;
+
+    fs::path path{ url };
+    if (fs::exists(path))
+        return;
+
+    if (ask_yn(true, "The target directory doesn't exist, do you want to create it ?") != ASKBTN_YES)
+        return;
+
+    if (!fs::create_directories(path))
+    {
+        IDA_LOG_GUI_WARNING("Directory %s creation failed.", url.c_str());
+        return;
+    }
+
+    GitRepo tmp_repo{ url };
+    try
+    {
+        tmp_repo.init_bare();
+    }
+    catch (const std::runtime_error& error)
+    {
+        IDA_LOG_GUI_WARNING("Couldn't init remote repo, error: %s", error.what());
+    }
 }
 
 void RepoManager::ensure_git_globals()
@@ -711,6 +736,123 @@ void RepoManager::ensure_git_globals()
     }
 }
 
+bool RepoManager::init()
+{
+    try
+    {
+        repo_.init();
+    }
+    catch (const std::runtime_error& error)
+    {
+        IDA_LOG_WARNING("Failed to init repository, error: %s", error.what());
+        return false;
+    }
+    return true;
+}
+
+bool RepoManager::fetch(const std::string& remote)
+{
+    try
+    {
+        repo_.fetch(remote);
+    }
+    catch (const std::runtime_error& error)
+    {
+        IDA_LOG_WARNING("Failed to fetch %s, error: %s", remote.c_str(), error.what());
+        return false;
+    }
+    return true;
+}
+
+bool RepoManager::rebase(const std::string& upstream, const std::string& destination)
+{
+    IDAInteractiveFileConflictResolver resolver;
+    try
+    {
+        repo_.rebase(upstream, destination, resolver);
+    }
+    catch (const std::runtime_error& error)
+    {
+        IDA_LOG_WARNING("Failed to rebase %s from %s, error: %s", destination.c_str(), upstream.c_str(), error.what());
+        return false;
+    }
+    return true;
+}
+
+bool RepoManager::add_file_to_index(const std::string& path)
+{
+    try
+    {
+        repo_.add_file(path);
+    }
+    catch (const std::runtime_error& error)
+    {
+        IDA_LOG_WARNING("Failed to add %s to index, error: %s", path.c_str(), error.what());
+        return false;
+    }
+    return true;
+}
+
+bool RepoManager::remove_file_for_index(const std::string& path)
+{
+    try
+    {
+        repo_.remove_file(path);
+    }
+    catch (const std::runtime_error& error)
+    {
+        IDA_LOG_WARNING("Failed to remove %s for index, error: %s", path.c_str(), error.what());
+        return false;
+    }
+    return true;
+}
+
+bool RepoManager::commit(const std::string& message)
+{
+    try
+    {
+        repo_.commit(message);
+    }
+    catch (const std::runtime_error& error)
+    {
+        IDA_LOG_WARNING("Failed to commit, error: %s", error.what());
+        return false;
+    }
+    return true;
+}
+
+bool RepoManager::push(const std::string& src_branch, const std::string& dst_branch)
+{
+    if (!remote_exist("origin"))
+        return true;
+
+    try
+    {
+        repo_.push(src_branch, dst_branch);
+    }
+    catch (const std::runtime_error& error)
+    {
+        IDA_LOG_WARNING("Failed to push to remote, error: %s", error.what());
+        return false;
+    }
+    return true;
+}
+
+bool RepoManager::remote_exist(const std::string& remote)
+{
+    std::map<std::string, std::string> remotes;
+    try
+    {
+        remotes = repo_.get_remotes();
+    }
+    catch (const std::runtime_error& error)
+    {
+        IDA_LOG_WARNING("Couldn't get repo remotes, error: %s", error.what());
+        return false;
+    }
+    return remotes.find(remote) != remotes.end();
+}
+
 std::string RepoManager::get_commit(const std::string& ref)
 {
     std::string commit;
@@ -723,92 +865,6 @@ std::string RepoManager::get_commit(const std::string& ref)
         IDA_LOG_WARNING("Couldn't get commit from master, error: %s", error.what());
     }
     return commit;
-}
-
-void RepoManager::fetch(const std::string& origin)
-{
-    try
-    {
-        repo_.fetch(origin);
-    }
-    catch (const std::runtime_error& error)
-    {
-        IDA_LOG_WARNING("Couldn't fetch remote, error: %s", error.what());
-    }
-}
-
-bool RepoManager::rebase(const std::string& upstream, const std::string& destination)
-{
-    IDAInteractiveFileConflictResolver resolver;
-    try
-    {
-        repo_.rebase(upstream, destination, resolver);
-    }
-    catch (const std::runtime_error& error)
-    {
-        IDA_LOG_WARNING("Couldn't rebase %s from %s, error: %s", destination.c_str(), upstream.c_str(), error.what());
-        return false;
-    }
-    return true;
-}
-
-void RepoManager::push(const std::string& src_branch, const std::string& dst_branch)
-{
-    if (repo_.get_remotes().empty())
-        return;
-
-    try
-    {
-        repo_.push(src_branch, dst_branch);
-    }
-    catch (const std::runtime_error& error)
-    {
-        IDA_LOG_WARNING("Couldn't push to remote, error: %s", error.what());
-    }
-}
-
-void RepoManager::ask_for_remote()
-{
-    qstring tmp{ "ssh://gitolite@repo/" };
-    if (!ask_str(&tmp, 0, "Specify a remote origin :"))
-        return;
-
-    std::string url{ tmp.c_str() };
-    try
-    {
-        repo_.create_remote("origin", url);
-    }
-    catch (const std::runtime_error& _error)
-    {
-        IDA_LOG_GUI_ERROR("An error occured during remote creation, error: %s", _error.what());
-        return;
-    }
-
-    if (std::regex_match(url, std::regex("^ssh://.*"))) // add http/https to regex ? ("^((ssh)|(https?))://.*")
-        return;
-
-    fs::path path{ url };
-    if (fs::exists(path))
-        return;
-
-    if (ask_yn(true, "The target directory doesn't exist, do you want to create it ?") != ASKBTN_YES)
-        return;
-
-    if (!fs::create_directories(path))
-    {
-        IDA_LOG_GUI_WARNING("Directory %s creation failed.", url.c_str());
-        return;
-    }
-    
-    GitRepo tmp_repo{ url };
-    try
-    {
-        tmp_repo.init_bare();
-    }
-    catch (const std::runtime_error& error)
-    {
-        IDA_LOG_GUI_WARNING("Couldn't init remote repo, error: %s", error.what());
-    }
 }
 
 std::shared_ptr<IRepoManager> MakeRepoManager(const std::string& path, bool ida_is_interactive)
