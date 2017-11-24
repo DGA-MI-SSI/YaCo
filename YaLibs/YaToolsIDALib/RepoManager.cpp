@@ -186,51 +186,32 @@ namespace
     struct RepoManager
         : public IRepoManager
     {
-        RepoManager(bool ida_is_interactive);
+        explicit RepoManager(bool ida_is_interactive);
 
-        void ask_to_checkout_modified_files() override;
-
-        void ensure_git_globals() override;
-
+        // IRepoManager
         void add_auto_comment(ea_t ea, const std::string& text) override;
-
-        bool repo_exists() override;
-
-        void repo_init() override;
-
-        void repo_open(const std::string& path) override;
-
-        std::string get_commit(const std::string& ref) override;
-
-        void fetch(const std::string& origin) override;
-
-        bool rebase(const std::string& origin, const std::string& branch) override;
-
-        void push_origin_master() override;
-
         void check_valid_cache_startup() override;
-
-        std::vector<std::string> update_cache() override; //yaco_update_helper
-
+        std::vector<std::string> update_cache() override;
         bool repo_commit(std::string commit_msg = "") override;
-
-        bool repo_auto_sync_enabled() override;
-
         void toggle_repo_auto_sync() override;
-
         void sync_and_push_original_idb() override;
-
         void discard_and_pull_idb() override;
 
-    private:
+        void ask_to_checkout_modified_files();
+        void ensure_git_globals();
+        bool repo_exists();
+        void repo_init();
+        void repo_open(const std::string& path);
+        std::string get_commit(const std::string& ref);
+        void fetch(const std::string& origin);
+        bool rebase(const std::string& origin, const std::string& branch);
+        void push_origin_master();
+        bool repo_auto_sync_enabled();
         void ask_for_remote();
 
         bool ida_is_interactive_;
-
         GitRepo repo_;
-
         std::vector<std::tuple<std::string, std::string>> auto_comments_;
-
         bool repo_auto_sync_;
     };
 }
@@ -250,84 +231,6 @@ RepoManager::RepoManager(bool ida_is_interactive):
         repo_open(".");
     }
     IDA_LOG_INFO("Repo opened");
-}
-
-void RepoManager::ask_to_checkout_modified_files()
-{
-    std::string modified_objects;
-    bool idb_modified = false;
-
-    std::string original_idb_name = get_original_idb_name();
-    for (std::string modified_object : repo_.get_modified_objects())
-    {
-        if (modified_object == original_idb_name)
-        {
-            backup_original_idb();
-            idb_modified = true;
-            continue;
-        }
-        modified_objects += modified_object;
-        modified_objects += '\n';
-    }
-
-
-    if (modified_objects.empty())
-    {
-        if (idb_modified)
-            repo_.checkout_head(); // checkout silently
-        return;
-    }
-
-    // modified_objects is now the message
-    modified_objects += "\nhas been modified, this is not normal, do you want to checkout these files ? (Rebasing will be disabled if you answer no)";
-    if (ask_yn(true, modified_objects.c_str()) != ASKBTN_NO)
-    {
-        repo_.checkout_head();
-        return;
-    }
-
-    repo_auto_sync_ = false;
-}
-
-void RepoManager::ensure_git_globals()
-{
-    std::string user_name{ repo_.config_get_string("user.name") };
-    if (user_name.empty())
-    {
-        qstring tmp;
-        do
-            tmp = "username";
-        while (!ask_str(&tmp, 0, "Entrer git user.name") || tmp.empty());
-
-        user_name = tmp.c_str();
-        try
-        {
-            repo_.config_set_string("user.name", user_name);
-        }
-        catch (const std::runtime_error& error)
-        {
-            IDA_LOG_GUI_WARNING("Couldn't set git user name, error: %s", error.what());
-        }
-    }
-
-    std::string user_email{ repo_.config_get_string("user.email") };
-    if (user_email.empty())
-    {
-        qstring tmp;
-        do
-            tmp = "username@localdomain";
-        while (!ask_str(&tmp, 0, "Entrer git user.email") || tmp.empty());
-
-        user_email = tmp.c_str();
-        try
-        {
-            repo_.config_set_string("user.email", user_email);
-        }
-        catch (const std::runtime_error& error)
-        {
-            IDA_LOG_GUI_WARNING("Couldn't set git user email, error: %s", error.what());
-        }
-    }
 }
 
 void RepoManager::add_auto_comment(ea_t ea, const std::string & text)
@@ -387,109 +290,6 @@ void RepoManager::add_auto_comment(ea_t ea, const std::string & text)
         }
     }
     auto_comments_.emplace_back(std::move(prefix), text);
-}
-
-bool RepoManager::repo_exists()
-{
-    std::error_code ec;
-    return fs::is_directory(".git", ec) && !ec;
-}
-
-void RepoManager::repo_init()
-{
-    try
-    {
-        repo_ = GitRepo{ "." };
-        repo_.init();
-        ensure_git_globals();
-
-        //add current IDB to repo
-        repo_.add_file(get_current_idb_name());
-
-        //create an initial commit with IDB
-        repo_.commit("Initial commit");
-    }
-    catch (std::runtime_error _error)
-    {
-        IDA_LOG_GUI_ERROR("An error occured during repo init, error: %s", _error.what());
-        return;
-    }
-
-    if (ida_is_interactive_)
-        ask_for_remote();
-
-    push_origin_master();
-}
-
-void RepoManager::repo_open(const std::string& path)
-{
-    repo_ = GitRepo(path);
-    try
-    {
-        repo_.init();
-    }
-    catch (std::runtime_error error)
-    {
-        IDA_LOG_WARNING("Couldn't init repository, error: %s", error.what());
-    }
-    ensure_git_globals();
-}
-
-std::string RepoManager::get_commit(const std::string& ref)
-{
-    std::string commit;
-    try
-    {
-        commit = repo_.get_commit(ref);
-    }
-    catch (std::runtime_error error)
-    {
-        IDA_LOG_WARNING("Couldn't get commit from master, error: %s", error.what());
-    }
-    return commit;
-}
-
-void RepoManager::fetch(const std::string& origin)
-{
-    try
-    {
-        repo_.fetch(origin);
-    }
-    catch (std::runtime_error error)
-    {
-        IDA_LOG_WARNING("Couldn't fetch remote, error: %s", error.what());
-    }
-}
-
-bool RepoManager::rebase(const std::string& upstream, const std::string& destination)
-{
-    IDAInteractiveFileConflictResolver resolver;
-    try
-    {
-        repo_.rebase(upstream, destination, resolver);
-    }
-    catch (std::runtime_error error)
-    {
-        IDA_LOG_WARNING("Couldn't rebase %s from %s, error: %s", destination.c_str(), upstream.c_str(), error.what());
-        return false;
-    }
-    return true;
-}
-
-void RepoManager::push_origin_master()
-{
-    const std::map<std::string, std::string> remotes{ repo_.get_remotes() };
-    if (remotes.find(std::string("origin")) != remotes.end())
-    {
-        try
-        {
-            repo_.push("master", "master");
-        }
-        catch (std::runtime_error error)
-        {
-            IDA_LOG_WARNING("Couldn't push to remote origin, error: %s", error.what());
-        }
-    }
 }
 
 void RepoManager::check_valid_cache_startup()
@@ -692,8 +492,9 @@ bool RepoManager::repo_commit(std::string commit_msg)
         max_txt_len = std::max(std::get<1>(comment).size(), max_txt_len);
     }
 
-    std::sort(auto_comments_.begin(), auto_comments_.end(), 
-        [](const std::tuple<std::string, std::string>& a, const std::tuple<std::string, std::string>& b) {
+    std::sort(auto_comments_.begin(), auto_comments_.end(),
+        [](const std::tuple<std::string, std::string>& a, const std::tuple<std::string, std::string>& b)
+    {
         int cmp = std::get<0>(a).compare(std::get<0>(b));
         if (cmp == 0)
         {
@@ -741,11 +542,6 @@ bool RepoManager::repo_commit(std::string commit_msg)
     return true;
 }
 
-bool RepoManager::repo_auto_sync_enabled()
-{
-    return repo_auto_sync_;
-}
-
 void RepoManager::toggle_repo_auto_sync()
 {
     repo_auto_sync_ = !repo_auto_sync_;
@@ -765,8 +561,7 @@ void RepoManager::sync_and_push_original_idb()
     for (const fs::directory_entry& file_path : fs::recursive_directory_iterator("cache"))
     {
         std::error_code ec;
-        bool is_regular_file = false;
-        is_regular_file = fs::is_regular_file(file_path.path(), ec);
+        bool is_regular_file = fs::is_regular_file(file_path.path(), ec);
         if (!is_regular_file)
             continue;
 
@@ -822,6 +617,192 @@ void RepoManager::discard_and_pull_idb()
 
     // sync current idb to original idb
     copy_original_idb_to_current_file();
+}
+
+void RepoManager::ask_to_checkout_modified_files()
+{
+    std::string modified_objects;
+    bool idb_modified = false;
+
+    std::string original_idb_name = get_original_idb_name();
+    for (std::string modified_object : repo_.get_modified_objects())
+    {
+        if (modified_object == original_idb_name)
+        {
+            backup_original_idb();
+            idb_modified = true;
+            continue;
+        }
+        modified_objects += modified_object;
+        modified_objects += '\n';
+    }
+
+
+    if (modified_objects.empty())
+    {
+        if (idb_modified)
+            repo_.checkout_head(); // checkout silently
+        return;
+    }
+
+    // modified_objects is now the message
+    modified_objects += "\nhas been modified, this is not normal, do you want to checkout these files ? (Rebasing will be disabled if you answer no)";
+    if (ask_yn(true, modified_objects.c_str()) != ASKBTN_NO)
+    {
+        repo_.checkout_head();
+        return;
+    }
+
+    repo_auto_sync_ = false;
+}
+
+void RepoManager::ensure_git_globals()
+{
+    std::string user_name{ repo_.config_get_string("user.name") };
+    if (user_name.empty())
+    {
+        qstring tmp;
+        do
+            tmp = "username";
+        while (!ask_str(&tmp, 0, "Entrer git user.name") || tmp.empty());
+
+        user_name = tmp.c_str();
+        try
+        {
+            repo_.config_set_string("user.name", user_name);
+        }
+        catch (const std::runtime_error& error)
+        {
+            IDA_LOG_GUI_WARNING("Couldn't set git user name, error: %s", error.what());
+        }
+    }
+
+    std::string user_email{ repo_.config_get_string("user.email") };
+    if (user_email.empty())
+    {
+        qstring tmp;
+        do
+            tmp = "username@localdomain";
+        while (!ask_str(&tmp, 0, "Entrer git user.email") || tmp.empty());
+
+        user_email = tmp.c_str();
+        try
+        {
+            repo_.config_set_string("user.email", user_email);
+        }
+        catch (const std::runtime_error& error)
+        {
+            IDA_LOG_GUI_WARNING("Couldn't set git user email, error: %s", error.what());
+        }
+    }
+}
+
+bool RepoManager::repo_exists()
+{
+    std::error_code ec;
+    return fs::is_directory(".git", ec) && !ec;
+}
+
+void RepoManager::repo_init()
+{
+    try
+    {
+        repo_ = GitRepo{ "." };
+        repo_.init();
+        ensure_git_globals();
+
+        //add current IDB to repo
+        repo_.add_file(get_current_idb_name());
+
+        //create an initial commit with IDB
+        repo_.commit("Initial commit");
+    }
+    catch (std::runtime_error _error)
+    {
+        IDA_LOG_GUI_ERROR("An error occured during repo init, error: %s", _error.what());
+        return;
+    }
+
+    if (ida_is_interactive_)
+        ask_for_remote();
+
+    push_origin_master();
+}
+
+void RepoManager::repo_open(const std::string& path)
+{
+    repo_ = GitRepo(path);
+    try
+    {
+        repo_.init();
+    }
+    catch (std::runtime_error error)
+    {
+        IDA_LOG_WARNING("Couldn't init repository, error: %s", error.what());
+    }
+    ensure_git_globals();
+}
+
+std::string RepoManager::get_commit(const std::string& ref)
+{
+    std::string commit;
+    try
+    {
+        commit = repo_.get_commit(ref);
+    }
+    catch (std::runtime_error error)
+    {
+        IDA_LOG_WARNING("Couldn't get commit from master, error: %s", error.what());
+    }
+    return commit;
+}
+
+void RepoManager::fetch(const std::string& origin)
+{
+    try
+    {
+        repo_.fetch(origin);
+    }
+    catch (std::runtime_error error)
+    {
+        IDA_LOG_WARNING("Couldn't fetch remote, error: %s", error.what());
+    }
+}
+
+bool RepoManager::rebase(const std::string& upstream, const std::string& destination)
+{
+    IDAInteractiveFileConflictResolver resolver;
+    try
+    {
+        repo_.rebase(upstream, destination, resolver);
+    }
+    catch (std::runtime_error error)
+    {
+        IDA_LOG_WARNING("Couldn't rebase %s from %s, error: %s", destination.c_str(), upstream.c_str(), error.what());
+        return false;
+    }
+    return true;
+}
+
+void RepoManager::push_origin_master()
+{
+    const std::map<std::string, std::string> remotes{ repo_.get_remotes() };
+    if (remotes.find(std::string("origin")) != remotes.end())
+    {
+        try
+        {
+            repo_.push("master", "master");
+        }
+        catch (std::runtime_error error)
+        {
+            IDA_LOG_WARNING("Couldn't push to remote origin, error: %s", error.what());
+        }
+    }
+}
+
+bool RepoManager::repo_auto_sync_enabled()
+{
+    return repo_auto_sync_;
 }
 
 void RepoManager::ask_for_remote()

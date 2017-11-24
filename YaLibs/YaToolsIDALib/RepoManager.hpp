@@ -31,33 +31,13 @@ struct IRepoManager
 {
     virtual ~IRepoManager() = default;
 
-    virtual void ask_to_checkout_modified_files() = 0;
-
-    virtual void ensure_git_globals() = 0;
-
     virtual void add_auto_comment(ea_t ea, const std::string& text) = 0;
-
-    virtual bool repo_exists() = 0;
-
-    virtual void repo_init() = 0;
-
-    virtual void repo_open(const std::string& path = ".") = 0;
-
-    virtual std::string get_commit(const std::string& ref) = 0;
-
-    virtual void fetch(const std::string& origin) = 0;
-
-    virtual bool rebase(const std::string& origin, const std::string& branch) = 0;
-
-    virtual void push_origin_master() = 0;
 
     virtual void check_valid_cache_startup() = 0;
 
     virtual std::vector<std::string> update_cache() = 0;
 
     virtual bool repo_commit(std::string commit_msg = "") = 0;
-
-    virtual bool repo_auto_sync_enabled() = 0;
 
     virtual void toggle_repo_auto_sync() = 0;
 
