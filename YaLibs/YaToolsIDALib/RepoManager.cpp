@@ -206,7 +206,6 @@ namespace
         void fetch(const std::string& origin);
         bool rebase(const std::string& origin, const std::string& branch);
         void push_origin_master();
-        bool repo_auto_sync_enabled();
         void ask_for_remote();
 
         bool ida_is_interactive_;
@@ -798,11 +797,6 @@ void RepoManager::push_origin_master()
             IDA_LOG_WARNING("Couldn't push to remote origin, error: %s", error.what());
         }
     }
-}
-
-bool RepoManager::repo_auto_sync_enabled()
-{
-    return repo_auto_sync_;
 }
 
 void RepoManager::ask_for_remote()
