@@ -353,7 +353,10 @@ void RepoManager::check_valid_cache_startup()
         IDA_LOG_INFO("Local IDB does not exist, it will be created");
         fs::copy_file(current_idb_path, local_idb_path, ec);
         if (ec)
-            IDA_LOG_ERROR("Couldn't create local idb file, error: %s", ec.message().c_str());
+        {
+            IDA_LOG_ERROR("Unable to create local idb file, error: %s", ec.message().c_str());
+            return;
+        }
     }
 
     if (!ida_is_interactive_)
@@ -544,9 +547,14 @@ void RepoManager::toggle_repo_auto_sync()
 
 void RepoManager::sync_and_push_original_idb()
 {
-    // sync original idb to current idb
     backup_original_idb();
-    copy_current_idb_to_original_file();
+
+    // sync original idb to current idb
+    if (!copy_current_idb_to_original_file())
+    {
+        IDA_LOG_ERROR("Unable to sync original idb to current idb");
+        return;
+    }
 
     // remove xml cache files
     for (const fs::directory_entry& file_path : fs::recursive_directory_iterator("cache"))
@@ -566,7 +574,7 @@ void RepoManager::sync_and_push_original_idb()
         // filesystem remove xml
         fs::remove(file_path.path(), ec);
         if (ec)
-            IDA_LOG_WARNING("Couldn't remove %s from filesystem, error: %s", file_path.path().generic_string().c_str(), ec.message().c_str());
+            IDA_LOG_ERROR("Unable to remove %s from filesystem, error: %s", file_path.path().generic_string().c_str(), ec.message().c_str());
     }
 
     // git add original idb file
@@ -612,7 +620,8 @@ void RepoManager::discard_and_pull_idb()
     }
 
     // sync current idb to original idb
-    copy_original_idb_to_current_file();
+    if (!copy_original_idb_to_current_file())
+        IDA_LOG_ERROR("Unable to sync current idb to original idb");
 }
 
 void RepoManager::ask_to_checkout_modified_files()
@@ -690,9 +699,9 @@ void RepoManager::ask_for_remote()
     {
         tmp_repo.init_bare();
     }
-    catch (const std::runtime_error& error)
+    catch (const std::runtime_error& _error)
     {
-        IDA_LOG_GUI_WARNING("Couldn't init remote repo, error: %s", error.what());
+        IDA_LOG_GUI_ERROR("Unable to init remote repo, error: %s", _error.what());
     }
 }
 
@@ -713,7 +722,7 @@ void RepoManager::ensure_git_globals()
         }
         catch (const std::runtime_error& error)
         {
-            IDA_LOG_GUI_WARNING("Couldn't set git user name, error: %s", error.what());
+            IDA_LOG_GUI_WARNING("Unable set git user name, error: %s", error.what());
         }
     }
 
@@ -732,7 +741,7 @@ void RepoManager::ensure_git_globals()
         }
         catch (const std::runtime_error& error)
         {
-            IDA_LOG_GUI_WARNING("Couldn't set git user email, error: %s", error.what());
+            IDA_LOG_GUI_WARNING("Unable to set git user email, error: %s", error.what());
         }
     }
 }
@@ -848,7 +857,7 @@ bool RepoManager::remote_exist(const std::string& remote)
     }
     catch (const std::runtime_error& error)
     {
-        IDA_LOG_WARNING("Couldn't get repo remotes, error: %s", error.what());
+        IDA_LOG_WARNING("Failed to get repo remotes, error: %s", error.what());
         return false;
     }
     return remotes.find(remote) != remotes.end();
@@ -863,7 +872,7 @@ std::string RepoManager::get_commit(const std::string& ref)
     }
     catch (const std::runtime_error& error)
     {
-        IDA_LOG_WARNING("Couldn't get commit from master, error: %s", error.what());
+        IDA_LOG_WARNING("Failed to get commit from master, error: %s", error.what());
     }
     return commit;
 }
@@ -919,7 +928,7 @@ bool backup_file(const std::string& file_path)
     fs::copy_file(file_path, backup_file_path, ec);
     if (ec)
     {
-        IDA_LOG_WARNING("Couldn't create backup for %s, error: %s", file_path.c_str(), ec.message().c_str());
+        IDA_LOG_WARNING("Failed to create backup for %s, error: %s", file_path.c_str(), ec.message().c_str());
         return false;
     }
 
@@ -958,7 +967,7 @@ bool copy_original_idb_to_current_file()
     fs::copy_file(original_idb_path, current_idb_path, fs::copy_options::overwrite_existing, ec);
     if (ec)
     {
-        LOG(WARNING, "Couldn't copy original idb to current idb, error: %s", ec.message().c_str());
+        IDA_LOG_GUI_WARNING("Failed to copy original idb to current idb, error: %s", ec.message().c_str());
         return false;
     }
     remove_ida_temporary_files(current_idb_path);
@@ -974,7 +983,7 @@ bool copy_current_idb_to_original_file()
     fs::copy_file(current_idb_path, original_idb_path, fs::copy_options::overwrite_existing, ec);
     if (ec)
     {
-        LOG(WARNING, "Couldn't copy current idb to original idb, error: %s", ec.message().c_str());
+        IDA_LOG_GUI_WARNING("Failed to copy current idb to original idb, error: %s", ec.message().c_str());
         return false;
     }
     remove_ida_temporary_files(current_idb_path);
