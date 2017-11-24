@@ -196,7 +196,7 @@ namespace
 
         // IRepoManager
         void add_auto_comment(ea_t ea, const std::string& text) override;
-        void check_valid_cache_startup() override;
+        void check_valid_cache_startup() override; // can stop IDA
         std::vector<std::string> update_cache() override;
         bool commit_cache() override;
         void toggle_repo_auto_sync() override;
@@ -339,32 +339,33 @@ void RepoManager::check_valid_cache_startup()
     std::string idb_prefix{ get_current_idb_path() };
     remove_substring(idb_prefix, idb_extension);
 
-    if (!std::regex_match(idb_prefix, std::regex{ ".*_local$" }))
+    if (std::regex_match(idb_prefix, std::regex{ ".*_local$" }))
     {
-        IDA_LOG_INFO("Current IDB does not have _local suffix");
-        std::string local_idb_path{ idb_prefix + "_local" + idb_extension };
-        bool local_idb_exist = fs::exists(local_idb_path, ec);
-        if (!local_idb_exist)
-        {
-            IDA_LOG_INFO("Local IDB does not exist, it will be created");
-            fs::copy_file(current_idb_path, local_idb_path, ec);
-            if (ec)
-                IDA_LOG_WARNING("Couldn't create local idb file, error: %s", ec.message().c_str());
-        }
-
-        if (ida_is_interactive_)
-        {
-            IDA_LOG_INFO("IDA need to restart with local IDB.");
-            std::string msg{ "To use YaCo you must name your IDB with _local suffix. YaCo will create one for you.\nRestart IDA and open " };
-            msg += fs::path{ local_idb_path }.filename().generic_string();
-            msg += '.';
-            set_database_flag(DBFL_KILL);
-            warning(msg.c_str());
-            qexit(0);
-        }
+        IDA_LOG_INFO("Cache validity check ended");
+        return;
     }
 
-    IDA_LOG_INFO("Cache validity check ended");
+    IDA_LOG_INFO("Current IDB does not have _local suffix");
+    std::string local_idb_path{ idb_prefix + "_local" + idb_extension };
+    bool local_idb_exist = fs::exists(local_idb_path, ec);
+    if (!local_idb_exist)
+    {
+        IDA_LOG_INFO("Local IDB does not exist, it will be created");
+        fs::copy_file(current_idb_path, local_idb_path, ec);
+        if (ec)
+            IDA_LOG_ERROR("Couldn't create local idb file, error: %s", ec.message().c_str());
+    }
+
+    if (!ida_is_interactive_)
+        return;
+
+    IDA_LOG_INFO("IDA need to restart with local IDB");
+    std::string msg{ "To use YaCo you must name your IDB with _local suffix. YaCo will create one for you.\nRestart IDA and open " };
+    msg += fs::path{ local_idb_path }.filename().generic_string();
+    msg += '.';
+    set_database_flag(DBFL_KILL);
+    warning(msg.c_str());
+    qexit(0);
 }
 
 std::vector<std::string> RepoManager::update_cache()
