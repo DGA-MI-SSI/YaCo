@@ -189,6 +189,24 @@ bool IDAInteractiveFileConflictResolver::callback(const std::string& input_file1
 
 namespace
 {
+    struct AutoComment
+    {
+        AutoComment(const std::string& prefix, const std::string& text);
+
+        std::string prefix;
+        std::string text;
+    };
+}
+
+AutoComment::AutoComment(const std::string& prefix_, const std::string& text_)
+    : prefix(prefix_)
+    , text(text_)
+{
+
+}
+
+namespace
+{
     struct RepoManager
         : public IRepoManager
     {
@@ -222,7 +240,7 @@ namespace
 
         bool ida_is_interactive_;
         GitRepo repo_;
-        std::vector<std::tuple<std::string, std::string>> auto_comments_;
+        std::vector<AutoComment> auto_comments_;
         bool repo_auto_sync_;
     };
 }
@@ -314,7 +332,7 @@ void RepoManager::add_auto_comment(ea_t ea, const std::string & text)
             }
         }
     }
-    auto_comments_.emplace_back(std::move(prefix), text);
+    auto_comments_.emplace_back(prefix, text);
 }
 
 void RepoManager::check_valid_cache_startup()
@@ -488,30 +506,25 @@ bool RepoManager::commit_cache()
 
     size_t max_prefix_len = 0;
     size_t max_txt_len = 0;
-    for (const std::tuple<std::string, std::string>& comment : auto_comments_)
+    for (const AutoComment& comment : auto_comments_)
     {
-        max_prefix_len = std::max(std::get<0>(comment).size(), max_prefix_len);
-        max_txt_len = std::max(std::get<1>(comment).size(), max_txt_len);
+        max_prefix_len = std::max(comment.prefix.size(), max_prefix_len);
+        max_txt_len = std::max(comment.text.size(), max_txt_len);
     }
 
     std::sort(auto_comments_.begin(), auto_comments_.end(),
-        [](const std::tuple<std::string, std::string>& a, const std::tuple<std::string, std::string>& b)
+        [](const AutoComment& a, const AutoComment& b)
     {
-        int cmp = std::get<0>(a).compare(std::get<0>(b));
-        if (cmp == 0)
-        {
-            cmp = std::get<1>(a).compare(std::get<1>(b));
-        }
-        return cmp < 0;
+        return std::make_pair(a.prefix, a.text) < std::make_pair(b.prefix, b.text);
     });
 
     size_t max_total_len = max_prefix_len + max_txt_len + 4; // for '[', ']', ' ', '\0'
     std::vector<char> buffer(max_total_len);
     std::string commit_msg;
     bool need_truncate = false;
-    for (const std::tuple<std::string, std::string>& comment : auto_comments_)
+    for (const AutoComment& comment : auto_comments_)
     {
-        snprintf(buffer.data(), max_total_len, "[%-*s] %s", static_cast<int>(max_prefix_len), std::get<0>(comment).c_str(), std::get<1>(comment).c_str());
+        snprintf(buffer.data(), max_total_len, "[%-*s] %s", static_cast<int>(max_prefix_len), comment.prefix.c_str(), comment.text.c_str());
         commit_msg += buffer.data();
         commit_msg += '\n';
         need_truncate = commit_msg.size() > TRUNCATE_COMMIT_MSG_LENGTH;
