@@ -46,8 +46,13 @@ struct IRepoManager
     virtual void discard_and_pull_idb() = 0;
 };
 
+enum IDAIsInteractive : bool
+{
+    IS_NOT_INTERACTIVE,
+    IS_INTERACTIVE
+};
 
-std::shared_ptr<IRepoManager> MakeRepoManager(const std::string& path, bool ida_is_interactive);
+std::shared_ptr<IRepoManager> MakeRepoManager(const std::string& path, IDAIsInteractive ida_is_interactive);
 
 std::string ea_to_hex(ea_t ea);
 
