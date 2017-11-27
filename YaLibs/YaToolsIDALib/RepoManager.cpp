@@ -192,7 +192,7 @@ namespace
     struct RepoManager
         : public IRepoManager
     {
-        RepoManager(const std::string& path, bool ida_is_interactive);
+        RepoManager(const std::string& path, IDAIsInteractive ida_is_interactive);
 
         // IRepoManager
         void add_auto_comment(ea_t ea, const std::string& text) override;
@@ -227,7 +227,7 @@ namespace
     };
 }
 
-RepoManager::RepoManager(const std::string& path, bool ida_is_interactive)
+RepoManager::RepoManager(const std::string& path, IDAIsInteractive ida_is_interactive)
     : repo_(path)
     , ida_is_interactive_(ida_is_interactive)
     , repo_auto_sync_(true)
@@ -888,7 +888,7 @@ std::string RepoManager::get_commit(const std::string& ref)
     return commit;
 }
 
-std::shared_ptr<IRepoManager> MakeRepoManager(const std::string& path, bool ida_is_interactive)
+std::shared_ptr<IRepoManager> MakeRepoManager(const std::string& path, IDAIsInteractive ida_is_interactive)
 {
     return std::make_shared<RepoManager>(path, ida_is_interactive);
 }
