@@ -76,55 +76,57 @@ namespace fs = std::experimental::filesystem;
 
 namespace
 {
-    static constexpr size_t TRUNCATE_COMMIT_MSG_LENGTH             = 4000;
-    static constexpr int    GIT_PUSH_RETRIES                       = 3;
-    static constexpr int    CONFLICT_RESOLVER_EDIT_MAX_FILE_LENGTH = 65536;
-}
+    static const size_t TRUNCATE_COMMIT_MSG_LENGTH = 4000;
+    static const int    GIT_PUSH_RETRIES = 3;
+    static const int    CONFLICT_RESOLVER_EDIT_MAX_FILE_LENGTH = 65536;
 
-static bool remove_substring(std::string& str, const std::string& substr)
-{
-    if (substr.empty())
-        return false;
 
-    const size_t pos = str.rfind(substr);
-    if (pos == std::string::npos)
-        return false;
-        
-    str.erase(pos, substr.size());
-    return true;
-}
+    bool remove_substring(std::string& str, const std::string& substr)
+    {
+        if (substr.empty())
+            return false;
 
-static bool is_git_working_dir(const std::string& path)
-{
-    std::error_code ec;
-    return fs::is_directory(path + "/.git", ec) && !ec;
-}
+        const size_t pos = str.rfind(substr);
+        if (pos == std::string::npos)
+            return false;
 
-static bool is_valid_xml_file(const std::string& filename)
-{
-    std::shared_ptr<xmlTextReader> reader(xmlReaderForFile(filename.c_str(), NULL, 0), &xmlFreeTextReader);
-    int ret = 1;
-    while (ret == 1)
-        ret = xmlTextReaderRead(reader.get());
-    return ret != -1;
-}
+        str.erase(pos, substr.size());
+        return true;
+    }
 
-static void add_filename_suffix(std::string& file_path, const std::string& suffix)
-{
-    const std::string file_extension{ fs::path{ file_path }.extension().string() };
-    remove_substring(file_path, file_extension);
-    file_path += suffix;
-    file_path += file_extension;
-}
+    bool is_git_working_dir(const std::string& path)
+    {
+        std::error_code ec;
+        return fs::is_directory(path + "/.git", ec) && !ec;
+    }
 
-static bool remove_filename_suffix(std::string& file_path, const std::string& suffix)
-{
-    // only remove the suffix from the filename even if it appear in the extention
-    const std::string file_extension{ fs::path{ file_path }.extension().string() };
-    remove_substring(file_path, file_extension);
-    const bool removed = remove_substring(file_path, suffix);
-    file_path += file_extension;
-    return removed;
+    bool is_valid_xml_file(const std::string& filename)
+    {
+        std::shared_ptr<xmlTextReader> reader(xmlReaderForFile(filename.c_str(), NULL, 0), &xmlFreeTextReader);
+        int ret = 1;
+        while (ret == 1)
+            ret = xmlTextReaderRead(reader.get());
+        return ret != -1;
+    }
+
+    void add_filename_suffix(std::string& file_path, const std::string& suffix)
+    {
+        const std::string file_extension{ fs::path{ file_path }.extension().string() };
+        remove_substring(file_path, file_extension);
+        file_path += suffix;
+        file_path += file_extension;
+    }
+
+    bool remove_filename_suffix(std::string& file_path, const std::string& suffix)
+    {
+        // only remove the suffix from the filename even if it appear in the extention
+        const std::string file_extension{ fs::path{ file_path }.extension().string() };
+        remove_substring(file_path, file_extension);
+        const bool removed = remove_substring(file_path, suffix);
+        file_path += file_extension;
+        return removed;
+    }
+
 }
 
 namespace
@@ -346,7 +348,7 @@ void RepoManager::check_valid_cache_startup()
     }
 
     IDA_LOG_INFO("Current IDB does not have _local suffix");
-    std::string local_idb_path{ idb_prefix + "_local" + idb_extension };
+    const std::string local_idb_path{ idb_prefix + "_local" + idb_extension };
     bool local_idb_exist = fs::exists(local_idb_path, ec);
     if (!local_idb_exist)
     {
