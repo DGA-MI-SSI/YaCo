@@ -87,13 +87,11 @@ static bool remove_substring(std::string& str, const std::string& substr)
         return false;
 
     const size_t pos = str.rfind(substr);
-    if (pos != std::string::npos)
-    {
-        str.erase(pos, substr.size());
-        return true;
-    }
-
-    return false;
+    if (pos == std::string::npos)
+        return false;
+        
+    str.erase(pos, substr.size());
+    return true;
 }
 
 static bool is_git_working_dir(const std::string& path)
@@ -113,7 +111,7 @@ static bool is_valid_xml_file(const std::string& filename)
 
 static void add_filename_suffix(std::string& file_path, const std::string& suffix)
 {
-    std::string file_extension{ fs::path{ file_path }.extension().string() };
+    const std::string file_extension{ fs::path{ file_path }.extension().string() };
     remove_substring(file_path, file_extension);
     file_path += suffix;
     file_path += file_extension;
@@ -122,7 +120,7 @@ static void add_filename_suffix(std::string& file_path, const std::string& suffi
 static bool remove_filename_suffix(std::string& file_path, const std::string& suffix)
 {
     // only remove the suffix from the filename even if it appear in the extention
-    std::string file_extension{ fs::path{ file_path }.extension().string() };
+    const std::string file_extension{ fs::path{ file_path }.extension().string() };
     remove_substring(file_path, file_extension);
     const bool removed = remove_substring(file_path, suffix);
     file_path += file_extension;
@@ -336,8 +334,8 @@ void RepoManager::check_valid_cache_startup()
     std::error_code ec;
     fs::create_directory("cache", ec);
 
-    fs::path current_idb_path{ get_current_idb_path() };
-    std::string idb_extension{ current_idb_path.extension().string() };
+    const fs::path current_idb_path{ get_current_idb_path() };
+    const std::string idb_extension{ current_idb_path.extension().string() };
     std::string idb_prefix{ get_current_idb_path() };
     remove_substring(idb_prefix, idb_extension);
 
@@ -390,7 +388,7 @@ std::vector<std::string> RepoManager::update_cache()
 
     IDA_LOG_INFO("Cache update started");
     // get master commit
-    std::string master_commit{ get_commit("master") };
+    const std::string master_commit{ get_commit("master") };
     if (master_commit.empty())
     {
         IDA_LOG_INFO("Cache update failed");
@@ -631,8 +629,8 @@ void RepoManager::ask_to_checkout_modified_files()
     std::string modified_objects;
     bool idb_modified = false;
 
-    std::string original_idb_name = get_original_idb_name();
-    for (std::string modified_object : repo_.get_modified_objects())
+    const std::string original_idb_name = get_original_idb_name();
+    for (const std::string& modified_object : repo_.get_modified_objects())
     {
         if (modified_object == original_idb_name)
         {
@@ -669,7 +667,7 @@ void RepoManager::ask_for_remote()
     if (!ask_str(&tmp, 0, "Specify a remote origin :"))
         return;
 
-    std::string url{ tmp.c_str() };
+    const std::string url{ tmp.c_str() };
     try
     {
         repo_.create_remote("origin", url);
@@ -683,7 +681,7 @@ void RepoManager::ask_for_remote()
     if (std::regex_match(url, std::regex("^ssh://.*"))) // add http/https to regex ? ("^((ssh)|(https?))://.*")
         return;
 
-    fs::path path{ url };
+    const fs::path path{ url };
     if (fs::exists(path))
         return;
 
@@ -926,12 +924,12 @@ std::string get_original_idb_name()
 
 bool backup_file(const std::string& file_path)
 {
-    std::time_t now{ std::time(nullptr) };
+    const std::time_t now{ std::time(nullptr) };
     std::string date{ std::ctime(&now) };
     date = date.substr(0, date.size() - 1); //remove final \n from ctime
     std::replace(date.begin(), date.end(), ' ', '_');
     std::replace(date.begin(), date.end(), ':', '_');
-    std::string suffix{ "_bkp_" + date };
+    const std::string suffix{ "_bkp_" + date };
     std::string backup_file_path{ file_path };
     add_filename_suffix(backup_file_path, suffix);
 
@@ -965,15 +963,15 @@ void remove_ida_temporary_files(const std::string& idb_path)
     remove_substring(idb_no_ext, fs::path{ idb_path }.extension().string());
 
     std::error_code ec;
-    const char* extensions_to_delete[] = { ".id0", ".id1", ".id2", ".nam", ".til" };
+    const char extensions_to_delete[][6] = { ".id0", ".id1", ".id2", ".nam", ".til" };
     for (const char* ext : extensions_to_delete)
         fs::remove(fs::path{ idb_no_ext + ext }, ec);
 }
 
 bool copy_original_idb_to_current_file()
 {
-    std::string current_idb_path{ get_current_idb_path() };
-    std::string original_idb_path{ get_original_idb_path() };
+    const std::string current_idb_path{ get_current_idb_path() };
+    const std::string original_idb_path{ get_original_idb_path() };
     std::error_code ec;
     fs::copy_file(original_idb_path, current_idb_path, fs::copy_options::overwrite_existing, ec);
     if (ec)
@@ -988,8 +986,8 @@ bool copy_original_idb_to_current_file()
 
 bool copy_current_idb_to_original_file()
 {
-    std::string current_idb_path{ get_current_idb_path() };
-    std::string original_idb_path{ get_original_idb_path() };
+    const std::string current_idb_path{ get_current_idb_path() };
+    const std::string original_idb_path{ get_original_idb_path() };
     std::error_code ec;
     fs::copy_file(current_idb_path, original_idb_path, fs::copy_options::overwrite_existing, ec);
     if (ec)
