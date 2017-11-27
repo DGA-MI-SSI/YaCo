@@ -20,7 +20,7 @@
 #include "Logger.h"
 #include "Yatools.h"
 #include "Merger.hpp"
-#include "IModelAccept.hpp" 
+#include "IModelAccept.hpp"
 
 #include <libxml/xmlreader.h>
 #include <memory>
@@ -262,7 +262,7 @@ namespace
         func_t* func = get_func(ea);
         if (!func)
             return prefix;
-        
+
         qstring func_name;
         get_func_name(&func_name, ea);
         if (func_name.empty())
@@ -299,7 +299,7 @@ namespace
 std::string IDAPromptMergeConflict::merge_attributes_callback(const char* message_info, const char* input_attribute1, const char* input_attribute2)
 {
     qstring buffer;
-    if(!ask_text(
+    if (!ask_text(
         &buffer,
         0,
         input_attribute1,
@@ -412,7 +412,7 @@ Repository::Repository(const std::string& path, IDAIsInteractive ida_is_interact
     const bool repo_already_exist = is_git_working_dir(path);
 
     init();
-    if(!ensure_git_globals())
+    if (!ensure_git_globals())
         IDA_LOG_ERROR("Unable to ensure git globals");
 
     if (repo_already_exist)
@@ -460,8 +460,8 @@ void Repository::check_valid_cache_startup()
     fs::create_directory("cache", ec);
 
     const fs::path current_idb_path = get_current_idb_path();
-    const std::string idb_extension= current_idb_path.extension().string();
-    std::string idb_prefix =get_current_idb_path();
+    const std::string idb_extension = current_idb_path.extension().string();
+    std::string idb_prefix = get_current_idb_path();
     remove_substring(idb_prefix, idb_extension);
 
     if (std::regex_match(idb_prefix, std::regex(".*_local$")))
@@ -710,10 +710,10 @@ void Repository::sync_and_push_original_idb()
         IDA_LOG_ERROR("Unable to commit");
         return;
     }
-    
+
     if (!remote_exist("origin"))
         return;
-    
+
     // git push
     if (!push("master", "master"))
         IDA_LOG_ERROR("Unable to push");
@@ -841,7 +841,7 @@ bool Repository::ask_and_set_git_config_entry(const std::string& config_entry, c
 
     if (!current_value.empty())
         return true;
-    
+
     qstring value;
     do
         value = default_value.c_str();

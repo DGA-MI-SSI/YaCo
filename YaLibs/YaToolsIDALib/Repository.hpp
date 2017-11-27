@@ -19,8 +19,8 @@
 #include <tuple>
 #include <set>
 
-#include "XML\XMLDatabaseModel.hpp" 
-#include "Model.hpp" 
+#include "XML\XMLDatabaseModel.hpp"
+#include "Model.hpp"
 #include "Ida.h"
 
 // Forward declarations
