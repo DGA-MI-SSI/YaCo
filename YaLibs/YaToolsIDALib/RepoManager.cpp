@@ -206,7 +206,8 @@ namespace
         // Retrieve informations whith IDA GUI
         void ask_to_checkout_modified_files();
         void ask_for_remote();
-        void ensure_git_globals();
+        bool ask_and_set_git_config_entry(const std::string& config_string, const std::string& default_value);
+        bool ensure_git_globals();
 
         // GitRepo wrappers
         bool init();
@@ -234,7 +235,8 @@ RepoManager::RepoManager(const std::string& path, bool ida_is_interactive)
     const bool repo_already_exist = is_git_working_dir(path);
 
     init();
-    ensure_git_globals();
+    if(!ensure_git_globals())
+        IDA_LOG_ERROR("Unable to ensure git globals");
 
     if (repo_already_exist)
     {
@@ -705,45 +707,54 @@ void RepoManager::ask_for_remote()
     }
 }
 
-void RepoManager::ensure_git_globals()
+bool RepoManager::ask_and_set_git_config_entry(const std::string& config_entry, const std::string& default_value)
 {
-    std::string user_name{ repo_.config_get_string("user.name") };
-    if (user_name.empty())
+    std::string current_value;
+    try
     {
-        qstring tmp;
-        do
-            tmp = "username";
-        while (!ask_str(&tmp, 0, "Entrer git user.name") || tmp.empty());
-
-        user_name = tmp.c_str();
-        try
-        {
-            repo_.config_set_string("user.name", user_name);
-        }
-        catch (const std::runtime_error& error)
-        {
-            IDA_LOG_GUI_WARNING("Unable set git user name, error: %s", error.what());
-        }
+        current_value = repo_.config_get_string(config_entry);
+    }
+    catch (const std::runtime_error& error)
+    {
+        IDA_LOG_WARNING("Failed get git %s, error: %s", config_entry.c_str(), error.what());
+        return false;
     }
 
-    std::string user_email{ repo_.config_get_string("user.email") };
-    if (user_email.empty())
-    {
-        qstring tmp;
-        do
-            tmp = "username@localdomain";
-        while (!ask_str(&tmp, 0, "Entrer git user.email") || tmp.empty());
+    if (!current_value.empty())
+        return true;
+    
+    qstring value;
+    do
+        value = default_value.c_str();
+    while (!ask_str(&value, 0, "Enter git %s", config_entry.c_str()) || value.empty());
 
-        user_email = tmp.c_str();
-        try
-        {
-            repo_.config_set_string("user.email", user_email);
-        }
-        catch (const std::runtime_error& error)
-        {
-            IDA_LOG_GUI_WARNING("Unable to set git user email, error: %s", error.what());
-        }
+    try
+    {
+        repo_.config_set_string(config_entry, value.c_str());
     }
+    catch (const std::runtime_error& error)
+    {
+        IDA_LOG_WARNING("Failed to set git %s, error: %s", config_entry.c_str(), error.what());
+        return false;
+    }
+    return true;
+}
+
+bool RepoManager::ensure_git_globals()
+{
+    if (!ask_and_set_git_config_entry("user.name", "username"))
+    {
+        IDA_LOG_GUI_WARNING("Problem during git user.name configuration");
+        return false;
+    }
+
+    if (!ask_and_set_git_config_entry("user.email", "username@localdomain"))
+    {
+        IDA_LOG_GUI_WARNING("Problem during git user.email configuration");
+        return false;
+    }
+
+    return true;
 }
 
 bool RepoManager::init()
