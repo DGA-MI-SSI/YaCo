@@ -47,7 +47,7 @@ namespace fs = std::experimental::filesystem;
 
 #define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("repo_manager", (FMT "\n"), ## __VA_ARGS__)
 
-#define YACO_IDA_MSG_PREFIX "[YaCo] "
+#define YACO_IDA_MSG_PREFIX "yaco: "
 
 #define IDA_LOG_INFO(FMT, ...) do{ \
     LOG(INFO, FMT, ## __VA_ARGS__); \
@@ -76,9 +76,9 @@ namespace fs = std::experimental::filesystem;
 
 namespace
 {
-    static const size_t TRUNCATE_COMMIT_MSG_LENGTH = 4000;
-    static const int    GIT_PUSH_RETRIES = 3;
-    static const int    CONFLICT_RESOLVER_EDIT_MAX_FILE_LENGTH = 65536;
+    const size_t TRUNCATE_COMMIT_MSG_LENGTH = 4000;
+    const int    GIT_PUSH_RETRIES = 3;
+    const int    CONFLICT_RESOLVER_EDIT_MAX_FILE_LENGTH = 65536;
 
 
     bool remove_substring(std::string& str, const std::string& substr)
@@ -783,7 +783,7 @@ void RepoManager::ask_to_checkout_modified_files()
 
 void RepoManager::ask_for_remote()
 {
-    qstring tmp = "ssh://gitolite@repo/";
+    qstring tmp = "ssh://usernamee@repository_path/";
     if (!ask_str(&tmp, 0, "Specify a remote origin :"))
         return;
 
@@ -798,7 +798,8 @@ void RepoManager::ask_for_remote()
         return;
     }
 
-    if (std::regex_match(url, std::regex("^ssh://.*"))) // add http/https to regex ? ("^((ssh)|(https?))://.*")
+    // FIXME add http/https to regex ? ("^((ssh)|(https?))://.*")
+    if (std::regex_match(url, std::regex("^ssh://.*")))
         return;
 
     const fs::path path = url;
@@ -905,17 +906,17 @@ bool RepoManager::fetch(const std::string& remote)
 
 bool RepoManager::rebase(const std::string& upstream, const std::string& destination)
 {
-    IDAInteractiveFileConflictResolver resolver;
     try
     {
+        IDAInteractiveFileConflictResolver resolver;
         repo_.rebase(upstream, destination, resolver);
+        return true;
     }
     catch (const std::runtime_error& error)
     {
         IDA_LOG_WARNING("Failed to rebase %s from %s, error: %s", destination.c_str(), upstream.c_str(), error.what());
         return false;
     }
-    return true;
 }
 
 bool RepoManager::add_file_to_index(const std::string& path)
