@@ -44,7 +44,6 @@ class GitRepo
 {
 public:
     GitRepo(const GitRepo&) = delete;
-    GitRepo(GitRepo&& repo);
     GitRepo(const std::string& path);
     ~GitRepo();
     void open();
@@ -109,7 +108,6 @@ public:
     std::map<std::string, std::string> get_remotes();
 
     GitRepo& operator=(const GitRepo&) = delete;
-    GitRepo& operator=(GitRepo&& repo);
 
 private:
     std::string repo_path;
