@@ -111,7 +111,7 @@ namespace
 
     void add_filename_suffix(std::string& file_path, const std::string& suffix)
     {
-        const std::string file_extension{ fs::path{ file_path }.extension().string() };
+        const std::string file_extension = fs::path(file_path).extension().string();
         remove_substring(file_path, file_extension);
         file_path += suffix;
         file_path += file_extension;
@@ -120,7 +120,7 @@ namespace
     bool remove_filename_suffix(std::string& file_path, const std::string& suffix)
     {
         // only remove the suffix from the filename even if it appear in the extention
-        const std::string file_extension{ fs::path{ file_path }.extension().string() };
+        const std::string file_extension = fs::path(file_path).extension().string();
         remove_substring(file_path, file_extension);
         const bool removed = remove_substring(file_path, suffix);
         file_path += file_extension;
@@ -149,8 +149,8 @@ std::string IDAPromptMergeConflict::merge_attributes_callback(const char* messag
         input_attribute1,
         input_attribute2
     ))
-        return std::string{ input_attribute1 };
-    return std::string{ buffer.c_str() };
+        return std::string(input_attribute1);
+    return std::string(buffer.c_str());
 }
 
 namespace
@@ -163,11 +163,11 @@ namespace
 
 bool IDAInteractiveFileConflictResolver::callback(const std::string& input_file1, const std::string& input_file2, const std::string& output_file_result)
 {
-    if (!std::regex_match(output_file_result, std::regex{ ".*\\.xml$" }))
+    if (!std::regex_match(output_file_result, std::regex(".*\\.xml$")))
         return true;
 
     IDAPromptMergeConflict merger_conflict;
-    Merger merger{ &merger_conflict, ObjectVersionMergeStrategy_e::OBJECT_VERSION_MERGE_PROMPT };
+    Merger merger(&merger_conflict, ObjectVersionMergeStrategy_e::OBJECT_VERSION_MERGE_PROMPT);
     if (merger.smartMerge(input_file1.c_str(), input_file2.c_str(), output_file_result.c_str()) != MergeStatus_e::OBJECT_MERGE_STATUS_NOT_UPDATED)
     {
         if (!is_valid_xml_file(output_file_result))
@@ -228,9 +228,9 @@ namespace
 }
 
 RepoManager::RepoManager(const std::string& path, bool ida_is_interactive)
-    : repo_{ path }
-    , ida_is_interactive_{ ida_is_interactive }
-    , repo_auto_sync_{ true }
+    : repo_(path)
+    , ida_is_interactive_(ida_is_interactive)
+    , repo_auto_sync_(true)
 {
     const bool repo_already_exist = is_git_working_dir(path);
 
@@ -336,19 +336,19 @@ void RepoManager::check_valid_cache_startup()
     std::error_code ec;
     fs::create_directory("cache", ec);
 
-    const fs::path current_idb_path{ get_current_idb_path() };
-    const std::string idb_extension{ current_idb_path.extension().string() };
-    std::string idb_prefix{ get_current_idb_path() };
+    const fs::path current_idb_path = get_current_idb_path();
+    const std::string idb_extension= current_idb_path.extension().string();
+    std::string idb_prefix =get_current_idb_path();
     remove_substring(idb_prefix, idb_extension);
 
-    if (std::regex_match(idb_prefix, std::regex{ ".*_local$" }))
+    if (std::regex_match(idb_prefix, std::regex(".*_local$")))
     {
         IDA_LOG_INFO("Cache validity check ended");
         return;
     }
 
     IDA_LOG_INFO("Current IDB does not have _local suffix");
-    const std::string local_idb_path{ idb_prefix + "_local" + idb_extension };
+    const std::string local_idb_path = idb_prefix + "_local" + idb_extension;
     bool local_idb_exist = fs::exists(local_idb_path, ec);
     if (!local_idb_exist)
     {
@@ -365,8 +365,8 @@ void RepoManager::check_valid_cache_startup()
         return;
 
     IDA_LOG_INFO("IDA need to restart with local IDB");
-    std::string msg{ "To use YaCo you must name your IDB with _local suffix. YaCo will create one for you.\nRestart IDA and open " };
-    msg += fs::path{ local_idb_path }.filename().generic_string();
+    std::string msg = "To use YaCo you must name your IDB with _local suffix. YaCo will create one for you.\nRestart IDA and open ";
+    msg += fs::path(local_idb_path).filename().generic_string();
     msg += '.';
     set_database_flag(DBFL_KILL);
     warning(msg.c_str());
@@ -390,7 +390,7 @@ std::vector<std::string> RepoManager::update_cache()
 
     IDA_LOG_INFO("Cache update started");
     // get master commit
-    const std::string master_commit{ get_commit("master") };
+    const std::string master_commit = get_commit("master");
     if (master_commit.empty())
     {
         IDA_LOG_INFO("Cache update failed");
@@ -413,9 +413,9 @@ std::vector<std::string> RepoManager::update_cache()
     }
 
     // get modified files from origin
-    std::set<std::string> new_objects{ repo_.get_new_objects(master_commit) };
-    std::set<std::string> modified_objects{ repo_.get_modified_objects(master_commit) };
-    std::set<std::string> deleted_objects{ repo_.get_deleted_objects(master_commit) };
+    std::set<std::string> new_objects = repo_.get_new_objects(master_commit);
+    std::set<std::string> modified_objects = repo_.get_modified_objects(master_commit);
+    std::set<std::string> deleted_objects = repo_.get_deleted_objects(master_commit);
 
     for (const std::string& f : new_objects)
     {
@@ -454,9 +454,9 @@ bool RepoManager::commit_cache()
 {
     IDA_LOG_INFO("Committing changes");
 
-    const std::set<std::string> untracked_files{ repo_.get_untracked_objects_in_path("cache/") };
-    const std::set<std::string> modified_files{ repo_.get_modified_objects_in_path("cache/") };
-    const std::set<std::string> deleted_files{ repo_.get_deleted_objects_in_path("cache/") };
+    const std::set<std::string> untracked_files = repo_.get_untracked_objects_in_path("cache/");
+    const std::set<std::string> modified_files = repo_.get_modified_objects_in_path("cache/");
+    const std::set<std::string> deleted_files = repo_.get_deleted_objects_in_path("cache/");
 
     if (untracked_files.empty() && modified_files.empty() && deleted_files.empty())
     {
@@ -665,11 +665,11 @@ void RepoManager::ask_to_checkout_modified_files()
 
 void RepoManager::ask_for_remote()
 {
-    qstring tmp{ "ssh://gitolite@repo/" };
+    qstring tmp = "ssh://gitolite@repo/";
     if (!ask_str(&tmp, 0, "Specify a remote origin :"))
         return;
 
-    const std::string url{ tmp.c_str() };
+    const std::string url = tmp.c_str();
     try
     {
         repo_.create_remote("origin", url);
@@ -683,7 +683,7 @@ void RepoManager::ask_for_remote()
     if (std::regex_match(url, std::regex("^ssh://.*"))) // add http/https to regex ? ("^((ssh)|(https?))://.*")
         return;
 
-    const fs::path path{ url };
+    const fs::path path = url;
     if (fs::exists(path))
         return;
 
@@ -696,7 +696,7 @@ void RepoManager::ask_for_remote()
         return;
     }
 
-    GitRepo tmp_repo{ url };
+    GitRepo tmp_repo = url;
     try
     {
         tmp_repo.init_bare();
@@ -897,42 +897,42 @@ std::string ea_to_hex(ea_t ea)
 {
     char buffer[19]; // size for 0x%016X + \0
     std::snprintf(buffer, COUNT_OF(buffer), "0x" EA_FMT, ea);
-    return std::string{ buffer };
+    return std::string(buffer);
 }
 
 std::string get_current_idb_path()
 {
-    return fs::path{ get_path(PATH_TYPE_IDB) }.generic_string();
+    return fs::path(get_path(PATH_TYPE_IDB)).generic_string();
 }
 
 std::string get_original_idb_path()
 {
-    std::string original_idb_path{ get_current_idb_path() };
+    std::string original_idb_path = get_current_idb_path();
     remove_filename_suffix(original_idb_path, "_local");
     return original_idb_path;
 }
 
 std::string get_current_idb_name()
 {
-    return fs::path{ get_current_idb_path() }.filename().string();
+    return fs::path(get_current_idb_path()).filename().string();
 }
 
 std::string get_original_idb_name()
 {
-    std::string original_idb_name{ get_current_idb_name() };
+    std::string original_idb_name = get_current_idb_name();
     remove_filename_suffix(original_idb_name, "_local");
     return original_idb_name;
 }
 
 bool backup_file(const std::string& file_path)
 {
-    const std::time_t now{ std::time(nullptr) };
-    std::string date{ std::ctime(&now) };
+    const std::time_t now = std::time(nullptr);
+    std::string date = std::ctime(&now);
     date = date.substr(0, date.size() - 1); //remove final \n from ctime
     std::replace(date.begin(), date.end(), ' ', '_');
     std::replace(date.begin(), date.end(), ':', '_');
-    const std::string suffix{ "_bkp_" + date };
-    std::string backup_file_path{ file_path };
+    const std::string suffix = "_bkp_" + date;
+    std::string backup_file_path = file_path;
     add_filename_suffix(backup_file_path, suffix);
 
     std::error_code ec;
@@ -961,19 +961,19 @@ bool backup_original_idb()
 
 void remove_ida_temporary_files(const std::string& idb_path)
 {
-    std::string idb_no_ext{ idb_path };
-    remove_substring(idb_no_ext, fs::path{ idb_path }.extension().string());
+    std::string idb_no_ext = idb_path;
+    remove_substring(idb_no_ext, fs::path(idb_path).extension().string());
 
     std::error_code ec;
     const char extensions_to_delete[][6] = { ".id0", ".id1", ".id2", ".nam", ".til" };
     for (const char* ext : extensions_to_delete)
-        fs::remove(fs::path{ idb_no_ext + ext }, ec);
+        fs::remove(fs::path(idb_no_ext + ext), ec);
 }
 
 bool copy_original_idb_to_current_file()
 {
-    const std::string current_idb_path{ get_current_idb_path() };
-    const std::string original_idb_path{ get_original_idb_path() };
+    const std::string current_idb_path = get_current_idb_path();
+    const std::string original_idb_path = get_original_idb_path();
     std::error_code ec;
     fs::copy_file(original_idb_path, current_idb_path, fs::copy_options::overwrite_existing, ec);
     if (ec)
@@ -988,8 +988,8 @@ bool copy_original_idb_to_current_file()
 
 bool copy_current_idb_to_original_file()
 {
-    const std::string current_idb_path{ get_current_idb_path() };
-    const std::string original_idb_path{ get_original_idb_path() };
+    const std::string current_idb_path = get_current_idb_path();
+    const std::string original_idb_path = get_original_idb_path();
     std::error_code ec;
     fs::copy_file(current_idb_path, original_idb_path, fs::copy_options::overwrite_existing, ec);
     if (ec)
