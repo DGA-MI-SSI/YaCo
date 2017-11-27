@@ -27,9 +27,9 @@
 namespace std { template<typename T> class shared_ptr; }
 
 
-struct IRepoManager
+struct IRepository
 {
-    virtual ~IRepoManager() = default;
+    virtual ~IRepository() = default;
 
     virtual void add_auto_comment(ea_t ea, const std::string& text) = 0;
 
@@ -52,10 +52,10 @@ enum IDAIsInteractive : bool
     IS_INTERACTIVE
 };
 
-std::shared_ptr<IRepoManager> MakeRepoManager(const std::string& path, IDAIsInteractive ida_is_interactive);
+std::shared_ptr<IRepository> MakeRepository(const std::string& path, IDAIsInteractive ida_is_interactive);
 
 std::string ea_to_hex(ea_t ea);
 
 
 // temporary helper until hooks are moved to native
-void yaco_update_helper(const std::shared_ptr<IRepoManager>& repo_manager, ModelAndVisitor& memory_exporter);
+void yaco_update_helper(const std::shared_ptr<IRepository>& repo_manager, ModelAndVisitor& memory_exporter);

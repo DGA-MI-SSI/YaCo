@@ -77,7 +77,7 @@ YaToolObjectId YaToolObjectId_From_String(const char* input, size_t input_len);
 %shared_ptr(IModelAccept)
 %shared_ptr(IModelIncremental)
 %shared_ptr(IModelVisitor)
-%shared_ptr(IRepoManager)
+%shared_ptr(IRepository)
 %shared_ptr(Yatools)
 
 %typemap(out) ExportedBuffer
