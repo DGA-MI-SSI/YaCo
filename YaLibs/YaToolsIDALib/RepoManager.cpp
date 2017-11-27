@@ -366,12 +366,12 @@ AutoComment::AutoComment(const std::string& prefix_, const std::string& text_)
 
 namespace
 {
-    struct RepoManager
-        : public IRepoManager
+    struct Repository
+        : public IRepository
     {
-        RepoManager(const std::string& path, IDAIsInteractive ida_is_interactive);
+        Repository(const std::string& path, IDAIsInteractive ida_is_interactive);
 
-        // IRepoManager
+        // IRepository
         void add_auto_comment(ea_t ea, const std::string& text) override;
         void check_valid_cache_startup() override; // can stop IDA
         std::vector<std::string> update_cache() override;
@@ -404,7 +404,7 @@ namespace
     };
 }
 
-RepoManager::RepoManager(const std::string& path, IDAIsInteractive ida_is_interactive)
+Repository::Repository(const std::string& path, IDAIsInteractive ida_is_interactive)
     : repo_(path)
     , ida_is_interactive_(ida_is_interactive)
     , repo_auto_sync_(true)
@@ -435,12 +435,12 @@ RepoManager::RepoManager(const std::string& path, IDAIsInteractive ida_is_intera
         IDA_LOG_ERROR("Unable to push");
 }
 
-void RepoManager::add_auto_comment(ea_t ea, const std::string & text)
+void Repository::add_auto_comment(ea_t ea, const std::string & text)
 {
     auto_comments_.emplace_back(generate_auto_comment_prefix(ea), text);
 }
 
-void RepoManager::check_valid_cache_startup()
+void Repository::check_valid_cache_startup()
 {
     IDA_LOG_INFO("Cache validity check started");
 
@@ -496,7 +496,7 @@ void RepoManager::check_valid_cache_startup()
     qexit(0);
 }
 
-std::vector<std::string> RepoManager::update_cache()
+std::vector<std::string> Repository::update_cache()
 {
     std::vector<std::string> modified_files;
     if (!remote_exist("origin"))
@@ -573,7 +573,7 @@ std::vector<std::string> RepoManager::update_cache()
     return modified_files;
 }
 
-bool RepoManager::commit_cache()
+bool Repository::commit_cache()
 {
     IDA_LOG_INFO("Committing changes");
 
@@ -656,7 +656,7 @@ bool RepoManager::commit_cache()
     return true;
 }
 
-void RepoManager::toggle_repo_auto_sync()
+void Repository::toggle_repo_auto_sync()
 {
     repo_auto_sync_ = !repo_auto_sync_;
     if (repo_auto_sync_)
@@ -665,7 +665,7 @@ void RepoManager::toggle_repo_auto_sync()
         IDA_LOG_INFO("Auto rebase/push disabled");
 }
 
-void RepoManager::sync_and_push_original_idb()
+void Repository::sync_and_push_original_idb()
 {
     backup_original_idb();
 
@@ -719,7 +719,7 @@ void RepoManager::sync_and_push_original_idb()
         IDA_LOG_ERROR("Unable to push");
 }
 
-void RepoManager::discard_and_pull_idb()
+void Repository::discard_and_pull_idb()
 {
     backup_current_idb();
     backup_original_idb();
@@ -744,7 +744,7 @@ void RepoManager::discard_and_pull_idb()
         IDA_LOG_ERROR("Unable to sync current idb to original idb");
 }
 
-void RepoManager::ask_to_checkout_modified_files()
+void Repository::ask_to_checkout_modified_files()
 {
     std::string modified_objects;
     bool idb_modified = false;
@@ -781,7 +781,7 @@ void RepoManager::ask_to_checkout_modified_files()
     repo_auto_sync_ = false;
 }
 
-void RepoManager::ask_for_remote()
+void Repository::ask_for_remote()
 {
     qstring tmp = "ssh://usernamee@repository_path/";
     if (!ask_str(&tmp, 0, "Specify a remote origin :"))
@@ -826,7 +826,7 @@ void RepoManager::ask_for_remote()
     }
 }
 
-bool RepoManager::ask_and_set_git_config_entry(const std::string& config_entry, const std::string& default_value)
+bool Repository::ask_and_set_git_config_entry(const std::string& config_entry, const std::string& default_value)
 {
     std::string current_value;
     try
@@ -859,7 +859,7 @@ bool RepoManager::ask_and_set_git_config_entry(const std::string& config_entry, 
     return true;
 }
 
-bool RepoManager::ensure_git_globals()
+bool Repository::ensure_git_globals()
 {
     if (!ask_and_set_git_config_entry("user.name", "username"))
     {
@@ -876,7 +876,7 @@ bool RepoManager::ensure_git_globals()
     return true;
 }
 
-bool RepoManager::init()
+bool Repository::init()
 {
     try
     {
@@ -890,7 +890,7 @@ bool RepoManager::init()
     return true;
 }
 
-bool RepoManager::fetch(const std::string& remote)
+bool Repository::fetch(const std::string& remote)
 {
     try
     {
@@ -904,7 +904,7 @@ bool RepoManager::fetch(const std::string& remote)
     return true;
 }
 
-bool RepoManager::rebase(const std::string& upstream, const std::string& destination)
+bool Repository::rebase(const std::string& upstream, const std::string& destination)
 {
     try
     {
@@ -919,7 +919,7 @@ bool RepoManager::rebase(const std::string& upstream, const std::string& destina
     }
 }
 
-bool RepoManager::add_file_to_index(const std::string& path)
+bool Repository::add_file_to_index(const std::string& path)
 {
     try
     {
@@ -933,7 +933,7 @@ bool RepoManager::add_file_to_index(const std::string& path)
     return true;
 }
 
-bool RepoManager::remove_file_for_index(const std::string& path)
+bool Repository::remove_file_for_index(const std::string& path)
 {
     try
     {
@@ -947,7 +947,7 @@ bool RepoManager::remove_file_for_index(const std::string& path)
     return true;
 }
 
-bool RepoManager::commit(const std::string& message)
+bool Repository::commit(const std::string& message)
 {
     try
     {
@@ -961,7 +961,7 @@ bool RepoManager::commit(const std::string& message)
     return true;
 }
 
-bool RepoManager::push(const std::string& src_branch, const std::string& dst_branch)
+bool Repository::push(const std::string& src_branch, const std::string& dst_branch)
 {
     if (!remote_exist("origin"))
         return true;
@@ -978,7 +978,7 @@ bool RepoManager::push(const std::string& src_branch, const std::string& dst_bra
     return true;
 }
 
-bool RepoManager::remote_exist(const std::string& remote)
+bool Repository::remote_exist(const std::string& remote)
 {
     std::map<std::string, std::string> remotes;
     try
@@ -993,7 +993,7 @@ bool RepoManager::remote_exist(const std::string& remote)
     return remotes.find(remote) != remotes.end();
 }
 
-std::string RepoManager::get_commit(const std::string& ref)
+std::string Repository::get_commit(const std::string& ref)
 {
     std::string commit;
     try
@@ -1007,9 +1007,9 @@ std::string RepoManager::get_commit(const std::string& ref)
     return commit;
 }
 
-std::shared_ptr<IRepoManager> MakeRepoManager(const std::string& path, IDAIsInteractive ida_is_interactive)
+std::shared_ptr<IRepository> MakeRepository(const std::string& path, IDAIsInteractive ida_is_interactive)
 {
-    return std::make_shared<RepoManager>(path, ida_is_interactive);
+    return std::make_shared<Repository>(path, ida_is_interactive);
 }
 
 std::string ea_to_hex(ea_t ea)
@@ -1021,7 +1021,7 @@ std::string ea_to_hex(ea_t ea)
 
 
 // temporary helper until hooks are moved to native
-void yaco_update_helper(const std::shared_ptr<IRepoManager>& repo_manager, ModelAndVisitor& memory_exporter)
+void yaco_update_helper(const std::shared_ptr<IRepository>& repo_manager, ModelAndVisitor& memory_exporter)
 {
     std::vector<std::string> modified_files = repo_manager->update_cache();
     MakeXmlFilesDatabaseModel(modified_files)->accept(*(memory_exporter.visitor.get()));
