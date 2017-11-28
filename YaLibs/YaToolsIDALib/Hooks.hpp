@@ -16,6 +16,8 @@
 #pragma once
 
 // Forward declarations
+struct IHashProvider;
+struct IRepository;
 namespace std { template<typename T> class shared_ptr; }
 
 struct IHooks
@@ -23,4 +25,4 @@ struct IHooks
 
 };
 
-std::shared_ptr<IHooks> MakeHooks();
+std::shared_ptr<IHooks> MakeHooks(const std::shared_ptr<IHashProvider>& hash_provider, const std::shared_ptr<IRepository>& repo_manager);
