@@ -114,9 +114,18 @@ static ssize_t idp_event_handler(void* user_data, int notification_code, va_list
 
 static ssize_t idb_event_handler(void* user_data, int notification_code, va_list va)
 {
+    using envent_code = idb_event::event_code_t;
     Hooks* hooks = static_cast<Hooks*>(user_data);
-    (void)hooks;
-    (void)notification_code;
+    envent_code ecode = static_cast<idb_event::event_code_t>(notification_code);
+    switch (ecode)
+    {
+    case envent_code::savebase:
+        msg("\n");
+        hooks->save_and_update();
+        break;
+    default:
+        break;
+    }
     (void)va;
     return 0;
 }
