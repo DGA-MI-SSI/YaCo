@@ -67,6 +67,8 @@ class YaToolIDAHooks(object):
         '''
         Constructor
         '''
+        self.native = ya.MakeHooks()
+
         self.hash_provider = hash_provider
         self.repo_manager = repo_manager
 
