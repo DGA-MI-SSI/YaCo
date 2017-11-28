@@ -220,10 +220,10 @@ function(setup_git target files_ includes_)
     file(WRITE ${root}/git_version.cmake "
         execute_process(COMMAND
         ${GIT_EXECUTABLE} describe --dirty --tags --long
-        WORKING_DIRECTORY ${root_dir}
+        WORKING_DIRECTORY \"${root_dir}\"
         OUTPUT_VARIABLE GIT_VERSION
         OUTPUT_STRIP_TRAILING_WHITESPACE)
-        configure_file(\${SRC} \${DST} @ONLY)
+        configure_file(\"\${SRC}\" \"\${DST}\" @ONLY)
     ")
 
     # add custom git version command
