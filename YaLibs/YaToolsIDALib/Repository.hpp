@@ -45,5 +45,3 @@ enum IDAIsInteractive
 };
 
 std::shared_ptr<IRepository> MakeRepository(const std::string& path, IDAIsInteractive ida_is_interactive);
-
-std::string ea_to_hex(ea_t ea);
