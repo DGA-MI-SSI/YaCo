@@ -13,7 +13,11 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#include "Ida.h"
 #include "Hooks.hpp"
+
+#include "Repository.hpp"
+#include "YaToolsHashProvider.hpp"
 
 #include <memory>
 
@@ -23,10 +27,24 @@ namespace
         : public IHooks
     {
 
+        Hooks(const std::shared_ptr<IHashProvider>& hash_provider, const std::shared_ptr<IRepository>& repo_manager);
+
+
+    private:
+        std::shared_ptr<IHashProvider> hash_provider_;
+        std::shared_ptr<IRepository> repo_manager_;
     };
 }
 
-std::shared_ptr<IHooks> MakeHooks()
+Hooks::Hooks(const std::shared_ptr<IHashProvider>& hash_provider, const std::shared_ptr<IRepository>& repo_manager)
+    : hash_provider_{ hash_provider }
+    , repo_manager_{ repo_manager }
 {
-    return std::make_shared<Hooks>();
+
+}
+
+
+std::shared_ptr<IHooks> MakeHooks(const std::shared_ptr<IHashProvider>& hash_provider, const std::shared_ptr<IRepository>& repo_manager)
+{
+    return std::make_shared<Hooks>(hash_provider, repo_manager);
 }
