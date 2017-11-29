@@ -46,24 +46,18 @@ namespace fs = std::experimental::filesystem;
 #endif
 #define EA_FMT      "%0" EA_SIZE EA_PREFIX "X"
 
-#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("repo_manager", (FMT "\n"), ## __VA_ARGS__)
+#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("repo", (FMT "\n"), ## __VA_ARGS__)
 
 #define YACO_IDA_MSG_PREFIX "yaco: "
 
-#define IDA_LOG_INFO(FMT, ...) do{ \
-    LOG(INFO, FMT, ## __VA_ARGS__); \
-    msg((YACO_IDA_MSG_PREFIX FMT "\n"), ## __VA_ARGS__); \
+#define IDA_LOG_WITH(TYPE, FMT, IDA_FN, IDA_PREFIX, ...) do {\
+    LOG(TYPE, FMT, ## __VA_ARGS__); \
+    (IDA_FN)(IDA_PREFIX FMT "\n", ## __VA_ARGS__); \
 } while(0)
 
-#define IDA_LOG_WARNING(FMT, ...) do{ \
-    LOG(WARNING, FMT, ## __VA_ARGS__); \
-    msg((YACO_IDA_MSG_PREFIX "WARNING: " FMT "\n"), ## __VA_ARGS__); \
-} while(0)
-
-#define IDA_LOG_ERROR(FMT, ...) do{ \
-    LOG(ERROR, FMT, ## __VA_ARGS__); \
-    msg((YACO_IDA_MSG_PREFIX "ERROR: " FMT "\n"), ## __VA_ARGS__); \
-} while(0)
+#define IDA_LOG_INFO(FMT, ...)      IDA_LOG_WITH(INFO, FMT, msg, YACO_IDA_MSG_PREFIX, ## __VA_ARGS__)
+#define IDA_LOG_WARNING(FMT, ...)   IDA_LOG_WITH(WARNING, FMT, msg, YACO_IDA_MSG_PREFIX "WARNING: ", ## __VA_ARGS__)
+#define IDA_LOG_ERROR(FMT, ...)     IDA_LOG_WITH(ERROR, FMT, msg, YACO_IDA_MSG_PREFIX "ERROR: ", ## __VA_ARGS__)
 
 #define IDA_LOG_GUI_WARNING(FMT, ...) do{ \
     IDA_LOG_WARNING(FMT, ## __VA_ARGS__); \
@@ -80,7 +74,6 @@ namespace
     const size_t TRUNCATE_COMMIT_MSG_LENGTH = 4000;
     const int    GIT_PUSH_RETRIES = 3;
     const int    CONFLICT_RESOLVER_EDIT_MAX_FILE_LENGTH = 65536;
-
 
     bool remove_substring(std::string& str, const std::string& substr)
     {
@@ -209,6 +202,7 @@ namespace
             IDA_LOG_GUI_WARNING("Failed to copy original idb to current idb, error: %s", ec.message().c_str());
             return false;
         }
+
         remove_ida_temporary_files(current_idb_path);
         IDA_LOG_INFO("Copied original IDB to current IDB");
         return true;
@@ -225,6 +219,7 @@ namespace
             IDA_LOG_GUI_WARNING("Failed to copy current idb to original idb, error: %s", ec.message().c_str());
             return false;
         }
+
         remove_ida_temporary_files(current_idb_path);
         IDA_LOG_INFO("Copied current IDB to original IDB");
         return true;
@@ -351,22 +346,17 @@ namespace
 {
     struct AutoComment
     {
-        AutoComment(const std::string& prefix, const std::string& text);
+        AutoComment(const std::string& prefix_, const std::string& text_)
+            : prefix(prefix_)
+            , text(text_)
+        {
+
+        }
 
         std::string prefix;
         std::string text;
     };
-}
 
-AutoComment::AutoComment(const std::string& prefix_, const std::string& text_)
-    : prefix(prefix_)
-    , text(text_)
-{
-
-}
-
-namespace
-{
     struct Repository
         : public IRepository
     {
