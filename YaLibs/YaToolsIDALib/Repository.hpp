@@ -42,7 +42,7 @@ struct IRepository
     virtual void discard_and_pull_idb() = 0;
 };
 
-enum IDAIsInteractive : bool
+enum IDAIsInteractive
 {
     IS_NOT_INTERACTIVE,
     IS_INTERACTIVE

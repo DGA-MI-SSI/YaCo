@@ -406,7 +406,7 @@ namespace
 
 Repository::Repository(const std::string& path, IDAIsInteractive ida_is_interactive)
     : repo_(path)
-    , ida_is_interactive_(ida_is_interactive)
+    , ida_is_interactive_(ida_is_interactive == IDAIsInteractive::IS_INTERACTIVE)
     , repo_auto_sync_(true)
 {
     const bool repo_already_exist = is_git_working_dir(path);
