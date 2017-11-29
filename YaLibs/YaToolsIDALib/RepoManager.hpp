@@ -56,26 +56,6 @@ std::shared_ptr<IRepoManager> MakeRepoManager(const std::string& path, IDAIsInte
 
 std::string ea_to_hex(ea_t ea);
 
-std::string get_current_idb_path();
-
-std::string get_original_idb_path();
-
-std::string get_current_idb_name();
-
-std::string get_original_idb_name();
-
-bool backup_file(const std::string& file_path);
-
-bool backup_current_idb();
-
-bool backup_original_idb();
-
-void remove_ida_temporary_files(const std::string& idb_path);
-
-bool copy_original_idb_to_current_file();
-
-bool copy_current_idb_to_original_file();
-
 
 // temporary helper until hooks are moved to native
 void yaco_update_helper(const std::shared_ptr<IRepoManager>& repo_manager, ModelAndVisitor& memory_exporter);
