@@ -227,54 +227,41 @@ namespace
 
     std::string generate_auto_comment_prefix(ea_t ea)
     {
-        std::string prefix;
         if (get_struc(ea))
         {
             if (get_struc_idx(ea) == BADADDR)
             {
-                prefix += "stackframe '";
                 qstring func_name;
                 get_func_name(&func_name, get_func_by_frame(ea));
-                prefix += func_name.c_str();
-                prefix += "'";
-                return prefix;
+                return "stackframe '" + std::string(func_name.c_str()) + "'";
             }
 
-            prefix += "structure '";
-            prefix += get_struc_name(ea).c_str();
-            prefix += "'";
-            return prefix;
+            return "structure '" + std::string(get_struc_name(ea).c_str()) + "'";
         }
 
         if (get_enum_idx(ea) != BADADDR)
-        {
-            prefix += "enum '";
-            prefix += get_enum_name(ea).c_str();
-            prefix += "'";
-            return prefix;
-        }
+            return "enum '" + std::string(get_enum_name(ea).c_str()) + "'";
 
-        prefix += ea_to_hex(ea);
+        std::string prefix = ea_to_hex(ea);
         func_t* func = get_func(ea);
         if (!func)
             return prefix;
 
-        qstring func_name;
-        get_func_name(&func_name, ea);
-        if (func_name.empty())
+        qstring buffer;
+        get_func_name(&buffer, ea);
+        if (buffer.empty())
             return prefix;
 
         prefix += ',';
-        prefix += func_name.c_str();
+        prefix += buffer.c_str();
 
         if (ea == func->start_ea)
             return prefix;
 
-        qstring ea_name;
-        if (get_ea_name(&ea_name, ea, GN_LOCAL) && !ea_name.empty())
+        if (get_ea_name(&buffer, ea, GN_LOCAL) && !buffer.empty())
         {
             prefix += ':';
-            prefix += ea_name.c_str();
+            prefix += buffer.c_str();
             return prefix;
         }
 
