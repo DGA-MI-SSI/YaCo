@@ -13,20 +13,21 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#include "Ida.h"
 #include "Repository.hpp"
 
-#include "../YaGitLib/YaGitLib.hpp"
-#include "../YaGitLib/ResolveFileConflictCallback.hpp"
-#include "Logger.h"
-#include "Yatools.h"
-#include "Merger.hpp"
 #include "IModelAccept.hpp"
+#include "Logger.h"
+#include "Merger.hpp"
+#include "ResolveFileConflictCallback.hpp"
+#include "YaGitLib.hpp"
+#include "Yatools.h"
 
+#include <ctime>
 #include <libxml/xmlreader.h>
 #include <memory>
-#include <sstream>
-#include <ctime>
 #include <regex>
+#include <sstream>
 
 #ifdef _MSC_VER
 #   include <filesystem>

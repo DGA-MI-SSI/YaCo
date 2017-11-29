@@ -197,6 +197,7 @@ function(add_yatools_py bits)
     target_link_libraries(yaida${bits}
         PUBLIC
         yatools
+        yagit
         PRIVATE
         zlib
     )
