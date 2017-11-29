@@ -16,7 +16,7 @@
 # yatools dependencies
 get_filename_component(async_dir    "${ya_dir}/deps/async-0.6.1"    REALPATH)
 get_filename_component(farm_dir     "${ya_dir}/deps/farmhash-1.1"   REALPATH)
-get_filename_component(git_dir      "${ya_dir}/deps/libgit2-0.25.1" REALPATH)
+get_filename_component(git_dir      "${ya_dir}/deps/libgit2-0.26.0" REALPATH)
 get_filename_component(gtest_dir    "${ya_dir}/deps/gtest-1.7.0"    REALPATH)
 get_filename_component(ico_dir      "${ya_dir}/deps/libiconv-1.14"  REALPATH)
 get_filename_component(mbed_dir     "${ya_dir}/deps/mbedtls-2.4.2"  REALPATH)
@@ -229,7 +229,7 @@ target_link_libraries(git2 PUBLIC
     ${CMAKE_THREAD_LIBS_INIT}
 )
 if(WIN32)
-    target_compile_definitions(git2 PRIVATE WIN32_SHA1 GIT_WIN32)
+    target_compile_definitions(git2 PRIVATE GIT_SHA1_WIN32 GIT_WIN32)
     target_link_libraries(git2 PUBLIC advapi32)
 endif()
 
