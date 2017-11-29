@@ -127,6 +127,165 @@ namespace
         return removed;
     }
 
+    std::string get_current_idb_path()
+    {
+        return fs::path(get_path(PATH_TYPE_IDB)).generic_string();
+    }
+
+    std::string get_original_idb_path()
+    {
+        std::string original_idb_path = get_current_idb_path();
+        remove_filename_suffix(original_idb_path, "_local");
+        return original_idb_path;
+    }
+
+    std::string get_current_idb_name()
+    {
+        return fs::path(get_current_idb_path()).filename().string();
+    }
+
+    std::string get_original_idb_name()
+    {
+        std::string original_idb_name = get_current_idb_name();
+        remove_filename_suffix(original_idb_name, "_local");
+        return original_idb_name;
+    }
+
+    bool backup_file(const std::string& file_path)
+    {
+        const std::time_t now = std::time(nullptr);
+        std::string date = std::ctime(&now);
+        date = date.substr(0, date.size() - 1); //remove final \n from ctime
+        std::replace(date.begin(), date.end(), ' ', '_');
+        std::replace(date.begin(), date.end(), ':', '_');
+        const std::string suffix = "_bkp_" + date;
+        std::string backup_file_path = file_path;
+        add_filename_suffix(backup_file_path, suffix);
+
+        std::error_code ec;
+        fs::copy_file(file_path, backup_file_path, ec);
+        if (ec)
+        {
+            IDA_LOG_WARNING("Failed to create backup for %s, error: %s", file_path.c_str(), ec.message().c_str());
+            return false;
+        }
+
+        IDA_LOG_INFO("Created backup %s", backup_file_path.c_str());
+        return true;
+    }
+
+    bool backup_current_idb()
+    {
+        IDA_LOG_INFO("Backup of current IDB");
+        return backup_file(get_current_idb_path());
+    }
+
+    bool backup_original_idb()
+    {
+        IDA_LOG_INFO("Backup of original IDB");
+        return backup_file(get_original_idb_path());
+    }
+
+    void remove_ida_temporary_files(const std::string& idb_path)
+    {
+        std::string idb_no_ext = idb_path;
+        remove_substring(idb_no_ext, fs::path(idb_path).extension().string());
+
+        std::error_code ec;
+        const char extensions_to_delete[][6] = { ".id0", ".id1", ".id2", ".nam", ".til" };
+        for (const char* ext : extensions_to_delete)
+            fs::remove(fs::path(idb_no_ext + ext), ec);
+    }
+
+    bool copy_original_idb_to_current_file()
+    {
+        const std::string current_idb_path = get_current_idb_path();
+        const std::string original_idb_path = get_original_idb_path();
+        std::error_code ec;
+        fs::copy_file(original_idb_path, current_idb_path, fs::copy_options::overwrite_existing, ec);
+        if (ec)
+        {
+            IDA_LOG_GUI_WARNING("Failed to copy original idb to current idb, error: %s", ec.message().c_str());
+            return false;
+        }
+        remove_ida_temporary_files(current_idb_path);
+        IDA_LOG_INFO("Copied original IDB to current IDB");
+        return true;
+    }
+
+    bool copy_current_idb_to_original_file()
+    {
+        const std::string current_idb_path = get_current_idb_path();
+        const std::string original_idb_path = get_original_idb_path();
+        std::error_code ec;
+        fs::copy_file(current_idb_path, original_idb_path, fs::copy_options::overwrite_existing, ec);
+        if (ec)
+        {
+            IDA_LOG_GUI_WARNING("Failed to copy current idb to original idb, error: %s", ec.message().c_str());
+            return false;
+        }
+        remove_ida_temporary_files(current_idb_path);
+        IDA_LOG_INFO("Copied current IDB to original IDB");
+        return true;
+    }
+
+    std::string generate_auto_comment_prefix(ea_t ea)
+    {
+        std::string prefix;
+        if (get_struc(ea))
+        {
+            if (get_struc_idx(ea) == BADADDR)
+            {
+                prefix += "stackframe '";
+                qstring func_name;
+                get_func_name(&func_name, get_func_by_frame(ea));
+                prefix += func_name.c_str();
+                prefix += "'";
+                return prefix;
+            }
+
+            prefix += "structure '";
+            prefix += get_struc_name(ea).c_str();
+            prefix += "'";
+            return prefix;
+        }
+
+        if (get_enum_idx(ea) != BADADDR)
+        {
+            prefix += "enum '";
+            prefix += get_enum_name(ea).c_str();
+            prefix += "'";
+            return prefix;
+        }
+
+        prefix += ea_to_hex(ea);
+        func_t* func = get_func(ea);
+        if (!func)
+            return prefix;
+        
+        qstring func_name;
+        get_func_name(&func_name, ea);
+        if (func_name.empty())
+            return prefix;
+
+        prefix += ',';
+        prefix += func_name.c_str();
+
+        if (ea == func->start_ea)
+            return prefix;
+
+        qstring ea_name;
+        if (get_ea_name(&ea_name, ea, GN_LOCAL) && !ea_name.empty())
+        {
+            prefix += ':';
+            prefix += ea_name.c_str();
+            return prefix;
+        }
+
+        prefix += '+';
+        prefix += ea_to_hex(ea - func->start_ea);
+        return prefix;
+    }
 }
 
 namespace
@@ -278,61 +437,7 @@ RepoManager::RepoManager(const std::string& path, IDAIsInteractive ida_is_intera
 
 void RepoManager::add_auto_comment(ea_t ea, const std::string & text)
 {
-    std::string prefix;
-    if (get_struc(ea))
-    {
-        if (get_struc_idx(ea) == BADADDR)
-        {
-            prefix += "stackframe '";
-            qstring func_name;
-            get_func_name(&func_name, get_func_by_frame(ea));
-            prefix += func_name.c_str();
-            prefix += "'";
-        }
-        else
-        {
-            prefix += "structure '";
-            prefix += get_struc_name(ea).c_str();
-            prefix += "'";
-        }
-    }
-    else if (get_enum_idx(ea) != BADADDR)
-    {
-        prefix += "enum '";
-        prefix += get_enum_name(ea).c_str();
-        prefix += "'";
-    }
-    else
-    {
-        prefix += ea_to_hex(ea);
-        func_t* func = get_func(ea);
-        if (func)
-        {
-            qstring func_name;
-            get_func_name(&func_name, ea);
-            if (!func_name.empty())
-            {
-                prefix += ',';
-                prefix += func_name.c_str();
-
-                if (ea != func->start_ea)
-                {
-                    qstring ea_name;
-                    if (get_ea_name(&ea_name, ea, GN_LOCAL) && !ea_name.empty())
-                    {
-                        prefix += ':';
-                        prefix += ea_name.c_str();
-                    }
-                    else
-                    {
-                        prefix += '+';
-                        prefix += ea_to_hex(ea - func->start_ea);
-                    }
-                }
-            }
-        }
-    }
-    auto_comments_.emplace_back(prefix, text);
+    auto_comments_.emplace_back(generate_auto_comment_prefix(ea), text);
 }
 
 void RepoManager::check_valid_cache_startup()
@@ -911,108 +1016,6 @@ std::string ea_to_hex(ea_t ea)
     char buffer[19]; // size for 0x%016X + \0
     std::snprintf(buffer, COUNT_OF(buffer), "0x" EA_FMT, ea);
     return std::string(buffer);
-}
-
-std::string get_current_idb_path()
-{
-    return fs::path(get_path(PATH_TYPE_IDB)).generic_string();
-}
-
-std::string get_original_idb_path()
-{
-    std::string original_idb_path = get_current_idb_path();
-    remove_filename_suffix(original_idb_path, "_local");
-    return original_idb_path;
-}
-
-std::string get_current_idb_name()
-{
-    return fs::path(get_current_idb_path()).filename().string();
-}
-
-std::string get_original_idb_name()
-{
-    std::string original_idb_name = get_current_idb_name();
-    remove_filename_suffix(original_idb_name, "_local");
-    return original_idb_name;
-}
-
-bool backup_file(const std::string& file_path)
-{
-    const std::time_t now = std::time(nullptr);
-    std::string date = std::ctime(&now);
-    date = date.substr(0, date.size() - 1); //remove final \n from ctime
-    std::replace(date.begin(), date.end(), ' ', '_');
-    std::replace(date.begin(), date.end(), ':', '_');
-    const std::string suffix = "_bkp_" + date;
-    std::string backup_file_path = file_path;
-    add_filename_suffix(backup_file_path, suffix);
-
-    std::error_code ec;
-    fs::copy_file(file_path, backup_file_path, ec);
-    if (ec)
-    {
-        IDA_LOG_WARNING("Failed to create backup for %s, error: %s", file_path.c_str(), ec.message().c_str());
-        return false;
-    }
-
-    IDA_LOG_INFO("Created backup %s", backup_file_path.c_str());
-    return true;
-}
-
-bool backup_current_idb()
-{
-    IDA_LOG_INFO("Backup of current IDB");
-    return backup_file(get_current_idb_path());
-}
-
-bool backup_original_idb()
-{
-    IDA_LOG_INFO("Backup of original IDB");
-    return backup_file(get_original_idb_path());
-}
-
-void remove_ida_temporary_files(const std::string& idb_path)
-{
-    std::string idb_no_ext = idb_path;
-    remove_substring(idb_no_ext, fs::path(idb_path).extension().string());
-
-    std::error_code ec;
-    const char extensions_to_delete[][6] = { ".id0", ".id1", ".id2", ".nam", ".til" };
-    for (const char* ext : extensions_to_delete)
-        fs::remove(fs::path(idb_no_ext + ext), ec);
-}
-
-bool copy_original_idb_to_current_file()
-{
-    const std::string current_idb_path = get_current_idb_path();
-    const std::string original_idb_path = get_original_idb_path();
-    std::error_code ec;
-    fs::copy_file(original_idb_path, current_idb_path, fs::copy_options::overwrite_existing, ec);
-    if (ec)
-    {
-        IDA_LOG_GUI_WARNING("Failed to copy original idb to current idb, error: %s", ec.message().c_str());
-        return false;
-    }
-    remove_ida_temporary_files(current_idb_path);
-    IDA_LOG_INFO("Copied original IDB to current IDB");
-    return true;
-}
-
-bool copy_current_idb_to_original_file()
-{
-    const std::string current_idb_path = get_current_idb_path();
-    const std::string original_idb_path = get_original_idb_path();
-    std::error_code ec;
-    fs::copy_file(current_idb_path, original_idb_path, fs::copy_options::overwrite_existing, ec);
-    if (ec)
-    {
-        IDA_LOG_GUI_WARNING("Failed to copy current idb to original idb, error: %s", ec.message().c_str());
-        return false;
-    }
-    remove_ida_temporary_files(current_idb_path);
-    IDA_LOG_INFO("Copied current IDB to original IDB");
-    return true;
 }
 
 
