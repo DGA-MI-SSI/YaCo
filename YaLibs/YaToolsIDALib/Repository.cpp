@@ -436,6 +436,8 @@ void Repository::check_valid_cache_startup()
 
     std::error_code ec;
     fs::create_directory("cache", ec);
+    if (!ec)
+        IDA_LOG_WARNING("Cache directory creation failed, error: %s", ec.message().c_str());
 
     const fs::path current_idb_path = get_current_idb_path();
     const std::string idb_extension = current_idb_path.extension().string();
@@ -607,8 +609,11 @@ bool Repository::commit_cache()
     bool need_truncate = false;
     for (const AutoComment& comment : auto_comments_)
     {
-        snprintf(buffer.data(), max_total_len, "[%-*s] %s", static_cast<int>(max_prefix_len), comment.prefix.c_str(), comment.text.c_str());
-        commit_msg += buffer.data();
+        auto len = snprintf(buffer.data(), max_total_len, "[%-*s] %s", static_cast<int>(max_prefix_len), comment.prefix.c_str(), comment.text.c_str());
+        if (!len)
+            continue;
+
+        commit_msg.append(buffer.data(), len);
         commit_msg += '\n';
         need_truncate = commit_msg.size() > TRUNCATE_COMMIT_MSG_LENGTH;
         if (need_truncate)
@@ -658,7 +663,7 @@ void Repository::sync_and_push_original_idb()
     for (const fs::directory_entry& file_path : fs::recursive_directory_iterator("cache"))
     {
         std::error_code ec;
-        bool is_regular_file = fs::is_regular_file(file_path.path(), ec);
+        const bool is_regular_file = fs::is_regular_file(file_path.path(), ec);
         if (!is_regular_file)
             continue;
 
@@ -770,9 +775,9 @@ void Repository::ask_for_remote()
     {
         repo_.create_remote("origin", url);
     }
-    catch (const std::runtime_error& _error)
+    catch (const std::runtime_error& err)
     {
-        IDA_LOG_GUI_ERROR("An error occured during remote creation, error: %s", _error.what());
+        IDA_LOG_GUI_ERROR("An error occured during remote creation, error: %s", err.what());
         return;
     }
 
