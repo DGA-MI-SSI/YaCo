@@ -358,7 +358,7 @@ namespace
         void sync_and_push_original_idb() override;
         void discard_and_pull_idb() override;
 
-        // Retrieve informations whith IDA GUI
+        // Retrieve informations with IDA GUI
         void ask_to_checkout_modified_files();
         void ask_for_remote();
         bool ask_and_set_git_config_entry(const std::string& config_string, const std::string& default_value);
@@ -387,13 +387,13 @@ Repository::Repository(const std::string& path, IDAIsInteractive ida_is_interact
     , ida_is_interactive_(ida_is_interactive == IDAIsInteractive::IS_INTERACTIVE)
     , repo_auto_sync_(true)
 {
-    const bool repo_already_exist = is_git_working_dir(path);
+    const bool repo_already_exists = is_git_working_dir(path);
 
     init();
     if (!ensure_git_globals())
         IDA_LOG_ERROR("Unable to ensure git globals");
 
-    if (repo_already_exist)
+    if (repo_already_exists)
     {
         IDA_LOG_INFO("Repo opened");
         return;
@@ -761,7 +761,7 @@ void Repository::ask_to_checkout_modified_files()
 
 void Repository::ask_for_remote()
 {
-    qstring tmp = "ssh://usernamee@repository_path/";
+    qstring tmp = "ssh://username@repository_path/";
     if (!ask_str(&tmp, 0, "Specify a remote origin :"))
         return;
 
