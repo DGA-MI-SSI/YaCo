@@ -15,17 +15,13 @@
 
 #pragma once
 
-#include <string>
-#include <tuple>
-#include <set>
-
-#include "XML\XMLDatabaseModel.hpp"
-#include "Model.hpp"
 #include "Ida.h"
+
+#include <string>
+#include <vector>
 
 // Forward declarations
 namespace std { template<typename T> class shared_ptr; }
-
 
 struct IRepository
 {
@@ -55,7 +51,3 @@ enum IDAIsInteractive : bool
 std::shared_ptr<IRepository> MakeRepository(const std::string& path, IDAIsInteractive ida_is_interactive);
 
 std::string ea_to_hex(ea_t ea);
-
-
-// temporary helper until hooks are moved to native
-void yaco_update_helper(const std::shared_ptr<IRepository>& repo_manager, ModelAndVisitor& memory_exporter);

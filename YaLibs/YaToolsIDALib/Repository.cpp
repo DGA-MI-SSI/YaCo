@@ -1018,11 +1018,3 @@ std::string ea_to_hex(ea_t ea)
     std::snprintf(buffer, COUNT_OF(buffer), "0x" EA_FMT, ea);
     return std::string(buffer);
 }
-
-
-// temporary helper until hooks are moved to native
-void yaco_update_helper(const std::shared_ptr<IRepository>& repo_manager, ModelAndVisitor& memory_exporter)
-{
-    std::vector<std::string> modified_files = repo_manager->update_cache();
-    MakeXmlFilesDatabaseModel(modified_files)->accept(*(memory_exporter.visitor.get()));
-}
