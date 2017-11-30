@@ -22,6 +22,7 @@
 #include "ResolveFileConflictCallback.hpp"
 #include "YaGitLib.hpp"
 #include "Yatools.h"
+#include "Utils.hpp"
 
 #include <ctime>
 #include <libxml/xmlreader.h>
@@ -74,18 +75,6 @@ namespace
     const size_t TRUNCATE_COMMIT_MSG_LENGTH = 4000;
     const int    GIT_PUSH_RETRIES = 3;
 
-    bool remove_substring(std::string& str, const std::string& substr)
-    {
-        if (substr.empty())
-            return false;
-
-        const size_t pos = str.rfind(substr);
-        if (pos == std::string::npos)
-            return false;
-
-        str.erase(pos, substr.size());
-        return true;
-    }
 
     bool is_git_working_dir(const std::string& path)
     {
