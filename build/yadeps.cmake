@@ -62,12 +62,15 @@ get_files(files ${ico_dir} ${ico_dir}/lib ${ico_dir}/srclib ${ico_dir}/include)
 # set config.h.in variables
 set(DLL_VARIABLE)
 set(USE_MBSTATE_T 0)
-set(HAVE_WCHAR_T 1)
+set(BROKEN_WCHAR_H 0)
 set(ICONV_CONST const)
 autoconfigure(files includes iconv "${ico_dir}/config.h.in"
     "\n#define EILSEQ      64"
     "\n#define ICONV_CONST const"
 )
+if(HAVE_WCRTOMB OR HAVE_MBRTOWC)
+    set(USE_MBSTATE_T 1)
+endif()
 set(out_dir ${CMAKE_CURRENT_BINARY_DIR}/iconv_)
 # configure remaining headers
 cfg_file(files "${out_dir}/config.h.in" "${out_dir}/config.h")
