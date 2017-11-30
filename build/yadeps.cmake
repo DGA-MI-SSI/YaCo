@@ -251,10 +251,15 @@ target_include_directories(git2 PUBLIC
     "${git_dir}/src"
     "${git_dir}/include"
 )
-target_compile_definitions(git2 PRIVATE GIT_SSH GIT_THREADS)
+target_compile_definitions(git2 PRIVATE
+    GIT_SSH
+    GIT_THREADS
+    GIT_USE_ICONV
+)
 setup_git2_mtime(git2)
 target_link_libraries(git2 PUBLIC
     http_parser
+    iconv
     ssh2
     ${CMAKE_THREAD_LIBS_INIT}
 )
