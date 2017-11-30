@@ -15,9 +15,9 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 
-namespace std { template<typename T> class shared_ptr; }
 class IModelVisitor;
 
 enum PrintValues_e { NoPrintValues, PrintValues };

@@ -16,9 +16,8 @@
 #ifndef UTILS_H__
 #define UTILS_H__
 
+#include <memory>
 #include <string>
-
-namespace std { template<typename T> class shared_ptr; }
 
 struct File_ABC
 {

@@ -17,7 +17,7 @@
 
 #include "IModelVisitor.hpp"
 
-namespace std { template<typename T> class shared_ptr; }
+#include <memory>
 
 struct ExportedBuffer
 {

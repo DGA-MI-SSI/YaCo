@@ -19,8 +19,8 @@
 #include "YaTypes.hpp"
 #include "HSignature.hpp"
 
-namespace std { template<typename T> class shared_ptr; }
-namespace std { template<typename T> class function; }
+#include <functional>
+#include <memory>
 
 #ifndef SWIG
 struct IObjects

@@ -16,18 +16,14 @@
 #pragma once
 
 #include <iostream>
+#include <memory>
 #include <vector>
 #include <string>
 #include <set>
-#include <list>
 #include <map>
 #include <tuple>
 
 class ResolveFileConflictCallback;
-
-namespace std {
-    template<typename T> class shared_ptr;
-}
 
 struct git_repository;
 struct git_remote;

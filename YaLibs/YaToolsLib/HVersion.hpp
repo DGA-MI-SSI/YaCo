@@ -18,7 +18,7 @@
 #include "YaTypes.hpp"
 #include "IModel.hpp"
 
-namespace std { template<typename T> class function; }
+#include <memory>
 
 struct HVersion
 {
