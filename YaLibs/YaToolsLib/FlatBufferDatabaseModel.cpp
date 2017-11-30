@@ -790,15 +790,16 @@ void accept_object(const FlatBufferDatabaseModel& db, const ObjectCtx& object, I
     visitor.visit_end_reference_object();
 }
 
+template<typename T>
 struct ProgressLogger
 {
-    ProgressLogger(size_t max)
+    ProgressLogger(size_t max, const T& now)
         : max(max)
         , i(0)
         , last_progress(~0u)
         , last_chunk(0)
         , last_type(OBJECT_TYPE_COUNT)
-        , last_clock(std::chrono::high_resolution_clock::now())
+        , last_clock(now)
     {
         LOG(INFO, "accept all objects (%zd)\n", max);
     }
@@ -826,15 +827,17 @@ struct ProgressLogger
     size_t last_progress;
     size_t last_chunk;
     YaToolObjectType_e last_type;
-#ifdef _MSC_VER
-    std::chrono::time_point<std::chrono::steady_clock> last_clock;
-#else
-    std::chrono::time_point<std::chrono::system_clock> last_clock;
-#endif
+    T last_clock;
 };
 
+template<typename T>
+ProgressLogger<T> MakeProgressLogger(size_t max, const T& now)
+{
+    return ProgressLogger<T>(max, now);
+}
+
 #ifdef HAS_FLATBUFFER_LOGGING
-#define DECLARE_PROGRESS_LOGGER(SIZE) ProgressLogger progress(SIZE)
+#define DECLARE_PROGRESS_LOGGER(SIZE) auto progress = MakeProgressLogger(SIZE, std::chrono::high_resolution_clock::now())
 #define UPDATE_PROGRESS_LOGGER(TYPE) progress.Update(TYPE)
 #else
 #define DECLARE_PROGRESS_LOGGER(...) do{} while(0)
