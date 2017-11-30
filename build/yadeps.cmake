@@ -205,6 +205,35 @@ target_link_libraries(ssh2 PUBLIC
     zlib
 )
 
+# git2 nsec option
+function(setup_git2_mtime target)
+    include(CheckStructHasMember)
+
+    check_struct_has_member("struct stat" st_mtim      "sys/types.h;sys/stat.h" HAVE_STRUCT_STAT_ST_MTIM LANGUAGE C)
+    check_struct_has_member("struct stat" st_mtimespec "sys/types.h;sys/stat.h" HAVE_STRUCT_STAT_ST_MTIMESPEC LANGUAGE C)
+    check_struct_has_member("struct stat" st_mtime_nsec sys/stat.h              HAVE_STRUCT_STAT_MTIME_NSEC LANGUAGE C)
+
+    if(HAVE_STRUCT_STAT_ST_MTIM)
+        check_struct_has_member("struct stat" st_mtim.tv_nsec sys/stat.h HAVE_STRUCT_STAT_NSEC LANGUAGE C)
+    elseif(HAVE_STRUCT_STAT_ST_MTIMESPEC)
+        check_struct_has_member("struct stat" st_mtimespec.tv_nsec sys/stat.h HAVE_STRUCT_STAT_NSEC LANGUAGE C)
+    else()
+        set(HAVE_STRUCT_STAT_NSEC true)
+    endif()
+
+    if(HAVE_STRUCT_STAT_NSEC OR WIN32)
+        target_compile_definitions(${target} PRIVATE GIT_USE_NSEC)
+    endif()
+
+    if(HAVE_STRUCT_STAT_ST_MTIM)
+        target_compile_definitions(${target} PRIVATE GIT_USE_STAT_MTIM)
+    elseif(HAVE_STRUCT_STAT_ST_MTIMESPEC)
+        target_compile_definitions(${target} PRIVATE GIT_USE_STAT_MTIMESPEC)
+    elseif(HAVE_STRUCT_STAT_ST_MTIME_NSEC)
+        target_compile_definitions(${target} PRIVATE GIT_USE_STAT_MTIME_NSEC)
+    endif()
+endfunction()
+
 # git2
 find_package(Threads)
 get_files(files "${git_dir}/src" "${git_dir}/include" OPTIONS recurse)
@@ -223,6 +252,7 @@ target_include_directories(git2 PUBLIC
     "${git_dir}/include"
 )
 target_compile_definitions(git2 PRIVATE GIT_SSH GIT_THREADS)
+setup_git2_mtime(git2)
 target_link_libraries(git2 PUBLIC
     http_parser
     ssh2
