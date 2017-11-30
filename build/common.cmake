@@ -524,6 +524,7 @@ include(CheckFunctionExists)
 include(CheckIncludeFile)
 include(CheckSymbolExists)
 include(CheckVariableExists)
+include(CheckTypeSize)
 
 function(todef output input)
     string(TOUPPER ${input} output_)
@@ -536,16 +537,48 @@ function(parse_config input)
     set(re_cmake_fun "cmakedefine[ ]+HAVE_([A-Z_0-9]+)")
     set(re_inc "<([^>]+)> header file\.")
     set(re_cmake_inc "cmakedefine[ ]+HAVE_([A-Z_0-9]+)_H")
-    set(functions_)
-    set(includes_)
+    set(re_type "<([^>]+)> declares ([A-Z_a-z0-9]+).")
+    set(re_type_only " if you have the '([A-Za-z_0-9]+)' type.")
+    set(re_sys_type " system has the type `([^']+)'.")
+
     # read input file
     file(READ ${input} contents)
+    set(functions_)
+    set(includes_)
+
+    # match types with extra header
+    string(REGEX MATCHALL "${re_type}" matchs ${contents})
+    foreach(match ${matchs})
+        string(REGEX REPLACE "${re_type}" "\\1" header ${match})
+        string(REGEX REPLACE "${re_type}" "\\2" type ${match})
+        todef(define ${type})
+        set(CMAKE_EXTRA_INCLUDE_FILES ${header})
+        check_type_size(${type} ${define})
+    endforeach()
+
+    # match types without headers
+    string(REGEX MATCHALL "${re_type_only}" matchs ${contents})
+    foreach(match ${matchs})
+        string(REGEX REPLACE "${re_type_only}" "\\1" match ${match})
+        todef(define ${match})
+        check_type_size(${match} ${define})
+    endforeach()
+
+    # match system types
+    string(REGEX MATCHALL "${re_sys_type}" matchs ${contents})
+    foreach(match ${matchs})
+        string(REGEX REPLACE "${re_sys_type}" "\\1" match ${match})
+        todef(define ${match})
+        check_type_size(${match} ${define})
+    endforeach()
+
     # match functions
     string(REGEX MATCHALL "${re_fun}" matchs ${contents})
     foreach(match ${matchs})
         string(REGEX REPLACE "${re_fun}" "\\1" match ${match})
         list(APPEND functions_ ${match})
     endforeach()
+
     # match cmake functions
     string(REGEX MATCHALL "${re_cmake_fun}" matchs ${contents})
     foreach(match ${matchs})
@@ -557,12 +590,14 @@ function(parse_config input)
 		    list(APPEND functions_ ${match})
 		endif()
     endforeach()
+
     # match includes
     string(REGEX MATCHALL "${re_inc}" matchs ${contents})
     foreach(match ${matchs})
         string(REGEX REPLACE "${re_inc}" "\\1" match ${match})
         list(APPEND includes_ ${match})
     endforeach()
+
     # match cmake includes
     string(REGEX MATCHALL "${re_cmake_inc}" matchs ${contents})
     foreach(match ${matchs})
@@ -571,6 +606,7 @@ function(parse_config input)
 		string(TOLOWER "${match}.h" match)
         list(APPEND includes_ ${match})
     endforeach()
+
     # check each function
     list(LENGTH functions_ size)
     if(size)
@@ -581,6 +617,7 @@ function(parse_config input)
         todef(define_it ${it})
         check_function_exists("${it}" ${define_it})
     endforeach()
+
     # check each include
     list(LENGTH includes_ size)
     if(size)
