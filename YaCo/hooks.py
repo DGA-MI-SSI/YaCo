@@ -489,7 +489,7 @@ class YaToolIDP_Hooks(idaapi.IDP_Hooks):
         hooks.ida.undefine(ea)
         self.hook()
         hooks.idb.hook()
-        return idaapi.IDP_Hooks.undefine(self, ea)
+        return hooks.idp.ev_undefine(ea)
 
 
 class YaToolIDB_Hooks(idaapi.IDB_Hooks):
@@ -556,7 +556,7 @@ class YaToolIDB_Hooks(idaapi.IDB_Hooks):
                 old_name = None
             hooks.ida.rename(ea, new_name, old_name=old_name)
 
-        return idaapi.IDP_Hooks.rename(self, ea, new_name)
+        return hooks.idp.ev_rename(ea, new_name)
 
     def make_code(self, ea, size):
         self.pre_hook()
