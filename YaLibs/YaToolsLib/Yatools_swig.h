@@ -15,10 +15,9 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 #include <vector>
-
-namespace std { template<typename T> class shared_ptr; }
 
 void StartYatools(const char* base);
 void StopYatools();

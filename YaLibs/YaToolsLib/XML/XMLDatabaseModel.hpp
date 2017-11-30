@@ -15,10 +15,10 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 #include <vector>
 
-namespace std { template<typename T> class shared_ptr; }
 class IModelAccept;
 
 std::shared_ptr<IModelAccept> MakeXmlAllDatabaseModel  (const std::string& folder);

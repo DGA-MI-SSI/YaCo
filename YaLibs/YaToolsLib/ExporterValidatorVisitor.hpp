@@ -15,7 +15,8 @@
 
 #pragma once
 
-namespace std { template<typename T> class shared_ptr; }
+#include <memory>
+
 class IModelVisitor;
 
 std::shared_ptr<IModelVisitor> MakeExporterValidatorVisitor();

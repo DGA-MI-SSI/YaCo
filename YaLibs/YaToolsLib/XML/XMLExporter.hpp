@@ -15,9 +15,9 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 
-namespace std { template<typename T> class shared_ptr; }
 class IModelVisitor;
 
 std::shared_ptr<IModelVisitor> MakeXmlExporter      (const std::string& path);

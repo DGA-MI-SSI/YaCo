@@ -17,9 +17,9 @@
 #define FILEUTILS_H__
 
 #include <stddef.h>
-#include <string>
 
-namespace std { template<typename T> class shared_ptr; }
+#include <memory>
+#include <string>
 
 struct Mmap_ABC
 {
