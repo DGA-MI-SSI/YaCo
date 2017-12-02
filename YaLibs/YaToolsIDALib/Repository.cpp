@@ -383,8 +383,9 @@ namespace
 }
 
 Repository::Repository(const std::string& path, IDAIsInteractive ida_is_interactive)
-    : repo_(path)
-    , ida_is_interactive_(ida_is_interactive == IDAIsInteractive::IS_INTERACTIVE)
+    : ida_is_interactive_(ida_is_interactive == IDAIsInteractive::IS_INTERACTIVE)
+    , repo_(path)
+    , auto_comments_()
     , repo_auto_sync_(true)
 {
     const bool repo_already_exists = is_git_working_dir(path);
@@ -798,7 +799,7 @@ void Repository::ask_for_remote()
         return;
     }
 
-    GitRepo tmp_repo = url;
+    GitRepo tmp_repo(url);
     try
     {
         tmp_repo.init_bare();
