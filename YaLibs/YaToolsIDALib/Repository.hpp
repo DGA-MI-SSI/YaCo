@@ -17,9 +17,7 @@
 
 #include <string>
 #include <vector>
-
-// Forward declarations
-namespace std { template<typename T> class shared_ptr; }
+#include <memory>
 
 struct IRepository
 {
