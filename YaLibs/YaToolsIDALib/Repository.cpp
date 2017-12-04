@@ -436,7 +436,7 @@ void Repository::check_valid_cache_startup()
 
     std::error_code ec;
     fs::create_directory("cache", ec);
-    if (!ec)
+    if (ec)
         IDA_LOG_WARNING("Cache directory creation failed, error: %s", ec.message().c_str());
 
     const fs::path current_idb_path = get_current_idb_path();
