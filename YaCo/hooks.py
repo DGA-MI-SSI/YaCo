@@ -40,7 +40,7 @@ hooks = None
 
 class Hooks(object):
     def __init__(self, hash_provider, repo_manager):
-        self.ida = YaToolIDAHooks(hash_provider, repo_manager)
+        self.ida = ya.MakeHooks(hash_provider, repo_manager)
         self.idb = YaToolIDB_Hooks()
         self.idp = YaToolIDP_Hooks()
         self.current_rename_infos = {}
@@ -57,78 +57,6 @@ class Hooks(object):
         self.idp.unhook()
         self.idb.unhook()
 
-
-class YaToolIDAHooks(object):
-    '''
-    classdocs
-    '''
-
-    def __init__(self, hash_provider, repo_manager):
-        '''
-        Constructor
-        '''
-        self.native = ya.MakeHooks(hash_provider, repo_manager)
-
-    # ==================================================================#
-    # Hook forward
-    # ==================================================================#
-    # ==================== FUNCTIONS ===================================#
-    def rename(self, ea, new_name, type="", old_name=""):
-        if type is None:
-            type = ""
-        if old_name is None:
-            old_name = ""
-        self.native.rename(ea, new_name, type, old_name)
-
-    def comment_changed(self, ea):
-        self.native.change_comment(ea)
-
-    def undefine(self, ea):
-        self.native.undefine(ea)
-
-    def del_func(self, ea):
-        self.native.delete_function(ea)
-
-    def make_code(self, ea):
-        self.native.make_code(ea)
-
-    def make_data(self, ea):
-        self.native.make_data(ea)
-
-    def add_func(self, ea):
-        self.native.add_function(ea)
-
-    # =================== STRUCTURES ===================================#
-    def struc_updated(self, struc):
-        self.native.update_structure(struc)
-
-    def struc_member_updated(self, struc_id, member_id, member_offset):
-        self.native.update_structure_member(struc_id, member_id, member_offset)
-
-    def struc_member_deleted(self, struc_id, member_id, offset):
-        self.native.delete_structure_member(struc_id, member_id, offset)
-
-    def enum_updated(self, enum):
-        self.native.update_enum(enum)
-
-    def op_type_changed(self, ea):
-        self.native.change_operand_type(ea)
-
-    def segment_added(self, segment):
-        self.native.add_segment(ea)
-
-    def ti_changed(self, ea):
-        self.native.change_type_information(ea)
-
-    def func_updated(self, ea):
-        self.addresses_to_process.add(ea)
-        self.repo_manager.add_auto_comment(ea, "Function updated")
-
-    def save(self):
-        self.native.save()
-
-    def flush(self):
-        self.native.flush()
 
 
 class YaToolIDP_Hooks(idaapi.IDP_Hooks):
@@ -247,16 +175,16 @@ class YaToolIDB_Hooks(idaapi.IDB_Hooks):
                 old_name = hooks.current_rename_infos[ea]
                 del hooks.current_rename_infos[ea]
             except KeyError:
-                old_name = None
-            hooks.ida.rename(ea, new_name, old_name=old_name)
+                old_name = ""
+            hooks.ida.rename(ea, new_name, "", old_name)
 
         return hooks.idp.ev_rename(ea, new_name)
 
-    def make_code(self, ea, size):
+    def make_code(self, insn):
         self.pre_hook()
         if LOG_IDP_EVENTS:
             self.debug_event("Make code at 0x%08x" % ea)
-        hooks.ida.make_code(ea)
+        hooks.ida.make_code(insn.ea)
         return idaapi.IDB_Hooks.make_code(self, ea, size)
 
     def make_data(self, ea, flags, tid, length):
@@ -272,7 +200,7 @@ class YaToolIDB_Hooks(idaapi.IDB_Hooks):
             self.debug_event("Add func")
         self.unhook()
         hooks.idb.unhook()
-        hooks.ida.add_func(func.start_ea)
+        hooks.ida.add_function(func.start_ea)
         self.hook()
         hooks.idb.hook()
         return idaapi.IDB_Hooks.func_added(self, func)
@@ -283,7 +211,7 @@ class YaToolIDB_Hooks(idaapi.IDB_Hooks):
             self.debug_event("Del func : 0x%08x" % func.start_ea)
         self.unhook()
         hooks.idb.unhook()
-        hooks.ida.del_func(func.start_ea)
+        hooks.ida.delete_function(func.start_ea)
         self.hook()
         hooks.idb.hook()
         return idaapi.IDB_Hooks.deleting_func(self, func)
@@ -299,7 +227,7 @@ class YaToolIDB_Hooks(idaapi.IDB_Hooks):
         if LOG_IDB_EVENTS:
             self.debug_event("cmt_changed     (0x%.016X, %x)" % (ea, repeatable))
 
-        hooks.ida.comment_changed(ea)
+        hooks.ida.change_comment(ea)
         if (idc.LineA(ea, 0) is None) and (idc.LineB(ea, 0) is None):
             return idaapi.IDB_Hooks.cmt_changed(self, ea, repeatable)
 
@@ -311,7 +239,7 @@ class YaToolIDB_Hooks(idaapi.IDB_Hooks):
         if LOG_IDB_EVENTS:
             self.debug_event("extra_cmt_changed     (0x%.016X)" % (ea))
 
-        hooks.ida.comment_changed(ea)
+        hooks.ida.change_comment(ea)
 
         return idaapi.IDB_Hooks.extra_cmt_changed(self, ea, line_idx, cmt)
 
@@ -321,7 +249,7 @@ class YaToolIDB_Hooks(idaapi.IDB_Hooks):
 
         if LOG_IDB_EVENTS:
             self.debug_event("range comment at 0x%08X" % ea)
-        hooks.ida.comment_changed(ea)
+        hooks.ida.change_comment(ea)
         return idaapi.IDB_Hooks.range_cmt_changed(self, rangecb, range, cmt, repeatable)
 
     def ti_changed(self, ea, arg1, arg2):
@@ -329,7 +257,7 @@ class YaToolIDB_Hooks(idaapi.IDB_Hooks):
 
         if LOG_IDB_EVENTS:
             self.debug_event("ti changed at 0x%08X" % ea)
-        hooks.ida.ti_changed(ea)
+        hooks.ida.change_type_information(ea)
 
         return idaapi.IDB_Hooks.ti_changed(self, ea, arg1, arg2)
 
@@ -345,7 +273,7 @@ class YaToolIDB_Hooks(idaapi.IDB_Hooks):
 
         if LOG_IDB_EVENTS:
             self.debug_event("op_type_changed at 0x%08X" % address)
-        hooks.ida.op_type_changed(address)
+        hooks.ida.change_operand_type(address)
         return idaapi.IDB_Hooks.op_type_changed(self, address, operand)
 
     def enum_created(self, enum):
@@ -353,7 +281,7 @@ class YaToolIDB_Hooks(idaapi.IDB_Hooks):
 
         if LOG_IDB_EVENTS:
             self.debug_event("enum_created : 0x%08X (%s)" % (enum, idc.GetEnumName(enum)))
-        hooks.ida.enum_updated(enum)
+        hooks.ida.update_enum(enum)
         return idaapi.IDB_Hooks.enum_created(self, enum)
 
     def enum_renamed(self, enum_id):
@@ -361,7 +289,7 @@ class YaToolIDB_Hooks(idaapi.IDB_Hooks):
 
         if LOG_IDB_EVENTS:
             self.debug_event("enum_renamed : 0x%08X (name=%s)" % (enum_id, idc.GetEnumName(enum_id)))
-        hooks.ida.enum_updated(enum_id)
+        hooks.ida.update_enum(enum_id)
         return idaapi.IDB_Hooks.enum_renamed(self, enum_id)
 
     def enum_member_renamed(self, enum_id, member_id):
@@ -369,7 +297,7 @@ class YaToolIDB_Hooks(idaapi.IDB_Hooks):
 
         if LOG_IDB_EVENTS:
             self.debug_event("enum_member_renamed : 0x%08X (name=%s)" % (enum_id, idc.GetEnumName(enum_id)))
-        hooks.ida.enum_updated(enum_id)
+        hooks.ida.update_enum(enum_id)
         return idaapi.IDB_Hooks.enum_renamed(self, enum_id)
 
     def enum_deleted(self, enum):
@@ -377,7 +305,7 @@ class YaToolIDB_Hooks(idaapi.IDB_Hooks):
 
         if LOG_IDB_EVENTS:
             self.debug_event("enum_deleted")
-        hooks.ida.enum_updated(enum)
+        hooks.ida.update_enum(enum)
         return idaapi.IDB_Hooks.enum_deleted(self, enum)
 
     def enum_member_created(self, enum, mid):
@@ -385,7 +313,7 @@ class YaToolIDB_Hooks(idaapi.IDB_Hooks):
 
         if LOG_IDB_EVENTS:
             self.debug_event("enum_member_created")
-        hooks.ida.enum_updated(enum)
+        hooks.ida.update_enum(enum)
         return idaapi.IDB_Hooks.enum_member_created(self, enum, mid)
 
     def enum_member_deleted(self, enum, const_id):
@@ -393,7 +321,7 @@ class YaToolIDB_Hooks(idaapi.IDB_Hooks):
 
         if LOG_IDB_EVENTS:
             self.debug_event("enum_member_deleted")
-        hooks.ida.enum_updated(enum)
+        hooks.ida.update_enum(enum)
         logger.warning("enum_member_deleted not fully implemented yet")
         # TODO: finish enum_member_deleted implementation
         """
@@ -413,7 +341,7 @@ class YaToolIDB_Hooks(idaapi.IDB_Hooks):
         if enum_id != idc.BADADDR:
             enum = enum_id
 
-        hooks.ida.enum_updated(enum)
+        hooks.ida.update_enum(enum)
         return idaapi.IDB_Hooks.enum_cmt_changed(self, enum, *args)
 
     def enum_bf_changed(self, enum_id):
@@ -422,7 +350,7 @@ class YaToolIDB_Hooks(idaapi.IDB_Hooks):
         if LOG_IDB_EVENTS:
             self.debug_event("enum_bf_changed : 0x%08X (%s)" % (enum_id, idc.GetEnumName(enum_id)))
 
-        hooks.ida.enum_updated(enum_id)
+        hooks.ida.update_enum(enum_id)
 
         return idaapi.IDB_Hooks.enum_bf_changed(self, enum_id)
 
@@ -431,7 +359,7 @@ class YaToolIDB_Hooks(idaapi.IDB_Hooks):
 
         if LOG_IDB_EVENTS:
             self.debug_event("struc_created : 0x%08X (%s)" % (struc, idc.GetStrucName(struc)))
-        hooks.ida.struc_updated(struc)
+        hooks.ida.update_structure(struc)
         return idaapi.IDB_Hooks.struc_created(self, struc)
 
     def struc_deleted(self, struc):
@@ -439,7 +367,7 @@ class YaToolIDB_Hooks(idaapi.IDB_Hooks):
 
         if LOG_IDB_EVENTS:
             self.debug_event("struc_deleted")
-        hooks.ida.struc_updated(struc)
+        hooks.ida.update_structure(struc)
         return idaapi.IDB_Hooks.struc_deleted(self, struc)
 
     def struc_renamed(self, struc):
@@ -447,7 +375,7 @@ class YaToolIDB_Hooks(idaapi.IDB_Hooks):
 
         if LOG_IDB_EVENTS:
             self.debug_event("struc_renamed : 0X%08x" % struc.id)
-        hooks.ida.struc_updated(struc.id)
+        hooks.ida.update_structure(struc.id)
         return idaapi.IDB_Hooks.struc_renamed(self, struc)
 
     def struc_cmt_changed(self, struc, *args):
@@ -466,7 +394,7 @@ class YaToolIDB_Hooks(idaapi.IDB_Hooks):
             else:
                 # it is a stackframe id
                 pass
-        hooks.ida.struc_updated(struc)
+        hooks.ida.update_structure(struc)
         return idaapi.IDB_Hooks.struc_cmt_changed(self, struc, *args)
 
     def struc_member_created(self, struc, member):
@@ -474,7 +402,7 @@ class YaToolIDB_Hooks(idaapi.IDB_Hooks):
 
         if LOG_IDB_EVENTS:
             self.debug_event("struc_member_created")
-        hooks.ida.struc_updated(struc.id)
+        hooks.ida.update_structure(struc.id)
         return idaapi.IDB_Hooks.struc_member_created(self, struc, member)
 
     def struc_member_deleted(self, struc, member_id, offset):
@@ -482,7 +410,7 @@ class YaToolIDB_Hooks(idaapi.IDB_Hooks):
 
         if LOG_IDB_EVENTS:
             self.debug_event("struc_member_deleted")
-        hooks.ida.struc_member_deleted(struc.id, member_id, offset)
+        hooks.ida.delete_structure_member(struc.id, member_id, offset)
         return idaapi.IDB_Hooks.struc_member_deleted(self, struc, member_id, offset)
 
     def struc_member_renamed(self, struc, member):
@@ -490,7 +418,7 @@ class YaToolIDB_Hooks(idaapi.IDB_Hooks):
 
         if LOG_IDB_EVENTS:
             self.debug_event("struc_member_renamed")
-        hooks.ida.struc_member_updated(struc.id, member.id, member.soff)
+        hooks.ida.update_structure_member(struc.id, member.id, member.soff)
         return idaapi.IDB_Hooks.struc_member_renamed(self, struc, member)
 
     def struc_member_changed(self, struc, member):
@@ -499,8 +427,8 @@ class YaToolIDB_Hooks(idaapi.IDB_Hooks):
         if LOG_IDB_EVENTS:
             self.debug_event("struc_member_changed")
         # TODO: only call struc_updated if the member is the last one and its size changed
-        hooks.ida.struc_updated(struc.id)
-        hooks.ida.struc_member_updated(struc.id, member.id, member.soff)
+        hooks.ida.update_structure(struc.id)
+        hooks.ida.update_structure_member(struc.id, member.id, member.soff)
         return idaapi.IDB_Hooks.struc_member_changed(self, struc, member)
 
     def func_noret_changed(self, *args):
@@ -515,15 +443,14 @@ class YaToolIDB_Hooks(idaapi.IDB_Hooks):
 
         if LOG_IDB_EVENTS:
             self.debug_event("segm_added")
-        hooks.ida.segment_added(segment)
+        hooks.ida.add_segment(segment)
         return idaapi.IDB_Hooks.segm_added(self, segment)
 
 
     def func_updated(self, pfn):
         self.pre_hook()
-        hooks.ida.func_updated(pfn.start_ea)
+        hooks.ida.update_function(pfn.start_ea)
         return idaapi.IDB_Hooks.func_updated(self, pfn)
-
 
 # ======================================================================#
 # Hooks

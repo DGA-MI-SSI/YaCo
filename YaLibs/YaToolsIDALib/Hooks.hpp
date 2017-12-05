@@ -29,6 +29,7 @@ struct IHooks
     virtual void make_code(ea_t ea) = 0;
     virtual void make_data(ea_t ea) = 0;
     virtual void add_function(ea_t ea) = 0;
+    virtual void update_function(ea_t ea) = 0;
     virtual void update_structure(ea_t struct_id) = 0;
     virtual void update_structure_member(ea_t struct_id, ea_t member_id, ea_t member_offset) = 0;
     virtual void delete_structure_member(ea_t struct_id, ea_t member_id, ea_t offset) = 0;
