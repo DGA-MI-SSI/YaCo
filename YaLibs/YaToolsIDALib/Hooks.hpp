@@ -42,6 +42,7 @@ struct IHooks
     virtual void unhook() = 0;
 
     virtual void save() = 0;
+    virtual void save_and_update() = 0;
 
     virtual void flush() = 0;
 };

@@ -21,7 +21,9 @@
 #include "IModel.hpp"
 #include "Model.hpp"
 #include "IDANativeModel.hpp"
+#include "IDANativeExporter.hpp"
 #include "XML/XMLExporter.hpp"
+#include "XML/XMLDatabaseModel.hpp"
 #include "Logger.h"
 #include "Yatools.h"
 #include "Utils.hpp"
@@ -77,6 +79,7 @@ namespace
         void unhook() override;
 
         void save() override;
+        void save_and_update() override;
 
         void flush() override;
 
@@ -280,6 +283,34 @@ void Hooks::save()
     const auto time_end = std::chrono::system_clock::now();
     const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(time_end - time_start);
     IDA_LOG_INFO("Saved in %lld seconds", elapsed.count());
+}
+
+void Hooks::save_and_update()
+{
+    // save and commit changes
+    save();
+    if (!repo_manager_->commit_cache())
+    {
+        IDA_LOG_WARNING("An error occurred during YaCo commit");
+        warning("An error occured during YaCo commit: please relaunch IDA");
+    }
+    flush();
+
+    unhook();
+
+    // update cache and export modifications to IDA
+    std::vector<std::string> modified_files = repo_manager_->update_cache();
+    ModelAndVisitor memory_exporter = MakeModel();
+    MakeXmlFilesDatabaseModel(modified_files)->accept(*(memory_exporter.visitor));
+    export_to_ida(memory_exporter.model.get(), hash_provider_.get());
+
+    // Let IDA apply modifications
+    setflag(inf.s_genflags, INFFL_AUTO, true);
+    auto_wait();
+    setflag(inf.s_genflags, INFFL_AUTO, false);
+    refresh_idaview_anyway();
+
+    hook();
 }
 
 void Hooks::flush()
