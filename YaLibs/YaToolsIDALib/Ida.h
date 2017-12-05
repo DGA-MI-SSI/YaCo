@@ -42,6 +42,7 @@
 #include <struct.hpp>
 #include <typeinf.hpp>
 #include <pro.h>
+#include <idp.hpp>
 #undef snprintf // ida disable this...
 
 #ifdef _MSC_VER

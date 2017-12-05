@@ -136,8 +136,7 @@ class YaToolIDB_Hooks(idaapi.IDB_Hooks):
         self.hook()
 
     def savebase(self, *args):
-        logger.debug("savebase")
-        YaCo.save()
+        hooks.ida.save_and_update()
         return idaapi.IDB_Hooks.savebase(self, *args)
 
     def closebase(self, *args):

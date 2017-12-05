@@ -75,47 +75,6 @@ class YaCo:
 
         logger.debug("YaCo cache loaded in %d seconds.", (end_time - start_time))
 
-    def update(self):
-        memory_exporter = ya.MakeModel()
-
-        modified_files = self.repo_manager.update_cache()
-        ya.MakeXmlFilesDatabaseModel(modified_files).accept(memory_exporter.visitor)
-
-        logger.debug("unhook")
-        self.ida_hooks.unhook()
-
-        logger.debug("export mem->ida")
-        ya.export_to_ida(memory_exporter.model, self.hash_provider)
-
-        idc.set_inf_attr(idc.INFFL_AUTO, True)
-        idc.Wait()
-        idc.set_inf_attr(idc.INFFL_AUTO, False)
-        idc.Refresh()
-        logger.debug("hook")
-        self.ida_hooks.hook()
-
-    def commit_cache(self):
-        if PROFILE_YACO_SAVING:
-            pr = cProfile.Profile()
-            pr.enable()
-        self.ida_hooks.ida.save()
-        if self.repo_manager.commit_cache():
-            self.ida_hooks.ida.flush()
-            logger.debug("YaCo commit saved.")
-        try:
-            self.update()
-        except Exception, e:
-            ex = traceback.format_exc()
-            logger.error("An error occurred while updating")
-            logger.error("%s", ex)
-            raise e
-        if PROFILE_YACO_SAVING:
-            pr.disable()
-            f = open("yaco-save.profile", 'w')
-            ps = pstats.Stats(pr, stream=f).sort_stats('time')
-            ps.print_stats()
-            f.close()
-
     def toggle_auto_rebase_push(self, *args):
         self.repo_manager.toggle_repo_auto_sync()
 
@@ -309,23 +268,6 @@ def start(init_logging=True):
         logger.warning("Not starting YaCo: already done")
         yaco_starting = False
         return False
-
-
-def save():
-    global yaco
-    print("")
-    logger.info("YaCo.save()")
-    try:
-        yaco.commit_cache()
-    except Exception, e:
-        ex = traceback.format_exc()
-        logger.error("An error occurred during YaCo commit")
-        logger.error("%s", ex)
-        traceback.print_exc()
-        Warning("An error occured during YaCo commit : please relaunch IDA")
-
-        raise e
-
 
 def close():
     global yaco
