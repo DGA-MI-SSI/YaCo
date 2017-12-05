@@ -64,6 +64,7 @@ namespace
         void make_code(ea_t ea) override;
         void make_data(ea_t ea) override;
         void add_function(ea_t ea) override;
+        void update_function(ea_t ea) override;
         void update_structure(ea_t struct_id) override;
         void update_structure_member(tid_t struct_id, tid_t member_id, ea_t member_offset) override;
         void delete_structure_member(tid_t struct_id, tid_t member_id, ea_t offset) override;
@@ -151,6 +152,11 @@ void Hooks::add_function(ea_t ea)
     // Warning : deletion of objects not implemented
     // TODO : implement deletion of objects inside newly created function range
     // TODO : use function chunks to iterate over function code
+    add_address_to_process(ea, "Create function");
+}
+
+void Hooks::update_function(ea_t ea)
+{
     add_address_to_process(ea, "Create function");
 }
 
