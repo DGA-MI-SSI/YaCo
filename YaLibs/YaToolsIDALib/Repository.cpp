@@ -73,7 +73,6 @@ namespace
 {
     const size_t TRUNCATE_COMMIT_MSG_LENGTH = 4000;
     const int    GIT_PUSH_RETRIES = 3;
-    const int    CONFLICT_RESOLVER_EDIT_MAX_FILE_LENGTH = 65536;
 
     bool remove_substring(std::string& str, const std::string& substr)
     {
