@@ -110,6 +110,7 @@ namespace
         void manage_extlang_changed_event(va_list args);
         void manage_idasgn_loaded_event(va_list args);
         void manage_kernel_config_loaded_event(va_list args);
+        void manage_loader_finished_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -151,7 +152,7 @@ static ssize_t idb_event_handler(void* user_data, int notification_code, va_list
         case envent_code::extlang_changed:         hooks->manage_extlang_changed_event(args); break;
         case envent_code::idasgn_loaded:           hooks->manage_idasgn_loaded_event(args); break;
         case envent_code::kernel_config_loaded:    hooks->manage_kernel_config_loaded_event(args); break;
-        case envent_code::loader_finished:         LOG_EVENT("loader_finished"); break;
+        case envent_code::loader_finished:         hooks->manage_loader_finished_event(args); break;
         case envent_code::flow_chart_created:      LOG_EVENT("flow_chart_created"); break;
         case envent_code::compiler_changed:        LOG_EVENT("compiler_changed"); break;
         case envent_code::changing_ti:             LOG_EVENT("changing_ti"); break;
@@ -660,6 +661,18 @@ void Hooks::manage_kernel_config_loaded_event(va_list args)
 
     if (LOG_EVENTS)
         LOG_EVENT("Kernel configuration loaded (ida.cfg parsed)");
+}
+
+void Hooks::manage_loader_finished_event(va_list args)
+{
+    linput_t* li = va_arg(args, linput_t*);
+    uint16 neflags = static_cast<uint16>(va_arg(args, int)); // NEF_.+ defines from loader.hpp
+    const char* filetypename = va_arg(args, const char*);
+
+    UNUSED(li);
+    UNUSED(neflags);
+    if (LOG_EVENTS)
+        LOG_EVENT("External file loader for %s files finished its work", filetypename);
 }
 
 
