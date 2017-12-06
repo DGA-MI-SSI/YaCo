@@ -116,6 +116,7 @@ namespace
         void manage_changing_ti_event(va_list args);
         void manage_ti_changed_event(va_list args);
         void manage_changing_op_ti_event(va_list args);
+        void manage_op_ti_changed_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -163,7 +164,7 @@ static ssize_t idb_event_handler(void* user_data, int notification_code, va_list
         case envent_code::changing_ti:             hooks->manage_changing_ti_event(args); break;
         case envent_code::ti_changed:              hooks->manage_ti_changed_event(args); break;
         case envent_code::changing_op_ti:          hooks->manage_changing_op_ti_event(args); break;
-        case envent_code::op_ti_changed:           LOG_EVENT("op_ti_changed"); break;
+        case envent_code::op_ti_changed:           hooks->manage_op_ti_changed_event(args); break;
         case envent_code::changing_op_type:        LOG_EVENT("changing_op_type"); break;
         case envent_code::op_type_changed:         LOG_EVENT("op_type_changed"); break;
         case envent_code::enum_created:            LOG_EVENT("enum_created"); break;
@@ -736,6 +737,20 @@ void Hooks::manage_changing_op_ti_event(va_list args)
     UNUSED(new_fnames);
     if (LOG_EVENTS)
         LOG_EVENT("An operand typestring (c/c++ prototype) is to be changed (ea: " EA_FMT ")", ea);
+}
+
+void Hooks::manage_op_ti_changed_event(va_list args)
+{
+    ea_t ea = va_arg(args, ea_t);
+    int n = va_arg(args, int);
+    type_t* new_type = va_arg(args, type_t*);
+    p_list* new_fnames = va_arg(args, p_list*);
+
+    UNUSED(n);
+    UNUSED(new_type);
+    UNUSED(new_fnames);
+    if (LOG_EVENTS)
+        LOG_EVENT("An operand typestring (c/c++ prototype) has been changed (ea: " EA_FMT ")", ea);
 }
 
 
