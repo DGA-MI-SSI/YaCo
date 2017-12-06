@@ -472,7 +472,7 @@ void Repository::check_valid_cache_startup()
     msg += fs::path(local_idb_path).filename().generic_string();
     msg += '.';
     set_database_flag(DBFL_KILL);
-    warning(msg.c_str());
+    warning("%s", msg.c_str());
     qexit(0);
 }
 
@@ -755,7 +755,7 @@ void Repository::ask_to_checkout_modified_files()
 
     // modified_objects is now the message
     modified_objects += "\nhas been modified, this is not normal, do you want to checkout these files ? (Rebasing will be disabled if you answer no)";
-    if (ask_yn(true, modified_objects.c_str()) != ASKBTN_NO)
+    if (ask_yn(true, "%s", modified_objects.c_str()) != ASKBTN_NO)
     {
         repo_.checkout_head();
         return;
