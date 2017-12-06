@@ -750,6 +750,10 @@ void GitRepo::checkout(const std::string& branch)
                 return git_branch_create(ref, repository, branch.c_str(), target.get(), 1);
             }, &git_reference_free);
             /*********************************************************************************/
+
+            // avoid gcc warning with -Wimplicit-fallthrough
+            /* FALLTHRU */
+
         case 0:
             //jump to new branch
             // branch found, change current branch
