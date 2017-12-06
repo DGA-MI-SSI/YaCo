@@ -27,6 +27,7 @@
 #include "Logger.h"
 #include "Yatools.h"
 #include "Utils.hpp"
+#include "../Helpers.h"
 
 #define MODULE_NAME "hooks"
 #include "IDAUtils.hpp"
@@ -125,9 +126,9 @@ namespace
 static ssize_t idp_event_handler(void* user_data, int notification_code, va_list va)
 {
     Hooks* hooks = static_cast<Hooks*>(user_data);
-    (void)hooks;
-    (void)notification_code;
-    (void)va;
+    UNUSED(hooks);
+    UNUSED(notification_code);
+    UNUSED(va);
     return 0;
 }
 
@@ -555,7 +556,7 @@ void Hooks::save_enums(std::shared_ptr<IModelIncremental>& ida_model, IModelVisi
 
 void Hooks::manage_closebase_event(va_list args)
 {
-    (void)args;
+    UNUSED(args);
 
     if (LOG_EVENTS)
         LOG_EVENT("The database will be closed now");
@@ -563,7 +564,7 @@ void Hooks::manage_closebase_event(va_list args)
 
 void Hooks::manage_savebase_event(va_list args)
 {
-    (void)args;
+    UNUSED(args);
 
     msg("\n");
     if (LOG_EVENTS)
@@ -582,7 +583,7 @@ void Hooks::manage_upgraded_event(va_list args)
 
 void Hooks::manage_auto_empty_event(va_list args)
 {
-    (void)args;
+    UNUSED(args);
 
     if (LOG_EVENTS)
         LOG_EVENT("All analysis queues are empty");
@@ -590,7 +591,7 @@ void Hooks::manage_auto_empty_event(va_list args)
 
 void Hooks::manage_auto_empty_finally_event(va_list args)
 {
-    (void)args;
+    UNUSED(args);
 
     if (LOG_EVENTS)
         LOG_EVENT("All analysis queues are empty definitively");
@@ -606,7 +607,7 @@ void Hooks::manage_determined_main_event(va_list args)
 
 void Hooks::manage_local_types_changed_event(va_list args)
 {
-    (void)args;
+    UNUSED(args);
 
     if (LOG_EVENTS)
         LOG_EVENT("Local types have been changed");
@@ -618,7 +619,7 @@ void Hooks::manage_extlang_changed_event(va_list args)
     extlang_t* el = va_arg(args, extlang_t*);
     int idx = va_arg(args, int);
 
-    (void)idx;
+    UNUSED(idx);
     if (LOG_EVENTS)
     {
         switch (kind)
