@@ -106,6 +106,7 @@ namespace
         void manage_auto_empty_finally_event(va_list args);
         void manage_determined_main_event(va_list args);
         void manage_local_types_changed_event(va_list args);
+        void manage_extlang_changed_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -144,7 +145,7 @@ static ssize_t idb_event_handler(void* user_data, int notification_code, va_list
         case envent_code::auto_empty_finally:      hooks->manage_auto_empty_finally_event(args); break;
         case envent_code::determined_main:         hooks->manage_determined_main_event(args); break;
         case envent_code::local_types_changed:     hooks->manage_local_types_changed_event(args); break;
-        case envent_code::extlang_changed:         LOG_EVENT("extlang_changed"); break;
+        case envent_code::extlang_changed:         hooks->manage_extlang_changed_event(args); break;
         case envent_code::idasgn_loaded:           LOG_EVENT("idasgn_loaded"); break;
         case envent_code::kernel_config_loaded:    LOG_EVENT("kernel_config_loaded"); break;
         case envent_code::loader_finished:         LOG_EVENT("loader_finished"); break;
@@ -609,6 +610,33 @@ void Hooks::manage_local_types_changed_event(va_list args)
 
     if (LOG_EVENTS)
         LOG_EVENT("Local types have been changed");
+}
+
+void Hooks::manage_extlang_changed_event(va_list args)
+{
+    int kind = va_arg(args, int); //0: extlang installed, 1: extlang removed, 2: default extlang changed
+    extlang_t* el = va_arg(args, extlang_t*);
+    int idx = va_arg(args, int);
+
+    (void)idx;
+    if (LOG_EVENTS)
+    {
+        switch (kind)
+        {
+        case 1:
+            LOG_EVENT("Extlang %s installed", el->name);
+            break;
+        case 2:
+            LOG_EVENT("Extlang %s removed", el->name);
+            break;
+        case 3:
+            LOG_EVENT("Default extlang changed: %s", el->name);
+            break;
+        default:
+            LOG_EVENT("The list of extlangs or the default extlang was changed");
+            break;
+        }
+    }
 }
 
 
