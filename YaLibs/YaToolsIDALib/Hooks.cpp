@@ -113,6 +113,7 @@ namespace
         void manage_loader_finished_event(va_list args);
         void manage_flow_chart_created_event(va_list args);
         void manage_compiler_changed_event(va_list args);
+        void manage_changing_ti_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -157,7 +158,7 @@ static ssize_t idb_event_handler(void* user_data, int notification_code, va_list
         case envent_code::loader_finished:         hooks->manage_loader_finished_event(args); break;
         case envent_code::flow_chart_created:      hooks->manage_flow_chart_created_event(args); break;
         case envent_code::compiler_changed:        hooks->manage_compiler_changed_event(args); break;
-        case envent_code::changing_ti:             LOG_EVENT("changing_ti"); break;
+        case envent_code::changing_ti:             hooks->manage_changing_ti_event(args); break;
         case envent_code::ti_changed:              LOG_EVENT("ti_changed"); break;
         case envent_code::changing_op_ti:          LOG_EVENT("changing_op_ti"); break;
         case envent_code::op_ti_changed:           LOG_EVENT("op_ti_changed"); break;
@@ -695,6 +696,18 @@ void Hooks::manage_compiler_changed_event(va_list args)
 
     if (LOG_EVENTS)
         LOG_EVENT("The kernel has changed the compiler information");
+}
+
+void Hooks::manage_changing_ti_event(va_list args)
+{
+    ea_t ea = va_arg(args, ea_t);
+    type_t* new_type = va_arg(args, type_t*);
+    p_list* new_fnames = va_arg(args, p_list*);
+
+    UNUSED(new_type);
+    UNUSED(new_fnames);
+    if (LOG_EVENTS)
+        LOG_EVENT("An item typestring (c/c++ prototype) is to be changed (ea: " EA_FMT ")", ea);
 }
 
 
