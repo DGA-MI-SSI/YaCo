@@ -450,25 +450,29 @@ std::string ya::get_type(ea_t ea)
     return to_string(buf);
 }
 
+#ifdef __EA64__
+#define PRIXEA "llX"
+#define PRIuEA "llu"
+#else
+#define PRIXEA "X"
+#define PRIuEA "u"
+#endif
+
 namespace
 {
-    const_string_ref to_fmt(qstring& buffer, const char* fmt, int64_t value)
-    {
-        return ya::read_string_from(buffer, [&](char* buf, size_t szbuf)
-        {
-            return snprintf(buf, szbuf, fmt, value);
-        });
-    }
+    // use a macro & ensure compiler statically check snprintf
+    #define TO_FMT(FMT, VALUE)\
+        [&](char* buf, size_t szbuf) { return snprintf(buf, szbuf, FMT, VALUE); }
 }
 
 const_string_ref ya::get_default_name(qstring& buffer, ea_t offset, func_t* func)
 {
     buffer.resize(std::max(buffer.size(), static_cast<size_t>(32)));
     if(!func)
-        return to_fmt(buffer, "field_%X", offset);
+        return ya::read_string_from(buffer, TO_FMT("field_%" PRIXEA, offset));
     if(offset <= func->frsize)
-        return to_fmt(buffer, "var_%X", func->frsize - offset);
+        return ya::read_string_from(buffer, TO_FMT("var_%" PRIXEA, func->frsize - offset));
     if(offset < func->frsize + 4)
-        return to_fmt(buffer, "var_s%d", offset - func->frsize);
-    return to_fmt(buffer, "arg_%X", offset - func->frsize - 4);
+        return ya::read_string_from(buffer, TO_FMT("var_s%" PRIuEA, offset - func->frsize));
+    return ya::read_string_from(buffer, TO_FMT("arg_%" PRIXEA, offset - func->frsize - 4));
 }
