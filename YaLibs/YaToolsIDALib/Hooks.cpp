@@ -109,6 +109,7 @@ namespace
         void manage_local_types_changed_event(va_list args);
         void manage_extlang_changed_event(va_list args);
         void manage_idasgn_loaded_event(va_list args);
+        void manage_kernel_config_loaded_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -149,7 +150,7 @@ static ssize_t idb_event_handler(void* user_data, int notification_code, va_list
         case envent_code::local_types_changed:     hooks->manage_local_types_changed_event(args); break;
         case envent_code::extlang_changed:         hooks->manage_extlang_changed_event(args); break;
         case envent_code::idasgn_loaded:           hooks->manage_idasgn_loaded_event(args); break;
-        case envent_code::kernel_config_loaded:    LOG_EVENT("kernel_config_loaded"); break;
+        case envent_code::kernel_config_loaded:    hooks->manage_kernel_config_loaded_event(args); break;
         case envent_code::loader_finished:         LOG_EVENT("loader_finished"); break;
         case envent_code::flow_chart_created:      LOG_EVENT("flow_chart_created"); break;
         case envent_code::compiler_changed:        LOG_EVENT("compiler_changed"); break;
@@ -651,6 +652,14 @@ void Hooks::manage_idasgn_loaded_event(va_list args)
         // normal processing = not for recognition of startup sequences
         LOG_EVENT("FLIRT signature %s has been loaded for normal processing", short_sig_name);
     }
+}
+
+void Hooks::manage_kernel_config_loaded_event(va_list args)
+{
+    UNUSED(args);
+
+    if (LOG_EVENTS)
+        LOG_EVENT("Kernel configuration loaded (ida.cfg parsed)");
 }
 
 
