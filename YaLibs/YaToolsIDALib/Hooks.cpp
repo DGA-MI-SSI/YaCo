@@ -103,6 +103,7 @@ namespace
         void manage_savebase_event(va_list args);
         void manage_upgraded_event(va_list args);
         void manage_auto_empty_event(va_list args);
+        void manage_auto_empty_finally_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -138,7 +139,7 @@ static ssize_t idb_event_handler(void* user_data, int notification_code, va_list
         case envent_code::savebase:                hooks->manage_savebase_event(args); break;
         case envent_code::upgraded:                hooks->manage_upgraded_event(args); break;
         case envent_code::auto_empty:              hooks->manage_auto_empty_event(args); break;
-        case envent_code::auto_empty_finally:      LOG_EVENT("auto_empty_finally"); break;
+        case envent_code::auto_empty_finally:      hooks->manage_auto_empty_finally_event(args); break;
         case envent_code::determined_main:         LOG_EVENT("determined_main"); break;
         case envent_code::local_types_changed:     LOG_EVENT("local_types_changed"); break;
         case envent_code::extlang_changed:         LOG_EVENT("extlang_changed"); break;
@@ -582,6 +583,14 @@ void Hooks::manage_auto_empty_event(va_list args)
 
     if (LOG_EVENTS)
         LOG_EVENT("All analysis queues are empty");
+}
+
+void Hooks::manage_auto_empty_finally_event(va_list args)
+{
+    (void)args;
+
+    if (LOG_EVENTS)
+        LOG_EVENT("All analysis queues are empty definitively");
 }
 
 
