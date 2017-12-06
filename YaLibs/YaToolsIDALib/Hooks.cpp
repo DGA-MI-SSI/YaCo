@@ -112,6 +112,7 @@ namespace
         void manage_kernel_config_loaded_event(va_list args);
         void manage_loader_finished_event(va_list args);
         void manage_flow_chart_created_event(va_list args);
+        void manage_compiler_changed_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -155,7 +156,7 @@ static ssize_t idb_event_handler(void* user_data, int notification_code, va_list
         case envent_code::kernel_config_loaded:    hooks->manage_kernel_config_loaded_event(args); break;
         case envent_code::loader_finished:         hooks->manage_loader_finished_event(args); break;
         case envent_code::flow_chart_created:      hooks->manage_flow_chart_created_event(args); break;
-        case envent_code::compiler_changed:        LOG_EVENT("compiler_changed"); break;
+        case envent_code::compiler_changed:        hooks->manage_compiler_changed_event(args); break;
         case envent_code::changing_ti:             LOG_EVENT("changing_ti"); break;
         case envent_code::ti_changed:              LOG_EVENT("ti_changed"); break;
         case envent_code::changing_op_ti:          LOG_EVENT("changing_op_ti"); break;
@@ -686,6 +687,14 @@ void Hooks::manage_flow_chart_created_event(va_list args)
         get_func_name(&buffer, fc->pfn->start_ea);
         LOG_EVENT("Gui has retrieved a function flow chart (from " EA_FMT " to " EA_FMT ", name: %s, function: %s)", fc->bounds.start_ea, fc->bounds.end_ea, fc->title.c_str(), buffer.c_str());
     }
+}
+
+void Hooks::manage_compiler_changed_event(va_list args)
+{
+    UNUSED(args);
+
+    if (LOG_EVENTS)
+        LOG_EVENT("The kernel has changed the compiler information");
 }
 
 
