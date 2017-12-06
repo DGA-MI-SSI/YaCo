@@ -105,6 +105,7 @@ namespace
         void manage_auto_empty_event(va_list args);
         void manage_auto_empty_finally_event(va_list args);
         void manage_determined_main_event(va_list args);
+        void manage_local_types_changed_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -142,7 +143,7 @@ static ssize_t idb_event_handler(void* user_data, int notification_code, va_list
         case envent_code::auto_empty:              hooks->manage_auto_empty_event(args); break;
         case envent_code::auto_empty_finally:      hooks->manage_auto_empty_finally_event(args); break;
         case envent_code::determined_main:         hooks->manage_determined_main_event(args); break;
-        case envent_code::local_types_changed:     LOG_EVENT("local_types_changed"); break;
+        case envent_code::local_types_changed:     hooks->manage_local_types_changed_event(args); break;
         case envent_code::extlang_changed:         LOG_EVENT("extlang_changed"); break;
         case envent_code::idasgn_loaded:           LOG_EVENT("idasgn_loaded"); break;
         case envent_code::kernel_config_loaded:    LOG_EVENT("kernel_config_loaded"); break;
@@ -600,6 +601,14 @@ void Hooks::manage_determined_main_event(va_list args)
 
     if (LOG_EVENTS)
         LOG_EVENT("The main() function has been determined (address of the main() function: " EA_FMT ")", main);
+}
+
+void Hooks::manage_local_types_changed_event(va_list args)
+{
+    (void)args;
+
+    if (LOG_EVENTS)
+        LOG_EVENT("Local types have been changed");
 }
 
 
