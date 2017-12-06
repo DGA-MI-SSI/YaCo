@@ -1030,7 +1030,7 @@ bool ViewObjects::match(HObject_id_t object_id, const HObject& remote_object) co
                 walk_signatures(db_, local, [&](HSignature_id_t, const SignatureCtx& sign)
                 {
                     remote_count++;
-                    found += !strcmp(signref.value, string_from(db_, sign.signature->value()).value);
+                    found += signref == string_from(db_, sign.signature->value());
                     return WALK_CONTINUE;
                 });
                 if(found != 1)
