@@ -179,13 +179,17 @@ endfunction()
 # yatools_py
 function(add_yatools_py bits)
     # set constants
-    set(os_ LINUX)
     set(xbits_ 64)
     if(bits EQUAL 64)
         set(xbits_ 32)
     endif()
+    set(os_)
     if(WIN32)
         set(os_ NT)
+    elseif(APPLE)
+        set(os_ MAC)
+    elseif(UNIX)
+        set(os_ LINUX)
     endif()
 
     # yaida
