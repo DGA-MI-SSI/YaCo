@@ -130,6 +130,7 @@ namespace
         void manage_changing_enum_bf_event(va_list args);
         void manage_enum_bf_changed_event(va_list args);
         void manage_changing_enum_cmt_event(va_list args);
+        void manage_enum_cmt_changed_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -188,7 +189,7 @@ static ssize_t idb_event_handler(void* user_data, int notification_code, va_list
         case envent_code::changing_enum_bf:        hooks->manage_changing_enum_bf_event(args); break;
         case envent_code::enum_bf_changed:         hooks->manage_enum_bf_changed_event(args); break;
         case envent_code::changing_enum_cmt:       hooks->manage_changing_enum_cmt_event(args); break;
-        case envent_code::enum_cmt_changed:        LOG_EVENT("enum_cmt_changed"); break;
+        case envent_code::enum_cmt_changed:        hooks->manage_enum_cmt_changed_event(args); break;
         case envent_code::enum_member_created:     LOG_EVENT("enum_member_created"); break;
         case envent_code::deleting_enum_member:    LOG_EVENT("deleting_enum_member"); break;
         case envent_code::enum_member_deleted:     LOG_EVENT("enum_member_deleted"); break;
@@ -919,6 +920,32 @@ void Hooks::manage_changing_enum_cmt_event(va_list args)
             get_enum_name(&enum_name, get_enum_member_enum(id));
             get_enum_member_cmt(&cmt, id, repeatable);
             LOG_EVENT("Enum %s member %s %scomment is to be changed from \"%s\" to \"%s\"", enum_name.c_str(), enum_member_name.c_str(), REPEATABLE_STR[repeatable], cmt.c_str(), newcmt);
+        }
+    }
+}
+
+void Hooks::manage_enum_cmt_changed_event(va_list args)
+{
+    enum_t id = va_arg(args, enum_t);
+    bool repeatable = static_cast<bool>(va_arg(args, int));
+
+    if (LOG_EVENTS)
+    {
+        qstring enum_name;
+        qstring cmt;
+        if (get_enum_member_enum(id) == BADADDR)
+        {
+            get_enum_name(&enum_name, id);
+            get_enum_cmt(&cmt, id, repeatable);
+            LOG_EVENT("Enum %s %scomment has been changed to \"%s\"", enum_name.c_str(), REPEATABLE_STR[repeatable], cmt.c_str());
+        }
+        else
+        {
+            qstring enum_member_name;
+            get_enum_member_name(&enum_member_name, id);
+            get_enum_name(&enum_name, get_enum_member_enum(id));
+            get_enum_member_cmt(&cmt, id, repeatable);
+            LOG_EVENT("Enum %s member %s %scomment has been changed to \"%s\"", enum_name.c_str(), enum_member_name.c_str(), REPEATABLE_STR[repeatable], cmt.c_str());
         }
     }
 }
