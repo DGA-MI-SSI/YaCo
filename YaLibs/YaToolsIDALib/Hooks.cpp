@@ -123,6 +123,7 @@ namespace
         void manage_deleting_enum_event(va_list args);
         void manage_enum_deleted_event(va_list args);
         void manage_renaming_enum_event(va_list args);
+        void manage_enum_renamed_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -177,7 +178,7 @@ static ssize_t idb_event_handler(void* user_data, int notification_code, va_list
         case envent_code::deleting_enum:           hooks->manage_deleting_enum_event(args); break;
         case envent_code::enum_deleted:            hooks->manage_enum_deleted_event(args); break;
         case envent_code::renaming_enum:           hooks->manage_renaming_enum_event(args); break;
-        case envent_code::enum_renamed:            LOG_EVENT("enum_renamed"); break;
+        case envent_code::enum_renamed:            hooks->manage_enum_renamed_event(args); break;
         case envent_code::changing_enum_bf:        LOG_EVENT("changing_enum_bf"); break;
         case envent_code::enum_bf_changed:         LOG_EVENT("enum_bf_changed"); break;
         case envent_code::changing_enum_cmt:       LOG_EVENT("changing_enum_cmt"); break;
@@ -838,6 +839,28 @@ void Hooks::manage_renaming_enum_event(va_list args)
             get_enum_member_name(&enum_member_name, id);
             get_enum_name(&enum_name, get_enum_member_enum(id));
             LOG_EVENT("A member of enum %s is to be renamed from %s to %s", enum_name.c_str(), enum_member_name.c_str(), newname);
+        }
+    }
+}
+
+void Hooks::manage_enum_renamed_event(va_list args)
+{
+    tid_t id = va_arg(args, tid_t);
+
+    if (LOG_EVENTS)
+    {
+        qstring enum_name;
+        if (get_enum_member_enum(id) == BADADDR)
+        {
+            get_enum_name(&enum_name, id);
+            LOG_EVENT("An enum has been renamed %s", enum_name.c_str());
+        }
+        else
+        {
+            qstring enum_member_name;
+            get_enum_member_name(&enum_member_name, id);
+            get_enum_name(&enum_name, get_enum_member_enum(id));
+            LOG_EVENT("A member of enum %s has been renamed %s", enum_name.c_str(), enum_member_name.c_str());
         }
     }
 }
