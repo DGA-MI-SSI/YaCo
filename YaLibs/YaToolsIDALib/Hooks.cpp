@@ -122,6 +122,7 @@ namespace
         void manage_enum_created_event(va_list args);
         void manage_deleting_enum_event(va_list args);
         void manage_enum_deleted_event(va_list args);
+        void manage_renaming_enum_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -175,7 +176,7 @@ static ssize_t idb_event_handler(void* user_data, int notification_code, va_list
         case envent_code::enum_created:            hooks->manage_enum_created_event(args); break;
         case envent_code::deleting_enum:           hooks->manage_deleting_enum_event(args); break;
         case envent_code::enum_deleted:            hooks->manage_enum_deleted_event(args); break;
-        case envent_code::renaming_enum:           LOG_EVENT("renaming_enum"); break;
+        case envent_code::renaming_enum:           hooks->manage_renaming_enum_event(args); break;
         case envent_code::enum_renamed:            LOG_EVENT("enum_renamed"); break;
         case envent_code::changing_enum_bf:        LOG_EVENT("changing_enum_bf"); break;
         case envent_code::enum_bf_changed:         LOG_EVENT("enum_bf_changed"); break;
@@ -815,6 +816,30 @@ void Hooks::manage_enum_deleted_event(va_list args)
     UNUSED(id);
     if (LOG_EVENTS)
         LOG_EVENT("An enum type has been deleted");
+}
+
+void Hooks::manage_renaming_enum_event(va_list args)
+{
+    tid_t id = va_arg(args, tid_t);
+    bool is_enum = static_cast<bool>(va_arg(args, int));
+    const char* newname = va_arg(args, const char*);
+
+    if (LOG_EVENTS)
+    {
+        qstring enum_name;
+        if (is_enum)
+        {
+            get_enum_name(&enum_name, id);
+            LOG_EVENT("Enum %s is to be renamed to %s", enum_name.c_str(), newname);
+        }
+        else
+        {
+            qstring enum_member_name;
+            get_enum_member_name(&enum_member_name, id);
+            get_enum_name(&enum_name, get_enum_member_enum(id));
+            LOG_EVENT("A member of enum %s is to be renamed from %s to %s", enum_name.c_str(), enum_member_name.c_str(), newname);
+        }
+    }
 }
 
 
