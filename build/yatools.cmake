@@ -206,6 +206,14 @@ function(add_yatools_py bits)
             "${idasdk_dir}/lib/x64_win_vc_${bits}/ida.lib"
             "${idasdk_dir}/lib/x64_win_vc_64/pro.lib"
         )
+    elseif(APPLE)
+        target_link_libraries(yaida${bits} PRIVATE
+            "${idasdk_dir}/lib/x64_mac_gcc_64/pro.a"
+        )
+    elseif(UNIX)
+        target_link_libraries(yaida${bits} PRIVATE
+            "${idasdk_dir}/lib/x64_linux_gcc_64/pro.a"
+        )
     endif()
     if(bits EQUAL 64)
         target_compile_definitions(yaida${bits} PUBLIC __EA64__)
