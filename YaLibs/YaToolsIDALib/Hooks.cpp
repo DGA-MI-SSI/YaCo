@@ -52,6 +52,7 @@ namespace
 {
     // Enable / disable events logging
     constexpr bool LOG_EVENTS = false;
+    const char BOOL_STR[2][6] = { "false", "true" };
 
     std::string get_cache_folder_path()
     {
@@ -124,6 +125,7 @@ namespace
         void manage_enum_deleted_event(va_list args);
         void manage_renaming_enum_event(va_list args);
         void manage_enum_renamed_event(va_list args);
+        void manage_changing_enum_bf_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -179,7 +181,7 @@ static ssize_t idb_event_handler(void* user_data, int notification_code, va_list
         case envent_code::enum_deleted:            hooks->manage_enum_deleted_event(args); break;
         case envent_code::renaming_enum:           hooks->manage_renaming_enum_event(args); break;
         case envent_code::enum_renamed:            hooks->manage_enum_renamed_event(args); break;
-        case envent_code::changing_enum_bf:        LOG_EVENT("changing_enum_bf"); break;
+        case envent_code::changing_enum_bf:        hooks->manage_changing_enum_bf_event(args); break;
         case envent_code::enum_bf_changed:         LOG_EVENT("enum_bf_changed"); break;
         case envent_code::changing_enum_cmt:       LOG_EVENT("changing_enum_cmt"); break;
         case envent_code::enum_cmt_changed:        LOG_EVENT("enum_cmt_changed"); break;
@@ -862,6 +864,19 @@ void Hooks::manage_enum_renamed_event(va_list args)
             get_enum_name(&enum_name, get_enum_member_enum(id));
             LOG_EVENT("A member of enum %s has been renamed %s", enum_name.c_str(), enum_member_name.c_str());
         }
+    }
+}
+
+void Hooks::manage_changing_enum_bf_event(va_list args)
+{
+    enum_t id = va_arg(args, enum_t);
+    bool new_bf = static_cast<bool>(va_arg(args, int));
+
+    if (LOG_EVENTS)
+    {
+        qstring enum_name;
+        get_enum_name(&enum_name, id);
+        LOG_EVENT("Enum %s 'bitfield' attribute is to be changed to %s", enum_name.c_str(), BOOL_STR[new_bf]);
     }
 }
 
