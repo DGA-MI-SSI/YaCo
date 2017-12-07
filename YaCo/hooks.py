@@ -20,7 +20,6 @@ import time
 import traceback
 import os
 import YaCo
-import yatools
 
 if idc.__EA64__:
     import YaToolsPy64 as ya

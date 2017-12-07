@@ -33,8 +33,6 @@ if idc.__EA64__:
 else:
     import YaToolsPy32 as ya
 import hooks
-import repository
-import yatools
 
 logging.basicConfig()
 logger = None
