@@ -121,6 +121,7 @@ namespace
         void manage_op_type_changed_event(va_list args);
         void manage_enum_created_event(va_list args);
         void manage_deleting_enum_event(va_list args);
+        void manage_enum_deleted_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -173,7 +174,7 @@ static ssize_t idb_event_handler(void* user_data, int notification_code, va_list
         case envent_code::op_type_changed:         hooks->manage_op_type_changed_event(args); break;
         case envent_code::enum_created:            hooks->manage_enum_created_event(args); break;
         case envent_code::deleting_enum:           hooks->manage_deleting_enum_event(args); break;
-        case envent_code::enum_deleted:            LOG_EVENT("enum_deleted"); break;
+        case envent_code::enum_deleted:            hooks->manage_enum_deleted_event(args); break;
         case envent_code::renaming_enum:           LOG_EVENT("renaming_enum"); break;
         case envent_code::enum_renamed:            LOG_EVENT("enum_renamed"); break;
         case envent_code::changing_enum_bf:        LOG_EVENT("changing_enum_bf"); break;
@@ -805,6 +806,15 @@ void Hooks::manage_deleting_enum_event(va_list args)
         get_enum_name(&buffer, id);
         LOG_EVENT("Enum type %s is to be deleted", buffer.c_str());
     }
+}
+
+void Hooks::manage_enum_deleted_event(va_list args)
+{
+    enum_t id = va_arg(args, enum_t);
+
+    UNUSED(id);
+    if (LOG_EVENTS)
+        LOG_EVENT("An enum type has been deleted");
 }
 
 
