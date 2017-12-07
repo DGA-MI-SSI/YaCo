@@ -17,9 +17,10 @@
 
 #include "YaTypes.hpp"
 #include "IModelAccept.hpp"
+
+#include <memory>
 #include <vector>
 
-namespace std { template<typename T> class shared_ptr; }
 struct IHashProvider;
 class IModelAccept;
 
