@@ -133,6 +133,7 @@ namespace
         void enum_cmt_changed_event(va_list args);
         void enum_member_created_event(va_list args);
         void deleting_enum_member_event(va_list args);
+        void enum_member_deleted_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -196,7 +197,7 @@ namespace
             case envent_code::enum_cmt_changed:        hooks->enum_cmt_changed_event(args); break;
             case envent_code::enum_member_created:     hooks->enum_member_created_event(args); break;
             case envent_code::deleting_enum_member:    hooks->deleting_enum_member_event(args); break;
-            case envent_code::enum_member_deleted:     LOG_EVENT("enum_member_deleted"); break;
+            case envent_code::enum_member_deleted:     hooks->enum_member_deleted_event(args); break;
             case envent_code::struc_created:           LOG_EVENT("struc_created"); break;
             case envent_code::deleting_struc:          LOG_EVENT("deleting_struc"); break;
             case envent_code::struc_deleted:           LOG_EVENT("struc_deleted"); break;
@@ -982,6 +983,20 @@ void Hooks::deleting_enum_member_event(va_list args)
         qstring enum_member_name;
         get_enum_member_name(&enum_member_name, cid);
         LOG_EVENT("Enum %s member %s is to be deleted", enum_name.c_str(), enum_member_name.c_str());
+    }
+}
+
+void Hooks::enum_member_deleted_event(va_list args)
+{
+    enum_t id = va_arg(args, enum_t);
+    const_t cid = va_arg(args, const_t);
+
+    UNUSED(cid);
+    if (LOG_EVENTS)
+    {
+        qstring enum_name;
+        get_enum_name(&enum_name, id);
+        LOG_EVENT("A member of enum %s has been deleted", enum_name.c_str());
     }
 }
 
