@@ -147,114 +147,117 @@ namespace
     };
 }
 
-static ssize_t idp_event_handler(void* user_data, int notification_code, va_list va)
+namespace
 {
-    Hooks* hooks = static_cast<Hooks*>(user_data);
-    UNUSED(hooks);
-    UNUSED(notification_code);
-    UNUSED(va);
-    return 0;
-}
-
-static ssize_t idb_event_handler(void* user_data, int notification_code, va_list args)
-{
-    using envent_code = idb_event::event_code_t;
-    Hooks* hooks = static_cast<Hooks*>(user_data);
-    envent_code ecode = static_cast<idb_event::event_code_t>(notification_code);
-    switch (ecode)
+    ssize_t idp_event_handler(void* user_data, int notification_code, va_list va)
     {
-        case envent_code::closebase:               hooks->manage_closebase_event(args); break;
-        case envent_code::savebase:                hooks->manage_savebase_event(args); break;
-        case envent_code::upgraded:                hooks->manage_upgraded_event(args); break;
-        case envent_code::auto_empty:              hooks->manage_auto_empty_event(args); break;
-        case envent_code::auto_empty_finally:      hooks->manage_auto_empty_finally_event(args); break;
-        case envent_code::determined_main:         hooks->manage_determined_main_event(args); break;
-        case envent_code::local_types_changed:     hooks->manage_local_types_changed_event(args); break;
-        case envent_code::extlang_changed:         hooks->manage_extlang_changed_event(args); break;
-        case envent_code::idasgn_loaded:           hooks->manage_idasgn_loaded_event(args); break;
-        case envent_code::kernel_config_loaded:    hooks->manage_kernel_config_loaded_event(args); break;
-        case envent_code::loader_finished:         hooks->manage_loader_finished_event(args); break;
-        case envent_code::flow_chart_created:      hooks->manage_flow_chart_created_event(args); break;
-        case envent_code::compiler_changed:        hooks->manage_compiler_changed_event(args); break;
-        case envent_code::changing_ti:             hooks->manage_changing_ti_event(args); break;
-        case envent_code::ti_changed:              hooks->manage_ti_changed_event(args); break;
-        case envent_code::changing_op_ti:          hooks->manage_changing_op_ti_event(args); break;
-        case envent_code::op_ti_changed:           hooks->manage_op_ti_changed_event(args); break;
-        case envent_code::changing_op_type:        hooks->manage_changing_op_type_event(args); break;
-        case envent_code::op_type_changed:         hooks->manage_op_type_changed_event(args); break;
-        case envent_code::enum_created:            hooks->manage_enum_created_event(args); break;
-        case envent_code::deleting_enum:           hooks->manage_deleting_enum_event(args); break;
-        case envent_code::enum_deleted:            hooks->manage_enum_deleted_event(args); break;
-        case envent_code::renaming_enum:           hooks->manage_renaming_enum_event(args); break;
-        case envent_code::enum_renamed:            hooks->manage_enum_renamed_event(args); break;
-        case envent_code::changing_enum_bf:        hooks->manage_changing_enum_bf_event(args); break;
-        case envent_code::enum_bf_changed:         hooks->manage_enum_bf_changed_event(args); break;
-        case envent_code::changing_enum_cmt:       hooks->manage_changing_enum_cmt_event(args); break;
-        case envent_code::enum_cmt_changed:        hooks->manage_enum_cmt_changed_event(args); break;
-        case envent_code::enum_member_created:     hooks->manage_enum_member_created_event(args); break;
-        case envent_code::deleting_enum_member:    LOG_EVENT("deleting_enum_member"); break;
-        case envent_code::enum_member_deleted:     LOG_EVENT("enum_member_deleted"); break;
-        case envent_code::struc_created:           LOG_EVENT("struc_created"); break;
-        case envent_code::deleting_struc:          LOG_EVENT("deleting_struc"); break;
-        case envent_code::struc_deleted:           LOG_EVENT("struc_deleted"); break;
-        case envent_code::changing_struc_align:    LOG_EVENT("changing_struc_align"); break;
-        case envent_code::struc_align_changed:     LOG_EVENT("struc_align_changed"); break;
-        case envent_code::renaming_struc:          LOG_EVENT("renaming_struc"); break;
-        case envent_code::struc_renamed:           LOG_EVENT("struc_renamed"); break;
-        case envent_code::expanding_struc:         LOG_EVENT("expanding_struc"); break;
-        case envent_code::struc_expanded:          LOG_EVENT("struc_expanded"); break;
-        case envent_code::struc_member_created:    LOG_EVENT("struc_member_created"); break;
-        case envent_code::deleting_struc_member:   LOG_EVENT("deleting_struc_member"); break;
-        case envent_code::struc_member_deleted:    LOG_EVENT("struc_member_deleted"); break;
-        case envent_code::renaming_struc_member:   LOG_EVENT("renaming_struc_member"); break;
-        case envent_code::struc_member_renamed:    LOG_EVENT("struc_member_renamed"); break;
-        case envent_code::changing_struc_member:   LOG_EVENT("changing_struc_member"); break;
-        case envent_code::struc_member_changed:    LOG_EVENT("struc_member_changed"); break;
-        case envent_code::changing_struc_cmt:      LOG_EVENT("changing_struc_cmt"); break;
-        case envent_code::struc_cmt_changed:       LOG_EVENT("struc_cmt_changed"); break;
-        case envent_code::segm_added:              LOG_EVENT("segm_added"); break;
-        case envent_code::deleting_segm:           LOG_EVENT("deleting_segm"); break;
-        case envent_code::segm_deleted:            LOG_EVENT("segm_deleted"); break;
-        case envent_code::changing_segm_start:     LOG_EVENT("changing_segm_start"); break;
-        case envent_code::segm_start_changed:      LOG_EVENT("segm_start_changed"); break;
-        case envent_code::changing_segm_end:       LOG_EVENT("changing_segm_end"); break;
-        case envent_code::segm_end_changed:        LOG_EVENT("segm_end_changed"); break;
-        case envent_code::changing_segm_name:      LOG_EVENT("changing_segm_name"); break;
-        case envent_code::segm_name_changed:       LOG_EVENT("segm_name_changed"); break;
-        case envent_code::changing_segm_class:     LOG_EVENT("changing_segm_class"); break;
-        case envent_code::segm_class_changed:      LOG_EVENT("segm_class_changed"); break;
-        case envent_code::segm_attrs_updated:      LOG_EVENT("segm_attrs_updated"); break;
-        case envent_code::segm_moved:              LOG_EVENT("segm_moved"); break;
-        case envent_code::allsegs_moved:           LOG_EVENT("allsegs_moved"); break;
-        case envent_code::func_added:              LOG_EVENT("func_added"); break;
-        case envent_code::func_updated:            LOG_EVENT("func_updated"); break;
-        case envent_code::set_func_start:          LOG_EVENT("set_func_start"); break;
-        case envent_code::set_func_end:            LOG_EVENT("set_func_end"); break;
-        case envent_code::deleting_func:           LOG_EVENT("deleting_func"); break;
-        case envent_code::frame_deleted:           LOG_EVENT("frame_deleted"); break;
-        case envent_code::thunk_func_created:      LOG_EVENT("thunk_func_created"); break;
-        case envent_code::func_tail_appended:      LOG_EVENT("func_tail_appended"); break;
-        case envent_code::deleting_func_tail:      LOG_EVENT("deleting_func_tail"); break;
-        case envent_code::func_tail_deleted:       LOG_EVENT("func_tail_deleted"); break;
-        case envent_code::tail_owner_changed:      LOG_EVENT("tail_owner_changed"); break;
-        case envent_code::func_noret_changed:      LOG_EVENT("func_noret_changed"); break;
-        case envent_code::stkpnts_changed:         LOG_EVENT("stkpnts_changed"); break;
-        case envent_code::updating_tryblks:        LOG_EVENT("updating_tryblks"); break;
-        case envent_code::tryblks_updated:         LOG_EVENT("tryblks_updated"); break;
-        case envent_code::deleting_tryblks:        LOG_EVENT("deleting_tryblks"); break;
-        case envent_code::sgr_changed:             LOG_EVENT("sgr_changed"); break;
-        case envent_code::make_code:               LOG_EVENT("make_code"); break;
-        case envent_code::make_data:               LOG_EVENT("make_data"); break;
-        case envent_code::destroyed_items:         LOG_EVENT("destroyed_items"); break;
-        case envent_code::renamed:                 LOG_EVENT("renamed"); break;
-        case envent_code::byte_patched:            LOG_EVENT("byte_patched"); break;
-        case envent_code::changing_cmt:            LOG_EVENT("changing_cmt"); break;
-        case envent_code::cmt_changed:             LOG_EVENT("cmt_changed"); break;
-        case envent_code::changing_range_cmt:      LOG_EVENT("changing_range_cmt"); break;
-        case envent_code::range_cmt_changed:       LOG_EVENT("range_cmt_changed"); break;
-        case envent_code::extra_cmt_changed:       LOG_EVENT("extra_cmt_changed"); break;
+        Hooks* hooks = static_cast<Hooks*>(user_data);
+        UNUSED(hooks);
+        UNUSED(notification_code);
+        UNUSED(va);
+        return 0;
     }
-    return 0;
+
+    ssize_t idb_event_handler(void* user_data, int notification_code, va_list args)
+    {
+        using envent_code = idb_event::event_code_t;
+        Hooks* hooks = static_cast<Hooks*>(user_data);
+        envent_code ecode = static_cast<idb_event::event_code_t>(notification_code);
+        switch (ecode)
+        {
+            case envent_code::closebase:               hooks->manage_closebase_event(args); break;
+            case envent_code::savebase:                hooks->manage_savebase_event(args); break;
+            case envent_code::upgraded:                hooks->manage_upgraded_event(args); break;
+            case envent_code::auto_empty:              hooks->manage_auto_empty_event(args); break;
+            case envent_code::auto_empty_finally:      hooks->manage_auto_empty_finally_event(args); break;
+            case envent_code::determined_main:         hooks->manage_determined_main_event(args); break;
+            case envent_code::local_types_changed:     hooks->manage_local_types_changed_event(args); break;
+            case envent_code::extlang_changed:         hooks->manage_extlang_changed_event(args); break;
+            case envent_code::idasgn_loaded:           hooks->manage_idasgn_loaded_event(args); break;
+            case envent_code::kernel_config_loaded:    hooks->manage_kernel_config_loaded_event(args); break;
+            case envent_code::loader_finished:         hooks->manage_loader_finished_event(args); break;
+            case envent_code::flow_chart_created:      hooks->manage_flow_chart_created_event(args); break;
+            case envent_code::compiler_changed:        hooks->manage_compiler_changed_event(args); break;
+            case envent_code::changing_ti:             hooks->manage_changing_ti_event(args); break;
+            case envent_code::ti_changed:              hooks->manage_ti_changed_event(args); break;
+            case envent_code::changing_op_ti:          hooks->manage_changing_op_ti_event(args); break;
+            case envent_code::op_ti_changed:           hooks->manage_op_ti_changed_event(args); break;
+            case envent_code::changing_op_type:        hooks->manage_changing_op_type_event(args); break;
+            case envent_code::op_type_changed:         hooks->manage_op_type_changed_event(args); break;
+            case envent_code::enum_created:            hooks->manage_enum_created_event(args); break;
+            case envent_code::deleting_enum:           hooks->manage_deleting_enum_event(args); break;
+            case envent_code::enum_deleted:            hooks->manage_enum_deleted_event(args); break;
+            case envent_code::renaming_enum:           hooks->manage_renaming_enum_event(args); break;
+            case envent_code::enum_renamed:            hooks->manage_enum_renamed_event(args); break;
+            case envent_code::changing_enum_bf:        hooks->manage_changing_enum_bf_event(args); break;
+            case envent_code::enum_bf_changed:         hooks->manage_enum_bf_changed_event(args); break;
+            case envent_code::changing_enum_cmt:       hooks->manage_changing_enum_cmt_event(args); break;
+            case envent_code::enum_cmt_changed:        hooks->manage_enum_cmt_changed_event(args); break;
+            case envent_code::enum_member_created:     hooks->manage_enum_member_created_event(args); break;
+            case envent_code::deleting_enum_member:    LOG_EVENT("deleting_enum_member"); break;
+            case envent_code::enum_member_deleted:     LOG_EVENT("enum_member_deleted"); break;
+            case envent_code::struc_created:           LOG_EVENT("struc_created"); break;
+            case envent_code::deleting_struc:          LOG_EVENT("deleting_struc"); break;
+            case envent_code::struc_deleted:           LOG_EVENT("struc_deleted"); break;
+            case envent_code::changing_struc_align:    LOG_EVENT("changing_struc_align"); break;
+            case envent_code::struc_align_changed:     LOG_EVENT("struc_align_changed"); break;
+            case envent_code::renaming_struc:          LOG_EVENT("renaming_struc"); break;
+            case envent_code::struc_renamed:           LOG_EVENT("struc_renamed"); break;
+            case envent_code::expanding_struc:         LOG_EVENT("expanding_struc"); break;
+            case envent_code::struc_expanded:          LOG_EVENT("struc_expanded"); break;
+            case envent_code::struc_member_created:    LOG_EVENT("struc_member_created"); break;
+            case envent_code::deleting_struc_member:   LOG_EVENT("deleting_struc_member"); break;
+            case envent_code::struc_member_deleted:    LOG_EVENT("struc_member_deleted"); break;
+            case envent_code::renaming_struc_member:   LOG_EVENT("renaming_struc_member"); break;
+            case envent_code::struc_member_renamed:    LOG_EVENT("struc_member_renamed"); break;
+            case envent_code::changing_struc_member:   LOG_EVENT("changing_struc_member"); break;
+            case envent_code::struc_member_changed:    LOG_EVENT("struc_member_changed"); break;
+            case envent_code::changing_struc_cmt:      LOG_EVENT("changing_struc_cmt"); break;
+            case envent_code::struc_cmt_changed:       LOG_EVENT("struc_cmt_changed"); break;
+            case envent_code::segm_added:              LOG_EVENT("segm_added"); break;
+            case envent_code::deleting_segm:           LOG_EVENT("deleting_segm"); break;
+            case envent_code::segm_deleted:            LOG_EVENT("segm_deleted"); break;
+            case envent_code::changing_segm_start:     LOG_EVENT("changing_segm_start"); break;
+            case envent_code::segm_start_changed:      LOG_EVENT("segm_start_changed"); break;
+            case envent_code::changing_segm_end:       LOG_EVENT("changing_segm_end"); break;
+            case envent_code::segm_end_changed:        LOG_EVENT("segm_end_changed"); break;
+            case envent_code::changing_segm_name:      LOG_EVENT("changing_segm_name"); break;
+            case envent_code::segm_name_changed:       LOG_EVENT("segm_name_changed"); break;
+            case envent_code::changing_segm_class:     LOG_EVENT("changing_segm_class"); break;
+            case envent_code::segm_class_changed:      LOG_EVENT("segm_class_changed"); break;
+            case envent_code::segm_attrs_updated:      LOG_EVENT("segm_attrs_updated"); break;
+            case envent_code::segm_moved:              LOG_EVENT("segm_moved"); break;
+            case envent_code::allsegs_moved:           LOG_EVENT("allsegs_moved"); break;
+            case envent_code::func_added:              LOG_EVENT("func_added"); break;
+            case envent_code::func_updated:            LOG_EVENT("func_updated"); break;
+            case envent_code::set_func_start:          LOG_EVENT("set_func_start"); break;
+            case envent_code::set_func_end:            LOG_EVENT("set_func_end"); break;
+            case envent_code::deleting_func:           LOG_EVENT("deleting_func"); break;
+            case envent_code::frame_deleted:           LOG_EVENT("frame_deleted"); break;
+            case envent_code::thunk_func_created:      LOG_EVENT("thunk_func_created"); break;
+            case envent_code::func_tail_appended:      LOG_EVENT("func_tail_appended"); break;
+            case envent_code::deleting_func_tail:      LOG_EVENT("deleting_func_tail"); break;
+            case envent_code::func_tail_deleted:       LOG_EVENT("func_tail_deleted"); break;
+            case envent_code::tail_owner_changed:      LOG_EVENT("tail_owner_changed"); break;
+            case envent_code::func_noret_changed:      LOG_EVENT("func_noret_changed"); break;
+            case envent_code::stkpnts_changed:         LOG_EVENT("stkpnts_changed"); break;
+            case envent_code::updating_tryblks:        LOG_EVENT("updating_tryblks"); break;
+            case envent_code::tryblks_updated:         LOG_EVENT("tryblks_updated"); break;
+            case envent_code::deleting_tryblks:        LOG_EVENT("deleting_tryblks"); break;
+            case envent_code::sgr_changed:             LOG_EVENT("sgr_changed"); break;
+            case envent_code::make_code:               LOG_EVENT("make_code"); break;
+            case envent_code::make_data:               LOG_EVENT("make_data"); break;
+            case envent_code::destroyed_items:         LOG_EVENT("destroyed_items"); break;
+            case envent_code::renamed:                 LOG_EVENT("renamed"); break;
+            case envent_code::byte_patched:            LOG_EVENT("byte_patched"); break;
+            case envent_code::changing_cmt:            LOG_EVENT("changing_cmt"); break;
+            case envent_code::cmt_changed:             LOG_EVENT("cmt_changed"); break;
+            case envent_code::changing_range_cmt:      LOG_EVENT("changing_range_cmt"); break;
+            case envent_code::range_cmt_changed:       LOG_EVENT("range_cmt_changed"); break;
+            case envent_code::extra_cmt_changed:       LOG_EVENT("extra_cmt_changed"); break;
+        }
+        return 0;
+    }
 }
 
 Hooks::Hooks(const std::shared_ptr<IHashProvider>& hash_provider, const std::shared_ptr<IRepository>& repo_manager)
