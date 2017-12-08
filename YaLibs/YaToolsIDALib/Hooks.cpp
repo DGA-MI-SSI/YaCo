@@ -27,6 +27,7 @@
 #include "Logger.h"
 #include "Yatools.h"
 #include "Utils.hpp"
+#include "Pool.hpp"
 #include "../Helpers.h"
 
 #define MODULE_NAME "hooks"
@@ -138,6 +139,7 @@ namespace
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
         std::shared_ptr<IRepository> repo_manager_;
+        Pool<qstring> qpool_;
 
         std::set<ea_t> addresses_to_process_;
         std::set<tid_t> structures_to_process_;
@@ -265,6 +267,7 @@ namespace
 Hooks::Hooks(const std::shared_ptr<IHashProvider>& hash_provider, const std::shared_ptr<IRepository>& repo_manager)
     : hash_provider_{ hash_provider }
     , repo_manager_{ repo_manager }
+    , qpool_(3)
 {
 
 }
@@ -336,9 +339,9 @@ void Hooks::update_structure_member(tid_t struct_id, tid_t member_id, ea_t membe
     std::string message{ "Member updated at offset " };
     message += ea_to_hex(member_offset);
     message += " : ";
-    qstring member_id_fullname;
-    get_member_fullname(&member_id_fullname, member_id);
-    message += member_id_fullname.c_str();
+    const auto member_id_fullname = qpool_.acquire();
+    get_member_fullname(&*member_id_fullname, member_id);
+    message += member_id_fullname->c_str();
     add_strucmember_to_process(struct_id, member_id, member_offset, message);
 }
 
@@ -707,9 +710,9 @@ void Hooks::flow_chart_created_event(va_list args)
 
     if (LOG_EVENTS)
     {
-        qstring buffer;
-        get_func_name(&buffer, fc->pfn->start_ea);
-        LOG_EVENT("Gui has retrieved a function flow chart (from " EA_FMT " to " EA_FMT ", name: %s, function: %s)", fc->bounds.start_ea, fc->bounds.end_ea, fc->title.c_str(), buffer.c_str());
+        const auto func_name = qpool_.acquire();
+        get_func_name(&*func_name, fc->pfn->start_ea);
+        LOG_EVENT("Gui has retrieved a function flow chart (from " EA_FMT " to " EA_FMT ", name: %s, function: %s)", fc->bounds.start_ea, fc->bounds.end_ea, fc->title.c_str(), func_name->c_str());
     }
 }
 
@@ -807,9 +810,9 @@ void Hooks::enum_created_event(va_list args)
 
     if (LOG_EVENTS)
     {
-        qstring buffer;
-        get_enum_name(&buffer, id);
-        LOG_EVENT("Enum type %s has been created", buffer.c_str());
+        const auto enum_name = qpool_.acquire();
+        get_enum_name(&*enum_name, id);
+        LOG_EVENT("Enum type %s has been created", enum_name->c_str());
     }
 }
 
@@ -819,9 +822,9 @@ void Hooks::deleting_enum_event(va_list args)
 
     if (LOG_EVENTS)
     {
-        qstring buffer;
-        get_enum_name(&buffer, id);
-        LOG_EVENT("Enum type %s is to be deleted", buffer.c_str());
+        const auto enum_name = qpool_.acquire();
+        get_enum_name(&*enum_name, id);
+        LOG_EVENT("Enum type %s is to be deleted", enum_name->c_str());
     }
 }
 
@@ -844,18 +847,18 @@ void Hooks::renaming_enum_event(va_list args)
 
     if (LOG_EVENTS)
     {
-        qstring enum_name;
+        const auto enum_name = qpool_.acquire();
         if (is_enum)
         {
-            get_enum_name(&enum_name, id);
-            LOG_EVENT("Enum %s is to be renamed to %s", enum_name.c_str(), newname);
+            get_enum_name(&*enum_name, id);
+            LOG_EVENT("Enum type %s is to be renamed to %s", enum_name->c_str(), newname);
         }
         else
         {
-            qstring enum_member_name;
-            get_enum_member_name(&enum_member_name, id);
-            get_enum_name(&enum_name, get_enum_member_enum(id));
-            LOG_EVENT("A member of enum %s is to be renamed from %s to %s", enum_name.c_str(), enum_member_name.c_str(), newname);
+            const auto enum_member_name = qpool_.acquire();
+            get_enum_member_name(&*enum_member_name, id);
+            get_enum_name(&*enum_name, get_enum_member_enum(id));
+            LOG_EVENT("A member of enum type %s is to be renamed from %s to %s", enum_name->c_str(), enum_member_name->c_str(), newname);
         }
     }
 }
@@ -868,18 +871,18 @@ void Hooks::enum_renamed_event(va_list args)
 
     if (LOG_EVENTS)
     {
-        qstring enum_name;
+        const auto enum_name = qpool_.acquire();
         if (get_enum_member_enum(id) == BADADDR)
         {
-            get_enum_name(&enum_name, id);
-            LOG_EVENT("An enum has been renamed %s", enum_name.c_str());
+            get_enum_name(&*enum_name, id);
+            LOG_EVENT("An enum type has been renamed %s", enum_name->c_str());
         }
         else
         {
-            qstring enum_member_name;
-            get_enum_member_name(&enum_member_name, id);
-            get_enum_name(&enum_name, get_enum_member_enum(id));
-            LOG_EVENT("A member of enum %s has been renamed %s", enum_name.c_str(), enum_member_name.c_str());
+            const auto enum_member_name = qpool_.acquire();
+            get_enum_member_name(&*enum_member_name, id);
+            get_enum_name(&*enum_name, get_enum_member_enum(id));
+            LOG_EVENT("A member of enum type %s has been renamed %s", enum_name->c_str(), enum_member_name->c_str());
         }
     }
 }
@@ -891,9 +894,9 @@ void Hooks::changing_enum_bf_event(va_list args)
 
     if (LOG_EVENTS)
     {
-        qstring enum_name;
-        get_enum_name(&enum_name, id);
-        LOG_EVENT("Enum %s 'bitfield' attribute is to be changed to %s", enum_name.c_str(), BOOL_STR[new_bf]);
+        const auto enum_name = qpool_.acquire();
+        get_enum_name(&*enum_name, id);
+        LOG_EVENT("Enum type %s 'bitfield' attribute is to be changed to %s", enum_name->c_str(), BOOL_STR[new_bf]);
     }
 }
 
@@ -905,9 +908,9 @@ void Hooks::enum_bf_changed_event(va_list args)
 
     if (LOG_EVENTS)
     {
-        qstring enum_name;
-        get_enum_name(&enum_name, id);
-        LOG_EVENT("Enum %s 'bitfield' attribute has been changed", enum_name.c_str());
+        const auto enum_name = qpool_.acquire();
+        get_enum_name(&*enum_name, id);
+        LOG_EVENT("Enum type %s 'bitfield' attribute has been changed", enum_name->c_str());
     }
 }
 
@@ -919,21 +922,21 @@ void Hooks::changing_enum_cmt_event(va_list args)
 
     if (LOG_EVENTS)
     {
-        qstring enum_name;
-        qstring cmt;
+        const auto enum_name = qpool_.acquire();
+        const auto cmt = qpool_.acquire();
         if (get_enum_member_enum(id) == BADADDR)
         {
-            get_enum_name(&enum_name, id);
-            get_enum_cmt(&cmt, id, repeatable);
-            LOG_EVENT("Enum %s %scomment is to be changed from \"%s\" to \"%s\"", enum_name.c_str(), REPEATABLE_STR[repeatable], cmt.c_str(), newcmt);
+            get_enum_name(&*enum_name, id);
+            get_enum_cmt(&*cmt, id, repeatable);
+            LOG_EVENT("Enum type %s %scomment is to be changed from \"%s\" to \"%s\"", enum_name->c_str(), REPEATABLE_STR[repeatable], cmt->c_str(), newcmt);
         }
         else
         {
-            qstring enum_member_name;
-            get_enum_member_name(&enum_member_name, id);
-            get_enum_name(&enum_name, get_enum_member_enum(id));
-            get_enum_member_cmt(&cmt, id, repeatable);
-            LOG_EVENT("Enum %s member %s %scomment is to be changed from \"%s\" to \"%s\"", enum_name.c_str(), enum_member_name.c_str(), REPEATABLE_STR[repeatable], cmt.c_str(), newcmt);
+            const auto enum_member_name = qpool_.acquire();
+            get_enum_member_name(&*enum_member_name, id);
+            get_enum_name(&*enum_name, get_enum_member_enum(id));
+            get_enum_member_cmt(&*cmt, id, repeatable);
+            LOG_EVENT("Enum type %s member %s %scomment is to be changed from \"%s\" to \"%s\"", enum_name->c_str(), enum_member_name->c_str(), REPEATABLE_STR[repeatable], cmt->c_str(), newcmt);
         }
     }
 }
@@ -951,21 +954,21 @@ void Hooks::enum_cmt_changed_event(va_list args)
 
     if (LOG_EVENTS)
     {
-        qstring enum_name;
-        qstring cmt;
+        const auto enum_name = qpool_.acquire();
+        const auto cmt = qpool_.acquire();
         if (enum_id == id)
         {
-            get_enum_name(&enum_name, id);
-            get_enum_cmt(&cmt, id, repeatable);
-            LOG_EVENT("Enum %s %scomment has been changed to \"%s\"", enum_name.c_str(), REPEATABLE_STR[repeatable], cmt.c_str());
+            get_enum_name(&*enum_name, id);
+            get_enum_cmt(&*cmt, id, repeatable);
+            LOG_EVENT("Enum type %s %scomment has been changed to \"%s\"", enum_name->c_str(), REPEATABLE_STR[repeatable], cmt->c_str());
         }
         else
         {
-            qstring enum_member_name;
-            get_enum_member_name(&enum_member_name, id);
-            get_enum_name(&enum_name, get_enum_member_enum(id));
-            get_enum_member_cmt(&cmt, id, repeatable);
-            LOG_EVENT("Enum %s member %s %scomment has been changed to \"%s\"", enum_name.c_str(), enum_member_name.c_str(), REPEATABLE_STR[repeatable], cmt.c_str());
+            const auto enum_member_name = qpool_.acquire();
+            get_enum_member_name(&*enum_member_name, id);
+            get_enum_name(&*enum_name, get_enum_member_enum(id));
+            get_enum_member_cmt(&*cmt, id, repeatable);
+            LOG_EVENT("Enum type %s member %s %scomment has been changed to \"%s\"", enum_name->c_str(), enum_member_name->c_str(), REPEATABLE_STR[repeatable], cmt->c_str());
         }
     }
 }
@@ -979,11 +982,11 @@ void Hooks::enum_member_created_event(va_list args)
 
     if (LOG_EVENTS)
     {
-        qstring enum_name;
-        get_enum_name(&enum_name, id);
-        qstring enum_member_name;
-        get_enum_member_name(&enum_member_name, cid);
-        LOG_EVENT("Enum %s member %s has been created", enum_name.c_str(), enum_member_name.c_str());
+        const auto enum_name = qpool_.acquire();
+        get_enum_name(&*enum_name, id);
+        const auto enum_member_name = qpool_.acquire();
+        get_enum_member_name(&*enum_member_name, cid);
+        LOG_EVENT("Enum type %s member %s has been created", enum_name->c_str(), enum_member_name->c_str());
     }
 }
 
@@ -994,11 +997,11 @@ void Hooks::deleting_enum_member_event(va_list args)
 
     if (LOG_EVENTS)
     {
-        qstring enum_name;
-        get_enum_name(&enum_name, id);
-        qstring enum_member_name;
-        get_enum_member_name(&enum_member_name, cid);
-        LOG_EVENT("Enum %s member %s is to be deleted", enum_name.c_str(), enum_member_name.c_str());
+        const auto enum_name = qpool_.acquire();
+        get_enum_name(&*enum_name, id);
+        const auto enum_member_name = qpool_.acquire();
+        get_enum_member_name(&*enum_member_name, cid);
+        LOG_EVENT("Enum type %s member %s is to be deleted", enum_name->c_str(), enum_member_name->c_str());
     }
 }
 
@@ -1012,9 +1015,9 @@ void Hooks::enum_member_deleted_event(va_list args)
     UNUSED(cid);
     if (LOG_EVENTS)
     {
-        qstring enum_name;
-        get_enum_name(&enum_name, id);
-        LOG_EVENT("A member of enum %s has been deleted", enum_name.c_str());
+        const auto enum_name = qpool_.acquire();
+        get_enum_name(&*enum_name, id);
+        LOG_EVENT("A member of enum type %s has been deleted", enum_name->c_str());
     }
 }
 
