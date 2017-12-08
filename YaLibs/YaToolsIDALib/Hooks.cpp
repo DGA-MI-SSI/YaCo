@@ -803,6 +803,8 @@ void Hooks::enum_created_event(va_list args)
 {
     enum_t id = va_arg(args, enum_t);
 
+    update_enum(id);
+
     if (LOG_EVENTS)
     {
         qstring buffer;
@@ -826,6 +828,8 @@ void Hooks::deleting_enum_event(va_list args)
 void Hooks::enum_deleted_event(va_list args)
 {
     enum_t id = va_arg(args, enum_t);
+
+    update_enum(id);
 
     UNUSED(id);
     if (LOG_EVENTS)
@@ -859,6 +863,8 @@ void Hooks::renaming_enum_event(va_list args)
 void Hooks::enum_renamed_event(va_list args)
 {
     tid_t id = va_arg(args, tid_t);
+
+    update_enum(id);
 
     if (LOG_EVENTS)
     {
@@ -894,6 +900,8 @@ void Hooks::changing_enum_bf_event(va_list args)
 void Hooks::enum_bf_changed_event(va_list args)
 {
     enum_t id = va_arg(args, enum_t);
+
+    update_enum(id);
 
     if (LOG_EVENTS)
     {
@@ -935,11 +943,17 @@ void Hooks::enum_cmt_changed_event(va_list args)
     enum_t id = va_arg(args, enum_t);
     bool repeatable = static_cast<bool>(va_arg(args, int));
 
+    enum_t enum_id = get_enum_member_enum(id);
+    if (enum_id == BADADDR)
+        enum_id = id;
+
+    update_enum(enum_id);
+
     if (LOG_EVENTS)
     {
         qstring enum_name;
         qstring cmt;
-        if (get_enum_member_enum(id) == BADADDR)
+        if (enum_id == id)
         {
             get_enum_name(&enum_name, id);
             get_enum_cmt(&cmt, id, repeatable);
@@ -960,6 +974,8 @@ void Hooks::enum_member_created_event(va_list args)
 {
     enum_t id = va_arg(args, enum_t);
     const_t cid = va_arg(args, const_t);
+
+    update_enum(id);
 
     if (LOG_EVENTS)
     {
@@ -990,6 +1006,8 @@ void Hooks::enum_member_deleted_event(va_list args)
 {
     enum_t id = va_arg(args, enum_t);
     const_t cid = va_arg(args, const_t);
+
+    update_enum(id);
 
     UNUSED(cid);
     if (LOG_EVENTS)
