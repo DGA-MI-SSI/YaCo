@@ -249,22 +249,6 @@ class YaToolIDB_Hooks(idaapi.IDB_Hooks):
         hooks.ida.change_comment(ea)
         return idaapi.IDB_Hooks.range_cmt_changed(self, rangecb, range, cmt, repeatable)
 
-    def ti_changed(self, ea, arg1, arg2):
-        self.pre_hook()
-
-        if LOG_IDB_EVENTS:
-            self.debug_event("ti changed at 0x%08X" % ea)
-        hooks.ida.change_type_information(ea)
-
-        return idaapi.IDB_Hooks.ti_changed(self, ea, arg1, arg2)
-
-    def op_ti_changed(self, arg0, arg1, arg2, arg3):
-        self.pre_hook()
-
-        if LOG_IDB_EVENTS:
-            self.debug_event("op_ti_changed at 0x%08X" % arg0)
-        return idaapi.IDB_Hooks.op_ti_changed(self, arg0, arg1, arg2, arg3)
-
     def op_type_changed(self, address, operand):
         self.pre_hook()
 
