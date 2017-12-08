@@ -237,6 +237,10 @@ class YaToolIDAHooks(object):
         self.addresses_to_process.add(ea)
         self.repo_manager.add_auto_comment(ea, "Type info changed")
 
+    def func_updated(self, ea):
+        self.addresses_to_process.add(ea)
+        self.repo_manager.add_auto_comment(ea, "Function updated")
+
     def save_strucs(self, ida_model, memory_exporter):
         """
         Structures : export modified structures and delete those who have been deleted
@@ -822,6 +826,12 @@ class YaToolIDB_Hooks(idaapi.IDB_Hooks):
             self.debug_event("segm_added")
         hooks.ida.segment_added(segment)
         return idaapi.IDB_Hooks.segm_added(self, segment)
+
+
+    def func_updated(self, pfn):
+        self.pre_hook()
+        hooks.ida.func_updated(pfn.start_ea)
+        return idaapi.IDB_Hooks.func_updated(self, pfn)
 
 
 # ======================================================================#
