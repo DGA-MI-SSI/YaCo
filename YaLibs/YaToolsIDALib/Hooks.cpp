@@ -721,6 +721,8 @@ void Hooks::manage_ti_changed_event(va_list args)
     type_t* type = va_arg(args, type_t*);
     p_list* fnames = va_arg(args, p_list*);
 
+    change_type_information(ea);
+
     UNUSED(type);
     UNUSED(fnames);
     if (LOG_EVENTS)
@@ -747,6 +749,8 @@ void Hooks::manage_op_ti_changed_event(va_list args)
     int n = va_arg(args, int);
     type_t* new_type = va_arg(args, type_t*);
     p_list* new_fnames = va_arg(args, p_list*);
+
+    change_type_information(ea);
 
     UNUSED(n);
     UNUSED(new_type);
