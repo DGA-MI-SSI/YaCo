@@ -103,35 +103,35 @@ namespace
         void save_enums(std::shared_ptr<IModelIncremental>& ida_model, IModelVisitor* memory_exporter);
 
         // Events management
-        void manage_closebase_event(va_list args);
-        void manage_savebase_event(va_list args);
-        void manage_upgraded_event(va_list args);
-        void manage_auto_empty_event(va_list args);
-        void manage_auto_empty_finally_event(va_list args);
-        void manage_determined_main_event(va_list args);
-        void manage_local_types_changed_event(va_list args);
-        void manage_extlang_changed_event(va_list args);
-        void manage_idasgn_loaded_event(va_list args);
-        void manage_kernel_config_loaded_event(va_list args);
-        void manage_loader_finished_event(va_list args);
-        void manage_flow_chart_created_event(va_list args);
-        void manage_compiler_changed_event(va_list args);
-        void manage_changing_ti_event(va_list args);
-        void manage_ti_changed_event(va_list args);
-        void manage_changing_op_ti_event(va_list args);
-        void manage_op_ti_changed_event(va_list args);
-        void manage_changing_op_type_event(va_list args);
-        void manage_op_type_changed_event(va_list args);
-        void manage_enum_created_event(va_list args);
-        void manage_deleting_enum_event(va_list args);
-        void manage_enum_deleted_event(va_list args);
-        void manage_renaming_enum_event(va_list args);
-        void manage_enum_renamed_event(va_list args);
-        void manage_changing_enum_bf_event(va_list args);
-        void manage_enum_bf_changed_event(va_list args);
-        void manage_changing_enum_cmt_event(va_list args);
-        void manage_enum_cmt_changed_event(va_list args);
-        void manage_enum_member_created_event(va_list args);
+        void closebase_event(va_list args);
+        void savebase_event(va_list args);
+        void upgraded_event(va_list args);
+        void auto_empty_event(va_list args);
+        void auto_empty_finally_event(va_list args);
+        void determined_main_event(va_list args);
+        void local_types_changed_event(va_list args);
+        void extlang_changed_event(va_list args);
+        void idasgn_loaded_event(va_list args);
+        void kernel_config_loaded_event(va_list args);
+        void loader_finished_event(va_list args);
+        void flow_chart_created_event(va_list args);
+        void compiler_changed_event(va_list args);
+        void changing_ti_event(va_list args);
+        void ti_changed_event(va_list args);
+        void changing_op_ti_event(va_list args);
+        void op_ti_changed_event(va_list args);
+        void changing_op_type_event(va_list args);
+        void op_type_changed_event(va_list args);
+        void enum_created_event(va_list args);
+        void deleting_enum_event(va_list args);
+        void enum_deleted_event(va_list args);
+        void renaming_enum_event(va_list args);
+        void enum_renamed_event(va_list args);
+        void changing_enum_bf_event(va_list args);
+        void enum_bf_changed_event(va_list args);
+        void changing_enum_cmt_event(va_list args);
+        void enum_cmt_changed_event(va_list args);
+        void enum_member_created_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -165,35 +165,35 @@ namespace
         envent_code ecode = static_cast<idb_event::event_code_t>(notification_code);
         switch (ecode)
         {
-            case envent_code::closebase:               hooks->manage_closebase_event(args); break;
-            case envent_code::savebase:                hooks->manage_savebase_event(args); break;
-            case envent_code::upgraded:                hooks->manage_upgraded_event(args); break;
-            case envent_code::auto_empty:              hooks->manage_auto_empty_event(args); break;
-            case envent_code::auto_empty_finally:      hooks->manage_auto_empty_finally_event(args); break;
-            case envent_code::determined_main:         hooks->manage_determined_main_event(args); break;
-            case envent_code::local_types_changed:     hooks->manage_local_types_changed_event(args); break;
-            case envent_code::extlang_changed:         hooks->manage_extlang_changed_event(args); break;
-            case envent_code::idasgn_loaded:           hooks->manage_idasgn_loaded_event(args); break;
-            case envent_code::kernel_config_loaded:    hooks->manage_kernel_config_loaded_event(args); break;
-            case envent_code::loader_finished:         hooks->manage_loader_finished_event(args); break;
-            case envent_code::flow_chart_created:      hooks->manage_flow_chart_created_event(args); break;
-            case envent_code::compiler_changed:        hooks->manage_compiler_changed_event(args); break;
-            case envent_code::changing_ti:             hooks->manage_changing_ti_event(args); break;
-            case envent_code::ti_changed:              hooks->manage_ti_changed_event(args); break;
-            case envent_code::changing_op_ti:          hooks->manage_changing_op_ti_event(args); break;
-            case envent_code::op_ti_changed:           hooks->manage_op_ti_changed_event(args); break;
-            case envent_code::changing_op_type:        hooks->manage_changing_op_type_event(args); break;
-            case envent_code::op_type_changed:         hooks->manage_op_type_changed_event(args); break;
-            case envent_code::enum_created:            hooks->manage_enum_created_event(args); break;
-            case envent_code::deleting_enum:           hooks->manage_deleting_enum_event(args); break;
-            case envent_code::enum_deleted:            hooks->manage_enum_deleted_event(args); break;
-            case envent_code::renaming_enum:           hooks->manage_renaming_enum_event(args); break;
-            case envent_code::enum_renamed:            hooks->manage_enum_renamed_event(args); break;
-            case envent_code::changing_enum_bf:        hooks->manage_changing_enum_bf_event(args); break;
-            case envent_code::enum_bf_changed:         hooks->manage_enum_bf_changed_event(args); break;
-            case envent_code::changing_enum_cmt:       hooks->manage_changing_enum_cmt_event(args); break;
-            case envent_code::enum_cmt_changed:        hooks->manage_enum_cmt_changed_event(args); break;
-            case envent_code::enum_member_created:     hooks->manage_enum_member_created_event(args); break;
+            case envent_code::closebase:               hooks->closebase_event(args); break;
+            case envent_code::savebase:                hooks->savebase_event(args); break;
+            case envent_code::upgraded:                hooks->upgraded_event(args); break;
+            case envent_code::auto_empty:              hooks->auto_empty_event(args); break;
+            case envent_code::auto_empty_finally:      hooks->auto_empty_finally_event(args); break;
+            case envent_code::determined_main:         hooks->determined_main_event(args); break;
+            case envent_code::local_types_changed:     hooks->local_types_changed_event(args); break;
+            case envent_code::extlang_changed:         hooks->extlang_changed_event(args); break;
+            case envent_code::idasgn_loaded:           hooks->idasgn_loaded_event(args); break;
+            case envent_code::kernel_config_loaded:    hooks->kernel_config_loaded_event(args); break;
+            case envent_code::loader_finished:         hooks->loader_finished_event(args); break;
+            case envent_code::flow_chart_created:      hooks->flow_chart_created_event(args); break;
+            case envent_code::compiler_changed:        hooks->compiler_changed_event(args); break;
+            case envent_code::changing_ti:             hooks->changing_ti_event(args); break;
+            case envent_code::ti_changed:              hooks->ti_changed_event(args); break;
+            case envent_code::changing_op_ti:          hooks->changing_op_ti_event(args); break;
+            case envent_code::op_ti_changed:           hooks->op_ti_changed_event(args); break;
+            case envent_code::changing_op_type:        hooks->changing_op_type_event(args); break;
+            case envent_code::op_type_changed:         hooks->op_type_changed_event(args); break;
+            case envent_code::enum_created:            hooks->enum_created_event(args); break;
+            case envent_code::deleting_enum:           hooks->deleting_enum_event(args); break;
+            case envent_code::enum_deleted:            hooks->enum_deleted_event(args); break;
+            case envent_code::renaming_enum:           hooks->renaming_enum_event(args); break;
+            case envent_code::enum_renamed:            hooks->enum_renamed_event(args); break;
+            case envent_code::changing_enum_bf:        hooks->changing_enum_bf_event(args); break;
+            case envent_code::enum_bf_changed:         hooks->enum_bf_changed_event(args); break;
+            case envent_code::changing_enum_cmt:       hooks->changing_enum_cmt_event(args); break;
+            case envent_code::enum_cmt_changed:        hooks->enum_cmt_changed_event(args); break;
+            case envent_code::enum_member_created:     hooks->enum_member_created_event(args); break;
             case envent_code::deleting_enum_member:    LOG_EVENT("deleting_enum_member"); break;
             case envent_code::enum_member_deleted:     LOG_EVENT("enum_member_deleted"); break;
             case envent_code::struc_created:           LOG_EVENT("struc_created"); break;
@@ -581,7 +581,7 @@ void Hooks::save_enums(std::shared_ptr<IModelIncremental>& ida_model, IModelVisi
     */
 }
 
-void Hooks::manage_closebase_event(va_list args)
+void Hooks::closebase_event(va_list args)
 {
     UNUSED(args);
 
@@ -589,7 +589,7 @@ void Hooks::manage_closebase_event(va_list args)
         LOG_EVENT("The database will be closed now");
 }
 
-void Hooks::manage_savebase_event(va_list args)
+void Hooks::savebase_event(va_list args)
 {
     UNUSED(args);
 
@@ -600,7 +600,7 @@ void Hooks::manage_savebase_event(va_list args)
     save_and_update();
 }
 
-void Hooks::manage_upgraded_event(va_list args)
+void Hooks::upgraded_event(va_list args)
 {
     int from = va_arg(args, int);
 
@@ -608,7 +608,7 @@ void Hooks::manage_upgraded_event(va_list args)
         LOG_EVENT("The database has been upgraded (old IDB version: %d)", from);
 }
 
-void Hooks::manage_auto_empty_event(va_list args)
+void Hooks::auto_empty_event(va_list args)
 {
     UNUSED(args);
 
@@ -616,7 +616,7 @@ void Hooks::manage_auto_empty_event(va_list args)
         LOG_EVENT("All analysis queues are empty");
 }
 
-void Hooks::manage_auto_empty_finally_event(va_list args)
+void Hooks::auto_empty_finally_event(va_list args)
 {
     UNUSED(args);
 
@@ -624,7 +624,7 @@ void Hooks::manage_auto_empty_finally_event(va_list args)
         LOG_EVENT("All analysis queues are empty definitively");
 }
 
-void Hooks::manage_determined_main_event(va_list args)
+void Hooks::determined_main_event(va_list args)
 {
     ea_t main = va_arg(args, ea_t);
 
@@ -632,7 +632,7 @@ void Hooks::manage_determined_main_event(va_list args)
         LOG_EVENT("The main() function has been determined (address of the main() function: " EA_FMT ")", main);
 }
 
-void Hooks::manage_local_types_changed_event(va_list args)
+void Hooks::local_types_changed_event(va_list args)
 {
     UNUSED(args);
 
@@ -640,7 +640,7 @@ void Hooks::manage_local_types_changed_event(va_list args)
         LOG_EVENT("Local types have been changed");
 }
 
-void Hooks::manage_extlang_changed_event(va_list args)
+void Hooks::extlang_changed_event(va_list args)
 {
     int kind = va_arg(args, int); //0: extlang installed, 1: extlang removed, 2: default extlang changed
     extlang_t* el = va_arg(args, extlang_t*);
@@ -667,7 +667,7 @@ void Hooks::manage_extlang_changed_event(va_list args)
     }
 }
 
-void Hooks::manage_idasgn_loaded_event(va_list args)
+void Hooks::idasgn_loaded_event(va_list args)
 {
     const char* short_sig_name = va_arg(args, const char*);
 
@@ -679,7 +679,7 @@ void Hooks::manage_idasgn_loaded_event(va_list args)
     }
 }
 
-void Hooks::manage_kernel_config_loaded_event(va_list args)
+void Hooks::kernel_config_loaded_event(va_list args)
 {
     UNUSED(args);
 
@@ -687,7 +687,7 @@ void Hooks::manage_kernel_config_loaded_event(va_list args)
         LOG_EVENT("Kernel configuration loaded (ida.cfg parsed)");
 }
 
-void Hooks::manage_loader_finished_event(va_list args)
+void Hooks::loader_finished_event(va_list args)
 {
     linput_t* li = va_arg(args, linput_t*);
     uint16 neflags = static_cast<uint16>(va_arg(args, int)); // NEF_.+ defines from loader.hpp
@@ -699,7 +699,7 @@ void Hooks::manage_loader_finished_event(va_list args)
         LOG_EVENT("External file loader for %s files finished its work", filetypename);
 }
 
-void Hooks::manage_flow_chart_created_event(va_list args)
+void Hooks::flow_chart_created_event(va_list args)
 {
     qflow_chart_t* fc = va_arg(args, qflow_chart_t*);
 
@@ -711,7 +711,7 @@ void Hooks::manage_flow_chart_created_event(va_list args)
     }
 }
 
-void Hooks::manage_compiler_changed_event(va_list args)
+void Hooks::compiler_changed_event(va_list args)
 {
     UNUSED(args);
 
@@ -719,7 +719,7 @@ void Hooks::manage_compiler_changed_event(va_list args)
         LOG_EVENT("The kernel has changed the compiler information");
 }
 
-void Hooks::manage_changing_ti_event(va_list args)
+void Hooks::changing_ti_event(va_list args)
 {
     ea_t ea = va_arg(args, ea_t);
     type_t* new_type = va_arg(args, type_t*);
@@ -731,7 +731,7 @@ void Hooks::manage_changing_ti_event(va_list args)
         LOG_EVENT("An item typestring (c/c++ prototype) is to be changed (ea: " EA_FMT ")", ea);
 }
 
-void Hooks::manage_ti_changed_event(va_list args)
+void Hooks::ti_changed_event(va_list args)
 {
     ea_t ea = va_arg(args, ea_t);
     type_t* type = va_arg(args, type_t*);
@@ -745,7 +745,7 @@ void Hooks::manage_ti_changed_event(va_list args)
         LOG_EVENT("An item typestring (c/c++ prototype) has been changed (ea: " EA_FMT ")", ea);
 }
 
-void Hooks::manage_changing_op_ti_event(va_list args)
+void Hooks::changing_op_ti_event(va_list args)
 {
     ea_t ea = va_arg(args, ea_t);
     int n = va_arg(args, int);
@@ -759,7 +759,7 @@ void Hooks::manage_changing_op_ti_event(va_list args)
         LOG_EVENT("An operand typestring (c/c++ prototype) is to be changed (ea: " EA_FMT ")", ea);
 }
 
-void Hooks::manage_op_ti_changed_event(va_list args)
+void Hooks::op_ti_changed_event(va_list args)
 {
     ea_t ea = va_arg(args, ea_t);
     int n = va_arg(args, int);
@@ -775,7 +775,7 @@ void Hooks::manage_op_ti_changed_event(va_list args)
         LOG_EVENT("An operand typestring (c/c++ prototype) has been changed (ea: " EA_FMT ")", ea);
 }
 
-void Hooks::manage_changing_op_type_event(va_list args)
+void Hooks::changing_op_type_event(va_list args)
 {
     ea_t ea = va_arg(args, ea_t);
     int n = va_arg(args, int);
@@ -787,7 +787,7 @@ void Hooks::manage_changing_op_type_event(va_list args)
         LOG_EVENT("An operand type (offset, hex, etc...) is to be changed (ea: " EA_FMT ")", ea);
 }
 
-void Hooks::manage_op_type_changed_event(va_list args)
+void Hooks::op_type_changed_event(va_list args)
 {
     ea_t ea = va_arg(args, ea_t);
     int n = va_arg(args, int);
@@ -797,7 +797,7 @@ void Hooks::manage_op_type_changed_event(va_list args)
         LOG_EVENT("An operand type (offset, hex, etc...) has been set or deleted (ea: " EA_FMT ")", ea);
 }
 
-void Hooks::manage_enum_created_event(va_list args)
+void Hooks::enum_created_event(va_list args)
 {
     enum_t id = va_arg(args, enum_t);
 
@@ -809,7 +809,7 @@ void Hooks::manage_enum_created_event(va_list args)
     }
 }
 
-void Hooks::manage_deleting_enum_event(va_list args)
+void Hooks::deleting_enum_event(va_list args)
 {
     enum_t id = va_arg(args, enum_t);
 
@@ -821,7 +821,7 @@ void Hooks::manage_deleting_enum_event(va_list args)
     }
 }
 
-void Hooks::manage_enum_deleted_event(va_list args)
+void Hooks::enum_deleted_event(va_list args)
 {
     enum_t id = va_arg(args, enum_t);
 
@@ -830,7 +830,7 @@ void Hooks::manage_enum_deleted_event(va_list args)
         LOG_EVENT("An enum type has been deleted");
 }
 
-void Hooks::manage_renaming_enum_event(va_list args)
+void Hooks::renaming_enum_event(va_list args)
 {
     tid_t id = va_arg(args, tid_t);
     bool is_enum = static_cast<bool>(va_arg(args, int));
@@ -854,7 +854,7 @@ void Hooks::manage_renaming_enum_event(va_list args)
     }
 }
 
-void Hooks::manage_enum_renamed_event(va_list args)
+void Hooks::enum_renamed_event(va_list args)
 {
     tid_t id = va_arg(args, tid_t);
 
@@ -876,7 +876,7 @@ void Hooks::manage_enum_renamed_event(va_list args)
     }
 }
 
-void Hooks::manage_changing_enum_bf_event(va_list args)
+void Hooks::changing_enum_bf_event(va_list args)
 {
     enum_t id = va_arg(args, enum_t);
     bool new_bf = static_cast<bool>(va_arg(args, int));
@@ -889,7 +889,7 @@ void Hooks::manage_changing_enum_bf_event(va_list args)
     }
 }
 
-void Hooks::manage_enum_bf_changed_event(va_list args)
+void Hooks::enum_bf_changed_event(va_list args)
 {
     enum_t id = va_arg(args, enum_t);
 
@@ -901,7 +901,7 @@ void Hooks::manage_enum_bf_changed_event(va_list args)
     }
 }
 
-void Hooks::manage_changing_enum_cmt_event(va_list args)
+void Hooks::changing_enum_cmt_event(va_list args)
 {
     enum_t id = va_arg(args, enum_t);
     bool repeatable = static_cast<bool>(va_arg(args, int));
@@ -928,7 +928,7 @@ void Hooks::manage_changing_enum_cmt_event(va_list args)
     }
 }
 
-void Hooks::manage_enum_cmt_changed_event(va_list args)
+void Hooks::enum_cmt_changed_event(va_list args)
 {
     enum_t id = va_arg(args, enum_t);
     bool repeatable = static_cast<bool>(va_arg(args, int));
@@ -954,7 +954,7 @@ void Hooks::manage_enum_cmt_changed_event(va_list args)
     }
 }
 
-void Hooks::manage_enum_member_created_event(va_list args)
+void Hooks::enum_member_created_event(va_list args)
 {
     enum_t id = va_arg(args, enum_t);
     const_t cid = va_arg(args, const_t);
