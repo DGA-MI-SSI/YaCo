@@ -45,7 +45,6 @@ class Fixture(unittest.TestCase):
                     self.assertEqual(idaapi.add_regvar(func, ea, end, text, key, None), idaapi.REGVAR_ERROR_OK)
         yaunit.save('registers', eas)
 
-    @unittest.skip("not implemented")
     def yacheck_rename_register(self):
         eas = yaunit.load('registers')
         for ea, op, key in eas:
