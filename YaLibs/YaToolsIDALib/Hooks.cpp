@@ -137,6 +137,7 @@ namespace
         void enum_member_deleted_event(va_list args);
         void struc_created_event(va_list args);
         void deleting_struc_event(va_list args);
+        void struc_deleted_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -204,7 +205,7 @@ namespace
             case envent_code::enum_member_deleted:     hooks->enum_member_deleted_event(args); break;
             case envent_code::struc_created:           hooks->struc_created_event(args); break;
             case envent_code::deleting_struc:          hooks->deleting_struc_event(args); break;
-            case envent_code::struc_deleted:           LOG_EVENT("struc_deleted"); break;
+            case envent_code::struc_deleted:           hooks->struc_deleted_event(args); break;
             case envent_code::changing_struc_align:    LOG_EVENT("changing_struc_align"); break;
             case envent_code::struc_align_changed:     LOG_EVENT("struc_align_changed"); break;
             case envent_code::renaming_struc:          LOG_EVENT("renaming_struc"); break;
@@ -1045,6 +1046,15 @@ void Hooks::deleting_struc_event(va_list args)
         get_struc_name(&*struc_name, sptr->id);
         LOG_EVENT("Structure type %s is to be deleted", struc_name->c_str());
     }
+}
+
+void Hooks::struc_deleted_event(va_list args)
+{
+    tid_t struc_id = va_arg(args, tid_t);
+
+    UNUSED(struc_id);
+    if (LOG_EVENTS)
+        LOG_EVENT("A structure type has been deleted");
 }
 
 
