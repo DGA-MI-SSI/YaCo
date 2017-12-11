@@ -108,11 +108,6 @@ class Fixture(unittest.TestCase):
                     fh.write(line.rstrip() + "\n")
         self.check_golden(read)
 
-    @unittest.skip("obsolete")
-    def yaexport_all(self):
-        YaCo.yaco.export_all_cache()
-        self.check_yadb()
-
     def yaexport_single(self):
         YaCo.yaco.export_database()
         self.check_yadb()
