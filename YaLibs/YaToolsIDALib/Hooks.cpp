@@ -144,6 +144,7 @@ namespace
         void renaming_struc_event(va_list args);
         void struc_renamed_event(va_list args);
         void expanding_struc_event(va_list args);
+        void struc_expanded_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -217,7 +218,7 @@ namespace
             case envent_code::renaming_struc:          hooks->renaming_struc_event(args); break;
             case envent_code::struc_renamed:           hooks->struc_renamed_event(args); break;
             case envent_code::expanding_struc:         hooks->expanding_struc_event(args); break;
-            case envent_code::struc_expanded:          LOG_EVENT("struc_expanded"); break;
+            case envent_code::struc_expanded:          hooks->struc_expanded_event(args); break;
             case envent_code::struc_member_created:    LOG_EVENT("struc_member_created"); break;
             case envent_code::deleting_struc_member:   LOG_EVENT("deleting_struc_member"); break;
             case envent_code::struc_member_deleted:    LOG_EVENT("struc_member_deleted"); break;
@@ -1124,6 +1125,18 @@ void Hooks::expanding_struc_event(va_list args)
             LOG_EVENT("Structure type %s is to be expanded of 0x%" EA_PREFIX "X bytes at offset 0x%" EA_PREFIX "X", struc_name->c_str(), delta, offset);
         else
             LOG_EVENT("Structure type %s is to be shrunk of 0x%" EA_PREFIX "X bytes at offset 0x%" EA_PREFIX "X", struc_name->c_str(), ~delta + 1, offset);
+    }
+}
+
+void Hooks::struc_expanded_event(va_list args)
+{
+    struc_t* sptr = va_arg(args, struc_t*);
+
+    if (LOG_EVENTS)
+    {
+        const auto struc_name = qpool_.acquire();
+        get_struc_name(&*struc_name, sptr->id);
+        LOG_EVENT("Structure type %s has been expanded/shrank", struc_name->c_str());
     }
 }
 
