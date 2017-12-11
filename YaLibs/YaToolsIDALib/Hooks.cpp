@@ -150,6 +150,7 @@ namespace
         void struc_member_deleted_event(va_list args);
         void renaming_struc_member_event(va_list args);
         void struc_member_renamed_event(va_list args);
+        void changing_struc_member_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -229,7 +230,7 @@ namespace
             case envent_code::struc_member_deleted:    hooks->struc_member_deleted_event(args); break;
             case envent_code::renaming_struc_member:   hooks->renaming_struc_member_event(args); break;
             case envent_code::struc_member_renamed:    hooks->struc_member_renamed_event(args); break;
-            case envent_code::changing_struc_member:   LOG_EVENT("changing_struc_member"); break;
+            case envent_code::changing_struc_member:   hooks->changing_struc_member_event(args); break;
             case envent_code::struc_member_changed:    LOG_EVENT("struc_member_changed"); break;
             case envent_code::changing_struc_cmt:      LOG_EVENT("changing_struc_cmt"); break;
             case envent_code::struc_cmt_changed:       LOG_EVENT("struc_cmt_changed"); break;
@@ -1218,6 +1219,27 @@ void Hooks::struc_member_renamed_event(va_list args)
         const auto member_name = qpool_.acquire();
         get_member_name(&*member_name, mptr->id);
         LOG_EVENT("A member of structure type %s has been renamed to %s", struc_name->c_str(), member_name->c_str());
+    }
+}
+
+void Hooks::changing_struc_member_event(va_list args)
+{
+    struc_t* sptr = va_arg(args, struc_t*);
+    member_t* mptr = va_arg(args, member_t*);
+    flags_t flag = va_arg(args, flags_t);
+    const opinfo_t* ti = va_arg(args, const opinfo_t*);
+    asize_t nbytes = va_arg(args, asize_t);
+
+    UNUSED(flag);
+    UNUSED(ti);
+    UNUSED(nbytes);
+    if (LOG_EVENTS)
+    {
+        const auto struc_name = qpool_.acquire();
+        get_struc_name(&*struc_name, sptr->id);
+        const auto member_name = qpool_.acquire();
+        get_member_name(&*member_name, mptr->id);
+        LOG_EVENT("Structure type %s member %s is to be changed", struc_name->c_str(), member_name->c_str());
     }
 }
 
