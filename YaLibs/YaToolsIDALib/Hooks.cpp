@@ -143,6 +143,7 @@ namespace
         void struc_align_changed_event(va_list args);
         void renaming_struc_event(va_list args);
         void struc_renamed_event(va_list args);
+        void expanding_struc_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -215,7 +216,7 @@ namespace
             case envent_code::struc_align_changed:     hooks->struc_align_changed_event(args); break;
             case envent_code::renaming_struc:          hooks->renaming_struc_event(args); break;
             case envent_code::struc_renamed:           hooks->struc_renamed_event(args); break;
-            case envent_code::expanding_struc:         LOG_EVENT("expanding_struc"); break;
+            case envent_code::expanding_struc:         hooks->expanding_struc_event(args); break;
             case envent_code::struc_expanded:          LOG_EVENT("struc_expanded"); break;
             case envent_code::struc_member_created:    LOG_EVENT("struc_member_created"); break;
             case envent_code::deleting_struc_member:   LOG_EVENT("deleting_struc_member"); break;
@@ -1106,6 +1107,23 @@ void Hooks::struc_renamed_event(va_list args)
         const auto struc_name = qpool_.acquire();
         get_struc_name(&*struc_name, sptr->id);
         LOG_EVENT("A structure type has been renamed %s", struc_name->c_str());
+    }
+}
+
+void Hooks::expanding_struc_event(va_list args)
+{
+    struc_t* sptr = va_arg(args, struc_t*);
+    ea_t offset = va_arg(args, ea_t);
+    adiff_t delta = va_arg(args, adiff_t);
+
+    if (LOG_EVENTS)
+    {
+        const auto struc_name = qpool_.acquire();
+        get_struc_name(&*struc_name, sptr->id);
+        if(delta > 0)
+            LOG_EVENT("Structure type %s is to be expanded of 0x%" EA_PREFIX "X bytes at offset 0x%" EA_PREFIX "X", struc_name->c_str(), delta, offset);
+        else
+            LOG_EVENT("Structure type %s is to be shrunk of 0x%" EA_PREFIX "X bytes at offset 0x%" EA_PREFIX "X", struc_name->c_str(), ~delta + 1, offset);
     }
 }
 
