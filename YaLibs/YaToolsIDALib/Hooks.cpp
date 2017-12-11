@@ -141,6 +141,7 @@ namespace
         void struc_deleted_event(va_list args);
         void changing_struc_align_event(va_list args);
         void struc_align_changed_event(va_list args);
+        void renaming_struc_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -211,7 +212,7 @@ namespace
             case envent_code::struc_deleted:           hooks->struc_deleted_event(args); break;
             case envent_code::changing_struc_align:    hooks->changing_struc_align_event(args); break;
             case envent_code::struc_align_changed:     hooks->struc_align_changed_event(args); break;
-            case envent_code::renaming_struc:          LOG_EVENT("renaming_struc"); break;
+            case envent_code::renaming_struc:          hooks->renaming_struc_event(args); break;
             case envent_code::struc_renamed:           LOG_EVENT("struc_renamed"); break;
             case envent_code::expanding_struc:         LOG_EVENT("expanding_struc"); break;
             case envent_code::struc_expanded:          LOG_EVENT("struc_expanded"); break;
@@ -1082,6 +1083,17 @@ void Hooks::struc_align_changed_event(va_list args)
         get_struc_name(&*struc_name, sptr->id);
         LOG_EVENT("Structure type %s alignment has been changed to 0x%X", struc_name->c_str(), static_cast<int>(std::pow(2, sptr->get_alignment())));
     }
+}
+
+void Hooks::renaming_struc_event(va_list args)
+{
+    tid_t struc_id = va_arg(args, tid_t);
+    const char* oldname = va_arg(args, const char*);
+    const char* newname = va_arg(args, const char*);
+
+    UNUSED(struc_id);
+    if (LOG_EVENTS)
+        LOG_EVENT("Structure type %s is to be renamed to %s", oldname, newname);
 }
 
 
