@@ -145,6 +145,7 @@ namespace
         void struc_renamed_event(va_list args);
         void expanding_struc_event(va_list args);
         void struc_expanded_event(va_list args);
+        void struc_member_created_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -219,7 +220,7 @@ namespace
             case envent_code::struc_renamed:           hooks->struc_renamed_event(args); break;
             case envent_code::expanding_struc:         hooks->expanding_struc_event(args); break;
             case envent_code::struc_expanded:          hooks->struc_expanded_event(args); break;
-            case envent_code::struc_member_created:    LOG_EVENT("struc_member_created"); break;
+            case envent_code::struc_member_created:    hooks->struc_member_created_event(args); break;
             case envent_code::deleting_struc_member:   LOG_EVENT("deleting_struc_member"); break;
             case envent_code::struc_member_deleted:    LOG_EVENT("struc_member_deleted"); break;
             case envent_code::renaming_struc_member:   LOG_EVENT("renaming_struc_member"); break;
@@ -1137,6 +1138,21 @@ void Hooks::struc_expanded_event(va_list args)
         const auto struc_name = qpool_.acquire();
         get_struc_name(&*struc_name, sptr->id);
         LOG_EVENT("Structure type %s has been expanded/shrank", struc_name->c_str());
+    }
+}
+
+void Hooks::struc_member_created_event(va_list args)
+{
+    struc_t* sptr = va_arg(args, struc_t*);
+    member_t* mptr = va_arg(args, member_t*);
+
+    if (LOG_EVENTS)
+    {
+        const auto struc_name = qpool_.acquire();
+        get_struc_name(&*struc_name, sptr->id);
+        const auto member_name = qpool_.acquire();
+        get_member_name(&*member_name, mptr->id);
+        LOG_EVENT("Structure type %s member %s has been created", struc_name->c_str(), member_name->c_str());
     }
 }
 
