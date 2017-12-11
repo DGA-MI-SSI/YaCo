@@ -387,7 +387,7 @@ void Hooks::save()
 
     const auto time_end = std::chrono::system_clock::now();
     const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(time_end - time_start);
-    IDA_LOG_INFO("Saved in %lld seconds", elapsed.count());
+    IDA_LOG_INFO("Saved in %d seconds", static_cast<int>(elapsed.count()));
 }
 
 void Hooks::save_and_update()
@@ -496,7 +496,7 @@ void Hooks::save_structures(std::shared_ptr<IModelIncremental>& ida_model, IMode
 
         // structure or stackframe modified
         member_t* ida_member = get_member(ida_struct, member_offset);
-        if (!ida_member || ida_member->id == -1)
+        if (!ida_member || ida_member->id == BADADDR)
         {
             // if member deleted
             ida_model->delete_struct_member(*memory_exporter, stackframe_func_addr, struct_id, member_offset);
