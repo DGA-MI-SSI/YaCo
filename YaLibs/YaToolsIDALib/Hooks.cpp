@@ -135,6 +135,7 @@ namespace
         void enum_member_created_event(va_list args);
         void deleting_enum_member_event(va_list args);
         void enum_member_deleted_event(va_list args);
+        void struc_created_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -200,7 +201,7 @@ namespace
             case envent_code::enum_member_created:     hooks->enum_member_created_event(args); break;
             case envent_code::deleting_enum_member:    hooks->deleting_enum_member_event(args); break;
             case envent_code::enum_member_deleted:     hooks->enum_member_deleted_event(args); break;
-            case envent_code::struc_created:           LOG_EVENT("struc_created"); break;
+            case envent_code::struc_created:           hooks->struc_created_event(args); break;
             case envent_code::deleting_struc:          LOG_EVENT("deleting_struc"); break;
             case envent_code::struc_deleted:           LOG_EVENT("struc_deleted"); break;
             case envent_code::changing_struc_align:    LOG_EVENT("changing_struc_align"); break;
@@ -1018,6 +1019,18 @@ void Hooks::enum_member_deleted_event(va_list args)
         const auto enum_name = qpool_.acquire();
         get_enum_name(&*enum_name, id);
         LOG_EVENT("A member of enum type %s has been deleted", enum_name->c_str());
+    }
+}
+
+void Hooks::struc_created_event(va_list args)
+{
+    tid_t struc_id = va_arg(args, tid_t);
+
+    if (LOG_EVENTS)
+    {
+        const auto struc_name = qpool_.acquire();
+        get_struc_name(&*struc_name, struc_id);
+        LOG_EVENT("Structure type %s has been created", struc_name->c_str());
     }
 }
 
