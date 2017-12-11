@@ -37,6 +37,7 @@
 #include <memory>
 #include <tuple>
 #include <chrono>
+#include <math.h>
 
 #ifdef _MSC_VER
 #   include <filesystem>
@@ -138,6 +139,7 @@ namespace
         void struc_created_event(va_list args);
         void deleting_struc_event(va_list args);
         void struc_deleted_event(va_list args);
+        void changing_struc_align_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -206,7 +208,7 @@ namespace
             case envent_code::struc_created:           hooks->struc_created_event(args); break;
             case envent_code::deleting_struc:          hooks->deleting_struc_event(args); break;
             case envent_code::struc_deleted:           hooks->struc_deleted_event(args); break;
-            case envent_code::changing_struc_align:    LOG_EVENT("changing_struc_align"); break;
+            case envent_code::changing_struc_align:    hooks->changing_struc_align_event(args); break;
             case envent_code::struc_align_changed:     LOG_EVENT("struc_align_changed"); break;
             case envent_code::renaming_struc:          LOG_EVENT("renaming_struc"); break;
             case envent_code::struc_renamed:           LOG_EVENT("struc_renamed"); break;
@@ -1055,6 +1057,18 @@ void Hooks::struc_deleted_event(va_list args)
     UNUSED(struc_id);
     if (LOG_EVENTS)
         LOG_EVENT("A structure type has been deleted");
+}
+
+void Hooks::changing_struc_align_event(va_list args)
+{
+    struc_t* sptr = va_arg(args, struc_t*);
+
+    if (LOG_EVENTS)
+    {
+        const auto struc_name = qpool_.acquire();
+        get_struc_name(&*struc_name, sptr->id);
+        LOG_EVENT("Structure type %s alignment is being changed from 0x%X", struc_name->c_str(), static_cast<int>(std::pow(2, sptr->get_alignment())));
+    }
 }
 
 
