@@ -154,6 +154,7 @@ namespace
         void struc_member_changed_event(va_list args);
         void changing_struc_cmt_event(va_list args);
         void struc_cmt_changed_event(va_list args);
+        void segm_added_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -237,7 +238,7 @@ namespace
             case envent_code::struc_member_changed:    hooks->struc_member_changed_event(args); break;
             case envent_code::changing_struc_cmt:      hooks->changing_struc_cmt_event(args); break;
             case envent_code::struc_cmt_changed:       hooks->struc_cmt_changed_event(args); break;
-            case envent_code::segm_added:              LOG_EVENT("segm_added"); break;
+            case envent_code::segm_added:              hooks->segm_added_event(args); break;
             case envent_code::deleting_segm:           LOG_EVENT("deleting_segm"); break;
             case envent_code::segm_deleted:            LOG_EVENT("segm_deleted"); break;
             case envent_code::changing_segm_start:     LOG_EVENT("changing_segm_start"); break;
@@ -1478,6 +1479,18 @@ void Hooks::struc_cmt_changed_event(va_list args)
                 LOG_EVENT("Structure type %s member %s %scomment has been changed to \"%s\"", struc_name->c_str(), member_name->c_str(), REPEATABLE_STR[repeatable], cmt->c_str());
             }
         }
+    }
+}
+
+void Hooks::segm_added_event(va_list args)
+{
+    segment_t* s = va_arg(args, segment_t*);
+
+    if (LOG_EVENTS)
+    {
+        const auto segm_name = qpool_.acquire();
+        get_segm_name(&*segm_name, s);
+        LOG_EVENT("Segment %s has been created from " EA_FMT " to " EA_FMT, segm_name->c_str(), s->start_ea, s->end_ea);
     }
 }
 
