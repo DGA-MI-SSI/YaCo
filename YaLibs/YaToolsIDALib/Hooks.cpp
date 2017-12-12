@@ -153,6 +153,7 @@ namespace
         void changing_struc_member_event(va_list args);
         void struc_member_changed_event(va_list args);
         void changing_struc_cmt_event(va_list args);
+        void struc_cmt_changed_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -235,7 +236,7 @@ namespace
             case envent_code::changing_struc_member:   hooks->changing_struc_member_event(args); break;
             case envent_code::struc_member_changed:    hooks->struc_member_changed_event(args); break;
             case envent_code::changing_struc_cmt:      hooks->changing_struc_cmt_event(args); break;
-            case envent_code::struc_cmt_changed:       LOG_EVENT("struc_cmt_changed"); break;
+            case envent_code::struc_cmt_changed:       hooks->struc_cmt_changed_event(args); break;
             case envent_code::segm_added:              LOG_EVENT("segm_added"); break;
             case envent_code::deleting_segm:           LOG_EVENT("deleting_segm"); break;
             case envent_code::segm_deleted:            LOG_EVENT("segm_deleted"); break;
@@ -1282,6 +1283,31 @@ void Hooks::changing_struc_cmt_event(va_list args)
             get_member_fullname(&*struc_member_fullname, struc_id);
             get_member_cmt(&*cmt, struc_id, repeatable);
             LOG_EVENT("Structure member %s %scomment is to be changed from \"%s\" to \"%s\"", struc_member_fullname->c_str(), REPEATABLE_STR[repeatable], cmt->c_str(), newcmt);
+        }
+    }
+}
+
+void Hooks::struc_cmt_changed_event(va_list args)
+{
+    tid_t struc_id = va_arg(args, tid_t);
+    bool repeatable = static_cast<bool>(va_arg(args, int));
+
+    if (LOG_EVENTS)
+    {
+        const auto cmt = qpool_.acquire();
+        if (get_struc(struc_id))
+        {
+            const auto struc_name = qpool_.acquire();
+            get_struc_name(&*struc_name, struc_id);
+            get_struc_cmt(&*cmt, struc_id, repeatable);
+            LOG_EVENT("Structure type %s %scomment has been changed to \"%s\"", struc_name->c_str(), REPEATABLE_STR[repeatable], cmt->c_str());
+        }
+        else
+        {
+            const auto struc_member_fullname = qpool_.acquire();
+            get_member_fullname(&*struc_member_fullname, struc_id);
+            get_member_cmt(&*cmt, struc_id, repeatable);
+            LOG_EVENT("Structure member %s %scomment has been changed to \"%s\"", struc_member_fullname->c_str(), REPEATABLE_STR[repeatable], cmt->c_str());
         }
     }
 }
