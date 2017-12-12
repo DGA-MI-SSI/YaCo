@@ -156,6 +156,7 @@ namespace
         void struc_cmt_changed_event(va_list args);
         void segm_added_event(va_list args);
         void deleting_segm_event(va_list args);
+        void segm_deleted_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -241,7 +242,7 @@ namespace
             case envent_code::struc_cmt_changed:       hooks->struc_cmt_changed_event(args); break;
             case envent_code::segm_added:              hooks->segm_added_event(args); break;
             case envent_code::deleting_segm:           hooks->deleting_segm_event(args); break;
-            case envent_code::segm_deleted:            LOG_EVENT("segm_deleted"); break;
+            case envent_code::segm_deleted:            hooks->segm_deleted_event(args); break;
             case envent_code::changing_segm_start:     LOG_EVENT("changing_segm_start"); break;
             case envent_code::segm_start_changed:      LOG_EVENT("segm_start_changed"); break;
             case envent_code::changing_segm_end:       LOG_EVENT("changing_segm_end"); break;
@@ -1506,6 +1507,15 @@ void Hooks::deleting_segm_event(va_list args)
         get_segm_name(&*segm_name, s);
         LOG_EVENT("Segment %s (from " EA_FMT " to " EA_FMT ") is to be deleted", segm_name->c_str(), s->start_ea, s->end_ea);
     }
+}
+
+void Hooks::segm_deleted_event(va_list args)
+{
+    ea_t start_ea = va_arg(args, ea_t);
+    ea_t end_ea = va_arg(args, ea_t);
+
+    if (LOG_EVENTS)
+        LOG_EVENT("A segment (from " EA_FMT " to " EA_FMT ") has been deleted", start_ea, end_ea);
 }
 
 
