@@ -1046,9 +1046,19 @@ void Hooks::struc_created_event(va_list args)
 
     if (LOG_EVENTS)
     {
-        const auto struc_name = qpool_.acquire();
-        get_struc_name(&*struc_name, struc_id);
-        LOG_EVENT("Structure type %s has been created", struc_name->c_str());
+        ea_t func_ea = get_func_by_frame(struc_id);
+        if (func_ea != BADADDR)
+        {
+            const auto func_name = qpool_.acquire();
+            get_func_name(&*func_name, func_ea);
+            LOG_EVENT("Stackframe of function %s has been created", func_name->c_str());
+        }
+        else
+        {
+            const auto struc_name = qpool_.acquire();
+            get_struc_name(&*struc_name, struc_id);
+            LOG_EVENT("Structure type %s has been created", struc_name->c_str());
+        }
     }
 }
 
@@ -1058,9 +1068,19 @@ void Hooks::deleting_struc_event(va_list args)
 
     if (LOG_EVENTS)
     {
-        const auto struc_name = qpool_.acquire();
-        get_struc_name(&*struc_name, sptr->id);
-        LOG_EVENT("Structure type %s is to be deleted", struc_name->c_str());
+        ea_t func_ea = get_func_by_frame(sptr->id);
+        if (func_ea != BADADDR)
+        {
+            const auto func_name = qpool_.acquire();
+            get_func_name(&*func_name, func_ea);
+            LOG_EVENT("Stackframe of function %s is to be deleted", func_name->c_str());
+        }
+        else
+        {
+            const auto struc_name = qpool_.acquire();
+            get_struc_name(&*struc_name, sptr->id);
+            LOG_EVENT("Structure type %s is to be deleted", struc_name->c_str());
+        }
     }
 }
 
@@ -1070,7 +1090,7 @@ void Hooks::struc_deleted_event(va_list args)
 
     UNUSED(struc_id);
     if (LOG_EVENTS)
-        LOG_EVENT("A structure type has been deleted");
+        LOG_EVENT("A structure type or stackframe has been deleted");
 }
 
 void Hooks::changing_struc_align_event(va_list args)
@@ -1128,12 +1148,25 @@ void Hooks::expanding_struc_event(va_list args)
 
     if (LOG_EVENTS)
     {
-        const auto struc_name = qpool_.acquire();
-        get_struc_name(&*struc_name, sptr->id);
-        if(delta > 0)
-            LOG_EVENT("Structure type %s is to be expanded of 0x%" EA_PREFIX "X bytes at offset 0x%" EA_PREFIX "X", struc_name->c_str(), delta, offset);
+        ea_t func_ea = get_func_by_frame(sptr->id);
+        if (func_ea != BADADDR)
+        {
+            const auto func_name = qpool_.acquire();
+            get_func_name(&*func_name, func_ea);
+            if (delta > 0)
+                LOG_EVENT("Stackframe of function %s is to be expanded of 0x%" EA_PREFIX "X bytes at offset 0x%" EA_PREFIX "X", func_name->c_str(), delta, offset);
+            else
+                LOG_EVENT("Stackframe of function %s is to be shrunk of 0x%" EA_PREFIX "X bytes at offset 0x%" EA_PREFIX "X", func_name->c_str(), ~delta + 1, offset);
+        }
         else
-            LOG_EVENT("Structure type %s is to be shrunk of 0x%" EA_PREFIX "X bytes at offset 0x%" EA_PREFIX "X", struc_name->c_str(), ~delta + 1, offset);
+        {
+            const auto struc_name = qpool_.acquire();
+            get_struc_name(&*struc_name, sptr->id);
+            if (delta > 0)
+                LOG_EVENT("Structure type %s is to be expanded of 0x%" EA_PREFIX "X bytes at offset 0x%" EA_PREFIX "X", struc_name->c_str(), delta, offset);
+            else
+                LOG_EVENT("Structure type %s is to be shrunk of 0x%" EA_PREFIX "X bytes at offset 0x%" EA_PREFIX "X", struc_name->c_str(), ~delta + 1, offset);
+        }
     }
 }
 
@@ -1143,9 +1176,19 @@ void Hooks::struc_expanded_event(va_list args)
 
     if (LOG_EVENTS)
     {
-        const auto struc_name = qpool_.acquire();
-        get_struc_name(&*struc_name, sptr->id);
-        LOG_EVENT("Structure type %s has been expanded/shrank", struc_name->c_str());
+        ea_t func_ea = get_func_by_frame(sptr->id);
+        if (func_ea != BADADDR)
+        {
+            const auto func_name = qpool_.acquire();
+            get_func_name(&*func_name, func_ea);
+            LOG_EVENT("Stackframe of function %s has been expanded/shrank", func_name->c_str());
+        }
+        else
+        {
+            const auto struc_name = qpool_.acquire();
+            get_struc_name(&*struc_name, sptr->id);
+            LOG_EVENT("Structure type %s has been expanded/shrank", struc_name->c_str());
+        }
     }
 }
 
@@ -1156,11 +1199,21 @@ void Hooks::struc_member_created_event(va_list args)
 
     if (LOG_EVENTS)
     {
-        const auto struc_name = qpool_.acquire();
-        get_struc_name(&*struc_name, sptr->id);
         const auto member_name = qpool_.acquire();
         get_member_name(&*member_name, mptr->id);
-        LOG_EVENT("Structure type %s member %s has been created", struc_name->c_str(), member_name->c_str());
+        ea_t func_ea = get_func_by_frame(sptr->id);
+        if (func_ea != BADADDR)
+        {
+            const auto func_name = qpool_.acquire();
+            get_func_name(&*func_name, func_ea);
+            LOG_EVENT("Stackframe of function %s member %s has been created", func_name->c_str(), member_name->c_str());
+        }
+        else
+        {
+            const auto struc_name = qpool_.acquire();
+            get_struc_name(&*struc_name, sptr->id);
+            LOG_EVENT("Structure type %s member %s has been created", struc_name->c_str(), member_name->c_str());
+        }
     }
 }
 
@@ -1171,11 +1224,21 @@ void Hooks::deleting_struc_member_event(va_list args)
 
     if (LOG_EVENTS)
     {
-        const auto struc_name = qpool_.acquire();
-        get_struc_name(&*struc_name, sptr->id);
         const auto member_name = qpool_.acquire();
         get_member_name(&*member_name, mptr->id);
-        LOG_EVENT("Structure type %s member %s is to be deleted", struc_name->c_str(), member_name->c_str());
+        ea_t func_ea = get_func_by_frame(sptr->id);
+        if (func_ea != BADADDR)
+        {
+            const auto func_name = qpool_.acquire();
+            get_func_name(&*func_name, func_ea);
+            LOG_EVENT("Stackframe of function %s member %s is to be deleted", func_name->c_str(), member_name->c_str());
+        }
+        else
+        {
+            const auto struc_name = qpool_.acquire();
+            get_struc_name(&*struc_name, sptr->id);
+            LOG_EVENT("Structure type %s member %s is to be deleted", struc_name->c_str(), member_name->c_str());
+        }
     }
 }
 
@@ -1188,9 +1251,19 @@ void Hooks::struc_member_deleted_event(va_list args)
     UNUSED(member_id);
     if (LOG_EVENTS)
     {
-        const auto struc_name = qpool_.acquire();
-        get_struc_name(&*struc_name, sptr->id);
-        LOG_EVENT("Structure type %s member at offset 0x%" EA_PREFIX "X has been deleted", struc_name->c_str(), offset);
+        ea_t func_ea = get_func_by_frame(sptr->id);
+        if (func_ea != BADADDR)
+        {
+            const auto func_name = qpool_.acquire();
+            get_func_name(&*func_name, func_ea);
+            LOG_EVENT("Stackframe of function %s member at offset 0x%" EA_PREFIX "X has been deleted", func_name->c_str(), offset);
+        }
+        else
+        {
+            const auto struc_name = qpool_.acquire();
+            get_struc_name(&*struc_name, sptr->id);
+            LOG_EVENT("Structure type %s member at offset 0x%" EA_PREFIX "X has been deleted", struc_name->c_str(), offset);
+        }
     }
 }
 
@@ -1202,11 +1275,21 @@ void Hooks::renaming_struc_member_event(va_list args)
 
     if (LOG_EVENTS)
     {
-        const auto struc_name = qpool_.acquire();
-        get_struc_name(&*struc_name, sptr->id);
         const auto member_name = qpool_.acquire();
         get_member_name(&*member_name, mptr->id);
-        LOG_EVENT("A member of structure type %s is to be renamed from %s to %s", struc_name->c_str(), member_name->c_str(), newname);
+        ea_t func_ea = get_func_by_frame(sptr->id);
+        if (func_ea != BADADDR)
+        {
+            const auto func_name = qpool_.acquire();
+            get_func_name(&*func_name, func_ea);
+            LOG_EVENT("A member of stackframe of function %s is to be renamed from %s to %s", func_name->c_str(), member_name->c_str(), newname);
+        }
+        else
+        {
+            const auto struc_name = qpool_.acquire();
+            get_struc_name(&*struc_name, sptr->id);
+            LOG_EVENT("A member of structure type %s is to be renamed from %s to %s", struc_name->c_str(), member_name->c_str(), newname);
+        }
     }
 }
 
@@ -1217,11 +1300,21 @@ void Hooks::struc_member_renamed_event(va_list args)
 
     if (LOG_EVENTS)
     {
-        const auto struc_name = qpool_.acquire();
-        get_struc_name(&*struc_name, sptr->id);
         const auto member_name = qpool_.acquire();
         get_member_name(&*member_name, mptr->id);
-        LOG_EVENT("A member of structure type %s has been renamed to %s", struc_name->c_str(), member_name->c_str());
+        ea_t func_ea = get_func_by_frame(sptr->id);
+        if (func_ea != BADADDR)
+        {
+            const auto func_name = qpool_.acquire();
+            get_func_name(&*func_name, func_ea);
+            LOG_EVENT("A member of stackframe of function %s has been renamed to %s", func_name->c_str(), member_name->c_str());
+        }
+        else
+        {
+            const auto struc_name = qpool_.acquire();
+            get_struc_name(&*struc_name, sptr->id);
+            LOG_EVENT("A member of structure type %s has been renamed to %s", struc_name->c_str(), member_name->c_str());
+        }
     }
 }
 
@@ -1238,11 +1331,21 @@ void Hooks::changing_struc_member_event(va_list args)
     UNUSED(nbytes);
     if (LOG_EVENTS)
     {
-        const auto struc_name = qpool_.acquire();
-        get_struc_name(&*struc_name, sptr->id);
         const auto member_name = qpool_.acquire();
         get_member_name(&*member_name, mptr->id);
-        LOG_EVENT("Structure type %s member %s is to be changed", struc_name->c_str(), member_name->c_str());
+        ea_t func_ea = get_func_by_frame(sptr->id);
+        if (func_ea != BADADDR)
+        {
+            const auto func_name = qpool_.acquire();
+            get_func_name(&*func_name, func_ea);
+            LOG_EVENT("Stackframe of function %s member %s is to be changed", func_name->c_str(), member_name->c_str());
+        }
+        else
+        {
+            const auto struc_name = qpool_.acquire();
+            get_struc_name(&*struc_name, sptr->id);
+            LOG_EVENT("Structure type %s member %s is to be changed", struc_name->c_str(), member_name->c_str());
+        }
     }
 }
 
@@ -1253,11 +1356,21 @@ void Hooks::struc_member_changed_event(va_list args)
 
     if (LOG_EVENTS)
     {
-        const auto struc_name = qpool_.acquire();
-        get_struc_name(&*struc_name, sptr->id);
         const auto member_name = qpool_.acquire();
         get_member_name(&*member_name, mptr->id);
-        LOG_EVENT("Structure type %s member %s has been changed", struc_name->c_str(), member_name->c_str());
+        ea_t func_ea = get_func_by_frame(sptr->id);
+        if (func_ea != BADADDR)
+        {
+            const auto func_name = qpool_.acquire();
+            get_func_name(&*func_name, func_ea);
+            LOG_EVENT("Stackframe of function %s member %s has been changed", func_name->c_str(), member_name->c_str());
+        }
+        else
+        {
+            const auto struc_name = qpool_.acquire();
+            get_struc_name(&*struc_name, sptr->id);
+            LOG_EVENT("Structure type %s member %s has been changed", struc_name->c_str(), member_name->c_str());
+        }
     }
 }
 
@@ -1279,10 +1392,26 @@ void Hooks::changing_struc_cmt_event(va_list args)
         }
         else
         {
-            const auto struc_member_fullname = qpool_.acquire();
-            get_member_fullname(&*struc_member_fullname, struc_id);
             get_member_cmt(&*cmt, struc_id, repeatable);
-            LOG_EVENT("Structure member %s %scomment is to be changed from \"%s\" to \"%s\"", struc_member_fullname->c_str(), REPEATABLE_STR[repeatable], cmt->c_str(), newcmt);
+            const auto member_name = qpool_.acquire();
+            get_member_name(&*member_name, struc_id);
+
+            const auto member_fullname = qpool_.acquire();
+            get_member_fullname(&*member_fullname, struc_id);
+            struc_t* struc = get_member_struc(member_fullname->c_str());
+            ea_t func_ea = get_func_by_frame(struc->id);
+            if (func_ea != BADADDR)
+            {
+                const auto func_name = qpool_.acquire();
+                get_func_name(&*func_name, func_ea);
+                LOG_EVENT("Stackframe of function %s member %s %scomment is to be changed from \"%s\" to \"%s\"", func_name->c_str(), member_name->c_str(), REPEATABLE_STR[repeatable], cmt->c_str(), newcmt);
+            }
+            else
+            {
+                const auto struc_name = qpool_.acquire();
+                get_struc_name(&*struc_name, struc->id);
+                LOG_EVENT("Structure type %s member %s %scomment is to be changed from \"%s\" to \"%s\"", struc_name->c_str(), member_name->c_str(), REPEATABLE_STR[repeatable], cmt->c_str(), newcmt);
+            }
         }
     }
 }
@@ -1304,10 +1433,26 @@ void Hooks::struc_cmt_changed_event(va_list args)
         }
         else
         {
-            const auto struc_member_fullname = qpool_.acquire();
-            get_member_fullname(&*struc_member_fullname, struc_id);
             get_member_cmt(&*cmt, struc_id, repeatable);
-            LOG_EVENT("Structure member %s %scomment has been changed to \"%s\"", struc_member_fullname->c_str(), REPEATABLE_STR[repeatable], cmt->c_str());
+            const auto member_name = qpool_.acquire();
+            get_member_name(&*member_name, struc_id);
+
+            const auto member_fullname = qpool_.acquire();
+            get_member_fullname(&*member_fullname, struc_id);
+            struc_t* struc = get_member_struc(member_fullname->c_str());
+            ea_t func_ea = get_func_by_frame(struc->id);
+            if (func_ea != BADADDR)
+            {
+                const auto func_name = qpool_.acquire();
+                get_func_name(&*func_name, func_ea);
+                LOG_EVENT("Stackframe of function %s member %s %scomment has been changed to \"%s\"", func_name->c_str(), member_name->c_str(), REPEATABLE_STR[repeatable], cmt->c_str());
+            }
+            else
+            {
+                const auto struc_name = qpool_.acquire();
+                get_struc_name(&*struc_name, struc->id);
+                LOG_EVENT("Structure type %s member %s %scomment has been changed to \"%s\"", struc_name->c_str(), member_name->c_str(), REPEATABLE_STR[repeatable], cmt->c_str());
+            }
         }
     }
 }
