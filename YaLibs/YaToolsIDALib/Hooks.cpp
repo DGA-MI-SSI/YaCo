@@ -1044,6 +1044,8 @@ void Hooks::struc_created_event(va_list args)
 {
     tid_t struc_id = va_arg(args, tid_t);
 
+    update_structure(struc_id);
+
     if (LOG_EVENTS)
     {
         ea_t func_ea = get_func_by_frame(struc_id);
@@ -1088,6 +1090,8 @@ void Hooks::struc_deleted_event(va_list args)
 {
     tid_t struc_id = va_arg(args, tid_t);
 
+    update_structure(struc_id);
+
     UNUSED(struc_id);
     if (LOG_EVENTS)
         LOG_EVENT("A structure type or stackframe has been deleted");
@@ -1131,6 +1135,8 @@ void Hooks::renaming_struc_event(va_list args)
 void Hooks::struc_renamed_event(va_list args)
 {
     struc_t* sptr = va_arg(args, struc_t*);
+
+    update_structure(sptr->id);
 
     if (LOG_EVENTS)
     {
@@ -1197,6 +1203,8 @@ void Hooks::struc_member_created_event(va_list args)
     struc_t* sptr = va_arg(args, struc_t*);
     member_t* mptr = va_arg(args, member_t*);
 
+    update_structure(sptr->id);
+
     if (LOG_EVENTS)
     {
         const auto member_name = qpool_.acquire();
@@ -1248,6 +1256,8 @@ void Hooks::struc_member_deleted_event(va_list args)
     tid_t member_id = va_arg(args, tid_t);
     ea_t offset = va_arg(args, ea_t);
 
+    delete_structure_member(sptr->id, member_id, offset);
+
     UNUSED(member_id);
     if (LOG_EVENTS)
     {
@@ -1297,6 +1307,8 @@ void Hooks::struc_member_renamed_event(va_list args)
 {
     struc_t* sptr = va_arg(args, struc_t*);
     member_t* mptr = va_arg(args, member_t*);
+
+    update_structure_member(sptr->id, mptr->id, mptr->eoff);
 
     if (LOG_EVENTS)
     {
@@ -1353,6 +1365,9 @@ void Hooks::struc_member_changed_event(va_list args)
 {
     struc_t* sptr = va_arg(args, struc_t*);
     member_t* mptr = va_arg(args, member_t*);
+
+    update_structure(sptr->id);
+    update_structure_member(sptr->id, mptr->id, mptr->eoff);
 
     if (LOG_EVENTS)
     {
@@ -1421,10 +1436,22 @@ void Hooks::struc_cmt_changed_event(va_list args)
     tid_t struc_id = va_arg(args, tid_t);
     bool repeatable = static_cast<bool>(va_arg(args, int));
 
+    tid_t real_struc_id = struc_id;
+    const bool is_member = !get_struc(struc_id);
+    if (is_member)
+    {
+        const auto member_fullname = qpool_.acquire();
+        get_member_fullname(&*member_fullname, struc_id);
+        struc_t* struc = get_member_struc(member_fullname->c_str());
+        if(struc)
+            real_struc_id = struc->id;
+    }
+    update_structure(real_struc_id);
+
     if (LOG_EVENTS)
     {
         const auto cmt = qpool_.acquire();
-        if (get_struc(struc_id))
+        if (!is_member)
         {
             const auto struc_name = qpool_.acquire();
             get_struc_name(&*struc_name, struc_id);
@@ -1437,10 +1464,7 @@ void Hooks::struc_cmt_changed_event(va_list args)
             const auto member_name = qpool_.acquire();
             get_member_name(&*member_name, struc_id);
 
-            const auto member_fullname = qpool_.acquire();
-            get_member_fullname(&*member_fullname, struc_id);
-            struc_t* struc = get_member_struc(member_fullname->c_str());
-            ea_t func_ea = get_func_by_frame(struc->id);
+            ea_t func_ea = get_func_by_frame(real_struc_id);
             if (func_ea != BADADDR)
             {
                 const auto func_name = qpool_.acquire();
@@ -1450,7 +1474,7 @@ void Hooks::struc_cmt_changed_event(va_list args)
             else
             {
                 const auto struc_name = qpool_.acquire();
-                get_struc_name(&*struc_name, struc->id);
+                get_struc_name(&*struc_name, real_struc_id);
                 LOG_EVENT("Structure type %s member %s %scomment has been changed to \"%s\"", struc_name->c_str(), member_name->c_str(), REPEATABLE_STR[repeatable], cmt->c_str());
             }
         }
