@@ -167,6 +167,7 @@ namespace
         void segm_class_changed_event(va_list args);
         void segm_attrs_updated_event(va_list args);
         void segm_moved_event(va_list args);
+        void allsegs_moved_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -263,7 +264,7 @@ namespace
             case envent_code::segm_class_changed:      hooks->segm_class_changed_event(args); break;
             case envent_code::segm_attrs_updated:      hooks->segm_attrs_updated_event(args); break;
             case envent_code::segm_moved:              hooks->segm_moved_event(args); break;
-            case envent_code::allsegs_moved:           LOG_EVENT("allsegs_moved"); break;
+            case envent_code::allsegs_moved:           hooks->allsegs_moved_event(args); break;
             case envent_code::func_added:              LOG_EVENT("func_added"); break;
             case envent_code::func_updated:            LOG_EVENT("func_updated"); break;
             case envent_code::set_func_start:          LOG_EVENT("set_func_start"); break;
@@ -1659,6 +1660,14 @@ void Hooks::segm_moved_event(va_list args)
         const char changed_netmap_txt[2][18] = { "", " (changed netmap)" };
         LOG_EVENT("Segment %s has been moved from " EA_FMT "-" EA_FMT " to " EA_FMT "-" EA_FMT "%s", segm_name->c_str(), from, from + size, to, to + size, changed_netmap_txt[changed_netmap]);
     }
+}
+
+void Hooks::allsegs_moved_event(va_list args)
+{
+    segm_move_infos_t* info = va_arg(args, segm_move_infos_t*);
+
+    if (LOG_EVENTS)
+        LOG_EVENT("Program rebasing is complete, %zd segments have been moved", info->size());
 }
 
 
