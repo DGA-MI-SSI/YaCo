@@ -264,15 +264,6 @@ class YaToolIDB_Hooks(idaapi.IDB_Hooks):
             self.debug_event("func_noret_changed")
         return idaapi.IDB_Hooks.func_noret_changed(self, *args)
 
-    def segm_added(self, segment):
-        self.pre_hook()
-
-        if LOG_IDB_EVENTS:
-            self.debug_event("segm_added")
-        hooks.ida.add_segment(segment)
-        return idaapi.IDB_Hooks.segm_added(self, segment)
-
-
     def func_updated(self, pfn):
         self.pre_hook()
         hooks.ida.update_function(pfn.start_ea)
