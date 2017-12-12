@@ -157,6 +157,7 @@ namespace
         void segm_added_event(va_list args);
         void deleting_segm_event(va_list args);
         void segm_deleted_event(va_list args);
+        void changing_segm_start_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -243,7 +244,7 @@ namespace
             case envent_code::segm_added:              hooks->segm_added_event(args); break;
             case envent_code::deleting_segm:           hooks->deleting_segm_event(args); break;
             case envent_code::segm_deleted:            hooks->segm_deleted_event(args); break;
-            case envent_code::changing_segm_start:     LOG_EVENT("changing_segm_start"); break;
+            case envent_code::changing_segm_start:     hooks->changing_segm_start_event(args); break;
             case envent_code::segm_start_changed:      LOG_EVENT("segm_start_changed"); break;
             case envent_code::changing_segm_end:       LOG_EVENT("changing_segm_end"); break;
             case envent_code::segm_end_changed:        LOG_EVENT("segm_end_changed"); break;
@@ -1516,6 +1517,21 @@ void Hooks::segm_deleted_event(va_list args)
 
     if (LOG_EVENTS)
         LOG_EVENT("A segment (from " EA_FMT " to " EA_FMT ") has been deleted", start_ea, end_ea);
+}
+
+void Hooks::changing_segm_start_event(va_list args)
+{
+    segment_t* s = va_arg(args, segment_t*);
+    ea_t new_start = va_arg(args, ea_t);
+    int segmod_flags = va_arg(args, int);
+
+    UNUSED(segmod_flags);
+    if (LOG_EVENTS)
+    {
+        const auto segm_name = qpool_.acquire();
+        get_segm_name(&*segm_name, s);
+        LOG_EVENT("Segment %s start address is to be changed from " EA_FMT " to " EA_FMT, segm_name->c_str(), s->start_ea, new_start);
+    }
 }
 
 
