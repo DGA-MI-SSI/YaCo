@@ -163,6 +163,7 @@ namespace
         void segm_end_changed_event(va_list args);
         void changing_segm_name_event(va_list args);
         void segm_name_changed_event(va_list args);
+        void changing_segm_class_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -255,7 +256,7 @@ namespace
             case envent_code::segm_end_changed:        hooks->segm_end_changed_event(args); break;
             case envent_code::changing_segm_name:      hooks->changing_segm_name_event(args); break;
             case envent_code::segm_name_changed:       hooks->segm_name_changed_event(args); break;
-            case envent_code::changing_segm_class:     LOG_EVENT("changing_segm_class"); break;
+            case envent_code::changing_segm_class:     hooks->changing_segm_class_event(args); break;
             case envent_code::segm_class_changed:      LOG_EVENT("segm_class_changed"); break;
             case envent_code::segm_attrs_updated:      LOG_EVENT("segm_attrs_updated"); break;
             case envent_code::segm_moved:              LOG_EVENT("segm_moved"); break;
@@ -1598,6 +1599,20 @@ void Hooks::segm_name_changed_event(va_list args)
     UNUSED(s);
     if (LOG_EVENTS)
         LOG_EVENT("A segment has been renamed %s", name);
+}
+
+void Hooks::changing_segm_class_event(va_list args)
+{
+    segment_t* s = va_arg(args, segment_t*);
+
+    if (LOG_EVENTS)
+    {
+        const auto segm_name = qpool_.acquire();
+        get_segm_name(&*segm_name, s);
+        const auto segm_class = qpool_.acquire();
+        get_segm_class(&*segm_class, s);
+        LOG_EVENT("Segment %s class is being changed from %s", segm_name->c_str(), segm_class->c_str());
+    }
 }
 
 
