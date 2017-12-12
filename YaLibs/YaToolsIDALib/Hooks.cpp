@@ -86,7 +86,7 @@ namespace
         void delete_structure_member(tid_t struct_id, tid_t member_id, ea_t offset) override;
         void update_enum(enum_t enum_id) override;
         void change_operand_type(ea_t ea) override;
-        void add_segment(ea_t start_ea, ea_t end_ea) override;
+        void update_segment(ea_t start_ea, ea_t end_ea) override;
         void change_type_information(ea_t ea) override;
 
         void hook() override;
@@ -404,7 +404,7 @@ void Hooks::change_operand_type(ea_t ea)
     IDA_LOG_WARNING("Operand type changed at %s, code out of a function: not implemented", ea_to_hex(ea).c_str());
 }
 
-void Hooks::add_segment(ea_t start_ea, ea_t end_ea)
+void Hooks::update_segment(ea_t start_ea, ea_t end_ea)
 {
     segments_to_process_.insert(std::make_tuple(start_ea, end_ea));
 }
@@ -1499,6 +1499,8 @@ void Hooks::segm_added_event(va_list args)
 {
     segment_t* s = va_arg(args, segment_t*);
 
+    update_segment(s->start_ea, s->end_ea);
+
     if (LOG_EVENTS)
     {
         const auto segm_name = qpool_.acquire();
@@ -1525,6 +1527,8 @@ void Hooks::segm_deleted_event(va_list args)
     ea_t start_ea = va_arg(args, ea_t);
     ea_t end_ea = va_arg(args, ea_t);
 
+    update_segment(start_ea, end_ea);
+
     if (LOG_EVENTS)
         LOG_EVENT("A segment (from " EA_FMT " to " EA_FMT ") has been deleted", start_ea, end_ea);
 }
@@ -1548,6 +1552,8 @@ void Hooks::segm_start_changed_event(va_list args)
 {
     segment_t* s = va_arg(args, segment_t*);
     ea_t oldstart = va_arg(args, ea_t);
+
+    update_segment(s->start_ea, s->end_ea);
 
     if (LOG_EVENTS)
     {
@@ -1577,6 +1583,8 @@ void Hooks::segm_end_changed_event(va_list args)
     segment_t* s = va_arg(args, segment_t*);
     ea_t oldend = va_arg(args, ea_t);
 
+    update_segment(s->start_ea, s->end_ea);
+
     if (LOG_EVENTS)
     {
         const auto segm_name = qpool_.acquire();
@@ -1599,6 +1607,8 @@ void Hooks::segm_name_changed_event(va_list args)
 {
     segment_t* s = va_arg(args, segment_t*);
     const char* name = va_arg(args, const char*);
+
+    update_segment(s->start_ea, s->end_ea);
 
     UNUSED(s);
     if (LOG_EVENTS)
@@ -1624,6 +1634,8 @@ void Hooks::segm_class_changed_event(va_list args)
     segment_t* s = va_arg(args, segment_t*);
     const char* sclass = va_arg(args, const char*);
 
+    update_segment(s->start_ea, s->end_ea);
+
     if (LOG_EVENTS)
     {
         const auto segm_name = qpool_.acquire();
@@ -1636,6 +1648,8 @@ void Hooks::segm_attrs_updated_event(va_list args)
 {
     // This event is generated for secondary segment attributes (examples: color, permissions, etc)
     segment_t* s = va_arg(args, segment_t*);
+
+    update_segment(s->start_ea, s->end_ea);
 
     if (LOG_EVENTS)
     {
@@ -1652,9 +1666,11 @@ void Hooks::segm_moved_event(va_list args)
     asize_t size = va_arg(args, asize_t);
     bool changed_netmap = static_cast<bool>(va_arg(args, int));
 
+    const segment_t* s = getseg(to);
+    update_segment(s->start_ea, s->end_ea);
+
     if (LOG_EVENTS)
     {
-        const segment_t* s = getseg(to);
         const auto segm_name = qpool_.acquire();
         get_segm_name(&*segm_name, s);
         const char changed_netmap_txt[2][18] = { "", " (changed netmap)" };
