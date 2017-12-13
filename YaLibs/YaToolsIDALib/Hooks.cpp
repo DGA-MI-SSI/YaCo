@@ -184,6 +184,7 @@ namespace
         void updating_tryblks_event(va_list args);
         void tryblks_updated_event(va_list args);
         void deleting_tryblks_event(va_list args);
+        void sgr_changed_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -297,7 +298,7 @@ namespace
             case envent_code::updating_tryblks:        hooks->updating_tryblks_event(args); break;
             case envent_code::tryblks_updated:         hooks->tryblks_updated_event(args); break;
             case envent_code::deleting_tryblks:        hooks->deleting_tryblks_event(args); break;
-            case envent_code::sgr_changed:             LOG_EVENT("sgr_changed"); break;
+            case envent_code::sgr_changed:             hooks->sgr_changed_event(args); break;
             case envent_code::make_code:               LOG_EVENT("make_code"); break;
             case envent_code::make_data:               LOG_EVENT("make_data"); break;
             case envent_code::destroyed_items:         LOG_EVENT("destroyed_items"); break;
@@ -1911,6 +1912,25 @@ void Hooks::deleting_tryblks_event(va_list args)
 
     if (LOG_EVENTS)
         LOG_EVENT("About to delete try block information in range " EA_FMT "-" EA_FMT, range->start_ea, range->end_ea);
+}
+
+void Hooks::sgr_changed_event(va_list args)
+{
+    ea_t start_ea = va_arg(args, ea_t);
+    ea_t end_ea = va_arg(args, ea_t);
+    int regnum = va_arg(args, int);
+    sel_t value = va_arg(args, sel_t);
+    sel_t old_value = va_arg(args, sel_t);
+    uchar tag = static_cast<uchar>(va_arg(args, int));
+
+    UNUSED(start_ea);
+    UNUSED(end_ea);
+    UNUSED(regnum);
+    UNUSED(value);
+    UNUSED(old_value);
+    UNUSED(tag);
+    if (LOG_EVENTS)
+        LOG_EVENT("The kernel has changed a segment register value");
 }
 
 
