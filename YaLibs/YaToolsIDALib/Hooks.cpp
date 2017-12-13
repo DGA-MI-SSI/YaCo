@@ -177,6 +177,7 @@ namespace
         void thunk_func_created_event(va_list args);
         void func_tail_appended_event(va_list args);
         void deleting_func_tail_event(va_list args);
+        void func_tail_deleted_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -283,7 +284,7 @@ namespace
             case envent_code::thunk_func_created:      hooks->thunk_func_created_event(args); break;
             case envent_code::func_tail_appended:      hooks->func_tail_appended_event(args); break;
             case envent_code::deleting_func_tail:      hooks->deleting_func_tail_event(args); break;
-            case envent_code::func_tail_deleted:       LOG_EVENT("func_tail_deleted"); break;
+            case envent_code::func_tail_deleted:       hooks->func_tail_deleted_event(args); break;
             case envent_code::tail_owner_changed:      LOG_EVENT("tail_owner_changed"); break;
             case envent_code::func_noret_changed:      LOG_EVENT("func_noret_changed"); break;
             case envent_code::stkpnts_changed:         LOG_EVENT("stkpnts_changed"); break;
@@ -1801,6 +1802,19 @@ void Hooks::deleting_func_tail_event(va_list args)
         const auto func_name = qpool_.acquire();
         get_func_name(&*func_name, pfn->start_ea);
         LOG_EVENT("Function %s tail chunk from " EA_FMT " to " EA_FMT " is to be removed", func_name->c_str(), tail->start_ea, tail->end_ea);
+    }
+}
+
+void Hooks::func_tail_deleted_event(va_list args)
+{
+    func_t* pfn = va_arg(args, func_t*);
+    ea_t tail_ea = va_arg(args, ea_t);
+
+    if (LOG_EVENTS)
+    {
+        const auto func_name = qpool_.acquire();
+        get_func_name(&*func_name, pfn->start_ea);
+        LOG_EVENT("Function %s tail chunk at " EA_FMT " has been removed", func_name->c_str(), tail_ea);
     }
 }
 
