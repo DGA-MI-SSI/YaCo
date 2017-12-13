@@ -178,6 +178,7 @@ namespace
         void func_tail_appended_event(va_list args);
         void deleting_func_tail_event(va_list args);
         void func_tail_deleted_event(va_list args);
+        void tail_owner_changed_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -285,7 +286,7 @@ namespace
             case envent_code::func_tail_appended:      hooks->func_tail_appended_event(args); break;
             case envent_code::deleting_func_tail:      hooks->deleting_func_tail_event(args); break;
             case envent_code::func_tail_deleted:       hooks->func_tail_deleted_event(args); break;
-            case envent_code::tail_owner_changed:      LOG_EVENT("tail_owner_changed"); break;
+            case envent_code::tail_owner_changed:      hooks->tail_owner_changed_event(args); break;
             case envent_code::func_noret_changed:      LOG_EVENT("func_noret_changed"); break;
             case envent_code::stkpnts_changed:         LOG_EVENT("stkpnts_changed"); break;
             case envent_code::updating_tryblks:        LOG_EVENT("updating_tryblks"); break;
@@ -1815,6 +1816,22 @@ void Hooks::func_tail_deleted_event(va_list args)
         const auto func_name = qpool_.acquire();
         get_func_name(&*func_name, pfn->start_ea);
         LOG_EVENT("Function %s tail chunk at " EA_FMT " has been removed", func_name->c_str(), tail_ea);
+    }
+}
+
+void Hooks::tail_owner_changed_event(va_list args)
+{
+    func_t* pfn = va_arg(args, func_t*);
+    ea_t owner_func = va_arg(args, ea_t);
+    ea_t old_owner = va_arg(args, ea_t);
+
+    if (LOG_EVENTS)
+    {
+        const auto owner_func_name = qpool_.acquire();
+        get_func_name(&*owner_func_name, owner_func);
+        const auto old_owner_func_name = qpool_.acquire();
+        get_func_name(&*old_owner_func_name, old_owner);
+        LOG_EVENT("Tail chunk from " EA_FMT " to " EA_FMT " owner function changed from %s to %s", pfn->start_ea, pfn->end_ea, old_owner_func_name->c_str(), owner_func_name->c_str());
     }
 }
 
