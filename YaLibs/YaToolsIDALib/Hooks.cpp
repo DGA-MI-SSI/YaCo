@@ -174,6 +174,7 @@ namespace
         void set_func_end_event(va_list args);
         void deleting_func_event(va_list args);
         void frame_deleted_event(va_list args);
+        void thunk_func_created_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -277,7 +278,7 @@ namespace
             case envent_code::set_func_end:            hooks->set_func_end_event(args); break;
             case envent_code::deleting_func:           hooks->deleting_func_event(args); break;
             case envent_code::frame_deleted:           hooks->frame_deleted_event(args); break;
-            case envent_code::thunk_func_created:      LOG_EVENT("thunk_func_created"); break;
+            case envent_code::thunk_func_created:      hooks->thunk_func_created_event(args); break;
             case envent_code::func_tail_appended:      LOG_EVENT("func_tail_appended"); break;
             case envent_code::deleting_func_tail:      LOG_EVENT("deleting_func_tail"); break;
             case envent_code::func_tail_deleted:       LOG_EVENT("func_tail_deleted"); break;
@@ -1761,6 +1762,18 @@ void Hooks::frame_deleted_event(va_list args)
     UNUSED(pfn);
     if (LOG_EVENTS)
         LOG_EVENT("A function frame has been deleted");
+}
+
+void Hooks::thunk_func_created_event(va_list args)
+{
+    func_t* pfn = va_arg(args, func_t*);
+
+    if (LOG_EVENTS)
+    {
+        const auto func_name = qpool_.acquire();
+        get_func_name(&*func_name, pfn->start_ea);
+        LOG_EVENT("Function %s thunk bit has been set to %s", func_name->c_str(), BOOL_STR[!!(pfn->flags & FUNC_THUNK)]);
+    }
 }
 
 
