@@ -183,6 +183,7 @@ namespace
         void stkpnts_changed_event(va_list args);
         void updating_tryblks_event(va_list args);
         void tryblks_updated_event(va_list args);
+        void deleting_tryblks_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -295,7 +296,7 @@ namespace
             case envent_code::stkpnts_changed:         hooks->stkpnts_changed_event(args); break;
             case envent_code::updating_tryblks:        hooks->updating_tryblks_event(args); break;
             case envent_code::tryblks_updated:         hooks->tryblks_updated_event(args); break;
-            case envent_code::deleting_tryblks:        LOG_EVENT("deleting_tryblks"); break;
+            case envent_code::deleting_tryblks:        hooks->deleting_tryblks_event(args); break;
             case envent_code::sgr_changed:             LOG_EVENT("sgr_changed"); break;
             case envent_code::make_code:               LOG_EVENT("make_code"); break;
             case envent_code::make_data:               LOG_EVENT("make_data"); break;
@@ -1902,6 +1903,14 @@ void Hooks::tryblks_updated_event(va_list args)
     UNUSED(tbv);
     if (LOG_EVENTS)
         LOG_EVENT("Updated try block information");
+}
+
+void Hooks::deleting_tryblks_event(va_list args)
+{
+    const range_t* range = va_arg(args, const range_t*);
+
+    if (LOG_EVENTS)
+        LOG_EVENT("About to delete try block information in range " EA_FMT "-" EA_FMT, range->start_ea, range->end_ea);
 }
 
 
