@@ -181,6 +181,7 @@ namespace
         void tail_owner_changed_event(va_list args);
         void func_noret_changed_event(va_list args);
         void stkpnts_changed_event(va_list args);
+        void updating_tryblks_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -291,7 +292,7 @@ namespace
             case envent_code::tail_owner_changed:      hooks->tail_owner_changed_event(args); break;
             case envent_code::func_noret_changed:      hooks->func_noret_changed_event(args); break;
             case envent_code::stkpnts_changed:         hooks->stkpnts_changed_event(args); break;
-            case envent_code::updating_tryblks:        LOG_EVENT("updating_tryblks"); break;
+            case envent_code::updating_tryblks:        hooks->updating_tryblks_event(args); break;
             case envent_code::tryblks_updated:         LOG_EVENT("tryblks_updated"); break;
             case envent_code::deleting_tryblks:        LOG_EVENT("deleting_tryblks"); break;
             case envent_code::sgr_changed:             LOG_EVENT("sgr_changed"); break;
@@ -1882,6 +1883,15 @@ void Hooks::stkpnts_changed_event(va_list args)
         get_func_name(&*func_name, pfn->start_ea);
         LOG_EVENT("Function %s stack change points have been modified", func_name->c_str());
     }
+}
+
+void Hooks::updating_tryblks_event(va_list args)
+{
+    const tryblks_t* tbv = va_arg(args, const tryblks_t*);
+
+    UNUSED(tbv);
+    if (LOG_EVENTS)
+        LOG_EVENT("About to update try block information");
 }
 
 
