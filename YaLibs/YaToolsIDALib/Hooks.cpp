@@ -180,6 +180,7 @@ namespace
         void func_tail_deleted_event(va_list args);
         void tail_owner_changed_event(va_list args);
         void func_noret_changed_event(va_list args);
+        void stkpnts_changed_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -289,7 +290,7 @@ namespace
             case envent_code::func_tail_deleted:       hooks->func_tail_deleted_event(args); break;
             case envent_code::tail_owner_changed:      hooks->tail_owner_changed_event(args); break;
             case envent_code::func_noret_changed:      hooks->func_noret_changed_event(args); break;
-            case envent_code::stkpnts_changed:         LOG_EVENT("stkpnts_changed"); break;
+            case envent_code::stkpnts_changed:         hooks->stkpnts_changed_event(args); break;
             case envent_code::updating_tryblks:        LOG_EVENT("updating_tryblks"); break;
             case envent_code::tryblks_updated:         LOG_EVENT("tryblks_updated"); break;
             case envent_code::deleting_tryblks:        LOG_EVENT("deleting_tryblks"); break;
@@ -1866,6 +1867,20 @@ void Hooks::func_noret_changed_event(va_list args)
         const auto func_name = qpool_.acquire();
         get_func_name(&*func_name, pfn->start_ea);
         LOG_EVENT("Function %s FUNC_NORET flag has been changed to %s", func_name->c_str(), BOOL_STR[!!(pfn->flags & FUNC_NORET)]);
+    }
+}
+
+void Hooks::stkpnts_changed_event(va_list args)
+{
+    func_t* pfn = va_arg(args, func_t*);
+
+    update_function(pfn->start_ea);
+
+    if (LOG_EVENTS)
+    {
+        const auto func_name = qpool_.acquire();
+        get_func_name(&*func_name, pfn->start_ea);
+        LOG_EVENT("Function %s stack change points have been modified", func_name->c_str());
     }
 }
 
