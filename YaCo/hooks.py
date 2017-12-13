@@ -191,28 +191,6 @@ class YaToolIDB_Hooks(idaapi.IDB_Hooks):
         hooks.ida.make_data(ea)
         return idaapi.IDB_Hooks.make_data(self, ea, flags, tid, length)
 
-    def func_added(self, func):
-        self.pre_hook()
-        if LOG_IDP_EVENTS:
-            self.debug_event("Add func")
-        self.unhook()
-        hooks.idb.unhook()
-        hooks.ida.add_function(func.start_ea)
-        self.hook()
-        hooks.idb.hook()
-        return idaapi.IDB_Hooks.func_added(self, func)
-
-    def deleting_func(self, func):
-        self.pre_hook()
-        if LOG_IDP_EVENTS:
-            self.debug_event("Del func : 0x%08x" % func.start_ea)
-        self.unhook()
-        hooks.idb.unhook()
-        hooks.ida.delete_function(func.start_ea)
-        self.hook()
-        hooks.idb.hook()
-        return idaapi.IDB_Hooks.deleting_func(self, func)
-
     def debug_event(self, text):
         auto_display = idaapi.auto_display_t()
         logger.debug("event: auto=%d, AA_type=%d, AA_state=%d, text='%s'" %
@@ -256,18 +234,6 @@ class YaToolIDB_Hooks(idaapi.IDB_Hooks):
             self.debug_event("op_type_changed at 0x%08X" % address)
         hooks.ida.change_operand_type(address)
         return idaapi.IDB_Hooks.op_type_changed(self, address, operand)
-
-    def func_noret_changed(self, *args):
-        self.pre_hook()
-
-        if LOG_IDB_EVENTS:
-            self.debug_event("func_noret_changed")
-        return idaapi.IDB_Hooks.func_noret_changed(self, *args)
-
-    def func_updated(self, pfn):
-        self.pre_hook()
-        hooks.ida.update_function(pfn.start_ea)
-        return idaapi.IDB_Hooks.func_updated(self, pfn)
 
 # ======================================================================#
 # Hooks

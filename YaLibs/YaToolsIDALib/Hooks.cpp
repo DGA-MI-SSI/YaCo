@@ -1702,6 +1702,8 @@ void Hooks::func_added_event(va_list args)
 {
     func_t* pfn = va_arg(args, func_t*);
 
+    add_function(pfn->start_ea);
+
     if (LOG_EVENTS)
     {
         const auto func_name = qpool_.acquire();
@@ -1713,6 +1715,8 @@ void Hooks::func_added_event(va_list args)
 void Hooks::func_updated_event(va_list args)
 {
     func_t* pfn = va_arg(args, func_t*);
+
+    update_function(pfn->start_ea);
 
     if (LOG_EVENTS)
     {
@@ -1727,6 +1731,8 @@ void Hooks::set_func_start_event(va_list args)
     func_t* pfn = va_arg(args, func_t*);
     ea_t new_start = va_arg(args, ea_t);
 
+    update_function(pfn->start_ea);
+
     if (LOG_EVENTS)
     {
         const auto func_name = qpool_.acquire();
@@ -1740,6 +1746,8 @@ void Hooks::set_func_end_event(va_list args)
     func_t* pfn = va_arg(args, func_t*);
     ea_t new_end = va_arg(args, ea_t);
 
+    update_function(pfn->start_ea);
+
     if (LOG_EVENTS)
     {
         const auto func_name = qpool_.acquire();
@@ -1751,6 +1759,8 @@ void Hooks::set_func_end_event(va_list args)
 void Hooks::deleting_func_event(va_list args)
 {
     func_t* pfn = va_arg(args, func_t*);
+
+    delete_function(pfn->start_ea);
 
     if (LOG_EVENTS)
     {
@@ -1773,6 +1783,8 @@ void Hooks::thunk_func_created_event(va_list args)
 {
     func_t* pfn = va_arg(args, func_t*);
 
+    update_function(pfn->start_ea);
+
     if (LOG_EVENTS)
     {
         const auto func_name = qpool_.acquire();
@@ -1785,6 +1797,8 @@ void Hooks::func_tail_appended_event(va_list args)
 {
     func_t* pfn = va_arg(args, func_t*);
     func_t* tail = va_arg(args, func_t*);
+
+    update_function(pfn->start_ea);
 
     if (LOG_EVENTS)
     {
@@ -1812,6 +1826,8 @@ void Hooks::func_tail_deleted_event(va_list args)
     func_t* pfn = va_arg(args, func_t*);
     ea_t tail_ea = va_arg(args, ea_t);
 
+    update_function(pfn->start_ea);
+
     if (LOG_EVENTS)
     {
         const auto func_name = qpool_.acquire();
@@ -1826,6 +1842,9 @@ void Hooks::tail_owner_changed_event(va_list args)
     ea_t owner_func = va_arg(args, ea_t);
     ea_t old_owner = va_arg(args, ea_t);
 
+    update_function(owner_func);
+    update_function(old_owner);
+
     if (LOG_EVENTS)
     {
         const auto owner_func_name = qpool_.acquire();
@@ -1839,6 +1858,8 @@ void Hooks::tail_owner_changed_event(va_list args)
 void Hooks::func_noret_changed_event(va_list args)
 {
     func_t* pfn = va_arg(args, func_t*);
+
+    update_function(pfn->start_ea);
 
     if (LOG_EVENTS)
     {
