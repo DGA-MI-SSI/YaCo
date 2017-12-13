@@ -171,6 +171,7 @@ namespace
         void func_added_event(va_list args);
         void func_updated_event(va_list args);
         void set_func_start_event(va_list args);
+        void set_func_end_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -271,7 +272,7 @@ namespace
             case envent_code::func_added:              hooks->func_added_event(args); break;
             case envent_code::func_updated:            hooks->func_updated_event(args); break;
             case envent_code::set_func_start:          hooks->set_func_start_event(args); break;
-            case envent_code::set_func_end:            LOG_EVENT("set_func_end"); break;
+            case envent_code::set_func_end:            hooks->set_func_end_event(args); break;
             case envent_code::deleting_func:           LOG_EVENT("deleting_func"); break;
             case envent_code::frame_deleted:           LOG_EVENT("frame_deleted"); break;
             case envent_code::thunk_func_created:      LOG_EVENT("thunk_func_created"); break;
@@ -1723,6 +1724,19 @@ void Hooks::set_func_start_event(va_list args)
         const auto func_name = qpool_.acquire();
         get_func_name(&*func_name, pfn->start_ea);
         LOG_EVENT("Function %s chunk start address will be changed from " EA_FMT " to " EA_FMT, func_name->c_str(), pfn->start_ea, new_start);
+    }
+}
+
+void Hooks::set_func_end_event(va_list args)
+{
+    func_t* pfn = va_arg(args, func_t*);
+    ea_t new_end = va_arg(args, ea_t);
+
+    if (LOG_EVENTS)
+    {
+        const auto func_name = qpool_.acquire();
+        get_func_name(&*func_name, pfn->start_ea);
+        LOG_EVENT("Function %s chunk end address will be changed from " EA_FMT " to " EA_FMT, func_name->c_str(), pfn->end_ea, new_end);
     }
 }
 
