@@ -168,6 +168,7 @@ namespace
         void segm_attrs_updated_event(va_list args);
         void segm_moved_event(va_list args);
         void allsegs_moved_event(va_list args);
+        void func_added_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -265,7 +266,7 @@ namespace
             case envent_code::segm_attrs_updated:      hooks->segm_attrs_updated_event(args); break;
             case envent_code::segm_moved:              hooks->segm_moved_event(args); break;
             case envent_code::allsegs_moved:           hooks->allsegs_moved_event(args); break;
-            case envent_code::func_added:              LOG_EVENT("func_added"); break;
+            case envent_code::func_added:              hooks->func_added_event(args); break;
             case envent_code::func_updated:            LOG_EVENT("func_updated"); break;
             case envent_code::set_func_start:          LOG_EVENT("set_func_start"); break;
             case envent_code::set_func_end:            LOG_EVENT("set_func_end"); break;
@@ -1684,6 +1685,18 @@ void Hooks::allsegs_moved_event(va_list args)
 
     if (LOG_EVENTS)
         LOG_EVENT("Program rebasing is complete, %zd segments have been moved", info->size());
+}
+
+void Hooks::func_added_event(va_list args)
+{
+    func_t* pfn = va_arg(args, func_t*);
+
+    if (LOG_EVENTS)
+    {
+        const auto func_name = qpool_.acquire();
+        get_func_name(&*func_name, pfn->start_ea);
+        LOG_EVENT("Function %s has been created from " EA_FMT " to " EA_FMT, func_name->c_str(), pfn->start_ea, pfn->end_ea);
+    }
 }
 
 
