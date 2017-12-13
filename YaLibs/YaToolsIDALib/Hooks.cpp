@@ -182,6 +182,7 @@ namespace
         void func_noret_changed_event(va_list args);
         void stkpnts_changed_event(va_list args);
         void updating_tryblks_event(va_list args);
+        void tryblks_updated_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -293,7 +294,7 @@ namespace
             case envent_code::func_noret_changed:      hooks->func_noret_changed_event(args); break;
             case envent_code::stkpnts_changed:         hooks->stkpnts_changed_event(args); break;
             case envent_code::updating_tryblks:        hooks->updating_tryblks_event(args); break;
-            case envent_code::tryblks_updated:         LOG_EVENT("tryblks_updated"); break;
+            case envent_code::tryblks_updated:         hooks->tryblks_updated_event(args); break;
             case envent_code::deleting_tryblks:        LOG_EVENT("deleting_tryblks"); break;
             case envent_code::sgr_changed:             LOG_EVENT("sgr_changed"); break;
             case envent_code::make_code:               LOG_EVENT("make_code"); break;
@@ -1892,6 +1893,15 @@ void Hooks::updating_tryblks_event(va_list args)
     UNUSED(tbv);
     if (LOG_EVENTS)
         LOG_EVENT("About to update try block information");
+}
+
+void Hooks::tryblks_updated_event(va_list args)
+{
+    const tryblks_t* tbv = va_arg(args, const tryblks_t*);
+
+    UNUSED(tbv);
+    if (LOG_EVENTS)
+        LOG_EVENT("Updated try block information");
 }
 
 
