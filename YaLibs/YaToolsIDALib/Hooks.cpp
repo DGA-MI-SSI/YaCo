@@ -190,6 +190,7 @@ namespace
         void destroyed_items_event(va_list args);
         void renamed_event(va_list args);
         void byte_patched_event(va_list args);
+        void changing_cmt_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -309,7 +310,7 @@ namespace
             case envent_code::destroyed_items:         hooks->destroyed_items_event(args); break;
             case envent_code::renamed:                 hooks->renamed_event(args); break;
             case envent_code::byte_patched:            hooks->byte_patched_event(args); break;
-            case envent_code::changing_cmt:            LOG_EVENT("changing_cmt"); break;
+            case envent_code::changing_cmt:            hooks->changing_cmt_event(args); break;
             case envent_code::cmt_changed:             LOG_EVENT("cmt_changed"); break;
             case envent_code::changing_range_cmt:      LOG_EVENT("changing_range_cmt"); break;
             case envent_code::range_cmt_changed:       LOG_EVENT("range_cmt_changed"); break;
@@ -1989,6 +1990,20 @@ void Hooks::byte_patched_event(va_list args)
 
     if (LOG_EVENTS)
         LOG_EVENT("Byte at " EA_FMT " has been changed from 0x%02X to 0x%02X", ea, old_value, get_byte(ea));
+}
+
+void Hooks::changing_cmt_event(va_list args)
+{
+    ea_t ea = va_arg(args, ea_t);
+    bool repeatable_cmt = static_cast<bool>(va_arg(args, int));
+    const char* newcmt = va_arg(args, const char*);
+
+    if (LOG_EVENTS)
+    {
+        const auto cmt = qpool_.acquire();
+        get_cmt(&*cmt, ea, repeatable_cmt);
+        LOG_EVENT("Item at " EA_FMT " %scomment is to be changed from \"%s\" to \"%s\"", ea, REPEATABLE_STR[repeatable_cmt], cmt->c_str(), newcmt);
+    }
 }
 
 
