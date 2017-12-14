@@ -187,6 +187,7 @@ namespace
         void sgr_changed_event(va_list args);
         void make_code_event(va_list args);
         void make_data_event(va_list args);
+        void destroyed_items_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -303,7 +304,7 @@ namespace
             case envent_code::sgr_changed:             hooks->sgr_changed_event(args); break;
             case envent_code::make_code:               hooks->make_code_event(args); break;
             case envent_code::make_data:               hooks->make_data_event(args); break;
-            case envent_code::destroyed_items:         LOG_EVENT("destroyed_items"); break;
+            case envent_code::destroyed_items:         hooks->destroyed_items_event(args); break;
             case envent_code::renamed:                 LOG_EVENT("renamed"); break;
             case envent_code::byte_patched:            LOG_EVENT("byte_patched"); break;
             case envent_code::changing_cmt:            LOG_EVENT("changing_cmt"); break;
@@ -1955,6 +1956,17 @@ void Hooks::make_data_event(va_list args)
     UNUSED(len);
     if (LOG_EVENTS)
         LOG_EVENT("A data item is being created at " EA_FMT, ea);
+}
+
+void Hooks::destroyed_items_event(va_list args)
+{
+    ea_t ea1 = va_arg(args, ea_t);
+    ea_t ea2 = va_arg(args, ea_t);
+    bool will_disable_range = static_cast<bool>(va_arg(args, int));
+
+    UNUSED(will_disable_range);
+    if (LOG_EVENTS)
+        LOG_EVENT("Instructions/data have been destroyed in " EA_FMT "-" EA_FMT, ea1, ea2);
 }
 
 
