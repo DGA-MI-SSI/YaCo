@@ -188,6 +188,7 @@ namespace
         void make_code_event(va_list args);
         void make_data_event(va_list args);
         void destroyed_items_event(va_list args);
+        void renamed_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -305,7 +306,7 @@ namespace
             case envent_code::make_code:               hooks->make_code_event(args); break;
             case envent_code::make_data:               hooks->make_data_event(args); break;
             case envent_code::destroyed_items:         hooks->destroyed_items_event(args); break;
-            case envent_code::renamed:                 LOG_EVENT("renamed"); break;
+            case envent_code::renamed:                 hooks->renamed_event(args); break;
             case envent_code::byte_patched:            LOG_EVENT("byte_patched"); break;
             case envent_code::changing_cmt:            LOG_EVENT("changing_cmt"); break;
             case envent_code::cmt_changed:             LOG_EVENT("cmt_changed"); break;
@@ -1967,6 +1968,17 @@ void Hooks::destroyed_items_event(va_list args)
     UNUSED(will_disable_range);
     if (LOG_EVENTS)
         LOG_EVENT("Instructions/data have been destroyed in " EA_FMT "-" EA_FMT, ea1, ea2);
+}
+
+void Hooks::renamed_event(va_list args)
+{
+    ea_t ea = va_arg(args, ea_t);
+    const char* new_name = va_arg(args, const char*);
+    bool local_name = static_cast<bool>(va_arg(args, int));
+
+    UNUSED(local_name);
+    if (LOG_EVENTS)
+        LOG_EVENT("Byte at " EA_FMT " renamed to %s", ea, new_name);
 }
 
 
