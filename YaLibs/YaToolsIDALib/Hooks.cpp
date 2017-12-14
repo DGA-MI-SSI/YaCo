@@ -186,6 +186,7 @@ namespace
         void deleting_tryblks_event(va_list args);
         void sgr_changed_event(va_list args);
         void make_code_event(va_list args);
+        void make_data_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -301,7 +302,7 @@ namespace
             case envent_code::deleting_tryblks:        hooks->deleting_tryblks_event(args); break;
             case envent_code::sgr_changed:             hooks->sgr_changed_event(args); break;
             case envent_code::make_code:               hooks->make_code_event(args); break;
-            case envent_code::make_data:               LOG_EVENT("make_data"); break;
+            case envent_code::make_data:               hooks->make_data_event(args); break;
             case envent_code::destroyed_items:         LOG_EVENT("destroyed_items"); break;
             case envent_code::renamed:                 LOG_EVENT("renamed"); break;
             case envent_code::byte_patched:            LOG_EVENT("byte_patched"); break;
@@ -1940,6 +1941,20 @@ void Hooks::make_code_event(va_list args)
 
     if (LOG_EVENTS)
         LOG_EVENT("An instruction is being created at " EA_FMT, insn->ea);
+}
+
+void Hooks::make_data_event(va_list args)
+{
+    ea_t ea = va_arg(args, ea_t);
+    flags_t flags = va_arg(args, flags_t);
+    tid_t tid = va_arg(args, tid_t);
+    asize_t len = va_arg(args, asize_t);
+
+    UNUSED(flags);
+    UNUSED(tid);
+    UNUSED(len);
+    if (LOG_EVENTS)
+        LOG_EVENT("A data item is being created at " EA_FMT, ea);
 }
 
 
