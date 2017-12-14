@@ -189,6 +189,7 @@ namespace
         void make_data_event(va_list args);
         void destroyed_items_event(va_list args);
         void renamed_event(va_list args);
+        void byte_patched_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -307,7 +308,7 @@ namespace
             case envent_code::make_data:               hooks->make_data_event(args); break;
             case envent_code::destroyed_items:         hooks->destroyed_items_event(args); break;
             case envent_code::renamed:                 hooks->renamed_event(args); break;
-            case envent_code::byte_patched:            LOG_EVENT("byte_patched"); break;
+            case envent_code::byte_patched:            hooks->byte_patched_event(args); break;
             case envent_code::changing_cmt:            LOG_EVENT("changing_cmt"); break;
             case envent_code::cmt_changed:             LOG_EVENT("cmt_changed"); break;
             case envent_code::changing_range_cmt:      LOG_EVENT("changing_range_cmt"); break;
@@ -1979,6 +1980,15 @@ void Hooks::renamed_event(va_list args)
     UNUSED(local_name);
     if (LOG_EVENTS)
         LOG_EVENT("Byte at " EA_FMT " renamed to %s", ea, new_name);
+}
+
+void Hooks::byte_patched_event(va_list args)
+{
+    ea_t ea = va_arg(args, ea_t);
+    uint32 old_value = va_arg(args, uint32);
+
+    if (LOG_EVENTS)
+        LOG_EVENT("Byte at " EA_FMT " has been changed from 0x%02X to 0x%02X", ea, old_value, get_byte(ea));
 }
 
 
