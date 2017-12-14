@@ -58,6 +58,22 @@ namespace
     const char BOOL_STR[2][6] = { "false", "true" };
     const char REPEATABLE_STR[2][12] = { "", "repeatable " };
 
+    const char* range_kind_to_str(range_kind_t kind)
+    {
+        switch (kind)
+        {
+        case RANGE_KIND_UNKNOWN:
+            return "Unknow";
+        case RANGE_KIND_FUNC:
+            return "Function";
+        case RANGE_KIND_SEGMENT:
+            return "Segment";
+        case RANGE_KIND_HIDDEN_RANGE:
+            return "Hidden";
+        }
+        return "";
+    }
+
     std::string get_cache_folder_path()
     {
         std::string cache_folder_path = get_path(PATH_TYPE_IDB);
@@ -192,6 +208,7 @@ namespace
         void byte_patched_event(va_list args);
         void changing_cmt_event(va_list args);
         void cmt_changed_event(va_list args);
+        void changing_range_cmt_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -313,7 +330,7 @@ namespace
             case envent_code::byte_patched:            hooks->byte_patched_event(args); break;
             case envent_code::changing_cmt:            hooks->changing_cmt_event(args); break;
             case envent_code::cmt_changed:             hooks->cmt_changed_event(args); break;
-            case envent_code::changing_range_cmt:      LOG_EVENT("changing_range_cmt"); break;
+            case envent_code::changing_range_cmt:      hooks->changing_range_cmt_event(args); break;
             case envent_code::range_cmt_changed:       LOG_EVENT("range_cmt_changed"); break;
             case envent_code::extra_cmt_changed:       LOG_EVENT("extra_cmt_changed"); break;
         }
@@ -2018,6 +2035,17 @@ void Hooks::cmt_changed_event(va_list args)
         get_cmt(&*cmt, ea, repeatable_cmt);
         LOG_EVENT("Item at " EA_FMT " %scomment has been changed to \"%s\"", ea, REPEATABLE_STR[repeatable_cmt], cmt->c_str());
     }
+}
+
+void Hooks::changing_range_cmt_event(va_list args)
+{
+    range_kind_t kind = static_cast<range_kind_t>(va_arg(args, int));
+    const range_t* a = va_arg(args, const range_t*);
+    const char* cmt = va_arg(args, const char*);
+    bool repeatable = static_cast<bool>(va_arg(args, int));
+
+    if (LOG_EVENTS)
+        LOG_EVENT("%s range from " EA_FMT " to " EA_FMT " %scomment is to be changed to \"%s\"", range_kind_to_str(kind), a->start_ea, a->end_ea, REPEATABLE_STR[repeatable], cmt);
 }
 
 
