@@ -185,6 +185,7 @@ namespace
         void tryblks_updated_event(va_list args);
         void deleting_tryblks_event(va_list args);
         void sgr_changed_event(va_list args);
+        void make_code_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -299,7 +300,7 @@ namespace
             case envent_code::tryblks_updated:         hooks->tryblks_updated_event(args); break;
             case envent_code::deleting_tryblks:        hooks->deleting_tryblks_event(args); break;
             case envent_code::sgr_changed:             hooks->sgr_changed_event(args); break;
-            case envent_code::make_code:               LOG_EVENT("make_code"); break;
+            case envent_code::make_code:               hooks->make_code_event(args); break;
             case envent_code::make_data:               LOG_EVENT("make_data"); break;
             case envent_code::destroyed_items:         LOG_EVENT("destroyed_items"); break;
             case envent_code::renamed:                 LOG_EVENT("renamed"); break;
@@ -1931,6 +1932,14 @@ void Hooks::sgr_changed_event(va_list args)
     UNUSED(tag);
     if (LOG_EVENTS)
         LOG_EVENT("The kernel has changed a segment register value");
+}
+
+void Hooks::make_code_event(va_list args)
+{
+    const insn_t* insn = va_arg(args, const insn_t*);
+
+    if (LOG_EVENTS)
+        LOG_EVENT("An instruction is being created at " EA_FMT, insn->ea);
 }
 
 
