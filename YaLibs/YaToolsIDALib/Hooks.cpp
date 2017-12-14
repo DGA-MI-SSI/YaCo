@@ -209,6 +209,7 @@ namespace
         void changing_cmt_event(va_list args);
         void cmt_changed_event(va_list args);
         void changing_range_cmt_event(va_list args);
+        void range_cmt_changed_event(va_list args);
 
         // Variables
         std::shared_ptr<IHashProvider> hash_provider_;
@@ -331,7 +332,7 @@ namespace
             case envent_code::changing_cmt:            hooks->changing_cmt_event(args); break;
             case envent_code::cmt_changed:             hooks->cmt_changed_event(args); break;
             case envent_code::changing_range_cmt:      hooks->changing_range_cmt_event(args); break;
-            case envent_code::range_cmt_changed:       LOG_EVENT("range_cmt_changed"); break;
+            case envent_code::range_cmt_changed:       hooks->range_cmt_changed_event(args); break;
             case envent_code::extra_cmt_changed:       LOG_EVENT("extra_cmt_changed"); break;
         }
         return 0;
@@ -2046,6 +2047,17 @@ void Hooks::changing_range_cmt_event(va_list args)
 
     if (LOG_EVENTS)
         LOG_EVENT("%s range from " EA_FMT " to " EA_FMT " %scomment is to be changed to \"%s\"", range_kind_to_str(kind), a->start_ea, a->end_ea, REPEATABLE_STR[repeatable], cmt);
+}
+
+void Hooks::range_cmt_changed_event(va_list args)
+{
+    range_kind_t kind = static_cast<range_kind_t>(va_arg(args, int));
+    const range_t* a = va_arg(args, const range_t*);
+    const char* cmt = va_arg(args, const char*);
+    bool repeatable = static_cast<bool>(va_arg(args, int));
+
+    if (LOG_EVENTS)
+        LOG_EVENT("%s range from " EA_FMT " to " EA_FMT " %scomment has been changed to \"%s\"", range_kind_to_str(kind), a->start_ea, a->end_ea, REPEATABLE_STR[repeatable], cmt);
 }
 
 
