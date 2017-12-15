@@ -31,6 +31,9 @@
 #define EA_FMT      "%0" EA_SIZE EA_PREFIX "X"
 
 //#define MODULE_NAME "module_name"
+#ifndef MODULE_NAME
+#error missing MODULE_NAME definition
+#endif
 
 #define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)(MODULE_NAME, (FMT "\n"), ## __VA_ARGS__)
 
