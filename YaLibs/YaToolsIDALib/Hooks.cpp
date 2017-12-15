@@ -80,6 +80,14 @@ namespace
         return cache_folder_path;
     }
 
+    using Eas = std::set<ea_t>;
+    using Structs = std::set<tid_t>;
+    using StructMembers = std::map<tid_t, ea_t>;
+    using Enums = std::set<enum_t>;
+    using EnumMembers = std::map<ea_t, tid_t>;
+    using Comments = std::set<ea_t>;
+    using Segments = std::set<ea_t>;
+
     struct Hooks
         : public IHooks
     {
@@ -215,13 +223,13 @@ namespace
         std::shared_ptr<IRepository> repo_manager_;
         Pool<qstring> qpool_;
 
-        std::set<ea_t> addresses_to_process_;
-        std::set<tid_t> structures_to_process_;
-        std::map<tid_t, ea_t> structmember_to_process_;
-        std::set<enum_t> enums_to_process_;
-        std::map<ea_t, tid_t> enummember_to_process_;
-        std::set<ea_t> comments_to_process_;
-        std::set<ea_t> segments_to_process_;
+        Eas             addresses_to_process_;
+        Structs         structures_to_process_;
+        StructMembers   structmember_to_process_;
+        Enums           enums_to_process_;
+        EnumMembers     enummember_to_process_;
+        Comments        comments_to_process_;
+        Segments        segments_to_process_;
     };
 }
 
