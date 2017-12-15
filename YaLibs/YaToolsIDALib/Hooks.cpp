@@ -127,96 +127,96 @@ namespace
         void save_enums(const std::shared_ptr<IModelIncremental>& ida_model, IModelVisitor* memory_exporter);
 
         // Events management
-        void closebase_event(va_list args);
-        void savebase_event(va_list args);
-        void upgraded_event(va_list args);
-        void auto_empty_event(va_list args);
-        void auto_empty_finally_event(va_list args);
-        void determined_main_event(va_list args);
-        void local_types_changed_event(va_list args);
-        void extlang_changed_event(va_list args);
-        void idasgn_loaded_event(va_list args);
-        void kernel_config_loaded_event(va_list args);
-        void loader_finished_event(va_list args);
-        void flow_chart_created_event(va_list args);
-        void compiler_changed_event(va_list args);
-        void changing_ti_event(va_list args);
-        void ti_changed_event(va_list args);
-        void changing_op_ti_event(va_list args);
-        void op_ti_changed_event(va_list args);
-        void changing_op_type_event(va_list args);
-        void op_type_changed_event(va_list args);
-        void enum_created_event(va_list args);
-        void deleting_enum_event(va_list args);
-        void enum_deleted_event(va_list args);
-        void renaming_enum_event(va_list args);
-        void enum_renamed_event(va_list args);
-        void changing_enum_bf_event(va_list args);
-        void enum_bf_changed_event(va_list args);
-        void changing_enum_cmt_event(va_list args);
-        void enum_cmt_changed_event(va_list args);
-        void enum_member_created_event(va_list args);
-        void deleting_enum_member_event(va_list args);
-        void enum_member_deleted_event(va_list args);
-        void struc_created_event(va_list args);
-        void deleting_struc_event(va_list args);
-        void struc_deleted_event(va_list args);
-        void changing_struc_align_event(va_list args);
-        void struc_align_changed_event(va_list args);
-        void renaming_struc_event(va_list args);
-        void struc_renamed_event(va_list args);
-        void expanding_struc_event(va_list args);
-        void struc_expanded_event(va_list args);
-        void struc_member_created_event(va_list args);
-        void deleting_struc_member_event(va_list args);
-        void struc_member_deleted_event(va_list args);
-        void renaming_struc_member_event(va_list args);
-        void struc_member_renamed_event(va_list args);
-        void changing_struc_member_event(va_list args);
-        void struc_member_changed_event(va_list args);
-        void changing_struc_cmt_event(va_list args);
-        void struc_cmt_changed_event(va_list args);
-        void segm_added_event(va_list args);
-        void deleting_segm_event(va_list args);
-        void segm_deleted_event(va_list args);
-        void changing_segm_start_event(va_list args);
-        void segm_start_changed_event(va_list args);
-        void changing_segm_end_event(va_list args);
-        void segm_end_changed_event(va_list args);
-        void changing_segm_name_event(va_list args);
-        void segm_name_changed_event(va_list args);
-        void changing_segm_class_event(va_list args);
-        void segm_class_changed_event(va_list args);
-        void segm_attrs_updated_event(va_list args);
-        void segm_moved_event(va_list args);
-        void allsegs_moved_event(va_list args);
-        void func_added_event(va_list args);
-        void func_updated_event(va_list args);
-        void set_func_start_event(va_list args);
-        void set_func_end_event(va_list args);
-        void deleting_func_event(va_list args);
-        void frame_deleted_event(va_list args);
-        void thunk_func_created_event(va_list args);
-        void func_tail_appended_event(va_list args);
-        void deleting_func_tail_event(va_list args);
-        void func_tail_deleted_event(va_list args);
-        void tail_owner_changed_event(va_list args);
-        void func_noret_changed_event(va_list args);
-        void stkpnts_changed_event(va_list args);
-        void updating_tryblks_event(va_list args);
-        void tryblks_updated_event(va_list args);
-        void deleting_tryblks_event(va_list args);
-        void sgr_changed_event(va_list args);
-        void make_code_event(va_list args);
-        void make_data_event(va_list args);
-        void destroyed_items_event(va_list args);
-        void renamed_event(va_list args);
-        void byte_patched_event(va_list args);
-        void changing_cmt_event(va_list args);
-        void cmt_changed_event(va_list args);
-        void changing_range_cmt_event(va_list args);
-        void range_cmt_changed_event(va_list args);
-        void extra_cmt_changed_event(va_list args);
+        void closebase(va_list args);
+        void savebase(va_list args);
+        void upgraded(va_list args);
+        void auto_empty(va_list args);
+        void auto_empty_finally(va_list args);
+        void determined_main(va_list args);
+        void local_types_changed(va_list args);
+        void extlang_changed(va_list args);
+        void idasgn_loaded(va_list args);
+        void kernel_config_loaded(va_list args);
+        void loader_finished(va_list args);
+        void flow_chart_created(va_list args);
+        void compiler_changed(va_list args);
+        void changing_ti(va_list args);
+        void ti_changed(va_list args);
+        void changing_op_ti(va_list args);
+        void op_ti_changed(va_list args);
+        void changing_op_type(va_list args);
+        void op_type_changed(va_list args);
+        void enum_created(va_list args);
+        void deleting_enum(va_list args);
+        void enum_deleted(va_list args);
+        void renaming_enum(va_list args);
+        void enum_renamed(va_list args);
+        void changing_enum_bf(va_list args);
+        void enum_bf_changed(va_list args);
+        void changing_enum_cmt(va_list args);
+        void enum_cmt_changed(va_list args);
+        void enum_member_created(va_list args);
+        void deleting_enum_member(va_list args);
+        void enum_member_deleted(va_list args);
+        void struc_created(va_list args);
+        void deleting_struc(va_list args);
+        void struc_deleted(va_list args);
+        void changing_struc_align(va_list args);
+        void struc_align_changed(va_list args);
+        void renaming_struc(va_list args);
+        void struc_renamed(va_list args);
+        void expanding_struc(va_list args);
+        void struc_expanded(va_list args);
+        void struc_member_created(va_list args);
+        void deleting_struc_member(va_list args);
+        void struc_member_deleted(va_list args);
+        void renaming_struc_member(va_list args);
+        void struc_member_renamed(va_list args);
+        void changing_struc_member(va_list args);
+        void struc_member_changed(va_list args);
+        void changing_struc_cmt(va_list args);
+        void struc_cmt_changed(va_list args);
+        void segm_added(va_list args);
+        void deleting_segm(va_list args);
+        void segm_deleted(va_list args);
+        void changing_segm_start(va_list args);
+        void segm_start_changed(va_list args);
+        void changing_segm_end(va_list args);
+        void segm_end_changed(va_list args);
+        void changing_segm_name(va_list args);
+        void segm_name_changed(va_list args);
+        void changing_segm_class(va_list args);
+        void segm_class_changed(va_list args);
+        void segm_attrs_updated(va_list args);
+        void segm_moved(va_list args);
+        void allsegs_moved(va_list args);
+        void func_added(va_list args);
+        void func_updated(va_list args);
+        void set_func_start(va_list args);
+        void set_func_end(va_list args);
+        void deleting_func(va_list args);
+        void frame_deleted(va_list args);
+        void thunk_func_created(va_list args);
+        void func_tail_appended(va_list args);
+        void deleting_func_tail(va_list args);
+        void func_tail_deleted(va_list args);
+        void tail_owner_changed(va_list args);
+        void func_noret_changed(va_list args);
+        void stkpnts_changed(va_list args);
+        void updating_tryblks(va_list args);
+        void tryblks_updated(va_list args);
+        void deleting_tryblks(va_list args);
+        void sgr_changed(va_list args);
+        void make_code(va_list args);
+        void make_data(va_list args);
+        void destroyed_items(va_list args);
+        void renamed(va_list args);
+        void byte_patched(va_list args);
+        void changing_cmt(va_list args);
+        void cmt_changed(va_list args);
+        void changing_range_cmt(va_list args);
+        void range_cmt_changed(va_list args);
+        void extra_cmt_changed(va_list args);
 
         // Variables
         IHashProvider&   hash_provider_;
@@ -251,96 +251,96 @@ namespace
         envent_code ecode = static_cast<idb_event::event_code_t>(notification_code);
         switch (ecode)
         {
-            case envent_code::closebase:               hooks->closebase_event(args); break;
-            case envent_code::savebase:                hooks->savebase_event(args); break;
-            case envent_code::upgraded:                hooks->upgraded_event(args); break;
-            case envent_code::auto_empty:              hooks->auto_empty_event(args); break;
-            case envent_code::auto_empty_finally:      hooks->auto_empty_finally_event(args); break;
-            case envent_code::determined_main:         hooks->determined_main_event(args); break;
-            case envent_code::local_types_changed:     hooks->local_types_changed_event(args); break;
-            case envent_code::extlang_changed:         hooks->extlang_changed_event(args); break;
-            case envent_code::idasgn_loaded:           hooks->idasgn_loaded_event(args); break;
-            case envent_code::kernel_config_loaded:    hooks->kernel_config_loaded_event(args); break;
-            case envent_code::loader_finished:         hooks->loader_finished_event(args); break;
-            case envent_code::flow_chart_created:      hooks->flow_chart_created_event(args); break;
-            case envent_code::compiler_changed:        hooks->compiler_changed_event(args); break;
-            case envent_code::changing_ti:             hooks->changing_ti_event(args); break;
-            case envent_code::ti_changed:              hooks->ti_changed_event(args); break;
-            case envent_code::changing_op_ti:          hooks->changing_op_ti_event(args); break;
-            case envent_code::op_ti_changed:           hooks->op_ti_changed_event(args); break;
-            case envent_code::changing_op_type:        hooks->changing_op_type_event(args); break;
-            case envent_code::op_type_changed:         hooks->op_type_changed_event(args); break;
-            case envent_code::enum_created:            hooks->enum_created_event(args); break;
-            case envent_code::deleting_enum:           hooks->deleting_enum_event(args); break;
-            case envent_code::enum_deleted:            hooks->enum_deleted_event(args); break;
-            case envent_code::renaming_enum:           hooks->renaming_enum_event(args); break;
-            case envent_code::enum_renamed:            hooks->enum_renamed_event(args); break;
-            case envent_code::changing_enum_bf:        hooks->changing_enum_bf_event(args); break;
-            case envent_code::enum_bf_changed:         hooks->enum_bf_changed_event(args); break;
-            case envent_code::changing_enum_cmt:       hooks->changing_enum_cmt_event(args); break;
-            case envent_code::enum_cmt_changed:        hooks->enum_cmt_changed_event(args); break;
-            case envent_code::enum_member_created:     hooks->enum_member_created_event(args); break;
-            case envent_code::deleting_enum_member:    hooks->deleting_enum_member_event(args); break;
-            case envent_code::enum_member_deleted:     hooks->enum_member_deleted_event(args); break;
-            case envent_code::struc_created:           hooks->struc_created_event(args); break;
-            case envent_code::deleting_struc:          hooks->deleting_struc_event(args); break;
-            case envent_code::struc_deleted:           hooks->struc_deleted_event(args); break;
-            case envent_code::changing_struc_align:    hooks->changing_struc_align_event(args); break;
-            case envent_code::struc_align_changed:     hooks->struc_align_changed_event(args); break;
-            case envent_code::renaming_struc:          hooks->renaming_struc_event(args); break;
-            case envent_code::struc_renamed:           hooks->struc_renamed_event(args); break;
-            case envent_code::expanding_struc:         hooks->expanding_struc_event(args); break;
-            case envent_code::struc_expanded:          hooks->struc_expanded_event(args); break;
-            case envent_code::struc_member_created:    hooks->struc_member_created_event(args); break;
-            case envent_code::deleting_struc_member:   hooks->deleting_struc_member_event(args); break;
-            case envent_code::struc_member_deleted:    hooks->struc_member_deleted_event(args); break;
-            case envent_code::renaming_struc_member:   hooks->renaming_struc_member_event(args); break;
-            case envent_code::struc_member_renamed:    hooks->struc_member_renamed_event(args); break;
-            case envent_code::changing_struc_member:   hooks->changing_struc_member_event(args); break;
-            case envent_code::struc_member_changed:    hooks->struc_member_changed_event(args); break;
-            case envent_code::changing_struc_cmt:      hooks->changing_struc_cmt_event(args); break;
-            case envent_code::struc_cmt_changed:       hooks->struc_cmt_changed_event(args); break;
-            case envent_code::segm_added:              hooks->segm_added_event(args); break;
-            case envent_code::deleting_segm:           hooks->deleting_segm_event(args); break;
-            case envent_code::segm_deleted:            hooks->segm_deleted_event(args); break;
-            case envent_code::changing_segm_start:     hooks->changing_segm_start_event(args); break;
-            case envent_code::segm_start_changed:      hooks->segm_start_changed_event(args); break;
-            case envent_code::changing_segm_end:       hooks->changing_segm_end_event(args); break;
-            case envent_code::segm_end_changed:        hooks->segm_end_changed_event(args); break;
-            case envent_code::changing_segm_name:      hooks->changing_segm_name_event(args); break;
-            case envent_code::segm_name_changed:       hooks->segm_name_changed_event(args); break;
-            case envent_code::changing_segm_class:     hooks->changing_segm_class_event(args); break;
-            case envent_code::segm_class_changed:      hooks->segm_class_changed_event(args); break;
-            case envent_code::segm_attrs_updated:      hooks->segm_attrs_updated_event(args); break;
-            case envent_code::segm_moved:              hooks->segm_moved_event(args); break;
-            case envent_code::allsegs_moved:           hooks->allsegs_moved_event(args); break;
-            case envent_code::func_added:              hooks->func_added_event(args); break;
-            case envent_code::func_updated:            hooks->func_updated_event(args); break;
-            case envent_code::set_func_start:          hooks->set_func_start_event(args); break;
-            case envent_code::set_func_end:            hooks->set_func_end_event(args); break;
-            case envent_code::deleting_func:           hooks->deleting_func_event(args); break;
-            case envent_code::frame_deleted:           hooks->frame_deleted_event(args); break;
-            case envent_code::thunk_func_created:      hooks->thunk_func_created_event(args); break;
-            case envent_code::func_tail_appended:      hooks->func_tail_appended_event(args); break;
-            case envent_code::deleting_func_tail:      hooks->deleting_func_tail_event(args); break;
-            case envent_code::func_tail_deleted:       hooks->func_tail_deleted_event(args); break;
-            case envent_code::tail_owner_changed:      hooks->tail_owner_changed_event(args); break;
-            case envent_code::func_noret_changed:      hooks->func_noret_changed_event(args); break;
-            case envent_code::stkpnts_changed:         hooks->stkpnts_changed_event(args); break;
-            case envent_code::updating_tryblks:        hooks->updating_tryblks_event(args); break;
-            case envent_code::tryblks_updated:         hooks->tryblks_updated_event(args); break;
-            case envent_code::deleting_tryblks:        hooks->deleting_tryblks_event(args); break;
-            case envent_code::sgr_changed:             hooks->sgr_changed_event(args); break;
-            case envent_code::make_code:               hooks->make_code_event(args); break;
-            case envent_code::make_data:               hooks->make_data_event(args); break;
-            case envent_code::destroyed_items:         hooks->destroyed_items_event(args); break;
-            case envent_code::renamed:                 hooks->renamed_event(args); break;
-            case envent_code::byte_patched:            hooks->byte_patched_event(args); break;
-            case envent_code::changing_cmt:            hooks->changing_cmt_event(args); break;
-            case envent_code::cmt_changed:             hooks->cmt_changed_event(args); break;
-            case envent_code::changing_range_cmt:      hooks->changing_range_cmt_event(args); break;
-            case envent_code::range_cmt_changed:       hooks->range_cmt_changed_event(args); break;
-            case envent_code::extra_cmt_changed:       hooks->extra_cmt_changed_event(args); break;
+            case envent_code::closebase:               hooks->closebase(args); break;
+            case envent_code::savebase:                hooks->savebase(args); break;
+            case envent_code::upgraded:                hooks->upgraded(args); break;
+            case envent_code::auto_empty:              hooks->auto_empty(args); break;
+            case envent_code::auto_empty_finally:      hooks->auto_empty_finally(args); break;
+            case envent_code::determined_main:         hooks->determined_main(args); break;
+            case envent_code::local_types_changed:     hooks->local_types_changed(args); break;
+            case envent_code::extlang_changed:         hooks->extlang_changed(args); break;
+            case envent_code::idasgn_loaded:           hooks->idasgn_loaded(args); break;
+            case envent_code::kernel_config_loaded:    hooks->kernel_config_loaded(args); break;
+            case envent_code::loader_finished:         hooks->loader_finished(args); break;
+            case envent_code::flow_chart_created:      hooks->flow_chart_created(args); break;
+            case envent_code::compiler_changed:        hooks->compiler_changed(args); break;
+            case envent_code::changing_ti:             hooks->changing_ti(args); break;
+            case envent_code::ti_changed:              hooks->ti_changed(args); break;
+            case envent_code::changing_op_ti:          hooks->changing_op_ti(args); break;
+            case envent_code::op_ti_changed:           hooks->op_ti_changed(args); break;
+            case envent_code::changing_op_type:        hooks->changing_op_type(args); break;
+            case envent_code::op_type_changed:         hooks->op_type_changed(args); break;
+            case envent_code::enum_created:            hooks->enum_created(args); break;
+            case envent_code::deleting_enum:           hooks->deleting_enum(args); break;
+            case envent_code::enum_deleted:            hooks->enum_deleted(args); break;
+            case envent_code::renaming_enum:           hooks->renaming_enum(args); break;
+            case envent_code::enum_renamed:            hooks->enum_renamed(args); break;
+            case envent_code::changing_enum_bf:        hooks->changing_enum_bf(args); break;
+            case envent_code::enum_bf_changed:         hooks->enum_bf_changed(args); break;
+            case envent_code::changing_enum_cmt:       hooks->changing_enum_cmt(args); break;
+            case envent_code::enum_cmt_changed:        hooks->enum_cmt_changed(args); break;
+            case envent_code::enum_member_created:     hooks->enum_member_created(args); break;
+            case envent_code::deleting_enum_member:    hooks->deleting_enum_member(args); break;
+            case envent_code::enum_member_deleted:     hooks->enum_member_deleted(args); break;
+            case envent_code::struc_created:           hooks->struc_created(args); break;
+            case envent_code::deleting_struc:          hooks->deleting_struc(args); break;
+            case envent_code::struc_deleted:           hooks->struc_deleted(args); break;
+            case envent_code::changing_struc_align:    hooks->changing_struc_align(args); break;
+            case envent_code::struc_align_changed:     hooks->struc_align_changed(args); break;
+            case envent_code::renaming_struc:          hooks->renaming_struc(args); break;
+            case envent_code::struc_renamed:           hooks->struc_renamed(args); break;
+            case envent_code::expanding_struc:         hooks->expanding_struc(args); break;
+            case envent_code::struc_expanded:          hooks->struc_expanded(args); break;
+            case envent_code::struc_member_created:    hooks->struc_member_created(args); break;
+            case envent_code::deleting_struc_member:   hooks->deleting_struc_member(args); break;
+            case envent_code::struc_member_deleted:    hooks->struc_member_deleted(args); break;
+            case envent_code::renaming_struc_member:   hooks->renaming_struc_member(args); break;
+            case envent_code::struc_member_renamed:    hooks->struc_member_renamed(args); break;
+            case envent_code::changing_struc_member:   hooks->changing_struc_member(args); break;
+            case envent_code::struc_member_changed:    hooks->struc_member_changed(args); break;
+            case envent_code::changing_struc_cmt:      hooks->changing_struc_cmt(args); break;
+            case envent_code::struc_cmt_changed:       hooks->struc_cmt_changed(args); break;
+            case envent_code::segm_added:              hooks->segm_added(args); break;
+            case envent_code::deleting_segm:           hooks->deleting_segm(args); break;
+            case envent_code::segm_deleted:            hooks->segm_deleted(args); break;
+            case envent_code::changing_segm_start:     hooks->changing_segm_start(args); break;
+            case envent_code::segm_start_changed:      hooks->segm_start_changed(args); break;
+            case envent_code::changing_segm_end:       hooks->changing_segm_end(args); break;
+            case envent_code::segm_end_changed:        hooks->segm_end_changed(args); break;
+            case envent_code::changing_segm_name:      hooks->changing_segm_name(args); break;
+            case envent_code::segm_name_changed:       hooks->segm_name_changed(args); break;
+            case envent_code::changing_segm_class:     hooks->changing_segm_class(args); break;
+            case envent_code::segm_class_changed:      hooks->segm_class_changed(args); break;
+            case envent_code::segm_attrs_updated:      hooks->segm_attrs_updated(args); break;
+            case envent_code::segm_moved:              hooks->segm_moved(args); break;
+            case envent_code::allsegs_moved:           hooks->allsegs_moved(args); break;
+            case envent_code::func_added:              hooks->func_added(args); break;
+            case envent_code::func_updated:            hooks->func_updated(args); break;
+            case envent_code::set_func_start:          hooks->set_func_start(args); break;
+            case envent_code::set_func_end:            hooks->set_func_end(args); break;
+            case envent_code::deleting_func:           hooks->deleting_func(args); break;
+            case envent_code::frame_deleted:           hooks->frame_deleted(args); break;
+            case envent_code::thunk_func_created:      hooks->thunk_func_created(args); break;
+            case envent_code::func_tail_appended:      hooks->func_tail_appended(args); break;
+            case envent_code::deleting_func_tail:      hooks->deleting_func_tail(args); break;
+            case envent_code::func_tail_deleted:       hooks->func_tail_deleted(args); break;
+            case envent_code::tail_owner_changed:      hooks->tail_owner_changed(args); break;
+            case envent_code::func_noret_changed:      hooks->func_noret_changed(args); break;
+            case envent_code::stkpnts_changed:         hooks->stkpnts_changed(args); break;
+            case envent_code::updating_tryblks:        hooks->updating_tryblks(args); break;
+            case envent_code::tryblks_updated:         hooks->tryblks_updated(args); break;
+            case envent_code::deleting_tryblks:        hooks->deleting_tryblks(args); break;
+            case envent_code::sgr_changed:             hooks->sgr_changed(args); break;
+            case envent_code::make_code:               hooks->make_code(args); break;
+            case envent_code::make_data:               hooks->make_data(args); break;
+            case envent_code::destroyed_items:         hooks->destroyed_items(args); break;
+            case envent_code::renamed:                 hooks->renamed(args); break;
+            case envent_code::byte_patched:            hooks->byte_patched(args); break;
+            case envent_code::changing_cmt:            hooks->changing_cmt(args); break;
+            case envent_code::cmt_changed:             hooks->cmt_changed(args); break;
+            case envent_code::changing_range_cmt:      hooks->changing_range_cmt(args); break;
+            case envent_code::range_cmt_changed:       hooks->range_cmt_changed(args); break;
+            case envent_code::extra_cmt_changed:       hooks->extra_cmt_changed(args); break;
         }
         return 0;
     }
@@ -670,7 +670,7 @@ void Hooks::save_enums(const std::shared_ptr<IModelIncremental>& ida_model, IMod
     */
 }
 
-void Hooks::closebase_event(va_list args)
+void Hooks::closebase(va_list args)
 {
     UNUSED(args);
 
@@ -678,7 +678,7 @@ void Hooks::closebase_event(va_list args)
         LOG_EVENT("The database will be closed now");
 }
 
-void Hooks::savebase_event(va_list args)
+void Hooks::savebase(va_list args)
 {
     UNUSED(args);
 
@@ -689,7 +689,7 @@ void Hooks::savebase_event(va_list args)
     save_and_update();
 }
 
-void Hooks::upgraded_event(va_list args)
+void Hooks::upgraded(va_list args)
 {
     int from = va_arg(args, int);
 
@@ -697,7 +697,7 @@ void Hooks::upgraded_event(va_list args)
         LOG_EVENT("The database has been upgraded (old IDB version: %d)", from);
 }
 
-void Hooks::auto_empty_event(va_list args)
+void Hooks::auto_empty(va_list args)
 {
     UNUSED(args);
 
@@ -705,7 +705,7 @@ void Hooks::auto_empty_event(va_list args)
         LOG_EVENT("All analysis queues are empty");
 }
 
-void Hooks::auto_empty_finally_event(va_list args)
+void Hooks::auto_empty_finally(va_list args)
 {
     UNUSED(args);
 
@@ -713,7 +713,7 @@ void Hooks::auto_empty_finally_event(va_list args)
         LOG_EVENT("All analysis queues are empty definitively");
 }
 
-void Hooks::determined_main_event(va_list args)
+void Hooks::determined_main(va_list args)
 {
     ea_t main = va_arg(args, ea_t);
 
@@ -721,7 +721,7 @@ void Hooks::determined_main_event(va_list args)
         LOG_EVENT("The main() function has been determined (address of the main() function: " EA_FMT ")", main);
 }
 
-void Hooks::local_types_changed_event(va_list args)
+void Hooks::local_types_changed(va_list args)
 {
     UNUSED(args);
 
@@ -729,7 +729,7 @@ void Hooks::local_types_changed_event(va_list args)
         LOG_EVENT("Local types have been changed");
 }
 
-void Hooks::extlang_changed_event(va_list args)
+void Hooks::extlang_changed(va_list args)
 {
     int kind = va_arg(args, int); //0: extlang installed, 1: extlang removed, 2: default extlang changed
     extlang_t* el = va_arg(args, extlang_t*);
@@ -756,7 +756,7 @@ void Hooks::extlang_changed_event(va_list args)
     }
 }
 
-void Hooks::idasgn_loaded_event(va_list args)
+void Hooks::idasgn_loaded(va_list args)
 {
     const char* short_sig_name = va_arg(args, const char*);
 
@@ -768,7 +768,7 @@ void Hooks::idasgn_loaded_event(va_list args)
     }
 }
 
-void Hooks::kernel_config_loaded_event(va_list args)
+void Hooks::kernel_config_loaded(va_list args)
 {
     UNUSED(args);
 
@@ -776,7 +776,7 @@ void Hooks::kernel_config_loaded_event(va_list args)
         LOG_EVENT("Kernel configuration loaded (ida.cfg parsed)");
 }
 
-void Hooks::loader_finished_event(va_list args)
+void Hooks::loader_finished(va_list args)
 {
     linput_t* li = va_arg(args, linput_t*);
     uint16 neflags = static_cast<uint16>(va_arg(args, int)); // NEF_.+ defines from loader.hpp
@@ -788,7 +788,7 @@ void Hooks::loader_finished_event(va_list args)
         LOG_EVENT("External file loader for %s files finished its work", filetypename);
 }
 
-void Hooks::flow_chart_created_event(va_list args)
+void Hooks::flow_chart_created(va_list args)
 {
     qflow_chart_t* fc = va_arg(args, qflow_chart_t*);
 
@@ -800,7 +800,7 @@ void Hooks::flow_chart_created_event(va_list args)
     }
 }
 
-void Hooks::compiler_changed_event(va_list args)
+void Hooks::compiler_changed(va_list args)
 {
     UNUSED(args);
 
@@ -808,7 +808,7 @@ void Hooks::compiler_changed_event(va_list args)
         LOG_EVENT("The kernel has changed the compiler information");
 }
 
-void Hooks::changing_ti_event(va_list args)
+void Hooks::changing_ti(va_list args)
 {
     ea_t ea = va_arg(args, ea_t);
     type_t* new_type = va_arg(args, type_t*);
@@ -820,7 +820,7 @@ void Hooks::changing_ti_event(va_list args)
         LOG_EVENT("An item typestring (c/c++ prototype) is to be changed (ea: " EA_FMT ")", ea);
 }
 
-void Hooks::ti_changed_event(va_list args)
+void Hooks::ti_changed(va_list args)
 {
     ea_t ea = va_arg(args, ea_t);
     type_t* type = va_arg(args, type_t*);
@@ -834,7 +834,7 @@ void Hooks::ti_changed_event(va_list args)
         LOG_EVENT("An item typestring (c/c++ prototype) has been changed (ea: " EA_FMT ")", ea);
 }
 
-void Hooks::changing_op_ti_event(va_list args)
+void Hooks::changing_op_ti(va_list args)
 {
     ea_t ea = va_arg(args, ea_t);
     int n = va_arg(args, int);
@@ -848,7 +848,7 @@ void Hooks::changing_op_ti_event(va_list args)
         LOG_EVENT("An operand typestring (c/c++ prototype) is to be changed (ea: " EA_FMT ")", ea);
 }
 
-void Hooks::op_ti_changed_event(va_list args)
+void Hooks::op_ti_changed(va_list args)
 {
     ea_t ea = va_arg(args, ea_t);
     int n = va_arg(args, int);
@@ -864,7 +864,7 @@ void Hooks::op_ti_changed_event(va_list args)
         LOG_EVENT("An operand typestring (c/c++ prototype) has been changed (ea: " EA_FMT ")", ea);
 }
 
-void Hooks::changing_op_type_event(va_list args)
+void Hooks::changing_op_type(va_list args)
 {
     ea_t ea = va_arg(args, ea_t);
     int n = va_arg(args, int);
@@ -876,7 +876,7 @@ void Hooks::changing_op_type_event(va_list args)
         LOG_EVENT("An operand type (offset, hex, etc...) is to be changed (ea: " EA_FMT ")", ea);
 }
 
-void Hooks::op_type_changed_event(va_list args)
+void Hooks::op_type_changed(va_list args)
 {
     ea_t ea = va_arg(args, ea_t);
     int n = va_arg(args, int);
@@ -888,7 +888,7 @@ void Hooks::op_type_changed_event(va_list args)
         LOG_EVENT("An operand type (offset, hex, etc...) has been set or deleted (ea: " EA_FMT ")", ea);
 }
 
-void Hooks::enum_created_event(va_list args)
+void Hooks::enum_created(va_list args)
 {
     enum_t id = va_arg(args, enum_t);
 
@@ -902,7 +902,7 @@ void Hooks::enum_created_event(va_list args)
     }
 }
 
-void Hooks::deleting_enum_event(va_list args)
+void Hooks::deleting_enum(va_list args)
 {
     enum_t id = va_arg(args, enum_t);
 
@@ -914,7 +914,7 @@ void Hooks::deleting_enum_event(va_list args)
     }
 }
 
-void Hooks::enum_deleted_event(va_list args)
+void Hooks::enum_deleted(va_list args)
 {
     enum_t id = va_arg(args, enum_t);
 
@@ -925,7 +925,7 @@ void Hooks::enum_deleted_event(va_list args)
         LOG_EVENT("An enum type has been deleted");
 }
 
-void Hooks::renaming_enum_event(va_list args)
+void Hooks::renaming_enum(va_list args)
 {
     tid_t id = va_arg(args, tid_t);
     bool is_enum = static_cast<bool>(va_arg(args, int));
@@ -949,7 +949,7 @@ void Hooks::renaming_enum_event(va_list args)
     }
 }
 
-void Hooks::enum_renamed_event(va_list args)
+void Hooks::enum_renamed(va_list args)
 {
     tid_t id = va_arg(args, tid_t);
 
@@ -973,7 +973,7 @@ void Hooks::enum_renamed_event(va_list args)
     }
 }
 
-void Hooks::changing_enum_bf_event(va_list args)
+void Hooks::changing_enum_bf(va_list args)
 {
     enum_t id = va_arg(args, enum_t);
     bool new_bf = static_cast<bool>(va_arg(args, int));
@@ -986,7 +986,7 @@ void Hooks::changing_enum_bf_event(va_list args)
     }
 }
 
-void Hooks::enum_bf_changed_event(va_list args)
+void Hooks::enum_bf_changed(va_list args)
 {
     enum_t id = va_arg(args, enum_t);
 
@@ -1000,7 +1000,7 @@ void Hooks::enum_bf_changed_event(va_list args)
     }
 }
 
-void Hooks::changing_enum_cmt_event(va_list args)
+void Hooks::changing_enum_cmt(va_list args)
 {
     enum_t id = va_arg(args, enum_t);
     bool repeatable = static_cast<bool>(va_arg(args, int));
@@ -1027,7 +1027,7 @@ void Hooks::changing_enum_cmt_event(va_list args)
     }
 }
 
-void Hooks::enum_cmt_changed_event(va_list args)
+void Hooks::enum_cmt_changed(va_list args)
 {
     enum_t id = va_arg(args, enum_t);
     bool repeatable = static_cast<bool>(va_arg(args, int));
@@ -1059,7 +1059,7 @@ void Hooks::enum_cmt_changed_event(va_list args)
     }
 }
 
-void Hooks::enum_member_created_event(va_list args)
+void Hooks::enum_member_created(va_list args)
 {
     enum_t id = va_arg(args, enum_t);
     const_t cid = va_arg(args, const_t);
@@ -1076,7 +1076,7 @@ void Hooks::enum_member_created_event(va_list args)
     }
 }
 
-void Hooks::deleting_enum_member_event(va_list args)
+void Hooks::deleting_enum_member(va_list args)
 {
     enum_t id = va_arg(args, enum_t);
     const_t cid = va_arg(args, const_t);
@@ -1091,7 +1091,7 @@ void Hooks::deleting_enum_member_event(va_list args)
     }
 }
 
-void Hooks::enum_member_deleted_event(va_list args)
+void Hooks::enum_member_deleted(va_list args)
 {
     enum_t id = va_arg(args, enum_t);
     const_t cid = va_arg(args, const_t);
@@ -1107,7 +1107,7 @@ void Hooks::enum_member_deleted_event(va_list args)
     }
 }
 
-void Hooks::struc_created_event(va_list args)
+void Hooks::struc_created(va_list args)
 {
     tid_t struc_id = va_arg(args, tid_t);
 
@@ -1131,7 +1131,7 @@ void Hooks::struc_created_event(va_list args)
     }
 }
 
-void Hooks::deleting_struc_event(va_list args)
+void Hooks::deleting_struc(va_list args)
 {
     struc_t* sptr = va_arg(args, struc_t*);
 
@@ -1153,7 +1153,7 @@ void Hooks::deleting_struc_event(va_list args)
     }
 }
 
-void Hooks::struc_deleted_event(va_list args)
+void Hooks::struc_deleted(va_list args)
 {
     tid_t struc_id = va_arg(args, tid_t);
 
@@ -1164,7 +1164,7 @@ void Hooks::struc_deleted_event(va_list args)
         LOG_EVENT("A structure type or stackframe has been deleted");
 }
 
-void Hooks::changing_struc_align_event(va_list args)
+void Hooks::changing_struc_align(va_list args)
 {
     struc_t* sptr = va_arg(args, struc_t*);
 
@@ -1176,7 +1176,7 @@ void Hooks::changing_struc_align_event(va_list args)
     }
 }
 
-void Hooks::struc_align_changed_event(va_list args)
+void Hooks::struc_align_changed(va_list args)
 {
     struc_t* sptr = va_arg(args, struc_t*);
 
@@ -1188,7 +1188,7 @@ void Hooks::struc_align_changed_event(va_list args)
     }
 }
 
-void Hooks::renaming_struc_event(va_list args)
+void Hooks::renaming_struc(va_list args)
 {
     tid_t struc_id = va_arg(args, tid_t);
     const char* oldname = va_arg(args, const char*);
@@ -1199,7 +1199,7 @@ void Hooks::renaming_struc_event(va_list args)
         LOG_EVENT("Structure type %s is to be renamed to %s", oldname, newname);
 }
 
-void Hooks::struc_renamed_event(va_list args)
+void Hooks::struc_renamed(va_list args)
 {
     struc_t* sptr = va_arg(args, struc_t*);
 
@@ -1213,7 +1213,7 @@ void Hooks::struc_renamed_event(va_list args)
     }
 }
 
-void Hooks::expanding_struc_event(va_list args)
+void Hooks::expanding_struc(va_list args)
 {
     struc_t* sptr = va_arg(args, struc_t*);
     ea_t offset = va_arg(args, ea_t);
@@ -1243,7 +1243,7 @@ void Hooks::expanding_struc_event(va_list args)
     }
 }
 
-void Hooks::struc_expanded_event(va_list args)
+void Hooks::struc_expanded(va_list args)
 {
     struc_t* sptr = va_arg(args, struc_t*);
 
@@ -1265,7 +1265,7 @@ void Hooks::struc_expanded_event(va_list args)
     }
 }
 
-void Hooks::struc_member_created_event(va_list args)
+void Hooks::struc_member_created(va_list args)
 {
     struc_t* sptr = va_arg(args, struc_t*);
     member_t* mptr = va_arg(args, member_t*);
@@ -1292,7 +1292,7 @@ void Hooks::struc_member_created_event(va_list args)
     }
 }
 
-void Hooks::deleting_struc_member_event(va_list args)
+void Hooks::deleting_struc_member(va_list args)
 {
     struc_t* sptr = va_arg(args, struc_t*);
     member_t* mptr = va_arg(args, member_t*);
@@ -1317,7 +1317,7 @@ void Hooks::deleting_struc_member_event(va_list args)
     }
 }
 
-void Hooks::struc_member_deleted_event(va_list args)
+void Hooks::struc_member_deleted(va_list args)
 {
     struc_t* sptr = va_arg(args, struc_t*);
     tid_t member_id = va_arg(args, tid_t);
@@ -1344,7 +1344,7 @@ void Hooks::struc_member_deleted_event(va_list args)
     }
 }
 
-void Hooks::renaming_struc_member_event(va_list args)
+void Hooks::renaming_struc_member(va_list args)
 {
     struc_t* sptr = va_arg(args, struc_t*);
     member_t* mptr = va_arg(args, member_t*);
@@ -1370,7 +1370,7 @@ void Hooks::renaming_struc_member_event(va_list args)
     }
 }
 
-void Hooks::struc_member_renamed_event(va_list args)
+void Hooks::struc_member_renamed(va_list args)
 {
     struc_t* sptr = va_arg(args, struc_t*);
     member_t* mptr = va_arg(args, member_t*);
@@ -1397,7 +1397,7 @@ void Hooks::struc_member_renamed_event(va_list args)
     }
 }
 
-void Hooks::changing_struc_member_event(va_list args)
+void Hooks::changing_struc_member(va_list args)
 {
     struc_t* sptr = va_arg(args, struc_t*);
     member_t* mptr = va_arg(args, member_t*);
@@ -1428,7 +1428,7 @@ void Hooks::changing_struc_member_event(va_list args)
     }
 }
 
-void Hooks::struc_member_changed_event(va_list args)
+void Hooks::struc_member_changed(va_list args)
 {
     struc_t* sptr = va_arg(args, struc_t*);
     member_t* mptr = va_arg(args, member_t*);
@@ -1456,7 +1456,7 @@ void Hooks::struc_member_changed_event(va_list args)
     }
 }
 
-void Hooks::changing_struc_cmt_event(va_list args)
+void Hooks::changing_struc_cmt(va_list args)
 {
     tid_t struc_id = va_arg(args, tid_t);
     bool repeatable = static_cast<bool>(va_arg(args, int));
@@ -1498,7 +1498,7 @@ void Hooks::changing_struc_cmt_event(va_list args)
     }
 }
 
-void Hooks::struc_cmt_changed_event(va_list args)
+void Hooks::struc_cmt_changed(va_list args)
 {
     tid_t struc_id = va_arg(args, tid_t);
     bool repeatable = static_cast<bool>(va_arg(args, int));
@@ -1548,7 +1548,7 @@ void Hooks::struc_cmt_changed_event(va_list args)
     }
 }
 
-void Hooks::segm_added_event(va_list args)
+void Hooks::segm_added(va_list args)
 {
     segment_t* s = va_arg(args, segment_t*);
 
@@ -1562,7 +1562,7 @@ void Hooks::segm_added_event(va_list args)
     }
 }
 
-void Hooks::deleting_segm_event(va_list args)
+void Hooks::deleting_segm(va_list args)
 {
     ea_t start_ea = va_arg(args, ea_t);
 
@@ -1575,7 +1575,7 @@ void Hooks::deleting_segm_event(va_list args)
     }
 }
 
-void Hooks::segm_deleted_event(va_list args)
+void Hooks::segm_deleted(va_list args)
 {
     ea_t start_ea = va_arg(args, ea_t);
     ea_t end_ea = va_arg(args, ea_t);
@@ -1586,7 +1586,7 @@ void Hooks::segm_deleted_event(va_list args)
         LOG_EVENT("A segment (from " EA_FMT " to " EA_FMT ") has been deleted", start_ea, end_ea);
 }
 
-void Hooks::changing_segm_start_event(va_list args)
+void Hooks::changing_segm_start(va_list args)
 {
     segment_t* s = va_arg(args, segment_t*);
     ea_t new_start = va_arg(args, ea_t);
@@ -1601,7 +1601,7 @@ void Hooks::changing_segm_start_event(va_list args)
     }
 }
 
-void Hooks::segm_start_changed_event(va_list args)
+void Hooks::segm_start_changed(va_list args)
 {
     segment_t* s = va_arg(args, segment_t*);
     ea_t oldstart = va_arg(args, ea_t);
@@ -1616,7 +1616,7 @@ void Hooks::segm_start_changed_event(va_list args)
     }
 }
 
-void Hooks::changing_segm_end_event(va_list args)
+void Hooks::changing_segm_end(va_list args)
 {
     segment_t* s = va_arg(args, segment_t*);
     ea_t new_end = va_arg(args, ea_t);
@@ -1631,7 +1631,7 @@ void Hooks::changing_segm_end_event(va_list args)
     }
 }
 
-void Hooks::segm_end_changed_event(va_list args)
+void Hooks::segm_end_changed(va_list args)
 {
     segment_t* s = va_arg(args, segment_t*);
     ea_t oldend = va_arg(args, ea_t);
@@ -1646,7 +1646,7 @@ void Hooks::segm_end_changed_event(va_list args)
     }
 }
 
-void Hooks::changing_segm_name_event(va_list args)
+void Hooks::changing_segm_name(va_list args)
 {
     segment_t* s = va_arg(args, segment_t*);
     const char* oldname = va_arg(args, const char*);
@@ -1656,7 +1656,7 @@ void Hooks::changing_segm_name_event(va_list args)
         LOG_EVENT("Segment %s is being renamed", oldname);
 }
 
-void Hooks::segm_name_changed_event(va_list args)
+void Hooks::segm_name_changed(va_list args)
 {
     segment_t* s = va_arg(args, segment_t*);
     const char* name = va_arg(args, const char*);
@@ -1668,7 +1668,7 @@ void Hooks::segm_name_changed_event(va_list args)
         LOG_EVENT("A segment has been renamed %s", name);
 }
 
-void Hooks::changing_segm_class_event(va_list args)
+void Hooks::changing_segm_class(va_list args)
 {
     segment_t* s = va_arg(args, segment_t*);
 
@@ -1682,7 +1682,7 @@ void Hooks::changing_segm_class_event(va_list args)
     }
 }
 
-void Hooks::segm_class_changed_event(va_list args)
+void Hooks::segm_class_changed(va_list args)
 {
     segment_t* s = va_arg(args, segment_t*);
     const char* sclass = va_arg(args, const char*);
@@ -1697,7 +1697,7 @@ void Hooks::segm_class_changed_event(va_list args)
     }
 }
 
-void Hooks::segm_attrs_updated_event(va_list args)
+void Hooks::segm_attrs_updated(va_list args)
 {
     // This event is generated for secondary segment attributes (examples: color, permissions, etc)
     segment_t* s = va_arg(args, segment_t*);
@@ -1712,7 +1712,7 @@ void Hooks::segm_attrs_updated_event(va_list args)
     }
 }
 
-void Hooks::segm_moved_event(va_list args)
+void Hooks::segm_moved(va_list args)
 {
     ea_t from = va_arg(args, ea_t);
     ea_t to = va_arg(args, ea_t);
@@ -1731,7 +1731,7 @@ void Hooks::segm_moved_event(va_list args)
     }
 }
 
-void Hooks::allsegs_moved_event(va_list args)
+void Hooks::allsegs_moved(va_list args)
 {
     segm_move_infos_t* info = va_arg(args, segm_move_infos_t*);
 
@@ -1739,7 +1739,7 @@ void Hooks::allsegs_moved_event(va_list args)
         LOG_EVENT("Program rebasing is complete, %zd segments have been moved", info->size());
 }
 
-void Hooks::func_added_event(va_list args)
+void Hooks::func_added(va_list args)
 {
     func_t* pfn = va_arg(args, func_t*);
 
@@ -1753,7 +1753,7 @@ void Hooks::func_added_event(va_list args)
     }
 }
 
-void Hooks::func_updated_event(va_list args)
+void Hooks::func_updated(va_list args)
 {
     func_t* pfn = va_arg(args, func_t*);
 
@@ -1767,7 +1767,7 @@ void Hooks::func_updated_event(va_list args)
     }
 }
 
-void Hooks::set_func_start_event(va_list args)
+void Hooks::set_func_start(va_list args)
 {
     func_t* pfn = va_arg(args, func_t*);
     ea_t new_start = va_arg(args, ea_t);
@@ -1782,7 +1782,7 @@ void Hooks::set_func_start_event(va_list args)
     }
 }
 
-void Hooks::set_func_end_event(va_list args)
+void Hooks::set_func_end(va_list args)
 {
     func_t* pfn = va_arg(args, func_t*);
     ea_t new_end = va_arg(args, ea_t);
@@ -1797,7 +1797,7 @@ void Hooks::set_func_end_event(va_list args)
     }
 }
 
-void Hooks::deleting_func_event(va_list args)
+void Hooks::deleting_func(va_list args)
 {
     func_t* pfn = va_arg(args, func_t*);
 
@@ -1811,7 +1811,7 @@ void Hooks::deleting_func_event(va_list args)
     }
 }
 
-void Hooks::frame_deleted_event(va_list args)
+void Hooks::frame_deleted(va_list args)
 {
     func_t* pfn = va_arg(args, func_t*);
 
@@ -1820,7 +1820,7 @@ void Hooks::frame_deleted_event(va_list args)
         LOG_EVENT("A function frame has been deleted");
 }
 
-void Hooks::thunk_func_created_event(va_list args)
+void Hooks::thunk_func_created(va_list args)
 {
     func_t* pfn = va_arg(args, func_t*);
 
@@ -1834,7 +1834,7 @@ void Hooks::thunk_func_created_event(va_list args)
     }
 }
 
-void Hooks::func_tail_appended_event(va_list args)
+void Hooks::func_tail_appended(va_list args)
 {
     func_t* pfn = va_arg(args, func_t*);
     func_t* tail = va_arg(args, func_t*);
@@ -1849,7 +1849,7 @@ void Hooks::func_tail_appended_event(va_list args)
     }
 }
 
-void Hooks::deleting_func_tail_event(va_list args)
+void Hooks::deleting_func_tail(va_list args)
 {
     func_t* pfn = va_arg(args, func_t*);
     const range_t* tail = va_arg(args, const range_t*);
@@ -1862,7 +1862,7 @@ void Hooks::deleting_func_tail_event(va_list args)
     }
 }
 
-void Hooks::func_tail_deleted_event(va_list args)
+void Hooks::func_tail_deleted(va_list args)
 {
     func_t* pfn = va_arg(args, func_t*);
     ea_t tail_ea = va_arg(args, ea_t);
@@ -1877,7 +1877,7 @@ void Hooks::func_tail_deleted_event(va_list args)
     }
 }
 
-void Hooks::tail_owner_changed_event(va_list args)
+void Hooks::tail_owner_changed(va_list args)
 {
     func_t* pfn = va_arg(args, func_t*);
     ea_t owner_func = va_arg(args, ea_t);
@@ -1896,7 +1896,7 @@ void Hooks::tail_owner_changed_event(va_list args)
     }
 }
 
-void Hooks::func_noret_changed_event(va_list args)
+void Hooks::func_noret_changed(va_list args)
 {
     func_t* pfn = va_arg(args, func_t*);
 
@@ -1910,7 +1910,7 @@ void Hooks::func_noret_changed_event(va_list args)
     }
 }
 
-void Hooks::stkpnts_changed_event(va_list args)
+void Hooks::stkpnts_changed(va_list args)
 {
     func_t* pfn = va_arg(args, func_t*);
 
@@ -1924,7 +1924,7 @@ void Hooks::stkpnts_changed_event(va_list args)
     }
 }
 
-void Hooks::updating_tryblks_event(va_list args)
+void Hooks::updating_tryblks(va_list args)
 {
     const tryblks_t* tbv = va_arg(args, const tryblks_t*);
 
@@ -1933,7 +1933,7 @@ void Hooks::updating_tryblks_event(va_list args)
         LOG_EVENT("About to update try block information");
 }
 
-void Hooks::tryblks_updated_event(va_list args)
+void Hooks::tryblks_updated(va_list args)
 {
     const tryblks_t* tbv = va_arg(args, const tryblks_t*);
 
@@ -1942,7 +1942,7 @@ void Hooks::tryblks_updated_event(va_list args)
         LOG_EVENT("Updated try block information");
 }
 
-void Hooks::deleting_tryblks_event(va_list args)
+void Hooks::deleting_tryblks(va_list args)
 {
     const range_t* range = va_arg(args, const range_t*);
 
@@ -1950,7 +1950,7 @@ void Hooks::deleting_tryblks_event(va_list args)
         LOG_EVENT("About to delete try block information in range " EA_FMT "-" EA_FMT, range->start_ea, range->end_ea);
 }
 
-void Hooks::sgr_changed_event(va_list args)
+void Hooks::sgr_changed(va_list args)
 {
     ea_t start_ea = va_arg(args, ea_t);
     ea_t end_ea = va_arg(args, ea_t);
@@ -1969,7 +1969,7 @@ void Hooks::sgr_changed_event(va_list args)
         LOG_EVENT("The kernel has changed a segment register value");
 }
 
-void Hooks::make_code_event(va_list args)
+void Hooks::make_code(va_list args)
 {
     const insn_t* insn = va_arg(args, const insn_t*);
 
@@ -1979,7 +1979,7 @@ void Hooks::make_code_event(va_list args)
         LOG_EVENT("An instruction is being created at " EA_FMT, insn->ea);
 }
 
-void Hooks::make_data_event(va_list args)
+void Hooks::make_data(va_list args)
 {
     ea_t ea = va_arg(args, ea_t);
     flags_t flags = va_arg(args, flags_t);
@@ -1995,7 +1995,7 @@ void Hooks::make_data_event(va_list args)
         LOG_EVENT("A data item is being created at " EA_FMT, ea);
 }
 
-void Hooks::destroyed_items_event(va_list args)
+void Hooks::destroyed_items(va_list args)
 {
     ea_t ea1 = va_arg(args, ea_t);
     ea_t ea2 = va_arg(args, ea_t);
@@ -2006,7 +2006,7 @@ void Hooks::destroyed_items_event(va_list args)
         LOG_EVENT("Instructions/data have been destroyed in " EA_FMT "-" EA_FMT, ea1, ea2);
 }
 
-void Hooks::renamed_event(va_list args)
+void Hooks::renamed(va_list args)
 {
     ea_t ea = va_arg(args, ea_t);
     const char* new_name = va_arg(args, const char*);
@@ -2019,7 +2019,7 @@ void Hooks::renamed_event(va_list args)
         LOG_EVENT("Byte at " EA_FMT " renamed to %s", ea, new_name);
 }
 
-void Hooks::byte_patched_event(va_list args)
+void Hooks::byte_patched(va_list args)
 {
     ea_t ea = va_arg(args, ea_t);
     uint32 old_value = va_arg(args, uint32);
@@ -2028,7 +2028,7 @@ void Hooks::byte_patched_event(va_list args)
         LOG_EVENT("Byte at " EA_FMT " has been changed from 0x%02X to 0x%02X", ea, old_value, get_byte(ea));
 }
 
-void Hooks::changing_cmt_event(va_list args)
+void Hooks::changing_cmt(va_list args)
 {
     ea_t ea = va_arg(args, ea_t);
     bool repeatable_cmt = static_cast<bool>(va_arg(args, int));
@@ -2042,7 +2042,7 @@ void Hooks::changing_cmt_event(va_list args)
     }
 }
 
-void Hooks::cmt_changed_event(va_list args)
+void Hooks::cmt_changed(va_list args)
 {
     ea_t ea = va_arg(args, ea_t);
     bool repeatable_cmt = static_cast<bool>(va_arg(args, int));
@@ -2057,7 +2057,7 @@ void Hooks::cmt_changed_event(va_list args)
     }
 }
 
-void Hooks::changing_range_cmt_event(va_list args)
+void Hooks::changing_range_cmt(va_list args)
 {
     range_kind_t kind = static_cast<range_kind_t>(va_arg(args, int));
     const range_t* a = va_arg(args, const range_t*);
@@ -2068,7 +2068,7 @@ void Hooks::changing_range_cmt_event(va_list args)
         LOG_EVENT("%s range from " EA_FMT " to " EA_FMT " %scomment is to be changed to \"%s\"", range_kind_to_str(kind), a->start_ea, a->end_ea, REPEATABLE_STR[repeatable], cmt);
 }
 
-void Hooks::range_cmt_changed_event(va_list args)
+void Hooks::range_cmt_changed(va_list args)
 {
     range_kind_t kind = static_cast<range_kind_t>(va_arg(args, int));
     const range_t* a = va_arg(args, const range_t*);
@@ -2081,7 +2081,7 @@ void Hooks::range_cmt_changed_event(va_list args)
         LOG_EVENT("%s range from " EA_FMT " to " EA_FMT " %scomment has been changed to \"%s\"", range_kind_to_str(kind), a->start_ea, a->end_ea, REPEATABLE_STR[repeatable], cmt);
 }
 
-void Hooks::extra_cmt_changed_event(va_list args)
+void Hooks::extra_cmt_changed(va_list args)
 {
     ea_t ea = va_arg(args, ea_t);
     int line_idx = va_arg(args, int);
