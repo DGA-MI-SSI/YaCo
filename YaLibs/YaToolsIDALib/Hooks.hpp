@@ -15,10 +15,11 @@
 
 #pragma once
 
+#include <memory>
+
 // Forward declarations
 struct IHashProvider;
 struct IRepository;
-namespace std { template<typename T> class shared_ptr; }
 
 struct IHooks
 {
