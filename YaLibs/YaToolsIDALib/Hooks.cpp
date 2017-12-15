@@ -2004,6 +2004,8 @@ void Hooks::renamed_event(va_list args)
     const char* new_name = va_arg(args, const char*);
     bool local_name = static_cast<bool>(va_arg(args, int));
 
+    rename(ea, new_name, "", "");
+
     UNUSED(local_name);
     if (LOG_EVENTS)
         LOG_EVENT("Byte at " EA_FMT " renamed to %s", ea, new_name);
