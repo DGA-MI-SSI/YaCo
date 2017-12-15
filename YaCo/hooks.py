@@ -146,37 +146,6 @@ class YaToolIDB_Hooks(idaapi.IDB_Hooks):
         YaCo.close()
         return idaapi.IDB_Hooks.closebase(self, *args)
 
-    def renamed(self, ea, new_name, local_name):
-        if LOG_IDP_EVENTS:
-            self.debug_event("Renamed at 0x%08x with' %s'" % (ea, new_name))
-        if idaapi.is_member_id(ea):
-            # this is a member id : hook already present (struc_member_renamed)
-            pass
-        elif idaapi.get_struc(ea) is not None:
-            # this is a struc id : hook already present (struc_renamed)
-            pass
-        elif idaapi.get_enum_idx(ea) != idc.BADADDR:
-            # this is an enum id : hook already present (enum_renamed) BUT NOT CALLED
-            # (IDA BUG)
-            hooks.idb.enum_renamed(ea)
-        elif idaapi.get_enum_idx(idaapi.get_enum_member_enum(ea)) != idc.BADADDR:
-            # this is an enum member id
-            enum_id = idaapi.get_enum_member_enum(ea)
-            hooks.idb.enum_member_renamed(enum_id, ea)
-        else:
-            self.pre_hook()
-
-            # when we rename stackframe member, ea is member id
-            # this case is supported by struc_member_renamed event
-            try:
-                old_name = hooks.current_rename_infos[ea]
-                del hooks.current_rename_infos[ea]
-            except KeyError:
-                old_name = ""
-            hooks.ida.rename(ea, new_name, "", old_name)
-
-        return hooks.idp.ev_rename(ea, new_name)
-
     def debug_event(self, text):
         auto_display = idaapi.auto_display_t()
         logger.debug("event: auto=%d, AA_type=%d, AA_state=%d, text='%s'" %
