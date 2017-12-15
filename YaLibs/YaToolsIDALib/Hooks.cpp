@@ -34,7 +34,6 @@
 #include "IDAUtils.hpp"
 
 #include <cstdarg>
-#include <tuple>
 #include <chrono>
 #include <math.h>
 
@@ -101,7 +100,7 @@ namespace
         void delete_structure_member(tid_t struct_id, ea_t offset) override;
         void update_enum(enum_t enum_id) override;
         void change_operand_type(ea_t ea) override;
-        void update_segment(ea_t start_ea, ea_t end_ea) override;
+        void update_segment(ea_t start_ea) override;
         void change_type_information(ea_t ea) override;
 
         void hook() override;
@@ -222,7 +221,7 @@ namespace
         std::set<enum_t> enums_to_process_;
         std::map<ea_t, tid_t> enummember_to_process_;
         std::set<ea_t> comments_to_process_;
-        std::set<std::tuple<ea_t, ea_t>> segments_to_process_; // set<tuple<seg_ea_start, seg_ea_end>>
+        std::set<ea_t> segments_to_process_;
     };
 }
 
@@ -446,9 +445,9 @@ void Hooks::change_operand_type(ea_t ea)
     IDA_LOG_WARNING("Operand type changed at %s, code out of a function: not implemented", ea_to_hex(ea).c_str());
 }
 
-void Hooks::update_segment(ea_t start_ea, ea_t end_ea)
+void Hooks::update_segment(ea_t start_ea)
 {
-    segments_to_process_.insert(std::make_tuple(start_ea, end_ea));
+    segments_to_process_.insert(start_ea);
 }
 
 void Hooks::change_type_information(ea_t ea)
@@ -478,7 +477,7 @@ void Hooks::save()
     db.visitor->visit_start();
 
     // add comments to adresses to process
-    for (ea_t ea : comments_to_process_)
+    for (const ea_t ea : comments_to_process_)
         add_address_to_process(ea, "Changed comment");
 
     // process structures
@@ -488,12 +487,12 @@ void Hooks::save()
     save_enums(ida_model, db.visitor.get());
 
     // process addresses
-    for (ea_t ea : addresses_to_process_)
+    for (const ea_t ea : addresses_to_process_)
         ida_model->accept_ea(*db.visitor, ea);
 
     // process segments
-    for (const std::tuple<ea_t, ea_t>& segment_ea : segments_to_process_)
-        ida_model->accept_segment(*db.visitor, std::get<0>(segment_ea));
+    for (const ea_t segment_ea : segments_to_process_)
+        ida_model->accept_segment(*db.visitor, segment_ea);
 
     db.visitor->visit_end();
 
@@ -1543,7 +1542,7 @@ void Hooks::segm_added_event(va_list args)
 {
     segment_t* s = va_arg(args, segment_t*);
 
-    update_segment(s->start_ea, s->end_ea);
+    update_segment(s->start_ea);
 
     if (LOG_EVENTS)
     {
@@ -1571,7 +1570,7 @@ void Hooks::segm_deleted_event(va_list args)
     ea_t start_ea = va_arg(args, ea_t);
     ea_t end_ea = va_arg(args, ea_t);
 
-    update_segment(start_ea, end_ea);
+    update_segment(start_ea);
 
     if (LOG_EVENTS)
         LOG_EVENT("A segment (from " EA_FMT " to " EA_FMT ") has been deleted", start_ea, end_ea);
@@ -1597,7 +1596,7 @@ void Hooks::segm_start_changed_event(va_list args)
     segment_t* s = va_arg(args, segment_t*);
     ea_t oldstart = va_arg(args, ea_t);
 
-    update_segment(s->start_ea, s->end_ea);
+    update_segment(s->start_ea);
 
     if (LOG_EVENTS)
     {
@@ -1627,7 +1626,7 @@ void Hooks::segm_end_changed_event(va_list args)
     segment_t* s = va_arg(args, segment_t*);
     ea_t oldend = va_arg(args, ea_t);
 
-    update_segment(s->start_ea, s->end_ea);
+    update_segment(s->start_ea);
 
     if (LOG_EVENTS)
     {
@@ -1652,7 +1651,7 @@ void Hooks::segm_name_changed_event(va_list args)
     segment_t* s = va_arg(args, segment_t*);
     const char* name = va_arg(args, const char*);
 
-    update_segment(s->start_ea, s->end_ea);
+    update_segment(s->start_ea);
 
     UNUSED(s);
     if (LOG_EVENTS)
@@ -1678,7 +1677,7 @@ void Hooks::segm_class_changed_event(va_list args)
     segment_t* s = va_arg(args, segment_t*);
     const char* sclass = va_arg(args, const char*);
 
-    update_segment(s->start_ea, s->end_ea);
+    update_segment(s->start_ea);
 
     if (LOG_EVENTS)
     {
@@ -1693,7 +1692,7 @@ void Hooks::segm_attrs_updated_event(va_list args)
     // This event is generated for secondary segment attributes (examples: color, permissions, etc)
     segment_t* s = va_arg(args, segment_t*);
 
-    update_segment(s->start_ea, s->end_ea);
+    update_segment(s->start_ea);
 
     if (LOG_EVENTS)
     {
@@ -1711,7 +1710,7 @@ void Hooks::segm_moved_event(va_list args)
     bool changed_netmap = static_cast<bool>(va_arg(args, int));
 
     const segment_t* s = getseg(to);
-    update_segment(s->start_ea, s->end_ea);
+    update_segment(s->start_ea);
 
     if (LOG_EVENTS)
     {
