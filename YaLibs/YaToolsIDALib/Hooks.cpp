@@ -525,8 +525,8 @@ void Hooks::save_and_update()
     unhook();
 
     // update cache and export modifications to IDA
-    std::vector<std::string> modified_files = repo_manager_.update_cache();
-    ModelAndVisitor memory_exporter = MakeModel();
+    const std::vector<std::string> modified_files = repo_manager_.update_cache();
+    const ModelAndVisitor memory_exporter = MakeModel();
     MakeXmlFilesDatabaseModel(modified_files)->accept(*(memory_exporter.visitor));
     export_to_ida(memory_exporter.model.get(), &hash_provider_);
 
@@ -565,9 +565,9 @@ void Hooks::add_strucmember_to_process(ea_t struct_id, ea_t member_offset, const
 void Hooks::save_structures(std::shared_ptr<IModelIncremental>& ida_model, IModelVisitor* memory_exporter)
 {
     // structures: export modified ones, delete deleted ones
-    for (tid_t struct_id : structs_)
+    for (const tid_t struct_id : structs_)
     {
-        uval_t struct_idx = get_struc_idx(struct_id);
+        const uval_t struct_idx = get_struc_idx(struct_id);
         if (struct_idx != BADADDR)
         {
             // structure or stackframe modified
@@ -577,7 +577,7 @@ void Hooks::save_structures(std::shared_ptr<IModelIncremental>& ida_model, IMode
 
         // structure or stackframe deleted
         // need to export the parent (function)
-        ea_t func_ea = get_func_by_frame(struct_id);
+        const ea_t func_ea = get_func_by_frame(struct_id);
         if (func_ea != BADADDR)
         {
             // if stackframe
@@ -592,11 +592,11 @@ void Hooks::save_structures(std::shared_ptr<IModelIncremental>& ida_model, IMode
     // structures members : update modified ones, remove deleted ones
     for (const std::pair<const tid_t, ea_t>& struct_info : struct_members_)
     {
-        tid_t struct_id = struct_info.first;
-        ea_t member_offset = struct_info.second;
+        const tid_t struct_id = struct_info.first;
+        const ea_t member_offset = struct_info.second;
 
-        struc_t* ida_struct = get_struc(struct_id);
-        uval_t struct_idx = get_struc_idx(struct_id);
+        const struc_t* ida_struct = get_struc(struct_id);
+        const uval_t struct_idx = get_struc_idx(struct_id);
 
         ea_t stackframe_func_addr = BADADDR;
 
@@ -613,10 +613,11 @@ void Hooks::save_structures(std::shared_ptr<IModelIncremental>& ida_model, IMode
             // if stackframe
             stackframe_func_addr = func_ea;
             ida_model->accept_function(*memory_exporter, stackframe_func_addr);
+            continue;
         }
 
         // structure or stackframe modified
-        member_t* ida_member = get_member(ida_struct, member_offset);
+        const member_t* ida_member = get_member(ida_struct, member_offset);
         if (!ida_member || ida_member->id == BADADDR)
         {
             // if member deleted
@@ -626,7 +627,7 @@ void Hooks::save_structures(std::shared_ptr<IModelIncremental>& ida_model, IMode
 
         if (member_offset > 0)
         {
-            member_t* ida_prev_member = get_member(ida_struct, member_offset - 1);
+            const member_t* ida_prev_member = get_member(ida_struct, member_offset - 1);
             if (ida_prev_member && ida_prev_member->id == ida_member->id)
             {
                 // if member deleted and replaced by member starting above it
@@ -643,9 +644,9 @@ void Hooks::save_structures(std::shared_ptr<IModelIncremental>& ida_model, IMode
 void Hooks::save_enums(std::shared_ptr<IModelIncremental>& ida_model, IModelVisitor* memory_exporter)
 {
     // enums: export modified ones, delete deleted ones
-    for (enum_t enum_id : enums_)
+    for (const enum_t enum_id : enums_)
     {
-        uval_t enum_idx = get_enum_idx(enum_id);
+        const uval_t enum_idx = get_enum_idx(enum_id);
         if (enum_idx == BADADDR)
         {
             // enum deleted
