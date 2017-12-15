@@ -98,7 +98,7 @@ namespace
         void update_function(ea_t ea) override;
         void update_structure(ea_t struct_id) override;
         void update_structure_member(tid_t struct_id, tid_t member_id, ea_t member_offset) override;
-        void delete_structure_member(tid_t struct_id, tid_t member_id, ea_t offset) override;
+        void delete_structure_member(tid_t struct_id, ea_t offset) override;
         void update_enum(enum_t enum_id) override;
         void change_operand_type(ea_t ea) override;
         void update_segment(ea_t start_ea, ea_t end_ea) override;
@@ -114,7 +114,7 @@ namespace
 
         // Internal
         void add_address_to_process(ea_t ea, const std::string& message);
-        void add_strucmember_to_process(ea_t struct_id, tid_t member_id, ea_t member_offset, const std::string& message);
+        void add_strucmember_to_process(ea_t struct_id, ea_t member_offset, const std::string& message);
 
         void save_structures(std::shared_ptr<IModelIncremental>& ida_model, IModelVisitor* memory_exporter);
         void save_enums(std::shared_ptr<IModelIncremental>& ida_model, IModelVisitor* memory_exporter);
@@ -218,7 +218,7 @@ namespace
 
         std::set<ea_t> addresses_to_process_;
         std::set<tid_t> structures_to_process_;
-        std::map<tid_t, std::tuple<tid_t, ea_t>> structmember_to_process_; // map<struct_id, tuple<member_id, offset>>
+        std::map<tid_t, ea_t> structmember_to_process_;
         std::set<enum_t> enums_to_process_;
         std::map<ea_t, tid_t> enummember_to_process_;
         std::set<ea_t> comments_to_process_;
@@ -417,12 +417,12 @@ void Hooks::update_structure_member(tid_t struct_id, tid_t member_id, ea_t membe
     const auto member_id_fullname = qpool_.acquire();
     get_member_fullname(&*member_id_fullname, member_id);
     message += member_id_fullname->c_str();
-    add_strucmember_to_process(struct_id, member_id, member_offset, message);
+    add_strucmember_to_process(struct_id, member_offset, message);
 }
 
-void Hooks::delete_structure_member(tid_t struct_id, tid_t member_id, ea_t offset)
+void Hooks::delete_structure_member(tid_t struct_id, ea_t offset)
 {
-    add_strucmember_to_process(struct_id, member_id, offset, "Member deleted");
+    add_strucmember_to_process(struct_id, offset, "Member deleted");
 }
 
 void Hooks::update_enum(enum_t enum_id)
@@ -549,9 +549,9 @@ void Hooks::add_address_to_process(ea_t ea, const std::string& message)
     repo_manager_->add_auto_comment(ea, message);
 }
 
-void Hooks::add_strucmember_to_process(ea_t struct_id, tid_t member_id, ea_t member_offset, const std::string& message)
+void Hooks::add_strucmember_to_process(ea_t struct_id, ea_t member_offset, const std::string& message)
 {
-    structmember_to_process_[struct_id] = std::make_tuple(member_id, member_offset);
+    structmember_to_process_[struct_id] = member_offset;
     repo_manager_->add_auto_comment(struct_id, message);
 }
 
@@ -583,10 +583,10 @@ void Hooks::save_structures(std::shared_ptr<IModelIncremental>& ida_model, IMode
     }
 
     // structures members : update modified ones, remove deleted ones
-    for (const std::pair<const tid_t, std::tuple<tid_t, ea_t>>& struct_info : structmember_to_process_)
+    for (const std::pair<const tid_t, ea_t>& struct_info : structmember_to_process_)
     {
         tid_t struct_id = struct_info.first;
-        ea_t member_offset = std::get<1>(struct_info.second);
+        ea_t member_offset = struct_info.second;
 
         struc_t* ida_struct = get_struc(struct_id);
         uval_t struct_idx = get_struc_idx(struct_id);
@@ -1314,7 +1314,7 @@ void Hooks::struc_member_deleted_event(va_list args)
     tid_t member_id = va_arg(args, tid_t);
     ea_t offset = va_arg(args, ea_t);
 
-    delete_structure_member(sptr->id, member_id, offset);
+    delete_structure_member(sptr->id, offset);
 
     UNUSED(member_id);
     if (LOG_EVENTS)
