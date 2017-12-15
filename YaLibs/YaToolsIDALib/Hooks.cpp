@@ -873,6 +873,8 @@ void Hooks::op_type_changed_event(va_list args)
     ea_t ea = va_arg(args, ea_t);
     int n = va_arg(args, int);
 
+    change_operand_type(ea);
+
     UNUSED(n);
     if (LOG_EVENTS)
         LOG_EVENT("An operand type (offset, hex, etc...) has been set or deleted (ea: " EA_FMT ")", ea);
