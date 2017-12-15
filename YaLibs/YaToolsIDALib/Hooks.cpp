@@ -92,7 +92,7 @@ namespace
         : public IHooks
     {
 
-        Hooks(const std::shared_ptr<IHashProvider>& hash_provider, const std::shared_ptr<IRepository>& repo_manager);
+        Hooks(IHashProvider& hash_provider, IRepository& repo_manager);
 
         // IHooks
         void rename(ea_t ea, const std::string& new_name, const std::string& type, const std::string& old_name) override;
@@ -219,17 +219,17 @@ namespace
         void extra_cmt_changed_event(va_list args);
 
         // Variables
-        std::shared_ptr<IHashProvider> hash_provider_;
-        std::shared_ptr<IRepository> repo_manager_;
-        Pool<qstring> qpool_;
+        IHashProvider&   hash_provider_;
+        IRepository&     repo_manager_;
+        Pool<qstring>    qpool_;
 
-        Eas             addresses_to_process_;
-        Structs         structures_to_process_;
-        StructMembers   structmember_to_process_;
-        Enums           enums_to_process_;
-        EnumMembers     enummember_to_process_;
-        Comments        comments_to_process_;
-        Segments        segments_to_process_;
+        Eas             eas_;
+        Structs         structs_;
+        StructMembers   struct_members_;
+        Enums           enums_;
+        EnumMembers     enum_members_;
+        Comments        comments_;
+        Segments        segments_;
     };
 }
 
@@ -346,10 +346,10 @@ namespace
     }
 }
 
-Hooks::Hooks(const std::shared_ptr<IHashProvider>& hash_provider, const std::shared_ptr<IRepository>& repo_manager)
-    : hash_provider_{ hash_provider }
-    , repo_manager_{ repo_manager }
-    , qpool_(3)
+Hooks::Hooks(IHashProvider& hash_provider, IRepository& repo_manager)
+    : hash_provider_(hash_provider)
+    , repo_manager_ (repo_manager)
+    , qpool_        (3)
 {
 
 }
@@ -372,7 +372,7 @@ void Hooks::rename(ea_t ea, const std::string& new_name, const std::string& type
 
 void Hooks::change_comment(ea_t ea)
 {
-    comments_to_process_.insert(ea);
+    comments_.insert(ea);
 }
 
 void Hooks::undefine(ea_t ea)
@@ -412,8 +412,8 @@ void Hooks::update_function(ea_t ea)
 
 void Hooks::update_structure(ea_t struct_id)
 {
-    structures_to_process_.insert(struct_id);
-    repo_manager_->add_auto_comment(struct_id, "Updated");
+    structs_.insert(struct_id);
+    repo_manager_.add_auto_comment(struct_id, "Updated");
 }
 
 void Hooks::update_structure_member(tid_t struct_id, tid_t member_id, ea_t member_offset)
@@ -434,16 +434,16 @@ void Hooks::delete_structure_member(tid_t struct_id, ea_t offset)
 
 void Hooks::update_enum(enum_t enum_id)
 {
-    enums_to_process_.insert(enum_id);
-    repo_manager_->add_auto_comment(enum_id, "Updated");
+    enums_.insert(enum_id);
+    repo_manager_.add_auto_comment(enum_id, "Updated");
 }
 
 void Hooks::change_operand_type(ea_t ea)
 {
     if (get_func(ea) || is_code(get_flags(ea)))
     {
-        addresses_to_process_.insert(ea);
-        repo_manager_->add_auto_comment(ea, "Operand type change");
+        eas_.insert(ea);
+        repo_manager_.add_auto_comment(ea, "Operand type change");
         return;
     }
 
@@ -455,7 +455,7 @@ void Hooks::change_operand_type(ea_t ea)
 
 void Hooks::update_segment(ea_t start_ea)
 {
-    segments_to_process_.insert(start_ea);
+    segments_.insert(start_ea);
 }
 
 void Hooks::change_type_information(ea_t ea)
@@ -479,13 +479,13 @@ void Hooks::save()
 {
     const auto time_start = std::chrono::system_clock::now();
 
-    std::shared_ptr<IModelIncremental> ida_model = MakeModelIncremental(hash_provider_.get());
+    std::shared_ptr<IModelIncremental> ida_model = MakeModelIncremental(&hash_provider_);
     ModelAndVisitor db = MakeModel();
 
     db.visitor->visit_start();
 
     // add comments to adresses to process
-    for (const ea_t ea : comments_to_process_)
+    for (const ea_t ea : comments_)
         add_address_to_process(ea, "Changed comment");
 
     // process structures
@@ -495,11 +495,11 @@ void Hooks::save()
     save_enums(ida_model, db.visitor.get());
 
     // process addresses
-    for (const ea_t ea : addresses_to_process_)
+    for (const ea_t ea : eas_)
         ida_model->accept_ea(*db.visitor, ea);
 
     // process segments
-    for (const ea_t segment_ea : segments_to_process_)
+    for (const ea_t segment_ea : segments_)
         ida_model->accept_segment(*db.visitor, segment_ea);
 
     db.visitor->visit_end();
@@ -515,7 +515,7 @@ void Hooks::save_and_update()
 {
     // save and commit changes
     save();
-    if (!repo_manager_->commit_cache())
+    if (!repo_manager_.commit_cache())
     {
         IDA_LOG_WARNING("An error occurred during YaCo commit");
         warning("An error occured during YaCo commit: please relaunch IDA");
@@ -525,10 +525,10 @@ void Hooks::save_and_update()
     unhook();
 
     // update cache and export modifications to IDA
-    std::vector<std::string> modified_files = repo_manager_->update_cache();
+    std::vector<std::string> modified_files = repo_manager_.update_cache();
     ModelAndVisitor memory_exporter = MakeModel();
     MakeXmlFilesDatabaseModel(modified_files)->accept(*(memory_exporter.visitor));
-    export_to_ida(memory_exporter.model.get(), hash_provider_.get());
+    export_to_ida(memory_exporter.model.get(), &hash_provider_);
 
     // Let IDA apply modifications
     setflag(inf.s_genflags, INFFL_AUTO, true);
@@ -541,31 +541,31 @@ void Hooks::save_and_update()
 
 void Hooks::flush()
 {
-    addresses_to_process_.clear();
-    structures_to_process_.clear();
-    structmember_to_process_.clear();
-    enums_to_process_.clear();
-    enummember_to_process_.clear();
-    comments_to_process_.clear();
-    segments_to_process_.clear();
+    eas_.clear();
+    structs_.clear();
+    struct_members_.clear();
+    enums_.clear();
+    enum_members_.clear();
+    comments_.clear();
+    segments_.clear();
 }
 
 void Hooks::add_address_to_process(ea_t ea, const std::string& message)
 {
-    addresses_to_process_.insert(ea);
-    repo_manager_->add_auto_comment(ea, message);
+    eas_.insert(ea);
+    repo_manager_.add_auto_comment(ea, message);
 }
 
 void Hooks::add_strucmember_to_process(ea_t struct_id, ea_t member_offset, const std::string& message)
 {
-    structmember_to_process_[struct_id] = member_offset;
-    repo_manager_->add_auto_comment(struct_id, message);
+    struct_members_[struct_id] = member_offset;
+    repo_manager_.add_auto_comment(struct_id, message);
 }
 
 void Hooks::save_structures(std::shared_ptr<IModelIncremental>& ida_model, IModelVisitor* memory_exporter)
 {
     // structures: export modified ones, delete deleted ones
-    for (tid_t struct_id : structures_to_process_)
+    for (tid_t struct_id : structs_)
     {
         uval_t struct_idx = get_struc_idx(struct_id);
         if (struct_idx != BADADDR)
@@ -590,7 +590,7 @@ void Hooks::save_structures(std::shared_ptr<IModelIncremental>& ida_model, IMode
     }
 
     // structures members : update modified ones, remove deleted ones
-    for (const std::pair<const tid_t, ea_t>& struct_info : structmember_to_process_)
+    for (const std::pair<const tid_t, ea_t>& struct_info : struct_members_)
     {
         tid_t struct_id = struct_info.first;
         ea_t member_offset = struct_info.second;
@@ -643,7 +643,7 @@ void Hooks::save_structures(std::shared_ptr<IModelIncremental>& ida_model, IMode
 void Hooks::save_enums(std::shared_ptr<IModelIncremental>& ida_model, IModelVisitor* memory_exporter)
 {
     // enums: export modified ones, delete deleted ones
-    for (enum_t enum_id : enums_to_process_)
+    for (enum_t enum_id : enums_)
     {
         uval_t enum_idx = get_enum_idx(enum_id);
         if (enum_idx == BADADDR)
@@ -2095,5 +2095,5 @@ void Hooks::extra_cmt_changed_event(va_list args)
 
 std::shared_ptr<IHooks> MakeHooks(const std::shared_ptr<IHashProvider>& hash_provider, const std::shared_ptr<IRepository>& repo_manager)
 {
-    return std::make_shared<Hooks>(hash_provider, repo_manager);
+    return std::make_shared<Hooks>(*hash_provider, *repo_manager);
 }
