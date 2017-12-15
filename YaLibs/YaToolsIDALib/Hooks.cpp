@@ -96,16 +96,16 @@ namespace
 
         // IHooks
         void rename(ea_t ea, const std::string& new_name, const std::string& type, const std::string& old_name) override;
-        void change_comment(ea_t ea) override;
+        void update_comment(ea_t ea) override;
         void undefine(ea_t ea) override;
         void delete_function(ea_t ea) override;
         void make_code(ea_t ea) override;
         void make_data(ea_t ea) override;
         void add_function(ea_t ea) override;
         void update_function(ea_t ea) override;
-        void update_structure(ea_t struct_id) override;
-        void update_structure_member(tid_t struct_id, tid_t member_id, ea_t member_offset) override;
-        void delete_structure_member(tid_t struct_id, ea_t offset) override;
+        void update_struct(ea_t struct_id) override;
+        void update_struct_member(tid_t struct_id, tid_t member_id, ea_t offset) override;
+        void delete_struct_member(tid_t struct_id, ea_t offset) override;
         void update_enum(enum_t enum_id) override;
         void change_operand_type(ea_t ea) override;
         void update_segment(ea_t start_ea) override;
@@ -120,11 +120,11 @@ namespace
         void flush() override;
 
         // Internal
-        void add_address_to_process(ea_t ea, const std::string& message);
-        void add_strucmember_to_process(ea_t struct_id, ea_t member_offset, const std::string& message);
+        void add_ea(ea_t ea, const std::string& message);
+        void add_struct_member(ea_t struct_id, ea_t member_offset, const std::string& message);
 
-        void save_structures(std::shared_ptr<IModelIncremental>& ida_model, IModelVisitor* memory_exporter);
-        void save_enums(std::shared_ptr<IModelIncremental>& ida_model, IModelVisitor* memory_exporter);
+        void save_structs(const std::shared_ptr<IModelIncremental>& ida_model, IModelVisitor* memory_exporter);
+        void save_enums(const std::shared_ptr<IModelIncremental>& ida_model, IModelVisitor* memory_exporter);
 
         // Events management
         void closebase_event(va_list args);
@@ -367,32 +367,32 @@ void Hooks::rename(ea_t ea, const std::string& new_name, const std::string& type
     }
     message += "to ";
     message += new_name;
-    add_address_to_process(ea, message);
+    add_ea(ea, message);
 }
 
-void Hooks::change_comment(ea_t ea)
+void Hooks::update_comment(ea_t ea)
 {
     comments_.insert(ea);
 }
 
 void Hooks::undefine(ea_t ea)
 {
-    add_address_to_process(ea, "Undefne");
+    add_ea(ea, "Undefne");
 }
 
 void Hooks::delete_function(ea_t ea)
 {
-    add_address_to_process(ea, "Delete function");
+    add_ea(ea, "Delete function");
 }
 
 void Hooks::make_code(ea_t ea)
 {
-    add_address_to_process(ea, "Create code");
+    add_ea(ea, "Create code");
 }
 
 void Hooks::make_data(ea_t ea)
 {
-    add_address_to_process(ea, "Create data");
+    add_ea(ea, "Create data");
 }
 
 void Hooks::add_function(ea_t ea)
@@ -402,34 +402,31 @@ void Hooks::add_function(ea_t ea)
     // Warning : deletion of objects not implemented
     // TODO : implement deletion of objects inside newly created function range
     // TODO : use function chunks to iterate over function code
-    add_address_to_process(ea, "Create function");
+    add_ea(ea, "Create function");
 }
 
 void Hooks::update_function(ea_t ea)
 {
-    add_address_to_process(ea, "Create function");
+    add_ea(ea, "Create function");
 }
 
-void Hooks::update_structure(ea_t struct_id)
+void Hooks::update_struct(ea_t struct_id)
 {
     structs_.insert(struct_id);
     repo_manager_.add_auto_comment(struct_id, "Updated");
 }
 
-void Hooks::update_structure_member(tid_t struct_id, tid_t member_id, ea_t member_offset)
+void Hooks::update_struct_member(tid_t struct_id, tid_t member_id, ea_t offset)
 {
-    std::string message{ "Member updated at offset " };
-    message += ea_to_hex(member_offset);
-    message += " : ";
-    const auto member_id_fullname = qpool_.acquire();
-    get_member_fullname(&*member_id_fullname, member_id);
-    message += member_id_fullname->c_str();
-    add_strucmember_to_process(struct_id, member_offset, message);
+    const auto fullname = qpool_.acquire();
+    get_member_fullname(&*fullname, member_id);
+    const std::string message = "Member updated at offset " + ea_to_hex(offset) + " : " + fullname->c_str();
+    add_struct_member(struct_id, offset, message);
 }
 
-void Hooks::delete_structure_member(tid_t struct_id, ea_t offset)
+void Hooks::delete_struct_member(tid_t struct_id, ea_t offset)
 {
-    add_strucmember_to_process(struct_id, offset, "Member deleted");
+    add_struct_member(struct_id, offset, "Member deleted");
 }
 
 void Hooks::update_enum(enum_t enum_id)
@@ -448,7 +445,7 @@ void Hooks::change_operand_type(ea_t ea)
     }
 
     if (is_member_id(ea))
-        return; // this is a member id: hook already present (update_structure_member)
+        return; // this is a member id: hook already present (update_struct_member)
 
     IDA_LOG_WARNING("Operand type changed at %s, code out of a function: not implemented", ea_to_hex(ea).c_str());
 }
@@ -460,7 +457,7 @@ void Hooks::update_segment(ea_t start_ea)
 
 void Hooks::change_type_information(ea_t ea)
 {
-    add_address_to_process(ea, "Type information changed");
+    add_ea(ea, "Type information changed");
 }
 
 void Hooks::hook()
@@ -479,28 +476,28 @@ void Hooks::save()
 {
     const auto time_start = std::chrono::system_clock::now();
 
-    std::shared_ptr<IModelIncremental> ida_model = MakeModelIncremental(&hash_provider_);
+    const auto model = MakeModelIncremental(&hash_provider_);
     ModelAndVisitor db = MakeModel();
 
     db.visitor->visit_start();
 
     // add comments to adresses to process
     for (const ea_t ea : comments_)
-        add_address_to_process(ea, "Changed comment");
+        add_ea(ea, "Changed comment");
 
     // process structures
-    save_structures(ida_model, db.visitor.get());
+    save_structs(model, db.visitor.get());
 
     // process enums
-    save_enums(ida_model, db.visitor.get());
+    save_enums(model, db.visitor.get());
 
     // process addresses
     for (const ea_t ea : eas_)
-        ida_model->accept_ea(*db.visitor, ea);
+        model->accept_ea(*db.visitor, ea);
 
     // process segments
     for (const ea_t segment_ea : segments_)
-        ida_model->accept_segment(*db.visitor, segment_ea);
+        model->accept_segment(*db.visitor, segment_ea);
 
     db.visitor->visit_end();
 
@@ -550,19 +547,19 @@ void Hooks::flush()
     segments_.clear();
 }
 
-void Hooks::add_address_to_process(ea_t ea, const std::string& message)
+void Hooks::add_ea(ea_t ea, const std::string& message)
 {
     eas_.insert(ea);
     repo_manager_.add_auto_comment(ea, message);
 }
 
-void Hooks::add_strucmember_to_process(ea_t struct_id, ea_t member_offset, const std::string& message)
+void Hooks::add_struct_member(ea_t struct_id, ea_t member_offset, const std::string& message)
 {
     struct_members_[struct_id] = member_offset;
     repo_manager_.add_auto_comment(struct_id, message);
 }
 
-void Hooks::save_structures(std::shared_ptr<IModelIncremental>& ida_model, IModelVisitor* memory_exporter)
+void Hooks::save_structs(const std::shared_ptr<IModelIncremental>& ida_model, IModelVisitor* memory_exporter)
 {
     // structures: export modified ones, delete deleted ones
     for (const tid_t struct_id : structs_)
@@ -641,7 +638,7 @@ void Hooks::save_structures(std::shared_ptr<IModelIncremental>& ida_model, IMode
     }
 }
 
-void Hooks::save_enums(std::shared_ptr<IModelIncremental>& ida_model, IModelVisitor* memory_exporter)
+void Hooks::save_enums(const std::shared_ptr<IModelIncremental>& ida_model, IModelVisitor* memory_exporter)
 {
     // enums: export modified ones, delete deleted ones
     for (const enum_t enum_id : enums_)
@@ -1110,7 +1107,7 @@ void Hooks::struc_created_event(va_list args)
 {
     tid_t struc_id = va_arg(args, tid_t);
 
-    update_structure(struc_id);
+    update_struct(struc_id);
 
     if (LOG_EVENTS)
     {
@@ -1156,7 +1153,7 @@ void Hooks::struc_deleted_event(va_list args)
 {
     tid_t struc_id = va_arg(args, tid_t);
 
-    update_structure(struc_id);
+    update_struct(struc_id);
 
     UNUSED(struc_id);
     if (LOG_EVENTS)
@@ -1202,7 +1199,7 @@ void Hooks::struc_renamed_event(va_list args)
 {
     struc_t* sptr = va_arg(args, struc_t*);
 
-    update_structure(sptr->id);
+    update_struct(sptr->id);
 
     if (LOG_EVENTS)
     {
@@ -1269,7 +1266,7 @@ void Hooks::struc_member_created_event(va_list args)
     struc_t* sptr = va_arg(args, struc_t*);
     member_t* mptr = va_arg(args, member_t*);
 
-    update_structure(sptr->id);
+    update_struct(sptr->id);
 
     if (LOG_EVENTS)
     {
@@ -1322,7 +1319,7 @@ void Hooks::struc_member_deleted_event(va_list args)
     tid_t member_id = va_arg(args, tid_t);
     ea_t offset = va_arg(args, ea_t);
 
-    delete_structure_member(sptr->id, offset);
+    delete_struct_member(sptr->id, offset);
 
     UNUSED(member_id);
     if (LOG_EVENTS)
@@ -1374,7 +1371,7 @@ void Hooks::struc_member_renamed_event(va_list args)
     struc_t* sptr = va_arg(args, struc_t*);
     member_t* mptr = va_arg(args, member_t*);
 
-    update_structure_member(sptr->id, mptr->id, mptr->eoff);
+    update_struct_member(sptr->id, mptr->id, mptr->eoff);
 
     if (LOG_EVENTS)
     {
@@ -1432,8 +1429,8 @@ void Hooks::struc_member_changed_event(va_list args)
     struc_t* sptr = va_arg(args, struc_t*);
     member_t* mptr = va_arg(args, member_t*);
 
-    update_structure(sptr->id);
-    update_structure_member(sptr->id, mptr->id, mptr->eoff);
+    update_struct(sptr->id);
+    update_struct_member(sptr->id, mptr->id, mptr->eoff);
 
     if (LOG_EVENTS)
     {
@@ -1512,7 +1509,7 @@ void Hooks::struc_cmt_changed_event(va_list args)
         if(struc)
             real_struc_id = struc->id;
     }
-    update_structure(real_struc_id);
+    update_struct(real_struc_id);
 
     if (LOG_EVENTS)
     {
@@ -2046,7 +2043,7 @@ void Hooks::cmt_changed_event(va_list args)
     ea_t ea = va_arg(args, ea_t);
     bool repeatable_cmt = static_cast<bool>(va_arg(args, int));
 
-    change_comment(ea);
+    update_comment(ea);
 
     if (LOG_EVENTS)
     {
@@ -2074,7 +2071,7 @@ void Hooks::range_cmt_changed_event(va_list args)
     const char* cmt = va_arg(args, const char*);
     bool repeatable = static_cast<bool>(va_arg(args, int));
 
-    change_comment(a->start_ea);
+    update_comment(a->start_ea);
 
     if (LOG_EVENTS)
         LOG_EVENT("%s range from " EA_FMT " to " EA_FMT " %scomment has been changed to \"%s\"", range_kind_to_str(kind), a->start_ea, a->end_ea, REPEATABLE_STR[repeatable], cmt);
@@ -2086,7 +2083,7 @@ void Hooks::extra_cmt_changed_event(va_list args)
     int line_idx = va_arg(args, int);
     const char* cmt = va_arg(args, const char*);
 
-    change_comment(ea);
+    update_comment(ea);
 
     UNUSED(line_idx);
     if (LOG_EVENTS)
