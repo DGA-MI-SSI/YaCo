@@ -407,7 +407,7 @@ void Hooks::add_function(ea_t ea)
 
 void Hooks::update_function(ea_t ea)
 {
-    add_ea(ea, "Create function");
+    add_ea(ea, "Update function");
 }
 
 void Hooks::update_struct(ea_t struct_id)
