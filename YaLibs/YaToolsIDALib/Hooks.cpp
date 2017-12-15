@@ -377,7 +377,7 @@ void Hooks::update_comment(ea_t ea)
 
 void Hooks::undefine(ea_t ea)
 {
-    add_ea(ea, "Undefne");
+    add_ea(ea, "Undefine");
 }
 
 void Hooks::delete_function(ea_t ea)
