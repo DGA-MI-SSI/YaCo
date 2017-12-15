@@ -1963,6 +1963,8 @@ void Hooks::make_code_event(va_list args)
 {
     const insn_t* insn = va_arg(args, const insn_t*);
 
+    make_code(insn->ea);
+
     if (LOG_EVENTS)
         LOG_EVENT("An instruction is being created at " EA_FMT, insn->ea);
 }
@@ -1973,6 +1975,8 @@ void Hooks::make_data_event(va_list args)
     flags_t flags = va_arg(args, flags_t);
     tid_t tid = va_arg(args, tid_t);
     asize_t len = va_arg(args, asize_t);
+
+    make_data(ea);
 
     UNUSED(flags);
     UNUSED(tid);
