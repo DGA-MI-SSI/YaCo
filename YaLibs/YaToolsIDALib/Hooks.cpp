@@ -476,32 +476,34 @@ void Hooks::save()
 {
     const auto time_start = std::chrono::system_clock::now();
 
-    const auto model = MakeModelIncremental(&hash_provider_);
-    ModelAndVisitor db = MakeModel();
-
-    db.visitor->visit_start();
-
     // add comments to adresses to process
     for (const ea_t ea : comments_)
         add_ea(ea, "Changed comment");
 
-    // process structures
-    save_structs(model, db.visitor.get());
+    ModelAndVisitor db = MakeModel();
+    db.visitor->visit_start();
 
-    // process enums
-    save_enums(model, db.visitor.get());
+    {
+        const auto model = MakeModelIncremental(&hash_provider_);
 
-    // process addresses
-    for (const ea_t ea : eas_)
-        model->accept_ea(*db.visitor, ea);
+        // process structures
+        save_structs(model, db.visitor.get());
 
-    // process segments
-    for (const ea_t segment_ea : segments_)
-        model->accept_segment(*db.visitor, segment_ea);
+        // process enums
+        save_enums(model, db.visitor.get());
 
-    db.visitor->visit_end();
+        // process addresses
+        for (const ea_t ea : eas_)
+            model->accept_ea(*db.visitor, ea);
 
-    db.model->accept(*MakeXmlExporter(get_cache_folder_path()));
+        // process segments
+        for (const ea_t segment_ea : segments_)
+            model->accept_segment(*db.visitor, segment_ea);
+
+        db.visitor->visit_end();
+
+        db.model->accept(*MakeXmlExporter(get_cache_folder_path()));
+    }
 
     const auto time_end = std::chrono::system_clock::now();
     const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(time_end - time_start);
@@ -522,10 +524,12 @@ void Hooks::save_and_update()
     unhook();
 
     // update cache and export modifications to IDA
-    const std::vector<std::string> modified_files = repo_manager_.update_cache();
-    const ModelAndVisitor memory_exporter = MakeModel();
-    MakeXmlFilesDatabaseModel(modified_files)->accept(*(memory_exporter.visitor));
-    export_to_ida(memory_exporter.model.get(), &hash_provider_);
+    {
+        const std::vector<std::string> modified_files = repo_manager_.update_cache();
+        const ModelAndVisitor memory_exporter = MakeModel();
+        MakeXmlFilesDatabaseModel(modified_files)->accept(*(memory_exporter.visitor));
+        export_to_ida(memory_exporter.model.get(), &hash_provider_);
+    }
 
     // Let IDA apply modifications
     setflag(inf.s_genflags, INFFL_AUTO, true);
