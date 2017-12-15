@@ -182,37 +182,6 @@ class YaToolIDB_Hooks(idaapi.IDB_Hooks):
         logger.debug("event: auto=%d, AA_type=%d, AA_state=%d, text='%s'" %
                      (idaapi.autoIsOk(), auto_display.type, auto_display.state, text))
 
-    def cmt_changed(self, ea, repeatable):
-        self.pre_hook()
-
-        if LOG_IDB_EVENTS:
-            self.debug_event("cmt_changed     (0x%.016X, %x)" % (ea, repeatable))
-
-        hooks.ida.change_comment(ea)
-        if (idc.LineA(ea, 0) is None) and (idc.LineB(ea, 0) is None):
-            return idaapi.IDB_Hooks.cmt_changed(self, ea, repeatable)
-
-        return 0
-
-    def extra_cmt_changed(self, ea, line_idx, cmt):
-        self.pre_hook()
-
-        if LOG_IDB_EVENTS:
-            self.debug_event("extra_cmt_changed     (0x%.016X)" % (ea))
-
-        hooks.ida.change_comment(ea)
-
-        return idaapi.IDB_Hooks.extra_cmt_changed(self, ea, line_idx, cmt)
-
-    def range_cmt_changed(self, rangecb, range, cmt, repeatable):
-        self.pre_hook()
-        ea = range.start_ea
-
-        if LOG_IDB_EVENTS:
-            self.debug_event("range comment at 0x%08X" % ea)
-        hooks.ida.change_comment(ea)
-        return idaapi.IDB_Hooks.range_cmt_changed(self, rangecb, range, cmt, repeatable)
-
     def op_type_changed(self, address, operand):
         self.pre_hook()
 

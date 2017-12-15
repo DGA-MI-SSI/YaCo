@@ -2035,6 +2035,8 @@ void Hooks::cmt_changed_event(va_list args)
     ea_t ea = va_arg(args, ea_t);
     bool repeatable_cmt = static_cast<bool>(va_arg(args, int));
 
+    change_comment(ea);
+
     if (LOG_EVENTS)
     {
         const auto cmt = qpool_.acquire();
@@ -2061,6 +2063,8 @@ void Hooks::range_cmt_changed_event(va_list args)
     const char* cmt = va_arg(args, const char*);
     bool repeatable = static_cast<bool>(va_arg(args, int));
 
+    change_comment(a->start_ea);
+
     if (LOG_EVENTS)
         LOG_EVENT("%s range from " EA_FMT " to " EA_FMT " %scomment has been changed to \"%s\"", range_kind_to_str(kind), a->start_ea, a->end_ea, REPEATABLE_STR[repeatable], cmt);
 }
@@ -2070,6 +2074,8 @@ void Hooks::extra_cmt_changed_event(va_list args)
     ea_t ea = va_arg(args, ea_t);
     int line_idx = va_arg(args, int);
     const char* cmt = va_arg(args, const char*);
+
+    change_comment(ea);
 
     UNUSED(line_idx);
     if (LOG_EVENTS)
