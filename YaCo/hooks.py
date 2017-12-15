@@ -177,20 +177,6 @@ class YaToolIDB_Hooks(idaapi.IDB_Hooks):
 
         return hooks.idp.ev_rename(ea, new_name)
 
-    def make_code(self, insn):
-        self.pre_hook()
-        if LOG_IDP_EVENTS:
-            self.debug_event("Make code at 0x%08x" % ea)
-        hooks.ida.make_code(insn.ea)
-        return idaapi.IDB_Hooks.make_code(self, ea, size)
-
-    def make_data(self, ea, flags, tid, length):
-        self.pre_hook()
-        if LOG_IDP_EVENTS:
-            self.debug_event("Make data at 0x%08x, length : 0x%08x" % (ea, length))
-        hooks.ida.make_data(ea)
-        return idaapi.IDB_Hooks.make_data(self, ea, flags, tid, length)
-
     def debug_event(self, text):
         auto_display = idaapi.auto_display_t()
         logger.debug("event: auto=%d, AA_type=%d, AA_state=%d, text='%s'" %
