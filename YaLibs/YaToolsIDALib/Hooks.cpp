@@ -34,7 +34,6 @@
 #include "IDAUtils.hpp"
 
 #include <cstdarg>
-#include <memory>
 #include <tuple>
 #include <chrono>
 #include <math.h>
