@@ -93,7 +93,6 @@ class Fixture(unittest.TestCase):
                         self.try_ext_lin(idc.ExtLinA, ea, i, txt)
         yaunit.save('comments', eas)
 
-    @unittest.skipIf(sys.platform == "linux2", "unsupported")
     def yacheck_comments(self):
         eas = yaunit.load('comments')
         i = 0
@@ -174,7 +173,6 @@ class Fixture(unittest.TestCase):
                         self.try_ext_lin(idc.ExtLinA, ea, i, txt)
         yaunit.save('data_comments', eas)
 
-    @unittest.skipIf(sys.platform == "linux2", "unsupported")
     def yacheck_data_comments(self):
         eas = yaunit.load('data_comments')
         i = 0
