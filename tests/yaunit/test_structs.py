@@ -99,11 +99,11 @@ create_field = [
     ( 0, 8, idaapi.FF_DWRD,    -1, None, False),
     (54, 8, idaapi.FF_DWRD,    -1, None, False),
     ( 1, 8, idaapi.FF_ASCI,    idc.ASCSTR_C, None, False),
-   #( 0, 8, idaapi.FF_ASCI,    idc.ASCSTR_LEN2, None, False),
-   #( 0, 8, idaapi.FF_ASCI,    idc.ASCSTR_LEN4, None, False),
+    ( 0, 8, idaapi.FF_ASCI,    idc.ASCSTR_LEN2, None, False),
+    ( 0, 8, idaapi.FF_ASCI,    idc.ASCSTR_LEN4, None, False),
     ( 0, 8, idaapi.FF_ASCI,    idc.ASCSTR_PASCAL, None, False),
     ( 0, 8, idaapi.FF_ASCI,    idc.ASCSTR_ULEN2, None, False),
-   #( 0, 8, idaapi.FF_ASCI,    idc.ASCSTR_ULEN4, None, False),
+    ( 0, 8, idaapi.FF_ASCI,    idc.ASCSTR_ULEN4, None, False),
     ( 0, 8, idaapi.FF_ASCI,    idc.ASCSTR_UNICODE, None, False),
 ]
 
