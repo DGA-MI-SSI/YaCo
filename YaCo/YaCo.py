@@ -96,7 +96,7 @@ class YaCo:
             return
 
         # disable all yaco hooks
-        self.YaCoUI.unhook()
+        self.ida_hooks.unhook()
 
         self.repo_manager.sync_and_push_original_idb()
 
@@ -109,7 +109,7 @@ class YaCo:
             return
 
         # disable all yaco hooks
-        self.YaCoUI.unhook()
+        self.ida_hooks.unhook()
 
         self.repo_manager.discard_and_pull_idb()
 
@@ -160,7 +160,6 @@ class YaCo:
 
         self.ida_hooks = hooks.Hooks(self.hash_provider, self.repo_manager)
 
-        self.YaCoUI = hooks.YaCoUI_Hooks(self)
 
     yaco_menus = [
         ["yaco_toggle_rebase_push", "YaCo - Toggle YaCo auto rebase/push", toggle_auto_rebase_push, ""],
@@ -171,7 +170,6 @@ class YaCo:
 
     def start(self):
         logger.info("YaCo.start()")
-        self.YaCoUI.hook()
 
         try:
             self.ida_hooks.unhook()
@@ -180,7 +178,6 @@ class YaCo:
             self.ida_hooks.hook()
         except:
             traceback.print_exc()
-            self.YaCoUI.unhook()
             self.ida_hooks.unhook()
             logger.error('Error during load cache, YaCo is disabled !')
 
@@ -197,7 +194,6 @@ class YaCo:
             idaapi.attach_action_to_menu("Edit/YaTools/", name, idaapi.SETMENU_APP)
 
     def close(self):
-        self.YaCoUI.unhook()
         self.ida_hooks.unhook()
         ya.StopYatools()
 
