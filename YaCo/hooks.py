@@ -29,21 +29,12 @@ else:
 logger = logging.getLogger("YaCo")
 # logger.setLevel(logging.DEBUG)
 
-LOG_IDA_HOOKS_EVENTS = True
-LOG_IDP_EVENTS = True
-LOG_IDB_EVENTS = True
-VALIDATE_EXPORTED_XML = False
-VALIDATE_EXPORTED_XML_2 = False
-
 hooks = None
-
 
 class Hooks(object):
     def __init__(self, hash_provider, repo_manager):
         self.ida = ya.MakeHooks(hash_provider, repo_manager)
         self.idb = YaToolIDB_Hooks()
-        self.idp = YaToolIDP_Hooks()
-        self.current_rename_infos = {}
         global hooks
         hooks = self
 
@@ -51,161 +42,18 @@ class Hooks(object):
         logger.debug("Hooks:hook")
         self.ida.hook() # native
         self.idb.hook()
-        self.idp.hook()
 
     def unhook(self):
         logger.debug("Hooks:unhook")
         self.ida.unhook() # native
-        self.idp.unhook()
         self.idb.unhook()
-
-
-
-class YaToolIDP_Hooks(idaapi.IDP_Hooks):
-    def debug_event(self, text):
-        auto_display = idaapi.auto_display_t()
-        logger.debug("event: auto=%d, AA_type=%d, AA_state=%d, text='%s'" %
-                     (idaapi.autoIsOk(), auto_display.type, auto_display.state, text))
-
-    def pre_hook(self):
-        self.unhook()
-        hooks.idb.unhook()
-
-        idc.set_inf_attr(idc.INFFL_AUTO, True)
-        idc.Wait()
-        idaapi.request_refresh(idaapi.IWID_STRUCTS | idaapi.IWID_ENUMS | idaapi.IWID_XREFS)
-        idc.set_inf_attr(idc.INFFL_AUTO, False)
-        idaapi.request_refresh(idaapi.IWID_STRUCTS | idaapi.IWID_ENUMS | idaapi.IWID_XREFS)
-
-        self.hook()
-        hooks.idb.hook()
-
-    def __init__(self):
-        idaapi.IDP_Hooks.__init__(self)
-
-    def ev_rename(self, ea, new_name):
-        """
-        This function only records information about the element *before* it is renamed
-        """
-        if idaapi.is_member_id(ea):
-            name = idaapi.get_member_fullname(ea)
-        elif idaapi.get_struc(ea) is not None:
-            name = idaapi.get_struc_name(ea)
-        elif idaapi.get_enum_idx(ea) != idc.BADADDR:
-            name = idaapi.get_enum_name(ea)
-        elif idaapi.get_enum_idx(idaapi.get_enum_member_enum(ea)) != idc.BADADDR:
-            # this is an enum member id
-            enum_id = idaapi.get_enum_member_enum(ea)
-            name = idaapi.get_enum_name(enum_id) + "." + idaapi.get_enum_member_name(ea)
-        else:
-            name = idc.Name(ea)
-
-        hooks.current_rename_infos[ea] = name
-
-        return 0
-
-    def ev_undefine(self, ea):
-        self.pre_hook()
-        if LOG_IDP_EVENTS:
-            self.debug_event("Undefine at 0x%08x" % ea)
-        self.unhook()
-        hooks.idb.unhook()
-        hooks.ida.undefine(ea)
-        self.hook()
-        hooks.idb.hook()
-        return hooks.idp.ev_undefine(ea)
 
 
 class YaToolIDB_Hooks(idaapi.IDB_Hooks):
     def __init__(self):
         idaapi.IDB_Hooks.__init__(self)
-        # hooks.ida = model
-
-    def pre_hook(self):
-        hooks.idp.unhook()
-        self.unhook()
-
-        idc.set_inf_attr(idc.INFFL_AUTO, True)
-        idc.Wait()
-        idaapi.request_refresh(idaapi.IWID_STRUCTS | idaapi.IWID_ENUMS | idaapi.IWID_XREFS)
-        idc.set_inf_attr(idc.INFFL_AUTO, False)
-
-        idaapi.request_refresh(idaapi.IWID_STRUCTS | idaapi.IWID_ENUMS | idaapi.IWID_XREFS)
-
-        hooks.idp.hook()
-        self.hook()
 
     def closebase(self, *args):
         logger.debug("closebase")
-        """
-        closebase(self) -> int
-
-
-        The database will be closed now
-        """
         YaCo.close()
         return idaapi.IDB_Hooks.closebase(self, *args)
-
-    def debug_event(self, text):
-        auto_display = idaapi.auto_display_t()
-        logger.debug("event: auto=%d, AA_type=%d, AA_state=%d, text='%s'" %
-                     (idaapi.autoIsOk(), auto_display.type, auto_display.state, text))
-
-# ======================================================================#
-# Hooks
-# ======================================================================#
-class YaCoUI_Hooks(idaapi.UI_Hooks):
-    def __init__(self, yaco):
-        self.yaco = yaco
-        idaapi.UI_Hooks.__init__(self)
-
-    def hook(self, *args):
-        logger.debug("YaCoUI_Hooks:hook")
-        return idaapi.UI_Hooks.hook(self, *args)
-
-    def unhook(self, *args):
-        logger.debug("YaCoUI_Hooks:unhook")
-        return idaapi.UI_Hooks.unhook(self, *args)
-
-    def saving(self, *args):
-        """
-        saving(self)
-
-
-        The kernel is saving the database.
-
-        @return: Ignored
-        """
-        return idaapi.UI_Hooks.saving(self, *args)
-
-    def saved(self, *args):
-        """
-        saved(self)
-
-
-        The kernel has saved the database.
-
-        @return: Ignored
-        """
-        return idaapi.UI_Hooks.saved(self, *args)
-
-    def term(self, *args):
-        """
-        term(self)
-
-
-        IDA is terminated and the database is already closed.
-        The UI may close its windows in this callback.
-        """
-        try:
-            self.yaco.ida_hooks.unhook()
-            self.unhook()
-        except Exception, e:
-            ex = traceback.format_exc()
-            logger.error("An error occurred while terminating")
-            logger.error("%s", ex)
-            raise e
-        return idaapi.UI_Hooks.term(self, *args)
-
-    def __del__(self):
-        logger.warning("Destroying %r" % self)
