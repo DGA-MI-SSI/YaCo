@@ -59,18 +59,7 @@ class YaCoHandler(idaapi.action_handler_t):
 
 class YaCo:
     def initial_load(self):
-
-        start_time = time.time()
-
-        # load XML into memory
-        logger.debug("Initial load")
-
-        # export to IDB
-        ya.export_to_ida(ya.MakeXmlDatabaseModel("cache/"), self.hash_provider)
-
-        end_time = time.time()
-
-        logger.debug("YaCo cache loaded in %d seconds.", (end_time - start_time))
+        self.native.initial_load()
 
     def toggle_auto_rebase_push(self, *args):
         self.repo_manager.toggle_repo_auto_sync()
@@ -155,6 +144,8 @@ class YaCo:
         idaapi.msg("YaCo %s\n" % YACO_VERSION)
 
         self.hash_provider = ya.MakeHashProvider()
+        self.native = ya.MakeYaCo(self.hash_provider)
+
         self.repo_manager = ya.MakeRepository(".", IDA_IS_INTERACTIVE)
         self.repo_manager.check_valid_cache_startup()
 
