@@ -46,6 +46,7 @@ namespace std
 #include "git_version.h"
 #include "HObject.hpp"
 #include "Hooks.hpp"
+#include "YaCo.hpp"
 #include "IDANativeExporter.hpp"
 #include "IDANativeModel.hpp"
 #include "IModelAccept.hpp"
@@ -75,6 +76,7 @@ YaToolObjectId YaToolObjectId_From_String(const char* input, size_t input_len);
 %shared_ptr(IFlatExporter)
 %shared_ptr(IHashProvider)
 %shared_ptr(IHooks)
+%shared_ptr(IYaCo)
 %shared_ptr(IModel)
 %shared_ptr(IModelAccept)
 %shared_ptr(IModelIncremental)
@@ -197,6 +199,7 @@ namespace std
 %include "FlatBufferDatabaseModel.hpp"
 %include "FlatBufferExporter.hpp"
 %include "Hooks.hpp"
+%include "YaCo.hpp"
 %include "IDANativeExporter.hpp"
 %include "IDANativeModel.hpp"
 %include "Logger.h"
