@@ -65,14 +65,7 @@ class YaCo:
         self.repo_manager.toggle_repo_auto_sync()
 
     def export_single_cache(self, *args):
-        logger.info("Exporting database using one core")
-        if not os.path.isdir("database"):
-            os.mkdir("database")
-        exporter = ya.MakeFlatBufferExporter()
-        ya.MakeModel(self.hash_provider).accept(exporter)
-        with open("database/database.yadb", "wb") as fh:
-            fh.write(exporter.GetBuffer())
-        idc.Message("Export complete.")
+        self.native.export_single_cache()
 
     def create_reset(self, *args):
         title = "YaCo Force Push"

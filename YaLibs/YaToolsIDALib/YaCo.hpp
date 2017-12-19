@@ -23,6 +23,8 @@ struct IHashProvider;
 struct IYaCo
 {
     virtual void initial_load() = 0;
+
+    virtual void export_single_cache() = 0;
 };
 
 std::shared_ptr<IYaCo> MakeYaCo(const std::shared_ptr<IHashProvider>& hash_provider);
