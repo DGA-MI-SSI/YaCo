@@ -15,6 +15,8 @@
 
 #pragma once
 
+#include "YaTypes.hpp"
+
 #include <memory>
 
 // Forward declarations
@@ -22,9 +24,10 @@ struct IHashProvider;
 
 struct IYaCo
 {
-    virtual void initial_load() = 0;
-
+    virtual void start() = 0;
+    virtual void save_and_update() = 0;
     virtual void export_single_cache() = 0;
+    virtual void stop() = 0;
 };
 
-std::shared_ptr<IYaCo> MakeYaCo(const std::shared_ptr<IHashProvider>& hash_provider);
+std::shared_ptr<IYaCo> MakeYaCo(IDAIsInteractive ida_is_interactive);

@@ -15,6 +15,8 @@
 
 #pragma once
 
+#include "YaTypes.hpp"
+
 #include <string>
 #include <vector>
 #include <memory>
@@ -36,12 +38,6 @@ struct IRepository
     virtual void sync_and_push_original_idb() = 0;
 
     virtual void discard_and_pull_idb() = 0;
-};
-
-enum IDAIsInteractive
-{
-    IS_NOT_INTERACTIVE,
-    IS_INTERACTIVE
 };
 
 std::shared_ptr<IRepository> MakeRepository(const std::string& path, IDAIsInteractive ida_is_interactive);

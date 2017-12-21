@@ -16,6 +16,7 @@
 #include "Ida.h"
 #include "Hooks.hpp"
 
+#include "YaCo.hpp"
 #include "Repository.hpp"
 #include "YaToolsHashProvider.hpp"
 #include "IModel.hpp"
@@ -162,7 +163,7 @@ namespace
         : public IHooks
     {
 
-        Hooks(IHashProvider& hash_provider, IRepository& repo_manager);
+        Hooks(IYaCo& yaco, IHashProvider& hash_provider, IRepository& repo_manager);
 
         // IHooks
         void rename(ea_t ea, const std::string& new_name, const std::string& type, const std::string& old_name) override;
@@ -289,6 +290,7 @@ namespace
         void extra_cmt_changed(va_list args);
 
         // Variables
+        IYaCo&           yaco_;
         IHashProvider&   hash_provider_;
         IRepository&     repo_manager_;
         Pool<qstring>    qpool_;
@@ -1288,12 +1290,12 @@ namespace
     }
 }
 
-Hooks::Hooks(IHashProvider& hash_provider, IRepository& repo_manager)
-    : hash_provider_(hash_provider)
+Hooks::Hooks(IYaCo& yaco, IHashProvider& hash_provider, IRepository& repo_manager)
+    : yaco_(yaco)
+    , hash_provider_(hash_provider)
     , repo_manager_ (repo_manager)
     , qpool_        (3)
 {
-
 }
 
 void Hooks::rename(ea_t ea, const std::string& new_name, const std::string& type, const std::string& old_name)
@@ -1617,6 +1619,8 @@ void Hooks::closebase(va_list args)
     UNUSED(args);
 
     log_closebase();
+
+    yaco_.stop();
 }
 
 void Hooks::savebase(va_list args)
@@ -2437,7 +2441,7 @@ void Hooks::extra_cmt_changed(va_list args)
 }
 
 
-std::shared_ptr<IHooks> MakeHooks(const std::shared_ptr<IHashProvider>& hash_provider, const std::shared_ptr<IRepository>& repo_manager)
+std::shared_ptr<IHooks> MakeHooks(IYaCo& yaco, const std::shared_ptr<IHashProvider>& hash_provider, const std::shared_ptr<IRepository>& repo_manager)
 {
-    return std::make_shared<Hooks>(*hash_provider, *repo_manager);
+    return std::make_shared<Hooks>(yaco, *hash_provider, *repo_manager);
 }
