@@ -196,7 +196,7 @@ function(add_yatools_py bits)
     get_files(yaida_files "${ya_dir}/YaLibs/YaToolsIDALib")
     make_target(yaida${bits} yatools ${yaida_files} OPTIONS static_runtime)
     setup_yatools(yaida${bits})
-    target_include_directories(yaida${bits} PUBLIC "${idasdk_dir}/include")
+    target_include_directories(yaida${bits} PUBLIC "${idasdk_dir}/include" "${CMAKE_CURRENT_BINARY_DIR}/yatools_")
     target_compile_definitions(yaida${bits} PUBLIC __${os_}__ __IDP__ __X64__)
     target_link_libraries(yaida${bits}
         PUBLIC

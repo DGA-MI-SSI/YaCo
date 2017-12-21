@@ -33,7 +33,7 @@ def init(tests):
 def exit(tests):
     idbname = re.sub(r'\.i(db|64)$', '_' + tests + '.i\\1', idc.GetIdbPath())
     if tests == 'yatest':
-        YaCo.yaco.ida_hooks.ida.save_and_update()
+        YaCo.save_and_update()
     # save intermediate bases
     if debug:
         idc.SaveBase(idbname)
