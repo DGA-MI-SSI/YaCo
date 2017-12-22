@@ -57,10 +57,6 @@ def start():
         yaco_starting = False
         return False
 
-def save_and_update():
-    global yaco
-    yaco.save_and_update()
-
 def close():
     global yaco
     if yaco is None:

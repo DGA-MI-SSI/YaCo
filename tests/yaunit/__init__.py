@@ -32,10 +32,7 @@ def init(tests):
 
 def exit(tests):
     idbname = re.sub(r'\.i(db|64)$', '_' + tests + '.i\\1', idc.GetIdbPath())
-    if tests == 'yatest':
-        YaCo.save_and_update()
-    # save intermediate bases
-    if debug:
+    if debug or tests == 'yatest':
         idc.SaveBase(idbname)
 
 # save generator as global for all tests
