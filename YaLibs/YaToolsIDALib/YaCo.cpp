@@ -98,7 +98,6 @@ namespace
 
         // IYaCo
         void start() override;
-        void save_and_update() override;
         void export_single_cache() override;
         void stop() override;
 
@@ -160,11 +159,6 @@ void YaCo::start()
         register_action(action_desc);
         attach_action_to_menu("Edit/Yatools/", action_desc.name, SETMENU_APP);
     }
-}
-
-void YaCo::save_and_update()
-{
-    hooks_->save_and_update();
 }
 
 void YaCo::export_single_cache()
