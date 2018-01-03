@@ -52,7 +52,8 @@ namespace fs = std::experimental::filesystem;
 namespace
 {
     // Enable / disable events logging
-    constexpr bool LOG_EVENTS = false;
+    constexpr bool LOG_IDP_EVENTS = false;
+    constexpr bool LOG_IDB_EVENTS = false;
 
     const char BOOL_STR[2][6] = { "false", "true" };
     const char REPEATABLE_STR[2][12] = { "", "repeatable " };
@@ -309,10 +310,132 @@ namespace
 {
     ssize_t idp_event_handler(void* user_data, int notification_code, va_list va)
     {
+        using envent_code = processor_t::event_t;
         Hooks* hooks = static_cast<Hooks*>(user_data);
         UNUSED(hooks);
-        UNUSED(notification_code);
         UNUSED(va);
+
+        if (!LOG_IDP_EVENTS)
+            return 0;
+
+        envent_code ecode = static_cast<envent_code>(notification_code);
+        switch (ecode)
+        {
+            case envent_code::ev_init:                            LOG_EVENT("ev_init"); break;
+            case envent_code::ev_term:                            LOG_EVENT("ev_term"); break;
+            case envent_code::ev_newprc:                          LOG_EVENT("ev_newprc"); break;
+            case envent_code::ev_newasm:                          LOG_EVENT("ev_newasm"); break;
+            case envent_code::ev_newfile:                         LOG_EVENT("ev_newfile"); break;
+            case envent_code::ev_oldfile:                         LOG_EVENT("ev_oldfile"); break;
+            case envent_code::ev_newbinary:                       LOG_EVENT("ev_newbinary"); break;
+            case envent_code::ev_endbinary:                       LOG_EVENT("ev_endbinary"); break;
+            case envent_code::ev_set_idp_options:                 LOG_EVENT("ev_set_idp_options"); break;
+            case envent_code::ev_set_proc_options:                LOG_EVENT("ev_set_proc_options"); break;
+            case envent_code::ev_ana_insn:                        LOG_EVENT("ev_ana_insn"); break;
+            case envent_code::ev_emu_insn:                        LOG_EVENT("ev_emu_insn"); break;
+            case envent_code::ev_out_header:                      LOG_EVENT("ev_out_header"); break;
+            case envent_code::ev_out_footer:                      LOG_EVENT("ev_out_footer"); break;
+            case envent_code::ev_out_segstart:                    LOG_EVENT("ev_out_segstart"); break;
+            case envent_code::ev_out_segend:                      LOG_EVENT("ev_out_segend"); break;
+            case envent_code::ev_out_assumes:                     LOG_EVENT("ev_out_assumes"); break;
+            case envent_code::ev_out_insn:                        LOG_EVENT("ev_out_insn"); break;
+            case envent_code::ev_out_mnem:                        LOG_EVENT("ev_out_mnem"); break;
+            case envent_code::ev_out_operand:                     LOG_EVENT("ev_out_operand"); break;
+            case envent_code::ev_out_data:                        LOG_EVENT("ev_out_data"); break;
+            case envent_code::ev_out_label:                       LOG_EVENT("ev_out_label"); break;
+            case envent_code::ev_out_special_item:                LOG_EVENT("ev_out_special_item"); break;
+            case envent_code::ev_gen_stkvar_def:                  LOG_EVENT("ev_gen_stkvar_def"); break;
+            case envent_code::ev_gen_regvar_def:                  LOG_EVENT("ev_gen_regvar_def"); break;
+            case envent_code::ev_gen_src_file_lnnum:              LOG_EVENT("ev_gen_src_file_lnnum"); break;
+            case envent_code::ev_creating_segm:                   LOG_EVENT("ev_creating_segm"); break;
+            case envent_code::ev_moving_segm:                     LOG_EVENT("ev_moving_segm"); break;
+            case envent_code::ev_coagulate:                       LOG_EVENT("ev_coagulate"); break;
+            case envent_code::ev_undefine:                        LOG_EVENT("ev_undefine"); break;
+            case envent_code::ev_treat_hindering_item:            LOG_EVENT("ev_treat_hindering_item"); break;
+            case envent_code::ev_rename:                          LOG_EVENT("ev_rename"); break;
+            case envent_code::ev_is_far_jump:                     LOG_EVENT("ev_is_far_jump"); break;
+            case envent_code::ev_is_sane_insn:                    LOG_EVENT("ev_is_sane_insn"); break;
+            case envent_code::ev_is_cond_insn:                    LOG_EVENT("ev_is_cond_insn"); break;
+            case envent_code::ev_is_call_insn:                    LOG_EVENT("ev_is_call_insn"); break;
+            case envent_code::ev_is_ret_insn:                     LOG_EVENT("ev_is_ret_insn"); break;
+            case envent_code::ev_may_be_func:                     LOG_EVENT("ev_may_be_func"); break;
+            case envent_code::ev_is_basic_block_end:              LOG_EVENT("ev_is_basic_block_end"); break;
+            case envent_code::ev_is_indirect_jump:                LOG_EVENT("ev_is_indirect_jump"); break;
+            case envent_code::ev_is_insn_table_jump:              LOG_EVENT("ev_is_insn_table_jump"); break;
+            case envent_code::ev_is_switch:                       LOG_EVENT("ev_is_switch"); break;
+            case envent_code::ev_calc_switch_cases:               LOG_EVENT("ev_calc_switch_cases"); break;
+            case envent_code::ev_create_switch_xrefs:             LOG_EVENT("ev_create_switch_xrefs"); break;
+            case envent_code::ev_is_align_insn:                   LOG_EVENT("ev_is_align_insn"); break;
+            case envent_code::ev_is_alloca_probe:                 LOG_EVENT("ev_is_alloca_probe"); break;
+            case envent_code::ev_delay_slot_insn:                 LOG_EVENT("ev_delay_slot_insn"); break;
+            case envent_code::ev_is_sp_based:                     LOG_EVENT("ev_is_sp_based"); break;
+            case envent_code::ev_can_have_type:                   LOG_EVENT("ev_can_have_type"); break;
+            case envent_code::ev_cmp_operands:                    LOG_EVENT("ev_cmp_operands"); break;
+            case envent_code::ev_adjust_refinfo:                  LOG_EVENT("ev_adjust_refinfo"); break;
+            case envent_code::ev_get_operand_string:              LOG_EVENT("ev_get_operand_string"); break;
+            case envent_code::ev_get_reg_name:                    LOG_EVENT("ev_get_reg_name"); break;
+            case envent_code::ev_str2reg:                         LOG_EVENT("ev_str2reg"); break;
+            case envent_code::ev_get_autocmt:                     LOG_EVENT("ev_get_autocmt"); break;
+            case envent_code::ev_get_bg_color:                    LOG_EVENT("ev_get_bg_color"); break;
+            case envent_code::ev_is_jump_func:                    LOG_EVENT("ev_is_jump_func"); break;
+            case envent_code::ev_func_bounds:                     LOG_EVENT("ev_func_bounds"); break;
+            case envent_code::ev_verify_sp:                       LOG_EVENT("ev_verify_sp"); break;
+            case envent_code::ev_verify_noreturn:                 LOG_EVENT("ev_verify_noreturn"); break;
+            case envent_code::ev_create_func_frame:               LOG_EVENT("ev_create_func_frame"); break;
+            case envent_code::ev_get_frame_retsize:               LOG_EVENT("ev_get_frame_retsize"); break;
+            case envent_code::ev_get_stkvar_scale_factor:         LOG_EVENT("ev_get_stkvar_scale_factor"); break;
+            case envent_code::ev_demangle_name:                   LOG_EVENT("ev_demangle_name"); break;
+            case envent_code::ev_add_cref:                        LOG_EVENT("ev_add_cref"); break;
+            case envent_code::ev_add_dref:                        LOG_EVENT("ev_add_dref"); break;
+            case envent_code::ev_del_cref:                        LOG_EVENT("ev_del_cref"); break;
+            case envent_code::ev_del_dref:                        LOG_EVENT("ev_del_dref"); break;
+            case envent_code::ev_coagulate_dref:                  LOG_EVENT("ev_coagulate_dref"); break;
+            case envent_code::ev_may_show_sreg:                   LOG_EVENT("ev_may_show_sreg"); break;
+            case envent_code::ev_loader_elf_machine:              LOG_EVENT("ev_loader_elf_machine"); break;
+            case envent_code::ev_auto_queue_empty:                LOG_EVENT("ev_auto_queue_empty"); break;
+            case envent_code::ev_validate_flirt_func:             LOG_EVENT("ev_validate_flirt_func"); break;
+            case envent_code::ev_adjust_libfunc_ea:               LOG_EVENT("ev_adjust_libfunc_ea"); break;
+            case envent_code::ev_assemble:                        LOG_EVENT("ev_assemble"); break;
+            case envent_code::ev_extract_address:                 LOG_EVENT("ev_extract_address"); break;
+            case envent_code::ev_realcvt:                         LOG_EVENT("ev_realcvt"); break;
+            case envent_code::ev_gen_asm_or_lst:                  LOG_EVENT("ev_gen_asm_or_lst"); break;
+            case envent_code::ev_gen_map_file:                    LOG_EVENT("ev_gen_map_file"); break;
+            case envent_code::ev_create_flat_group:               LOG_EVENT("ev_create_flat_group"); break;
+            case envent_code::ev_getreg:                          LOG_EVENT("ev_getreg"); break;
+            case envent_code::ev_last_cb_before_debugger:         LOG_EVENT("ev_last_cb_before_debugger"); break;
+            case envent_code::ev_next_exec_insn:                  LOG_EVENT("ev_next_exec_insn"); break;
+            case envent_code::ev_calc_step_over:                  LOG_EVENT("ev_calc_step_over"); break;
+            case envent_code::ev_calc_next_eas:                   LOG_EVENT("ev_calc_next_eas"); break;
+            case envent_code::ev_get_macro_insn_head:             LOG_EVENT("ev_get_macro_insn_head"); break;
+            case envent_code::ev_get_dbr_opnum:                   LOG_EVENT("ev_get_dbr_opnum"); break;
+            case envent_code::ev_insn_reads_tbit:                 LOG_EVENT("ev_insn_reads_tbit"); break;
+            case envent_code::ev_clean_tbit:                      LOG_EVENT("ev_clean_tbit"); break;
+            case envent_code::ev_get_idd_opinfo:                  LOG_EVENT("ev_get_idd_opinfo"); break;
+            case envent_code::ev_get_reg_info:                    LOG_EVENT("ev_get_reg_info"); break;
+            case envent_code::ev_last_cb_before_type_callbacks:   LOG_EVENT("ev_last_cb_before_type_callbacks"); break;
+            case envent_code::ev_setup_til:                       LOG_EVENT("ev_setup_til"); break;
+            case envent_code::ev_get_abi_info:                    LOG_EVENT("ev_get_abi_info"); break;
+            case envent_code::ev_max_ptr_size:                    LOG_EVENT("ev_max_ptr_size"); break;
+            case envent_code::ev_get_default_enum_size:           LOG_EVENT("ev_get_default_enum_size"); break;
+            case envent_code::ev_get_cc_regs:                     LOG_EVENT("ev_get_cc_regs"); break;
+            case envent_code::ev_get_stkarg_offset:               LOG_EVENT("ev_get_stkarg_offset"); break;
+            case envent_code::ev_shadow_args_size:                LOG_EVENT("ev_shadow_args_size"); break;
+            case envent_code::ev_get_simd_types:                  LOG_EVENT("ev_get_simd_types"); break;
+            case envent_code::ev_calc_cdecl_purged_bytes:         LOG_EVENT("ev_calc_cdecl_purged_bytes"); break;
+            case envent_code::ev_calc_purged_bytes:               LOG_EVENT("ev_calc_purged_bytes"); break;
+            case envent_code::ev_calc_retloc:                     LOG_EVENT("ev_calc_retloc"); break;
+            case envent_code::ev_calc_arglocs:                    LOG_EVENT("ev_calc_arglocs"); break;
+            case envent_code::ev_calc_varglocs:                   LOG_EVENT("ev_calc_varglocs"); break;
+            case envent_code::ev_adjust_argloc:                   LOG_EVENT("ev_adjust_argloc"); break;
+            case envent_code::ev_lower_func_type:                 LOG_EVENT("ev_lower_func_type"); break;
+            case envent_code::ev_equal_reglocs:                   LOG_EVENT("ev_equal_reglocs"); break;
+            case envent_code::ev_use_stkarg_type:                 LOG_EVENT("ev_use_stkarg_type"); break;
+            case envent_code::ev_use_regarg_type:                 LOG_EVENT("ev_use_regarg_type"); break;
+            case envent_code::ev_use_arg_types:                   LOG_EVENT("ev_use_arg_types"); break;
+            case envent_code::ev_arg_addrs_ready:                 LOG_EVENT("ev_arg_addrs_ready"); break;
+            case envent_code::ev_decorate_name:                   LOG_EVENT("ev_decorate_name"); break;
+            case envent_code::ev_loader:                          LOG_EVENT("ev_loader"); break;
+        }
         return 0;
     }
 
@@ -419,7 +542,7 @@ namespace
 
     void log_closebase()
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("The database will be closed now");
@@ -427,7 +550,7 @@ namespace
 
     void log_savebase()
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("The database is being saved");
@@ -435,7 +558,7 @@ namespace
 
     void log_upgraded(int from)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("The database has been upgraded (old IDB version: %d)", from);
@@ -443,7 +566,7 @@ namespace
 
     void log_auto_empty()
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("All analysis queues are empty");
@@ -451,7 +574,7 @@ namespace
 
     void log_auto_empty_finally()
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("All analysis queues are empty definitively");
@@ -459,7 +582,7 @@ namespace
 
     void log_determined_main(ea_t main)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("The main() function has been determined (address of the main() function: " EA_FMT ")", main);
@@ -467,7 +590,7 @@ namespace
 
     void log_local_types_changed()
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("Local types have been changed");
@@ -475,7 +598,7 @@ namespace
 
     void log_extlang_changed(int kind, const extlang_t* el, int idx)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         UNUSED(idx);
@@ -498,7 +621,7 @@ namespace
 
     void log_idasgn_loaded(const char* short_sig_name)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         // FLIRT = Fast Library Identificationand Regognition Technology
@@ -508,7 +631,7 @@ namespace
 
     void log_kernel_config_loaded()
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("Kernel configuration loaded (ida.cfg parsed)");
@@ -516,7 +639,7 @@ namespace
 
     void log_loader_finished(const linput_t* li, uint16 neflags, const char* filetypename)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         UNUSED(li);
@@ -526,7 +649,7 @@ namespace
 
     void log_flow_chart_created(const qflow_chart_t* fc)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("Gui has retrieved a function flow chart (from " EA_FMT " to " EA_FMT ", name: %s, function: %s)", fc->bounds.start_ea, fc->bounds.end_ea, fc->title.c_str(), get_func_name(fc->pfn->start_ea).c_str());
@@ -534,7 +657,7 @@ namespace
 
     void log_compiler_changed()
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("The kernel has changed the compiler information");
@@ -542,7 +665,7 @@ namespace
 
     void log_changing_ti(ea_t ea, const type_t* new_type, const p_list* new_fnames)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         UNUSED(new_type);
@@ -552,7 +675,7 @@ namespace
 
     void log_ti_changed(ea_t ea, const type_t* type, const p_list* fnames)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         UNUSED(type);
@@ -562,7 +685,7 @@ namespace
 
     void log_changing_op_ti(ea_t ea, int n, const type_t* new_type, const p_list* new_fnames)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         UNUSED(n);
@@ -573,7 +696,7 @@ namespace
 
     void log_op_ti_changed(ea_t ea, int n, const type_t* new_type, const p_list* new_fnames)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         UNUSED(n);
@@ -584,7 +707,7 @@ namespace
 
     void log_changing_op_type(ea_t ea, int n, const opinfo_t* opinfo)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         UNUSED(n);
@@ -594,7 +717,7 @@ namespace
 
     void log_op_type_changed(ea_t ea, int n)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         UNUSED(n);
@@ -603,7 +726,7 @@ namespace
 
     void log_enum_created(enum_t id)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("Enum type %s has been created", get_enum_name(id).c_str());
@@ -611,7 +734,7 @@ namespace
 
     void log_deleting_enum(enum_t id)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("Enum type %s is to be deleted", get_enum_name(id).c_str());
@@ -619,7 +742,7 @@ namespace
 
     void log_enum_deleted(enum_t id)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         UNUSED(id);
@@ -628,7 +751,7 @@ namespace
 
     void log_renaming_enum(tid_t id, bool is_enum, const char* newname)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         if (is_enum)
@@ -639,7 +762,7 @@ namespace
 
     void log_enum_renamed(tid_t id)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         if (get_enum_member_enum(id) == BADADDR)
@@ -650,7 +773,7 @@ namespace
 
     void log_changing_enum_bf(enum_t id, bool new_bf)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("Enum type %s 'bitfield' attribute is to be changed to %s", get_enum_name(id).c_str(), BOOL_STR[new_bf]);
@@ -658,7 +781,7 @@ namespace
 
     void log_enum_bf_changed(enum_t id)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("Enum type %s 'bitfield' attribute has been changed", get_enum_name(id).c_str());
@@ -666,7 +789,7 @@ namespace
 
     void log_changing_enum_cmt(enum_t id, bool repeatable, const char* newcmt)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         if (get_enum_member_enum(id) == BADADDR)
@@ -677,7 +800,7 @@ namespace
 
     void log_enum_cmt_changed(enum_t id, bool repeatable)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         if (get_enum_member_enum(id) == BADADDR)
@@ -688,7 +811,7 @@ namespace
 
     void log_enum_member_created(enum_t id, const_t cid)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("Enum type %s member %s has been created", get_enum_name(id).c_str(), get_enum_member_name(cid).c_str());
@@ -696,7 +819,7 @@ namespace
 
     void log_deleting_enum_member(enum_t id, const_t cid)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("Enum type %s member %s is to be deleted", get_enum_name(id).c_str(), get_enum_member_name(cid).c_str());
@@ -704,7 +827,7 @@ namespace
 
     void log_enum_member_deleted(enum_t id, const_t cid)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         UNUSED(cid);
@@ -713,7 +836,7 @@ namespace
 
     void log_struc_created(tid_t struc_id)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         ea_t func_ea = get_func_by_frame(struc_id);
@@ -725,7 +848,7 @@ namespace
 
     void log_deleting_struc(const struc_t* sptr)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         ea_t func_ea = get_func_by_frame(sptr->id);
@@ -737,7 +860,7 @@ namespace
 
     void log_struc_deleted(tid_t struc_id)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         UNUSED(struc_id);
@@ -746,7 +869,7 @@ namespace
 
     void log_changing_struc_align(const struc_t* sptr)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("Structure type %s alignment is being changed from 0x%X", get_struc_name(sptr->id).c_str(), static_cast<int>(std::pow(2, sptr->get_alignment())));
@@ -754,7 +877,7 @@ namespace
 
     void log_struc_align_changed(const struc_t* sptr)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("Structure type %s alignment has been changed to 0x%X", get_struc_name(sptr->id).c_str(), static_cast<int>(std::pow(2, sptr->get_alignment())));
@@ -762,7 +885,7 @@ namespace
 
     void log_renaming_struc(tid_t struc_id, const char* oldname, const char* newname)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         UNUSED(struc_id);
@@ -771,7 +894,7 @@ namespace
 
     void log_struc_renamed(const struc_t* sptr)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("A structure type has been renamed %s", get_struc_name(sptr->id).c_str());
@@ -779,7 +902,7 @@ namespace
 
     void log_expanding_struc(const struc_t* sptr, ea_t offset, adiff_t delta)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         ea_t func_ea = get_func_by_frame(sptr->id);
@@ -801,7 +924,7 @@ namespace
 
     void log_struc_expanded(const struc_t* sptr)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         ea_t func_ea = get_func_by_frame(sptr->id);
@@ -813,7 +936,7 @@ namespace
 
     void log_struc_member_created(const struc_t* sptr, const member_t* mptr)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         ea_t func_ea = get_func_by_frame(sptr->id);
@@ -825,7 +948,7 @@ namespace
 
     void log_deleting_struc_member(const struc_t* sptr, const member_t* mptr)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         ea_t func_ea = get_func_by_frame(sptr->id);
@@ -837,7 +960,7 @@ namespace
 
     void log_struc_member_deleted(const struc_t* sptr, tid_t member_id, ea_t offset)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         UNUSED(member_id);
@@ -850,7 +973,7 @@ namespace
 
     void log_renaming_struc_member(const struc_t* sptr, const member_t* mptr, const char* newname)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         ea_t func_ea = get_func_by_frame(sptr->id);
@@ -862,7 +985,7 @@ namespace
 
     void log_struc_member_renamed(const struc_t* sptr, const member_t* mptr)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         ea_t func_ea = get_func_by_frame(sptr->id);
@@ -874,7 +997,7 @@ namespace
 
     void log_changing_struc_member(const struc_t* sptr, const member_t* mptr, flags_t flag, const opinfo_t* ti, asize_t nbytes)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         UNUSED(flag);
@@ -889,7 +1012,7 @@ namespace
 
     void log_struc_member_changed(const struc_t* sptr, const member_t* mptr)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         ea_t func_ea = get_func_by_frame(sptr->id);
@@ -901,7 +1024,7 @@ namespace
 
     void log_changing_struc_cmt(tid_t struc_id, bool repeatable, const char* newcmt)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         if (get_struc(struc_id))
@@ -921,7 +1044,7 @@ namespace
 
     void log_struc_cmt_changed(tid_t struc_id, bool repeatable)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         if (get_struc(struc_id))
@@ -941,7 +1064,7 @@ namespace
 
     void log_segm_added(const segment_t* s)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("Segment %s has been created from " EA_FMT " to " EA_FMT, get_segm_name(s).c_str(), s->start_ea, s->end_ea);
@@ -949,7 +1072,7 @@ namespace
 
     void log_deleting_segm(ea_t start_ea)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         const segment_t* s = getseg(start_ea);
@@ -958,7 +1081,7 @@ namespace
 
     void log_segm_deleted(ea_t start_ea, ea_t end_ea)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("A segment (from " EA_FMT " to " EA_FMT ") has been deleted", start_ea, end_ea);
@@ -966,7 +1089,7 @@ namespace
 
     void log_changing_segm_start(const segment_t* s, ea_t new_start, int segmod_flags)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         UNUSED(segmod_flags);
@@ -975,7 +1098,7 @@ namespace
 
     void log_segm_start_changed(const segment_t* s, ea_t oldstart)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("Segment %s start address has been changed from " EA_FMT " to " EA_FMT, get_segm_name(s).c_str(), oldstart, s->start_ea);
@@ -983,7 +1106,7 @@ namespace
 
     void log_changing_segm_end(const segment_t* s, ea_t new_end, int segmod_flags)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         UNUSED(segmod_flags);
@@ -992,7 +1115,7 @@ namespace
 
     void log_segm_end_changed(const segment_t* s, ea_t oldend)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("Segment %s end address has been changed from " EA_FMT " to " EA_FMT, get_segm_name(s).c_str(), oldend, s->end_ea);
@@ -1000,7 +1123,7 @@ namespace
 
     void log_changing_segm_name(const segment_t* s, const char* oldname)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         UNUSED(s);
@@ -1009,7 +1132,7 @@ namespace
 
     void log_segm_name_changed(const segment_t* s, const char* name)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         UNUSED(s);
@@ -1018,7 +1141,7 @@ namespace
 
     void log_changing_segm_class(const segment_t* s)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("Segment %s class is being changed from %s", get_segm_name(s).c_str(), get_segm_class(s).c_str());
@@ -1026,7 +1149,7 @@ namespace
 
     void log_segm_class_changed(const segment_t* s, const char* sclass)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("Segment %s class has been changed to %s", get_segm_name(s).c_str(), sclass);
@@ -1034,7 +1157,7 @@ namespace
 
     void log_segm_attrs_updated(const segment_t* s)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("Segment %s attributes has been changed", get_segm_name(s).c_str());
@@ -1042,7 +1165,7 @@ namespace
 
     void log_segm_moved(ea_t from, ea_t to, asize_t size, bool changed_netmap)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         const segment_t* s = getseg(to);
@@ -1052,7 +1175,7 @@ namespace
 
     void log_allsegs_moved(const segm_move_infos_t* info)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("Program rebasing is complete, %zd segments have been moved", info->size());
@@ -1060,7 +1183,7 @@ namespace
 
     void log_func_added(const func_t* pfn)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("Function %s has been created from " EA_FMT " to " EA_FMT, get_func_name(pfn->start_ea).c_str(), pfn->start_ea, pfn->end_ea);
@@ -1068,7 +1191,7 @@ namespace
 
     void log_func_updated(const func_t* pfn)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("Function %s has been updated", get_func_name(pfn->start_ea).c_str());
@@ -1076,7 +1199,7 @@ namespace
 
     void log_set_func_start(const func_t* pfn, ea_t new_start)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("Function %s chunk start address will be changed from " EA_FMT " to " EA_FMT, get_func_name(pfn->start_ea).c_str(), pfn->start_ea, new_start);
@@ -1084,7 +1207,7 @@ namespace
 
     void log_set_func_end(const func_t* pfn, ea_t new_end)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("Function %s chunk end address will be changed from " EA_FMT " to " EA_FMT, get_func_name(pfn->start_ea).c_str(), pfn->end_ea, new_end);
@@ -1092,7 +1215,7 @@ namespace
 
     void log_deleting_func(const func_t* pfn)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("Function %s is about to be deleted (" EA_FMT " to " EA_FMT")", get_func_name(pfn->start_ea).c_str(), pfn->start_ea, pfn->end_ea);
@@ -1100,7 +1223,7 @@ namespace
 
     void log_frame_deleted(const func_t* pfn)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         UNUSED(pfn);
@@ -1109,7 +1232,7 @@ namespace
 
     void log_thunk_func_created(const func_t* pfn)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("Function %s thunk bit has been set to %s", get_func_name(pfn->start_ea).c_str(), BOOL_STR[!!(pfn->flags & FUNC_THUNK)]);
@@ -1117,7 +1240,7 @@ namespace
 
     void log_func_tail_appended(const func_t* pfn, const func_t* tail)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("Function %s tail chunk from " EA_FMT " to " EA_FMT " has been appended", get_func_name(pfn->start_ea).c_str(), tail->start_ea, tail->end_ea);
@@ -1125,7 +1248,7 @@ namespace
 
     void log_deleting_func_tail(const func_t* pfn, const range_t* tail)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("Function %s tail chunk from " EA_FMT " to " EA_FMT " is to be removed", get_func_name(pfn->start_ea).c_str(), tail->start_ea, tail->end_ea);
@@ -1133,7 +1256,7 @@ namespace
 
     void log_func_tail_deleted(const func_t* pfn, ea_t tail_ea)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("Function %s tail chunk at " EA_FMT " has been removed", get_func_name(pfn->start_ea).c_str(), tail_ea);
@@ -1141,7 +1264,7 @@ namespace
 
     void log_tail_owner_changed(const func_t* pfn, ea_t owner_func, ea_t old_owner)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("Tail chunk from " EA_FMT " to " EA_FMT " owner function changed from %s to %s", pfn->start_ea, pfn->end_ea, get_func_name(old_owner).c_str(), get_func_name(owner_func).c_str());
@@ -1149,7 +1272,7 @@ namespace
 
     void log_func_noret_changed(const func_t* pfn)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("Function %s FUNC_NORET flag has been changed to %s", get_func_name(pfn->start_ea).c_str(), BOOL_STR[!!(pfn->flags & FUNC_NORET)]);
@@ -1157,7 +1280,7 @@ namespace
 
     void log_stkpnts_changed(const func_t* pfn)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("Function %s stack change points have been modified", get_func_name(pfn->start_ea).c_str());
@@ -1165,7 +1288,7 @@ namespace
 
     void log_updating_tryblks(const tryblks_t* tbv)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         UNUSED(tbv);
@@ -1174,7 +1297,7 @@ namespace
 
     void log_tryblks_updated(const tryblks_t* tbv)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         UNUSED(tbv);
@@ -1183,7 +1306,7 @@ namespace
 
     void log_deleting_tryblks(const range_t* range)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("About to delete try block information in range " EA_FMT "-" EA_FMT, range->start_ea, range->end_ea);
@@ -1191,7 +1314,7 @@ namespace
 
     void log_sgr_changed(ea_t start_ea, ea_t end_ea, int regnum, sel_t value, sel_t old_value, uchar tag)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         UNUSED(start_ea);
@@ -1205,7 +1328,7 @@ namespace
 
     void log_make_code(const insn_t* insn)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("An instruction is being created at " EA_FMT, insn->ea);
@@ -1213,7 +1336,7 @@ namespace
 
     void log_make_data(ea_t ea, flags_t flags, tid_t tid, asize_t len)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         UNUSED(flags);
@@ -1224,7 +1347,7 @@ namespace
 
     void log_destroyed_items(ea_t ea1, ea_t ea2, bool will_disable_range)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         UNUSED(will_disable_range);
@@ -1233,7 +1356,7 @@ namespace
 
     void log_renamed(ea_t ea, const char* new_name, bool local_name)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         UNUSED(local_name);
@@ -1242,7 +1365,7 @@ namespace
 
     void log_byte_patched(ea_t ea, uint32 old_value)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("Byte at " EA_FMT " has been changed from 0x%02X to 0x%02X", ea, old_value, get_byte(ea));
@@ -1250,7 +1373,7 @@ namespace
 
     void log_changing_cmt(ea_t ea, bool repeatable_cmt, const char* newcmt)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("Item at " EA_FMT " %scomment is to be changed from \"%s\" to \"%s\"", ea, REPEATABLE_STR[repeatable_cmt], get_cmt(ea, repeatable_cmt).c_str(), newcmt);
@@ -1258,7 +1381,7 @@ namespace
 
     void log_cmt_changed(ea_t ea, bool repeatable_cmt)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("Item at " EA_FMT " %scomment has been changed to \"%s\"", ea, REPEATABLE_STR[repeatable_cmt], get_cmt(ea, repeatable_cmt).c_str());
@@ -1266,7 +1389,7 @@ namespace
 
     void log_changing_range_cmt(range_kind_t kind, const range_t* a, const char* cmt, bool repeatable)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("%s range from " EA_FMT " to " EA_FMT " %scomment is to be changed to \"%s\"", range_kind_to_str(kind), a->start_ea, a->end_ea, REPEATABLE_STR[repeatable], cmt);
@@ -1274,7 +1397,7 @@ namespace
 
     void log_range_cmt_changed(range_kind_t kind, const range_t* a, const char* cmt, bool repeatable)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         LOG_EVENT("%s range from " EA_FMT " to " EA_FMT " %scomment has been changed to \"%s\"", range_kind_to_str(kind), a->start_ea, a->end_ea, REPEATABLE_STR[repeatable], cmt);
@@ -1282,7 +1405,7 @@ namespace
 
     void log_extra_cmt_changed(ea_t ea, int line_idx, const char* cmt)
     {
-        if (!LOG_EVENTS)
+        if (!LOG_IDB_EVENTS)
             return;
 
         UNUSED(line_idx);
