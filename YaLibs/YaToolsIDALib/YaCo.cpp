@@ -98,14 +98,14 @@ namespace
 
         // IYaCo
         void start() override;
-        void export_single_cache() override;
+        void export_database() override;
         void stop() override;
 
         // internal
         void initial_load();
         void toggle_auto_rebase_push();
-        void create_reset();
-        void retrieve_reset();
+        void sync_and_push_idb();
+        void discard_and_pull_idb();
 
         // Variables
         std::shared_ptr<IHashProvider>   hash_provider_;
@@ -117,9 +117,9 @@ namespace
 
     #define YACO_EXT_FUNC(name) void CONCAT(ext_, name)(YaCo* yaco) { yaco->name(); }
     YACO_EXT_FUNC(toggle_auto_rebase_push);
-    YACO_EXT_FUNC(create_reset);
-    YACO_EXT_FUNC(retrieve_reset);
-    YACO_EXT_FUNC(export_single_cache);
+    YACO_EXT_FUNC(sync_and_push_idb);
+    YACO_EXT_FUNC(discard_and_pull_idb);
+    YACO_EXT_FUNC(export_database);
 }
 
 #define YACO_ACTION_DESC(name, label, handler) ACTION_DESC_LITERAL_OWNER(name, label, handler, nullptr, nullptr, nullptr, -1)
@@ -128,10 +128,10 @@ YaCo::YaCo(IDAIsInteractive ida_is_interactive)
     , repository_(MakeRepository(".", ida_is_interactive))
     , hooks_(MakeHooks(*this, hash_provider_, repository_))
     , action_descs_{
-        YACO_ACTION_DESC("yaco_toggle_rebase_push",   "YaCo - Toggle YaCo auto rebase/push",   new_handler(this, &ext_toggle_auto_rebase_push)),
-        YACO_ACTION_DESC("yaco_create_reset",         "YaCo - Resync idb & force push",        new_handler(this, &ext_create_reset)),
-        YACO_ACTION_DESC("yaco_retrieve_reset",       "YaCo - Discard idb & force pull",       new_handler(this, &ext_retrieve_reset)),
-        YACO_ACTION_DESC("yaco_export_single_file",   "YaCo - Export database",                new_handler(this, &ext_export_single_cache)),
+        YACO_ACTION_DESC("yaco_toggle_rebase_push",     "YaCo - Toggle YaCo auto rebase/push",   new_handler(this, &ext_toggle_auto_rebase_push)),
+        YACO_ACTION_DESC("yaco_sync_and_push_idb",      "YaCo - Resync idb & force push",        new_handler(this, &ext_sync_and_push_idb)),
+        YACO_ACTION_DESC("yaco_discard_and_pull_idb",   "YaCo - Discard idb & force pull",       new_handler(this, &ext_discard_and_pull_idb)),
+        YACO_ACTION_DESC("yaco_export_database",        "YaCo - Export database",                new_handler(this, &ext_export_database)),
     }
 {
 }
@@ -161,7 +161,7 @@ void YaCo::start()
     }
 }
 
-void YaCo::export_single_cache()
+void YaCo::export_database()
 {
     IDA_LOG_INFO("Exporting database using one core");
 
@@ -213,7 +213,7 @@ void YaCo::toggle_auto_rebase_push()
     repository_->toggle_repo_auto_sync();
 }
 
-void YaCo::create_reset()
+void YaCo::sync_and_push_idb()
 {
     const int answer = ask_buttons(
         "Yes", "No", "", ASKBTN_NO,
@@ -234,7 +234,7 @@ void YaCo::create_reset()
     qexit(0);
 }
 
-void YaCo::retrieve_reset()
+void YaCo::discard_and_pull_idb()
 {
     const int answer = ask_yn(
         ASKBTN_NO,

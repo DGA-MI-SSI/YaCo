@@ -114,5 +114,5 @@ class Fixture(unittest.TestCase):
         self.check_yadb()
 
     def yaexport_single(self):
-        YaCo.yaco.export_single_cache()
+        YaCo.yaco.export_database()
         self.check_yadb()

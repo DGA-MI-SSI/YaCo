@@ -25,7 +25,7 @@ struct IHashProvider;
 struct IYaCo
 {
     virtual void start() = 0;
-    virtual void export_single_cache() = 0;
+    virtual void export_database() = 0;
     virtual void stop() = 0;
 };
 
