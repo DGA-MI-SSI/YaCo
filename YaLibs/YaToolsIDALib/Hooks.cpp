@@ -53,6 +53,7 @@ namespace
 {
     // Enable / disable events logging
     constexpr bool LOG_IDP_EVENTS = false;
+    constexpr bool LOG_DBG_EVENTS = false;
     constexpr bool LOG_IDB_EVENTS = false;
 
     const char BOOL_STR[2][6] = { "false", "true" };
@@ -435,6 +436,44 @@ namespace
             case envent_code::ev_arg_addrs_ready:                 LOG_EVENT("ev_arg_addrs_ready"); break;
             case envent_code::ev_decorate_name:                   LOG_EVENT("ev_decorate_name"); break;
             case envent_code::ev_loader:                          LOG_EVENT("ev_loader"); break;
+        }
+        return 0;
+    }
+
+    ssize_t dbg_event_handler(void* user_data, int notification_code, va_list va)
+    {
+        using envent_code = dbg_notification_t;
+        Hooks* hooks = static_cast<Hooks*>(user_data);
+        UNUSED(hooks);
+        UNUSED(va);
+
+        if (!LOG_DBG_EVENTS)
+            return 0;
+
+        envent_code ecode = static_cast<envent_code>(notification_code);
+        switch (ecode)
+        {
+            case envent_code::dbg_null:              LOG_EVENT("dbg_null"); break;
+            case envent_code::dbg_process_start:     LOG_EVENT("dbg_process_start"); break;
+            case envent_code::dbg_process_exit:      LOG_EVENT("dbg_process_exit"); break;
+            case envent_code::dbg_process_attach:    LOG_EVENT("dbg_process_attach"); break;
+            case envent_code::dbg_process_detach:    LOG_EVENT("dbg_process_detach"); break;
+            case envent_code::dbg_thread_start:      LOG_EVENT("dbg_thread_start"); break;
+            case envent_code::dbg_thread_exit:       LOG_EVENT("dbg_thread_exit"); break;
+            case envent_code::dbg_library_load:      LOG_EVENT("dbg_library_load"); break;
+            case envent_code::dbg_library_unload:    LOG_EVENT("dbg_library_unload"); break;
+            case envent_code::dbg_information:       LOG_EVENT("dbg_information"); break;
+            case envent_code::dbg_exception:         LOG_EVENT("dbg_exception"); break;
+            case envent_code::dbg_suspend_process:   LOG_EVENT("dbg_suspend_process"); break;
+            case envent_code::dbg_bpt:               LOG_EVENT("dbg_bpt"); break;
+            case envent_code::dbg_trace:             LOG_EVENT("dbg_trace"); break;
+            case envent_code::dbg_request_error:     LOG_EVENT("dbg_request_error"); break;
+            case envent_code::dbg_step_into:         LOG_EVENT("dbg_step_into"); break;
+            case envent_code::dbg_step_over:         LOG_EVENT("dbg_step_over"); break;
+            case envent_code::dbg_run_to:            LOG_EVENT("dbg_run_to"); break;
+            case envent_code::dbg_step_until_ret:    LOG_EVENT("dbg_step_until_ret"); break;
+            case envent_code::dbg_bpt_changed:       LOG_EVENT("dbg_bpt_changed"); break;
+            case envent_code::dbg_last:              LOG_EVENT("dbg_last"); break;
         }
         return 0;
     }
@@ -1530,12 +1569,14 @@ void Hooks::change_type_information(ea_t ea)
 void Hooks::hook()
 {
     hook_to_notification_point(HT_IDP, &idp_event_handler, this);
+    hook_to_notification_point(HT_DBG, &dbg_event_handler, this);
     hook_to_notification_point(HT_IDB, &idb_event_handler, this);
 }
 
 void Hooks::unhook()
 {
     unhook_from_notification_point(HT_IDP, &idp_event_handler, this);
+    unhook_from_notification_point(HT_DBG, &dbg_event_handler, this);
     unhook_from_notification_point(HT_IDB, &idb_event_handler, this);
 }
 

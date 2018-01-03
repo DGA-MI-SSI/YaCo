@@ -45,6 +45,7 @@
 #include <idp.hpp>
 #include <expr.hpp>
 #include <tryblks.hpp>
+#include <dbg.hpp>
 #undef snprintf // ida disable this...
 
 #ifdef _MSC_VER
