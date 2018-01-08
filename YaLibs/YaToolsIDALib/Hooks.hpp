@@ -24,29 +24,8 @@ struct IRepository;
 
 struct IHooks
 {
-    virtual void rename(ea_t ea, const std::string& new_name, const std::string& type = "", const std::string& old_name = "") = 0;
-    virtual void update_comment(ea_t ea) = 0;
-    virtual void undefine(ea_t ea) = 0;
-    virtual void delete_function(ea_t ea) = 0;
-    virtual void make_code(ea_t ea) = 0;
-    virtual void make_data(ea_t ea) = 0;
-    virtual void add_function(ea_t ea) = 0;
-    virtual void update_function(ea_t ea) = 0;
-    virtual void update_struct(ea_t struct_id) = 0;
-    virtual void update_struct_member(ea_t struct_id, ea_t member_id, ea_t offset) = 0;
-    virtual void delete_struct_member(ea_t struct_id, ea_t offset) = 0;
-    virtual void update_enum(ea_t enum_id) = 0;
-    virtual void change_operand_type(ea_t ea) = 0;
-    virtual void update_segment(ea_t start_ea) = 0;
-    virtual void change_type_information(ea_t ea) = 0;
-
     virtual void hook() = 0;
     virtual void unhook() = 0;
-
-    virtual void save() = 0;
-    virtual void save_and_update() = 0;
-
-    virtual void flush() = 0;
 };
 
 std::shared_ptr<IHooks> MakeHooks(IYaCo& yaco, const std::shared_ptr<IHashProvider>& hash_provider, const std::shared_ptr<IRepository>& repo_manager);

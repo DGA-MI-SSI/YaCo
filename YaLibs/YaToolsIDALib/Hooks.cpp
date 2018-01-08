@@ -321,36 +321,35 @@ namespace
         Hooks(IYaCo& yaco, IHashProvider& hash_provider, IRepository& repo_manager);
 
         // IHooks
-        void rename(ea_t ea, const std::string& new_name, const std::string& type, const std::string& old_name) override;
-        void update_comment(ea_t ea) override;
-        void undefine(ea_t ea) override;
-        void delete_function(ea_t ea) override;
-        void make_code(ea_t ea) override;
-        void make_data(ea_t ea) override;
-        void add_function(ea_t ea) override;
-        void update_function(ea_t ea) override;
-        void update_struct(ea_t struct_id) override;
-        void update_struct_member(tid_t struct_id, tid_t member_id, ea_t offset) override;
-        void delete_struct_member(tid_t struct_id, ea_t offset) override;
-        void update_enum(enum_t enum_id) override;
-        void change_operand_type(ea_t ea) override;
-        void update_segment(ea_t start_ea) override;
-        void change_type_information(ea_t ea) override;
-
         void hook() override;
         void unhook() override;
 
-        void save() override;
-        void save_and_update() override;
-
-        void flush() override;
-
         // Internal
+        void rename(ea_t ea, const std::string& new_name, const std::string& type, const std::string& old_name);
+        void update_comment(ea_t ea);
+        void undefine(ea_t ea);
+        void delete_function(ea_t ea);
+        void make_code(ea_t ea);
+        void make_data(ea_t ea);
+        void add_function(ea_t ea);
+        void update_function(ea_t ea);
+        void update_struct(ea_t struct_id);
+        void update_struct_member(tid_t struct_id, tid_t member_id, ea_t offset);
+        void delete_struct_member(tid_t struct_id, ea_t offset);
+        void update_enum(enum_t enum_id);
+        void change_operand_type(ea_t ea);
+        void update_segment(ea_t start_ea);
+        void change_type_information(ea_t ea);
+
         void add_ea(ea_t ea, const std::string& message);
         void add_struct_member(ea_t struct_id, ea_t member_offset, const std::string& message);
 
         void save_structs(const std::shared_ptr<IModelIncremental>& ida_model, IModelVisitor* memory_exporter);
         void save_enums(const std::shared_ptr<IModelIncremental>& ida_model, IModelVisitor* memory_exporter);
+        void save();
+        void save_and_update();
+
+        void flush();
 
         // Events management
         void allsegs_moved(va_list args);
@@ -593,6 +592,20 @@ Hooks::Hooks(IYaCo& yaco, IHashProvider& hash_provider, IRepository& repo_manage
 {
 }
 
+void Hooks::hook()
+{
+    hook_to_notification_point(HT_IDP, &idp_event_handler, this);
+    hook_to_notification_point(HT_DBG, &dbg_event_handler, this);
+    hook_to_notification_point(HT_IDB, &idb_event_handler, this);
+}
+
+void Hooks::unhook()
+{
+    unhook_from_notification_point(HT_IDP, &idp_event_handler, this);
+    unhook_from_notification_point(HT_DBG, &dbg_event_handler, this);
+    unhook_from_notification_point(HT_IDB, &idb_event_handler, this);
+}
+
 void Hooks::rename(ea_t ea, const std::string& new_name, const std::string& type, const std::string& old_name)
 {
     std::string message{ type };
@@ -697,99 +710,6 @@ void Hooks::update_segment(ea_t start_ea)
 void Hooks::change_type_information(ea_t ea)
 {
     add_ea(ea, "Type information changed");
-}
-
-void Hooks::hook()
-{
-    hook_to_notification_point(HT_IDP, &idp_event_handler, this);
-    hook_to_notification_point(HT_DBG, &dbg_event_handler, this);
-    hook_to_notification_point(HT_IDB, &idb_event_handler, this);
-}
-
-void Hooks::unhook()
-{
-    unhook_from_notification_point(HT_IDP, &idp_event_handler, this);
-    unhook_from_notification_point(HT_DBG, &dbg_event_handler, this);
-    unhook_from_notification_point(HT_IDB, &idb_event_handler, this);
-}
-
-void Hooks::save()
-{
-    const auto time_start = std::chrono::system_clock::now();
-
-    // add comments to adresses to process
-    for (const ea_t ea : comments_)
-        add_ea(ea, "Changed comment");
-
-    ModelAndVisitor db = MakeModel();
-    db.visitor->visit_start();
-
-    {
-        const auto model = MakeModelIncremental(&hash_provider_);
-
-        // process structures
-        save_structs(model, db.visitor.get());
-
-        // process enums
-        save_enums(model, db.visitor.get());
-
-        // process addresses
-        for (const ea_t ea : eas_)
-            model->accept_ea(*db.visitor, ea);
-
-        // process segments
-        for (const ea_t segment_ea : segments_)
-            model->accept_segment(*db.visitor, segment_ea);
-
-        db.visitor->visit_end();
-
-        db.model->accept(*MakeXmlExporter(get_cache_folder_path()));
-    }
-
-    const auto time_end = std::chrono::system_clock::now();
-    const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(time_end - time_start);
-    IDA_LOG_INFO("Saved in %d seconds", static_cast<int>(elapsed.count()));
-}
-
-void Hooks::save_and_update()
-{
-    // save and commit changes
-    save();
-    if (!repo_manager_.commit_cache())
-    {
-        IDA_LOG_WARNING("An error occurred during YaCo commit");
-        warning("An error occured during YaCo commit: please relaunch IDA");
-    }
-    flush();
-
-    unhook();
-
-    // update cache and export modifications to IDA
-    {
-        const std::vector<std::string> modified_files = repo_manager_.update_cache();
-        const ModelAndVisitor memory_exporter = MakeModel();
-        MakeXmlFilesDatabaseModel(modified_files)->accept(*(memory_exporter.visitor));
-        export_to_ida(memory_exporter.model.get(), &hash_provider_);
-    }
-
-    // Let IDA apply modifications
-    setflag(inf.s_genflags, INFFL_AUTO, true);
-    auto_wait();
-    setflag(inf.s_genflags, INFFL_AUTO, false);
-    refresh_idaview_anyway();
-
-    hook();
-}
-
-void Hooks::flush()
-{
-    eas_.clear();
-    structs_.clear();
-    struct_members_.clear();
-    enums_.clear();
-    enum_members_.clear();
-    comments_.clear();
-    segments_.clear();
 }
 
 void Hooks::add_ea(ea_t ea, const std::string& message)
@@ -909,6 +829,85 @@ void Hooks::save_enums(const std::shared_ptr<IModelIncremental>& ida_model, IMod
             -updated : accept enum_member
             -removed : accept enum_member_deleted
     */
+}
+
+void Hooks::save()
+{
+    const auto time_start = std::chrono::system_clock::now();
+
+    // add comments to adresses to process
+    for (const ea_t ea : comments_)
+        add_ea(ea, "Changed comment");
+
+    ModelAndVisitor db = MakeModel();
+    db.visitor->visit_start();
+
+    {
+        const auto model = MakeModelIncremental(&hash_provider_);
+
+        // process structures
+        save_structs(model, db.visitor.get());
+
+        // process enums
+        save_enums(model, db.visitor.get());
+
+        // process addresses
+        for (const ea_t ea : eas_)
+            model->accept_ea(*db.visitor, ea);
+
+        // process segments
+        for (const ea_t segment_ea : segments_)
+            model->accept_segment(*db.visitor, segment_ea);
+
+        db.visitor->visit_end();
+
+        db.model->accept(*MakeXmlExporter(get_cache_folder_path()));
+    }
+
+    const auto time_end = std::chrono::system_clock::now();
+    const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(time_end - time_start);
+    IDA_LOG_INFO("Saved in %d seconds", static_cast<int>(elapsed.count()));
+}
+
+void Hooks::save_and_update()
+{
+    // save and commit changes
+    save();
+    if (!repo_manager_.commit_cache())
+    {
+        IDA_LOG_WARNING("An error occurred during YaCo commit");
+        warning("An error occured during YaCo commit: please relaunch IDA");
+    }
+    flush();
+
+    unhook();
+
+    // update cache and export modifications to IDA
+    {
+        const std::vector<std::string> modified_files = repo_manager_.update_cache();
+        const ModelAndVisitor memory_exporter = MakeModel();
+        MakeXmlFilesDatabaseModel(modified_files)->accept(*(memory_exporter.visitor));
+        export_to_ida(memory_exporter.model.get(), &hash_provider_);
+    }
+
+    // Let IDA apply modifications
+    setflag(inf.s_genflags, INFFL_AUTO, true);
+    auto_wait();
+    setflag(inf.s_genflags, INFFL_AUTO, false);
+    refresh_idaview_anyway();
+
+    hook();
+}
+
+void Hooks::flush()
+{
+    eas_.clear();
+    structs_.clear();
+    struct_members_.clear();
+    enums_.clear();
+    enum_members_.clear();
+    comments_.clear();
+    segments_.clear();
 }
 
 static void log_closebase()
