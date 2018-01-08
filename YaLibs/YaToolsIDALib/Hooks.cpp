@@ -672,7 +672,7 @@ namespace
         if (!LOG_IDB_EVENTS)
             return;
 
-        // FLIRT = Fast Library Identificationand Regognition Technology
+        // FLIRT = Fast Library Identificationand Recognition Technology
         // normal processing = not for recognition of startup sequences
         LOG_EVENT("FLIRT signature %s has been loaded for normal processing", short_sig_name);
     }
