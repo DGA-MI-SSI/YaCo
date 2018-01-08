@@ -47,9 +47,9 @@
 namespace fs = std::experimental::filesystem;
 
 // Log macro used for events logging
-#define LOG_IDP_EVENT(format, ...) if(LOG_IDP_EVENTS) IDA_LOG_INFO("Event: " format, ##__VA_ARGS__)
-#define LOG_DBG_EVENT(format, ...) if(LOG_DBG_EVENTS) IDA_LOG_INFO("Event: " format, ##__VA_ARGS__)
-#define LOG_IDB_EVENT(format, ...) if(LOG_IDB_EVENTS) IDA_LOG_INFO("Event: " format, ##__VA_ARGS__)
+#define LOG_IDP_EVENT(format, ...) do{ if(LOG_IDP_EVENTS) IDA_LOG_INFO("Event: " format, ##__VA_ARGS__); }while(0)
+#define LOG_DBG_EVENT(format, ...) do{ if(LOG_DBG_EVENTS) IDA_LOG_INFO("Event: " format, ##__VA_ARGS__); }while(0)
+#define LOG_IDB_EVENT(format, ...) do{ if(LOG_IDB_EVENTS) IDA_LOG_INFO("Event: " format, ##__VA_ARGS__); }while(0)
 
 namespace
 {
