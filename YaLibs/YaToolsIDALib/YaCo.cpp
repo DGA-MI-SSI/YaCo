@@ -169,7 +169,7 @@ void YaCo::export_database()
     fs::create_directory("database", ec); //no error if directory already exist
     if (ec)
     {
-        IDA_LOG_ERROR("Unable to create database directory");
+        IDA_LOG_ERROR("Export failed, unable to create database directory");
         return;
     }
 
@@ -178,7 +178,18 @@ void YaCo::export_database()
     ExportedBuffer buffer = exporter->GetBuffer();
 
     FILE* database = fopen("database/database.yadb", "wb");
-    fwrite(buffer.value, 1, buffer.size, database);
+    if (database == nullptr)
+    {
+        IDA_LOG_INFO("Export failed, %s", strerror(errno));
+        return;
+    }
+
+    if (fwrite(buffer.value, 1, buffer.size, database) != buffer.size)
+    {
+        IDA_LOG_INFO("Export failed");
+        return;
+    }
+
     fclose(database);
 
     IDA_LOG_INFO("Export complete");
