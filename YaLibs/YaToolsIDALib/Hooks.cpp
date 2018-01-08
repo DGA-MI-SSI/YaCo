@@ -47,7 +47,9 @@
 namespace fs = std::experimental::filesystem;
 
 // Log macro used for events logging
-#define LOG_EVENT(format, ...) IDA_LOG_INFO("Event: " format, ##__VA_ARGS__)
+#define LOG_IDP_EVENT(format, ...) if(LOG_IDP_EVENTS) IDA_LOG_INFO("Event: " format, ##__VA_ARGS__)
+#define LOG_DBG_EVENT(format, ...) if(LOG_DBG_EVENTS) IDA_LOG_INFO("Event: " format, ##__VA_ARGS__)
+#define LOG_IDB_EVENT(format, ...) if(LOG_IDB_EVENTS) IDA_LOG_INFO("Event: " format, ##__VA_ARGS__)
 
 namespace
 {
@@ -466,11 +468,8 @@ namespace
         UNUSED(hooks);
         UNUSED(va);
 
-        if (!LOG_IDP_EVENTS)
-            return 0;
-
         const processor_t::event_t event = static_cast<processor_t::event_t>(notification_code);
-        LOG_EVENT("%s", idp_event_to_txt(event));
+        LOG_IDP_EVENT("%s", idp_event_to_txt(event));
         return 0;
     }
 
@@ -480,11 +479,8 @@ namespace
         UNUSED(hooks);
         UNUSED(va);
 
-        if (!LOG_DBG_EVENTS)
-            return 0;
-
         dbg_notification_t event = static_cast<dbg_notification_t>(notification_code);
-        LOG_EVENT("%s", dbg_event_to_txt(event));
+        LOG_DBG_EVENT("%s", dbg_event_to_txt(event));
         return 0;
     }
 
@@ -590,58 +586,37 @@ namespace
 
     void log_closebase()
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("The database will be closed now");
+        LOG_IDB_EVENT("The database will be closed now");
     }
 
     void log_savebase()
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("The database is being saved");
+        LOG_IDB_EVENT("The database is being saved");
     }
 
     void log_upgraded(int from)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("The database has been upgraded (old IDB version: %d)", from);
+        LOG_IDB_EVENT("The database has been upgraded (old IDB version: %d)", from);
     }
 
     void log_auto_empty()
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("All analysis queues are empty");
+        LOG_IDB_EVENT("All analysis queues are empty");
     }
 
     void log_auto_empty_finally()
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("All analysis queues are empty definitively");
+        LOG_IDB_EVENT("All analysis queues are empty definitively");
     }
 
     void log_determined_main(ea_t main)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("The main() function has been determined (address of the main() function: " EA_FMT ")", main);
+        LOG_IDB_EVENT("The main() function has been determined (address of the main() function: " EA_FMT ")", main);
     }
 
     void log_local_types_changed()
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("Local types have been changed");
+        LOG_IDB_EVENT("Local types have been changed");
     }
 
     void log_extlang_changed(int kind, const extlang_t* el, int idx)
@@ -653,148 +628,106 @@ namespace
         switch (kind)
         {
         case 1:
-            LOG_EVENT("Extlang %s installed", el->name);
+            LOG_IDB_EVENT("Extlang %s installed", el->name);
             break;
         case 2:
-            LOG_EVENT("Extlang %s removed", el->name);
+            LOG_IDB_EVENT("Extlang %s removed", el->name);
             break;
         case 3:
-            LOG_EVENT("Default extlang changed: %s", el->name);
+            LOG_IDB_EVENT("Default extlang changed: %s", el->name);
             break;
         default:
-            LOG_EVENT("The list of extlangs or the default extlang was changed");
+            LOG_IDB_EVENT("The list of extlangs or the default extlang was changed");
             break;
         }
     }
 
     void log_idasgn_loaded(const char* short_sig_name)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
         // FLIRT = Fast Library Identificationand Recognition Technology
         // normal processing = not for recognition of startup sequences
-        LOG_EVENT("FLIRT signature %s has been loaded for normal processing", short_sig_name);
+        LOG_IDB_EVENT("FLIRT signature %s has been loaded for normal processing", short_sig_name);
     }
 
     void log_kernel_config_loaded()
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("Kernel configuration loaded (ida.cfg parsed)");
+        LOG_IDB_EVENT("Kernel configuration loaded (ida.cfg parsed)");
     }
 
     void log_loader_finished(const linput_t* li, uint16 neflags, const char* filetypename)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
         UNUSED(li);
         UNUSED(neflags);
-        LOG_EVENT("External file loader for %s files finished its work", filetypename);
+        LOG_IDB_EVENT("External file loader for %s files finished its work", filetypename);
     }
 
     void log_flow_chart_created(const qflow_chart_t* fc)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("Gui has retrieved a function flow chart (from " EA_FMT " to " EA_FMT ", name: %s, function: %s)", fc->bounds.start_ea, fc->bounds.end_ea, fc->title.c_str(), get_func_name(fc->pfn->start_ea).c_str());
+        LOG_IDB_EVENT("Gui has retrieved a function flow chart (from " EA_FMT " to " EA_FMT ", name: %s, function: %s)", fc->bounds.start_ea, fc->bounds.end_ea, fc->title.c_str(), get_func_name(fc->pfn->start_ea).c_str());
     }
 
     void log_compiler_changed()
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("The kernel has changed the compiler information");
+        LOG_IDB_EVENT("The kernel has changed the compiler information");
     }
 
     void log_changing_ti(ea_t ea, const type_t* new_type, const p_list* new_fnames)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
         UNUSED(new_type);
         UNUSED(new_fnames);
-        LOG_EVENT("An item typestring (c/c++ prototype) is to be changed (ea: " EA_FMT ")", ea);
+        LOG_IDB_EVENT("An item typestring (c/c++ prototype) is to be changed (ea: " EA_FMT ")", ea);
     }
 
     void log_ti_changed(ea_t ea, const type_t* type, const p_list* fnames)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
         UNUSED(type);
         UNUSED(fnames);
-        LOG_EVENT("An item typestring (c/c++ prototype) has been changed (ea: " EA_FMT ")", ea);
+        LOG_IDB_EVENT("An item typestring (c/c++ prototype) has been changed (ea: " EA_FMT ")", ea);
     }
 
     void log_changing_op_ti(ea_t ea, int n, const type_t* new_type, const p_list* new_fnames)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
         UNUSED(n);
         UNUSED(new_type);
         UNUSED(new_fnames);
-        LOG_EVENT("An operand typestring (c/c++ prototype) is to be changed (ea: " EA_FMT ")", ea);
+        LOG_IDB_EVENT("An operand typestring (c/c++ prototype) is to be changed (ea: " EA_FMT ")", ea);
     }
 
     void log_op_ti_changed(ea_t ea, int n, const type_t* new_type, const p_list* new_fnames)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
         UNUSED(n);
         UNUSED(new_type);
         UNUSED(new_fnames);
-        LOG_EVENT("An operand typestring (c/c++ prototype) has been changed (ea: " EA_FMT ")", ea);
+        LOG_IDB_EVENT("An operand typestring (c/c++ prototype) has been changed (ea: " EA_FMT ")", ea);
     }
 
     void log_changing_op_type(ea_t ea, int n, const opinfo_t* opinfo)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
         UNUSED(n);
         UNUSED(opinfo);
-        LOG_EVENT("An operand type at " EA_FMT " is to be changed", ea);
+        LOG_IDB_EVENT("An operand type at " EA_FMT " is to be changed", ea);
     }
 
     void log_op_type_changed(ea_t ea, int n)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
         UNUSED(n);
-        LOG_EVENT("An operand type at " EA_FMT " has been set or deleted", ea);
+        LOG_IDB_EVENT("An operand type at " EA_FMT " has been set or deleted", ea);
     }
 
     void log_enum_created(enum_t id)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("Enum type %s has been created", get_enum_name(id).c_str());
+        LOG_IDB_EVENT("Enum type %s has been created", get_enum_name(id).c_str());
     }
 
     void log_deleting_enum(enum_t id)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("Enum type %s is to be deleted", get_enum_name(id).c_str());
+        LOG_IDB_EVENT("Enum type %s is to be deleted", get_enum_name(id).c_str());
     }
 
     void log_enum_deleted(enum_t id)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
         UNUSED(id);
-        LOG_EVENT("An enum type has been deleted");
+        LOG_IDB_EVENT("An enum type has been deleted");
     }
 
     void log_renaming_enum(tid_t id, bool is_enum, const char* newname)
@@ -803,9 +736,9 @@ namespace
             return;
 
         if (is_enum)
-            LOG_EVENT("Enum type %s is to be renamed to %s", get_enum_name(id).c_str(), newname);
+            LOG_IDB_EVENT("Enum type %s is to be renamed to %s", get_enum_name(id).c_str(), newname);
         else
-            LOG_EVENT("A member of enum type %s is to be renamed from %s to %s", get_enum_member_name(id).c_str(), get_enum_name(get_enum_member_enum(id)).c_str(), newname);
+            LOG_IDB_EVENT("A member of enum type %s is to be renamed from %s to %s", get_enum_member_name(id).c_str(), get_enum_name(get_enum_member_enum(id)).c_str(), newname);
     }
 
     void log_enum_renamed(tid_t id)
@@ -814,25 +747,19 @@ namespace
             return;
 
         if (get_enum_member_enum(id) == BADADDR)
-            LOG_EVENT("An enum type has been renamed %s", get_enum_name(id).c_str());
+            LOG_IDB_EVENT("An enum type has been renamed %s", get_enum_name(id).c_str());
         else
-            LOG_EVENT("A member of enum type %s has been renamed %s", get_enum_name(get_enum_member_enum(id)).c_str(), get_enum_member_name(id).c_str());
+            LOG_IDB_EVENT("A member of enum type %s has been renamed %s", get_enum_name(get_enum_member_enum(id)).c_str(), get_enum_member_name(id).c_str());
     }
 
     void log_changing_enum_bf(enum_t id, bool new_bf)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("Enum type %s 'bitfield' attribute is to be changed to %s", get_enum_name(id).c_str(), BOOL_STR[new_bf]);
+        LOG_IDB_EVENT("Enum type %s 'bitfield' attribute is to be changed to %s", get_enum_name(id).c_str(), BOOL_STR[new_bf]);
     }
 
     void log_enum_bf_changed(enum_t id)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("Enum type %s 'bitfield' attribute has been changed", get_enum_name(id).c_str());
+        LOG_IDB_EVENT("Enum type %s 'bitfield' attribute has been changed", get_enum_name(id).c_str());
     }
 
     void log_changing_enum_cmt(enum_t id, bool repeatable, const char* newcmt)
@@ -841,9 +768,9 @@ namespace
             return;
 
         if (get_enum_member_enum(id) == BADADDR)
-            LOG_EVENT("Enum type %s %scomment is to be changed from \"%s\" to \"%s\"", get_enum_name(id).c_str(), REPEATABLE_STR[repeatable], get_enum_cmt(id, repeatable).c_str(), newcmt);
+            LOG_IDB_EVENT("Enum type %s %scomment is to be changed from \"%s\" to \"%s\"", get_enum_name(id).c_str(), REPEATABLE_STR[repeatable], get_enum_cmt(id, repeatable).c_str(), newcmt);
         else
-            LOG_EVENT("Enum type %s member %s %scomment is to be changed from \"%s\" to \"%s\"", get_enum_name(get_enum_member_enum(id)).c_str(), get_enum_member_name(id).c_str(), REPEATABLE_STR[repeatable], get_enum_member_cmt(id, repeatable).c_str(), newcmt);
+            LOG_IDB_EVENT("Enum type %s member %s %scomment is to be changed from \"%s\" to \"%s\"", get_enum_name(get_enum_member_enum(id)).c_str(), get_enum_member_name(id).c_str(), REPEATABLE_STR[repeatable], get_enum_member_cmt(id, repeatable).c_str(), newcmt);
     }
 
     void log_enum_cmt_changed(enum_t id, bool repeatable)
@@ -852,34 +779,25 @@ namespace
             return;
 
         if (get_enum_member_enum(id) == BADADDR)
-            LOG_EVENT("Enum type %s %scomment has been changed to \"%s\"", get_enum_name(id).c_str(), REPEATABLE_STR[repeatable], get_enum_cmt(id, repeatable).c_str());
+            LOG_IDB_EVENT("Enum type %s %scomment has been changed to \"%s\"", get_enum_name(id).c_str(), REPEATABLE_STR[repeatable], get_enum_cmt(id, repeatable).c_str());
         else
-            LOG_EVENT("Enum type %s member %s %scomment has been changed to \"%s\"", get_enum_name(get_enum_member_enum(id)).c_str(), get_enum_member_name(id).c_str(), REPEATABLE_STR[repeatable], get_enum_member_cmt(id, repeatable).c_str());
+            LOG_IDB_EVENT("Enum type %s member %s %scomment has been changed to \"%s\"", get_enum_name(get_enum_member_enum(id)).c_str(), get_enum_member_name(id).c_str(), REPEATABLE_STR[repeatable], get_enum_member_cmt(id, repeatable).c_str());
     }
 
     void log_enum_member_created(enum_t id, const_t cid)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("Enum type %s member %s has been created", get_enum_name(id).c_str(), get_enum_member_name(cid).c_str());
+        LOG_IDB_EVENT("Enum type %s member %s has been created", get_enum_name(id).c_str(), get_enum_member_name(cid).c_str());
     }
 
     void log_deleting_enum_member(enum_t id, const_t cid)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("Enum type %s member %s is to be deleted", get_enum_name(id).c_str(), get_enum_member_name(cid).c_str());
+        LOG_IDB_EVENT("Enum type %s member %s is to be deleted", get_enum_name(id).c_str(), get_enum_member_name(cid).c_str());
     }
 
     void log_enum_member_deleted(enum_t id, const_t cid)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
         UNUSED(cid);
-        LOG_EVENT("A member of enum type %s has been deleted", get_enum_name(id).c_str());
+        LOG_IDB_EVENT("A member of enum type %s has been deleted", get_enum_name(id).c_str());
     }
 
     void log_struc_created(tid_t struc_id)
@@ -889,9 +807,9 @@ namespace
 
         ea_t func_ea = get_func_by_frame(struc_id);
         if (func_ea != BADADDR)
-            LOG_EVENT("Stackframe of function %s has been created", get_func_name(func_ea).c_str());
+            LOG_IDB_EVENT("Stackframe of function %s has been created", get_func_name(func_ea).c_str());
         else
-            LOG_EVENT("Structure type %s has been created", get_struc_name(struc_id).c_str());
+            LOG_IDB_EVENT("Structure type %s has been created", get_struc_name(struc_id).c_str());
     }
 
     void log_deleting_struc(const struc_t* sptr)
@@ -901,51 +819,36 @@ namespace
 
         ea_t func_ea = get_func_by_frame(sptr->id);
         if (func_ea != BADADDR)
-            LOG_EVENT("Stackframe of function %s is to be deleted", get_func_name(func_ea).c_str());
+            LOG_IDB_EVENT("Stackframe of function %s is to be deleted", get_func_name(func_ea).c_str());
         else
-            LOG_EVENT("Structure type %s is to be deleted", get_struc_name(sptr->id).c_str());
+            LOG_IDB_EVENT("Structure type %s is to be deleted", get_struc_name(sptr->id).c_str());
     }
 
     void log_struc_deleted(tid_t struc_id)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
         UNUSED(struc_id);
-        LOG_EVENT("A structure type or stackframe has been deleted");
+        LOG_IDB_EVENT("A structure type or stackframe has been deleted");
     }
 
     void log_changing_struc_align(const struc_t* sptr)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("Structure type %s alignment is being changed from 0x%X", get_struc_name(sptr->id).c_str(), static_cast<int>(std::pow(2, sptr->get_alignment())));
+        LOG_IDB_EVENT("Structure type %s alignment is being changed from 0x%X", get_struc_name(sptr->id).c_str(), static_cast<int>(std::pow(2, sptr->get_alignment())));
     }
 
     void log_struc_align_changed(const struc_t* sptr)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("Structure type %s alignment has been changed to 0x%X", get_struc_name(sptr->id).c_str(), static_cast<int>(std::pow(2, sptr->get_alignment())));
+        LOG_IDB_EVENT("Structure type %s alignment has been changed to 0x%X", get_struc_name(sptr->id).c_str(), static_cast<int>(std::pow(2, sptr->get_alignment())));
     }
 
     void log_renaming_struc(tid_t struc_id, const char* oldname, const char* newname)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
         UNUSED(struc_id);
-        LOG_EVENT("Structure type %s is to be renamed to %s", oldname, newname);
+        LOG_IDB_EVENT("Structure type %s is to be renamed to %s", oldname, newname);
     }
 
     void log_struc_renamed(const struc_t* sptr)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("A structure type has been renamed %s", get_struc_name(sptr->id).c_str());
+        LOG_IDB_EVENT("A structure type has been renamed %s", get_struc_name(sptr->id).c_str());
     }
 
     void log_expanding_struc(const struc_t* sptr, ea_t offset, adiff_t delta)
@@ -957,16 +860,16 @@ namespace
         if (func_ea != BADADDR)
         {
             if (delta > 0)
-                LOG_EVENT("Stackframe of function %s is to be expanded of 0x%" EA_PREFIX "X bytes at offset 0x%" EA_PREFIX "X", get_func_name(func_ea).c_str(), delta, offset);
+                LOG_IDB_EVENT("Stackframe of function %s is to be expanded of 0x%" EA_PREFIX "X bytes at offset 0x%" EA_PREFIX "X", get_func_name(func_ea).c_str(), delta, offset);
             else
-                LOG_EVENT("Stackframe of function %s is to be shrunk of 0x%" EA_PREFIX "X bytes at offset 0x%" EA_PREFIX "X", get_func_name(func_ea).c_str(), ~delta + 1, offset);
+                LOG_IDB_EVENT("Stackframe of function %s is to be shrunk of 0x%" EA_PREFIX "X bytes at offset 0x%" EA_PREFIX "X", get_func_name(func_ea).c_str(), ~delta + 1, offset);
         }
         else
         {
             if (delta > 0)
-                LOG_EVENT("Structure type %s is to be expanded of 0x%" EA_PREFIX "X bytes at offset 0x%" EA_PREFIX "X", get_struc_name(sptr->id).c_str(), delta, offset);
+                LOG_IDB_EVENT("Structure type %s is to be expanded of 0x%" EA_PREFIX "X bytes at offset 0x%" EA_PREFIX "X", get_struc_name(sptr->id).c_str(), delta, offset);
             else
-                LOG_EVENT("Structure type %s is to be shrunk of 0x%" EA_PREFIX "X bytes at offset 0x%" EA_PREFIX "X", get_struc_name(sptr->id).c_str(), ~delta + 1, offset);
+                LOG_IDB_EVENT("Structure type %s is to be shrunk of 0x%" EA_PREFIX "X bytes at offset 0x%" EA_PREFIX "X", get_struc_name(sptr->id).c_str(), ~delta + 1, offset);
         }
     }
 
@@ -977,9 +880,9 @@ namespace
 
         ea_t func_ea = get_func_by_frame(sptr->id);
         if (func_ea != BADADDR)
-            LOG_EVENT("Stackframe of function %s has been expanded/shrank", get_func_name(func_ea).c_str());
+            LOG_IDB_EVENT("Stackframe of function %s has been expanded/shrank", get_func_name(func_ea).c_str());
         else
-            LOG_EVENT("Structure type %s has been expanded/shrank", get_struc_name(sptr->id).c_str());
+            LOG_IDB_EVENT("Structure type %s has been expanded/shrank", get_struc_name(sptr->id).c_str());
     }
 
     void log_struc_member_created(const struc_t* sptr, const member_t* mptr)
@@ -989,9 +892,9 @@ namespace
 
         ea_t func_ea = get_func_by_frame(sptr->id);
         if (func_ea != BADADDR)
-            LOG_EVENT("Stackframe of function %s member %s has been created", get_func_name(func_ea).c_str(), get_member_name(mptr->id).c_str());
+            LOG_IDB_EVENT("Stackframe of function %s member %s has been created", get_func_name(func_ea).c_str(), get_member_name(mptr->id).c_str());
         else
-            LOG_EVENT("Structure type %s member %s has been created", get_struc_name(sptr->id).c_str(), get_member_name(mptr->id).c_str());
+            LOG_IDB_EVENT("Structure type %s member %s has been created", get_struc_name(sptr->id).c_str(), get_member_name(mptr->id).c_str());
     }
 
     void log_deleting_struc_member(const struc_t* sptr, const member_t* mptr)
@@ -1001,9 +904,9 @@ namespace
 
         ea_t func_ea = get_func_by_frame(sptr->id);
         if (func_ea != BADADDR)
-            LOG_EVENT("Stackframe of function %s member %s is to be deleted", get_func_name(func_ea).c_str(), get_member_name(mptr->id).c_str());
+            LOG_IDB_EVENT("Stackframe of function %s member %s is to be deleted", get_func_name(func_ea).c_str(), get_member_name(mptr->id).c_str());
         else
-            LOG_EVENT("Structure type %s member %s is to be deleted", get_struc_name(sptr->id).c_str(), get_member_name(mptr->id).c_str());
+            LOG_IDB_EVENT("Structure type %s member %s is to be deleted", get_struc_name(sptr->id).c_str(), get_member_name(mptr->id).c_str());
     }
 
     void log_struc_member_deleted(const struc_t* sptr, tid_t member_id, ea_t offset)
@@ -1014,9 +917,9 @@ namespace
         UNUSED(member_id);
         ea_t func_ea = get_func_by_frame(sptr->id);
         if (func_ea != BADADDR)
-            LOG_EVENT("Stackframe of function %s member at offset 0x%" EA_PREFIX "X has been deleted", get_func_name(func_ea).c_str(), offset);
+            LOG_IDB_EVENT("Stackframe of function %s member at offset 0x%" EA_PREFIX "X has been deleted", get_func_name(func_ea).c_str(), offset);
         else
-            LOG_EVENT("Structure type %s member at offset 0x%" EA_PREFIX "X has been deleted", get_struc_name(sptr->id).c_str(), offset);
+            LOG_IDB_EVENT("Structure type %s member at offset 0x%" EA_PREFIX "X has been deleted", get_struc_name(sptr->id).c_str(), offset);
     }
 
     void log_renaming_struc_member(const struc_t* sptr, const member_t* mptr, const char* newname)
@@ -1026,9 +929,9 @@ namespace
 
         ea_t func_ea = get_func_by_frame(sptr->id);
         if (func_ea != BADADDR)
-            LOG_EVENT("A member of stackframe of function %s is to be renamed from %s to %s", get_func_name(func_ea).c_str(), get_member_name(mptr->id).c_str(), newname);
+            LOG_IDB_EVENT("A member of stackframe of function %s is to be renamed from %s to %s", get_func_name(func_ea).c_str(), get_member_name(mptr->id).c_str(), newname);
         else
-            LOG_EVENT("A member of structure type %s is to be renamed from %s to %s", get_struc_name(sptr->id).c_str(), get_member_name(mptr->id).c_str(), newname);
+            LOG_IDB_EVENT("A member of structure type %s is to be renamed from %s to %s", get_struc_name(sptr->id).c_str(), get_member_name(mptr->id).c_str(), newname);
     }
 
     void log_struc_member_renamed(const struc_t* sptr, const member_t* mptr)
@@ -1038,9 +941,9 @@ namespace
 
         ea_t func_ea = get_func_by_frame(sptr->id);
         if (func_ea != BADADDR)
-            LOG_EVENT("A member of stackframe of function %s has been renamed to %s", get_func_name(func_ea).c_str(), get_member_name(mptr->id).c_str());
+            LOG_IDB_EVENT("A member of stackframe of function %s has been renamed to %s", get_func_name(func_ea).c_str(), get_member_name(mptr->id).c_str());
         else
-            LOG_EVENT("A member of structure type %s has been renamed to %s", get_struc_name(sptr->id).c_str(), get_member_name(mptr->id).c_str());
+            LOG_IDB_EVENT("A member of structure type %s has been renamed to %s", get_struc_name(sptr->id).c_str(), get_member_name(mptr->id).c_str());
     }
 
     void log_changing_struc_member(const struc_t* sptr, const member_t* mptr, flags_t flag, const opinfo_t* ti, asize_t nbytes)
@@ -1053,9 +956,9 @@ namespace
         UNUSED(nbytes);
         ea_t func_ea = get_func_by_frame(sptr->id);
         if (func_ea != BADADDR)
-            LOG_EVENT("Stackframe of function %s member %s is to be changed", get_func_name(func_ea).c_str(), get_member_name(mptr->id).c_str());
+            LOG_IDB_EVENT("Stackframe of function %s member %s is to be changed", get_func_name(func_ea).c_str(), get_member_name(mptr->id).c_str());
         else
-            LOG_EVENT("Structure type %s member %s is to be changed", get_struc_name(sptr->id).c_str(), get_member_name(mptr->id).c_str());
+            LOG_IDB_EVENT("Structure type %s member %s is to be changed", get_struc_name(sptr->id).c_str(), get_member_name(mptr->id).c_str());
     }
 
     void log_struc_member_changed(const struc_t* sptr, const member_t* mptr)
@@ -1065,9 +968,9 @@ namespace
 
         ea_t func_ea = get_func_by_frame(sptr->id);
         if (func_ea != BADADDR)
-            LOG_EVENT("Stackframe of function %s member %s has been changed", get_func_name(func_ea).c_str(), get_member_name(mptr->id).c_str());
+            LOG_IDB_EVENT("Stackframe of function %s member %s has been changed", get_func_name(func_ea).c_str(), get_member_name(mptr->id).c_str());
         else
-            LOG_EVENT("Structure type %s member %s has been changed", get_struc_name(sptr->id).c_str(), get_member_name(mptr->id).c_str());
+            LOG_IDB_EVENT("Structure type %s member %s has been changed", get_struc_name(sptr->id).c_str(), get_member_name(mptr->id).c_str());
     }
 
     void log_changing_struc_cmt(tid_t struc_id, bool repeatable, const char* newcmt)
@@ -1077,16 +980,16 @@ namespace
 
         if (get_struc(struc_id))
         {
-            LOG_EVENT("Structure type %s %scomment is to be changed from \"%s\" to \"%s\"", get_struc_name(struc_id).c_str(), REPEATABLE_STR[repeatable], get_struc_cmt(struc_id, repeatable).c_str(), newcmt);
+            LOG_IDB_EVENT("Structure type %s %scomment is to be changed from \"%s\" to \"%s\"", get_struc_name(struc_id).c_str(), REPEATABLE_STR[repeatable], get_struc_cmt(struc_id, repeatable).c_str(), newcmt);
         }
         else
         {
             struc_t* struc = get_member_struc(get_member_fullname(struc_id).c_str());
             ea_t func_ea = get_func_by_frame(struc->id);
             if (func_ea != BADADDR)
-                LOG_EVENT("Stackframe of function %s member %s %scomment is to be changed from \"%s\" to \"%s\"", get_func_name(func_ea).c_str(), get_member_name(struc_id).c_str(), REPEATABLE_STR[repeatable], get_member_name(struc_id).c_str(), newcmt);
+                LOG_IDB_EVENT("Stackframe of function %s member %s %scomment is to be changed from \"%s\" to \"%s\"", get_func_name(func_ea).c_str(), get_member_name(struc_id).c_str(), REPEATABLE_STR[repeatable], get_member_name(struc_id).c_str(), newcmt);
             else
-                LOG_EVENT("Structure type %s member %s %scomment is to be changed from \"%s\" to \"%s\"", get_struc_name(struc->id).c_str(), get_member_name(struc_id).c_str(), REPEATABLE_STR[repeatable], get_member_name(struc_id).c_str(), newcmt);
+                LOG_IDB_EVENT("Structure type %s member %s %scomment is to be changed from \"%s\" to \"%s\"", get_struc_name(struc->id).c_str(), get_member_name(struc_id).c_str(), REPEATABLE_STR[repeatable], get_member_name(struc_id).c_str(), newcmt);
         }
     }
 
@@ -1097,25 +1000,22 @@ namespace
 
         if (get_struc(struc_id))
         {
-            LOG_EVENT("Structure type %s %scomment has been changed to \"%s\"", get_struc_name(struc_id).c_str(), REPEATABLE_STR[repeatable], get_struc_cmt(struc_id, repeatable).c_str());
+            LOG_IDB_EVENT("Structure type %s %scomment has been changed to \"%s\"", get_struc_name(struc_id).c_str(), REPEATABLE_STR[repeatable], get_struc_cmt(struc_id, repeatable).c_str());
         }
         else
         {
             struc_t* struc = get_member_struc(get_member_fullname(struc_id).c_str());
             ea_t func_ea = get_func_by_frame(struc->id);
             if (func_ea != BADADDR)
-                LOG_EVENT("Stackframe of function %s member %s %scomment has been changed to \"%s\"", get_func_name(func_ea).c_str(), get_member_name(struc_id).c_str(), REPEATABLE_STR[repeatable], get_member_name(struc_id).c_str());
+                LOG_IDB_EVENT("Stackframe of function %s member %s %scomment has been changed to \"%s\"", get_func_name(func_ea).c_str(), get_member_name(struc_id).c_str(), REPEATABLE_STR[repeatable], get_member_name(struc_id).c_str());
             else
-                LOG_EVENT("Structure type %s member %s %scomment has been changed to \"%s\"", get_struc_name(struc->id).c_str(), get_member_name(struc_id).c_str(), REPEATABLE_STR[repeatable], get_member_name(struc_id).c_str());
+                LOG_IDB_EVENT("Structure type %s member %s %scomment has been changed to \"%s\"", get_struc_name(struc->id).c_str(), get_member_name(struc_id).c_str(), REPEATABLE_STR[repeatable], get_member_name(struc_id).c_str());
         }
     }
 
     void log_segm_added(const segment_t* s)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("Segment %s has been created from " EA_FMT " to " EA_FMT, get_segm_name(s).c_str(), s->start_ea, s->end_ea);
+        LOG_IDB_EVENT("Segment %s has been created from " EA_FMT " to " EA_FMT, get_segm_name(s).c_str(), s->start_ea, s->end_ea);
     }
 
     void log_deleting_segm(ea_t start_ea)
@@ -1124,91 +1024,61 @@ namespace
             return;
 
         const segment_t* s = getseg(start_ea);
-        LOG_EVENT("Segment %s (from " EA_FMT " to " EA_FMT ") is to be deleted", get_segm_name(s).c_str(), s->start_ea, s->end_ea);
+        LOG_IDB_EVENT("Segment %s (from " EA_FMT " to " EA_FMT ") is to be deleted", get_segm_name(s).c_str(), s->start_ea, s->end_ea);
     }
 
     void log_segm_deleted(ea_t start_ea, ea_t end_ea)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("A segment (from " EA_FMT " to " EA_FMT ") has been deleted", start_ea, end_ea);
+        LOG_IDB_EVENT("A segment (from " EA_FMT " to " EA_FMT ") has been deleted", start_ea, end_ea);
     }
 
     void log_changing_segm_start(const segment_t* s, ea_t new_start, int segmod_flags)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
         UNUSED(segmod_flags);
-        LOG_EVENT("Segment %s start address is to be changed from " EA_FMT " to " EA_FMT, get_segm_name(s).c_str(), s->start_ea, new_start);
+        LOG_IDB_EVENT("Segment %s start address is to be changed from " EA_FMT " to " EA_FMT, get_segm_name(s).c_str(), s->start_ea, new_start);
     }
 
     void log_segm_start_changed(const segment_t* s, ea_t oldstart)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("Segment %s start address has been changed from " EA_FMT " to " EA_FMT, get_segm_name(s).c_str(), oldstart, s->start_ea);
+        LOG_IDB_EVENT("Segment %s start address has been changed from " EA_FMT " to " EA_FMT, get_segm_name(s).c_str(), oldstart, s->start_ea);
     }
 
     void log_changing_segm_end(const segment_t* s, ea_t new_end, int segmod_flags)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
         UNUSED(segmod_flags);
-        LOG_EVENT("Segment %s end address is to be changed from " EA_FMT " to " EA_FMT, get_segm_name(s).c_str(), s->end_ea, new_end);
+        LOG_IDB_EVENT("Segment %s end address is to be changed from " EA_FMT " to " EA_FMT, get_segm_name(s).c_str(), s->end_ea, new_end);
     }
 
     void log_segm_end_changed(const segment_t* s, ea_t oldend)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("Segment %s end address has been changed from " EA_FMT " to " EA_FMT, get_segm_name(s).c_str(), oldend, s->end_ea);
+        LOG_IDB_EVENT("Segment %s end address has been changed from " EA_FMT " to " EA_FMT, get_segm_name(s).c_str(), oldend, s->end_ea);
     }
 
     void log_changing_segm_name(const segment_t* s, const char* oldname)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
         UNUSED(s);
-        LOG_EVENT("Segment %s is being renamed", oldname);
+        LOG_IDB_EVENT("Segment %s is being renamed", oldname);
     }
 
     void log_segm_name_changed(const segment_t* s, const char* name)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
         UNUSED(s);
-        LOG_EVENT("A segment has been renamed %s", name);
+        LOG_IDB_EVENT("A segment has been renamed %s", name);
     }
 
     void log_changing_segm_class(const segment_t* s)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("Segment %s class is being changed from %s", get_segm_name(s).c_str(), get_segm_class(s).c_str());
+        LOG_IDB_EVENT("Segment %s class is being changed from %s", get_segm_name(s).c_str(), get_segm_class(s).c_str());
     }
 
     void log_segm_class_changed(const segment_t* s, const char* sclass)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("Segment %s class has been changed to %s", get_segm_name(s).c_str(), sclass);
+        LOG_IDB_EVENT("Segment %s class has been changed to %s", get_segm_name(s).c_str(), sclass);
     }
 
     void log_segm_attrs_updated(const segment_t* s)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("Segment %s attributes has been changed", get_segm_name(s).c_str());
+        LOG_IDB_EVENT("Segment %s attributes has been changed", get_segm_name(s).c_str());
     }
 
     void log_segm_moved(ea_t from, ea_t to, asize_t size, bool changed_netmap)
@@ -1218,246 +1088,162 @@ namespace
 
         const segment_t* s = getseg(to);
         const char changed_netmap_txt[2][18] = { "", " (changed netmap)" };
-        LOG_EVENT("Segment %s has been moved from " EA_FMT "-" EA_FMT " to " EA_FMT "-" EA_FMT "%s", get_segm_name(s).c_str(), from, from + size, to, to + size, changed_netmap_txt[changed_netmap]);
+        LOG_IDB_EVENT("Segment %s has been moved from " EA_FMT "-" EA_FMT " to " EA_FMT "-" EA_FMT "%s", get_segm_name(s).c_str(), from, from + size, to, to + size, changed_netmap_txt[changed_netmap]);
     }
 
     void log_allsegs_moved(const segm_move_infos_t* info)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("Program rebasing is complete, %zd segments have been moved", info->size());
+        LOG_IDB_EVENT("Program rebasing is complete, %zd segments have been moved", info->size());
     }
 
     void log_func_added(const func_t* pfn)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("Function %s has been created from " EA_FMT " to " EA_FMT, get_func_name(pfn->start_ea).c_str(), pfn->start_ea, pfn->end_ea);
+        LOG_IDB_EVENT("Function %s has been created from " EA_FMT " to " EA_FMT, get_func_name(pfn->start_ea).c_str(), pfn->start_ea, pfn->end_ea);
     }
 
     void log_func_updated(const func_t* pfn)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("Function %s has been updated", get_func_name(pfn->start_ea).c_str());
+        LOG_IDB_EVENT("Function %s has been updated", get_func_name(pfn->start_ea).c_str());
     }
 
     void log_set_func_start(const func_t* pfn, ea_t new_start)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("Function %s chunk start address will be changed from " EA_FMT " to " EA_FMT, get_func_name(pfn->start_ea).c_str(), pfn->start_ea, new_start);
+        LOG_IDB_EVENT("Function %s chunk start address will be changed from " EA_FMT " to " EA_FMT, get_func_name(pfn->start_ea).c_str(), pfn->start_ea, new_start);
     }
 
     void log_set_func_end(const func_t* pfn, ea_t new_end)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("Function %s chunk end address will be changed from " EA_FMT " to " EA_FMT, get_func_name(pfn->start_ea).c_str(), pfn->end_ea, new_end);
+        LOG_IDB_EVENT("Function %s chunk end address will be changed from " EA_FMT " to " EA_FMT, get_func_name(pfn->start_ea).c_str(), pfn->end_ea, new_end);
     }
 
     void log_deleting_func(const func_t* pfn)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("Function %s is about to be deleted (" EA_FMT " to " EA_FMT")", get_func_name(pfn->start_ea).c_str(), pfn->start_ea, pfn->end_ea);
+        LOG_IDB_EVENT("Function %s is about to be deleted (" EA_FMT " to " EA_FMT")", get_func_name(pfn->start_ea).c_str(), pfn->start_ea, pfn->end_ea);
     }
 
     void log_frame_deleted(const func_t* pfn)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
         UNUSED(pfn);
-        LOG_EVENT("A function frame has been deleted");
+        LOG_IDB_EVENT("A function frame has been deleted");
     }
 
     void log_thunk_func_created(const func_t* pfn)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("Function %s thunk bit has been set to %s", get_func_name(pfn->start_ea).c_str(), BOOL_STR[!!(pfn->flags & FUNC_THUNK)]);
+        LOG_IDB_EVENT("Function %s thunk bit has been set to %s", get_func_name(pfn->start_ea).c_str(), BOOL_STR[!!(pfn->flags & FUNC_THUNK)]);
     }
 
     void log_func_tail_appended(const func_t* pfn, const func_t* tail)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("Function %s tail chunk from " EA_FMT " to " EA_FMT " has been appended", get_func_name(pfn->start_ea).c_str(), tail->start_ea, tail->end_ea);
+        LOG_IDB_EVENT("Function %s tail chunk from " EA_FMT " to " EA_FMT " has been appended", get_func_name(pfn->start_ea).c_str(), tail->start_ea, tail->end_ea);
     }
 
     void log_deleting_func_tail(const func_t* pfn, const range_t* tail)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("Function %s tail chunk from " EA_FMT " to " EA_FMT " is to be removed", get_func_name(pfn->start_ea).c_str(), tail->start_ea, tail->end_ea);
+        LOG_IDB_EVENT("Function %s tail chunk from " EA_FMT " to " EA_FMT " is to be removed", get_func_name(pfn->start_ea).c_str(), tail->start_ea, tail->end_ea);
     }
 
     void log_func_tail_deleted(const func_t* pfn, ea_t tail_ea)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("Function %s tail chunk at " EA_FMT " has been removed", get_func_name(pfn->start_ea).c_str(), tail_ea);
+        LOG_IDB_EVENT("Function %s tail chunk at " EA_FMT " has been removed", get_func_name(pfn->start_ea).c_str(), tail_ea);
     }
 
     void log_tail_owner_changed(const func_t* pfn, ea_t owner_func, ea_t old_owner)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("Tail chunk from " EA_FMT " to " EA_FMT " owner function changed from %s to %s", pfn->start_ea, pfn->end_ea, get_func_name(old_owner).c_str(), get_func_name(owner_func).c_str());
+        LOG_IDB_EVENT("Tail chunk from " EA_FMT " to " EA_FMT " owner function changed from %s to %s", pfn->start_ea, pfn->end_ea, get_func_name(old_owner).c_str(), get_func_name(owner_func).c_str());
     }
 
     void log_func_noret_changed(const func_t* pfn)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("Function %s FUNC_NORET flag has been changed to %s", get_func_name(pfn->start_ea).c_str(), BOOL_STR[!!(pfn->flags & FUNC_NORET)]);
+        LOG_IDB_EVENT("Function %s FUNC_NORET flag has been changed to %s", get_func_name(pfn->start_ea).c_str(), BOOL_STR[!!(pfn->flags & FUNC_NORET)]);
     }
 
     void log_stkpnts_changed(const func_t* pfn)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("Function %s stack change points have been modified", get_func_name(pfn->start_ea).c_str());
+        LOG_IDB_EVENT("Function %s stack change points have been modified", get_func_name(pfn->start_ea).c_str());
     }
 
     void log_updating_tryblks(const tryblks_t* tbv)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
         UNUSED(tbv);
-        LOG_EVENT("About to update try block information");
+        LOG_IDB_EVENT("About to update try block information");
     }
 
     void log_tryblks_updated(const tryblks_t* tbv)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
         UNUSED(tbv);
-        LOG_EVENT("Updated try block information");
+        LOG_IDB_EVENT("Updated try block information");
     }
 
     void log_deleting_tryblks(const range_t* range)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("About to delete try block information in range " EA_FMT "-" EA_FMT, range->start_ea, range->end_ea);
+        LOG_IDB_EVENT("About to delete try block information in range " EA_FMT "-" EA_FMT, range->start_ea, range->end_ea);
     }
 
     void log_sgr_changed(ea_t start_ea, ea_t end_ea, int regnum, sel_t value, sel_t old_value, uchar tag)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
         UNUSED(start_ea);
         UNUSED(end_ea);
         UNUSED(regnum);
         UNUSED(value);
         UNUSED(old_value);
         UNUSED(tag);
-        LOG_EVENT("The kernel has changed a segment register value");
+        LOG_IDB_EVENT("The kernel has changed a segment register value");
     }
 
     void log_make_code(const insn_t* insn)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("An instruction is being created at " EA_FMT, insn->ea);
+        LOG_IDB_EVENT("An instruction is being created at " EA_FMT, insn->ea);
     }
 
     void log_make_data(ea_t ea, flags_t flags, tid_t tid, asize_t len)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
         UNUSED(flags);
         UNUSED(tid);
         UNUSED(len);
-        LOG_EVENT("A data item is being created at " EA_FMT, ea);
+        LOG_IDB_EVENT("A data item is being created at " EA_FMT, ea);
     }
 
     void log_destroyed_items(ea_t ea1, ea_t ea2, bool will_disable_range)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
         UNUSED(will_disable_range);
-        LOG_EVENT("Instructions/data have been destroyed in " EA_FMT "-" EA_FMT, ea1, ea2);
+        LOG_IDB_EVENT("Instructions/data have been destroyed in " EA_FMT "-" EA_FMT, ea1, ea2);
     }
 
     void log_renamed(ea_t ea, const char* new_name, bool local_name)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
         UNUSED(local_name);
-        LOG_EVENT("Byte at " EA_FMT " renamed to %s", ea, new_name);
+        LOG_IDB_EVENT("Byte at " EA_FMT " renamed to %s", ea, new_name);
     }
 
     void log_byte_patched(ea_t ea, uint32 old_value)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("Byte at " EA_FMT " has been changed from 0x%02X to 0x%02X", ea, old_value, get_byte(ea));
+        LOG_IDB_EVENT("Byte at " EA_FMT " has been changed from 0x%02X to 0x%02X", ea, old_value, get_byte(ea));
     }
 
     void log_changing_cmt(ea_t ea, bool repeatable_cmt, const char* newcmt)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("Item at " EA_FMT " %scomment is to be changed from \"%s\" to \"%s\"", ea, REPEATABLE_STR[repeatable_cmt], get_cmt(ea, repeatable_cmt).c_str(), newcmt);
+        LOG_IDB_EVENT("Item at " EA_FMT " %scomment is to be changed from \"%s\" to \"%s\"", ea, REPEATABLE_STR[repeatable_cmt], get_cmt(ea, repeatable_cmt).c_str(), newcmt);
     }
 
     void log_cmt_changed(ea_t ea, bool repeatable_cmt)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("Item at " EA_FMT " %scomment has been changed to \"%s\"", ea, REPEATABLE_STR[repeatable_cmt], get_cmt(ea, repeatable_cmt).c_str());
+        LOG_IDB_EVENT("Item at " EA_FMT " %scomment has been changed to \"%s\"", ea, REPEATABLE_STR[repeatable_cmt], get_cmt(ea, repeatable_cmt).c_str());
     }
 
     void log_changing_range_cmt(range_kind_t kind, const range_t* a, const char* cmt, bool repeatable)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("%s range from " EA_FMT " to " EA_FMT " %scomment is to be changed to \"%s\"", range_kind_to_str(kind), a->start_ea, a->end_ea, REPEATABLE_STR[repeatable], cmt);
+        LOG_IDB_EVENT("%s range from " EA_FMT " to " EA_FMT " %scomment is to be changed to \"%s\"", range_kind_to_str(kind), a->start_ea, a->end_ea, REPEATABLE_STR[repeatable], cmt);
     }
 
     void log_range_cmt_changed(range_kind_t kind, const range_t* a, const char* cmt, bool repeatable)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
-        LOG_EVENT("%s range from " EA_FMT " to " EA_FMT " %scomment has been changed to \"%s\"", range_kind_to_str(kind), a->start_ea, a->end_ea, REPEATABLE_STR[repeatable], cmt);
+        LOG_IDB_EVENT("%s range from " EA_FMT " to " EA_FMT " %scomment has been changed to \"%s\"", range_kind_to_str(kind), a->start_ea, a->end_ea, REPEATABLE_STR[repeatable], cmt);
     }
 
     void log_extra_cmt_changed(ea_t ea, int line_idx, const char* cmt)
     {
-        if (!LOG_IDB_EVENTS)
-            return;
-
         UNUSED(line_idx);
-        LOG_EVENT("Extra comment at " EA_FMT " has been changed to \"%s\"", ea, cmt);
+        LOG_IDB_EVENT("Extra comment at " EA_FMT " has been changed to \"%s\"", ea, cmt);
     }
 }
 
