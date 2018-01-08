@@ -57,38 +57,34 @@ namespace
         file_path.replace_filename(filename);
     }
 
-    struct YaCo;
-
     template<typename T>
     struct ahandler_t : public action_handler_t
     {
-        ahandler_t(YaCo* yaco_, T func_)
-            : yaco(yaco_)
-            , func(func_)
+        ahandler_t(T func)
+            : func_(func)
         {
         }
 
-        int idaapi activate(action_activation_ctx_t *ctx)
+        int idaapi activate(action_activation_ctx_t *ctx) override
         {
             UNUSED(ctx);
-            func(yaco);
+            func_();
             return 1; // not 0: graphical refresh
         }
 
-        action_state_t idaapi update(action_update_ctx_t *ctx)
+        action_state_t idaapi update(action_update_ctx_t *ctx) override
         {
             UNUSED(ctx);
             return action_state_t::AST_ENABLE_FOR_IDB;
         }
 
-        YaCo* yaco;
-        T func;
+        const T func_;
     };
 
     template<typename T>
-    action_handler_t* new_handler(YaCo* yaco, T func)
+    action_handler_t* new_handler(const T& func)
     {
-        return new ahandler_t<T>(yaco, func);
+        return new ahandler_t<T>(func);
     }
 
     struct YaCo
@@ -112,7 +108,7 @@ namespace
         std::shared_ptr<IRepository>     repository_;
         std::shared_ptr<IHooks>          hooks_;
 
-        const action_desc_t action_descs_[4];
+        std::vector<action_desc_t>       action_descs_;
     };
 
     #define YACO_EXT_FUNC(name) void CONCAT(ext_, name)(YaCo* yaco) { yaco->name(); }
@@ -127,13 +123,11 @@ YaCo::YaCo(IDAIsInteractive ida_is_interactive)
     : hash_provider_(MakeHashProvider())
     , repository_(MakeRepository(".", ida_is_interactive))
     , hooks_(MakeHooks(*this, hash_provider_, repository_))
-    , action_descs_{
-        YACO_ACTION_DESC("yaco_toggle_rebase_push",     "YaCo - Toggle YaCo auto rebase/push",   new_handler(this, &ext_toggle_auto_rebase_push)),
-        YACO_ACTION_DESC("yaco_sync_and_push_idb",      "YaCo - Resync idb & force push",        new_handler(this, &ext_sync_and_push_idb)),
-        YACO_ACTION_DESC("yaco_discard_and_pull_idb",   "YaCo - Discard idb & force pull",       new_handler(this, &ext_discard_and_pull_idb)),
-        YACO_ACTION_DESC("yaco_export_database",        "YaCo - Export database",                new_handler(this, &ext_export_database)),
-    }
 {
+    action_descs_.push_back(YACO_ACTION_DESC("yaco_toggle_rebase_push",     "YaCo - Toggle YaCo auto rebase/push",   new_handler([&]{ ext_toggle_auto_rebase_push(this); })));
+    action_descs_.push_back(YACO_ACTION_DESC("yaco_sync_and_push_idb",      "YaCo - Resync idb & force push",        new_handler([&]{ ext_sync_and_push_idb(this); })));
+    action_descs_.push_back(YACO_ACTION_DESC("yaco_discard_and_pull_idb",   "YaCo - Discard idb & force pull",       new_handler([&]{ ext_discard_and_pull_idb(this); })));
+    action_descs_.push_back(YACO_ACTION_DESC("yaco_export_database",        "YaCo - Export database",                new_handler([&]{ ext_export_database(this); })));
 }
 
 void YaCo::start()
