@@ -122,7 +122,7 @@ namespace
 YaCo::YaCo(IDAIsInteractive ida_is_interactive)
     : hash_provider_(MakeHashProvider())
     , repository_(MakeRepository(".", ida_is_interactive))
-    , hooks_(MakeHooks(*this, hash_provider_, repository_))
+    , hooks_(MakeHooks(*this, *hash_provider_, *repository_))
 {
     action_descs_.push_back(YACO_ACTION_DESC("yaco_toggle_rebase_push",     "YaCo - Toggle YaCo auto rebase/push",   new_handler([&]{ ext_toggle_auto_rebase_push(this); })));
     action_descs_.push_back(YACO_ACTION_DESC("yaco_sync_and_push_idb",      "YaCo - Resync idb & force push",        new_handler([&]{ ext_sync_and_push_idb(this); })));

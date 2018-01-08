@@ -2399,7 +2399,7 @@ void Hooks::extra_cmt_changed(va_list args)
 }
 
 
-std::shared_ptr<IHooks> MakeHooks(IYaCo& yaco, const std::shared_ptr<IHashProvider>& hash_provider, const std::shared_ptr<IRepository>& repo_manager)
+std::shared_ptr<IHooks> MakeHooks(IYaCo& yaco, IHashProvider& hash_provider, IRepository& repo_manager)
 {
-    return std::make_shared<Hooks>(yaco, *hash_provider, *repo_manager);
+    return std::make_shared<Hooks>(yaco, hash_provider, repo_manager);
 }
