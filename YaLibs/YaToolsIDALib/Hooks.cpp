@@ -327,7 +327,6 @@ namespace
         // Internal
         void rename(ea_t ea, const std::string& new_name, const std::string& type, const std::string& old_name);
         void update_comment(ea_t ea);
-        void undefine(ea_t ea);
         void delete_function(ea_t ea);
         void make_code(ea_t ea);
         void make_data(ea_t ea);
@@ -625,11 +624,6 @@ void Hooks::rename(ea_t ea, const std::string& new_name, const std::string& type
 void Hooks::update_comment(ea_t ea)
 {
     comments_.insert(ea);
-}
-
-void Hooks::undefine(ea_t ea)
-{
-    add_ea(ea, "Undefine");
 }
 
 void Hooks::delete_function(ea_t ea)
