@@ -26,6 +26,7 @@
 #include "Pool.hpp"
 #include "StringFormat.hpp"
 #include "Plugins.hpp"
+#include "FlatBufferExporter.hpp"
 
 #include <Logger.h>
 #include <Yatools.h>
@@ -2059,4 +2060,19 @@ void ModelIncremental::delete_struct_member(IModelVisitor& v, ea_t func_ea, ea_t
     get_struc_name(&*qbuf, struc_id);
     const auto id = ctx_.provider_.get_struc_member_id(struc_id, offset, ya::to_string_ref(*qbuf));
     delete_id(v, OBJECT_TYPE_STRUCT_MEMBER, id);
+}
+
+void export_from_ida(const std::string& filename)
+{
+    const auto provider = MakeHashProvider();
+    const auto exporter = MakeFlatBufferExporter();
+    Model(provider.get()).accept(*exporter);
+
+    const auto buf = exporter->GetBuffer();
+    FILE* fh = qfopen(filename.data(), "wb");
+    if(!fh)
+        return;
+
+    qfwrite(fh, buf.value, buf.size);
+    qfclose(fh);
 }

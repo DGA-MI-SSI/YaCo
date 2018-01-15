@@ -22,8 +22,6 @@ import sys
 prog = idc.ARGV[0] if len(idc.ARGV) else None
 parser = argparse.ArgumentParser(prog=prog, description='Export IDA database')
 parser.add_argument('bin_dir', type=os.path.abspath, help='YaCo bin directory')
-parser.add_argument('--slave', action='store_true', help='slave mode')
-parser.add_argument('--disable_plugin', action='store_true', help='disable default IDA plugin')
 args = parser.parse_args(idc.ARGV[1:])
 
 root_dir = os.path.abspath(os.path.join(args.bin_dir, '..'))
@@ -36,50 +34,11 @@ if idc.__EA64__:
 else:
     import YaToolsPy32 as ya
 
-class YaLogHandler(logging.Handler):
-    def __init__(self):
-        logging.Handler.__init__(self)
-        self.deftype = ya.LOG_LEVEL_ERROR
-        self.typemap = {
-            logging.DEBUG: ya.LOG_LEVEL_DEBUG,
-            logging.INFO: ya.LOG_LEVEL_INFO,
-            logging.WARNING: ya.LOG_LEVEL_WARNING,
-            logging.ERROR: ya.LOG_LEVEL_ERROR,
-        }
-
-    def emit(self, record):
-        try:
-            level = self.typemap.get(record.levelno, self.deftype)
-            ya.yaco_log(level, self.format(record) + '\n')
-        except:
-            self.handleError(record)
-
-
-path = idc.GetIdbPath()
-name, ext = os.path.splitext(path)
-ya.StartYatools(name)
-
-logging.basicConfig()
-global logger
-logger = logging.getLogger("YaCo")
-
-logger.setLevel(logging.INFO)
-logger.propagate = True
-for h in logger.handlers:
-    h.setLevel(logging.WARN)
-
-handler = YaLogHandler()
-handler.setLevel(logging.INFO)
-logger.addHandler(handler)
 
 idc.Wait()
 
-hash_provider = ya.MakeHashProvider()
-# ignore multithreaded python model as it is slower
-# than pure native model even with 4 cores
-exporter = ya.MakeFlatBufferExporter()
-ya.MakeModel(hash_provider).accept(exporter)
+name, _ = os.path.splitext(idc.GetIdbPath())
+ya.StartYatools(name)
 os.makedirs("database")
-with open("database/database.yadb", "wb") as fh:
-    fh.write(exporter.GetBuffer())
+ya.export_from_ida("database/database.yadb")
 idc.Exit(0)

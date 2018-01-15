@@ -48,3 +48,5 @@ struct IModelIncremental
 };
 
 std::shared_ptr<IModelIncremental> MakeModelIncremental(IHashProvider* provider);
+
+void export_from_ida(const std::string& filename);
