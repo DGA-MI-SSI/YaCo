@@ -885,9 +885,10 @@ void Hooks::save_and_update()
     }
 
     // Let IDA apply modifications
-    setflag(inf.s_genflags, INFFL_AUTO, true);
+    const auto prev = inf.is_auto_enabled();
+    inf.set_auto_enabled(true);
     auto_wait();
-    setflag(inf.s_genflags, INFFL_AUTO, false);
+    inf.set_auto_enabled(prev);
     refresh_idaview_anyway();
 
     hook();

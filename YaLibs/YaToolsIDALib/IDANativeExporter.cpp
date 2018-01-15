@@ -958,10 +958,6 @@ namespace
         if(!ok)
             LOG(ERROR, "make_function: 0x%" PRIxEA " unable to add function\n", ea);
 
-        ok = !!plan_and_wait(ea, ea + 1);
-        if(!ok)
-            LOG(ERROR, "make_function: 0x%" PRIxEA " unable to analyze area\n", ea);
-
         const auto flags = version.flags();
         if(flags)
             if(!set_function_flags(ea, flags))
@@ -1162,11 +1158,7 @@ namespace
                     return WALK_CONTINUE;
 
                 del_items(ea, DELIT_DELNAMES, static_cast<asize_t>(size));
-                const auto prev = inf.s_genflags;
-                inf.s_genflags &= ~INFFL_AUTO;
-                auto_wait();
                 auto ok = create_struct(ea, static_cast<asize_t>(size), fi->second.tid);
-                inf.s_genflags = prev;
                 if(!ok)
                     LOG(ERROR, "make_data: 0x%" PRIxEA " unable to set struct %016" PRIx64 " size %zd\n", ea, id, size);
                 found = true;
@@ -1551,23 +1543,6 @@ namespace
         if(frame)
             return frame;
 
-        ya::walk_function_chunks(func_ea, [=](range_t area)
-        {
-            if(!plan_and_wait(area.start_ea, area.end_ea))
-                LOG(ERROR, "analyze_function: 0x%" PRIxEA " unable to analyze area %" PRIxEA "-%" PRIxEA "\n", func_ea, area.start_ea, area.end_ea);
-        });
-        frame = get_frame(func_ea);
-        if(frame)
-            return frame;
-
-        const auto prev = inf.s_genflags;
-        inf.s_genflags &= INFFL_AUTO;
-        auto_wait();
-        inf.s_genflags = prev;
-        frame = get_frame(func_ea);
-        if(frame)
-            return frame;
-
         const auto func = get_func(func_ea);
         if(!func)
             return nullptr;
@@ -1906,9 +1881,11 @@ namespace
 {
     void import_to_ida(IModelAccept& model, IHashProvider& provider, UseStacks use_stacks)
     {
+        const auto prev = inf.is_auto_enabled();
+        inf.set_auto_enabled(false);
         Exporter exporter{provider, use_stacks};
-        const auto visitor = MakeVisitorFromListener(exporter);
-        model.accept(*visitor);
+        model.accept(*MakeVisitorFromListener(exporter));
+        inf.set_auto_enabled(prev);
     }
 }
 
