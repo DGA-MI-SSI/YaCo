@@ -37,49 +37,13 @@ if idc.__EA64__:
 else:
     import YaToolsPy32 as ya
 
-
-class YaLogHandler(logging.Handler):
-    def __init__(self):
-        logging.Handler.__init__(self)
-        self.deftype = ya.LOG_LEVEL_ERROR
-        self.typemap = {
-            logging.DEBUG: ya.LOG_LEVEL_DEBUG,
-            logging.INFO: ya.LOG_LEVEL_INFO,
-            logging.WARNING: ya.LOG_LEVEL_WARNING,
-            logging.ERROR: ya.LOG_LEVEL_ERROR,
-        }
-
-    def emit(self, record):
-        try:
-            level = self.typemap.get(record.levelno, self.deftype)
-            ya.yaco_log(level, self.format(record) + '\n')
-        except:
-            self.handleError(record)
-
-
-path = idc.GetIdbPath()
-name, ext = os.path.splitext(path)
+name, _ = os.path.splitext(idc.GetIdbPath())
 ya.StartYatools(name)
 
-logging.basicConfig()
-global logger
-logger = logging.getLogger("YaCo")
-
-logger.setLevel(logging.INFO)
-logger.propagate = True
-for h in logger.handlers:
-    h.setLevel(logging.WARN)
-
-handler = YaLogHandler()
-handler.setLevel(logging.INFO)
-logger.addHandler(handler)
-
 idc.Wait()
-hash_provider = ya.MakeHashProvider()
-fbmodel = ya.MakeFlatBufferDatabaseModel(args.filename)
-ya.export_to_ida(fbmodel, hash_provider)
-
+ya.import_to_ida(args.filename)
 idc.Wait()
+
 idaapi.cvar.database_flags = idaapi.DBFL_COMP
 if not args.no_exit:
     idc.Exit(0)

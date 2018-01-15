@@ -31,6 +31,7 @@
 #include "StringFormat.hpp"
 #include "Pool.hpp"
 #include "Plugins.hpp"
+#include "FlatBufferDatabaseModel.hpp"
 
 #include <string>
 #include <iostream>
@@ -1891,9 +1892,14 @@ bool set_struct_member_type_at(ea_t ea, const std::string& prototype)
     return set_struct_member_type(nullptr, ea, prototype);
 }
 
-void export_to_ida(IModelAccept* model, IHashProvider* provider)
+void import_to_ida(IModelAccept& model, IHashProvider& provider)
 {
-    Exporter exporter{provider};
+    Exporter exporter{&provider};
     const auto visitor = MakeVisitorFromListener(exporter);
-    model->accept(*visitor);
+    model.accept(*visitor);
+}
+
+void import_to_ida(const std::string& filename)
+{
+    import_to_ida(*MakeFlatBufferDatabaseModel(filename), *MakeHashProvider());
 }

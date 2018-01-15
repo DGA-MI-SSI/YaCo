@@ -25,4 +25,5 @@ class IModelAccept;
 bool set_type_at                (ea_t ea, const std::string& prototype);
 bool set_struct_member_type_at  (ea_t ea, const std::string& prototype);
 
-void export_to_ida(IModelAccept* model, IHashProvider* provider);
+void import_to_ida(const std::string& filename);
+void import_to_ida(IModelAccept& model, IHashProvider& provider);

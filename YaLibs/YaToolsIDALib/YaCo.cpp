@@ -206,7 +206,7 @@ void YaCo::initial_load()
     const auto time_start = std::chrono::system_clock::now();
     IDA_LOG_INFO("Initial load started");
 
-    export_to_ida(MakeXmlAllDatabaseModel("cache/").get(), hash_provider_.get());
+    import_to_ida(*MakeXmlAllDatabaseModel("cache/"), *hash_provider_);
 
     const auto time_end = std::chrono::system_clock::now();
     const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(time_end - time_start);

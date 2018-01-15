@@ -881,7 +881,7 @@ void Hooks::save_and_update()
         const std::vector<std::string> modified_files = repo_manager_.update_cache();
         const ModelAndVisitor memory_exporter = MakeModel();
         MakeXmlFilesDatabaseModel(modified_files)->accept(*(memory_exporter.visitor));
-        export_to_ida(memory_exporter.model.get(), &hash_provider_);
+        import_to_ida(*memory_exporter.model, hash_provider_);
     }
 
     // Let IDA apply modifications
