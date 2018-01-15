@@ -103,10 +103,16 @@ namespace
     };
     using Bookmarks = std::vector<Bookmark>;
 
+    enum UseStacks
+    {
+        SKIP_STACKS,
+        USE_STACKS,
+    };
+
     struct Exporter
         : public IObjectListener
     {
-        Exporter(IHashProvider* provider);
+        Exporter(IHashProvider& provider, UseStacks use_stacks);
 
         // IObjectListener
         void on_object (const HObject& object) override;
@@ -126,14 +132,16 @@ namespace
         std::vector<uint8_t>            buffer_;
         Pool<qstring>                   qpool_;
         Bookmarks                       bookmarks_;
+        bool                            use_stacks_;
     };
 
     const char ARM_txt[] = "ARM";
 }
 
-Exporter::Exporter(IHashProvider* provider)
-    : provider_(*provider)
+Exporter::Exporter(IHashProvider& provider, UseStacks use_stacks)
+    : provider_(provider)
     , qpool_(4)
+    , use_stacks_(use_stacks == USE_STACKS)
 {
     static_assert(sizeof ARM_txt <= sizeof inf.procname, "procname size mismatch");
     if(!memcmp(inf.procname, ARM_txt, sizeof ARM_txt))
@@ -1801,7 +1809,8 @@ void Exporter::on_version(const HVersion& version)
             break;
 
         case OBJECT_TYPE_STACKFRAME:
-            make_stackframe(*this, version, ea);
+            if(use_stacks_)
+                make_stackframe(*this, version, ea);
             break;
 
         case OBJECT_TYPE_ENUM:
@@ -1839,7 +1848,8 @@ void Exporter::on_version(const HVersion& version)
             break;
 
         case OBJECT_TYPE_STACKFRAME_MEMBER:
-            make_struct_member(*this, "stackframe_member", version, ea);
+            if(use_stacks_)
+                make_struct_member(*this, "stackframe_member", version, ea);
             break;
 
         case OBJECT_TYPE_DATA:
@@ -1892,14 +1902,22 @@ bool set_struct_member_type_at(ea_t ea, const std::string& prototype)
     return set_struct_member_type(nullptr, ea, prototype);
 }
 
+namespace
+{
+    void import_to_ida(IModelAccept& model, IHashProvider& provider, UseStacks use_stacks)
+    {
+        Exporter exporter{provider, use_stacks};
+        const auto visitor = MakeVisitorFromListener(exporter);
+        model.accept(*visitor);
+    }
+}
+
 void import_to_ida(IModelAccept& model, IHashProvider& provider)
 {
-    Exporter exporter{&provider};
-    const auto visitor = MakeVisitorFromListener(exporter);
-    model.accept(*visitor);
+    import_to_ida(model, provider, USE_STACKS);
 }
 
 void import_to_ida(const std::string& filename)
 {
-    import_to_ida(*MakeFlatBufferDatabaseModel(filename), *MakeHashProvider());
+    import_to_ida(*MakeFlatBufferDatabaseModel(filename), *MakeHashProvider(), SKIP_STACKS);
 }
