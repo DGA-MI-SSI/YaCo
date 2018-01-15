@@ -25,6 +25,7 @@ parser = argparse.ArgumentParser(prog=prog, description="Import to IDA database"
 parser.add_argument("bin_dir", type=os.path.abspath, help="YaCo bin directory")
 parser.add_argument("filename", type=os.path.abspath, help="Input yadb database")
 parser.add_argument("--no-exit", action="store_true", help="Do not exit IDA when done")
+parser.add_argument("--quick", action="store_true", help="Skip IDA auto-analysis")
 args = parser.parse_args(idc.ARGV[1:])
 
 root_dir = os.path.abspath(os.path.join(args.bin_dir, '..'))
@@ -42,7 +43,8 @@ ya.StartYatools(name)
 
 idc.Wait()
 ya.import_to_ida(args.filename)
-idc.Wait()
+if not args.quick:
+    idc.Wait()
 
 idaapi.cvar.database_flags = idaapi.DBFL_COMP
 if not args.no_exit:
