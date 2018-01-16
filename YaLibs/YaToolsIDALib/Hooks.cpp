@@ -29,6 +29,7 @@
 #include "Yatools.h"
 #include "Utils.hpp"
 #include "Pool.hpp"
+#include "YaHelpers.hpp"
 #include "../Helpers.h"
 
 #define MODULE_NAME "hooks"
@@ -665,7 +666,7 @@ void Hooks::update_struct(ea_t struct_id)
 void Hooks::update_struct_member(tid_t struct_id, tid_t member_id, ea_t offset)
 {
     const auto fullname = qpool_.acquire();
-    get_member_fullname(&*fullname, member_id);
+    ya::wrap(&::get_member_fullname, *fullname, member_id);
     const std::string message = "Member updated at offset " + ea_to_hex(offset) + " : " + fullname->c_str();
     add_struct_member(struct_id, offset, message);
 }
@@ -1768,7 +1769,7 @@ void Hooks::struc_cmt_changed(va_list args)
     if (!get_struc(struc_id))
     {
         const auto member_fullname = qpool_.acquire();
-        get_member_fullname(&*member_fullname, struc_id);
+        ya::wrap(&::get_member_fullname, *member_fullname, struc_id);
         struc_t* struc = get_member_struc(member_fullname->c_str());
         if(struc)
             real_struc_id = struc->id;

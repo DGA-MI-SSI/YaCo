@@ -35,6 +35,15 @@ namespace ya
     std::string         dump_flags(flags_t flags);
     const_string_ref    get_default_name(qstring& buffer, ea_t offset, func_t* func);
 
+    // wrap an ida api call & clear output buffer on errors
+    template<typename... Args>
+    void wrap(ssize_t (*fn)(qstring*, Args...), qstring& buf, Args... args)
+    {
+        const auto n = fn(&buf, args...);
+        if(n <= 0)
+            buf.qclear();
+    }
+
     // call void(const_t const_id, uval_t value, uchar serial, bmask_t bmask) on every enum member with specified bmask
     template<typename T>
     void walk_enum_members_with_bmask(enum_t eid, bmask_t bmask, const T& operand)
@@ -122,7 +131,7 @@ namespace ya
         const auto qbuf = ctx.qpool_.acquire();
         for(const auto repeat : {false, true})
         {
-            get_cmt(&*qbuf, ea, repeat);
+            ya::wrap(&get_cmt, *qbuf, ea, repeat);
             if(!qbuf->empty())
                 operand(ya::to_string_ref(*qbuf), repeat ? COMMENT_REPEATABLE : COMMENT_NON_REPEATABLE);
         }
@@ -135,7 +144,7 @@ namespace ya
                 const auto end = get_first_free_extra_cmtidx(ea, from);
                 for(int i = from; i < end; ++i)
                 {
-                    get_extra_cmt(&*qbuf, ea, i);
+                    ya::wrap(&get_extra_cmt, *qbuf, ea, i);
                     if(qbuf->empty())
                         continue;
                     const auto extra = ya::to_string_ref(*qbuf);

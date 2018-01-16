@@ -373,11 +373,11 @@ void YaToolsHashProvider::populate_struc_enum_ids()
     for(size_t idx = 0, end = get_enum_qty(); idx < end; ++idx)
     {
         const auto enum_id = getn_enum(idx);
-        get_enum_name(&enum_name, enum_id);
+        ya::wrap(&get_enum_name, enum_name, enum_id);
         get_struc_enum_object_id(enum_id, ya::to_string_ref(enum_name), false);
         ya::walk_enum_members(enum_id, [&](const_t const_id, uval_t value, uchar /*serial*/, bmask_t bmask)
         {
-            get_enum_member_name(&enum_member_name, const_id);
+            ya::wrap(&get_enum_member_name, enum_member_name, const_id);
             pyhex->clear();
             append_py_hex(*pyhex, value);
             get_enum_member_id(enum_id, ya::to_string_ref(enum_name), const_id, ya::to_string_ref(enum_member_name), make_string_ref(*pyhex), bmask, false);

@@ -166,7 +166,7 @@ namespace
 
         const auto reset_flags = SN_CHECK | (is_in_func ? SN_LOCAL : 0);
         const auto qbuf = exporter.qpool_.acquire();
-        get_ea_name(&*qbuf, ea);
+        ya::wrap(&get_ea_name, *qbuf, ea, 0, (getname_info_t*) NULL);
         set_name(ea, "", reset_flags);
         if(!name.size || IsDefaultName(name))
         {
@@ -643,7 +643,7 @@ namespace
             if(k->second.type != OBJECT_TYPE_STRUCT)
                 continue;
             const auto tid = static_cast<tid_t>(k->second.tid);
-            get_struc_name(&buffer, tid);
+            ya::wrap(&get_struc_name, buffer, tid);
             // replace struct name with new name
             replace_inline(dst, name, buffer.c_str());
         }
@@ -1224,7 +1224,7 @@ namespace
             if(it != exporter.enum_members_.end() && it->second == eid)
                 return;
 
-            get_enum_member_name(&const_name, cid);
+            ya::wrap(&get_enum_member_name, const_name, cid);
             to_py_hex(const_value, value);
             const auto yaid = exporter.provider_.get_enum_member_id(eid, make_string_ref(name), cid, ya::to_string_ref(const_name), ya::to_string_ref(const_value), bmask, true);
             if(has_xref(yaid))
@@ -1663,8 +1663,7 @@ namespace
         }
 
         const auto sname = exporter.qpool_.acquire();
-        get_struc_name(&*sname, parent.tid);
-
+        ya::wrap(&get_struc_name, *sname, parent.tid);
         const auto qbuf = exporter.qpool_.acquire();
         const auto func = get_func(get_func_by_frame(struc->id));
         for(auto it = get_struc_last_offset(struc); struc->is_union() && it != BADADDR && it < ea; ++it)

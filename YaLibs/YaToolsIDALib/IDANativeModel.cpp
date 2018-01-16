@@ -285,8 +285,8 @@ namespace
     {
         for(const auto rpt : {false, true})
         {
-            read(buffer, rpt);
-            if(!buffer.empty())
+            const auto n = read(buffer, rpt);
+            if(n > 0)
                 v.visit_header_comment(rpt, ya::to_string_ref(buffer));
         }
     }
@@ -296,13 +296,13 @@ namespace
     {
         start_object(v, OBJECT_TYPE_ENUM_MEMBER, em.id, parent.id, em.value);
         const auto qbuf = ctx.qpool_.acquire();
-        get_enum_member_name(&*qbuf, em.const_id);
+        ya::wrap(&get_enum_member_name, *qbuf, em.const_id);
         v.visit_name(ya::to_string_ref(*qbuf), DEFAULT_NAME_FLAGS);
         if(em.bmask != BADADDR)
             v.visit_flags(static_cast<flags_t>(em.bmask));
         visit_header_comments(v, *qbuf, [&](qstring& buffer, bool repeated)
         {
-            get_enum_member_cmt(&buffer, em.const_id, repeated);
+            return get_enum_member_cmt(&buffer, em.const_id, repeated);
         });
         finish_object(v, em.value);
     }
@@ -311,7 +311,7 @@ namespace
     void accept_enum(Ctx& ctx, IModelVisitor& v, enum_t eid)
     {
         const auto enum_name = ctx.qpool_.acquire();
-        get_enum_name(&*enum_name, eid);
+        ya::wrap(&get_enum_name, *enum_name, eid);
         const auto id = ctx.provider_.get_struc_enum_object_id(eid, ya::to_string_ref(*enum_name), true);
         if(ctx.skip_id(id))
             return;
@@ -327,7 +327,7 @@ namespace
         const auto qbuf = ctx.qpool_.acquire();
         visit_header_comments(v, *qbuf, [&](qstring& buffer, bool repeated)
         {
-            get_enum_cmt(&buffer, eid, repeated);
+            return get_enum_cmt(&buffer, eid, repeated);
         });
 
         v.visit_start_xrefs();
@@ -335,7 +335,7 @@ namespace
         const auto qval = ctx.qpool_.acquire();
         ya::walk_enum_members(eid, [&](const_t const_id, uval_t value, uchar /*serial*/, bmask_t bmask)
         {
-            get_enum_member_name(&*qbuf, const_id);
+            ya::wrap(&get_enum_member_name, *qbuf, const_id);
             to_py_hex(*qval, value);
             const auto member_id = ctx.provider_.get_enum_member_id(eid, ya::to_string_ref(*enum_name), const_id, ya::to_string_ref(*qbuf), ya::to_string_ref(*qval), bmask, true);
             v.visit_start_xref(0, member_id, DEFAULT_OPERAND);
@@ -413,7 +413,7 @@ namespace
 
         for(const auto rpt : {false, true})
         {
-            get_member_cmt(&buffer, member->id, rpt);
+            ya::wrap(&get_member_cmt, buffer, member->id, rpt);
             if(!buffer.empty())
                 return false;
         }
@@ -510,14 +510,14 @@ namespace
         const auto sid = struc->id;
         const auto offset = member->soff;
         const auto qbuf = ctx.qpool_.acquire();
-        get_struc_name(&*qbuf, sid);
+        ya::wrap(&get_struc_name, *qbuf, sid);
         const auto id = func ?
             ctx.provider_.get_stackframe_member_object_id(sid, member->soff, func->start_ea) :
             ctx.provider_.get_struc_member_id(sid, offset, ya::to_string_ref(*qbuf));
         if(ctx.skip_id(id))
             return;
 
-        get_member_name(&*qbuf, member->id);
+        ya::wrap(&get_member_name, *qbuf, member->id);
 
         // we need to skip default members else we explode on structures with thousand of default fields
         const auto obtype = func ? OBJECT_TYPE_STACKFRAME_MEMBER : OBJECT_TYPE_STRUCT_MEMBER;
@@ -539,7 +539,7 @@ namespace
 
         visit_header_comments(v, *qbuf, [&](qstring& buffer, bool repeat)
         {
-            get_member_cmt(&buffer, member->id, repeat);
+            return get_member_cmt(&buffer, member->id, repeat);
         });
         finish_object(v, offset);
         accept_dependencies(ctx, v, deps);
@@ -550,7 +550,7 @@ namespace
     {
         const auto struc_name = ctx.qpool_.acquire();
         const auto sid = struc->id;
-        get_struc_name(&*struc_name, sid);
+        ya::wrap(&get_struc_name, *struc_name, sid);
         const auto id = func ?
             ctx.provider_.get_stackframe_object_id(sid, func->start_ea) :
             ctx.provider_.get_struc_enum_object_id(sid, ya::to_string_ref(*struc_name), true);
@@ -568,7 +568,7 @@ namespace
         const auto qbuf = ctx.qpool_.acquire();
         visit_header_comments(v, *qbuf, [&](qstring& buffer, bool repeated)
         {
-            get_struc_cmt(&buffer, sid, repeated);
+            return get_struc_cmt(&buffer, sid, repeated);
         });
 
         v.visit_start_xrefs();
@@ -579,7 +579,7 @@ namespace
             if(func && is_special_member(member->id))
                 continue;
 
-            get_member_name(&*qbuf, member->id);
+            ya::wrap(&get_member_name, *qbuf, member->id);
             if(qbuf->empty())
                 continue;
 
@@ -774,9 +774,8 @@ namespace
             return;
 
         const auto txt = ctx.qpool_.acquire();
-        auto& buf = *txt;
-        const auto ntxt = get_strlit_contents(&buf, ea, n, strtype);
-        if(ntxt == -1)
+        const auto ntxt = get_strlit_contents(&*txt, ea, n, strtype);
+        if(ntxt < 0)
         {
             LOG(ERROR, "accept_string_type: 0x%" PRIxEA " unable to get ascii contents %zd bytes %x strtype\n", ea, n, strtype);
             return;
@@ -785,7 +784,7 @@ namespace
         // string signatures are compatible with all signature methods
         v.visit_start_signatures();
         Crcs crcs = {};
-        crcs.firstbyte = std_crc32(0, buf.c_str(), buf.size());
+        crcs.firstbyte = std_crc32(0, txt->c_str(), txt->size());
         crcs.invariants = crcs.firstbyte;
         accept_signature(ctx, v, crcs);
         v.visit_end_signatures();
@@ -841,8 +840,8 @@ namespace
     {
         const auto qbuf = ctx.qpool_.acquire();
         // IDA only accept mangled names
-        const auto ok = !!get_ea_name(&*qbuf, ea, GN_LOCAL);
-        if(!ok)
+        ya::wrap(&get_ea_name, *qbuf, ea, GN_LOCAL, (getname_info_t*) NULL);
+        if(qbuf->empty())
             return;
 
         // FIXME python version does not check for default names on datas...
@@ -1121,7 +1120,7 @@ namespace
             return;
 
         const auto qbuf = ctx.qpool_.acquire();
-        get_enum_name(&*qbuf, pop->ec.tid);
+        ya::wrap(&get_enum_name, *qbuf, pop->ec.tid);
         const auto xid = ctx.provider_.get_struc_enum_object_id(pop->ec.tid, ya::to_string_ref(*qbuf), true);
 
         deps->push_back({xid, pop->ec.tid});
@@ -1144,7 +1143,7 @@ namespace
 
         const auto tid = pop->path.ids[0];
         const auto qbuf = ctx.qpool_.acquire();
-        get_struc_name(&*qbuf, tid);
+        ya::wrap(&get_struc_name, *qbuf, tid);
         const auto xid = ctx.provider_.get_struc_enum_object_id(tid, ya::to_string_ref(*qbuf), true);
 
         deps->push_back({xid, tid});
@@ -1153,13 +1152,13 @@ namespace
         for(int i = 1; i < pop->path.len; ++i)
         {
             const auto mid = pop->path.ids[i];
-            get_member_fullname(&*qbuf, mid);
+            ya::wrap(&get_member_fullname, *qbuf, mid);
             struc_t* mstruc = nullptr;
             const auto member = get_member_by_fullname(&mstruc, qbuf->c_str());
             if(!member)
                 break;
 
-            get_member_name(&*qbuf, mid);
+            ya::wrap(&get_member_name, *qbuf, mid);
             const auto xmid = ctx.provider_.get_struc_member_id(mstruc->id, member->soff, ya::to_string_ref(*qbuf));
             ctx.xrefs_.push_back({ea - root, xmid, opidx, i});
         }
@@ -1180,7 +1179,7 @@ namespace
             if(is_special_member(member->id))
                 return;
 
-            get_member_name(&*qbuf, member->id);
+            ya::wrap(&get_member_name, *qbuf, member->id);
             if(is_default_member(*ctx.qpool_.acquire(), frame, member, ya::to_string_ref(*qbuf)))
                 return;
         }
@@ -1465,7 +1464,7 @@ namespace
 
         visit_header_comments(v, *qbuf, [&](qstring& buffer, bool repeat)
         {
-            get_func_cmt(&buffer, func, repeat);
+            return get_func_cmt(&buffer, func, repeat);
         });
 
         const auto frame = get_frame(func);
@@ -1742,7 +1741,7 @@ namespace
     Parent accept_segment(Ctx& ctx, IModelVisitor& v, const Parent& parent, segment_t* seg)
     {
         const auto qbuf = ctx.qpool_.acquire();
-        get_segm_name(&*qbuf, seg);
+        ya::wrap(&get_segm_name, *qbuf, const_cast<const segment_t*>(seg), 0);
         const auto id = ctx.provider_.get_segment_id(ya::to_string_ref(*qbuf), seg->start_ea);
         const auto current = Parent{id, seg->start_ea};
         if(ctx.skip_id(id))
@@ -1806,7 +1805,7 @@ namespace
         v.visit_start_xrefs();
         for(auto seg = first; seg; seg = get_next_seg(seg->end_ea - 1))
         {
-            get_segm_name(&*qbuf, seg);
+            ya::wrap(&get_segm_name, *qbuf, const_cast<const segment_t*>(seg), 0);
             const auto seg_id = ctx.provider_.get_segment_id(ya::to_string_ref(*qbuf), seg->start_ea);
             v.visit_start_xref(seg->start_ea - base, seg_id, DEFAULT_OPERAND);
             v.visit_end_xref();
@@ -2057,7 +2056,7 @@ void ModelIncremental::delete_struct_member(IModelVisitor& v, ea_t func_ea, ea_t
     }
 
     const auto qbuf = ctx_.qpool_.acquire();
-    get_struc_name(&*qbuf, struc_id);
+    ya::wrap(&get_struc_name, *qbuf, struc_id);
     const auto id = ctx_.provider_.get_struc_member_id(struc_id, offset, ya::to_string_ref(*qbuf));
     delete_id(v, OBJECT_TYPE_STRUCT_MEMBER, id);
 }
