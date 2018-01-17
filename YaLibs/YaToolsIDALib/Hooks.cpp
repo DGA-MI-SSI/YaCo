@@ -344,8 +344,8 @@ namespace
         void add_ea(ea_t ea, const std::string& message);
         void add_struct_member(ea_t struct_id, ea_t member_offset, const std::string& message);
 
-        void save_structs(const std::shared_ptr<IModelIncremental>& ida_model, IModelVisitor* memory_exporter);
-        void save_enums(const std::shared_ptr<IModelIncremental>& ida_model, IModelVisitor* memory_exporter);
+        void save_structs(IModelIncremental& model, IModelVisitor& visitor);
+        void save_enums(IModelIncremental& model, IModelVisitor& visitor);
         void save();
         void save_and_update();
 
@@ -719,7 +719,7 @@ void Hooks::add_struct_member(ea_t struct_id, ea_t member_offset, const std::str
     repo_manager_.add_auto_comment(struct_id, message);
 }
 
-void Hooks::save_structs(const std::shared_ptr<IModelIncremental>& ida_model, IModelVisitor* memory_exporter)
+void Hooks::save_structs(IModelIncremental& model, IModelVisitor& visitor)
 {
     // structures: export modified ones, delete deleted ones
     for (const tid_t struct_id : structs_)
@@ -728,7 +728,7 @@ void Hooks::save_structs(const std::shared_ptr<IModelIncremental>& ida_model, IM
         if (struct_idx != BADADDR)
         {
             // structure or stackframe modified
-            ida_model->accept_struct(*memory_exporter, BADADDR, struct_id);
+            model.accept_struct(visitor, BADADDR, struct_id);
             continue;
         }
 
@@ -738,12 +738,12 @@ void Hooks::save_structs(const std::shared_ptr<IModelIncremental>& ida_model, IM
         if (func_ea != BADADDR)
         {
             // if stackframe
-            ida_model->accept_struct(*memory_exporter, func_ea, struct_id);
-            ida_model->accept_ea(*memory_exporter, func_ea);
+            model.accept_struct(visitor, func_ea, struct_id);
+            model.accept_ea(visitor, func_ea);
             continue;
         }
         // if structure
-        ida_model->delete_struct(*memory_exporter, struct_id);
+        model.delete_struct(visitor, struct_id);
     }
 
     // structures members : update modified ones, remove deleted ones
@@ -764,12 +764,12 @@ void Hooks::save_structs(const std::shared_ptr<IModelIncremental>& ida_model, IM
             if (func_ea == BADADDR)
             {
                 // if structure
-                ida_model->delete_struct_member(*memory_exporter, BADADDR, struct_id, member_offset);
+                model.delete_struct_member(visitor, BADADDR, struct_id, member_offset);
                 continue;
             }
             // if stackframe
             stackframe_func_addr = func_ea;
-            ida_model->accept_function(*memory_exporter, stackframe_func_addr);
+            model.accept_function(visitor, stackframe_func_addr);
             continue;
         }
 
@@ -778,7 +778,7 @@ void Hooks::save_structs(const std::shared_ptr<IModelIncremental>& ida_model, IM
         if (!ida_member || ida_member->id == BADADDR)
         {
             // if member deleted
-            ida_model->delete_struct_member(*memory_exporter, stackframe_func_addr, struct_id, member_offset);
+            model.delete_struct_member(visitor, stackframe_func_addr, struct_id, member_offset);
             continue;
         }
 
@@ -788,17 +788,17 @@ void Hooks::save_structs(const std::shared_ptr<IModelIncremental>& ida_model, IM
             if (ida_prev_member && ida_prev_member->id == ida_member->id)
             {
                 // if member deleted and replaced by member starting above it
-                ida_model->delete_struct_member(*memory_exporter, stackframe_func_addr, struct_id, member_offset);
+                model.delete_struct_member(visitor, stackframe_func_addr, struct_id, member_offset);
                 continue;
             }
         }
 
         // if member updated
-        ida_model->accept_struct_member(*memory_exporter, stackframe_func_addr, ida_member->id);
+        model.accept_struct_member(visitor, stackframe_func_addr, ida_member->id);
     }
 }
 
-void Hooks::save_enums(const std::shared_ptr<IModelIncremental>& ida_model, IModelVisitor* memory_exporter)
+void Hooks::save_enums(IModelIncremental& model, IModelVisitor& visitor)
 {
     // enums: export modified ones, delete deleted ones
     for (const enum_t enum_id : enums_)
@@ -807,12 +807,12 @@ void Hooks::save_enums(const std::shared_ptr<IModelIncremental>& ida_model, IMod
         if (enum_idx == BADADDR)
         {
             // enum deleted
-            ida_model->delete_enum(*memory_exporter, enum_id);
+            model.delete_enum(visitor, enum_id);
             continue;
         }
 
         // enum modified
-        ida_model->accept_enum(*memory_exporter, enum_id);
+        model.accept_enum(visitor, enum_id);
     }
 
     // not implemented in Python, TODO after porting to C++ events
@@ -841,10 +841,10 @@ void Hooks::save()
         const auto model = MakeModelIncremental(&hash_provider_);
 
         // process structures
-        save_structs(model, db.visitor.get());
+        save_structs(*model, *db.visitor);
 
         // process enums
-        save_enums(model, db.visitor.get());
+        save_enums(*model, *db.visitor);
 
         // process addresses
         for (const ea_t ea : eas_)
