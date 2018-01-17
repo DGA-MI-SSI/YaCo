@@ -16,10 +16,8 @@
 %module(directors="1") YaToolsPy32
 
 %{
-#ifdef __NT__
 typedef uint32_t ea_t;
 typedef uint32_t bmask_t;
-#endif
 %}
 
 %include "YaToolsPy.h"

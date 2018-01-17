@@ -18,10 +18,8 @@
 #define __EA64__ 1
 %{
 #define __EA64__ 1
-#ifdef __NT__
 typedef uint64_t ea_t;
 typedef uint64_t bmask_t;
-#endif
 %}
 
 %include "YaToolsPy.h"
