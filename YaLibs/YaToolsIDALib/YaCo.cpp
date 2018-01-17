@@ -204,7 +204,7 @@ void YaCo::stop()
 void YaCo::initial_load()
 {
     const auto time_start = std::chrono::system_clock::now();
-    IDA_LOG_INFO("Initial load started");
+    IDA_LOG_INFO("Loading...");
 
     import_to_ida(*MakeXmlAllDatabaseModel("cache/"), *hash_provider_);
 

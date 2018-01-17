@@ -362,7 +362,7 @@ Repository::Repository(const std::string& path, IDAIsInteractive ida_is_interact
 
     // add current IDB to repo, and create an initial commit
     if (add_file_to_index(get_current_idb_name()) && commit("Initial commit"))
-        IDA_LOG_INFO("Commited IDB");
+        IDA_LOG_INFO("IDB Committed");
     else
         IDA_LOG_ERROR("Unable to commit IDB");
 
@@ -380,7 +380,7 @@ void Repository::add_auto_comment(ea_t ea, const std::string & text)
 
 void Repository::check_valid_cache_startup()
 {
-    IDA_LOG_INFO("Cache validity check started");
+    IDA_LOG_INFO("Validating cache...");
 
     if (!remote_exist("origin"))
     {
@@ -391,7 +391,7 @@ void Repository::check_valid_cache_startup()
         const std::string master_commit = get_commit("master");
         const std::string origin_master_commit = get_commit("origin/master");
         if (master_commit.empty() || origin_master_commit.empty() || master_commit != origin_master_commit)
-            IDA_LOG_WARNING("Master and origin/master doesn't point to the same commit, please update your master");
+            IDA_LOG_WARNING("Master and origin/master does not point to same commit, please update your master");
     }
 
     std::error_code ec;
@@ -406,16 +406,16 @@ void Repository::check_valid_cache_startup()
 
     if (std::regex_match(idb_prefix, std::regex(".*_local$")))
     {
-        IDA_LOG_INFO("Cache validity check ended");
+        IDA_LOG_INFO("Cache validated");
         return;
     }
 
-    IDA_LOG_INFO("Current IDB does not have _local suffix");
+    IDA_LOG_INFO("Current IDB filename is missing _local suffix");
     const std::string local_idb_path = idb_prefix + "_local" + idb_extension;
     bool local_idb_exist = fs::exists(local_idb_path, ec);
     if (!local_idb_exist)
     {
-        IDA_LOG_INFO("Local IDB does not exist, it will be created");
+        IDA_LOG_INFO("Creating required local idb");
         fs::copy_file(current_idb_path, local_idb_path, ec);
         if (ec)
         {
@@ -451,25 +451,25 @@ std::vector<std::string> Repository::update_cache()
         return modified_files;
     }
 
-    IDA_LOG_INFO("Cache update started");
+    IDA_LOG_INFO("Updating cache...");
     // get master commit
     const std::string master_commit = get_commit("master");
     if (master_commit.empty())
     {
-        IDA_LOG_INFO("Cache update failed");
+        IDA_LOG_INFO("Unable to update cache");
         return modified_files;
     }
-    LOG(DEBUG, "Current master commit: %s", master_commit.c_str());
+    LOG(DEBUG, "Current master: %s", master_commit.c_str());
 
     // fetch remote
     fetch("origin");
-    LOG(DEBUG, "Fetched origin/master commit: %s", get_commit("origin/master").c_str());
+    LOG(DEBUG, "Fetched origin/master: %s", get_commit("origin/master").c_str());
 
     // rebase in master
-    IDA_LOG_INFO("Rebasing from origin/master");
+    IDA_LOG_INFO("Rebasing master on origin/master...");
     if (!rebase("origin/master", "master"))
     {
-        IDA_LOG_INFO("Cache update failed");
+        IDA_LOG_INFO("Unable to update cache");
         // disable auto sync (when closing database)
         warning("You have errors during rebase. You have to resolve it manually.\nSee git_rebase.log for details.\nThen run save on IDA to complete rebase and update master");
         return modified_files;
@@ -484,16 +484,18 @@ std::vector<std::string> Repository::update_cache()
         modified_files.push_back(f);
     for(const auto& f : modified_objects)
         modified_files.push_back(f);
-    IDA_LOG_INFO("Rebased from origin/master (%zd modified %zd added %zd deleted)", modified_files.size(), new_objects.size(), deleted_objects.size());
+    IDA_LOG_INFO("%zd modified %zd added %zd deleted", modified_files.size(), new_objects.size(), deleted_objects.size());
+    IDA_LOG_INFO("Master rebased");
 
     // push to origin
     for (int nb_try = 0; nb_try < GIT_PUSH_RETRIES; ++nb_try)
     {
+        IDA_LOG_INFO("Pushing master to origin...");
         if (!push("master", "master"))
             continue;
 
-        IDA_LOG_INFO("Pushed to origin/master");
-        IDA_LOG_INFO("Cache update success");
+        IDA_LOG_INFO("Master pushed to origin");
+        IDA_LOG_INFO("Cache updated");
         return modified_files;
     }
 
@@ -507,7 +509,7 @@ std::vector<std::string> Repository::update_cache()
 
 bool Repository::commit_cache()
 {
-    IDA_LOG_INFO("Committing changes");
+    IDA_LOG_INFO("Committing changes...");
 
     const std::set<std::string> untracked_files = repo_.get_untracked_objects_in_path("cache/");
     const std::set<std::string> modified_files = repo_.get_modified_objects_in_path("cache/");
@@ -576,7 +578,7 @@ bool Repository::commit_cache()
     }
 
     auto_comments_.clear();
-    IDA_LOG_INFO("Changes commited");
+    IDA_LOG_INFO("Changes committed");
     return true;
 }
 
