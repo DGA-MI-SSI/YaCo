@@ -419,81 +419,109 @@ namespace
         return SEG_ATTR_COUNT;
     }
 
-    void set_segment_attribute(segment_t* seg, const char* key, const char* value)
+    bool set_segment_attribute(segment_t* seg, const char* key, const char* value)
     {
+        ea_t        ea      = 0;
+        uchar       uc      = 0;
+        ushort      us      = 0;
+        sel_t       sel     = 0;
+        int         ival    = 0;
+        bgcolor_t   bg      = 0;
+
         switch(get_segment_attribute(key))
         {
             case SEG_ATTR_START:
-                seg->start_ea = to_ea(value);
-                break;
+                ea = to_ea(value);
+                std::swap(seg->start_ea, ea);
+                return ea != seg->start_ea;
 
             case SEG_ATTR_END:
-                seg->end_ea = to_ea(value);
-                break;
+                ea = to_ea(value);
+                std::swap(seg->end_ea, ea);
+                return ea != seg->end_ea;
 
             case SEG_ATTR_BASE:
-                set_segm_base(seg, to_ea(value));
-                break;
+                ea = to_ea(value);
+                if(ea == seg->orgbase)
+                    return false;
+                return set_segm_base(seg, ea);
 
             case SEG_ATTR_ALIGN:
-                seg->align = to_uchar(value);
-                break;
+                uc = to_uchar(value);
+                std::swap(seg->align, uc);
+                return seg->align != uc;
 
             case SEG_ATTR_COMB:
-                seg->comb = to_uchar(value);
-                break;
+                uc = to_uchar(value);
+                std::swap(seg->comb, uc);
+                return seg->comb != uc;
 
             case SEG_ATTR_PERM:
-                seg->perm = to_uchar(value);
-                break;
+                uc = to_uchar(value);
+                std::swap(seg->perm, uc);
+                return seg->perm != uc;
 
             case SEG_ATTR_BITNESS:
-                set_segm_addressing(seg, to_int(value));
-                break;
+                ival = to_int(value);
+                if(seg->bitness == ival)
+                    return false;
+                return set_segm_addressing(seg, ival);
 
             case SEG_ATTR_FLAGS:
-                seg->flags = to_ushort(value);
-                break;
+                us = to_ushort(value);
+                std::swap(seg->flags, us);
+                return seg->flags != us;
 
             case SEG_ATTR_SEL:
-                seg->sel = to_sel(value);
-                break;
+                sel = to_sel(value);
+                std::swap(seg->sel, sel);
+                return seg->sel != sel;
 
             case SEG_ATTR_ES:
-                seg->defsr[REG_ATTR_ES] = to_sel(value);
-                break;
+                sel = to_sel(value);
+                std::swap(seg->defsr[REG_ATTR_ES], sel);
+                return seg->defsr[REG_ATTR_ES] != sel;
 
             case SEG_ATTR_CS:
-                seg->defsr[REG_ATTR_CS] = to_sel(value);
-                break;
+                sel = to_sel(value);
+                std::swap(seg->defsr[REG_ATTR_CS], sel);
+                return seg->defsr[REG_ATTR_CS] != sel;
 
             case SEG_ATTR_SS:
-                seg->defsr[REG_ATTR_SS] = to_sel(value);
-                break;
+                sel = to_sel(value);
+                std::swap(seg->defsr[REG_ATTR_SS], sel);
+                return seg->defsr[REG_ATTR_SS] != sel;
 
             case SEG_ATTR_DS:
-                seg->defsr[REG_ATTR_DS] = to_sel(value);
-                break;
+                sel = to_sel(value);
+                std::swap(seg->defsr[REG_ATTR_DS], sel);
+                return seg->defsr[REG_ATTR_DS] != sel;
 
             case SEG_ATTR_FS:
-                seg->defsr[REG_ATTR_FS] = to_sel(value);
-                break;
+                sel = to_sel(value);
+                std::swap(seg->defsr[REG_ATTR_FS], sel);
+                return seg->defsr[REG_ATTR_FS] != sel;
 
             case SEG_ATTR_GS:
-                seg->defsr[REG_ATTR_GS] = to_sel(value);
-                break;
+                sel = to_sel(value);
+                std::swap(seg->defsr[REG_ATTR_GS], sel);
+                return seg->defsr[REG_ATTR_GS] != sel;
 
             case SEG_ATTR_TYPE:
-                seg->type = to_uchar(value);
-                break;
+                uc = to_uchar(value);
+                std::swap(seg->type, uc);
+                return seg->type != uc;
 
             case SEG_ATTR_COLOR:
-                seg->color = to_bgcolor(value);
-                break;
+                bg = to_bgcolor(value);
+                std::swap(seg->color, bg);
+                return seg->color != bg;
 
             case SEG_ATTR_COUNT:
-                break;
+                return false;
         }
+
+        return false;
     }
 
     void make_segment(const HVersion& version, ea_t ea)
@@ -526,8 +554,10 @@ namespace
 
         if(name.size)
         {
+            qstring curname;
+            ya::wrap(&::get_segm_name, curname, const_cast<const segment_t*>(seg), 0);
             const auto strname = make_string(name);
-            const auto ok = set_segm_name(seg, strname.data());
+            const auto ok = ya::to_string_ref(curname) == name || set_segm_name(seg, strname.data());
             if(!ok)
                 LOG(ERROR, "make_segment: 0x%" PRIxEA " unable to set name %s\n", ea, strname.data());
         }
@@ -547,8 +577,7 @@ namespace
 
             const auto strkey = make_string(key);
             const auto strval = make_string(val);
-            set_segment_attribute(seg, strkey.data(), strval.data());
-            updated = true;
+            updated |= set_segment_attribute(seg, strkey.data(), strval.data());
             return WALK_CONTINUE;
         });
         if(!updated)
