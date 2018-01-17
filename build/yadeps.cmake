@@ -283,6 +283,8 @@ target_include_directories(gtest PRIVATE ${gtest_dir})
 if(NOT WIN32)
     find_package(Threads)
     target_link_libraries(gtest PUBLIC Threads::Threads)
+else()
+    target_compile_definitions(gtest PUBLIC _SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING)
 endif()
 
 # swig
