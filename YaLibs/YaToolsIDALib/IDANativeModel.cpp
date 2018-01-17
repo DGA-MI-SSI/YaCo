@@ -1431,16 +1431,15 @@ namespace
     }
 
     template<typename Ctx>
-    void accept_function(Ctx& ctx, IModelVisitor& v, const Parent& parent, func_t* func, ea_t block_ea)
+    qflow_chart_t accept_function_only(Ctx& ctx, IModelVisitor& v, const Parent& parent, func_t* func, YaToolObjectId id)
     {
-        const auto ea = func->start_ea;
-        const auto id = ctx.provider_.get_hash_for_ea(ea);
+        const auto ea   = func->start_ea;
+        const auto flow = get_flow(func);
         if(ctx.skip_id(id))
-            return;
+            return flow;
 
         asize_t size = 0;
         Crcs crcs = {};
-        const auto flow = get_flow(func);
         for(const auto& block : flow.blocks)
         {
             size += block.size();
@@ -1478,6 +1477,15 @@ namespace
             accept_struct(ctx, v, {id, ea}, frame, func);
         accept_dependencies(ctx, v, deps);
 
+        return flow;
+    }
+
+    template<typename Ctx>
+    void accept_function(Ctx& ctx, IModelVisitor& v, const Parent& parent, func_t* func, ea_t block_ea)
+    {
+        const auto id   = ctx.provider_.get_hash_for_ea(func->start_ea);
+        const auto flow = accept_function_only(ctx, v, parent, func, id);
+
         size_t i = 0;
         UNUSED(block_ea);
         for(const auto& block : flow.blocks)
@@ -1486,7 +1494,7 @@ namespace
             // accept only one block in incremental mode
             if(Ctx::is_incremental && !block.contains(block_ea))
                 continue;
-            accept_block(ctx, v, {id, ea}, flow, i - 1, block);
+            accept_block(ctx, v, {id, func->start_ea}, flow, i - 1, block);
             if(Ctx::is_incremental)
                 break;
         }
