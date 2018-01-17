@@ -97,13 +97,6 @@ namespace
         return cmt;
     }
 
-    qstring get_member_cmt(tid_t mid, bool repeatable)
-    {
-        qstring cmt;
-        get_member_cmt(&cmt, mid, repeatable);
-        return cmt;
-    }
-
     qstring get_member_fullname(tid_t mid)
     {
         qstring name;
