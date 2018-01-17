@@ -26,7 +26,7 @@ def init(tests):
             idc.RemoveFchunk(idc.GetFchunkReferer(ea, idx - 1), ea)
         idc.MakeFunction(ea)
     idc.Wait()
-    YaCo.start()
+    YaCo.start_tests()
 
 def exit(tests):
     pass

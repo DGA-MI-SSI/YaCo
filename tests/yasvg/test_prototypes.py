@@ -32,8 +32,6 @@ if idc.__EA64__:
 else:
     import YaToolsPy32 as ya
 
-hash_provider = ya.MakeHashProvider()
-
 def walk_datas():
     for seg_start in idautils.Segments():
         seg_end = idc.SegEnd(seg_start)

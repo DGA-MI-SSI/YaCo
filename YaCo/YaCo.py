@@ -33,13 +33,12 @@ if idc.__EA64__:
 else:
     import YaToolsPy32 as ya
 
-IDA_IS_INTERACTIVE = ya.IS_INTERACTIVE
 
 yaco = None
 yaco_starting = False
 
 
-def start():
+def start_with(is_interactive):
     global yaco, yaco_starting
 
     if yaco_starting:
@@ -48,7 +47,7 @@ def start():
 
     yaco_starting = True
     if yaco is None:
-        yaco = ya.MakeYaCo(IDA_IS_INTERACTIVE)
+        yaco = ya.MakeYaCo(is_interactive)
         yaco.start()
         yaco_starting = False
         return True
@@ -56,6 +55,12 @@ def start():
         print("Not starting YaCo: already done")
         yaco_starting = False
         return False
+
+def start():
+    return start_with(ya.IS_INTERACTIVE)
+
+def start_tests():
+    return start_with(ya.IS_NOT_INTERACTIVE)
 
 def close():
     global yaco

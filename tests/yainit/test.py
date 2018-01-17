@@ -22,5 +22,4 @@ class Fixture(unittest.TestCase):
     def yainit_start(self):
         idc.SaveBase('')
         import YaCo
-        YaCo.IDA_IS_INTERACTIVE = False
-        YaCo.start()
+        YaCo.start_tests()

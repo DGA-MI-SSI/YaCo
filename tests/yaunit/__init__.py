@@ -27,7 +27,7 @@ logger = logging.getLogger("YaCo")
 
 
 def init(tests):
-    YaCo.start()
+    YaCo.start_tests()
 
 
 def exit(tests):
