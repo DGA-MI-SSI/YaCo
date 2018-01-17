@@ -55,9 +55,9 @@ namespace fs = std::experimental::filesystem;
 namespace
 {
     // Enable / disable events logging
-    constexpr bool LOG_IDP_EVENTS = false;
-    constexpr bool LOG_DBG_EVENTS = false;
-    constexpr bool LOG_IDB_EVENTS = false;
+    const bool LOG_IDP_EVENTS = false;
+    const bool LOG_DBG_EVENTS = false;
+    const bool LOG_IDB_EVENTS = false;
 
     const char BOOL_STR[2][6] = { "false", "true" };
     const char REPEATABLE_STR[2][12] = { "", "repeatable " };
