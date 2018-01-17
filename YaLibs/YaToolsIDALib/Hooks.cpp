@@ -836,28 +836,17 @@ void Hooks::save()
 
     ModelAndVisitor db = MakeModel();
     db.visitor->visit_start();
-
     {
         const auto model = MakeModelIncremental(&hash_provider_);
-
-        // process structures
         save_structs(*model, *db.visitor);
-
-        // process enums
         save_enums(*model, *db.visitor);
-
-        // process addresses
         for (const ea_t ea : eas_)
             model->accept_ea(*db.visitor, ea);
-
-        // process segments
         for (const ea_t segment_ea : segments_)
             model->accept_segment(*db.visitor, segment_ea);
-
-        db.visitor->visit_end();
-
-        db.model->accept(*MakeXmlExporter(get_cache_folder_path()));
     }
+    db.visitor->visit_end();
+    db.model->accept(*MakeXmlExporter(get_cache_folder_path()));
 
     const auto time_end = std::chrono::system_clock::now();
     const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(time_end - time_start);
