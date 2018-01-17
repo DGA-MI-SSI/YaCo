@@ -25,12 +25,12 @@ logger = logging.getLogger("YaCo")
 
 # fn comment, fn repeatable, comment, repeatable, post, ant
 tests = [
-    ('aaa', None,   None,   None,   None,   None),
-    (None,  'bbb',  None,   None,   None,   None),
-    (None,  None,   'ccc',  None,   None,   None),
-    (None,  None,   None,   'ddd',  None,   None),
-    (None,  None,   None,   None,   'e\n#', None),
-    (None,  None,   None,   None,   None,   'f\n#'),
+    ('aaa', '',     None,   None,   None,   None),
+    ('',    'bbb',  None,   None,   None,   None),
+    ('',    '',     'ccc',  None,   None,   None),
+    ('',    '',     None,   'ddd',  None,   None),
+    ('',    '',     None,   None,   'e\n#', None),
+    ('',    '',     None,   None,   None,   'f\n#'),
     ('ggg', 'hhh',  'iii',  'jjj',  'kkk',  'lll'),
 ]
 
@@ -70,28 +70,54 @@ class Fixture(unittest.TestCase):
         except AttributeError:
             idc.SetFlags(ea, idc.GetFlags(ea) | idaapi.FF_LINE)
 
+    def get_func_item(self, offset):
+        while True:
+            ea = get_func_item(offset)
+            skip = False
+            def getlen(x): return len(x) if x else 0
+            for x in [False, True]:
+                skip |= getlen(idc.get_func_cmt(ea, x))
+                skip |= getlen(idc.get_cmt(ea, x))
+            for x in [idc.E_PREV, idc.E_NEXT]:
+                skip |= getlen(self.get_extra(ea, x))
+            if not skip:
+                return ea
+
     def yatest_comments(self):
         eas = []
         for offset in range(0, 3):
             for fn_cmt, fn_rpt, cmt, rpt, post, ant in tests:
-                ea = get_func_item(offset)
+                ea = self.get_func_item(offset)
                 eas.append(ea)
                 logger.debug("setting at 0x%08X : %r, %r, %r, %r, %r, %r" % (ea, fn_cmt, fn_rpt, cmt, rpt, post, ant))
-                if fn_cmt != None:
+                if len(fn_cmt):
                     self.assertEqual(idc.SetFunctionCmt(ea, fn_cmt, False), True)
-                if fn_rpt != None:
+                if len(fn_rpt):
                     self.assertEqual(idc.SetFunctionCmt(ea, fn_rpt, True), True)
-                if cmt != None:
+                if cmt:
                     self.assertEqual(idc.MakeComm(ea, cmt), True)
-                if rpt != None:
+                if rpt:
                     self.assertEqual(idc.MakeRptCmt(ea, rpt), True)
-                if post != None:
+                if post:
                     for i, txt in enumerate(post.split('\n')):
                         self.try_ext_lin(idc.ExtLinB, ea, i, txt)
-                if ant != None:
+                if ant:
                     for i, txt in enumerate(ant.split('\n')):
                         self.try_ext_lin(idc.ExtLinA, ea, i, txt)
         yaunit.save('comments', eas)
+
+    def get_extra(self, ea, start):
+        j = 0
+        d = []
+        while True:
+            x = idc.get_extra_cmt(ea, start + j)
+            if x == None:
+                break
+            d.append(x)
+            j += 1
+        if not len(d):
+            return None
+        return "\n".join(d)
 
     def yacheck_comments(self):
         eas = yaunit.load('comments')
@@ -101,20 +127,12 @@ class Fixture(unittest.TestCase):
                 ea = eas[i]
                 logger.debug("checking at 0x%08X : %r, %r, %r, %r, %r, %r" % (ea, fn_cmt, fn_rpt, cmt, rpt, post, ant))
                 i += 1
-                if fn_cmt != None:
-                    self.assertEqual(idc.GetFunctionCmt(ea, False), fn_cmt)
-                if fn_rpt != None:
-                    self.assertEqual(idc.GetFunctionCmt(ea, True), fn_rpt)
-                if cmt != None:
-                    self.assertEqual(idc.GetCommentEx(ea, False), cmt)
-                if rpt != None:
-                    self.assertEqual(idc.GetCommentEx(ea, True), rpt)
-                if post != None:
-                    for j, txt in enumerate(post.split('\n')):
-                        self.assertEqual(idc.LineB(ea, j), txt)
-                if ant != None:
-                    for j, txt in enumerate(ant.split('\n')):
-                        self.assertEqual(idc.LineA(ea, j), txt)
+                self.assertEqual(idc.get_func_cmt(ea, False), fn_cmt)
+                self.assertEqual(idc.get_func_cmt(ea, True), fn_rpt)
+                self.assertEqual(idc.get_cmt(ea, False), cmt)
+                self.assertEqual(idc.get_cmt(ea, True), rpt)
+                self.assertEqual(self.get_extra(ea, idc.E_NEXT), post)
+                self.assertEqual(self.get_extra(ea, idc.E_PREV), ant)
 
     def yatest_code_comments(self):
         eas = []
@@ -123,14 +141,14 @@ class Fixture(unittest.TestCase):
                 ea = get_code_item()
                 eas.append(ea)
                 logger.debug("setting code comment at 0x%08X : %r, %r, %r, %r" % (ea, cmt, rpt, post, ant))
-                if cmt != None:
+                if cmt:
                     self.assertEqual(idc.MakeComm(ea, cmt), True)
-                if rpt != None:
+                if rpt:
                     self.assertEqual(idc.MakeRptCmt(ea, rpt), True)
-                if post != None:
+                if post:
                     for i, txt in enumerate(post.split('\n')):
                         self.try_ext_lin(idc.ExtLinB, ea, i, txt)
-                if ant != None:
+                if ant:
                     for i, txt in enumerate(ant.split('\n')):
                         self.try_ext_lin(idc.ExtLinA, ea, i, txt)
         yaunit.save('code_comments', eas)
@@ -143,16 +161,10 @@ class Fixture(unittest.TestCase):
                 ea = eas[i]
                 logger.debug("checking code comment at 0x%08X : %r, %r, %r, %r" % (ea, cmt, rpt, post, ant))
                 i += 1
-                if cmt != None:
-                    self.assertEqual(idc.GetCommentEx(ea, False), cmt)
-                if rpt != None:
-                    self.assertEqual(idc.GetCommentEx(ea, True), rpt)
-                if post != None:
-                    for j, txt in enumerate(post.split('\n')):
-                        self.assertEqual(idc.LineB(ea, j), txt)
-                if ant != None:
-                    for j, txt in enumerate(ant.split('\n')):
-                        self.assertEqual(idc.LineA(ea, j), txt)
+                self.assertEqual(idc.get_cmt(ea, False), cmt)
+                self.assertEqual(idc.get_cmt(ea, True), rpt)
+                self.assertEqual(self.get_extra(ea, idc.E_NEXT), post)
+                self.assertEqual(self.get_extra(ea, idc.E_PREV), ant)
 
     def yatest_data_comments(self):
         eas = []
@@ -161,14 +173,14 @@ class Fixture(unittest.TestCase):
                 ea = get_data_item()
                 eas.append(ea)
                 logger.debug("setting data comment at 0x%08X : %r, %r, %r, %r" % (ea, cmt, rpt, post, ant))
-                if cmt != None:
+                if cmt:
                     self.assertEqual(idc.MakeComm(ea, cmt), True)
-                if rpt != None:
+                if rpt:
                     self.assertEqual(idc.MakeRptCmt(ea, rpt), True)
-                if post != None:
+                if post:
                     for i, txt in enumerate(post.split('\n')):
                         self.try_ext_lin(idc.ExtLinB, ea, i, txt)
-                if ant != None:
+                if ant:
                     for i, txt in enumerate(ant.split('\n')):
                         self.try_ext_lin(idc.ExtLinA, ea, i, txt)
         yaunit.save('data_comments', eas)
@@ -181,13 +193,7 @@ class Fixture(unittest.TestCase):
                 ea = eas[i]
                 logger.debug("checking data comment at 0x%08X : %r, %r, %r, %r" % (ea, cmt, rpt, post, ant))
                 i += 1
-                if cmt != None:
-                    self.assertEqual(idc.GetCommentEx(ea, False), cmt)
-                if rpt != None:
-                    self.assertEqual(idc.GetCommentEx(ea, True), rpt)
-                if post != None:
-                    for j, txt in enumerate(post.split('\n')):
-                        self.assertEqual(idc.LineB(ea, j), txt)
-                if ant != None:
-                    for j, txt in enumerate(ant.split('\n')):
-                        self.assertEqual(idc.LineA(ea, j), txt)
+                self.assertEqual(idc.get_cmt(ea, False), cmt)
+                self.assertEqual(idc.get_cmt(ea, True), rpt)
+                self.assertEqual(self.get_extra(ea, idc.E_NEXT), post)
+                self.assertEqual(self.get_extra(ea, idc.E_PREV), ant)
