@@ -1397,7 +1397,7 @@ namespace
     }
 
     template<typename Ctx>
-    void accept_block(Ctx& ctx, IModelVisitor& v, const Parent& parent, const qflow_chart_t& flow, size_t idx, range_t block)
+    void accept_block(Ctx& ctx, IModelVisitor& v, const Parent& parent, range_t block)
     {
         const auto ea = block.start_ea;
         const auto id = ctx.provider_.get_function_basic_block_hash(ea, parent.ea);
@@ -1408,9 +1408,6 @@ namespace
         v.visit_size(block.size());
 
         accept_name(ctx, v, ea, get_flags(ea), BasicBlockNamePolicy);
-
-        const auto type = flow.calc_block_type(idx);
-        v.visit_flags(type);
 
         // FIXME maybe reuse crc computed from accept_function
         v.visit_start_signatures();
@@ -1431,15 +1428,15 @@ namespace
     }
 
     template<typename Ctx>
-    qflow_chart_t accept_function_only(Ctx& ctx, IModelVisitor& v, const Parent& parent, func_t* func, YaToolObjectId id)
+    void accept_function_only(Ctx& ctx, IModelVisitor& v, const Parent& parent, func_t* func, YaToolObjectId id)
     {
         const auto ea   = func->start_ea;
-        const auto flow = get_flow(func);
         if(ctx.skip_id(id))
-            return flow;
+            return;
 
         asize_t size = 0;
         Crcs crcs = {};
+        const auto flow = get_flow(func);
         for(const auto& block : flow.blocks)
         {
             size += block.size();
@@ -1477,27 +1474,29 @@ namespace
             accept_struct(ctx, v, {id, ea}, frame, func);
         accept_dependencies(ctx, v, deps);
 
-        return flow;
+        if(!Ctx::is_incremental)
+            for(const auto& block : flow.blocks)
+                accept_block(ctx, v, {id, func->start_ea}, block);
+    }
+
+    template<typename Ctx>
+    void accept_block_ea(Ctx& ctx, IModelVisitor& v, const Parent& parent, func_t* func, ea_t ea)
+    {
+        qflow_chart_t flow(nullptr, func, func->start_ea, func->end_ea, 0);
+        for(const auto& block: flow.blocks)
+            if(block.contains(ea))
+                return accept_block(ctx, v, parent, block);
+        // basic block not found, assume data
+        accept_data(ctx, v, parent, ea);
     }
 
     template<typename Ctx>
     void accept_function(Ctx& ctx, IModelVisitor& v, const Parent& parent, func_t* func, ea_t block_ea)
     {
         const auto id   = ctx.provider_.get_hash_for_ea(func->start_ea);
-        const auto flow = accept_function_only(ctx, v, parent, func, id);
-
-        size_t i = 0;
-        UNUSED(block_ea);
-        for(const auto& block : flow.blocks)
-        {
-            ++i;
-            // accept only one block in incremental mode
-            if(Ctx::is_incremental && !block.contains(block_ea))
-                continue;
-            accept_block(ctx, v, {id, func->start_ea}, flow, i - 1, block);
-            if(Ctx::is_incremental)
-                break;
-        }
+        accept_function_only(ctx, v, parent, func, id);
+        if(Ctx::is_incremental)
+            accept_block_ea(ctx, v, {id, func->start_ea}, func, block_ea);
     }
 
     template<typename Ctx>
