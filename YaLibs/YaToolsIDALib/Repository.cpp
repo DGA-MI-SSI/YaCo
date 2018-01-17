@@ -480,19 +480,11 @@ std::vector<std::string> Repository::update_cache()
     std::set<std::string> modified_objects = repo_.get_modified_objects(master_commit);
     std::set<std::string> deleted_objects = repo_.get_deleted_objects(master_commit);
 
-    for (const std::string& f : new_objects)
-    {
-        IDA_LOG_INFO("added    %s", f.c_str());
+    for(const auto& f : new_objects)
         modified_files.push_back(f);
-    }
-    for (const std::string& f : modified_objects)
-    {
-        IDA_LOG_INFO("modified %s", f.c_str());
+    for(const auto& f : modified_objects)
         modified_files.push_back(f);
-    }
-    for (const std::string& f : deleted_objects)
-        IDA_LOG_INFO("deleted  %s", f.c_str());
-    IDA_LOG_INFO("Rebased from origin/master");
+    IDA_LOG_INFO("Rebased from origin/master (%zd modified %zd added %zd deleted)", modified_files.size(), new_objects.size(), deleted_objects.size());
 
     // push to origin
     for (int nb_try = 0; nb_try < GIT_PUSH_RETRIES; ++nb_try)
@@ -527,27 +519,16 @@ bool Repository::commit_cache()
         return true;
     }
 
-    for (const std::string& f : untracked_files)
-    {
-        if (add_file_to_index(f))
-            IDA_LOG_INFO("added    %s", f.c_str());
-        else
+    for(const auto& f : untracked_files)
+        if(!add_file_to_index(f))
             IDA_LOG_ERROR("unable to add %s to index", f.c_str());
-    }
-    for (const std::string& f : modified_files)
-    {
-        if (add_file_to_index(f))
-            IDA_LOG_INFO("modified %s", f.c_str());
-        else
+    for(const auto& f : modified_files)
+        if(!add_file_to_index(f))
             IDA_LOG_ERROR("unable to add %s to index", f.c_str());
-    }
-    for (const std::string& f : deleted_files)
-    {
-        if (remove_file_for_index(f))
-            IDA_LOG_INFO("deleted  %s", f.c_str());
-        else
+    for(const auto& f : deleted_files)
+        if(!remove_file_for_index(f))
             IDA_LOG_ERROR("unable to remove %s for index", f.c_str());
-    }
+    IDA_LOG_INFO("%zd modified %zd added %zd deleted", modified_files.size(), untracked_files.size(), deleted_files.size());
 
     size_t max_prefix_len = 0;
     size_t max_txt_len = 0;
