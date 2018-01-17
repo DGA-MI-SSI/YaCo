@@ -868,9 +868,16 @@ void Hooks::save_and_update()
 
     // update cache and export modifications to IDA
     {
-        const std::vector<std::string> modified_files = repo_manager_.update_cache();
+        auto modified = repo_manager_.update_cache();
+        const auto cache = fs::path(get_cache_folder_path()).filename();
+        modified.erase(std::remove_if(modified.begin(), modified.end(), [&](const auto& item)
+        {
+            const auto p = fs::path(item);
+            const auto it = p.begin();
+            return it == p.end() || *it != cache;
+        }), modified.end());
         const ModelAndVisitor memory_exporter = MakeModel();
-        MakeXmlFilesDatabaseModel(modified_files)->accept(*(memory_exporter.visitor));
+        MakeXmlFilesDatabaseModel(modified)->accept(*(memory_exporter.visitor));
         import_to_ida(*memory_exporter.model, hash_provider_);
     }
 
