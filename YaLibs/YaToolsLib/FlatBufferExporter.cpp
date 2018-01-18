@@ -407,13 +407,12 @@ void FBExporter::visit_end_reference_object()
 
 void FBExporter::visit_end_deleted_object()
 {
-    assert(false);
-    visit_end_reference_object();
+    versions_.clear();
 }
 
 void FBExporter::visit_end_default_object()
 {
-    visit_end_reference_object();
+    versions_.clear();
 }
 
 void FBExporter::visit_id(YaToolObjectId id)
