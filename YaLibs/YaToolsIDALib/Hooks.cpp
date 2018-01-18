@@ -1745,7 +1745,7 @@ void Hooks::struc_member_renamed(va_list args)
 
     log_struc_member_renamed(sptr, mptr);
 
-    update_struct_member(sptr->id, mptr->id, mptr->eoff);
+    update_struct_member(sptr->id, mptr->id, mptr->soff);
 }
 
 static void log_changing_struc_member(const struc_t* sptr, const member_t* mptr, flags_t flag, const opinfo_t* ti, asize_t nbytes)
@@ -1794,7 +1794,7 @@ void Hooks::struc_member_changed(va_list args)
     log_struc_member_changed(sptr, mptr);
 
     update_struct(sptr->id);
-    update_struct_member(sptr->id, mptr->id, mptr->eoff);
+    update_struct_member(sptr->id, mptr->id, mptr->soff);
 }
 
 static void log_changing_struc_cmt(tid_t struc_id, bool repeatable, const char* newcmt)
