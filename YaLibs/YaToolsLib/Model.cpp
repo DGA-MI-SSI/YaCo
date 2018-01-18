@@ -499,8 +499,8 @@ struct Model
     std::vector<StdVersion>     versions_;
     std::vector<StdSignature>   signatures_;
     std::vector<StdSystem>      systems_;
-    std::vector<YaToolObjectId> deleted_;
-    std::vector<YaToolObjectId> default_;
+    std::vector<StdObject>      deleted_;
+    std::vector<StdObject>      default_;
     ModelIndex                  index_;
 };
 }
@@ -722,10 +722,10 @@ void Model::visit_end()
 
     for(HObject_id_t id = 0, end = static_cast<HObject_id_t>(objects_.size()); id < end; ++id)
         listener_->on_object({&view_objects_, id});
-    for(const auto id : default_)
-        listener_->on_default(id);
-    for(const auto id : deleted_)
-        listener_->on_deleted(id);
+    for(const auto it : default_)
+        listener_->on_default(it.id);
+    for(const auto it : deleted_)
+        listener_->on_deleted(it.id);
 
 }
 
@@ -744,13 +744,15 @@ void Model::visit_start_reference_object(YaToolObjectType_e type)
     visit_start_object(type);
 }
 
-void Model::visit_start_deleted_object(YaToolObjectType_e)
+void Model::visit_start_deleted_object(YaToolObjectType_e type)
 {
+    visit_start_object(type);
     current_->is_deleted = true;
 }
 
-void Model::visit_start_default_object(YaToolObjectType_e)
+void Model::visit_start_default_object(YaToolObjectType_e type)
 {
+    visit_start_object(type);
     current_->is_default = true;
 }
 
@@ -768,12 +770,12 @@ void Model::visit_end_reference_object()
 {
     if(current_->is_deleted)
     {
-        deleted_.emplace_back(current_->object.id);
+        deleted_.emplace_back(current_->object);
         return;
     }
     if(current_->is_default)
     {
-        default_.emplace_back(current_->object.id);
+        default_.emplace_back(current_->object);
         return;
     }
 
@@ -980,6 +982,18 @@ void Model::accept(IModelVisitor& visitor)
     visitor.visit_start();
     for(const auto& object : objects_)
         accept_object(*this, object, visitor);
+    for(const auto it : deleted_)
+    {
+        visitor.visit_start_deleted_object(it.type);
+        visitor.visit_id(it.id);
+        visitor.visit_end_deleted_object();
+    }
+    for(const auto it : default_)
+    {
+        visitor.visit_start_default_object(it.type);
+        visitor.visit_id(it.id);
+        visitor.visit_end_default_object();
+    }
     visitor.visit_end();
 }
 
