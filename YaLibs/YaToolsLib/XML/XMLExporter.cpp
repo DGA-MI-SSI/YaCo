@@ -679,19 +679,19 @@ void XMLExporter_common::visit_flags(flags_t flags)
 static const std::vector<std::string> gFolders =
 {
     "binary",
-    "segment",
-    "segment_chunk",
     "struc",
     "strucmember",
     "enum",
     "enum_member",
+    "segment",
+    "segment_chunk",
     "function",
     "stackframe",
     "stackframe_member",
-    "basic_block",
-    "data",
-    "code",
     "reference_info",
+    "code",
+    "data",
+    "basic_block",
 };
 
 //TODO "Add a static assert here"
