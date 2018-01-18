@@ -90,7 +90,7 @@ optional<HObject_id_t> find_object_id(const ModelIndex& mi, YaToolObjectId id)
 {
     const auto& d = mi.object_ids_;
     const auto it = std::lower_bound(d.begin(), d.end(), id);
-    if(it == d.end())
+    if(it == d.end() || it->id != id)
         return nullopt;
     return it->idx;
 }

@@ -1099,3 +1099,21 @@ TEST_F(TestYaToolDatabaseModel, FBModel_objectWithoutVersion)
     });
     testObjectWithoutVersion(*model);
 }
+
+TEST_F(TestYaToolDatabaseModel, test_model_get_object_with_invalid_id)
+{
+    const auto model = create_fbmodel_with([&](std::shared_ptr<IModelVisitor> visitor)
+    {
+        create_model(visitor);
+    });
+    const auto hobj1 = model->get_object(~0u);
+    EXPECT_EQ(hobj1.is_valid(), false);
+    const auto hobj2 = model->get_object(0);
+    EXPECT_EQ(hobj2.is_valid(), false);
+    model->walk_objects([&](YaToolObjectId id, const HObject& /*hobj*/)
+    {
+        const auto hobj3 = model->get_object(id+1);
+        EXPECT_EQ(hobj3.is_valid(), false);
+        return WALK_CONTINUE;
+    });
+}
