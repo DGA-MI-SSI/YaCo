@@ -31,6 +31,9 @@
 #include "Pool.hpp"
 #include "YaHelpers.hpp"
 #include "../Helpers.h"
+#include "BinHex.hpp"
+#include "HObject.hpp"
+#include "HVersion.hpp"
 
 #define MODULE_NAME "hooks"
 #include "IDAUtils.hpp"
@@ -38,6 +41,7 @@
 #include <cstdarg>
 #include <chrono>
 #include <math.h>
+#include <unordered_set>
 
 #ifdef _MSC_VER
 #   include <filesystem>
@@ -847,6 +851,95 @@ void Hooks::save()
     IDA_LOG_INFO("Cache saved in %d seconds", static_cast<int>(elapsed.count()));
 }
 
+namespace
+{
+    struct DepCtx
+    {
+        DepCtx(const IModel& model)
+            : model(model)
+            , cache_prefix(fs::path(get_cache_folder_path()).filename())
+            , xml_suffix(".xml")
+        {
+        }
+
+        const IModel&                       model;
+        const fs::path                      cache_prefix;
+        const std::string                   xml_suffix;
+        std::vector<std::string>            files;
+        std::unordered_set<YaToolObjectId>  seen;
+    };
+
+    // will add id to file list if not already seen
+    bool try_add_id(DepCtx& ctx, YaToolObjectType_e type, YaToolObjectId id)
+    {
+        // remember which ids have been seen already
+        const auto inserted = ctx.seen.emplace(id).second;
+        if(!inserted)
+            return false;
+
+        char hexname[17];
+        to_hex<NullTerminate>(hexname, id);
+        ctx.files.push_back((ctx.cache_prefix / get_object_type_string(type) / (hexname + ctx.xml_suffix)).generic_string());
+        return true;
+    }
+
+    void add_id_and_dependencies(DepCtx& ctx, YaToolObjectId id)
+    {
+        const auto hobj = ctx.model.get_object(id);
+        if(!hobj.is_valid())
+            return;
+
+        // add this id to file list
+        const auto ok = try_add_id(ctx, hobj.type(), id);
+        if(!ok)
+            return;
+
+        hobj.walk_versions([&](const HVersion& hver)
+        {
+            // add parent id & its dependencies
+            add_id_and_dependencies(ctx, hver.parent_id());
+            hver.walk_xrefs([&](offset_t, operand_t, auto xref_id, auto)
+            {
+                // add xref id & its dependencies
+                add_id_and_dependencies(ctx, xref_id);
+                return WALK_CONTINUE;
+            });
+            return WALK_CONTINUE;
+        });
+    }
+
+    void load_xml_files_to(IModelVisitor& visitor, const std::vector<std::string>& modified)
+    {
+        // modified contain only git modified files
+        // i.e: if you apply a stack member on a basic block
+        //      and the stack member is already in xml
+        //      modified only contains one file, the basic block with one xref added
+        // so we need to add all dependencies from this object
+        // we do it by loading the full xml model
+        // and add all parents recursively from all modified objects
+        const auto files = [&]
+        {
+            // load all xml files into a new model which we will query
+            const auto full = MakeModel();
+            MakeXmlAllDatabaseModel(get_cache_folder_path())->accept(*full.visitor);
+
+            // load all modified objects
+            const auto diff = MakeModel();
+            MakeXmlFilesDatabaseModel(modified)->accept(*diff.visitor);
+
+            DepCtx deps(*full.model);
+            diff.model->walk_objects([&](auto id, const HObject& /*hobj*/)
+            {
+                // add this id & its dependencies
+                add_id_and_dependencies(deps, id);
+                return WALK_CONTINUE;
+            });
+            return deps.files;
+        }();
+        MakeXmlFilesDatabaseModel(files)->accept(visitor);
+    }
+}
+
 void Hooks::save_and_update()
 {
     // save and commit changes
@@ -870,9 +963,9 @@ void Hooks::save_and_update()
             const auto it = p.begin();
             return it == p.end() || *it != cache;
         }), modified.end());
-        const ModelAndVisitor memory_exporter = MakeModel();
-        MakeXmlFilesDatabaseModel(modified)->accept(*(memory_exporter.visitor));
-        import_to_ida(*memory_exporter.model, hash_provider_);
+        const ModelAndVisitor db = MakeModel();
+        load_xml_files_to(*db.visitor, modified);
+        import_to_ida(*db.model, hash_provider_);
     }
 
     // Let IDA apply modifications
