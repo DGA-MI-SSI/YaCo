@@ -317,6 +317,7 @@ namespace
     {
 
         Hooks(IYaCo& yaco, IHashProvider& hash_provider, IRepository& repo_manager);
+        ~Hooks();
 
         // IHooks
         void hook() override;
@@ -453,6 +454,8 @@ namespace
         EnumMembers     enum_members_;
         Comments        comments_;
         Segments        segments_;
+
+        bool            enabled_;
     };
 }
 
@@ -460,9 +463,11 @@ namespace
 {
     ssize_t idp_event_handler(void* user_data, int notification_code, va_list va)
     {
-        Hooks* hooks = static_cast<Hooks*>(user_data);
-        UNUSED(hooks);
         UNUSED(va);
+
+        Hooks* hooks = static_cast<Hooks*>(user_data);
+        if(!hooks->enabled_)
+            return 0;
 
         const processor_t::event_t event = static_cast<processor_t::event_t>(notification_code);
         LOG_IDP_EVENT("%s", idp_event_to_txt(event));
@@ -471,9 +476,11 @@ namespace
 
     ssize_t dbg_event_handler(void* user_data, int notification_code, va_list va)
     {
-        Hooks* hooks = static_cast<Hooks*>(user_data);
-        UNUSED(hooks);
         UNUSED(va);
+
+        Hooks* hooks = static_cast<Hooks*>(user_data);
+        if(!hooks->enabled_)
+            return 0;
 
         dbg_notification_t event = static_cast<dbg_notification_t>(notification_code);
         LOG_DBG_EVENT("%s", dbg_event_to_txt(event));
@@ -483,6 +490,9 @@ namespace
     ssize_t idb_event_handler(void* user_data, int notification_code, va_list args)
     {
         Hooks* hooks = static_cast<Hooks*>(user_data);
+        if(!hooks->enabled_)
+            return 0;
+
         idb_event::event_code_t event = static_cast<idb_event::event_code_t>(notification_code);
         switch (event)
         {
@@ -586,21 +596,28 @@ Hooks::Hooks(IYaCo& yaco, IHashProvider& hash_provider, IRepository& repo_manage
     , hash_provider_(hash_provider)
     , repo_manager_ (repo_manager)
     , qpool_        (3)
-{
-}
-
-void Hooks::hook()
+    , enabled_      (false)
 {
     hook_to_notification_point(HT_IDP, &idp_event_handler, this);
     hook_to_notification_point(HT_DBG, &dbg_event_handler, this);
     hook_to_notification_point(HT_IDB, &idb_event_handler, this);
 }
 
-void Hooks::unhook()
+Hooks::~Hooks()
 {
     unhook_from_notification_point(HT_IDP, &idp_event_handler, this);
     unhook_from_notification_point(HT_DBG, &dbg_event_handler, this);
     unhook_from_notification_point(HT_IDB, &idb_event_handler, this);
+}
+
+void Hooks::hook()
+{
+    enabled_ = true;
+}
+
+void Hooks::unhook()
+{
+    enabled_ = false;
 }
 
 void Hooks::rename(ea_t ea, const std::string& new_name, const std::string& type, const std::string& old_name)
