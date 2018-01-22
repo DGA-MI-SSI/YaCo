@@ -2054,6 +2054,10 @@ void ModelIncremental::delete_enum(IModelVisitor& v, ea_t enum_id)
 
 void ModelIncremental::delete_struct_member(IModelVisitor& v, ea_t func_ea, ea_t struc_id, ea_t offset)
 {
+    // remove member from parent
+    accept_struct(v, func_ea, struc_id);
+
+    // remove member itself
     const auto func = get_func(func_ea);
     if(func)
     {
