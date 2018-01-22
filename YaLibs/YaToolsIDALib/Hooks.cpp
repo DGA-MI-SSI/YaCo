@@ -883,7 +883,21 @@ namespace
         return true;
     }
 
-    void add_id_and_dependencies(DepCtx& ctx, YaToolObjectId id)
+    enum DepsMode
+    {
+        SKIP_DEPENDENCIES,
+        USE_DEPENDENCIES,
+    };
+
+    bool must_add_dependencies(const HVersion& hver)
+    {
+        const auto type = hver.type();
+        // as we always recreate stacks & strucs, we always need every members
+        return type == OBJECT_TYPE_STACKFRAME
+            || type == OBJECT_TYPE_STRUCT;
+    }
+
+    void add_id_and_dependencies(DepCtx& ctx, YaToolObjectId id, DepsMode mode)
     {
         const auto hobj = ctx.model.get_object(id);
         if(!hobj.is_valid())
@@ -897,11 +911,13 @@ namespace
         hobj.walk_versions([&](const HVersion& hver)
         {
             // add parent id & its dependencies
-            add_id_and_dependencies(ctx, hver.parent_id());
+            add_id_and_dependencies(ctx, hver.parent_id(), SKIP_DEPENDENCIES);
+            if(mode != USE_DEPENDENCIES && !must_add_dependencies(hver))
+                return WALK_CONTINUE;
             hver.walk_xrefs([&](offset_t, operand_t, auto xref_id, auto)
             {
                 // add xref id & its dependencies
-                add_id_and_dependencies(ctx, xref_id);
+                add_id_and_dependencies(ctx, xref_id, SKIP_DEPENDENCIES);
                 return WALK_CONTINUE;
             });
             return WALK_CONTINUE;
@@ -931,7 +947,7 @@ namespace
             diff.model->walk_objects([&](auto id, const HObject& /*hobj*/)
             {
                 // add this id & its dependencies
-                add_id_and_dependencies(deps, id);
+                add_id_and_dependencies(deps, id, USE_DEPENDENCIES);
                 return WALK_CONTINUE;
             });
             return deps.files;
