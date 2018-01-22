@@ -37,44 +37,41 @@ field_types = {
     idaapi.FF_OWRD:     'FF_OWRD',
     idaapi.FF_DOUBLE:   'FF_DOUBLE',
     idaapi.FF_FLOAT:    'FF_FLOAT',
-    idaapi.FF_WORD:     'FF_WORD',
-    idaapi.FF_DWRD:     'FF_DWRD',
-    idaapi.FF_DWRD:     'FF_DWRD',
     idaapi.FF_ASCI:     'FF_ASCI',
 }
 
 field_sizes = {
-    idaapi.FF_ASCI:    1,
     idaapi.FF_BYTE:    1,
-    idaapi.FF_DOUBLE:  8,
-    idaapi.FF_DWRD:    4,
-    idaapi.FF_FLOAT:   4,
-    idaapi.FF_OWRD:   16,
-    idaapi.FF_QWRD:    8,
-    idaapi.FF_STRU:    1,
     idaapi.FF_WORD:    2,
+    idaapi.FF_DWRD:    4,
+    idaapi.FF_QWRD:    8,
+    idaapi.FF_OWRD:   16,
+    idaapi.FF_DOUBLE:  8,
+    idaapi.FF_FLOAT:   4,
+    idaapi.FF_ASCI:    1,
+    idaapi.FF_STRU:    1,
 }
 
 string_types = {
-    -1:                 '',
-    idc.ASCSTR_C:       'c',
-    idc.ASCSTR_LEN2:    'wide_pascal',
-    idc.ASCSTR_LEN4:    'delphi',
-    idc.ASCSTR_PASCAL:  'pascal',
-    idc.ASCSTR_ULEN2:   'pascal_unicode',
-    idc.ASCSTR_ULEN4:   'wide_pascal_unicode',
-    idc.ASCSTR_UNICODE: 'unicode',
+    -1:                  '',
+    idc.STRTYPE_C:       'c',
+    idc.STRTYPE_LEN2:    'len2',
+    idc.STRTYPE_LEN4:    'len4',
+    idc.STRTYPE_PASCAL:  'pascal',
+    idc.STRTYPE_LEN2_16: 'ulen2',
+    idc.STRTYPE_LEN4_16: 'ulen4',
+    idc.STRTYPE_C_16:    'unicode',
 }
 
 string_sizes = {
-    idc.ASCSTR_C:       1,
-    idc.ASCSTR_LEN2:    2,
-    idc.ASCSTR_LEN4:    4,
-    idc.ASCSTR_PASCAL:  1,
-    idc.ASCSTR_TERMCHR: 1,
-    idc.ASCSTR_ULEN2:   2,
-    idc.ASCSTR_ULEN4:   4,
-    idc.ASCSTR_UNICODE: 2,
+    idc.STRTYPE_C:       1,
+    idc.STRTYPE_LEN2:    2,
+    idc.STRTYPE_LEN4:    4,
+    idc.STRTYPE_PASCAL:  1,
+    idc.STRTYPE_TERMCHR: 1,
+    idc.STRTYPE_LEN2_16: 2,
+    idc.STRTYPE_LEN4_16: 4,
+    idc.STRTYPE_C_16:    2,
 }
 
 # name, comment, repeatable
@@ -98,13 +95,13 @@ create_field = [
     (54, 1, idaapi.FF_WORD,    -1, None, False),
     ( 0, 8, idaapi.FF_DWRD,    -1, None, False),
     (54, 8, idaapi.FF_DWRD,    -1, None, False),
-    ( 1, 8, idaapi.FF_ASCI,    idc.ASCSTR_C, None, False),
-    ( 0, 8, idaapi.FF_ASCI,    idc.ASCSTR_LEN2, None, False),
-    ( 0, 8, idaapi.FF_ASCI,    idc.ASCSTR_LEN4, None, False),
-    ( 0, 8, idaapi.FF_ASCI,    idc.ASCSTR_PASCAL, None, False),
-    ( 0, 8, idaapi.FF_ASCI,    idc.ASCSTR_ULEN2, None, False),
-    ( 0, 8, idaapi.FF_ASCI,    idc.ASCSTR_ULEN4, None, False),
-    ( 0, 8, idaapi.FF_ASCI,    idc.ASCSTR_UNICODE, None, False),
+    ( 1, 8, idaapi.FF_ASCI,    idc.STRTYPE_C, None, False),
+    ( 0, 8, idaapi.FF_ASCI,    idc.STRTYPE_LEN2, None, False),
+    ( 0, 8, idaapi.FF_ASCI,    idc.STRTYPE_LEN4, None, False),
+    ( 0, 8, idaapi.FF_ASCI,    idc.STRTYPE_PASCAL, None, False),
+    ( 0, 8, idaapi.FF_ASCI,    idc.STRTYPE_LEN2_16, None, False),
+    ( 0, 8, idaapi.FF_ASCI,    idc.STRTYPE_LEN4_16, None, False),
+    ( 0, 8, idaapi.FF_ASCI,    idc.STRTYPE_C_16, None, False),
 ]
 
 # offset, count
@@ -270,7 +267,7 @@ class Fixture(unittest.TestCase):
             name = get_name(field_type, string_type, offset, size)
             sid = idc.AddStrucEx(0, 'struct_' + name, 0)
             self.assertNotEqual(sid, -1)
-            err = idc.AddStrucMember(sid, 'field_' + name, offset, field_type | idaapi.FF_DATA, string_type, size)
+            err = idc.add_struc_member(sid, 'field_' + name, offset, field_type | idaapi.FF_DATA, string_type, size)
             self.assertEqual(err, 0)
             if comment is not None:
                 self.assertNotEqual(idc.SetMemberComment(sid, offset, comment, repeatable), 0)
