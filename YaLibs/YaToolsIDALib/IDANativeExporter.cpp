@@ -33,6 +33,7 @@
 #include "Plugins.hpp"
 #include "FlatBufferDatabaseModel.hpp"
 
+#include <algorithm>
 #include <string>
 #include <iostream>
 #include <functional>
@@ -122,11 +123,13 @@ namespace
         void on_version(const HVersion& version);
 
         using TidMap = std::unordered_map<YaToolObjectId, Tid>;
+        using Members = std::unordered_multimap<tid_t, ea_t>;
         using EnumMemberMap = std::unordered_map<uint64_t, enum_t>;
 
         IHashProvider&                  provider_;
         EnumMemberMap                   enum_members_;
         RefInfos                        refs_;
+        Members                         members_;
         TidMap                          tids_;
         std::shared_ptr<IPluginVisitor> plugin_;
         std::vector<uint8_t>            buffer_;
@@ -1479,7 +1482,7 @@ namespace
             LOG(ERROR, "%s: 0x%" PRIxEA ":%" PRIxEA " unable to set member type to 0x%" PRIxEA " bytes\n", where, struc->id, ea, size);
     }
 
-    void clear_struct_fields(const Exporter& exporter, const char* where, const HVersion& version, ea_t struct_id)
+    void clear_struct_fields(Exporter& exporter, const char* where, const HVersion& version, ea_t struct_id)
     {
         begin_type_updating(UTP_STRUCT);
 
@@ -1494,6 +1497,7 @@ namespace
         version.walk_xrefs([&](offset_t offset, operand_t /*operand*/, YaToolObjectId /*id*/, const XrefAttributes* /*attrs*/)
         {
             fields.emplace(offset);
+            exporter.members_.emplace(struct_id, static_cast<ea_t>(offset));
             return WALK_CONTINUE;
         });
 
@@ -1672,6 +1676,13 @@ namespace
         return nullptr;
     }
 
+    bool is_member(const Exporter& exporter, tid_t struc_id, ea_t offset)
+    {
+        const Exporter::Members::value_type target{struc_id, offset};
+        const auto range = std::equal_range(exporter.members_.begin(), exporter.members_.end(), target);
+        return range.first != range.second;
+    }
+
     void make_struct_member(Exporter& exporter, const char* where, const HVersion& version, ea_t ea)
     {
         const auto id = version.id();
@@ -1681,6 +1692,12 @@ namespace
         if(parent.tid == BADADDR)
         {
             LOG(ERROR, "make_%s: %016" PRIx64 " %s: missing parent struct %016" PRIx64 "\n", where, id, name.data(), parent_id);
+            return;
+        }
+
+        if(!is_member(exporter, parent.tid, ea))
+        {
+            LOG(ERROR, "make_%s: %016" PRIx64 " %s: invalid member for struct %016" PRIx64 "\n", where, id, name.data(), parent_id);
             return;
         }
 
