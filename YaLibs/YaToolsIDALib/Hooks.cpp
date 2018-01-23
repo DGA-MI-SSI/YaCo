@@ -306,7 +306,7 @@ namespace
 
     using Eas = std::set<ea_t>;
     using Structs = std::set<tid_t>;
-    using StructMembers = std::map<tid_t, ea_t>;
+    using StructMembers = std::multimap<tid_t, ea_t>;
     using Enums = std::set<enum_t>;
     using EnumMembers = std::map<ea_t, tid_t>;
     using Comments = std::set<ea_t>;
@@ -729,7 +729,7 @@ void Hooks::add_ea(ea_t ea, const std::string& message)
 
 void Hooks::add_struct_member(ea_t struct_id, ea_t member_offset, const std::string& message)
 {
-    struct_members_[struct_id] = member_offset;
+    struct_members_.emplace(struct_id, member_offset);
     repo_manager_.add_auto_comment(struct_id, message);
 }
 
