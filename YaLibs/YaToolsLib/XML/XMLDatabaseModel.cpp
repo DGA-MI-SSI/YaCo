@@ -165,37 +165,15 @@ XMLAllDatabaseModel::XMLAllDatabaseModel(const std::string& folder)
 {
 }
 
-void XMLAllDatabaseModel::accept(IModelVisitor& visitor) {
+void XMLAllDatabaseModel::accept(IModelVisitor& visitor)
+{
     visitor.visit_start();
     SkipVisitStartEndVisitor visitor_(visitor);
-
-    filesystem::path cache_folder_path(folder);
-    cache_folder_path /= "cache";
-    filesystem::path db_folder_path(folder);
-    db_folder_path /= "";
-
-    /************ first import cache file *********************/
-    if(filesystem::exists(db_folder_path)) {
-        XMLDatabaseModelPath path_model(db_folder_path.string());
-        path_model.accept(visitor_);
-    }
+    const auto cache_path = filesystem::path(folder) / "cache";
+    if(filesystem::is_directory(cache_path))
+        XMLDatabaseModelPath(cache_path.string()).accept(visitor_);
     else
-    {
-        YALOG_ERROR(nullptr, "input database.xml not found as %s\n", db_folder_path.string().data());
-    }
-    /**********************************************************/
-
-    /************ import cache / patches **********************/
-    if(filesystem::is_directory(cache_folder_path)){
-        XMLDatabaseModelPath path_model(cache_folder_path.string());
-        path_model.accept(visitor_);
-    }
-    else
-    {
-        YALOG_ERROR(nullptr, "input cache not found as %s\n", cache_folder_path.string().data());
-    }
-    /**********************************************************/
-
+        YALOG_ERROR(nullptr, "input cache not found as %s\n", cache_path.generic_string().data());
     visitor.visit_end();
 }
 
