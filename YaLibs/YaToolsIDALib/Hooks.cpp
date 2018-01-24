@@ -954,7 +954,7 @@ namespace
         {
             // load all xml files into a new model which we will query
             const auto full = MakeModel();
-            MakeXmlAllDatabaseModel(get_cache_folder_path())->accept(*full.visitor);
+            MakeXmlAllDatabaseModel(".")->accept(*full.visitor);
 
             // load all modified objects
             const auto diff = MakeModel();
