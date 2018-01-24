@@ -17,4 +17,7 @@
 
 #include <string>
 
+struct const_string_ref;
+
 bool remove_substring(std::string& str, const std::string& substr);
+bool is_default_name(const const_string_ref& value);

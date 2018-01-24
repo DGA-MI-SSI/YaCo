@@ -23,7 +23,6 @@
 #include "HVersion.hpp"
 #include "HObject.hpp"
 #include "IModel.hpp"
-#include "MultiplexerDelegatingVisitor.hpp"
 #include "Logger.h"
 #include "Yatools.h"
 #include "../Helpers.h"
@@ -32,6 +31,7 @@
 #include "Pool.hpp"
 #include "Plugins.hpp"
 #include "FlatBufferDatabaseModel.hpp"
+#include "Utils.hpp"
 
 #include <algorithm>
 #include <string>
@@ -171,7 +171,7 @@ namespace
         const auto qbuf = exporter.qpool_.acquire();
         ya::wrap(&get_ea_name, *qbuf, ea, 0, (getname_info_t*) NULL);
         set_name(ea, "", reset_flags);
-        if(!name.size || IsDefaultName(name))
+        if(!name.size || is_default_name(name))
         {
             LOG(DEBUG, "make_name: 0x%" PRIxEA " resetting name %s\n", ea, strname.data());
             return;

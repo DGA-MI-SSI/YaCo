@@ -19,9 +19,9 @@
 
 #include "Logger.h"
 #include "Yatools.h"
-#include "MultiplexerDelegatingVisitor.hpp"
 #include "YaTypes.hpp"
 #include "BinHex.hpp"
+#include "Utils.hpp"
 
 namespace
 {
@@ -120,7 +120,7 @@ TEST(yatools, test_is_default_name)
         {"foobar",      false},
     };
     for(const auto& it : values)
-        EXPECT_EQ(it.is_default, IsDefaultName(make_string_ref(it.value)));
+        EXPECT_EQ(it.is_default, is_default_name(make_string_ref(it.value)));
 }
 
 TEST(yatools, test_binhex)

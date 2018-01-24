@@ -19,7 +19,6 @@
 #include "IDANativeModel.hpp"
 #include "IModelAccept.hpp"
 #include "IModelVisitor.hpp"
-#include <MultiplexerDelegatingVisitor.hpp>
 #include "YaToolsHashProvider.hpp"
 #include "YaHelpers.hpp"
 #include "../Helpers.h"
@@ -27,6 +26,7 @@
 #include "StringFormat.hpp"
 #include "Plugins.hpp"
 #include "FlatBufferExporter.hpp"
+#include "Utils.hpp"
 
 #include <Logger.h>
 #include <Yatools.h>
@@ -852,7 +852,7 @@ namespace
             const auto defref = str_defname(buf, ea);
             if(nameref.size >=  defref.size)
                 if(!strncmp(nameref.value + nameref.size - defref.size, defref.value, defref.size))
-                    if(IsDefaultName(nameref))
+                    if(is_default_name(nameref))
                         return;
         }
 
