@@ -304,7 +304,6 @@ namespace
     using Structs = std::set<tid_t>;
     using StructMembers = std::multimap<tid_t, ea_t>;
     using Enums = std::set<enum_t>;
-    using EnumMembers = std::map<ea_t, tid_t>;
     using Comments = std::set<ea_t>;
     using Segments = std::set<ea_t>;
 
@@ -447,7 +446,6 @@ namespace
         Structs         structs_;
         StructMembers   struct_members_;
         Enums           enums_;
-        EnumMembers     enum_members_;
         Comments        comments_;
         Segments        segments_;
 
@@ -1018,7 +1016,6 @@ void Hooks::flush()
     structs_.clear();
     struct_members_.clear();
     enums_.clear();
-    enum_members_.clear();
     comments_.clear();
     segments_.clear();
 }
