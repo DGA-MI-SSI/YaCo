@@ -63,8 +63,8 @@ namespace
     const bool LOG_DBG_EVENTS = false;
     const bool LOG_IDB_EVENTS = false;
 
-    const char BOOL_STR[2][6] = { "false", "true" };
-    const char REPEATABLE_STR[2][12] = { "", "repeatable " };
+    const char BOOL_STR[][6] = { "false", "true" };
+    const char REPEATABLE_STR[][12] = { "", "repeatable " };
 
     qstring get_func_name(ea_t ea)
     {
