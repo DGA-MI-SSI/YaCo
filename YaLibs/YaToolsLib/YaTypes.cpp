@@ -63,33 +63,6 @@ const char* get_object_type_string(YaToolObjectType_e object_type)
     return gObjectTypes[object_type];
 }
 
-static const char gObjectSwigTypes[][24] =
-{
-    "UNKNOWN",
-    "BINARY",
-    "DATA",
-    "CODE",
-    "FUNCTION",
-    "STRUCT",
-    "ENUM",
-    "ENUM_MEMBER",
-    "BASIC_BLOCK",
-    "SEGMENT",
-    "SEGMENT_CHUNK",
-    "STRUCT_MEMBER",
-    "STACKFRAME",
-    "STACKFRAME_MEMBER",
-    "REFERENCE_INFO",
-};
-static_assert(COUNT_OF(gObjectSwigTypes) == OBJECT_TYPE_COUNT, "invalid number of object swig types");
-
-const char* get_object_swig_type_string(YaToolObjectType_e object_type)
-{
-    if(object_type < OBJECT_TYPE_UNKNOWN || object_type >= OBJECT_TYPE_COUNT)
-        object_type = OBJECT_TYPE_UNKNOWN;
-    return gObjectSwigTypes[object_type];
-}
-
 static const char gComments[][24] =
 {
     "unknown",

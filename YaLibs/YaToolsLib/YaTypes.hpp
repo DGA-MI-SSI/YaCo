@@ -98,7 +98,6 @@ enum SignatureAlgo_e
 YaToolObjectType_e get_object_type(const char* object_type);
 
 const char* get_object_type_string(YaToolObjectType_e object_type);
-const char* get_object_swig_type_string(YaToolObjectType_e object_type);
 
 #ifndef SWIG
 namespace std
