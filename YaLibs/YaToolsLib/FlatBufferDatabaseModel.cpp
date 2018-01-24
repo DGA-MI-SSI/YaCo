@@ -391,35 +391,6 @@ static size_t get_size(const T* pdata)
     return 0;
 }
 
-static const YaToolObjectType_e ordered_types[] =
-{
-    OBJECT_TYPE_BINARY,
-    OBJECT_TYPE_STRUCT,
-    OBJECT_TYPE_STRUCT_MEMBER,
-    OBJECT_TYPE_ENUM,
-    OBJECT_TYPE_ENUM_MEMBER,
-    OBJECT_TYPE_SEGMENT,
-    OBJECT_TYPE_SEGMENT_CHUNK,
-    OBJECT_TYPE_FUNCTION,
-    OBJECT_TYPE_STACKFRAME,
-    OBJECT_TYPE_STACKFRAME_MEMBER,
-    OBJECT_TYPE_REFERENCE_INFO,
-    OBJECT_TYPE_CODE,
-    OBJECT_TYPE_DATA,
-    OBJECT_TYPE_BASIC_BLOCK,
-    OBJECT_TYPE_UNKNOWN,
-};
-static_assert(COUNT_OF(ordered_types) == OBJECT_TYPE_COUNT, "invalid ordered_types");
-
-static const auto indexed_types = []
-{
-    std::vector<YaToolObjectType_e> indexed;
-    indexed.resize(OBJECT_TYPE_COUNT);
-    for(size_t i = 0; i < OBJECT_TYPE_COUNT; ++i)
-        indexed[ordered_types[i]] = static_cast<YaToolObjectType_e>(i);
-    return indexed;
-}();
-
 static const fb::Vector<fb::Offset<yadb::Version>>* get_versions_from(const FlatBufferDatabaseModel& db, YaToolObjectType_e type)
 {
     switch(type)
@@ -447,8 +418,8 @@ static const fb::Vector<fb::Offset<yadb::Version>>* get_versions_from(const Flat
 template<typename T>
 static void walk_all_version_arrays(FlatBufferDatabaseModel& db, const T& operand)
 {
-    for(size_t i = 0; i < COUNT_OF(ordered_types); ++i)
-        operand(get_versions_from(db, ordered_types[i]), ordered_types[i]);
+    for(const auto type : ordered_types)
+        operand(get_versions_from(db, type), type);
 }
 
 template<typename T>

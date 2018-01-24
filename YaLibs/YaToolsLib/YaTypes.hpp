@@ -17,8 +17,11 @@
 
 #include <stdint.h>
 #include <inttypes.h>
-#include <string>
 #include <string.h>
+
+#include <functional>
+#include <string>
+#include <vector>
 
 class IModelVisitor;
 struct IModel;
@@ -95,9 +98,11 @@ enum SignatureAlgo_e
     SIGNATURE_ALGORITHM_COUNT,
 };
 
-YaToolObjectType_e get_object_type(const char* object_type);
+YaToolObjectType_e  get_object_type(const char* object_type);
+const char*         get_object_type_string(YaToolObjectType_e object_type);
 
-const char* get_object_type_string(YaToolObjectType_e object_type);
+extern const YaToolObjectType_e  ordered_types[OBJECT_TYPE_COUNT];
+extern const std::vector<size_t> indexed_types;
 
 #ifndef SWIG
 namespace std

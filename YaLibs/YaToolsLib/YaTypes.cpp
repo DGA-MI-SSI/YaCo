@@ -20,6 +20,7 @@
 #include <farmhash.h>
 
 #include <type_traits>
+#include <vector>
 
 #ifdef _MSC_VER
 #define stricmp _stricmp
@@ -62,6 +63,35 @@ const char* get_object_type_string(YaToolObjectType_e object_type)
         object_type = OBJECT_TYPE_UNKNOWN;
     return gObjectTypes[object_type];
 }
+
+const YaToolObjectType_e ordered_types[] =
+{
+    OBJECT_TYPE_BINARY,
+    OBJECT_TYPE_STRUCT,
+    OBJECT_TYPE_STRUCT_MEMBER,
+    OBJECT_TYPE_ENUM,
+    OBJECT_TYPE_ENUM_MEMBER,
+    OBJECT_TYPE_SEGMENT,
+    OBJECT_TYPE_SEGMENT_CHUNK,
+    OBJECT_TYPE_FUNCTION,
+    OBJECT_TYPE_STACKFRAME,
+    OBJECT_TYPE_STACKFRAME_MEMBER,
+    OBJECT_TYPE_REFERENCE_INFO,
+    OBJECT_TYPE_CODE,
+    OBJECT_TYPE_DATA,
+    OBJECT_TYPE_BASIC_BLOCK,
+    OBJECT_TYPE_UNKNOWN,
+};
+static_assert(COUNT_OF(ordered_types) == OBJECT_TYPE_COUNT, "invalid ordered_types");
+
+const std::vector<size_t> indexed_types = []
+{
+    std::vector<size_t> indexed;
+    indexed.resize(OBJECT_TYPE_COUNT);
+    for(size_t i = 0; i < OBJECT_TYPE_COUNT; ++i)
+        indexed[ordered_types[i]] = i;
+    return indexed;
+}();
 
 static const char gComments[][24] =
 {

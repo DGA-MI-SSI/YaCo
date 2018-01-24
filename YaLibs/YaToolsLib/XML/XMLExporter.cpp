@@ -114,9 +114,6 @@ public:
     void visit_end_default_object() override;
     void visit_id(YaToolObjectId object_id) override;
 
-protected:
-    const std::vector<std::string>& getFolderNames();
-
 private:
     std::string path_;
     std::string current_xml_file_path_;
@@ -181,11 +178,10 @@ void XMLExporter::visit_start()
         throw invalid_argument("output folder is a not a directory");
     }
 
-    for (const auto& sub_folder : getFolderNames())
+    for(const auto type : ordered_types)
     {
         filesystem::path sub_folder_path(root_folder);
-        sub_folder_path /= sub_folder;
-
+        sub_folder_path /= get_object_type_string(type);
         if (filesystem::exists(sub_folder_path) == false)
         {
             filesystem::create_directory(sub_folder_path);
@@ -674,30 +670,4 @@ void XMLExporter_common::visit_flags(flags_t flags)
     char buffer[(sizeof(flags) + 3) * 2] = { 0 };
     sprintf(buffer, "0x%X", flags);
     add_element(*writer_, "flags", buffer);
-}
-
-static const std::vector<std::string> gFolders =
-{
-    "binary",
-    "struc",
-    "strucmember",
-    "enum",
-    "enum_member",
-    "segment",
-    "segment_chunk",
-    "function",
-    "stackframe",
-    "stackframe_member",
-    "reference_info",
-    "code",
-    "data",
-    "basic_block",
-};
-
-//TODO "Add a static assert here"
-
-
-const std::vector<std::string>& XMLExporter::getFolderNames()
-{
-    return gFolders;
 }
