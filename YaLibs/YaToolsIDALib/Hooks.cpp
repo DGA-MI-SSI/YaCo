@@ -284,14 +284,10 @@ namespace
     {
         switch (kind)
         {
-        case RANGE_KIND_UNKNOWN:
-            return "Unknow";
-        case RANGE_KIND_FUNC:
-            return "Function";
-        case RANGE_KIND_SEGMENT:
-            return "Segment";
-        case RANGE_KIND_HIDDEN_RANGE:
-            return "Hidden";
+            case RANGE_KIND_UNKNOWN:        return "unknown";
+            case RANGE_KIND_FUNC:           return "function";
+            case RANGE_KIND_SEGMENT:        return "segment";
+            case RANGE_KIND_HIDDEN_RANGE:   return "hidden";
         }
         return "";
     }
