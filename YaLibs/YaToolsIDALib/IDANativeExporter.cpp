@@ -123,7 +123,7 @@ namespace
         void on_version(const HVersion& version);
 
         using TidMap = std::unordered_map<YaToolObjectId, Tid>;
-        using Members = std::unordered_multimap<tid_t, ea_t>;
+        using Members = std::multimap<YaToolObjectId, YaToolObjectId>;
         using EnumMemberMap = std::unordered_map<uint64_t, enum_t>;
 
         IHashProvider&                  provider_;
@@ -1494,10 +1494,11 @@ namespace
 
         // get existing members
         std::set<offset_t> fields;
-        version.walk_xrefs([&](offset_t offset, operand_t /*operand*/, YaToolObjectId /*id*/, const XrefAttributes* /*attrs*/)
+        const auto vid = version.id();
+        version.walk_xrefs([&](offset_t offset, operand_t /*operand*/, YaToolObjectId xid, const XrefAttributes* /*attrs*/)
         {
             fields.emplace(offset);
-            exporter.members_.emplace(struct_id, static_cast<ea_t>(offset));
+            exporter.members_.emplace(vid, xid);
             return WALK_CONTINUE;
         });
 
@@ -1676,11 +1677,13 @@ namespace
         return nullptr;
     }
 
-    bool is_member(const Exporter& exporter, tid_t struc_id, ea_t offset)
+    bool is_member(const Exporter& exporter, YaToolObjectId parent, YaToolObjectId id)
     {
-        const Exporter::Members::value_type target{struc_id, offset};
-        const auto range = std::equal_range(exporter.members_.begin(), exporter.members_.end(), target);
-        return range.first != range.second;
+        const auto range = exporter.members_.equal_range(parent);
+        for(auto it = range.first; it != range.second; ++it)
+            if(it->second == id)
+                return true;
+        return false;
     }
 
     void make_struct_member(Exporter& exporter, const char* where, const HVersion& version, ea_t ea)
@@ -1695,7 +1698,7 @@ namespace
             return;
         }
 
-        if(!is_member(exporter, parent.tid, ea))
+        if(!is_member(exporter, parent_id, id))
         {
             LOG(ERROR, "make_%s: %016" PRIx64 " %s: invalid member for struct %016" PRIx64 "\n", where, id, name.data(), parent_id);
             return;
