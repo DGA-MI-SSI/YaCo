@@ -23,6 +23,11 @@
 #include <time.h>
 #include <string.h>
 
+#if defined(_MSC_VER) && defined(_DEBUG)
+#include <windows.h>
+#include <vector>
+#endif
+
 static const uint32_t Magic = 0x2EB4BA7F;
 
 struct LOG_PrivCtx
@@ -184,6 +189,22 @@ bool LOG_Print(LOG_Ctx* pvCtx, const char* pModule, LOG_ELevel eLevel, const cha
     Fmt[sizeof Fmt - 1] = 0;
     if(nChars < 0)
         return false;
+
+#if defined(_MSC_VER) && defined(_DEBUG)
+    {
+        va_list args;
+        va_start(args, pFmt);
+        const auto size = _vscprintf(Fmt, args);
+        va_end(args);
+
+        std::vector<char> buffer(size + 1);
+        va_start(args, pFmt);
+        vsnprintf(&buffer[0], buffer.size(), Fmt, args);
+        va_end(pFmt);
+
+        OutputDebugString(&buffer[0]);
+    }
+#endif
 
     // try hard to do one print only to destination
     for(size_t i = 0; i < COUNT_OF(pCtx->hFiles); ++i)
