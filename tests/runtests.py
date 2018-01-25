@@ -57,10 +57,10 @@ if idc.__EA64__:
     import YaToolsPy64 as ya
 else:
     import YaToolsPy32 as ya
-import YaCo
+import yaco_plugin
 
 idc.Wait()
-YaCo.start()
+yaco_plugin.start()
 # start
 """
 

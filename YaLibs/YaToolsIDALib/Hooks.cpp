@@ -1119,8 +1119,6 @@ void Hooks::closebase(va_list args)
     UNUSED(args);
 
     log_closebase();
-
-    yaco_.stop();
 }
 
 static void log_savebase()

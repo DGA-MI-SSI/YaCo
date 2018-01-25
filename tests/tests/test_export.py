@@ -49,7 +49,7 @@ class Fixture(runtests.Fixture):
     def test_export(self):
         a, b = self.setup_repos()
         a.run(
-            self.script("YaCo.yaco.export_database()"),
+            self.script("yaco_plugin.yaco.export_database()"),
         )
         import yadb.Root
         data = None

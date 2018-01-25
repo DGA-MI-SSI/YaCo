@@ -77,7 +77,7 @@ def get_set_type(name, ea, fr, ff, identify, setter):
     if check != fntype:
         ff.write("%s:%s:\\n    got  %s\\n    want %s\\n" % (name, identify(ea), fntype, check))
 
-YaCo.yaco.disable()
+yaco_plugin.yaco.disable()
 read = "test_prototypes.read." + sys.platform + ".700"
 fail = "test_prototypes.fail." + sys.platform + ".700"
 with open(read, "wb") as fr:

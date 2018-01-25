@@ -16,18 +16,25 @@
 import idaapi
 import idc
 import inspect
-import logging
 import os
 import sys
 import traceback
 
+yaco = None
 
-def import_yaco_paths():
-    root_dir = os.path.abspath(os.path.join(inspect.getsourcefile(lambda: 0), "..", "YaTools"))
-    for path in ["YaCo", "bin"]:
-        path = os.path.join(root_dir, path)
-        print("YaCo: using %s" % path)
-        sys.path.append(path)
+def start():
+    global yaco
+    if idc.__EA64__:
+        import YaToolsPy64 as ya
+    else:
+        import YaToolsPy32 as ya
+    if not yaco:
+        yaco = ya.MakeYaCo(ya.IS_INTERACTIVE)
+
+
+def close():
+    global yaco
+    yaco = None
 
 
 def is_enabled():
@@ -38,70 +45,49 @@ def is_enabled():
 class YaCoPlugin(idaapi.plugin_t):
     flags = idaapi.PLUGIN_UNL
     comment = "YaCo plugin"
-    help = "Yet Another Collaboration tool plugin"
+    help = "YaCo: Yet Another Collaboration tool plugin"
     wanted_name = "YaCo"
     wanted_hotkey = ""
 
     def init(self, *args, **kwargs):
         if not is_enabled():
-            print("YaCo: disabled")
+            print("yaco: disabled")
             return idaapi.PLUGIN_SKIP
-        try:
-            # check if we are in YaCo project
-            input_filename = idc.GetIdbPath()
-            if input_filename.count("_local.") > 0 and os.path.exists(".git"):
-                print("YaCo: initializing")
-                import_yaco_paths()
-                import YaCo
-                YaCo.start()
-                return idaapi.PLUGIN_KEEP
-            elif "_local." not in input_filename and os.path.exists(".git"):
-                print("""
+
+        root_dir = os.path.abspath(os.path.join(inspect.getsourcefile(lambda: 0), "..", "YaTools"))
+        for path in ["YaCo", "bin"]:
+            path = os.path.join(root_dir, path)
+            print("yaco: using %s" % path)
+            sys.path.append(path)
+
+        input_filename = idc.GetIdbPath()
+        if input_filename.count("_local.") > 0 and os.path.exists(".git"):
+            print("yaco: initializing")
+            start()
+            return idaapi.PLUGIN_KEEP
+
+        if "_local." not in input_filename and os.path.exists(".git"):
+            print("""
 *******************************************************
 WARNING : You have opened a database in a git project,
 WARNING : but your database doesn't match a YaCo project.
 WARNING : YaCo is disabled !
 *******************************************************
 """)
-                return idaapi.PLUGIN_OK
-            else:
-                return idaapi.PLUGIN_KEEP
-        except Exception, e:
-            print("YaCo: error during initialization")
-            print(traceback.format_exc())
-            logger = logging.getLogger("YaCo")
-            if logger is not None:
-                try:
-                    logger.error("YaCo: error during initialization")
-                    logger.error(traceback.format_exc())
-                except:
-                    pass
-            raise e
+            return idaapi.PLUGIN_OK
+
+        return idaapi.PLUGIN_KEEP
 
     def run(self, *args, **kwargs):
-        try:
-            print("YaCo: waiting for auto analysis to finish\n")
-            idc.Wait()
-            print("YaCo: saving base in current state\n")
-            idc.SaveBase("")
-            import_yaco_paths()
-            import YaCo
-            if not YaCo.start():
-                idc.Warning("YaCo: already started")
-        except Exception, e:
-            print("YaCo: error during run")
-            print(traceback.format_exc())
-            logger = logging.getLogger("YaCo")
-            if logger is not None:
-                try:
-                    logger.error("YaCo: error during run")
-                    logger.error(traceback.format_exc())
-                except:
-                    pass
-            raise e
+        print("yaco: waiting for auto analysis...\n")
+        idc.Wait()
+        print("yaco: saving current base...\n")
+        idc.SaveBase("")
+        start()
 
     def term(self, *args, **kwargs):
-        print("YaCo: exit")
+        print("yaco: exit")
+        close()
 
 
 def PLUGIN_ENTRY():
