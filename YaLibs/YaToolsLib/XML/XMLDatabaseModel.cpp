@@ -77,10 +77,8 @@ namespace
         "basic_block",
     };
 
-    class XMLDatabaseModelImpl : public IModelAccept
+    struct XMLDatabaseModelImpl : public IModelAccept
     {
-
-    protected:
         void accept_file(const std::string& filename, IModelVisitor& visitor);
         void accept_file_node(xmlNodePtr node, IModelVisitor& visitor);
         void accept_reference_object(const std::string& object_type, xmlNodePtr node, IModelVisitor& visitor);
@@ -92,9 +90,8 @@ namespace
         }
     };
 
-    class XMLDatabaseModelFiles : public XMLDatabaseModelImpl {
-        public:
-
+    struct XMLDatabaseModelFiles : public XMLDatabaseModelImpl
+    {
         XMLDatabaseModelFiles(const std::vector<std::string>& files)
             : files(files)
         {
@@ -102,13 +99,11 @@ namespace
 
         void accept(IModelVisitor& visitor) override;
 
-        private:
         std::vector<std::string> files;
     };
 
-    class XMLDatabaseModelPath : public XMLDatabaseModelImpl {
-        public:
-
+    struct XMLDatabaseModelPath : public XMLDatabaseModelImpl
+    {
         XMLDatabaseModelPath(const std::string& path)
             : path(path)
         {
@@ -116,7 +111,6 @@ namespace
 
         void accept(IModelVisitor& visitor) override;
 
-        private:
         std::string path;
     };
 
@@ -135,12 +129,10 @@ namespace
         void visit_end()   override {}
     };
 
-    class XMLAllDatabaseModel : public IModelAccept
+    struct XMLAllDatabaseModel : public IModelAccept
     {
-    public:
         XMLAllDatabaseModel(const std::string& folder);
         void accept(IModelVisitor& visitor) override;
-    private:
         std::string folder;
     };
 }
@@ -197,34 +189,30 @@ void XMLDatabaseModelFiles::accept(IModelVisitor& visitor)
     visitor.visit_end();
 }
 
-void XMLDatabaseModelImpl::accept_file(const std::string& filename, IModelVisitor& visitor) {
+void XMLDatabaseModelImpl::accept_file(const std::string& filename, IModelVisitor& visitor)
+{
     auto reader = std::shared_ptr<xmlTextReader>(xmlReaderForFile(filename.c_str(), nullptr, 0),xmlFreeTextReader);
-    if(reader.get() == nullptr) {
+    if(reader.get() == nullptr)
         THROW("could not parse file\n");
-    }
     // move to sigfile
-    if(xmlTextReaderRead(reader.get()) != 1){
+    if(xmlTextReaderRead(reader.get()) != 1)
         THROW("could not parse file (1rst xmlTextReaderRead\n");
-    }
-    //move to first referenced object
-    if(xmlTextReaderRead(reader.get()) != 1){
+    // move to first referenced object
+    if(xmlTextReaderRead(reader.get()) != 1)
         THROW("could not parse file (2nd xmlTextReaderRead\n");
-    }
     do
     {
         auto current_obj = xmlTextReaderExpand(reader.get());
-        if(xmlNodeIsText(current_obj)) {
+        if(xmlNodeIsText(current_obj))
             continue;
-        }
-        if (current_obj == nullptr)
-        {
+        if(current_obj == nullptr)
             return;
-        }
         accept_file_node(current_obj, visitor);
-    }while (xmlTextReaderNext(reader.get()) == 1);
+    } while(xmlTextReaderNext(reader.get()) == 1);
 }
 
-void XMLDatabaseModelPath::accept(IModelVisitor& visitor){
+void XMLDatabaseModelPath::accept(IModelVisitor& visitor)
+{
     visitor.visit_start();
     const auto& folder_names = getFolderNames();
     try
@@ -261,17 +249,14 @@ void XMLDatabaseModelPath::accept(IModelVisitor& visitor){
     {
         YALOG_ERROR(nullptr, "%s\n", ex.what());
     }
-
     visitor.visit_end();
 }
 
 
 void XMLDatabaseModelImpl::accept_file_node(xmlNodePtr node, IModelVisitor& visitor)
 {
-    for (const auto& object_type : getFolderNames())
-    {
+    for(const auto& object_type : getFolderNames())
         accept_reference_object(object_type, node, visitor);
-    }
 }
 
 static std::string xml_get_content(xmlNode* node)
@@ -349,11 +334,7 @@ void XMLDatabaseModelImpl::accept_version(xmlNodePtr node, IModelVisitor& visito
     uint32_t    userdefinedname_flags = 0;
     std::map<offset_t, std::string> blobs;
 
-
     visitor.visit_start_object_version();
-
-
-
     for (xmlNodePtr child = node->children; child != nullptr; child = child->next)
     {
         if (xmlStrcasecmp(child->name, BAD_CAST "parent_id") == 0)
