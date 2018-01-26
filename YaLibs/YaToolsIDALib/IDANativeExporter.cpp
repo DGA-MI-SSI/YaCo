@@ -1124,6 +1124,26 @@ namespace
             LOG(ERROR, "make_hiddenarea: 0x%" PRIxEA " unable to set hidden area %" PRIxEA "-%" PRIxEA " %s\n", ea, start, end, value.data());
     }
 
+    void clear_register_views(const HVersion& version, ea_t ea)
+    {
+        const auto func = get_func(ea);
+        if(!func)
+            return;
+
+        const range_t range{ea, ea + static_cast<ea_t>(version.size())};
+        for(int i = 0; i < func->regvarqty; ++i)
+        {
+            const auto regvar = &func->regvars[i];
+            if(!range.contains(regvar->start_ea))
+                continue;
+            const auto err = del_regvar(func, regvar->start_ea, regvar->end_ea, regvar->canon);
+            if(err != REGVAR_ERROR_OK)
+                LOG(ERROR, "make_basic_block: 0x%" PRIxEA " unable to delete regvar %s 0x%" PRIxEA "-0x%" PRIxEA "\n", ea, regvar->canon, regvar->start_ea, regvar->end_ea);
+            else
+                --i;
+        }
+    }
+
     void make_views(const HVersion& version, ea_t ea)
     {
         version.walk_value_views([&](offset_t offset, operand_t operand, const const_string_ref& value)
@@ -1131,6 +1151,7 @@ namespace
             make_valueview(static_cast<ea_t>(ea + offset), operand, make_string(value));
             return WALK_CONTINUE;
         });
+        clear_register_views(version, ea);
         version.walk_register_views([&](offset_t offset, offset_t end, const const_string_ref& name, const const_string_ref& newname)
         {
             make_registerview(ea, offset, make_string(name), end, make_string(newname));
