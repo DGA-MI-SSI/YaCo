@@ -28,4 +28,4 @@ struct IHooks
     virtual void unhook() = 0;
 };
 
-std::shared_ptr<IHooks> MakeHooks(IYaCo& yaco, IHashProvider& hash_provider, IRepository& repo_manager);
+std::shared_ptr<IHooks> MakeHooks(IYaCo& yaco, IHashProvider& hash_provider, IRepository& repo);

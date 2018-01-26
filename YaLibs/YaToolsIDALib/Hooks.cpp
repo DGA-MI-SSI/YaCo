@@ -311,7 +311,7 @@ namespace
         : public IHooks
     {
 
-        Hooks(IYaCo& yaco, IHashProvider& hash_provider, IRepository& repo_manager);
+        Hooks(IYaCo& yaco, IHashProvider& hash_provider, IRepository& repo);
         ~Hooks();
 
         // IHooks
@@ -439,7 +439,7 @@ namespace
         // Variables
         IYaCo&           yaco_;
         IHashProvider&   hash_provider_;
-        IRepository&     repo_manager_;
+        IRepository&     repo_;
         Pool<qstring>    qpool_;
 
         Eas             eas_;
@@ -585,10 +585,10 @@ namespace
     }
 }
 
-Hooks::Hooks(IYaCo& yaco, IHashProvider& hash_provider, IRepository& repo_manager)
+Hooks::Hooks(IYaCo& yaco, IHashProvider& hash_provider, IRepository& repo)
     : yaco_(yaco)
     , hash_provider_(hash_provider)
-    , repo_manager_ (repo_manager)
+    , repo_         (repo)
     , qpool_        (3)
     , enabled_      (false)
 {
@@ -668,7 +668,7 @@ void Hooks::update_function(ea_t ea)
 void Hooks::update_struct(ea_t struct_id)
 {
     structs_.insert(struct_id);
-    repo_manager_.add_auto_comment(struct_id, "Updated");
+    repo_.add_auto_comment(struct_id, "Updated");
 }
 
 void Hooks::update_struct_member(tid_t struct_id, tid_t member_id, ea_t offset)
@@ -687,7 +687,7 @@ void Hooks::delete_struct_member(tid_t struct_id, ea_t offset)
 void Hooks::update_enum(enum_t enum_id)
 {
     enums_.insert(enum_id);
-    repo_manager_.add_auto_comment(enum_id, "Updated");
+    repo_.add_auto_comment(enum_id, "Updated");
 }
 
 void Hooks::change_operand_type(ea_t ea)
@@ -695,7 +695,7 @@ void Hooks::change_operand_type(ea_t ea)
     if (get_func(ea) || is_code(get_flags(ea)))
     {
         eas_.insert(ea);
-        repo_manager_.add_auto_comment(ea, "Operand type change");
+        repo_.add_auto_comment(ea, "Operand type change");
         return;
     }
 
@@ -718,13 +718,13 @@ void Hooks::change_type_information(ea_t ea)
 void Hooks::add_ea(ea_t ea, const std::string& message)
 {
     eas_.insert(ea);
-    repo_manager_.add_auto_comment(ea, message);
+    repo_.add_auto_comment(ea, message);
 }
 
 void Hooks::add_struct_member(ea_t struct_id, ea_t member_offset, const std::string& message)
 {
     struct_members_.emplace(struct_id, member_offset);
-    repo_manager_.add_auto_comment(struct_id, message);
+    repo_.add_auto_comment(struct_id, message);
 }
 
 void Hooks::save_structs(IModelIncremental& model, IModelVisitor& visitor)
@@ -971,7 +971,7 @@ void Hooks::save_and_update()
 {
     // save and commit changes
     save();
-    if (!repo_manager_.commit_cache())
+    if (!repo_.commit_cache())
     {
         IDA_LOG_WARNING("An error occurred during YaCo commit");
         warning("An error occured during YaCo commit: please relaunch IDA");
@@ -982,7 +982,7 @@ void Hooks::save_and_update()
 
     // update cache and export modifications to IDA
     {
-        auto modified = repo_manager_.update_cache();
+        auto modified = repo_.update_cache();
         const auto cache = fs::path(get_cache_folder_path()).filename();
         modified.erase(std::remove_if(modified.begin(), modified.end(), [&](const auto& item)
         {
@@ -2509,7 +2509,7 @@ void Hooks::extra_cmt_changed(va_list args)
 }
 
 
-std::shared_ptr<IHooks> MakeHooks(IYaCo& yaco, IHashProvider& hash_provider, IRepository& repo_manager)
+std::shared_ptr<IHooks> MakeHooks(IYaCo& yaco, IHashProvider& hash_provider, IRepository& repo)
 {
-    return std::make_shared<Hooks>(yaco, hash_provider, repo_manager);
+    return std::make_shared<Hooks>(yaco, hash_provider, repo);
 }
