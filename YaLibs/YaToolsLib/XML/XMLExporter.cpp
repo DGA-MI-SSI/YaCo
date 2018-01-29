@@ -119,10 +119,9 @@ private:
     std::string current_xml_file_path_;
 };
 
-class FileXMLExporter : public XMLExporter_common
+struct MemExporter
+    : public XMLExporter_common
 {
-public:
-    FileXMLExporter(const std::string& path);
     void visit_start() override;
     void visit_end() override;
     void visit_start_reference_object(YaToolObjectType_e object_type) override;
@@ -132,10 +131,16 @@ public:
     void visit_end_default_object() override;
     void visit_id(YaToolObjectId object_id) override;
 
-private:
-    std::string                 path_;
-    std::ofstream               output_;
+    std::stringstream           stream_;
     std::shared_ptr<xmlBuffer>  buffer_;
+};
+
+struct FileXMLExporter
+    : public MemExporter
+{
+    FileXMLExporter(const std::string& path);
+    void visit_end() override;
+    const std::string path_;
 };
 }
 
@@ -147,6 +152,13 @@ std::shared_ptr<IModelVisitor> MakeXmlExporter(const std::string& path)
 std::shared_ptr<IModelVisitor> MakeFileXmlExporter(const std::string& path)
 {
     return std::make_shared<FileXMLExporter>(path);
+}
+
+std::string export_to_xml(IModelAccept& model)
+{
+    MemExporter mem;
+    model.accept(mem);
+    return mem.stream_.str();
 }
 
 FileXMLExporter::FileXMLExporter(const std::string& path)
@@ -193,21 +205,28 @@ void XMLExporter::visit_end()
 {
 }
 
-void FileXMLExporter::visit_start()
+void MemExporter::visit_start()
 {
     if(writer_ != nullptr)
     {
         throw "could not start visiting reference object, last visit is not ended";
     }
-    output_.open(path_);
-    output_ << "<?xml version=\"1.0\" encoding=\"" << XML_ENCODING << "\"?>\n<sigfile>\n";
+    stream_ << "<?xml version=\"1.0\" encoding=\"" << XML_ENCODING << "\"?>\n<sigfile>\n";
 
+}
+
+void MemExporter::visit_end()
+{
+    stream_ << "</sigfile>";
 }
 
 void FileXMLExporter::visit_end()
 {
-    output_ << "</sigfile>";
-    output_.close();
+    MemExporter::visit_end();
+    std::ofstream output;
+    output.open(path_);
+    output << stream_.str();
+    output.close();
 }
 
 void XMLExporter_common::visit_start_object(YaToolObjectType_e object_type)
@@ -292,7 +311,7 @@ void XMLExporter::visit_start_reference_object(YaToolObjectType_e object_type)
     current_xml_file_path_ = tmp_path.string();
 }
 
-void FileXMLExporter::visit_start_reference_object(YaToolObjectType_e object_type)
+void MemExporter::visit_start_reference_object(YaToolObjectType_e object_type)
 {
     delete_file_ = false;
     buffer_.reset(xmlBufferCreate(), xmlBufferFree);
@@ -317,7 +336,7 @@ void XMLExporter::visit_start_deleted_object(YaToolObjectType_e object_type)
     current_xml_file_path_ = tmp_path.string();
 }
 
-void FileXMLExporter::visit_start_deleted_object(YaToolObjectType_e object_type)
+void MemExporter::visit_start_deleted_object(YaToolObjectType_e object_type)
 {
     delete_file_ = true;
     object_type_ = object_type;
@@ -352,12 +371,12 @@ void XMLExporter::visit_end_default_object()
     }
 }
 
-void FileXMLExporter::visit_end_deleted_object()
+void MemExporter::visit_end_deleted_object()
 {
 
 }
 
-void FileXMLExporter::visit_end_default_object()
+void MemExporter::visit_end_default_object()
 {
 
 }
@@ -380,15 +399,15 @@ void XMLExporter::visit_end_reference_object()
     doc_.reset();
 }
 
-void FileXMLExporter::visit_end_reference_object()
+void MemExporter::visit_end_reference_object()
 {
     end_element(*writer_, "object_type");
 
     writer_.reset();
     doc_.reset();
 
-    output_ << xmlBufferContent(buffer_.get());
-    output_.flush();
+    stream_ << xmlBufferContent(buffer_.get());
+    stream_.flush();
     buffer_.reset();
 }
 
@@ -407,7 +426,7 @@ void XMLExporter::visit_id(YaToolObjectId object_id)
     add_element(*writer_, "id", buf);
 }
 
-void FileXMLExporter::visit_id(YaToolObjectId object_id)
+void MemExporter::visit_id(YaToolObjectId object_id)
 {
     if(delete_file_)
         return;

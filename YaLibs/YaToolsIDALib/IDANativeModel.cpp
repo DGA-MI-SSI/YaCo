@@ -27,6 +27,9 @@
 #include "Plugins.hpp"
 #include "FlatBufferExporter.hpp"
 #include "Utils.hpp"
+#include "Model.hpp"
+#include "XML/XMLExporter.hpp"
+#include "IModel.hpp"
 
 #include <Logger.h>
 #include <Yatools.h>
@@ -240,7 +243,7 @@ namespace
                 plugin_ = MakeArmPluginModel();
         }
 
-        inline bool skip_id(YaToolObjectId id) { return Parent::is_incremental ? parent_.skip_id(id) : false; }
+        inline bool skip_id(YaToolObjectId id, YaToolObjectType_e type) { return Parent::is_incremental ? parent_.skip_id(id, type) : false; }
 
         IHashProvider&                  provider_;
         Parent&                         parent_;
@@ -313,7 +316,7 @@ namespace
         const auto enum_name = ctx.qpool_.acquire();
         ya::wrap(&get_enum_name, *enum_name, eid);
         const auto id = ctx.provider_.get_struc_enum_object_id(eid, ya::to_string_ref(*enum_name), true);
-        if(ctx.skip_id(id))
+        if(ctx.skip_id(id, OBJECT_TYPE_ENUM))
             return;
 
         const auto idx = get_enum_idx(eid);
@@ -514,22 +517,22 @@ namespace
         const auto id = func ?
             ctx.provider_.get_stackframe_member_object_id(sid, member->soff, func->start_ea) :
             ctx.provider_.get_struc_member_id(sid, offset, ya::to_string_ref(*qbuf));
-        if(ctx.skip_id(id))
+        const auto type = func ? OBJECT_TYPE_STACKFRAME_MEMBER : OBJECT_TYPE_STRUCT_MEMBER;
+        if(ctx.skip_id(id, type))
             return;
 
         ya::wrap(&get_member_name, *qbuf, member->id);
 
         // we need to skip default members else we explode on structures with thousand of default fields
-        const auto obtype = func ? OBJECT_TYPE_STACKFRAME_MEMBER : OBJECT_TYPE_STRUCT_MEMBER;
         if(is_default_member(*ctx.qpool_.acquire(), struc, member, ya::to_string_ref(*qbuf)))
         {
-            v.visit_start_default_object(obtype);
+            v.visit_start_default_object(type);
             v.visit_id(id);
             v.visit_end_default_object();
             return;
         }
 
-        start_object(v, obtype, id, parent.id, offset);
+        start_object(v, type, id, parent.id, offset);
         const auto size = get_member_size(member);
         v.visit_size(size);
         v.visit_name(ya::to_string_ref(*qbuf), DEFAULT_NAME_FLAGS);
@@ -554,11 +557,12 @@ namespace
         const auto id = func ?
             ctx.provider_.get_stackframe_object_id(sid, func->start_ea) :
             ctx.provider_.get_struc_enum_object_id(sid, ya::to_string_ref(*struc_name), true);
-        if(ctx.skip_id(id))
+        const auto type = func ? OBJECT_TYPE_STACKFRAME : OBJECT_TYPE_STRUCT;
+        if(ctx.skip_id(id, type))
             return id;
 
         const auto ea = func ? func->start_ea : 0;
-        start_object(v, func ? OBJECT_TYPE_STACKFRAME : OBJECT_TYPE_STRUCT, id, parent.id, ea);
+        start_object(v, type, id, parent.id, ea);
         const auto size = get_struc_size(struc);
         v.visit_size(size);
         v.visit_name(ya::to_string_ref(*struc_name), DEFAULT_NAME_FLAGS);
@@ -874,7 +878,7 @@ namespace
     {
         const auto flags = get_flags(ea);
         const auto id = ctx.provider_.get_hash_for_ea(ea);
-        if(ctx.skip_id(id))
+        if(ctx.skip_id(id, OBJECT_TYPE_DATA))
             return;
 
         start_object(v, OBJECT_TYPE_DATA, id, parent.id, ea);
@@ -1376,7 +1380,7 @@ namespace
     void accept_code(Ctx& ctx, IModelVisitor& v, const Parent& parent, ea_t ea)
     {
         const auto id = ctx.provider_.get_hash_for_ea(ea);
-        if(ctx.skip_id(id))
+        if(ctx.skip_id(id, OBJECT_TYPE_CODE))
             return;
 
         start_object(v, OBJECT_TYPE_CODE, id, parent.id, ea);
@@ -1401,7 +1405,7 @@ namespace
     {
         const auto ea = block.start_ea;
         const auto id = ctx.provider_.get_function_basic_block_hash(ea, parent.ea);
-        if(ctx.skip_id(id))
+        if(ctx.skip_id(id, OBJECT_TYPE_BASIC_BLOCK))
             return;
 
         start_object(v, OBJECT_TYPE_BASIC_BLOCK, id, parent.id, ea);
@@ -1431,7 +1435,7 @@ namespace
     void accept_function_only(Ctx& ctx, IModelVisitor& v, const Parent& parent, func_t* func, YaToolObjectId id)
     {
         const auto ea   = func->start_ea;
-        if(ctx.skip_id(id))
+        if(ctx.skip_id(id, OBJECT_TYPE_FUNCTION))
             return;
 
         asize_t size = 0;
@@ -1615,7 +1619,7 @@ namespace
     {
         const auto id = ctx.provider_.get_segment_chunk_id(parent.id, ea, end);
         const auto current = Parent{id, ea};
-        if(ctx.skip_id(id))
+        if(ctx.skip_id(id, OBJECT_TYPE_SEGMENT_CHUNK))
             return current;
 
         start_object(v, OBJECT_TYPE_SEGMENT_CHUNK, id, parent.id, ea);
@@ -1751,7 +1755,7 @@ namespace
         ya::wrap(&get_segm_name, *qbuf, const_cast<const segment_t*>(seg), 0);
         const auto id = ctx.provider_.get_segment_id(ya::to_string_ref(*qbuf), seg->start_ea);
         const auto current = Parent{id, seg->start_ea};
-        if(ctx.skip_id(id))
+        if(ctx.skip_id(id, OBJECT_TYPE_SEGMENT))
             return current;
 
         start_object(v, OBJECT_TYPE_SEGMENT, id, parent.id, seg->start_ea);
@@ -1794,7 +1798,7 @@ namespace
         const auto id = ctx.provider_.get_binary_id();
         const auto base = get_imagebase();
         const auto current = Parent{id, base};
-        if(ctx.skip_id(id))
+        if(ctx.skip_id(id, OBJECT_TYPE_BINARY))
             return current;
 
         start_object(v, OBJECT_TYPE_BINARY, id, 0, base);
@@ -1853,7 +1857,7 @@ namespace
 
         Model(IHashProvider& provider);
 
-        inline bool skip_id(YaToolObjectId) const { return false; }
+        inline bool skip_id(YaToolObjectId, YaToolObjectType_e) const { return false; }
 
         // IModelAccept methods
         void accept(IModelVisitor& v) override;
@@ -1866,7 +1870,7 @@ namespace
     {
         static const bool is_incremental = true;
 
-        ModelIncremental(IHashProvider& provider);
+        ModelIncremental(IHashProvider& provider, YaToolObjectType_e type);
 
         // IModelIncremental accept methods
         void accept_enum(IModelVisitor& v, ea_t enum_id) override;
@@ -1882,10 +1886,11 @@ namespace
         void delete_struct_member(IModelVisitor& v, ea_t struc_id, ea_t offset, ea_t func_ea) override;
 
         // Ctx methods
-        bool skip_id(YaToolObjectId);
+        bool skip_id(YaToolObjectId, YaToolObjectType_e type);
 
         Ctx<ModelIncremental>               ctx_;
         std::unordered_set<YaToolObjectId>  ids_;
+        const YaToolObjectType_e            type_;
     };
 }
 
@@ -1904,14 +1909,15 @@ void Model::accept(IModelVisitor& v)
     ::accept(ctx_, v);
 }
 
-ModelIncremental::ModelIncremental(IHashProvider& provider)
+ModelIncremental::ModelIncremental(IHashProvider& provider, YaToolObjectType_e type)
     : ctx_(provider, *this)
+    , type_(type)
 {
 }
 
 std::shared_ptr<IModelIncremental> MakeModelIncremental(IHashProvider& provider)
 {
-    return std::make_shared<ModelIncremental>(provider);
+    return std::make_shared<ModelIncremental>(provider, OBJECT_TYPE_UNKNOWN);
 }
 
 void ModelIncremental::accept_enum(IModelVisitor& v, ea_t enum_id)
@@ -1919,8 +1925,10 @@ void ModelIncremental::accept_enum(IModelVisitor& v, ea_t enum_id)
     ::accept_enum(ctx_, v, enum_id);
 }
 
-bool ModelIncremental::skip_id(YaToolObjectId id)
+bool ModelIncremental::skip_id(YaToolObjectId id, YaToolObjectType_e type)
 {
+    if(type_ != OBJECT_TYPE_UNKNOWN && type_ != type)
+        return true;
     return !ids_.emplace(id).second;
 }
 
@@ -2085,4 +2093,13 @@ void export_from_ida(const std::string& filename)
 
     qfwrite(fh, buf.value, buf.size);
     qfclose(fh);
+}
+
+std::string export_xml(ea_t ea, YaToolObjectType_e type)
+{
+    const auto db = MakeModel();
+    db.visitor->visit_start();
+    ModelIncremental(*MakeHashProvider(), type).accept_ea(*db.visitor, ea);
+    db.visitor->visit_end();
+    return export_to_xml(*db.model);
 }
