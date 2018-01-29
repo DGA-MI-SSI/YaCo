@@ -846,7 +846,7 @@ void Hooks::save()
     ModelAndVisitor db = MakeModel();
     db.visitor->visit_start();
     {
-        const auto model = MakeModelIncremental(&hash_provider_);
+        const auto model = MakeModelIncremental(hash_provider_);
         save_structs(*model, *db.visitor);
         save_enums(*model, *db.visitor);
         for (const ea_t ea : eas_)

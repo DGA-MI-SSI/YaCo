@@ -26,7 +26,7 @@ class IModelAccept;
 
 std::string get_type(ea_t ea);
 
-std::shared_ptr<IModelAccept> MakeModel(IHashProvider* provider);
+std::shared_ptr<IModelAccept> MakeModel(IHashProvider& provider);
 std::vector<ea_t> get_all_items(ea_t start, ea_t end);
 
 struct IModelIncremental
@@ -47,6 +47,6 @@ struct IModelIncremental
     virtual void delete_struct_member(IModelVisitor& v, ea_t func_ea, ea_t struct_id, ea_t offset) = 0;
 };
 
-std::shared_ptr<IModelIncremental> MakeModelIncremental(IHashProvider* provider);
+std::shared_ptr<IModelIncremental> MakeModelIncremental(IHashProvider& provider);
 
 void export_from_ida(const std::string& filename);

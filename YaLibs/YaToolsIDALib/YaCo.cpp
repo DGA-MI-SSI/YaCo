@@ -168,7 +168,7 @@ void YaCo::export_database()
     }
 
     std::shared_ptr<IFlatExporter> exporter = MakeFlatBufferExporter();
-    MakeModel(hash_provider_.get())->accept(*exporter);
+    MakeModel(*hash_provider_)->accept(*exporter);
     ExportedBuffer buffer = exporter->GetBuffer();
 
     FILE* database = fopen("database/database.yadb", "wb");

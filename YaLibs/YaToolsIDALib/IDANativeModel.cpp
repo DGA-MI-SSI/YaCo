@@ -1851,7 +1851,7 @@ namespace
     {
         static const bool is_incremental = false;
 
-        Model(IHashProvider* provider);
+        Model(IHashProvider& provider);
 
         inline bool skip_id(YaToolObjectId) const { return false; }
 
@@ -1866,7 +1866,7 @@ namespace
     {
         static const bool is_incremental = true;
 
-        ModelIncremental(IHashProvider* provider);
+        ModelIncremental(IHashProvider& provider);
 
         // IModelIncremental accept methods
         void accept_enum(IModelVisitor& v, ea_t enum_id) override;
@@ -1889,12 +1889,12 @@ namespace
     };
 }
 
-Model::Model(IHashProvider* provider)
-    : ctx_(*provider, *this)
+Model::Model(IHashProvider& provider)
+    : ctx_(provider, *this)
 {
 }
 
-std::shared_ptr<IModelAccept> MakeModel(IHashProvider* provider)
+std::shared_ptr<IModelAccept> MakeModel(IHashProvider& provider)
 {
     return std::make_shared<Model>(provider);
 }
@@ -1904,12 +1904,12 @@ void Model::accept(IModelVisitor& v)
     ::accept(ctx_, v);
 }
 
-ModelIncremental::ModelIncremental(IHashProvider* provider)
-    : ctx_(*provider, *this)
+ModelIncremental::ModelIncremental(IHashProvider& provider)
+    : ctx_(provider, *this)
 {
 }
 
-std::shared_ptr<IModelIncremental> MakeModelIncremental(IHashProvider* provider)
+std::shared_ptr<IModelIncremental> MakeModelIncremental(IHashProvider& provider)
 {
     return std::make_shared<ModelIncremental>(provider);
 }
@@ -2076,7 +2076,7 @@ void export_from_ida(const std::string& filename)
 {
     const auto provider = MakeHashProvider();
     const auto exporter = MakeFlatBufferExporter();
-    Model(provider.get()).accept(*exporter);
+    Model(*provider).accept(*exporter);
 
     const auto buf = exporter->GetBuffer();
     FILE* fh = qfopen(filename.data(), "wb");
