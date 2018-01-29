@@ -95,7 +95,7 @@ class Fixture(unittest.TestCase):
             target = "Qt5Svgd_local.i64"
         cmd = exec_ida.Exec(os.path.join(self.ida_dir, "ida64"), os.path.join(path, target), *args)
         cmd.set_idle(True)
-        fd, fname = tempfile.mkstemp(dir=path, suffix=".py")
+        fd, fname = tempfile.mkstemp(dir=path, prefix="exec_", suffix=".py")
         os.write(fd, ida_start + script + ida_end)
         os.close(fd)
         cmd.with_script(fname, self.bin_dir, self.yaco_dir)
@@ -109,7 +109,7 @@ idc.SaveBase("")
 """
         todo = []
         for (script, check) in checks:
-            fd, fname = tempfile.mkstemp(dir=path, suffix=".xml")
+            fd, fname = tempfile.mkstemp(dir=path, prefix="yadb_", suffix=".xml")
             os.close(fd)
             scripts += """
 with open("%s", "wb") as fh:
@@ -143,7 +143,7 @@ with open("%s", "wb") as fh:
     def init_repo(self, wd_dir, qt_dir, path):
         path = os.path.join(wd_dir, path)
         shutil.copytree(qt_dir, path)
-        self.idado(path, "YaCo.start()", init=True)
+        self.idado(path, "", init=True)
         return path
 
     def set_master(self, repo, master):
