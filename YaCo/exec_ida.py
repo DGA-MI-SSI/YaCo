@@ -16,7 +16,7 @@
 import os
 import platform
 import subprocess
-import uuid
+import tempfile
 
 IDLE_PRIORITY_CLASS = 0x00000040
 
@@ -29,7 +29,10 @@ class Exec:
         # options
         self.is_idle = False
         self.cwd = None
-        self.logfile = os.path.join(os.path.dirname(database), '%s.log' % uuid.uuid4())
+        fd, fname = tempfile.mkstemp(dir=os.path.dirname(database), prefix="tmp_", suffix=".log")
+        os.close(fd)
+        os.remove(fname)
+        self.logfile = fname
         self.delete_log = True
 
     # options
