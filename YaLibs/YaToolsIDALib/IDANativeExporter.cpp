@@ -159,26 +159,27 @@ Exporter::Exporter(IHashProvider& provider, UseStacks use_stacks)
 
 namespace
 {
-    void make_name(Exporter& exporter, const HVersion& version, ea_t ea, bool is_in_func)
+    void make_name(Exporter& exporter, const HVersion& version, ea_t ea)
     {
         const auto name = version.username();
         const auto strname = make_string(name);
-        auto flags = version.username_flags();
-        if(!flags)
-            flags = SN_CHECK;
-
-        const auto reset_flags = SN_CHECK | (is_in_func ? SN_LOCAL : 0);
         const auto qbuf = exporter.qpool_.acquire();
         ya::wrap(&get_ea_name, *qbuf, ea, 0, (getname_info_t*) NULL);
-        set_name(ea, "", reset_flags);
+        const auto ok = set_name(ea, "");
+        if(!ok)
+            LOG(DEBUG, "make_name: 0x%" PRIxEA " unable to reset name\n", ea);
+
         if(!name.size || is_default_name(name))
         {
             LOG(DEBUG, "make_name: 0x%" PRIxEA " resetting name %s\n", ea, strname.data());
             return;
         }
 
-        const auto ok = set_name(ea, strname.data(), flags | SN_NOWARN);
-        if(ok)
+        auto flags = version.username_flags();
+        if(!flags)
+            flags = SN_CHECK;
+        const auto ok_ = set_name(ea, strname.data(), flags | SN_NOWARN);
+        if(ok_)
             return;
 
         LOG(WARNING, "make_name: 0x%" PRIxEA " unable to set name flags 0x%08x '%s'\n", ea, flags, strname.data());
@@ -1168,7 +1169,7 @@ namespace
     {
         del_func(ea);
         create_insn(ea);
-        make_name(exporter, version, ea, false);
+        make_name(exporter, version, ea);
         make_views(version, ea);
     }
 
@@ -1231,7 +1232,7 @@ namespace
     void make_data(Exporter& exporter, const HVersion& version, ea_t ea)
     {
         set_data_type(exporter, version, ea);
-        make_name(exporter, version, ea, false);
+        make_name(exporter, version, ea);
         set_type(&exporter, ea, make_string(version.prototype()));
     }
 
@@ -1448,7 +1449,7 @@ namespace
     void make_basic_block(Exporter& exporter, const HVersion& version, ea_t ea)
     {
         Paths paths;
-        make_name(exporter, version, ea, true);
+        make_name(exporter, version, ea);
         make_views(version, ea);
         version.walk_xrefs([&](offset_t offset, operand_t operand, YaToolObjectId xref_id, const XrefAttributes* attrs)
         {
