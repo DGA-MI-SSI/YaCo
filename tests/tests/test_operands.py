@@ -17,20 +17,16 @@
 
 import run_all_tests
 
-class Fixture(run_all_tests.Fixture):
-
-    def test_operands(self):
-        wd, a, b = self.setup_repos()
-        ea = 0x66013B90
-        self.idado(a, """
-ea = 0x%x
+set_operands = """
+ea = 0x66013B90
 idaapi.op_dec(ea+0x1A, 0)
 idaapi.op_dec(ea+0x24, 1)
 idaapi.toggle_sign(ea+0x24, 1)
 idaapi.op_hex(ea+0x27, 1)
 idaapi.toggle_sign(ea+0x27, 1)
-""" % ea)
-        self.idacheck(b, self.has(ea+0x17, "1 << ya.OBJECT_TYPE_BASIC_BLOCK", """
+"""
+
+operands = """
     <offsets>
       <valueview offset="0000000000000011" operand="00000000">offset-off32</valueview>
       <valueview offset="000000000000001A" operand="00000000">unsigneddecimal</valueview>
@@ -38,16 +34,18 @@ idaapi.toggle_sign(ea+0x27, 1)
       <valueview offset="0000000000000027" operand="00000001">signedhexadecimal</valueview>
       <valueview offset="0000000000000033" operand="00000000">offset-off32</valueview>
     </offsets>
-"""))
-        self.idado(b, """
-ea = 0x%x
+"""
+
+reset_operands = """
+ea = 0x66013B90
 idaapi.op_hex(ea+0x1A, 0)
 idaapi.toggle_sign(ea+0x24, 1)
 idaapi.op_hex(ea+0x24, 1)
 idaapi.toggle_sign(ea+0x27, 1)
 idaapi.op_dec(ea+0x27, 1)
-""" % ea)
-        self.idacheck(a, self.has(ea+0x17, "1 << ya.OBJECT_TYPE_BASIC_BLOCK", """
+"""
+
+default_operands = """
     <offsets>
       <valueview offset="0000000000000011" operand="00000000">offset-off32</valueview>
       <valueview offset="000000000000001A" operand="00000000">unsignedhexadecimal</valueview>
@@ -55,4 +53,14 @@ idaapi.op_dec(ea+0x27, 1)
       <valueview offset="0000000000000027" operand="00000001">unsigneddecimal</valueview>
       <valueview offset="0000000000000033" operand="00000000">offset-off32</valueview>
     </offsets>
-"""))
+"""
+
+class Fixture(run_all_tests.Fixture):
+
+    def test_operands(self):
+        a, b = self.setup_repos()
+        ea = 0x66013B90
+        a.run(set_operands)
+        b.check(self.has(ea+0x17, "1 << ya.OBJECT_TYPE_BASIC_BLOCK", operands))
+        b.run(reset_operands)
+        a.check(self.has(ea+0x17, "1 << ya.OBJECT_TYPE_BASIC_BLOCK", default_operands))

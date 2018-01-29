@@ -71,6 +71,45 @@ idc.SaveBase("")
 idc.Exit(0)
 """
 
+class Repo():
+    
+    def __init__(self, ctx, path):
+        self.ctx = ctx
+        self.path = path
+
+    def run(self, script, init=False):
+        import exec_ida
+        args = ["-Oyaco:disable_plugin", "-A"]
+        target = "Qt5Svgd.i64"
+        if not init:
+            target = "Qt5Svgd_local.i64"
+        cmd = exec_ida.Exec(os.path.join(self.ctx.ida_dir, "ida64"), os.path.join(self.path, target), *args)
+        cmd.set_idle(True)
+        fd, fname = tempfile.mkstemp(dir=self.path, prefix="exec_", suffix=".py")
+        os.write(fd, ida_start + script + ida_end)
+        os.close(fd)
+        cmd.with_script(fname, self.ctx.bin_dir, self.ctx.yaco_dir)
+        err = cmd.run()
+        self.ctx.assertEqual(err, None, "%s" % err)
+
+    def check(self, *checks):
+        scripts = """
+idc.SaveBase("")
+"""
+        todo = []
+        for (script, check) in checks:
+            fd, fname = tempfile.mkstemp(dir=self.path, prefix="yadb_", suffix=".xml")
+            os.close(fd)
+            scripts += """
+with open("%s", "wb") as fh:
+    fh.write(%s)
+""" % (re.sub("\\\\", "/", fname), script)
+            todo.append((check, fname))
+
+        self.run(scripts)
+        for (check, name) in todo:
+            check(name)
+
 class Fixture(unittest.TestCase):
 
     def setUp(self):
@@ -86,40 +125,6 @@ class Fixture(unittest.TestCase):
     def tearDown(self):
         for d in self.dirs:
             remove_dir(d)
-
-    def idado(self, path, script, init=False):
-        import exec_ida
-        args = ["-Oyaco:disable_plugin", "-A"]
-        target = "Qt5Svgd.i64"
-        if not init:
-            target = "Qt5Svgd_local.i64"
-        cmd = exec_ida.Exec(os.path.join(self.ida_dir, "ida64"), os.path.join(path, target), *args)
-        cmd.set_idle(True)
-        fd, fname = tempfile.mkstemp(dir=path, prefix="exec_", suffix=".py")
-        os.write(fd, ida_start + script + ida_end)
-        os.close(fd)
-        cmd.with_script(fname, self.bin_dir, self.yaco_dir)
-        err = cmd.run()
-        self.assertEqual(err, None, "%s" % err)
-        return path
-
-    def idacheck(self, path, *checks):
-        scripts = """
-idc.SaveBase("")
-"""
-        todo = []
-        for (script, check) in checks:
-            fd, fname = tempfile.mkstemp(dir=path, prefix="yadb_", suffix=".xml")
-            os.close(fd)
-            scripts += """
-with open("%s", "wb") as fh:
-    fh.write(%s)
-""" % (re.sub("\\\\", "/", fname), script)
-            todo.append((check, fname))
-
-        self.idado(path, scripts)
-        for (check, name) in todo:
-            check(name)
 
     def check_count(self, ea, otype, want, count):
         script = "ya.export_xml(0x%x, %s)" % (ea, otype)
@@ -143,7 +148,8 @@ with open("%s", "wb") as fh:
     def init_repo(self, wd_dir, qt_dir, path):
         path = os.path.join(wd_dir, path)
         shutil.copytree(qt_dir, path)
-        self.idado(path, "", init=True)
+        repo = Repo(self, path)
+        repo.run("", init=True)
         return path
 
     def set_master(self, repo, master):
@@ -163,7 +169,7 @@ with open("%s", "wb") as fh:
         sysexec(a, ["git", "clone", "--bare", ".", c])
         self.set_master(a, c)
         self.set_master(b, c)
-        return work_dir, a, b
+        return Repo(self, a), Repo(self, b)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

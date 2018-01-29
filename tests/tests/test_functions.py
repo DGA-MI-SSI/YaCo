@@ -17,58 +17,28 @@
 
 import run_all_tests
 
-class Fixture(run_all_tests.Fixture):
-
-    def test_rename_function(self):
-        wd, a, b = self.setup_repos()
-        ea = 0x6602E530
-        self.idado(a, """
-ea = 0x%x
+set_function_name = """
+ea = 0x6602E530
 idaapi.set_name(ea, "funcname_01", idaapi.SN_PUBLIC)
-""" % ea)
-        self.idacheck(b, self.has(ea, "1 << ya.OBJECT_TYPE_BASIC_BLOCK", """
-    <address>6602E530</address>
-    <userdefinedname flags="0x00000052">funcname_01</userdefinedname>
-    <signatures>
-"""))
-        self.idado(b, """
-ea = 0x%x
-idaapi.set_name(ea, "")
-""" % ea)
-        self.idacheck(a, self.has(ea, "1 << ya.OBJECT_TYPE_BASIC_BLOCK", """
-    <address>6602E530</address>
-    <signatures>
-"""))
+"""
 
-    def test_rename_stackframe_members(self):
-        wd, a, b = self.setup_repos()
-        ea = 0x6602E530
-        stack_mask = "(1 << ya.OBJECT_TYPE_FUNCTION) | (1 << ya.OBJECT_TYPE_STACKFRAME)"
-        stackvar_mask = stack_mask + " | (1 << ya.OBJECT_TYPE_STACKFRAME_MEMBER)"
-        self.idado(a, """
-ea = 0x%x
+function_name = """
+    <userdefinedname flags="0x00000052">funcname_01</userdefinedname>
+"""
+
+reset_function_name = """
+ea = 0x6602E530
+idaapi.set_name(ea, "")
+"""
+
+set_stackvar_names = """
+ea = 0x6602E530
 frame = idaapi.get_frame(ea)
 idaapi.set_member_name(frame, 0x4,  "local_b")
 idaapi.set_member_name(frame, 0x20, "arg_b")
-""" % ea)
-        local_b = """
-  <id>9E4BF9B751B76EE4</id>
-  <version>
-    <size>0x0000000000000004</size>
-    <parent_id>569EF65FD6CB6A6F</parent_id>
-    <address>4</address>
-    <userdefinedname>local_b</userdefinedname>
 """
-        arg_b = """
-  <id>3B75F00131A38ACC</id>
-  <version>
-    <size>0x0000000000000004</size>
-    <parent_id>569EF65FD6CB6A6F</parent_id>
-    <address>20</address>
-    <userdefinedname>arg_b</userdefinedname>
-"""
-        self.idacheck(b,
-            self.has(ea, stack_mask, """
+
+function_xrefs = """
     <xrefs>
       <xref offset="0x0000000000000000">3F51703267741413</xref>
       <xref offset="0x0000000000000004">9E4BF9B751B76EE4</xref>
@@ -79,6 +49,44 @@ idaapi.set_member_name(frame, 0x20, "arg_b")
       <xref offset="0x0000000000000020">3B75F00131A38ACC</xref>
       <xref offset="0x0000000000000024">4F64947E1EBC12C0</xref>
     </xrefs>
-"""),
-            self.has(ea, stackvar_mask, local_b),
-            self.has(ea, stackvar_mask, arg_b))
+"""
+
+local_b_var = """
+  <id>9E4BF9B751B76EE4</id>
+  <version>
+    <size>0x0000000000000004</size>
+    <parent_id>569EF65FD6CB6A6F</parent_id>
+    <address>4</address>
+    <userdefinedname>local_b</userdefinedname>
+"""
+
+arg_b_var = """
+  <id>3B75F00131A38ACC</id>
+  <version>
+    <size>0x0000000000000004</size>
+    <parent_id>569EF65FD6CB6A6F</parent_id>
+    <address>20</address>
+    <userdefinedname>arg_b</userdefinedname>
+"""
+
+class Fixture(run_all_tests.Fixture):
+
+    def test_rename_function(self):
+        a, b = self.setup_repos()
+        ea = 0x6602E530
+        a.run(set_function_name)
+        b.check(self.has(ea, "1 << ya.OBJECT_TYPE_BASIC_BLOCK", function_name))
+        b.run(reset_function_name)
+        a.check(self.nothas(ea, "1 << ya.OBJECT_TYPE_BASIC_BLOCK", function_name))
+
+    def test_rename_stackframe_members(self):
+        a, b = self.setup_repos()
+        ea = 0x6602E530
+        stack_mask = "(1 << ya.OBJECT_TYPE_FUNCTION) | (1 << ya.OBJECT_TYPE_STACKFRAME)"
+        stackvar_mask = stack_mask + " | (1 << ya.OBJECT_TYPE_STACKFRAME_MEMBER)"
+        a.run(set_stackvar_names)
+        b.check(
+            self.has(ea, stack_mask, function_xrefs),
+            self.has(ea, stackvar_mask, local_b_var),
+            self.has(ea, stackvar_mask, arg_b_var),
+        )

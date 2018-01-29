@@ -17,17 +17,13 @@
 
 import run_all_tests
 
-class Fixture(run_all_tests.Fixture):
-
-    def test_reference_views(self):
-        wd, a, b = self.setup_repos()
-        ea = 0x66013B00
-        self.idado(a, """
-ea = 0x%x
+set_reference_views = """
+ea = 0x66013B00
 idaapi.op_offset(ea+0xF,  0, idaapi.get_default_reftype(ea+0xF),  idaapi.BADADDR, 0xdeadbeef)
 idaapi.op_offset(ea+0x17, 1, idaapi.get_default_reftype(ea+0x17), idaapi.BADADDR, 0xbeefdead)
-""" % ea)
-        xrefs = """
+"""
+
+xrefs = """
     <xrefs>
       <xref offset="0x0000000000000004">B38DAEC3453D8D05</xref>
       <xref offset="0x0000000000000007" operand="0x0000000000000001">B38DAEC3453D8D05</xref>
@@ -38,7 +34,8 @@ idaapi.op_offset(ea+0x17, 1, idaapi.get_default_reftype(ea+0x17), idaapi.BADADDR
       <xref offset="0x0000000000000020" operand="0x0000000000000001">B38DAEC3453D8D05</xref>
     </xrefs>
 """
-        refs = """
+
+refa = """
 <reference_info>
   <id>57DD1848475C188D</id>
   <version>
@@ -54,6 +51,9 @@ idaapi.op_offset(ea+0x17, 1, idaapi.get_default_reftype(ea+0x17), idaapi.BADADDR
     </matchingsystem>
   </version>
 </reference_info>
+"""
+
+refb = """
 <reference_info>
   <id>67EB8A6CC403AA02</id>
   <version>
@@ -69,17 +69,15 @@ idaapi.op_offset(ea+0x17, 1, idaapi.get_default_reftype(ea+0x17), idaapi.BADADDR
     </matchingsystem>
   </version>
 </reference_info>
-</sigfile>"""
-        self.idacheck(b,
-            self.has(ea, "1 << ya.OBJECT_TYPE_BASIC_BLOCK", xrefs),
-            self.has(ea, "1 << ya.OBJECT_TYPE_BASIC_BLOCK", refs))
-        self.idado(b, """
+"""
+
+reset_reference_views = """
 ea = 0x66013B00
 idaapi.op_offset(ea+0xF,  0, idaapi.get_default_reftype(ea+0xF))
 idaapi.op_offset(ea+0x17, 1, idaapi.get_default_reftype(ea+0x17))
-""")
-        self.idacheck(a,
-            self.has(ea, "1 << ya.OBJECT_TYPE_BASIC_BLOCK", """
+"""
+
+default_xrefs = """
     <xrefs>
       <xref offset="0x0000000000000004">B38DAEC3453D8D05</xref>
       <xref offset="0x0000000000000007" operand="0x0000000000000001">B38DAEC3453D8D05</xref>
@@ -87,5 +85,22 @@ idaapi.op_offset(ea+0x17, 1, idaapi.get_default_reftype(ea+0x17))
       <xref offset="0x0000000000000014" operand="0x0000000000000001">B38DAEC3453D8D05</xref>
       <xref offset="0x0000000000000020" operand="0x0000000000000001">B38DAEC3453D8D05</xref>
     </xrefs>
-"""),
-            self.nothas(ea, "1 << ya.OBJECT_TYPE_BASIC_BLOCK", refs))
+"""
+
+class Fixture(run_all_tests.Fixture):
+
+    def test_reference_views(self):
+        a, b = self.setup_repos()
+        ea = 0x66013B00
+        a.run(set_reference_views)
+        b.check(
+            self.has(ea, "1 << ya.OBJECT_TYPE_BASIC_BLOCK", xrefs),
+            self.has(ea, "1 << ya.OBJECT_TYPE_BASIC_BLOCK", refa),
+            self.has(ea, "1 << ya.OBJECT_TYPE_BASIC_BLOCK", refb),
+        )
+        b.run(reset_reference_views)
+        a.check(
+            self.has(ea, "1 << ya.OBJECT_TYPE_BASIC_BLOCK", default_xrefs),
+            self.nothas(ea, "1 << ya.OBJECT_TYPE_BASIC_BLOCK", refa),
+            self.nothas(ea, "1 << ya.OBJECT_TYPE_BASIC_BLOCK", refb),
+        )
