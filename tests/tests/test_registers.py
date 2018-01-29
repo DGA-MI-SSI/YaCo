@@ -33,11 +33,11 @@ idaapi.add_regvar(func, ea+0x10, ea+0x20, "ebp", "ebp_b", None)
       <registerview offset="0000000000000010" end_offset="0000000000000020" register="ebp">ebp_b</registerview>
     </offsets>
 """
-        self.idacheck(b, self.has(0x66013830, "ya.OBJECT_TYPE_BASIC_BLOCK", offsets))
+        self.idacheck(b, self.has(0x66013830, "1 << ya.OBJECT_TYPE_BASIC_BLOCK", offsets))
         self.idado(b, """
 ea = 0x66013830
 func = idaapi.get_func(ea)
 idaapi.del_regvar(func, ea, ea+0x10, "ebp")
 idaapi.del_regvar(func, ea+0x10, ea+0x20, "ebp")
 """)
-        self.idacheck(a, self.nothas(0x66013830, "ya.OBJECT_TYPE_BASIC_BLOCK", offsets))
+        self.idacheck(a, self.nothas(0x66013830, "1 << ya.OBJECT_TYPE_BASIC_BLOCK", offsets))

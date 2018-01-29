@@ -1870,7 +1870,7 @@ namespace
     {
         static const bool is_incremental = true;
 
-        ModelIncremental(IHashProvider& provider, YaToolObjectType_e type);
+        ModelIncremental(IHashProvider& provider, int type_mask);
 
         // IModelIncremental accept methods
         void accept_enum(IModelVisitor& v, ea_t enum_id) override;
@@ -1890,7 +1890,7 @@ namespace
 
         Ctx<ModelIncremental>               ctx_;
         std::unordered_set<YaToolObjectId>  ids_;
-        const YaToolObjectType_e            type_;
+        const int                           type_mask_;
     };
 }
 
@@ -1909,15 +1909,15 @@ void Model::accept(IModelVisitor& v)
     ::accept(ctx_, v);
 }
 
-ModelIncremental::ModelIncremental(IHashProvider& provider, YaToolObjectType_e type)
+ModelIncremental::ModelIncremental(IHashProvider& provider, int type_mask)
     : ctx_(provider, *this)
-    , type_(type)
+    , type_mask_(type_mask)
 {
 }
 
 std::shared_ptr<IModelIncremental> MakeModelIncremental(IHashProvider& provider)
 {
-    return std::make_shared<ModelIncremental>(provider, OBJECT_TYPE_UNKNOWN);
+    return std::make_shared<ModelIncremental>(provider, ~0);
 }
 
 void ModelIncremental::accept_enum(IModelVisitor& v, ea_t enum_id)
@@ -1927,7 +1927,7 @@ void ModelIncremental::accept_enum(IModelVisitor& v, ea_t enum_id)
 
 bool ModelIncremental::skip_id(YaToolObjectId id, YaToolObjectType_e type)
 {
-    if(type_ != OBJECT_TYPE_UNKNOWN && type_ != type)
+    if(!((1 << type) & type_mask_))
         return true;
     return !ids_.emplace(id).second;
 }
@@ -2095,11 +2095,11 @@ void export_from_ida(const std::string& filename)
     qfclose(fh);
 }
 
-std::string export_xml(ea_t ea, YaToolObjectType_e type)
+std::string export_xml(ea_t ea, int type_mask)
 {
     const auto db = MakeModel();
     db.visitor->visit_start();
-    ModelIncremental(*MakeHashProvider(), type).accept_ea(*db.visitor, ea);
+    ModelIncremental(*MakeHashProvider(), type_mask).accept_ea(*db.visitor, ea);
     db.visitor->visit_end();
     return export_to_xml(*db.model);
 }

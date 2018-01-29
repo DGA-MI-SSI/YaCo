@@ -36,7 +36,7 @@ idaapi.update_extra_cmt(ea+6, idaapi.E_NEXT + 0, "cmt 09")
 idaapi.update_extra_cmt(ea+6, idaapi.E_NEXT + 1, "cmt 0a")
 """)
         self.idacheck(b,
-            self.has(0x66013850, "ya.OBJECT_TYPE_BASIC_BLOCK", """
+            self.has(0x66013850, "1 << ya.OBJECT_TYPE_BASIC_BLOCK", """
     <offsets>
       <comments offset="0000000000000001" type="repeatable_comment">cmt 03</comments>
       <comments offset="0000000000000003" type="nonrepeatable_comment">cmt 04</comments>
@@ -50,7 +50,7 @@ cmt 0a</comments>
       <valueview offset="0000000000000003" operand="00000001">unsignedhexadecimal</valueview>
     </offsets>
 """),
-            self.has(0x66013850, "ya.OBJECT_TYPE_FUNCTION", """
+            self.has(0x66013850, "1 << ya.OBJECT_TYPE_FUNCTION", """
     </signatures>
     <repeatable_headercomment>cmt 01</repeatable_headercomment>
     <nonrepeatable_headercomment>cmt 02</nonrepeatable_headercomment>
@@ -71,13 +71,13 @@ idaapi.update_extra_cmt(ea+6, idaapi.E_NEXT + 0, "")
 idaapi.update_extra_cmt(ea+6, idaapi.E_NEXT + 1, "")
 """)
         self.idacheck(a,
-            self.has(0x66013850, "ya.OBJECT_TYPE_BASIC_BLOCK", """
+            self.has(0x66013850, "1 << ya.OBJECT_TYPE_BASIC_BLOCK", """
     <offsets>
       <comments offset="0000000000000009" type="nonrepeatable_comment">this</comments>
       <valueview offset="0000000000000003" operand="00000001">unsignedhexadecimal</valueview>
     </offsets>
 """),
-            self.has(0x66013850, "ya.OBJECT_TYPE_FUNCTION", """
+            self.has(0x66013850, "1 << ya.OBJECT_TYPE_FUNCTION", """
     </signatures>
     <xrefs>
 """))

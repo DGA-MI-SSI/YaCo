@@ -50,4 +50,4 @@ struct IModelIncremental
 std::shared_ptr<IModelIncremental> MakeModelIncremental(IHashProvider& provider);
 
 void export_from_ida(const std::string& filename);
-std::string export_xml(ea_t ea, YaToolObjectType_e type);
+std::string export_xml(ea_t ea, int type_mask);

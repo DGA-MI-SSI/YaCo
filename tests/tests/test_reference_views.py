@@ -71,15 +71,15 @@ idaapi.op_offset(ea+0x17, 1, idaapi.get_default_reftype(ea+0x17), idaapi.BADADDR
 </reference_info>
 </sigfile>"""
         self.idacheck(b,
-            self.has(ea, "ya.OBJECT_TYPE_BASIC_BLOCK", xrefs),
-            self.has(ea, "ya.OBJECT_TYPE_BASIC_BLOCK", refs))
+            self.has(ea, "1 << ya.OBJECT_TYPE_BASIC_BLOCK", xrefs),
+            self.has(ea, "1 << ya.OBJECT_TYPE_BASIC_BLOCK", refs))
         self.idado(b, """
 ea = 0x66013B00
 idaapi.op_offset(ea+0xF,  0, idaapi.get_default_reftype(ea+0xF))
 idaapi.op_offset(ea+0x17, 1, idaapi.get_default_reftype(ea+0x17))
 """)
         self.idacheck(a,
-            self.has(ea, "ya.OBJECT_TYPE_BASIC_BLOCK", """
+            self.has(ea, "1 << ya.OBJECT_TYPE_BASIC_BLOCK", """
     <xrefs>
       <xref offset="0x0000000000000004">B38DAEC3453D8D05</xref>
       <xref offset="0x0000000000000007" operand="0x0000000000000001">B38DAEC3453D8D05</xref>
@@ -88,4 +88,4 @@ idaapi.op_offset(ea+0x17, 1, idaapi.get_default_reftype(ea+0x17))
       <xref offset="0x0000000000000020" operand="0x0000000000000001">B38DAEC3453D8D05</xref>
     </xrefs>
 """),
-            self.nothas(ea, "ya.OBJECT_TYPE_BASIC_BLOCK", refs))
+            self.nothas(ea, "1 << ya.OBJECT_TYPE_BASIC_BLOCK", refs))

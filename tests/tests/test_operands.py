@@ -30,7 +30,7 @@ idaapi.toggle_sign(ea+0x24, 1)
 idaapi.op_hex(ea+0x27, 1)
 idaapi.toggle_sign(ea+0x27, 1)
 """ % ea)
-        self.idacheck(b, self.has(ea+0x17, "ya.OBJECT_TYPE_BASIC_BLOCK", """
+        self.idacheck(b, self.has(ea+0x17, "1 << ya.OBJECT_TYPE_BASIC_BLOCK", """
     <offsets>
       <valueview offset="0000000000000011" operand="00000000">offset-off32</valueview>
       <valueview offset="000000000000001A" operand="00000000">unsigneddecimal</valueview>
@@ -47,7 +47,7 @@ idaapi.op_hex(ea+0x24, 1)
 idaapi.toggle_sign(ea+0x27, 1)
 idaapi.op_dec(ea+0x27, 1)
 """ % ea)
-        self.idacheck(a, self.has(ea+0x17, "ya.OBJECT_TYPE_BASIC_BLOCK", """
+        self.idacheck(a, self.has(ea+0x17, "1 << ya.OBJECT_TYPE_BASIC_BLOCK", """
     <offsets>
       <valueview offset="0000000000000011" operand="00000000">offset-off32</valueview>
       <valueview offset="000000000000001A" operand="00000000">unsignedhexadecimal</valueview>
