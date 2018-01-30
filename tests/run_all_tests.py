@@ -147,6 +147,25 @@ class Fixture(unittest.TestCase):
                 self.fail("".join(difflib.unified_diff(want.splitlines(1), data.splitlines(1), name)))
         return check
 
+    def filter_enum(self, d):
+        # ids & addresses are unstable
+        d = re.sub("id>[A-F0-9]+", "id>", d)
+        d = re.sub("[A-F0-9]+</xref>", "</xref>", d)
+        d = re.sub("address>[A-F0-9]+", "address>", d)
+        return d
+
+    def save_enum(self, name):
+        script = "ya.export_xml_enum('%s')" % name
+        def callback(filename):
+            with open(filename, "rb") as fh:
+                self.enums[name] = self.filter_enum(fh.read())
+        return script, callback
+
+    def check_enum(self, name):
+        script = "ya.export_xml_enum('%s')" % name
+        want = self.enums[name]
+        return script, self.check_diff(want, filter=self.filter_enum)
+
     def save_ea(self, ea):
         script = "ya.export_xml(0x%x, %s)" % (ea, ea_defmask)
         def callback(filename):

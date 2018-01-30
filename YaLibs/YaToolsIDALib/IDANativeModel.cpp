@@ -2103,3 +2103,12 @@ std::string export_xml(ea_t ea, int type_mask)
     db.visitor->visit_end();
     return export_to_xml(*db.model);
 }
+
+std::string export_xml_enum(const std::string& name)
+{
+    const auto db = MakeModel();
+    db.visitor->visit_start();
+    ModelIncremental(*MakeHashProvider(), ~0).accept_enum(*db.visitor, get_enum(name.data()));
+    db.visitor->visit_end();
+    return export_to_xml(*db.model);
+}
