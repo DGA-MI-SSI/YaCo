@@ -24,13 +24,6 @@ idaapi.add_regvar(func, ea, ea+0x10, "ebp", "ebp_a", None)
 idaapi.add_regvar(func, ea+0x10, ea+0x20, "ebp", "ebp_b", None)
 """
 
-offsets = """
-    <offsets>
-      <registerview offset="0000000000000000" end_offset="0000000000000010" register="ebp">ebp_a</registerview>
-      <registerview offset="0000000000000010" end_offset="0000000000000020" register="ebp">ebp_b</registerview>
-    </offsets>
-"""
-
 reset_registers = """
 ea = 0x66013830
 func = idaapi.get_func(ea)
@@ -43,7 +36,15 @@ class Fixture(run_all_tests.Fixture):
     def test_register_views(self):
         a, b = self.setup_repos()
         ea = 0x66013830
-        a.run(set_registers)
-        b.check(self.has(ea, "1 << ya.OBJECT_TYPE_BASIC_BLOCK", offsets))
-        b.run(reset_registers)
-        a.check(self.nothas(ea, "1 << ya.OBJECT_TYPE_BASIC_BLOCK", offsets))
+        a.run(
+            self.script(set_registers),
+            self.save_ea(ea),
+        )
+        b.run(
+            self.check_ea(ea),
+            self.script(reset_registers),
+            self.save_ea(ea),
+        )
+        a.run(
+            self.check_ea(ea),
+        )

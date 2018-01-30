@@ -26,16 +26,6 @@ idaapi.op_hex(ea+0x27, 1)
 idaapi.toggle_sign(ea+0x27, 1)
 """
 
-operands = """
-    <offsets>
-      <valueview offset="0000000000000011" operand="00000000">offset-off32</valueview>
-      <valueview offset="000000000000001A" operand="00000000">unsigneddecimal</valueview>
-      <valueview offset="0000000000000024" operand="00000001">signeddecimal</valueview>
-      <valueview offset="0000000000000027" operand="00000001">signedhexadecimal</valueview>
-      <valueview offset="0000000000000033" operand="00000000">offset-off32</valueview>
-    </offsets>
-"""
-
 reset_operands = """
 ea = 0x66013B90
 idaapi.op_hex(ea+0x1A, 0)
@@ -45,22 +35,20 @@ idaapi.toggle_sign(ea+0x27, 1)
 idaapi.op_dec(ea+0x27, 1)
 """
 
-default_operands = """
-    <offsets>
-      <valueview offset="0000000000000011" operand="00000000">offset-off32</valueview>
-      <valueview offset="000000000000001A" operand="00000000">unsignedhexadecimal</valueview>
-      <valueview offset="0000000000000024" operand="00000001">unsignedhexadecimal</valueview>
-      <valueview offset="0000000000000027" operand="00000001">unsigneddecimal</valueview>
-      <valueview offset="0000000000000033" operand="00000000">offset-off32</valueview>
-    </offsets>
-"""
-
 class Fixture(run_all_tests.Fixture):
 
     def test_operands(self):
         a, b = self.setup_repos()
         ea = 0x66013B90
-        a.run(set_operands)
-        b.check(self.has(ea+0x17, "1 << ya.OBJECT_TYPE_BASIC_BLOCK", operands))
-        b.run(reset_operands)
-        a.check(self.has(ea+0x17, "1 << ya.OBJECT_TYPE_BASIC_BLOCK", default_operands))
+        a.run(
+            self.script(set_operands),
+            self.save_ea(ea),
+        )
+        b.run(
+            self.check_ea(ea),
+            self.script(reset_operands),
+            self.save_ea(ea),
+        )
+        a.run(
+            self.check_ea(ea),
+        )

@@ -72,12 +72,12 @@ idc.Exit(0)
 """
 
 class Repo():
-    
+
     def __init__(self, ctx, path):
         self.ctx = ctx
         self.path = path
 
-    def run(self, script, init=False):
+    def run_script(self, script, init=False):
         import exec_ida
         args = ["-Oyaco:disable_plugin", "-A"]
         target = "Qt5Svgd.i64"
@@ -92,12 +92,15 @@ class Repo():
         err = cmd.run()
         self.ctx.assertEqual(err, None, "%s" % err)
 
-    def check(self, *checks):
+    def run(self, *args):
         scripts = """
 idc.SaveBase("")
 """
         todo = []
-        for (script, check) in checks:
+        for (script, check) in args:
+            if check == None:
+                scripts += script
+                continue
             fd, fname = tempfile.mkstemp(dir=self.path, prefix="yadb_", suffix=".xml")
             os.close(fd)
             scripts += """
@@ -106,9 +109,11 @@ with open("%s", "wb") as fh:
 """ % (re.sub("\\\\", "/", fname), script)
             todo.append((check, fname))
 
-        self.run(scripts)
+        self.run_script(scripts)
         for (check, name) in todo:
             check(name)
+
+ea_defmask = "(~0 & ~(1 << ya.OBJECT_TYPE_STRUCT) & ~(1 << ya.OBJECT_TYPE_ENUM)) & ~(1 << ya.OBJECT_TYPE_SEGMENT_CHUNK)"
 
 class Fixture(unittest.TestCase):
 
@@ -126,31 +131,33 @@ class Fixture(unittest.TestCase):
         for d in self.dirs:
             remove_dir(d)
 
-    def check_count(self, ea, otype, want, count):
-        script = "ya.export_xml(0x%x, %s)" % (ea, otype)
+    def script(self, script):
+        self.enums = {}
+        self.eas = {}
+        return script, None
+
+    def check_diff(self, want, filter=None):
         def check(name):
             data = None
             with open(name, "rb") as fh:
                 data = fh.read()
-            if data.count(want) != count:
-                if count == 1:
-                    self.fail("".join(difflib.unified_diff(want.splitlines(1), data.splitlines(1), name)))
-                else:
-                    self.fail(data)
-        return script, check
+                if filter:
+                    data = filter(data)
+            if data != want:
+                self.fail("".join(difflib.unified_diff(want.splitlines(1), data.splitlines(1), name)))
+        return check
 
-    def has(self, ea, otype, want):
-        return self.check_count(ea, otype, want, 1)
+    def save_ea(self, ea):
+        script = "ya.export_xml(0x%x, %s)" % (ea, ea_defmask)
+        def callback(filename):
+            with open(filename, "rb") as fh:
+                self.eas[ea] = fh.read()
+        return script, callback
 
-    def nothas(self, ea, otype, want):
-        return self.check_count(ea, otype, want, 0)
-
-    def init_repo(self, wd_dir, qt_dir, path):
-        path = os.path.join(wd_dir, path)
-        shutil.copytree(qt_dir, path)
-        repo = Repo(self, path)
-        repo.run("", init=True)
-        return path
+    def check_ea(self, ea):
+        script = "ya.export_xml(0x%x, %s)" % (ea, ea_defmask)
+        want = self.eas[ea]
+        return script, self.check_diff(want)
 
     def set_master(self, repo, master):
         sysexec(repo, ["git", "remote", "add", "origin", master])
@@ -161,15 +168,20 @@ class Fixture(unittest.TestCase):
         work_dir = tempfile.mkdtemp(prefix='repo_', dir=self.out_dir)
         self.dirs.append(work_dir)
         qt54 = os.path.join(self.tests_dir, "..", "testdata", "qt54_svg")
-        a = self.init_repo(work_dir, qt54, "a")
-        sysexec(a, ["git", "remote", "rm", "origin"])
+        a = os.path.abspath(os.path.join(work_dir, "a"))
         b = os.path.abspath(os.path.join(work_dir, "b"))
-        shutil.copytree(a, b)
         c = os.path.abspath(os.path.join(work_dir, "c"))
+        os.makedirs(a)
+        shutil.copy(os.path.join(qt54, "Qt5Svgd.i64"), a)
+        sysexec(a, ["git", "init"])
+        sysexec(a, ["git", "add", "-A"])
+        sysexec(a, ["git", "commit", "-m", "init"])
         sysexec(a, ["git", "clone", "--bare", ".", c])
         self.set_master(a, c)
-        self.set_master(b, c)
-        return Repo(self, a), Repo(self, b)
+        ra, rb = Repo(self, a), Repo(self, b)
+        ra.run_script("", init=True)
+        shutil.copytree(a, b)
+        return ra, rb
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

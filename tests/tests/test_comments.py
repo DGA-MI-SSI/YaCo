@@ -32,28 +32,6 @@ idaapi.update_extra_cmt(ea+6, idaapi.E_NEXT + 0, "cmt 09")
 idaapi.update_extra_cmt(ea+6, idaapi.E_NEXT + 1, "cmt 0a")
 """
 
-block_comments = """
-    <offsets>
-      <comments offset="0000000000000001" type="repeatable_comment">cmt 03</comments>
-      <comments offset="0000000000000003" type="nonrepeatable_comment">cmt 04</comments>
-      <comments offset="0000000000000006" type="nonrepeatable_comment">cmt 06</comments>
-      <comments offset="0000000000000006" type="repeatable_comment">cmt 05</comments>
-      <comments offset="0000000000000006" type="anterior_comment">cmt 07
-cmt 08</comments>
-      <comments offset="0000000000000006" type="posterior_comment">cmt 09
-cmt 0a</comments>
-      <comments offset="0000000000000009" type="nonrepeatable_comment">this</comments>
-      <valueview offset="0000000000000003" operand="00000001">unsignedhexadecimal</valueview>
-    </offsets>
-"""
-
-function_comments = """
-    </signatures>
-    <repeatable_headercomment>cmt 01</repeatable_headercomment>
-    <nonrepeatable_headercomment>cmt 02</nonrepeatable_headercomment>
-    <xrefs>
-"""
-
 reset_function_comments = """
 ea = 0x66013850
 func = idaapi.get_func(ea)
@@ -69,30 +47,20 @@ idaapi.update_extra_cmt(ea+6, idaapi.E_NEXT + 0, "")
 idaapi.update_extra_cmt(ea+6, idaapi.E_NEXT + 1, "")
 """
 
-default_block_comments = """
-    <offsets>
-      <comments offset="0000000000000009" type="nonrepeatable_comment">this</comments>
-      <valueview offset="0000000000000003" operand="00000001">unsignedhexadecimal</valueview>
-    </offsets>
-"""
-
-no_function_comments = """
-    </signatures>
-    <xrefs>
-"""
-
 class Fixture(run_all_tests.Fixture):
 
     def test_comments(self):
         a, b = self.setup_repos()
-        a.run(set_function_comments)
         ea = 0x66013850
-        b.check(
-            self.has(ea, "1 << ya.OBJECT_TYPE_BASIC_BLOCK", block_comments),
-            self.has(ea, "1 << ya.OBJECT_TYPE_FUNCTION", function_comments),
+        a.run(
+            self.script(set_function_comments),
+            self.save_ea(ea),
         )
-        b.run(reset_function_comments)
-        a.check(
-            self.has(ea, "1 << ya.OBJECT_TYPE_BASIC_BLOCK", default_block_comments),
-            self.has(ea, "1 << ya.OBJECT_TYPE_FUNCTION", no_function_comments),
+        b.run(
+            self.check_ea(ea),
+            self.script(reset_function_comments),
+            self.save_ea(ea),
+        )
+        a.run(
+            self.check_ea(ea),
         )
