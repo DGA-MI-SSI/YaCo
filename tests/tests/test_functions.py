@@ -52,6 +52,7 @@ function_xrefs = """
 """
 
 local_b_var = """
+<stackframe_member>
   <id>9E4BF9B751B76EE4</id>
   <version>
     <size>0x0000000000000004</size>
@@ -61,12 +62,29 @@ local_b_var = """
 """
 
 arg_b_var = """
+<stackframe_member>
   <id>3B75F00131A38ACC</id>
   <version>
     <size>0x0000000000000004</size>
     <parent_id>569EF65FD6CB6A6F</parent_id>
     <address>20</address>
     <userdefinedname>arg_b</userdefinedname>
+"""
+
+rename_stackvars_again = """
+ea = 0x6602E530
+frame = idaapi.get_frame(ea)
+idaapi.set_member_name(frame, 0x4,  "another_name")
+"""
+
+another_var = """
+<stackframe_member>
+  <id>9E4BF9B751B76EE4</id>
+  <version>
+    <size>0x0000000000000004</size>
+    <parent_id>569EF65FD6CB6A6F</parent_id>
+    <address>4</address>
+    <userdefinedname>another_name</userdefinedname>
 """
 
 class Fixture(run_all_tests.Fixture):
@@ -90,3 +108,8 @@ class Fixture(run_all_tests.Fixture):
             self.has(ea, stackvar_mask, local_b_var),
             self.has(ea, stackvar_mask, arg_b_var),
         )
+        # now rename a single stack member from b
+        # only one file will be modified under git
+        # check whether the rename is still applied
+        b.run(rename_stackvars_again)
+        a.check(self.has(ea, stackvar_mask, another_var))
