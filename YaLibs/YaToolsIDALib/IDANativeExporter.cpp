@@ -635,12 +635,13 @@ namespace
         exporter.tids_.insert({id, {tid, static_cast<asize_t>(size), type}});
     }
 
-    const std::regex r_trailing_identifier{"\\s*<?[a-zA-Z_0-9]+>?\\s*$"};     // match c/c++ identifiers
-    const std::regex r_type_id{"/\\*%(.+?)#([A-F0-9]{16})%\\*/"}; // match yaco ids /*%name:ID%*/
-    const std::regex r_trailing_comma{"\\s*;\\s*$"};                     // match trailing ;
-    const std::regex r_trailing_whitespace{"\\s+$"};                          // match trailing whitespace
-    const std::regex r_leading_whitespace{"^\\s+"};                          // match leading whitespace
-    const std::regex r_trailing_pointer{"\\*\\s*$"};                       // match trailing *
+    const std::regex r_trailing_identifier{"\\s*<?[a-zA-Z_0-9]+>?\\s*$"}; // match c/c++ identifiers
+    const std::regex r_type_id{"/\\*%(.+?)#([A-F0-9]{16})%\\*/"};         // match yaco ids /*%name:ID%*/
+    const std::regex r_trailing_comma{"\\s*;\\s*$"};                      // match trailing ;
+    const std::regex r_trailing_whitespace{"\\s+$"};                      // match trailing whitespace
+    const std::regex r_leading_whitespace{"^\\s+"};                       // match leading whitespace
+    const std::regex r_trailing_const_pointer{"\\*\\s*const\\s*$"};       // match trailing * const
+    const std::regex r_trailing_pointer{"\\*\\s*$"};                      // match trailing *
 
     void replace_inline(std::string& value, const std::string& pattern, const std::string& replace)
     {
@@ -710,28 +711,33 @@ namespace
         return tif;
     }
 
-    size_t remove_pointers(std::string* value)
+    std::vector<bool> remove_pointers(std::string* value)
     {
-        size_t count = 0;
+        std::vector<bool> pointers;
         while(true)
         {
-            auto dst = std::regex_replace(*value, r_trailing_pointer, "");
+            auto dst = std::regex_replace(*value, r_trailing_const_pointer, "");
+            const auto is_const = dst != *value;
+            if(!is_const)
+                dst = std::regex_replace(*value, r_trailing_pointer, "");
             dst = std::regex_replace(dst, r_trailing_whitespace, "");
             if(dst == *value)
                 break;
             *value = dst;
-            count++;
+            pointers.push_back(is_const);
          }
-        return count;
+        return pointers;
     }
 
-    tinfo_t add_back_pointers(const tinfo_t& tif, size_t num_pointers)
+    tinfo_t add_back_pointers(const tinfo_t& tif, const std::vector<bool>& pointers)
     {
         tinfo_t work = tif;
-        for(size_t i = 0; i < num_pointers; ++i)
+        for(const auto is_const_ptr : pointers)
         {
             tinfo_t next;
             next.create_ptr(work);
+            if(is_const_ptr)
+                next.set_const();
             work = next;
         }
         return work;
@@ -750,18 +756,18 @@ namespace
 
         value = std::regex_replace(value, r_trailing_comma, "");
         value = std::regex_replace(value, r_trailing_whitespace, "");
-        auto num_pointers = remove_pointers(&value);
+        auto pointers = remove_pointers(&value);
         tif = try_find_type(value.data());
         if(!tif.empty())
-            return add_back_pointers(tif, num_pointers);
+            return add_back_pointers(tif, pointers);
 
         // remove left-most identifier, which is possibly a variable name
         value = std::regex_replace(value, r_trailing_identifier, "");
         value = std::regex_replace(value, r_trailing_whitespace, "");
-        num_pointers = remove_pointers(&value);
+        pointers = remove_pointers(&value);
         tif = try_find_type(value.data());
         if(!tif.empty())
-            return add_back_pointers(tif, num_pointers);
+            return add_back_pointers(tif, pointers);
 
         return tinfo_t();
     }
