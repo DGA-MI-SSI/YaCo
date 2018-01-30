@@ -104,11 +104,7 @@
     $result = PyList_New(0);
     for(const auto element : $1)
     {
-#ifdef __EA64__
         const auto obj = PyLong_FromUnsignedLongLong(element);
-#else
-        const auto obj = PyLong_FromUnsignedLong(element);
-#endif
         Py_XINCREF(obj);
         PyList_Append($result, obj);
     }
