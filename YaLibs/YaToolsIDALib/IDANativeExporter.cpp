@@ -110,6 +110,8 @@ namespace
         USE_STACKS,
     };
 
+    using Enums = std::map<YaToolObjectId, enum_t>;
+
     struct Exporter
         : public IObjectListener
     {
@@ -117,8 +119,8 @@ namespace
 
         // IObjectListener
         void on_object (const HObject& object) override;
-        void on_deleted(YaToolObjectId object_id) override;
-        void on_default(YaToolObjectId object_id) override;
+        void on_deleted(YaToolObjectId id) override;
+        void on_default(YaToolObjectId id) override;
 
         void on_version(const HVersion& version);
 
@@ -127,7 +129,6 @@ namespace
         using EnumMemberMap = std::unordered_map<uint64_t, enum_t>;
 
         IHashProvider&                  provider_;
-        EnumMemberMap                   enum_members_;
         RefInfos                        refs_;
         Members                         members_;
         TidMap                          tids_;
@@ -135,6 +136,7 @@ namespace
         std::vector<uint8_t>            buffer_;
         Pool<qstring>                   qpool_;
         Bookmarks                       bookmarks_;
+        Enums                           enums_;
         bool                            use_stacks_;
     };
 
@@ -155,6 +157,14 @@ Exporter::Exporter(IHashProvider& provider, UseStacks use_stacks)
     {
         bookmarks_.push_back({ya::to_string(desc), ea});
     });
+
+    for(size_t i = 0, end = get_enum_qty(); i < end; ++i)
+    {
+        const auto eid = getn_enum(i);
+        ya::wrap(&get_enum_name, *qbuf, eid);
+        const auto id = provider_.get_enum_id(ya::to_string_ref(*qbuf));
+        enums_.emplace(id, eid);
+    }
 }
 
 namespace
@@ -1255,14 +1265,54 @@ namespace
         set_type(&exporter, ea, make_string(version.prototype()));
     }
 
+    bool is_member(const Exporter& exporter, YaToolObjectId parent, YaToolObjectId id)
+    {
+        const auto range = exporter.members_.equal_range(parent);
+        for(auto it = range.first; it != range.second; ++it)
+            if(it->second == id)
+                return true;
+        return false;
+    }
+
+    enum_t try_get_enum(const HVersion& version, const std::string& name)
+    {
+        auto eid = get_enum(name.data());
+        if(eid != BADADDR)
+            return eid;
+
+        // when renaming an enum, we delete the previous one
+        // in order to prevent orphan ordinals
+        // we try to retrieve the previous one
+        tinfo_t tif;
+        const auto idati = get_idati();
+        const auto ok = tif.get_numbered_type(idati, static_cast<uint32_t>(version.address()));
+        if(!ok)
+            return BADADDR;
+
+        qstring ename;
+        tif.get_type_name(&ename);
+        if(is_autosync(ename.c_str(), tif))
+            return BADADDR;
+
+        return import_type(idati, -1, ename.c_str());
+    }
+
     void make_enum(Exporter& exporter, const HVersion& version, ea_t ea)
     {
         const auto id = version.id();
-        const auto name = make_string(version.username());
         const auto flags = version.flags();
-        auto eid = get_enum(name.data());
+        const auto name = make_string(version.username());
+        auto eid = try_get_enum(version, name);
         if(eid == BADADDR)
             eid = add_enum(~0u, name.data(), flags & ~0x1);
+        if(eid == BADADDR)
+        {
+            LOG(ERROR, "make_enum: 0x%" PRIxEA " unable to create enum", ea);
+            return;
+        }
+
+        if(!set_enum_name(eid, name.data()))
+            LOG(ERROR, "make_enum: 0x%" PRIxEA " unable to set name %s\n", ea, name.data());
 
         if(!set_enum_bf(eid, flags & 0x1))
             LOG(ERROR, "make_enum: 0x%" PRIxEA " unable to set as bitfield\n", ea);
@@ -1279,29 +1329,19 @@ namespace
                 LOG(ERROR, "make_enum: 0x%" PRIxEA " unable to set %s comment to %s\n", ea, rpt ? "repeatable" : "non-repeatable", cmt.data());
         }
 
-        const auto has_xref = [&](YaToolObjectId id)
+        // remember our childs
+        version.walk_xrefs([&](offset_t /*offset*/, operand_t /*operand*/, YaToolObjectId xref_id, const XrefAttributes* /*attrs*/)
         {
-            bool found = false;
-            version.walk_xrefs([&](offset_t /*offset*/, operand_t /*operand*/, YaToolObjectId xref_id, const XrefAttributes* /*attrs*/)
-            {
-                found = id == xref_id;
-                return found ? WALK_STOP : WALK_CONTINUE;
-            });
-            return found;
-        };
+            exporter.members_.emplace(id, xref_id);
+            return WALK_CONTINUE;
+        });
 
-        qstring const_name;
-        qstring const_value;
+        const auto qbuf = exporter.qpool_.acquire();
         ya::walk_enum_members(eid, [&](const_t cid, uval_t value, uchar serial, bmask_t bmask)
         {
-            const auto it = exporter.enum_members_.find(cid);
-            if(it != exporter.enum_members_.end() && it->second == eid)
-                return;
-
-            ya::wrap(&get_enum_member_name, const_name, cid);
-            to_py_hex(const_value, value);
-            const auto yaid = exporter.provider_.get_enum_member_id(id, ya::to_string_ref(const_name));
-            if(has_xref(yaid))
+            ya::wrap(&get_enum_member_name, *qbuf, cid);
+            const auto yaid = exporter.provider_.get_enum_member_id(id, ya::to_string_ref(*qbuf));
+            if(is_member(exporter, id, yaid))
                 return;
 
             if(!del_enum_member(eid, value, serial, bmask))
@@ -1322,11 +1362,17 @@ namespace
             return;
         }
 
-        const auto eid = it->second.tid;
-        const auto ename = get_enum_name(eid);
+        const auto id = version.id();
         const auto name = version.username();
         const auto strname = make_string(name);
-        const auto id = version.id();
+        if(!is_member(exporter, parent_id, id))
+        {
+            LOG(ERROR, "make_enum_member: %016" PRIx64 " %s: invalid member for struct %016" PRIx64 "\n", id, strname.data(), parent_id);
+            return;
+        }
+
+        const auto eid = it->second.tid;
+        const auto ename = get_enum_name(eid);
         exporter.provider_.put_hash_enum_member(ya::to_string_ref(ename), name, ea, id, false);
 
         const auto bmask = is_bf(eid) ? version.flags() : DEFMASK;
@@ -1348,8 +1394,6 @@ namespace
             if(!set_enum_member_cmt(mid, cmt.data(), rpt))
                 LOG(ERROR, "make_enum_member: 0x%" PRIxEA " unable to set %s comment to %s\n", ea, rpt ? "repeatable" : "non-repeatable", cmt.data());
         }
-
-        exporter.enum_members_.emplace(mid, eid);
     }
 
     void make_reference_info(Exporter& exporter, const HVersion& version, ea_t ea)
@@ -1718,15 +1762,6 @@ namespace
         return nullptr;
     }
 
-    bool is_member(const Exporter& exporter, YaToolObjectId parent, YaToolObjectId id)
-    {
-        const auto range = exporter.members_.equal_range(parent);
-        for(auto it = range.first; it != range.second; ++it)
-            if(it->second == id)
-                return true;
-        return false;
-    }
-
     void make_struct_member(Exporter& exporter, const char* where, const HVersion& version, ea_t ea)
     {
         const auto id = version.id();
@@ -1946,8 +1981,12 @@ void Exporter::on_object(const HObject& object)
 
 void Exporter::on_deleted(YaToolObjectId id)
 {
-    // FIXME ?
-    UNUSED(id);
+    const auto it_enum = enums_.find(id);
+    if(it_enum != enums_.end())
+    {
+        del_enum(it_enum->second);
+        enums_.erase(it_enum);
+    }
 }
 
 void Exporter::on_default(YaToolObjectId id)

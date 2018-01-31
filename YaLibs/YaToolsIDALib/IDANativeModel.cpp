@@ -319,7 +319,7 @@ namespace
         if(ctx.skip_id(id, OBJECT_TYPE_ENUM))
             return;
 
-        const auto idx = get_enum_idx(eid);
+        const auto idx = get_enum_type_ordinal(eid);
         start_object(v, OBJECT_TYPE_ENUM, id, 0, idx);
         v.visit_size(get_enum_width(eid));
         v.visit_name(ya::to_string_ref(*enum_name), DEFAULT_NAME_FLAGS);
