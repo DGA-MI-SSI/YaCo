@@ -311,7 +311,7 @@ namespace
         // IRepository
         void add_auto_comment(ea_t ea, const std::string& text) override;
         void check_valid_cache_startup() override; // can stop IDA
-        std::vector<std::string> update_cache() override;
+        State update_cache() override;
         bool commit_cache() override;
         void toggle_repo_auto_sync() override;
         void sync_and_push_original_idb() override;
@@ -436,11 +436,11 @@ void Repository::check_valid_cache_startup()
     qexit(0);
 }
 
-std::vector<std::string> Repository::update_cache()
+State Repository::update_cache()
 {
-    std::vector<std::string> modified_files;
+    State state;
     if (!remote_exist("origin"))
-        return modified_files;
+        return state;
 
     // check if files has been modified in background
     ask_to_checkout_modified_files();
@@ -448,7 +448,7 @@ std::vector<std::string> Repository::update_cache()
     if (!repo_auto_sync_)
     {
         IDA_LOG_INFO("Repo auto sync disabled, ignoring cache update");
-        return modified_files;
+        return state;
     }
 
     IDA_LOG_INFO("Updating cache...");
@@ -457,7 +457,7 @@ std::vector<std::string> Repository::update_cache()
     if (master_commit.empty())
     {
         IDA_LOG_INFO("Unable to update cache");
-        return modified_files;
+        return state;
     }
     LOG(DEBUG, "Current master: %s", master_commit.c_str());
 
@@ -472,19 +472,18 @@ std::vector<std::string> Repository::update_cache()
         IDA_LOG_INFO("Unable to update cache");
         // disable auto sync (when closing database)
         warning("You have errors during rebase. You have to resolve it manually.\nSee git_rebase.log for details.\nThen run save on IDA to complete rebase and update master");
-        return modified_files;
+        return state;
     }
 
     // get modified files from origin
-    std::set<std::string> new_objects = repo_.get_new_objects(master_commit);
-    std::set<std::string> modified_objects = repo_.get_modified_objects(master_commit);
-    std::set<std::string> deleted_objects = repo_.get_deleted_objects(master_commit);
+    const auto created = repo_.get_new_objects(master_commit);
+    const auto updated = repo_.get_modified_objects(master_commit);
+    const auto deleted = repo_.get_deleted_objects(master_commit);
 
-    for(const auto& f : new_objects)
-        modified_files.push_back(f);
-    for(const auto& f : modified_objects)
-        modified_files.push_back(f);
-    IDA_LOG_INFO("%zd modified %zd added %zd deleted", modified_files.size(), new_objects.size(), deleted_objects.size());
+    state.updated.insert(state.updated.end(), created.begin(), created.end());
+    state.updated.insert(state.updated.end(), updated.begin(), updated.end());
+    state.deleted.insert(state.deleted.end(), deleted.begin(), deleted.end());
+    IDA_LOG_INFO("%zd updated %zd created %zd deleted", updated.size(), created.size(), deleted.size());
     IDA_LOG_INFO("Master rebased");
 
     // push to origin
@@ -496,7 +495,7 @@ std::vector<std::string> Repository::update_cache()
 
         IDA_LOG_INFO("Master pushed to origin");
         IDA_LOG_INFO("Cache updated");
-        return modified_files;
+        return state;
     }
 
     IDA_LOG_WARNING("Errors occured during push to origin, they need to be resolved manually.");
@@ -504,7 +503,7 @@ std::vector<std::string> Repository::update_cache()
     IDA_LOG_INFO("Auto rebase/push disabled");
 
     warning("You have errors during push to origin. You have to resolve it manually.");
-    return modified_files;
+    return state;
 }
 
 bool Repository::commit_cache()

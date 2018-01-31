@@ -34,6 +34,7 @@
 #include "BinHex.hpp"
 #include "HObject.hpp"
 #include "HVersion.hpp"
+#include "DelegatingVisitor.hpp"
 
 #define MODULE_NAME "hooks"
 #include "IDAUtils.hpp"
@@ -969,9 +970,41 @@ namespace
         });
     }
 
-    void load_xml_files_to(IModelVisitor& visitor, const std::vector<std::string>& modified)
+    void SkipDelete(IModelVisitor* ptr)
     {
-        // modified contain only git modified files
+        UNUSED(ptr);
+    }
+
+    struct SkipVisitStartEndVisitor : public DelegatingVisitor
+    {
+        SkipVisitStartEndVisitor(IModelVisitor& next_visitor)
+        {
+            add_delegate(std::shared_ptr<IModelVisitor>(&next_visitor, &SkipDelete));
+        }
+        void visit_start() override {}
+        void visit_end()   override {}
+    };
+
+    void load_xml_files_to(IModelVisitor& visitor, const State& state)
+    {
+        visitor.visit_start();
+
+        SkipVisitStartEndVisitor v(visitor);
+        for(const auto& it : state.deleted)
+        {
+            auto path = fs::path(it);
+            path.replace_extension("");
+            const auto idstr = path.filename().generic_string();
+            const auto id = YaToolObjectId_From_String(idstr.data(), idstr.size());
+            path.remove_filename();
+            const auto typestr = path.filename();
+            const auto type = get_object_type(typestr.generic_string().data());
+            v.visit_start_deleted_object(type);
+            v.visit_id(id);
+            v.visit_end_deleted_object();
+        }
+
+        // state.updated contain only git modified files
         // i.e: if you apply a stack member on a basic block
         //      and the stack member is already in xml
         //      modified only contains one file, the basic block with one xref added
@@ -986,7 +1019,7 @@ namespace
 
             // load all modified objects
             const auto diff = MakeModel();
-            MakeXmlFilesDatabaseModel(modified)->accept(*diff.visitor);
+            MakeXmlFilesDatabaseModel(state.updated)->accept(*diff.visitor);
 
             DepCtx deps(*full.model);
             diff.model->walk_objects([&](auto id, const HObject& /*hobj*/)
@@ -997,7 +1030,8 @@ namespace
             });
             return deps.files;
         }();
-        MakeXmlFilesDatabaseModel(files)->accept(visitor);
+        MakeXmlFilesDatabaseModel(files)->accept(v);
+        visitor.visit_end();
     }
 }
 
@@ -1016,16 +1050,16 @@ void Hooks::save_and_update()
 
     // update cache and export modifications to IDA
     {
-        auto modified = repo_.update_cache();
+        auto state = repo_.update_cache();
         const auto cache = fs::path(get_cache_folder_path()).filename();
-        modified.erase(std::remove_if(modified.begin(), modified.end(), [&](const auto& item)
+        state.updated.erase(std::remove_if(state.updated.begin(), state.updated.end(), [&](const auto& item)
         {
             const auto p = fs::path(item);
             const auto it = p.begin();
             return it == p.end() || *it != cache;
-        }), modified.end());
+        }), state.updated.end());
         const ModelAndVisitor db = MakeModel();
-        load_xml_files_to(*db.visitor, modified);
+        load_xml_files_to(*db.visitor, state);
         import_to_ida(*db.model, hash_provider_);
     }
 

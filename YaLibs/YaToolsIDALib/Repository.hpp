@@ -21,6 +21,12 @@
 #include <vector>
 #include <memory>
 
+struct State
+{
+    std::vector<std::string> deleted;
+    std::vector<std::string> updated;
+};
+
 struct IRepository
 {
     virtual ~IRepository() = default;
@@ -29,7 +35,7 @@ struct IRepository
 
     virtual void check_valid_cache_startup() = 0;
 
-    virtual std::vector<std::string> update_cache() = 0;
+    virtual State update_cache() = 0;
 
     virtual bool commit_cache() = 0;
 
