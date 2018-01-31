@@ -117,15 +117,16 @@ namespace
         void            put_hash_struc_or_enum          (ea_t item_id, YaToolObjectId id, bool in_persistent_cache) override;
         YaToolObjectId  get_hash_for_ea                 (ea_t ea) override;
         YaToolObjectId  get_stackframe_object_id        (ea_t sf_id, ea_t eaFunc) override;
-        YaToolObjectId  get_struc_enum_object_id        (ea_t item_id, const const_string_ref& name, bool use_time) override;
+        YaToolObjectId  get_struc_id                    (ea_t item_id, const const_string_ref& name, bool use_time) override;
+        YaToolObjectId  get_struc_member_id             (ea_t struc_id, ea_t offset, const const_string_ref& name) override;
         YaToolObjectId  get_function_basic_block_hash   (ea_t block_ea, ea_t func_ea) override;
         YaToolObjectId  get_reference_info_hash         (ea_t block_ea, uint64_t value) override;
-        YaToolObjectId  get_struc_member_id             (ea_t struc_id, ea_t offset, const const_string_ref& name) override;
         YaToolObjectId  get_stackframe_member_object_id (ea_t stack_id, ea_t offset, ea_t func_ea) override;
         YaToolObjectId  get_segment_id                  (const const_string_ref& name, ea_t ea) override;
         YaToolObjectId  get_segment_chunk_id            (YaToolObjectId seg_id, ea_t start, ea_t end) override;
         YaToolObjectId  get_binary_id                   () override;
-        YaToolObjectId  get_enum_member_id              (ea_t enum_id, const const_string_ref& enum_name, ea_t const_id, const const_string_ref& const_name, const const_string_ref& const_value, bmask_t bmask, bool use_time) override;
+        YaToolObjectId  get_enum_id                     (const const_string_ref& name) override;
+        YaToolObjectId  get_enum_member_id              (YaToolObjectId parent, const const_string_ref& name) override;
         void            put_hash_enum_member            (const const_string_ref& enum_name, const const_string_ref& const_name, uint64_t const_value, YaToolObjectId id, bool in_persistent_cache) override;
 
         void            populate_struc_enum_ids();
@@ -284,7 +285,7 @@ namespace
     }
 }
 
-YaToolObjectId YaToolsHashProvider::get_struc_enum_object_id(ea_t item_id, const const_string_ref& name, bool use_time)
+YaToolObjectId YaToolsHashProvider::get_struc_id(ea_t item_id, const const_string_ref& name, bool use_time)
 {
     const auto eaFunc = get_func_by_frame(item_id);
     if(eaFunc != BADADDR)
@@ -322,68 +323,41 @@ YaToolObjectId YaToolsHashProvider::get_struc_enum_object_id(ea_t item_id, const
     return id;
 }
 
-YaToolObjectId YaToolsHashProvider::get_enum_member_id(ea_t enum_id, const const_string_ref& enum_name, ea_t const_id, const const_string_ref& const_name, const const_string_ref& const_value, bmask_t bmask, bool use_time)
+template<typename T>
+YaToolObjectId hash_mem(const T& value)
 {
-    const auto key = pool_->acquire();
-    append_enum(*key, enum_name, const_name, const_value);
-    const auto cache_it = cache_by_string_.find(*key);
-    if(cache_it != cache_by_string_.end())
+    return util::Fingerprint64(reinterpret_cast<const char*>(&value), sizeof value);
+}
+
+YaToolObjectId YaToolsHashProvider::get_enum_id(const const_string_ref& name)
+{
+    const struct
     {
-        LOG(DEBUG, "get_enum_member_id cache hit: 0x%016" PRIX64 " (%s) --> %" PRIx64 "\n",
-                (uint64_t) const_id, enum_name.value, cache_it->second);
-        return cache_it->second;
-    }
+        uint64_t            hash;
+        YaToolObjectType_e  type;
+        uint32_t            _unused;
+    } data{util::Fingerprint64(name.value, name.size), OBJECT_TYPE_ENUM, 0};
+    STATIC_ASSERT_SIZEOF(data, 16);
+    return hash_mem(data);
+}
 
-    const auto enum_object_id = get_struc_enum_object_id(enum_id, enum_name, use_time);
-    const auto str = pool_->acquire();
-    *str += '-';
-    append_uint64(*str, enum_object_id);
-    *str += '-';
-    str->append(const_name.value, const_name.size);
-    *str += "-";
-    str->append(const_value.value, const_value.size);
-
-    if(bmask != BADADDR)
+YaToolObjectId YaToolsHashProvider::get_enum_member_id(YaToolObjectId parent, const const_string_ref& name)
+{
+    const struct
     {
-        *str += '-';
-        append_uint64<LowerCase | RemovePadding>(*str, bmask);
-    }
-
-    if(use_time)
-    {
-        *str += '-';
-        append_uint64<LowerCase | RemovePadding>(*str, get_clock_ms());
-    }
-
-    const auto id = hash_local_string(make_string_ref(*str), false);
-    put_hash_cache(make_string_ref(*key), id, true);
-    LOG(DEBUG, "get_enum_member_id cache miss: 0x%016" PRIX64 " (%s) --> %" PRIx64 "\n",
-            (uint64_t) const_id, (make_string(enum_name) + "." + make_string(const_name)).c_str(), id);
-    return id;
+        uint64_t            hash;
+        YaToolObjectId      parent;
+        YaToolObjectType_e  type;
+        uint32_t            _unused;
+    } data{util::Fingerprint64(name.value, name.size), parent, OBJECT_TYPE_ENUM_MEMBER, 0};
+    STATIC_ASSERT_SIZEOF(data, 24);
+    return hash_mem(data);
 }
 
 void YaToolsHashProvider::populate_struc_enum_ids()
 {
     for(auto idx = get_first_struc_idx(); idx != BADADDR; idx = get_next_struc_idx(idx))
-        get_struc_enum_object_id(get_struc_by_idx(idx), {}, false);
-
-    qstring enum_name;
-    qstring enum_member_name;
-    const auto pyhex = pool_->acquire();
-    for(size_t idx = 0, end = get_enum_qty(); idx < end; ++idx)
-    {
-        const auto enum_id = getn_enum(idx);
-        ya::wrap(&get_enum_name, enum_name, enum_id);
-        get_struc_enum_object_id(enum_id, ya::to_string_ref(enum_name), false);
-        ya::walk_enum_members(enum_id, [&](const_t const_id, uval_t value, uchar /*serial*/, bmask_t bmask)
-        {
-            ya::wrap(&get_enum_member_name, enum_member_name, const_id);
-            pyhex->clear();
-            append_py_hex(*pyhex, value);
-            get_enum_member_id(enum_id, ya::to_string_ref(enum_name), const_id, ya::to_string_ref(enum_member_name), make_string_ref(*pyhex), bmask, false);
-        });
-    }
-
+        get_struc_id(get_struc_by_idx(idx), {}, false);
     populate_persistent_cache();
 }
 
@@ -415,7 +389,7 @@ YaToolObjectId YaToolsHashProvider::get_reference_info_hash(ea_t ea, uint64_t va
 
 YaToolObjectId YaToolsHashProvider::get_struc_member_id(ea_t struc_id, ea_t offset, const const_string_ref& name)
 {
-    const auto id = get_struc_enum_object_id(struc_id, name, true);
+    const auto id = get_struc_id(struc_id, name, true);
     const auto key = pool_->acquire();
     *key = struct_member_prefix;
     append_uint64(*key, id);

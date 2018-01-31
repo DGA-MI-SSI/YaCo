@@ -315,7 +315,7 @@ namespace
     {
         const auto enum_name = ctx.qpool_.acquire();
         ya::wrap(&get_enum_name, *enum_name, eid);
-        const auto id = ctx.provider_.get_struc_enum_object_id(eid, ya::to_string_ref(*enum_name), true);
+        const auto id = ctx.provider_.get_enum_id(ya::to_string_ref(*enum_name));
         if(ctx.skip_id(id, OBJECT_TYPE_ENUM))
             return;
 
@@ -335,12 +335,10 @@ namespace
 
         v.visit_start_xrefs();
         std::vector<EnumMember> members;
-        const auto qval = ctx.qpool_.acquire();
         ya::walk_enum_members(eid, [&](const_t const_id, uval_t value, uchar /*serial*/, bmask_t bmask)
         {
             ya::wrap(&get_enum_member_name, *qbuf, const_id);
-            to_py_hex(*qval, value);
-            const auto member_id = ctx.provider_.get_enum_member_id(eid, ya::to_string_ref(*enum_name), const_id, ya::to_string_ref(*qbuf), ya::to_string_ref(*qval), bmask, true);
+            const auto member_id = ctx.provider_.get_enum_member_id(id, ya::to_string_ref(*qbuf));
             v.visit_start_xref(0, member_id, DEFAULT_OPERAND);
             v.visit_end_xref();
             members.push_back({member_id, const_id, value, bmask});
@@ -556,7 +554,7 @@ namespace
         ya::wrap(&get_struc_name, *struc_name, sid);
         const auto id = func ?
             ctx.provider_.get_stackframe_object_id(sid, func->start_ea) :
-            ctx.provider_.get_struc_enum_object_id(sid, ya::to_string_ref(*struc_name), true);
+            ctx.provider_.get_struc_id(sid, ya::to_string_ref(*struc_name), true);
         const auto type = func ? OBJECT_TYPE_STACKFRAME : OBJECT_TYPE_STRUCT;
         if(ctx.skip_id(id, type))
             return id;
@@ -1125,8 +1123,7 @@ namespace
 
         const auto qbuf = ctx.qpool_.acquire();
         ya::wrap(&get_enum_name, *qbuf, pop->ec.tid);
-        const auto xid = ctx.provider_.get_struc_enum_object_id(pop->ec.tid, ya::to_string_ref(*qbuf), true);
-
+        const auto xid = ctx.provider_.get_enum_id(ya::to_string_ref(*qbuf));
         deps->push_back({xid, pop->ec.tid});
         ctx.xrefs_.push_back({ea - root, xid, opidx, 0});
     }
@@ -1148,7 +1145,7 @@ namespace
         const auto tid = pop->path.ids[0];
         const auto qbuf = ctx.qpool_.acquire();
         ya::wrap(&get_struc_name, *qbuf, tid);
-        const auto xid = ctx.provider_.get_struc_enum_object_id(tid, ya::to_string_ref(*qbuf), true);
+        const auto xid = ctx.provider_.get_struc_id(tid, ya::to_string_ref(*qbuf), true);
 
         deps->push_back({xid, tid});
         ctx.xrefs_.push_back({ea - root, xid, opidx, 0});
@@ -1881,7 +1878,8 @@ namespace
         void accept_segment(IModelVisitor& v, ea_t ea) override;
 
         // IModelIncremental delete methods
-        void delete_enum(IModelVisitor& v, ea_t enum_id) override;
+        void delete_enum        (IModelVisitor& v, YaToolObjectId id) override;
+        void delete_enum_member (IModelVisitor& v, YaToolObjectId id) override;
         void delete_struct(IModelVisitor& v, ea_t struc_id) override;
         void delete_struct_member(IModelVisitor& v, ea_t struc_id, ea_t offset, ea_t func_ea) override;
 
@@ -2050,14 +2048,18 @@ namespace
 
 void ModelIncremental::delete_struct(IModelVisitor& v, ea_t struc_id)
 {
-    const auto id = ctx_.provider_.get_struc_enum_object_id(struc_id, g_empty, true);
+    const auto id = ctx_.provider_.get_struc_id(struc_id, g_empty, true);
     delete_id(v, OBJECT_TYPE_STRUCT, id);
 }
 
-void ModelIncremental::delete_enum(IModelVisitor& v, ea_t enum_id)
+void ModelIncremental::delete_enum(IModelVisitor& v, YaToolObjectId id)
 {
-    const auto id = ctx_.provider_.get_struc_enum_object_id(enum_id, g_empty, true);
     delete_id(v, OBJECT_TYPE_ENUM, id);
+}
+
+void ModelIncremental::delete_enum_member(IModelVisitor& v, YaToolObjectId id)
+{
+    delete_id(v, OBJECT_TYPE_ENUM_MEMBER, id);
 }
 
 void ModelIncremental::delete_struct_member(IModelVisitor& v, ea_t func_ea, ea_t struc_id, ea_t offset)
@@ -2106,9 +2108,10 @@ std::string export_xml(ea_t ea, int type_mask)
 
 std::string export_xml_enum(const std::string& name)
 {
+    const auto eid = get_enum(name.data());
     const auto db = MakeModel();
     db.visitor->visit_start();
-    ModelIncremental(*MakeHashProvider(), ~0).accept_enum(*db.visitor, get_enum(name.data()));
+    ModelIncremental(*MakeHashProvider(), ~0).accept_enum(*db.visitor, eid);
     db.visitor->visit_end();
     return export_to_xml(*db.model);
 }

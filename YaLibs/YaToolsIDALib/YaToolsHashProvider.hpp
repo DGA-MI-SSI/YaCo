@@ -26,15 +26,16 @@ struct IHashProvider
     virtual void            put_hash_struc_or_enum          (ea_t item_id, YaToolObjectId id, bool in_persistent_cache) = 0;
     virtual YaToolObjectId  get_hash_for_ea                 (ea_t ea) = 0;
     virtual YaToolObjectId  get_stackframe_object_id        (ea_t sf_id, ea_t eaFunc) = 0;
-    virtual YaToolObjectId  get_struc_enum_object_id        (ea_t item_id, const const_string_ref& name, bool use_time) = 0;
+    virtual YaToolObjectId  get_struc_id                    (ea_t item_id, const const_string_ref& name, bool use_time) = 0;
+    virtual YaToolObjectId  get_struc_member_id             (ea_t struc_id, ea_t offset, const const_string_ref& name) = 0;
     virtual YaToolObjectId  get_function_basic_block_hash   (ea_t block_ea, ea_t func_ea) = 0;
     virtual YaToolObjectId  get_reference_info_hash         (ea_t block_ea, uint64_t value) = 0;
-    virtual YaToolObjectId  get_struc_member_id             (ea_t struc_id, ea_t offset, const const_string_ref& name) = 0;
     virtual YaToolObjectId  get_stackframe_member_object_id (ea_t stack_id, ea_t offset, ea_t func_ea) = 0;
     virtual YaToolObjectId  get_segment_id                  (const const_string_ref& name, ea_t ea) = 0;
     virtual YaToolObjectId  get_segment_chunk_id            (YaToolObjectId seg_id, ea_t start, ea_t end) = 0;
     virtual YaToolObjectId  get_binary_id                   () = 0;
-    virtual YaToolObjectId  get_enum_member_id              (ea_t enum_id, const const_string_ref& enum_name, ea_t const_id, const const_string_ref& const_name, const const_string_ref& const_value, bmask_t bmask, bool use_time) = 0;
+    virtual YaToolObjectId  get_enum_id                     (const const_string_ref& name) = 0;
+    virtual YaToolObjectId  get_enum_member_id              (YaToolObjectId parent, const const_string_ref& name) = 0;
     virtual void            put_hash_enum_member            (const const_string_ref& enum_name, const const_string_ref& const_name, uint64_t const_value, YaToolObjectId id, bool in_persistent_cache) = 0;
 };
 

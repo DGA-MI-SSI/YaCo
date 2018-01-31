@@ -1244,6 +1244,7 @@ namespace
 
     void make_enum(Exporter& exporter, const HVersion& version, ea_t ea)
     {
+        const auto id = version.id();
         const auto name = make_string(version.username());
         const auto flags = version.flags();
         auto eid = get_enum(name.data());
@@ -1286,7 +1287,7 @@ namespace
 
             ya::wrap(&get_enum_member_name, const_name, cid);
             to_py_hex(const_value, value);
-            const auto yaid = exporter.provider_.get_enum_member_id(eid, make_string_ref(name), cid, ya::to_string_ref(const_name), ya::to_string_ref(const_value), bmask, true);
+            const auto yaid = exporter.provider_.get_enum_member_id(id, ya::to_string_ref(const_name));
             if(has_xref(yaid))
                 return;
 
@@ -1294,7 +1295,6 @@ namespace
                 LOG(ERROR, "make_enum: 0x%" PRIxEA ": unable to delete member %" PRIxEA " %" PRIxEA " %x %" PRIxEA "\n", ea, cid, value, serial, bmask);
         });
 
-        const auto id = version.id();
         set_tid(exporter, id, eid, 0, OBJECT_TYPE_ENUM);
         exporter.provider_.put_hash_struc_or_enum(eid, id, false);
     }
