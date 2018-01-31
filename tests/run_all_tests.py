@@ -101,7 +101,7 @@ idc.SaveBase("")
             if check == None:
                 scripts += script
                 continue
-            fd, fname = tempfile.mkstemp(dir=self.path, prefix="yadb_", suffix=".xml")
+            fd, fname = tempfile.mkstemp(dir=self.path, prefix="data_%02d_" % self.ctx.idx(), suffix=".xml")
             os.close(fd)
             scripts += """
 with open("%s", "wb") as fh:
@@ -119,6 +119,7 @@ class Fixture(unittest.TestCase):
 
     def setUp(self):
         self.dirs = []
+        self.counter = 0
         self.tests_dir = os.path.abspath(os.path.join(inspect.getsourcefile(lambda:0), ".."))
         self.bin_dir = os.path.abspath(os.path.join(self.tests_dir, "..", "bin", "yaco_x64", "YaTools", "bin"))
         self.yaco_dir = os.path.abspath(os.path.join(self.tests_dir, "..", "YaCo"))
@@ -130,6 +131,10 @@ class Fixture(unittest.TestCase):
     def tearDown(self):
         for d in self.dirs:
             remove_dir(d)
+
+    def idx(self):
+        self.counter += 1
+        return self.counter - 1
 
     def script(self, script):
         self.enums = {}
@@ -148,9 +153,7 @@ class Fixture(unittest.TestCase):
         return check
 
     def filter_enum(self, d):
-        # ids & addresses are unstable
-        d = re.sub("id>[A-F0-9]+", "id>", d)
-        d = re.sub("[A-F0-9]+</xref>", "</xref>", d)
+        # enum ordinals are unstable & depend on insertion order
         d = re.sub("address>[A-F0-9]+", "address>", d)
         return d
 
