@@ -300,10 +300,18 @@ namespace
         return cache_folder_path;
     }
 
+    struct EnumMember
+    {
+        YaToolObjectId parent_id;
+        enum_t         eid;
+        const_t        mid;
+    };
+
     using Eas = std::set<ea_t>;
     using Structs = std::set<tid_t>;
     using StructMembers = std::multimap<tid_t, ea_t>;
-    using Enums = std::set<enum_t>;
+    using Enums = std::map<YaToolObjectId, enum_t>;
+    using EnumMembers = std::map<YaToolObjectId, EnumMember>;
     using Comments = std::set<ea_t>;
     using Segments = std::set<ea_t>;
 
@@ -446,6 +454,7 @@ namespace
         Structs         structs_;
         StructMembers   struct_members_;
         Enums           enums_;
+        EnumMembers     enum_members_;
         Comments        comments_;
         Segments        segments_;
 
@@ -684,9 +693,32 @@ void Hooks::delete_struct_member(tid_t struct_id, ea_t offset)
     add_struct_member(struct_id, offset, "Member deleted");
 }
 
+namespace
+{
+    void update_enum_member(Hooks& hooks, YaToolObjectId enum_id, enum_t eid, const_t cid)
+    {
+        const auto qbuf = hooks.qpool_.acquire();
+        ya::wrap(&::get_enum_member_name, *qbuf, cid);
+        const auto id = hooks.hash_provider_.get_enum_member_id(enum_id, ya::to_string_ref(*qbuf));
+        hooks.enum_members_.emplace(id, EnumMember{enum_id, eid, cid});
+    }
+}
+
 void Hooks::update_enum(enum_t enum_id)
 {
-    enums_.insert(enum_id);
+    // check first whether enum_id is actually a member id
+    const auto parent_id = get_enum_member_enum(enum_id);
+    if(parent_id != BADADDR)
+        enum_id = parent_id;
+
+    const auto name = qpool_.acquire();
+    ya::wrap(&::get_enum_name, *name, enum_id);
+    const auto id = hash_provider_.get_enum_id(ya::to_string_ref(*name));
+    enums_.emplace(id, enum_id);
+    ya::walk_enum_members(enum_id, [&](const_t cid, uval_t /*value*/, uchar /*serial*/, bmask_t /*bmask*/)
+    {
+        ::update_enum_member(*this, id, enum_id, cid);
+    });
     repo_.add_auto_comment(enum_id, "Updated");
 }
 
@@ -808,30 +840,31 @@ void Hooks::save_structs(IModelIncremental& model, IModelVisitor& visitor)
 
 void Hooks::save_enums(IModelIncremental& model, IModelVisitor& visitor)
 {
-    // enums: export modified ones, delete deleted ones
-    for (const enum_t enum_id : enums_)
+    const auto qbuf = qpool_.acquire();
+    for(const auto p : enums_)
     {
-        const uval_t enum_idx = get_enum_idx(enum_id);
-        if (enum_idx == BADADDR)
-        {
-            // enum deleted
-            model.delete_enum(visitor, enum_id);
-            continue;
-        }
-
-        // enum modified
-        model.accept_enum(visitor, enum_id);
+        // on renames, as enum_id is still valid, we need to validate its id again
+        ya::wrap(&get_enum_name, *qbuf, p.second);
+        const auto id = hash_provider_.get_enum_id(ya::to_string_ref(*qbuf));
+        const auto idx = get_enum_idx(p.second);
+        if(idx == BADADDR || id != p.first)
+            model.delete_enum(visitor, p.first);
+        else
+            model.accept_enum(visitor, p.second);
     }
-
-    // not implemented in Python, TODO after porting to C++ events
-    // enums members : update modified ones, remove deleted ones
-    /*
-    iterate over members :
-        -if the parent enum has been deleted, delete the member
-        -otherwise, detect if the member has been updated or removed
-            -updated : accept enum_member
-            -removed : accept enum_member_deleted
-    */
+    for(const auto p : enum_members_)
+    {
+        // on renames, we need to check both ids
+        ya::wrap(&get_enum_name, *qbuf, p.second.eid);
+        const auto parent_id = hash_provider_.get_enum_id(ya::to_string_ref(*qbuf));
+        ya::wrap(&::get_enum_member_name, *qbuf, p.second.mid);
+        const auto id = hash_provider_.get_enum_member_id(parent_id, ya::to_string_ref(*qbuf));
+        const auto parent = get_enum_member_enum(p.second.mid);
+        if(parent == BADADDR || id != p.first || parent_id != p.second.parent_id)
+            model.delete_enum_member(visitor, p.first);
+        else
+            model.accept_enum(visitor, p.second.eid);
+    }
 }
 
 void Hooks::save()
@@ -905,7 +938,8 @@ namespace
         const auto type = hver.type();
         // as we always recreate stacks & strucs, we always need every members
         return type == OBJECT_TYPE_STACKFRAME
-            || type == OBJECT_TYPE_STRUCT;
+            || type == OBJECT_TYPE_STRUCT
+            || type == OBJECT_TYPE_ENUM;
     }
 
     void add_id_and_dependencies(DepCtx& ctx, YaToolObjectId id, DepsMode mode)
@@ -1016,6 +1050,7 @@ void Hooks::flush()
     structs_.clear();
     struct_members_.clear();
     enums_.clear();
+    enum_members_.clear();
     comments_.clear();
     segments_.clear();
 }
@@ -1335,6 +1370,7 @@ void Hooks::deleting_enum(va_list args)
     const auto id = va_arg(args, enum_t);
 
     log_deleting_enum(id);
+    update_enum(id);
 }
 
 static void log_enum_deleted(enum_t id)
@@ -1348,8 +1384,6 @@ void Hooks::enum_deleted(va_list args)
     const auto id = va_arg(args, enum_t);
 
     log_enum_deleted(id);
-
-    update_enum(id);
 }
 
 static void log_renaming_enum(tid_t id, bool is_enum, const char* newname)
@@ -1370,6 +1404,7 @@ void Hooks::renaming_enum(va_list args)
     const auto newname = va_arg(args, const char*);
 
     log_renaming_enum(id, is_enum, newname);
+    update_enum(id);
 }
 
 static void log_enum_renamed(tid_t id)
@@ -1470,12 +1505,11 @@ static void log_enum_member_created(enum_t id, const_t cid)
 
 void Hooks::enum_member_created(va_list args)
 {
-    const auto id  = va_arg(args, enum_t);
+    const auto eid = va_arg(args, enum_t);
     const auto cid = va_arg(args, const_t);
 
-    log_enum_member_created(id, cid);
-
-    update_enum(id);
+    log_enum_member_created(eid, cid);
+    update_enum(eid);
 }
 
 static void log_deleting_enum_member(enum_t id, const_t cid)
@@ -1485,10 +1519,11 @@ static void log_deleting_enum_member(enum_t id, const_t cid)
 
 void Hooks::deleting_enum_member(va_list args)
 {
-    const auto id  = va_arg(args, enum_t);
+    const auto eid = va_arg(args, enum_t);
     const auto cid = va_arg(args, const_t);
 
-    log_deleting_enum_member(id, cid);
+    log_deleting_enum_member(eid, cid);
+    update_enum(eid);
 }
 
 static void log_enum_member_deleted(enum_t id, const_t cid)
@@ -1499,12 +1534,11 @@ static void log_enum_member_deleted(enum_t id, const_t cid)
 
 void Hooks::enum_member_deleted(va_list args)
 {
-    const auto id  = va_arg(args, enum_t);
+    const auto eid = va_arg(args, enum_t);
     const auto cid = va_arg(args, const_t);
 
-    log_enum_member_deleted(id, cid);
-
-    update_enum(id);
+    log_enum_member_deleted(eid, cid);
+    update_enum(eid);
 }
 
 static void log_struc_created(tid_t struc_id)
