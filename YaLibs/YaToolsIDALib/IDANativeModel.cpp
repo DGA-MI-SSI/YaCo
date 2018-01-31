@@ -2109,6 +2109,9 @@ std::string export_xml(ea_t ea, int type_mask)
 std::string export_xml_enum(const std::string& name)
 {
     const auto eid = get_enum(name.data());
+    if(eid == BADADDR)
+        return std::string();
+
     const auto db = MakeModel();
     db.visitor->visit_start();
     ModelIncremental(*MakeHashProvider(), ~0).accept_enum(*db.visitor, eid);
