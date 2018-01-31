@@ -82,16 +82,6 @@ namespace
         return dst;
     }
 
-    void append_enum(std::string& dst, const const_string_ref& enum_name, const const_string_ref& const_name, const const_string_ref& const_value)
-    {
-        dst += enum_prefix;
-        append(dst, enum_name);
-        dst += separator;
-        append(dst, const_name);
-        dst += separator;
-        append(dst, const_value);
-    }
-
     // emulate python behavior
     template<typename T>
     void append_py_hex(std::string& dst, T ea)
@@ -114,7 +104,7 @@ namespace
     {
         YaToolsHashProvider();
 
-        void            put_hash_struc_or_enum          (ea_t item_id, YaToolObjectId id, bool in_persistent_cache) override;
+        void            put_hash_struc                  (ea_t item_id, YaToolObjectId id, bool in_persistent_cache) override;
         YaToolObjectId  get_hash_for_ea                 (ea_t ea) override;
         YaToolObjectId  get_stackframe_object_id        (ea_t sf_id, ea_t eaFunc) override;
         YaToolObjectId  get_struc_id                    (ea_t item_id, const const_string_ref& name, bool use_time) override;
@@ -127,9 +117,8 @@ namespace
         YaToolObjectId  get_binary_id                   () override;
         YaToolObjectId  get_enum_id                     (const const_string_ref& name) override;
         YaToolObjectId  get_enum_member_id              (YaToolObjectId parent, const const_string_ref& name) override;
-        void            put_hash_enum_member            (const const_string_ref& enum_name, const const_string_ref& const_name, uint64_t const_value, YaToolObjectId id, bool in_persistent_cache) override;
 
-        void            populate_struc_enum_ids();
+        void            populate_struc_ids();
         YaToolObjectId  hash_local_string(const const_string_ref& key_string, bool in_persistent_cache);
         YaToolObjectId  hash_string(const const_string_ref& key_string, bool in_persistent_cache);
         void            populate_persistent_cache();
@@ -165,7 +154,7 @@ YaToolsHashProvider::YaToolsHashProvider()
     string_start_.append(hexbuf, sizeof hash * 2);
     string_start_ += separator;
     string_start_ += separator; // FIXME double
-    populate_struc_enum_ids();
+    populate_struc_ids();
 }
 
 void YaToolsHashProvider::populate_persistent_cache()
@@ -248,25 +237,16 @@ YaToolObjectId YaToolsHashProvider::get_stackframe_object_id(ea_t ea_frame, ea_t
     append_ea(*key, ea_func);
     key->insert(0, stackframe_prefix);
     const auto id = hash_local_string(make_string_ref(*key), false);
-    put_hash_struc_or_enum(ea_frame, id, false);
+    put_hash_struc(ea_frame, id, false);
     LOG(DEBUG, "get_stackframe_object_id cache miss: 0x%016" PRIX64 " (%s) --> %" PRIx64 "\n",
             (uint64_t) ea_frame, get_struc_name(ea_frame).c_str(), id);
     cache_stackframe_.emplace(ea_func, id);
     return id;
 }
 
-void YaToolsHashProvider::put_hash_struc_or_enum(ea_t item_id, YaToolObjectId id, bool in_persistent_cache)
+void YaToolsHashProvider::put_hash_struc(ea_t item_id, YaToolObjectId id, bool in_persistent_cache)
 {
     put_hash_cache_ea(item_id, id, in_persistent_cache);
-}
-
-void YaToolsHashProvider::put_hash_enum_member(const const_string_ref& enum_name, const const_string_ref& const_name, uint64_t const_value, YaToolObjectId id, bool in_persistent_cache)
-{
-    const auto value = pool_->acquire();
-    append_py_hex(*value, const_value);
-    const auto key = pool_->acquire();
-    append_enum(*key, enum_name, const_name, make_string_ref(*value));
-    put_hash_cache(make_string_ref(*key), id, in_persistent_cache);
 }
 
 namespace
@@ -317,7 +297,7 @@ YaToolObjectId YaToolsHashProvider::get_struc_id(ea_t item_id, const const_strin
     *prefix += separator;
     *prefix += *key;
     const auto id = hash_local_string(make_string_ref(*prefix), false);
-    put_hash_struc_or_enum(item_id, id, use_time);
+    put_hash_struc(item_id, id, use_time);
     LOG(DEBUG, "get_struc_enum_object_id cache miss: 0x%016" PRIX64 " (%p) --> %" PRIx64 "\n",
         (uint64_t) item_id, get_name(name, item_id).c_str(), id);
     return id;
@@ -354,7 +334,7 @@ YaToolObjectId YaToolsHashProvider::get_enum_member_id(YaToolObjectId parent, co
     return hash_mem(data);
 }
 
-void YaToolsHashProvider::populate_struc_enum_ids()
+void YaToolsHashProvider::populate_struc_ids()
 {
     for(auto idx = get_first_struc_idx(); idx != BADADDR; idx = get_next_struc_idx(idx))
         get_struc_id(get_struc_by_idx(idx), {}, false);

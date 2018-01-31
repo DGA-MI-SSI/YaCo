@@ -23,7 +23,7 @@ struct IHashProvider
 {
     virtual ~IHashProvider() {}
 
-    virtual void            put_hash_struc_or_enum          (ea_t item_id, YaToolObjectId id, bool in_persistent_cache) = 0;
+    virtual void            put_hash_struc                  (ea_t item_id, YaToolObjectId id, bool in_persistent_cache) = 0;
     virtual YaToolObjectId  get_hash_for_ea                 (ea_t ea) = 0;
     virtual YaToolObjectId  get_stackframe_object_id        (ea_t sf_id, ea_t eaFunc) = 0;
     virtual YaToolObjectId  get_struc_id                    (ea_t item_id, const const_string_ref& name, bool use_time) = 0;
@@ -36,7 +36,6 @@ struct IHashProvider
     virtual YaToolObjectId  get_binary_id                   () = 0;
     virtual YaToolObjectId  get_enum_id                     (const const_string_ref& name) = 0;
     virtual YaToolObjectId  get_enum_member_id              (YaToolObjectId parent, const const_string_ref& name) = 0;
-    virtual void            put_hash_enum_member            (const const_string_ref& enum_name, const const_string_ref& const_name, uint64_t const_value, YaToolObjectId id, bool in_persistent_cache) = 0;
 };
 
 std::shared_ptr<IHashProvider> MakeHashProvider();

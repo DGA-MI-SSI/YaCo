@@ -1349,7 +1349,6 @@ namespace
         });
 
         set_tid(exporter, id, eid, 0, OBJECT_TYPE_ENUM);
-        exporter.provider_.put_hash_struc_or_enum(eid, id, false);
     }
 
     void make_enum_member(Exporter& exporter, const HVersion& version, ea_t ea)
@@ -1372,9 +1371,6 @@ namespace
         }
 
         const auto eid = it->second.tid;
-        const auto ename = get_enum_name(eid);
-        exporter.provider_.put_hash_enum_member(ya::to_string_ref(ename), name, ea, id, false);
-
         const auto bmask = is_bf(eid) ? version.flags() : DEFMASK;
         auto mid = get_enum_member(eid, ea, 0, bmask);
         if(mid == BADADDR)
@@ -1878,7 +1874,7 @@ namespace
 
         const auto id = version.id();
         set_tid(exporter, id, struc->id, version.size(), OBJECT_TYPE_STRUCT);
-        exporter.provider_.put_hash_struc_or_enum(struc->id, id, false);
+        exporter.provider_.put_hash_struc(struc->id, id, false);
 
         for(const auto repeat : {false, true})
         {
