@@ -720,13 +720,12 @@ void Model::visit_end()
     if(!listener_)
         return;
 
-    for(HObject_id_t id = 0, end = static_cast<HObject_id_t>(objects_.size()); id < end; ++id)
-        listener_->on_object({&view_objects_, id});
     for(const auto it : default_)
         listener_->on_default(it.id);
     for(const auto it : deleted_)
         listener_->on_deleted(it.id);
-
+    for(HObject_id_t id = 0, end = static_cast<HObject_id_t>(objects_.size()); id < end; ++id)
+        listener_->on_object({&view_objects_, id});
 }
 
 void Model::visit_start_object(YaToolObjectType_e type)
