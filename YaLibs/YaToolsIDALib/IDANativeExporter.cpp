@@ -1632,9 +1632,7 @@ namespace
 
             // reset known fields
             const auto field_size = offset == last_offset && offset == size ? 0 : 1;
-            const auto id = struc->props & SF_FRAME ?
-                exporter.provider_.get_stackframe_member_object_id(struct_id, offset, func_ea) :
-                exporter.provider_.get_struc_member_id(struct_id, offset, g_empty);
+            const auto id = exporter.provider_.get_member_id(vid, offset);
             const auto key = get_tid(exporter, id);
             // skip fields which have already been exported
             if(key.tid != BADADDR)
@@ -1874,7 +1872,6 @@ namespace
 
         const auto id = version.id();
         set_tid(exporter, id, struc->id, version.size(), OBJECT_TYPE_STRUCT);
-        exporter.provider_.put_hash_struc(struc->id, id, false);
 
         for(const auto repeat : {false, true})
         {

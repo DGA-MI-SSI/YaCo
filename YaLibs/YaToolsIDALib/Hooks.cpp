@@ -301,6 +301,19 @@ namespace
         return cache_folder_path;
     }
 
+    struct Struc
+    {
+        tid_t id;
+        ea_t  func_ea;
+    };
+
+    struct StrucMember
+    {
+        YaToolObjectId  parent_id;
+        Struc           struc;
+        ea_t            offset;
+    };
+
     struct EnumMember
     {
         YaToolObjectId parent_id;
@@ -308,13 +321,13 @@ namespace
         const_t        mid;
     };
 
-    using Eas = std::set<ea_t>;
-    using Structs = std::set<tid_t>;
-    using StructMembers = std::multimap<tid_t, ea_t>;
-    using Enums = std::map<YaToolObjectId, enum_t>;
-    using EnumMembers = std::map<YaToolObjectId, EnumMember>;
-    using Comments = std::set<ea_t>;
-    using Segments = std::set<ea_t>;
+    using Eas           = std::set<ea_t>;
+    using Structs       = std::map<YaToolObjectId, Struc>;
+    using StructMembers = std::map<YaToolObjectId, StrucMember>;
+    using Enums         = std::map<YaToolObjectId, enum_t>;
+    using EnumMembers   = std::map<YaToolObjectId, EnumMember>;
+    using Comments      = std::set<ea_t>;
+    using Segments      = std::set<ea_t>;
 
     struct Hooks
         : public IHooks
@@ -452,8 +465,8 @@ namespace
         Pool<qstring>    qpool_;
 
         Eas             eas_;
-        Structs         structs_;
-        StructMembers   struct_members_;
+        Structs         strucs_;
+        StructMembers   struc_members_;
         Enums           enums_;
         EnumMembers     enum_members_;
         Comments        comments_;
@@ -675,10 +688,13 @@ void Hooks::update_function(ea_t ea)
     add_ea(ea, "Update function");
 }
 
-void Hooks::update_struct(ea_t struct_id)
+void Hooks::update_struct(ea_t struc_id)
 {
-    structs_.insert(struct_id);
-    repo_.add_auto_comment(struct_id, "Updated");
+    const auto name = qpool_.acquire();
+    ya::wrap(&get_struc_name, *name, struc_id);
+    const auto id = hash_provider_.get_struc_id(ya::to_string_ref(*name));
+    strucs_.emplace(id, Struc{struc_id, get_func_by_frame(struc_id)});
+    repo_.add_auto_comment(struc_id, "Updated");
 }
 
 void Hooks::update_struct_member(tid_t struct_id, tid_t member_id, ea_t offset)
@@ -754,88 +770,65 @@ void Hooks::add_ea(ea_t ea, const std::string& message)
     repo_.add_auto_comment(ea, message);
 }
 
-void Hooks::add_struct_member(ea_t struct_id, ea_t member_offset, const std::string& message)
+void Hooks::add_struct_member(ea_t struc_id, ea_t offset, const std::string& message)
 {
-    struct_members_.emplace(struct_id, member_offset);
-    repo_.add_auto_comment(struct_id, message);
+    const auto func_ea = get_func_by_frame(struc_id);
+    const auto name = qpool_.acquire();
+    ya::wrap(&::get_struc_name, *name, struc_id);
+    const auto parent_id = func_ea != BADADDR ?
+        hash_provider_.get_stack_id(func_ea) :
+        hash_provider_.get_struc_id(ya::to_string_ref(*name));
+    const auto id = hash_provider_.get_member_id(parent_id, offset);
+    struc_members_.emplace(id, StrucMember{parent_id, {struc_id, func_ea}, offset});
+    repo_.add_auto_comment(struc_id, message);
+}
+
+namespace
+{
+    bool try_accept_struc(Hooks& h, YaToolObjectId id, const Struc& struc, qstring& qbuf)
+    {
+        if(struc.func_ea != BADADDR)
+            return get_func_by_frame(struc.id) == struc.func_ea;
+
+        // on struc renames, as struc_id is still valid, we need to validate its id again
+        ya::wrap(&get_struc_name, qbuf, struc.id);
+        const auto got_id = h.hash_provider_.get_struc_id(ya::to_string_ref(qbuf));
+        const auto idx = get_struc_idx(struc.id);
+        return id == got_id && idx != BADADDR;
+    }
 }
 
 void Hooks::save_structs(IModelIncremental& model, IModelVisitor& visitor)
 {
-    // structures: export modified ones, delete deleted ones
-    for (const tid_t struct_id : structs_)
+    const auto qbuf = qpool_.acquire();
+    for(const auto p : strucs_)
     {
-        const uval_t struct_idx = get_struc_idx(struct_id);
-        if (struct_idx != BADADDR)
-        {
-            // structure or stackframe modified
-            model.accept_struct(visitor, BADADDR, struct_id);
-            continue;
-        }
-
-        // structure or stackframe deleted
-        // need to export the parent (function)
-        const ea_t func_ea = get_func_by_frame(struct_id);
-        if (func_ea != BADADDR)
-        {
-            // if stackframe
-            model.accept_struct(visitor, func_ea, struct_id);
-            model.accept_ea(visitor, func_ea);
-            continue;
-        }
-        // if structure
-        model.delete_struct(visitor, struct_id);
+        // if frame, we need to update parent function
+        if(p.second.func_ea != BADADDR)
+            model.accept_function(visitor, p.second.func_ea);
+        if(try_accept_struc(*this, p.first, p.second, *qbuf))
+            model.accept_struct(visitor, p.second.func_ea, p.second.id);
+        else if(p.second.func_ea == BADADDR)
+            model.delete_struc(visitor, p.first);
+        else
+            model.delete_stack(visitor, p.first);
     }
 
-    // structures members : update modified ones, remove deleted ones
-    for (const std::pair<const tid_t, ea_t>& struct_info : struct_members_)
+    for(const auto p : struc_members_)
     {
-        const tid_t struct_id = struct_info.first;
-        const ea_t member_offset = struct_info.second;
-
-        const struc_t* ida_struct = get_struc(struct_id);
-        const uval_t struct_idx = get_struc_idx(struct_id);
-
-        ea_t stackframe_func_addr = BADADDR;
-
-        if (!ida_struct || struct_idx == BADADDR)
-        {
-            // structure or stackframe deleted
-            ea_t func_ea = get_func_by_frame(struct_id);
-            if (func_ea == BADADDR)
-            {
-                // if structure
-                model.delete_struct_member(visitor, BADADDR, struct_id, member_offset);
-                continue;
-            }
-            // if stackframe
-            stackframe_func_addr = func_ea;
-            model.accept_function(visitor, stackframe_func_addr);
-            continue;
-        }
-
-        // structure or stackframe modified
-        const member_t* ida_member = get_member(ida_struct, member_offset);
-        if (!ida_member || ida_member->id == BADADDR)
-        {
-            // if member deleted
-            model.delete_struct_member(visitor, stackframe_func_addr, struct_id, member_offset);
-            continue;
-        }
-
-        if (member_offset > 0)
-        {
-            const member_t* ida_prev_member = get_member(ida_struct, member_offset - 1);
-            if (ida_prev_member && ida_prev_member->id == ida_member->id)
-            {
-                // if member deleted and replaced by member starting above it
-                model.delete_struct_member(visitor, stackframe_func_addr, struct_id, member_offset);
-                continue;
-            }
-        }
-
-        // if member updated
-        model.accept_struct_member(visitor, stackframe_func_addr, ida_member->id);
+        const auto is_valid_parent = try_accept_struc(*this, p.second.parent_id, p.second.struc, *qbuf);
+        const auto struc = p.second.struc.func_ea != BADADDR ?
+            get_frame(p.second.struc.func_ea) :
+            get_struc(p.second.struc.id);
+        const auto member = get_member(struc, p.second.offset);
+        const auto id = hash_provider_.get_member_id(p.second.parent_id, member ? member->soff : -1);
+        const auto is_valid_member = p.first == id;
+        if(is_valid_parent && is_valid_member)
+            model.accept_struct(visitor, p.second.struc.func_ea, p.second.struc.id);
+        else if(p.second.struc.func_ea == BADADDR)
+            model.delete_struc_member(visitor, p.first);
+        else
+            model.delete_stack_member(visitor, p.first);
     }
 }
 
@@ -1081,8 +1074,8 @@ void Hooks::save_and_update()
 void Hooks::flush()
 {
     eas_.clear();
-    structs_.clear();
-    struct_members_.clear();
+    strucs_.clear();
+    struc_members_.clear();
     enums_.clear();
     enum_members_.clear();
     comments_.clear();
@@ -1592,7 +1585,6 @@ void Hooks::struc_created(va_list args)
     const auto struc_id = va_arg(args, tid_t);
 
     log_struc_created(struc_id);
-
     update_struct(struc_id);
 }
 
@@ -1613,6 +1605,7 @@ void Hooks::deleting_struc(va_list args)
     const auto sptr = va_arg(args, struc_t*);
 
     log_deleting_struc(sptr);
+    update_struct(sptr->id);
 }
 
 static void log_struc_deleted(tid_t struc_id)
@@ -1626,7 +1619,6 @@ void Hooks::struc_deleted(va_list args)
     const auto struc_id = va_arg(args, tid_t);
 
     log_struc_deleted(struc_id);
-
     update_struct(struc_id);
 }
 
@@ -1667,6 +1659,8 @@ void Hooks::renaming_struc(va_list args)
     const auto newname  = va_arg(args, const char*);
 
     log_renaming_struc(struc_id, oldname, newname);
+
+    update_struct(struc_id);
 }
 
 static void log_struc_renamed(const struc_t* sptr)
@@ -1679,7 +1673,6 @@ void Hooks::struc_renamed(va_list args)
     const auto sptr = va_arg(args, struc_t*);
 
     log_struc_renamed(sptr);
-
     update_struct(sptr->id);
 }
 
@@ -1712,6 +1705,7 @@ void Hooks::expanding_struc(va_list args)
     const auto delta  = va_arg(args, adiff_t);
 
     log_expanding_struc(sptr, offset, delta);
+    update_struct(sptr->id);
 }
 
 static void log_struc_expanded(const struc_t* sptr)
@@ -1731,6 +1725,7 @@ void Hooks::struc_expanded(va_list args)
     const auto sptr = va_arg(args, struc_t*);
 
     log_struc_expanded(sptr);
+    update_struct(sptr->id);
 }
 
 static void log_struc_member_created(const struc_t* sptr, const member_t* mptr)
@@ -1751,8 +1746,8 @@ void Hooks::struc_member_created(va_list args)
     const auto mptr = va_arg(args, member_t*);
 
     log_struc_member_created(sptr, mptr);
-
     update_struct(sptr->id);
+    update_struct_member(sptr->id, mptr->id, mptr->soff);
 }
 
 static void log_deleting_struc_member(const struc_t* sptr, const member_t* mptr)
@@ -1773,6 +1768,8 @@ void Hooks::deleting_struc_member(va_list args)
     const auto mptr = va_arg(args, member_t*);
 
     log_deleting_struc_member(sptr, mptr);
+    update_struct(sptr->id);
+    update_struct_member(sptr->id, mptr->id, mptr->soff);
 }
 
 static void log_struc_member_deleted(const struc_t* sptr, tid_t member_id, ea_t offset)
@@ -1795,7 +1792,7 @@ void Hooks::struc_member_deleted(va_list args)
     const auto offset    = va_arg(args, ea_t);
 
     log_struc_member_deleted(sptr, member_id, offset);
-
+    update_struct(sptr->id);
     delete_struct_member(sptr->id, offset);
 }
 
@@ -1818,6 +1815,7 @@ void Hooks::renaming_struc_member(va_list args)
     const auto newname = va_arg(args, const char*);
 
     log_renaming_struc_member(sptr, mptr, newname);
+    update_struct_member(sptr->id, mptr->id, mptr->soff);
 }
 
 static void log_struc_member_renamed(const struc_t* sptr, const member_t* mptr)
@@ -1866,6 +1864,7 @@ void Hooks::changing_struc_member(va_list args)
     const auto nbytes = va_arg(args, asize_t);
 
     log_changing_struc_member(sptr, mptr, flag, ti, nbytes);
+    update_struct_member(sptr->id, mptr->id, mptr->soff);
 }
 
 static void log_struc_member_changed(const struc_t* sptr, const member_t* mptr)
@@ -1918,6 +1917,7 @@ void Hooks::changing_struc_cmt(va_list args)
     const auto newcmt     = va_arg(args, const char*);
 
     log_changing_struc_cmt(struc_id, repeatable, newcmt);
+    update_struct(struc_id);
 }
 
 static void log_struc_cmt_changed(tid_t struc_id, bool repeatable)

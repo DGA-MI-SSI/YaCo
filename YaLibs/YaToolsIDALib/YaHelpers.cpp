@@ -111,7 +111,7 @@ namespace
             return;
 
         const auto subid = get_struc(subtid) ?
-            provider->get_struc_id(subtid, ya::to_string_ref(subtype), true) :
+            provider->get_struc_id(ya::to_string_ref(subtype)) :
             provider->get_enum_id(ya::to_string_ref(subtype));
         if(deps)
             deps->push_back({subid, subtid});

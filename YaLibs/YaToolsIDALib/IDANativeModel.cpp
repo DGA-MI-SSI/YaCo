@@ -510,15 +510,12 @@ namespace
 
         const auto sid = struc->id;
         const auto offset = member->soff;
-        const auto qbuf = ctx.qpool_.acquire();
-        ya::wrap(&get_struc_name, *qbuf, sid);
-        const auto id = func ?
-            ctx.provider_.get_stackframe_member_object_id(sid, member->soff, func->start_ea) :
-            ctx.provider_.get_struc_member_id(sid, offset, ya::to_string_ref(*qbuf));
+        const auto id = ctx.provider_.get_member_id(parent.id, offset);
         const auto type = func ? OBJECT_TYPE_STACKFRAME_MEMBER : OBJECT_TYPE_STRUCT_MEMBER;
         if(ctx.skip_id(id, type))
             return;
 
+        const auto qbuf = ctx.qpool_.acquire();
         ya::wrap(&get_member_name, *qbuf, member->id);
 
         // we need to skip default members else we explode on structures with thousand of default fields
@@ -553,8 +550,8 @@ namespace
         const auto sid = struc->id;
         ya::wrap(&get_struc_name, *struc_name, sid);
         const auto id = func ?
-            ctx.provider_.get_stackframe_object_id(sid, func->start_ea) :
-            ctx.provider_.get_struc_id(sid, ya::to_string_ref(*struc_name), true);
+            ctx.provider_.get_stack_id(func->start_ea) :
+            ctx.provider_.get_struc_id(ya::to_string_ref(*struc_name));
         const auto type = func ? OBJECT_TYPE_STACKFRAME : OBJECT_TYPE_STRUCT;
         if(ctx.skip_id(id, type))
             return id;
@@ -585,9 +582,7 @@ namespace
             if(qbuf->empty())
                 continue;
 
-            const auto mid = func ?
-                ctx.provider_.get_stackframe_member_object_id(sid, off, func->start_ea) :
-                ctx.provider_.get_struc_member_id(sid, off, ya::to_string_ref(*struc_name));
+            const auto mid = ctx.provider_.get_member_id(id, off);
             v.visit_start_xref(struc->is_union() ? 0 : off, mid, DEFAULT_OPERAND);
             v.visit_end_xref();
         }
@@ -874,14 +869,15 @@ namespace
     template<typename Ctx>
     void accept_data(Ctx& ctx, IModelVisitor& v, const Parent& parent, ea_t ea)
     {
-        const auto flags = get_flags(ea);
-        const auto id = ctx.provider_.get_hash_for_ea(ea);
+        const auto id = ctx.provider_.get_ea_id(ea);
         if(ctx.skip_id(id, OBJECT_TYPE_DATA))
             return;
 
         start_object(v, OBJECT_TYPE_DATA, id, parent.id, ea);
         const auto size = get_item_end(ea) - ea;
         v.visit_size(size);
+
+        const auto flags = get_flags(ea);
         accept_name(ctx, v, ea, flags, DataNamePolicy);
 
         ya::Deps deps;
@@ -963,14 +959,14 @@ namespace
         v.visit_start_xrefs();
         if(frame)
         {
-            const auto sid = ctx.provider_.get_stackframe_object_id(frame->id, ea);
+            const auto sid = ctx.provider_.get_stack_id(ea);
             v.visit_start_xref(BADADDR, sid, DEFAULT_OPERAND);
             v.visit_end_xref();
         }
         const auto qbuf = ctx.qpool_.acquire();
         for(const auto& block : blocks)
         {
-            const auto bid = ctx.provider_.get_function_basic_block_hash(block.start_ea, ea);
+            const auto bid = ctx.provider_.get_ea_id(block.start_ea);
             const auto offset = block.start_ea - ea;
             // FIXME a block does not necessarily start after the first function basic block
             // in which case offset is negative but offset_t is unsigned...
@@ -1095,7 +1091,7 @@ namespace
             //const auto dump = ya::dump_flags(xflags);
             if(!is_valid)
                 continue;
-            const auto xref = Xref{ea - root, ctx.provider_.get_hash_for_ea(get_root_item(xb.to)), DEFAULT_OPERAND, 0};
+            const auto xref = Xref{ea - root, ctx.provider_.get_ea_id(get_root_item(xb.to)), DEFAULT_OPERAND, 0};
             ctx.xrefs_.push_back(xref);
         }
     }
@@ -1109,7 +1105,7 @@ namespace
         const auto next = prev_not_tail(end);
         for(auto ea = get_first_cref_from(next); ea != BADADDR; ea = get_next_cref_from(next, ea))
         {
-            const auto id = ctx.provider_.get_function_basic_block_hash(ea, func->start_ea);
+            const auto id = ctx.provider_.get_ea_id(ea);
             ctx.xrefs_.push_back({ea - start, id, DEFAULT_OPERAND, 0});
         }
     }
@@ -1145,10 +1141,10 @@ namespace
         const auto tid = pop->path.ids[0];
         const auto qbuf = ctx.qpool_.acquire();
         ya::wrap(&get_struc_name, *qbuf, tid);
-        const auto xid = ctx.provider_.get_struc_id(tid, ya::to_string_ref(*qbuf), true);
+        const auto sid = ctx.provider_.get_struc_id(ya::to_string_ref(*qbuf));
 
-        deps->push_back({xid, tid});
-        ctx.xrefs_.push_back({ea - root, xid, opidx, 0});
+        deps->push_back({sid, tid});
+        ctx.xrefs_.push_back({ea - root, sid, opidx, 0});
 
         for(int i = 1; i < pop->path.len; ++i)
         {
@@ -1159,8 +1155,7 @@ namespace
             if(!member)
                 break;
 
-            ya::wrap(&get_member_name, *qbuf, mid);
-            const auto xmid = ctx.provider_.get_struc_member_id(mstruc->id, member->soff, ya::to_string_ref(*qbuf));
+            const auto xmid = ctx.provider_.get_member_id(sid, member->soff);
             ctx.xrefs_.push_back({ea - root, xmid, opidx, i});
         }
     }
@@ -1185,7 +1180,8 @@ namespace
                 return;
         }
 
-        const auto xid = ctx.provider_.get_stackframe_member_object_id(frame->id, member->soff, func->start_ea);
+        const auto fid = ctx.provider_.get_stack_id(func->start_ea);
+        const auto xid = ctx.provider_.get_member_id(fid, member->soff);
         ctx.xrefs_.push_back({ea - root, xid, opidx, 0});
     }
 
@@ -1235,7 +1231,7 @@ namespace
             const auto offset = ea - root;
             const auto rflags = pop->ri.flags;
             const auto base = pop->ri.base;
-            const auto id = ctx.provider_.get_reference_info_hash(ea, base);
+            const auto id = ctx.provider_.get_reference_id(ea, base);
             ctx.xrefs_.push_back({offset, id, i, 0});
             ctx.refs_.push_back({id, offset, i, rflags, base});
         }
@@ -1376,7 +1372,7 @@ namespace
     template<typename Ctx>
     void accept_code(Ctx& ctx, IModelVisitor& v, const Parent& parent, ea_t ea)
     {
-        const auto id = ctx.provider_.get_hash_for_ea(ea);
+        const auto id = ctx.provider_.get_ea_id(ea);
         if(ctx.skip_id(id, OBJECT_TYPE_CODE))
             return;
 
@@ -1401,7 +1397,7 @@ namespace
     void accept_block(Ctx& ctx, IModelVisitor& v, const Parent& parent, range_t block)
     {
         const auto ea = block.start_ea;
-        const auto id = ctx.provider_.get_function_basic_block_hash(ea, parent.ea);
+        const auto id = ctx.provider_.get_ea_id(ea);
         if(ctx.skip_id(id, OBJECT_TYPE_BASIC_BLOCK))
             return;
 
@@ -1494,7 +1490,7 @@ namespace
     template<typename Ctx>
     void accept_function(Ctx& ctx, IModelVisitor& v, const Parent& parent, func_t* func, ea_t block_ea)
     {
-        const auto id   = ctx.provider_.get_hash_for_ea(func->start_ea);
+        const auto id   = ctx.provider_.get_function_id(func->start_ea);
         accept_function_only(ctx, v, parent, func, id);
         if(Ctx::is_incremental)
             accept_block_ea(ctx, v, {id, func->start_ea}, func, block_ea);
@@ -1614,7 +1610,7 @@ namespace
     template<typename Ctx>
     Parent accept_segment_chunk(Ctx& ctx, IModelVisitor& v, const Parent& parent, ea_t ea, ea_t end)
     {
-        const auto id = ctx.provider_.get_segment_chunk_id(parent.id, ea, end);
+        const auto id = ctx.provider_.get_segment_chunk_id(ea);
         const auto current = Parent{id, ea};
         if(ctx.skip_id(id, OBJECT_TYPE_SEGMENT_CHUNK))
             return current;
@@ -1627,7 +1623,7 @@ namespace
         for(const auto item_ea : eas)
         {
             const auto offset = item_ea - ea;
-            const auto item_id = ctx.provider_.get_hash_for_ea(item_ea);
+            const auto item_id = ctx.provider_.get_ea_id(item_ea);
             v.visit_start_xref(offset, item_id, DEFAULT_OPERAND);
             v.visit_end_xref();
         }
@@ -1748,21 +1744,22 @@ namespace
     template<typename Ctx>
     Parent accept_segment(Ctx& ctx, IModelVisitor& v, const Parent& parent, segment_t* seg)
     {
-        const auto qbuf = ctx.qpool_.acquire();
-        ya::wrap(&get_segm_name, *qbuf, const_cast<const segment_t*>(seg), 0);
-        const auto id = ctx.provider_.get_segment_id(ya::to_string_ref(*qbuf), seg->start_ea);
+        const auto id = ctx.provider_.get_segment_id(seg->start_ea);
         const auto current = Parent{id, seg->start_ea};
         if(ctx.skip_id(id, OBJECT_TYPE_SEGMENT))
             return current;
 
         start_object(v, OBJECT_TYPE_SEGMENT, id, parent.id, seg->start_ea);
         v.visit_size(seg->end_ea - seg->start_ea);
+
+        const auto qbuf = ctx.qpool_.acquire();
+        ya::wrap(&get_segm_name, *qbuf, const_cast<const segment_t*>(seg), 0);
         v.visit_name(ya::to_string_ref(*qbuf), DEFAULT_NAME_FLAGS);
 
         v.visit_start_xrefs();
-        walk_segment_chunks(seg, [&](ea_t ea, ea_t end)
+        walk_segment_chunks(seg, [&](ea_t ea, ea_t /*end*/)
         {
-            const auto chunk_id = ctx.provider_.get_segment_chunk_id(id, ea, end);
+            const auto chunk_id = ctx.provider_.get_segment_chunk_id(ea);
             v.visit_start_xref(ea - seg->start_ea, chunk_id, DEFAULT_OPERAND);
             v.visit_end_xref();
 
@@ -1813,8 +1810,7 @@ namespace
         v.visit_start_xrefs();
         for(auto seg = first; seg; seg = get_next_seg(seg->end_ea - 1))
         {
-            ya::wrap(&get_segm_name, *qbuf, const_cast<const segment_t*>(seg), 0);
-            const auto seg_id = ctx.provider_.get_segment_id(ya::to_string_ref(*qbuf), seg->start_ea);
+            const auto seg_id = ctx.provider_.get_segment_id(seg->start_ea);
             v.visit_start_xref(seg->start_ea - base, seg_id, DEFAULT_OPERAND);
             v.visit_end_xref();
         }
@@ -1872,7 +1868,6 @@ namespace
         // IModelIncremental accept methods
         void accept_enum(IModelVisitor& v, ea_t enum_id) override;
         void accept_struct(IModelVisitor& v, ea_t struc_id, ea_t func_ea) override;
-        void accept_struct_member(IModelVisitor& v, ea_t func_ea, ea_t member_id) override;
         void accept_function(IModelVisitor& v, ea_t ea) override;
         void accept_ea(IModelVisitor& v, ea_t ea) override;
         void accept_segment(IModelVisitor& v, ea_t ea) override;
@@ -1880,8 +1875,10 @@ namespace
         // IModelIncremental delete methods
         void delete_enum        (IModelVisitor& v, YaToolObjectId id) override;
         void delete_enum_member (IModelVisitor& v, YaToolObjectId id) override;
-        void delete_struct(IModelVisitor& v, ea_t struc_id) override;
-        void delete_struct_member(IModelVisitor& v, ea_t struc_id, ea_t offset, ea_t func_ea) override;
+        void delete_struc       (IModelVisitor& v, YaToolObjectId id) override;
+        void delete_struc_member(IModelVisitor& v, YaToolObjectId id) override;
+        void delete_stack       (IModelVisitor& v, YaToolObjectId id) override;
+        void delete_stack_member(IModelVisitor& v, YaToolObjectId id) override;
 
         // Ctx methods
         bool skip_id(YaToolObjectId, YaToolObjectType_e type);
@@ -1937,7 +1934,7 @@ namespace
     {
         if(!func)
             return {};
-        const auto id = ctx.provider_.get_hash_for_ea(func_ea);
+        const auto id = ctx.provider_.get_function_id(func_ea);
         return {id, func_ea};
     }
 }
@@ -1953,20 +1950,6 @@ void ModelIncremental::accept_struct(IModelVisitor& v, ea_t func_ea, ea_t struc_
 
     const auto func = get_func(func_ea);
     ::accept_struct(ctx_, v, get_parent_function(ctx_, func_ea, func), struc, func);
-}
-
-void ModelIncremental::accept_struct_member(IModelVisitor& v, ea_t func_ea, ea_t member_id)
-{
-    struc_t* struc = nullptr;
-    const auto member = get_member_by_id(member_id, &struc);
-    if(!member)
-    {
-        LOG(ERROR, "accept_member: 0x%" PRIxEA " unable to get member or struc (m %p s %p)\n", member_id, member, struc);
-        return;
-    }
-    const auto func = get_func(func_ea);
-    const auto struct_id = ::accept_struct(ctx_, v, get_parent_function(ctx_, func_ea, func), struc, func);
-    ::accept_struct_member(ctx_, v, {struct_id, member->soff}, struc, func, member);
 }
 
 namespace
@@ -2046,10 +2029,14 @@ namespace
     }
 }
 
-void ModelIncremental::delete_struct(IModelVisitor& v, ea_t struc_id)
+void ModelIncremental::delete_struc(IModelVisitor& v, YaToolObjectId id)
 {
-    const auto id = ctx_.provider_.get_struc_id(struc_id, g_empty, true);
     delete_id(v, OBJECT_TYPE_STRUCT, id);
+}
+
+void ModelIncremental::delete_stack(IModelVisitor& v, YaToolObjectId id)
+{
+    delete_id(v, OBJECT_TYPE_STACKFRAME, id);
 }
 
 void ModelIncremental::delete_enum(IModelVisitor& v, YaToolObjectId id)
@@ -2062,24 +2049,14 @@ void ModelIncremental::delete_enum_member(IModelVisitor& v, YaToolObjectId id)
     delete_id(v, OBJECT_TYPE_ENUM_MEMBER, id);
 }
 
-void ModelIncremental::delete_struct_member(IModelVisitor& v, ea_t func_ea, ea_t struc_id, ea_t offset)
+void ModelIncremental::delete_struc_member(IModelVisitor& v, YaToolObjectId id)
 {
-    // remove member from parent
-    accept_struct(v, func_ea, struc_id);
-
-    // remove member itself
-    const auto func = get_func(func_ea);
-    if(func)
-    {
-        const auto id = ctx_.provider_.get_stackframe_member_object_id(struc_id, offset, func_ea);
-        delete_id(v, OBJECT_TYPE_STACKFRAME_MEMBER, id);
-        return;
-    }
-
-    const auto qbuf = ctx_.qpool_.acquire();
-    ya::wrap(&get_struc_name, *qbuf, struc_id);
-    const auto id = ctx_.provider_.get_struc_member_id(struc_id, offset, ya::to_string_ref(*qbuf));
     delete_id(v, OBJECT_TYPE_STRUCT_MEMBER, id);
+}
+
+void ModelIncremental::delete_stack_member(IModelVisitor& v, YaToolObjectId id)
+{
+    delete_id(v, OBJECT_TYPE_STACKFRAME_MEMBER, id);
 }
 
 void export_from_ida(const std::string& filename)

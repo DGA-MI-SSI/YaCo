@@ -34,18 +34,19 @@ struct IModelIncremental
     virtual ~IModelIncremental() {}
 
     // accept methods
-    virtual void accept_enum(IModelVisitor& v, ea_t enum_id) = 0;
-    virtual void accept_struct(IModelVisitor& v, ea_t func_ea, ea_t struct_id) = 0;
-    virtual void accept_struct_member(IModelVisitor& v, ea_t func_ea, ea_t member_id) = 0;
-    virtual void accept_segment(IModelVisitor& v, ea_t ea) = 0;
-    virtual void accept_function(IModelVisitor& v, ea_t ea) = 0;
-    virtual void accept_ea(IModelVisitor& v, ea_t ea) = 0;
+    virtual void accept_enum            (IModelVisitor& v, ea_t enum_id) = 0;
+    virtual void accept_struct          (IModelVisitor& v, ea_t func_ea, ea_t struct_id) = 0;
+    virtual void accept_segment         (IModelVisitor& v, ea_t ea) = 0;
+    virtual void accept_function        (IModelVisitor& v, ea_t ea) = 0;
+    virtual void accept_ea              (IModelVisitor& v, ea_t ea) = 0;
 
     // delete methods
     virtual void delete_enum        (IModelVisitor& v, YaToolObjectId id) = 0;
     virtual void delete_enum_member (IModelVisitor& v, YaToolObjectId id) = 0;
-    virtual void delete_struct(IModelVisitor& v, ea_t struc_id) = 0;
-    virtual void delete_struct_member(IModelVisitor& v, ea_t func_ea, ea_t struct_id, ea_t offset) = 0;
+    virtual void delete_struc       (IModelVisitor& v, YaToolObjectId id) = 0;
+    virtual void delete_struc_member(IModelVisitor& v, YaToolObjectId id) = 0;
+    virtual void delete_stack       (IModelVisitor& v, YaToolObjectId id) = 0;
+    virtual void delete_stack_member(IModelVisitor& v, YaToolObjectId id) = 0;
 };
 
 std::shared_ptr<IModelIncremental> MakeModelIncremental(IHashProvider& provider);
