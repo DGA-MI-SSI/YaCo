@@ -138,6 +138,7 @@ class Fixture(unittest.TestCase):
 
     def script(self, script):
         self.enums = {}
+        self.strucs = {}
         self.eas = {}
         return script, None
 
@@ -168,6 +169,23 @@ class Fixture(unittest.TestCase):
         script = "ya.export_xml_enum('%s')" % name
         want = self.enums[name]
         return script, self.check_diff(want, filter=self.filter_enum)
+
+    def filter_struc(self, d):
+        # struc ordinals are unstable & depend on insertion order
+        d = re.sub("address>[A-F0-9]+", "address>", d)
+        return d
+
+    def save_struc(self, name):
+        script = "ya.export_xml_struc('%s')" % name
+        def callback(filename):
+            with open(filename, "rb") as fh:
+                self.strucs[name] = self.filter_struc(fh.read())
+        return script, callback
+
+    def check_struc(self, name):
+        script = "ya.export_xml_struc('%s')" % name
+        want = self.strucs[name]
+        return script, self.check_diff(want, filter=self.filter_struc)
 
     def save_ea(self, ea):
         script = "ya.export_xml(0x%x, %s)" % (ea, ea_defmask)

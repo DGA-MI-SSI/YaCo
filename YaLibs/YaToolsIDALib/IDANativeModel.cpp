@@ -2095,3 +2095,16 @@ std::string export_xml_enum(const std::string& name)
     db.visitor->visit_end();
     return export_to_xml(*db.model);
 }
+
+std::string export_xml_struc(const std::string& name)
+{
+    const auto sid = get_struc_id(name.data());
+    if(sid == BADADDR)
+        return std::string();
+
+    const auto db = MakeModel();
+    db.visitor->visit_start();
+    ModelIncremental(*MakeHashProvider(), ~0).accept_struct(*db.visitor, BADADDR, sid);
+    db.visitor->visit_end();
+    return export_to_xml(*db.model);
+}
