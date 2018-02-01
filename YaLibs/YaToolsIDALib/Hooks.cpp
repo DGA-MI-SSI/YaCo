@@ -2480,8 +2480,10 @@ void Hooks::renamed(va_list args)
     const auto new_name   = va_arg(args, const char*);
     const auto local_name = static_cast<bool>(va_arg(args, int));
 
-    log_renamed(ea, new_name, local_name);
+    if(get_struc(ea))
+        return;
 
+    log_renamed(ea, new_name, local_name);
     rename(ea, new_name, "", "");
 }
 
