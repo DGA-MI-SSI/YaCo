@@ -556,7 +556,7 @@ namespace
         if(ctx.skip_id(id, type))
             return id;
 
-        const auto ea = func ? func->start_ea : 0;
+        const auto ea = func ? func->start_ea : struc->ordinal;
         start_object(v, type, id, parent.id, ea);
         const auto size = get_struc_size(struc);
         v.visit_size(size);

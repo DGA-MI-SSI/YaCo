@@ -110,7 +110,8 @@ namespace
         USE_STACKS,
     };
 
-    using Enums = std::map<YaToolObjectId, enum_t>;
+    using Enums  = std::map<YaToolObjectId, enum_t>;
+    using Strucs = std::map<YaToolObjectId, tid_t>;
 
     struct Exporter
         : public IObjectListener
@@ -137,6 +138,7 @@ namespace
         Pool<qstring>                   qpool_;
         Bookmarks                       bookmarks_;
         Enums                           enums_;
+        Strucs                          strucs_;
         bool                            use_stacks_;
     };
 
@@ -164,6 +166,14 @@ Exporter::Exporter(IHashProvider& provider, UseStacks use_stacks)
         ya::wrap(&get_enum_name, *qbuf, eid);
         const auto id = provider_.get_enum_id(ya::to_string_ref(*qbuf));
         enums_.emplace(id, eid);
+    }
+
+    for(auto idx = get_first_struc_idx(); idx != BADADDR; idx = get_next_struc_idx(idx))
+    {
+        const auto sid = get_struc_by_idx(idx);
+        ya::wrap(&get_struc_name, *qbuf, sid);
+        const auto id = provider_.get_struc_id(ya::to_string_ref(*qbuf));
+        strucs_.emplace(id, sid);
     }
 }
 
@@ -1843,21 +1853,47 @@ namespace
         return get_struc(netnode(name));
     }
 
+    struc_t* try_get_struc(const HVersion& version, const char* name)
+    {
+        auto struc = get_struc_from_name(name);
+        if(struc)
+            return struc;
+
+        // when renaming a struct, we delete the previous one
+        // in order to prevent orphan ordinals
+        // we try to retrieve the previous one
+        tinfo_t tif;
+        const auto idati = get_idati();
+        const auto ok = tif.get_numbered_type(idati, static_cast<uint32_t>(version.address()));
+        if(!ok)
+            return nullptr;
+
+        qstring ename;
+        tif.get_type_name(&ename);
+        if(is_autosync(ename.c_str(), tif))
+            return nullptr;
+
+        const auto sid = import_type(idati, -1, ename.c_str());
+        if(sid == BADADDR)
+            return nullptr;
+
+        return get_struc(sid);
+    }
+
     struc_t* get_or_add_struct(const HVersion& version, ea_t ea, const char* name)
     {
-        const auto struc = get_struc_from_name(name);
+        const auto struc = try_get_struc(version, name);
         if(struc)
             return struc;
 
         const auto is_union = !!(version.flags() & 1); // fixme use constant
-        const auto ok = add_struc(BADADDR, name, is_union);
-        if(!ok)
+        const auto sid = add_struc(BADADDR, name, is_union);
+        if(sid == BADADDR)
         {
             LOG(ERROR, "make_struct: 0x%" PRIxEA " unable to add struct\n", ea);
             return nullptr;
         }
-
-        return get_struc_from_name(name);
+        return get_struc(sid);
     }
 
     void make_struct(Exporter& exporter, const HVersion& version, ea_t ea)
@@ -1869,6 +1905,9 @@ namespace
             LOG(ERROR, "make_struct: 0x%" PRIxEA " missing struct %s\n", ea, name.data());
             return;
         }
+
+        if(!set_struc_name(struc->id, name.data()))
+            LOG(ERROR, "make_struct: 0x%" PRIxEA " unable to set name %s\n", ea, name.data());
 
         const auto id = version.id();
         set_tid(exporter, id, struc->id, version.size(), OBJECT_TYPE_STRUCT);
@@ -1979,6 +2018,15 @@ void Exporter::on_deleted(YaToolObjectId id)
     {
         del_enum(it_enum->second);
         enums_.erase(it_enum);
+        return;
+    }
+
+    const auto it_struc = strucs_.find(id);
+    if(it_struc != strucs_.end())
+    {
+        del_struc(get_struc(it_struc->second));
+        strucs_.erase(it_struc);
+        return;
     }
 }
 
