@@ -40,3 +40,32 @@ class Fixture(run_all_tests.Fixture):
             self.save_struc("name_b"),
         )
         self.assertEqual(self.strucs["name_b"], "")
+
+    def test_struc_members(self):
+        a, b = self.setup_repos()
+        a.run(
+            self.script("idc.add_struc_member(idaapi.add_struc(-1, 'name_a', False), 'field_a', 0, idaapi.FF_DATA, -1, 1)"),
+            self.save_struc("name_a"),
+        )
+        b.run(
+            self.check_struc("name_a"),
+            self.script("idaapi.set_member_name(idaapi.get_struc(idaapi.get_struc_id('name_a')), 0, 'field_b')"),
+            self.save_struc("name_a"),
+        )
+        a.run(
+            self.check_struc("name_a"),
+            self.script("idaapi.set_struc_name(idaapi.get_struc_id('name_a'), 'name_b')"),
+            self.save_struc("name_a"),
+            self.save_struc("name_b"),
+        )
+        self.assertEqual(self.strucs["name_a"], "")
+        self.assertNotEqual(self.strucs["name_b"], "")
+        b.run(
+            self.check_struc("name_a"),
+            self.check_struc("name_b"),
+            self.script("idaapi.del_struc_member(idaapi.get_struc(idaapi.get_struc_id('name_b')), 0)"),
+            self.save_struc("name_b"),
+        )
+        a.run(
+            self.check_struc("name_b"),
+        )
