@@ -191,3 +191,22 @@ for field_type, name, proto in set_field_prototype:
         b.run(
             self.check_strucs(),
         )
+
+    def test_struc_loop(self):
+        a, b = self.setup_repos()
+        a.run(
+            self.script("""
+mids = []
+for k in range(0, 2):
+    sid = idaapi.add_struc(-1, "loop_%x" % k, 0)
+    idc.add_struc_member(sid, "field", 0, idaapi.FF_DWRD, -1, 4)
+    mid = idc.get_member_id(sid, 0)
+    mids.append(mid)
+for k in range(0, 2):
+    idc.SetType(mids[k], "loop_%x*" % (1 - k))
+"""),
+            self.save_strucs(),
+        )
+        b.run(
+            self.check_strucs(),
+        )
