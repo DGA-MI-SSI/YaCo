@@ -17,29 +17,7 @@
 
 import run_all_tests
 
-field_types = """
-create_field = [
-    ( 0, 1, idaapi.FF_BYTE,    -1, None, False),
-    ( 1, 2, idaapi.FF_BYTE,    -1, "some comment", False),
-    ( 2, 3, idaapi.FF_BYTE,    -1, "some repeatable comment", True),
-    ( 0, 1, idaapi.FF_WORD,    -1, None, False),
-    ( 0, 1, idaapi.FF_DWRD,    -1, None, False),
-    ( 0, 1, idaapi.FF_QWRD,    -1, None, False),
-    ( 0, 1, idaapi.FF_OWRD,    -1, None, False),
-    ( 0, 1, idaapi.FF_DOUBLE,  -1, None, False),
-    ( 0, 1, idaapi.FF_FLOAT,   -1, None, False),
-    (54, 1, idaapi.FF_WORD,    -1, None, False),
-    ( 0, 8, idaapi.FF_DWRD,    -1, None, False),
-    (54, 8, idaapi.FF_DWRD,    -1, None, False),
-    ( 1, 8, idaapi.FF_ASCI,    idc.STRTYPE_C, None, False),
-    ( 0, 8, idaapi.FF_ASCI,    idc.STRTYPE_LEN2, None, False),
-    ( 0, 8, idaapi.FF_ASCI,    idc.STRTYPE_LEN4, None, False),
-    ( 0, 8, idaapi.FF_ASCI,    idc.STRTYPE_PASCAL, None, False),
-    ( 0, 8, idaapi.FF_ASCI,    idc.STRTYPE_LEN2_16, None, False),
-    ( 0, 8, idaapi.FF_ASCI,    idc.STRTYPE_LEN4_16, None, False),
-    ( 0, 8, idaapi.FF_ASCI,    idc.STRTYPE_C_16, None, False),
-]
-
+constants = """
 field_sizes = {
     idaapi.FF_BYTE:    1,
     idaapi.FF_WORD:    2,
@@ -67,6 +45,30 @@ def get_size(field_type, string_type):
     if field_type != idaapi.FF_ASCI:
         return field_sizes[field_type]
     return string_sizes[string_type]
+"""
+
+field_types = """
+create_field = [
+    ( 0, 1, idaapi.FF_BYTE,    -1, None, False),
+    ( 1, 2, idaapi.FF_BYTE,    -1, "some comment", False),
+    ( 2, 3, idaapi.FF_BYTE,    -1, "some repeatable comment", True),
+    ( 0, 1, idaapi.FF_WORD,    -1, None, False),
+    ( 0, 1, idaapi.FF_DWRD,    -1, None, False),
+    ( 0, 1, idaapi.FF_QWRD,    -1, None, False),
+    ( 0, 1, idaapi.FF_OWRD,    -1, None, False),
+    ( 0, 1, idaapi.FF_DOUBLE,  -1, None, False),
+    ( 0, 1, idaapi.FF_FLOAT,   -1, None, False),
+    (54, 1, idaapi.FF_WORD,    -1, None, False),
+    ( 0, 8, idaapi.FF_DWRD,    -1, None, False),
+    (54, 8, idaapi.FF_DWRD,    -1, None, False),
+    ( 1, 8, idaapi.FF_ASCI,    idc.STRTYPE_C, None, False),
+    ( 0, 8, idaapi.FF_ASCI,    idc.STRTYPE_LEN2, None, False),
+    ( 0, 8, idaapi.FF_ASCI,    idc.STRTYPE_LEN4, None, False),
+    ( 0, 8, idaapi.FF_ASCI,    idc.STRTYPE_PASCAL, None, False),
+    ( 0, 8, idaapi.FF_ASCI,    idc.STRTYPE_LEN2_16, None, False),
+    ( 0, 8, idaapi.FF_ASCI,    idc.STRTYPE_LEN4_16, None, False),
+    ( 0, 8, idaapi.FF_ASCI,    idc.STRTYPE_C_16, None, False),
+]
 """
 
 class Fixture(run_all_tests.Fixture):
@@ -152,7 +154,7 @@ for offset, count in sub_tests:
     def test_struc_fields(self):
         a, b = self.setup_repos()
         a.run(
-            self.script(field_types + """
+            self.script(constants + field_types + """
 idx = 0
 for offset, count, field_type, string_type, comment, repeatable in create_field:
     size = count * get_size(field_type, string_type)
@@ -164,6 +166,27 @@ for offset, count, field_type, string_type, comment, repeatable in create_field:
         idc.set_member_cmt(sid, offset, comment, repeatable)
 """),
             self.save_strucs()
+        )
+        b.run(
+            self.check_strucs(),
+        )
+
+    def test_field_prototypes(self):
+        a, b = self.setup_repos()
+        a.run(
+            self.script(constants + """
+set_field_prototype = [
+    (idaapi.FF_BYTE,  'some_name1', 'char'),
+    (idaapi.FF_DWRD,  'some_name2', 'char *'),
+    (idaapi.FF_DWRD,  'some_name3', 'some_name3 *'),
+]
+for field_type, name, proto in set_field_prototype:
+    sid = idaapi.add_struc(-1, name, 0)
+    idc.add_struc_member(sid, "field", 0, field_type | idaapi.FF_DATA, -1, get_size(field_type, -1))
+    mid = idc.get_member_id(sid, 0)
+    idc.SetType(mid, proto)
+"""),
+            self.save_strucs(),
         )
         b.run(
             self.check_strucs(),
