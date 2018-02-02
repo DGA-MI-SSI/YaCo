@@ -79,6 +79,89 @@ targets = [
 ]
 """
 
+# layout for complex_struc1 & complex_struc2
+#       00000000 struc_1         struc ; (sizeof=0x157)
+#       00000000 field_0         db ?
+#       00000001 field_1         dd ?
+#       00000005 field_5         db ?
+#       00000006 field_6         db 9 dup(?)
+#       0000000F field_F         struc_2 ?
+#       00000028 field_28        struc_2 2 dup(?)
+#       0000005A                 db ? ; undefined
+#       0000005B                 db ? ; undefined
+#       0000005C                 db ? ; undefined
+#       0000005D                 db ? ; undefined
+#       0000005E                 db ? ; undefined
+#       0000005F                 db ? ; undefined
+#       00000060 field_44        dw 13 dup(?)
+#       0000007A field_5E        dd 17 dup(?)
+#       000000BE field_A2        dq 19 dup(?)
+#       00000156 field_156       db ?
+#       00000157 field_157       struc_2 2 dup(?)
+#       00000189 field_189       db ?
+#       0000018A struc_1         ends
+#       00000000 ; ---------------------------------------------------------------------------
+#       00000000 struc_2         struc ; (sizeof=0x19)   ; XREF: struc_1
+#       00000000                 db ? ; undefined
+#       00000001                 db ? ; undefined
+#       00000002 field_0         db ?
+#       00000003 field_1         db 13 dup(?)
+#       00000010 field_E         dq ?
+#       00000018 field_16        db ?
+#       00000019 struc_2         ends
+
+complex_constants = """
+# offset, name, ftype, strid, count
+complex_struc1 = [
+    (0x0000,  "byte",           idaapi.FF_BYTE, -1,  1),
+    (0x0001,  "dword",          idaapi.FF_DWRD, -1,  1),
+    (0x0005,  "byte",           idaapi.FF_BYTE, -1,  1),
+    (0x0006,  "byte_array",     idaapi.FF_BYTE, -1,  9),
+    (0x000F,  "struc",          idaapi.FF_STRU,  1,  1),
+    (0x0028,  "struc_array",    idaapi.FF_STRU,  1,  2),
+    (0x005A,  None,             None,           -1,  6),
+    (0x0060,  "word",           idaapi.FF_WORD, -1, 13),
+    (0x007A,  "dword",          idaapi.FF_DWRD, -1, 17),
+    (0x00BE,  "qword_array",    idaapi.FF_QWRD, -1, 19),
+    (0x0156,  "byte",           idaapi.FF_BYTE, -1,  1),
+    (0x0157,  "struc_array",    idaapi.FF_STRU,  1,  2),
+    (0x0189,  "byte",           idaapi.FF_BYTE, -1,  1),
+]
+complex_struc1_size = 0x0189+1
+
+complex_struc2 = [
+    (0x0000,  None,             None,           -1,  2),
+    (0x0002,  "byte",           idaapi.FF_BYTE, -1,  1),
+    (0x0003,  "byte_array",     idaapi.FF_BYTE, -1, 13),
+    (0x0010,  "qword",          idaapi.FF_QWRD, -1,  1),
+    (0x0018,  "byte",           idaapi.FF_BYTE, -1,  1),
+]
+
+complex_struc3 = [
+    (0x0000,  "byte",           idaapi.FF_BYTE, -1,  1),
+    (0x0001,  "dword",          idaapi.FF_DWRD, -1,  1),
+    (0x0005,  "byte",           idaapi.FF_BYTE, -1,  1),
+]
+complex_struc3_size = 0x6
+
+def create_field(sid, offset, name, ftype, strid, count):
+        if ftype is None or name is None:
+            return
+        name = 'f%.04X_%s' % (offset, name)
+        size = get_size(ftype, strid) if ftype is not None else 1
+        idc.add_struc_member(sid, name, offset, ftype | idaapi.FF_DATA, strid, size * count)
+
+def create_complex(sid_a, sid_b):
+    for offset, name, ftype, strid, count in complex_struc2:
+        create_field(sid_b, offset, name, ftype, strid, count)
+    size = idaapi.get_struc_size(sid_b)
+    for offset, name, ftype, strid, count in complex_struc1:
+        if strid != -1:
+            count *= size
+            strid  = sid_b
+        create_field(sid_a, offset, name, ftype, strid, count)
+"""
+
 class Fixture(run_all_tests.Fixture):
 
     def test_strucs(self):
@@ -260,6 +343,38 @@ for ea, n, offset in targets:
             self.save_ea(ea),
         )
         self.assertNotRegexpMatches(self.eas[ea], "path_idx")
+        a.run(
+            self.check_ea(ea),
+        )
+
+    def test_complex_struc(self):
+        a, b = self.setup_repos()
+        a.run(
+            self.script(constants + complex_constants + """
+sid0 = idaapi.add_struc(-1, "top", False)
+sid1 = idaapi.add_struc(-1, "complex_bot_struc", False)
+create_complex(sid0, sid1)
+"""),
+            self.save_strucs(),
+        )
+        self.assertRegexpMatches(self.strucs, "complex_bot_struc")
+        ea = 0x6601EF30
+        b.run(
+            self.check_strucs(),
+            self.script(constants + complex_constants + """
+frame = idaapi.get_frame(0x6601EF30)
+offset = idc.get_first_member(frame.id)
+while offset != idaapi.BADADDR:
+    mid = idc.get_member_id(frame.id, offset)
+    if not idaapi.is_special_member(mid):
+        idaapi.del_struc_member(frame, offset)
+    offset = idc.get_next_offset(frame.id, offset)
+sid1 = idaapi.add_struc(-1, "complex_bot_stack", False)
+create_complex(frame.id, sid1)
+"""),
+            self.save_ea(ea),
+        )
+        self.assertRegexpMatches(self.eas[ea], "complex_bot_stack")
         a.run(
             self.check_ea(ea),
         )
