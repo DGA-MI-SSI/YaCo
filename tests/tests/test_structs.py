@@ -71,6 +71,14 @@ create_field = [
 ]
 """
 
+apply_types = """
+targets = [
+    (0x66013D23, 1, 3),
+    (0x66013D26, 1, 7),
+    (0x66013D2C, 0, 13),
+]
+"""
+
 class Fixture(run_all_tests.Fixture):
 
     def test_strucs(self):
@@ -209,4 +217,49 @@ for k in range(0, 2):
         )
         b.run(
             self.check_strucs(),
+        )
+
+    def test_apply_structs(self):
+        a, b = self.setup_repos()
+        ea = 0x66013D10
+        a.run(
+            self.script(apply_types + """
+sid = idaapi.add_struc(-1, "t0", False)
+for x in xrange(0, 0x60):
+    idc.add_struc_member(sid, "dat_%x" % x, x, idaapi.FF_BYTE | idaapi.FF_DATA, -1, 1)
+sidu = idaapi.add_struc(-1, "u0", True)
+for x in xrange(0, 0x10):
+    idc.add_struc_member(sidu, "datu_%x" %x, 0, idaapi.struflag(), sid, idaapi.get_struc_size(sid))
+
+def custom_op_stroff(ea, n, path, path_len):
+    insn = ida_ua.insn_t()
+    insn_len = ida_ua.decode_insn(insn, ea)
+    return idaapi.op_stroff(insn, n, path, path_len, 0)
+
+path = idaapi.tid_array(1)
+path[0] = sid
+custom_op_stroff(0x66013D1D, 0, path.cast(), 1)
+
+for ea, n, offset in targets:
+    path = idaapi.tid_array(2)
+    path[0] = sidu
+    path[1] = idc.get_member_id(sidu, offset)
+    custom_op_stroff(ea, n, path.cast(), 2)
+"""),
+            self.save_strucs(),
+            self.save_ea(ea),
+        )
+        self.assertRegexpMatches(self.eas[ea], "path_idx")
+        b.run(
+            self.check_ea(ea),
+            self.check_strucs(),
+            self.script(apply_types + """
+for ea, n, offset in targets:
+    idaapi.clr_op_type(ea, n)
+"""),
+            self.save_ea(ea),
+        )
+        self.assertNotRegexpMatches(self.eas[ea], "path_idx")
+        a.run(
+            self.check_ea(ea),
         )

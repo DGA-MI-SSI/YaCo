@@ -1027,6 +1027,7 @@ namespace
         const_string_ref value;
         opinfo_t op;
         const auto qbuf = ctx.qpool_.acquire();
+        const auto defflags = num_flag() & MS_0TYPE;
         for(const auto opflags : {get_optype_flags0(flags), get_optype_flags1(flags) >> 4})
         {
             ++i;
@@ -1066,7 +1067,8 @@ namespace
                 value = g_octal;
                 break;
             }
-            v.visit_offset_valueview(offset, i, value);
+            if(opflags != defflags)
+                v.visit_offset_valueview(offset, i, value);
         }
     }
 

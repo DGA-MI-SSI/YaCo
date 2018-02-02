@@ -1171,21 +1171,21 @@ namespace
         }
     }
 
-    void clear_applied_enums(const HVersion& version, ea_t ea)
+    void clear_applied_stroffs(const HVersion& version, ea_t ea)
     {
         const auto end = ea + version.size();
         for(auto it = ea; it < end; it = get_item_end(it))
         {
             const auto flags = get_flags(it);
             for(int n = 0; n < UA_MAXOP; ++n)
-                if(is_enum(flags, n))
+                if(is_enum(flags, n) || is_stroff(flags, n))
                     clr_op_type(it, n);
         }
     }
 
     void make_views(const HVersion& version, ea_t ea)
     {
-        clear_applied_enums(version, ea);
+        clear_applied_stroffs(version, ea);
         clear_register_views(version, ea);
         version.walk_value_views([&](offset_t offset, operand_t operand, const const_string_ref& value)
         {
