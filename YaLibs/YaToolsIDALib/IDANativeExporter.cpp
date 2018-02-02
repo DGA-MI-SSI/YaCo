@@ -1091,6 +1091,8 @@ namespace
             return op_bin(ea, operand);
         if(view == "octal")
             return op_oct(ea, operand);
+        if(view == "stack")
+            return op_stkvar(ea, operand);
         if(begins_with_offset(view))
         {
             const auto dash = view.find('-');
@@ -1171,21 +1173,17 @@ namespace
         }
     }
 
-    void clear_applied_stroffs(const HVersion& version, ea_t ea)
+    void clear_ops(const HVersion& version, ea_t ea)
     {
         const auto end = ea + version.size();
         for(auto it = ea; it < end; it = get_item_end(it))
-        {
-            const auto flags = get_flags(it);
-            for(int n = 0; n < UA_MAXOP; ++n)
-                if(is_enum(flags, n) || is_stroff(flags, n))
-                    clr_op_type(it, n);
-        }
+            for(int n = 0; n < 2; ++n)
+                clr_op_type(it, n);
     }
 
     void make_views(const HVersion& version, ea_t ea)
     {
-        clear_applied_stroffs(version, ea);
+        clear_ops(version, ea);
         clear_register_views(version, ea);
         version.walk_value_views([&](offset_t offset, operand_t operand, const const_string_ref& value)
         {
@@ -1411,13 +1409,6 @@ namespace
         exporter.refs_.emplace(id, ref);
     }
 
-    void set_stackframe_member_operand(ea_t ea, offset_t offset, operand_t operand)
-    {
-        const auto ok = op_stkvar(static_cast<ea_t>(ea + offset), operand);
-        if(!ok)
-            LOG(ERROR, "make_basic_block: 0x%" PRIxEA " unable to set stackframe member at offset %" PRId64 " operand %d\n", ea, offset, operand);
-    }
-
     void set_enum_operand(ea_t ea, offset_t offset, operand_t operand, enum_t enum_id)
     {
         // FIXME serial
@@ -1542,10 +1533,6 @@ namespace
                 case OBJECT_TYPE_STACKFRAME:
                 case OBJECT_TYPE_STRUCT_MEMBER:
                     fill_path(paths, key.tid, offset, operand, version, attrs);
-                    break;
-
-                case OBJECT_TYPE_STACKFRAME_MEMBER:
-                    set_stackframe_member_operand(ea, offset, operand);
                     break;
 
                 case OBJECT_TYPE_ENUM:

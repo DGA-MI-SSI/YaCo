@@ -98,6 +98,7 @@ namespace
     DECLARE_REF(g_char, "char");
     DECLARE_REF(g_binary, "binary");
     DECLARE_REF(g_octal, "octal");
+    DECLARE_REF(g_stack, "stack");
     DECLARE_REF(g_path_idx, "path_idx");
     DECLARE_REF(g_start_ea,"start_ea");
     DECLARE_REF(g_end_ea, "end_ea");
@@ -1066,8 +1067,12 @@ namespace
             case FF_0NUMO:
                 value = g_octal;
                 break;
+
+            case FF_0STK:
+                value = g_stack;
+                break;
             }
-            if(opflags != defflags)
+            if(opflags != defflags || is_invsign(ea, flags, i))
                 v.visit_offset_valueview(offset, i, value);
         }
     }
@@ -1168,38 +1173,11 @@ namespace
     }
 
     template<typename Ctx>
-    void accept_stackframe_operand(Ctx& ctx, ea_t ea, ea_t root, func_t* func, struc_t* frame, const insn_t& cmd, const op_t& operand, int opidx)
-    {
-        sval_t val = 0;
-        const auto member = get_stkvar(&val, cmd, operand, operand.addr);
-        if(!member)
-            return;
-
-        // FIXME we are adding special stack members, which are not into stackframe_members
-        const auto qbuf = ctx.qpool_.acquire();
-        if(!EMULATE_PYTHON_MODEL_BEHAVIOR)
-        {
-            if(is_special_member(member->id))
-                return;
-
-            ya::wrap(&get_member_name, *qbuf, member->id);
-            if(is_default_member(*ctx.qpool_.acquire(), frame, member, ya::to_string_ref(*qbuf)))
-                return;
-        }
-
-        const auto fid = ctx.provider_.get_stack_id(func->start_ea);
-        const auto xid = ctx.provider_.get_member_id(fid, member->soff);
-        ctx.xrefs_.push_back({ea - root, xid, opidx, 0});
-    }
-
-    template<typename Ctx>
-    void accept_insn_xrefs(Ctx& ctx, ea_t ea, ea_t root, ya::Deps* deps, flags_t flags, func_t* func, struc_t* frame, opinfo_t* pop, insn_t* cmd)
+    void accept_insn_xrefs(Ctx& ctx, ea_t ea, ea_t root, ya::Deps* deps, flags_t flags, opinfo_t* pop, insn_t* cmd)
     {
         // check for content before decoding
         if(!is_enum0(flags)
         && !is_enum1(flags)
-        && !is_stkvar0(flags)
-        && !is_stkvar1(flags)
         && !is_stroff0(flags)
         && !is_stroff1(flags))
             return;
@@ -1216,8 +1194,6 @@ namespace
                 accept_enum_operand(ctx, ea, root, deps, flags, i, pop);
             else if(is_stroff(flags, i))
                 accept_struc_operand(ctx, ea, root, deps, flags, i, pop);
-            else if(func && is_stkvar(flags, i))
-                accept_stackframe_operand(ctx, ea, root, func, frame, *cmd, cmd->ops[i], i);
     }
 
     template<typename Ctx>
@@ -1276,7 +1252,6 @@ namespace
         insn_t cmd;
 
         const auto func = get_func(start);
-        const auto frame = get_frame(func);
         accept_bb_xrefs(ctx, func, start, end);
 
         v.visit_start_offsets();
@@ -1289,7 +1264,7 @@ namespace
             accept_hiddenareas(ctx, v, ea, start);
             accept_value_views(ctx, v, ea, start, flags);
             accept_from_xrefs(ctx, ea, start);
-            accept_insn_xrefs(ctx, ea, start, deps, flags, func, frame, &op, &cmd);
+            accept_insn_xrefs(ctx, ea, start, deps, flags, &op, &cmd);
             accept_references(ctx, ea, start, flags, &op);
         }
         v.visit_end_offsets();

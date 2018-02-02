@@ -28,11 +28,9 @@ idaapi.toggle_sign(ea+0x27, 1)
 
 reset_operands = """
 ea = 0x66013B90
-idaapi.op_hex(ea+0x1A, 0)
-idaapi.toggle_sign(ea+0x24, 1)
-idaapi.op_hex(ea+0x24, 1)
-idaapi.toggle_sign(ea+0x27, 1)
-idaapi.op_dec(ea+0x27, 1)
+idaapi.clr_op_type(ea+0x1A, 0)
+idaapi.clr_op_type(ea+0x24, 1)
+idaapi.clr_op_type(ea+0x27, 1)
 """
 
 class Fixture(run_all_tests.Fixture):
