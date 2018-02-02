@@ -182,9 +182,21 @@ class Fixture(unittest.TestCase):
                 self.strucs[name] = self.filter_struc(fh.read())
         return script, callback
 
+    def save_strucs(self):
+        script = "ya.export_xml_strucs()"
+        def callback(filename):
+            with open(filename, "rb") as fh:
+                self.strucs = self.filter_struc(fh.read())
+        return script, callback
+
     def check_struc(self, name):
         script = "ya.export_xml_struc('%s')" % name
         want = self.strucs[name]
+        return script, self.check_diff(want, filter=self.filter_struc)
+
+    def check_strucs(self):
+        script = "ya.export_xml_strucs()"
+        want = self.strucs
         return script, self.check_diff(want, filter=self.filter_struc)
 
     def save_ea(self, ea):

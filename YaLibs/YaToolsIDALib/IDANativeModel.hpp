@@ -55,3 +55,4 @@ void export_from_ida(const std::string& filename);
 std::string export_xml(ea_t ea, int type_mask);
 std::string export_xml_enum(const std::string& name);
 std::string export_xml_struc(const std::string& name);
+std::string export_xml_strucs();

@@ -22,7 +22,11 @@ class Fixture(run_all_tests.Fixture):
     def test_strucs(self):
         a, b = self.setup_repos()
         a.run(
-            self.script("idaapi.add_struc(-1, 'name_a', False)"),
+            self.script("""
+eid = idaapi.add_struc(-1, "name_a", False)
+idaapi.set_struc_cmt(eid, "cmt_01", True)
+idaapi.set_struc_cmt(eid, "cmt_02", False)
+"""),
             self.save_struc("name_a"),
         )
         b.run(
@@ -68,4 +72,27 @@ class Fixture(run_all_tests.Fixture):
         )
         a.run(
             self.check_struc("name_b"),
+        )
+
+    def test_sub_structs(self):
+        a, b = self.setup_repos()
+        a.run(
+            self.script("""
+idx = 0
+sub_tests = [
+    (0, 1),  (13, 1),
+    (0, 16), (13, 16),
+]
+for offset, count in sub_tests:
+    top = idaapi.add_struc(-1, "top_%x" % idx, False)
+    bot = idaapi.add_struc(-1, "bot_%x" % idx, False)
+    idx += 1
+    for i in xrange(0, count):
+        idc.add_struc_member(bot, "subf_%02x" % i, offset + i, idaapi.FF_BYTE | idaapi.FF_DATA, -1, 1)
+    idc.add_struc_member(top, "sub_struct", offset, idaapi.FF_STRU | idaapi.FF_DATA, bot, idaapi.get_struc_size(bot), -1)
+"""),
+            self.save_strucs(),
+        )
+        b.run(
+            self.check_strucs(),
         )

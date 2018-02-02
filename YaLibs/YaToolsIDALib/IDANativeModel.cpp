@@ -622,20 +622,25 @@ namespace
             accept_enum(ctx, v, dep.tid);
     }
 
-    template<typename Ctx>
-    void accept_structs(Ctx& ctx, IModelVisitor& v)
+    template<typename T>
+    void walk_strucs(const T& operand)
     {
         for(auto idx = get_first_struc_idx(); idx != BADADDR; idx = get_next_struc_idx(idx))
         {
             const auto tid = get_struc_by_idx(idx);
             const auto struc = get_struc(tid);
-            if(!struc)
-            {
-                LOG(ERROR, "accept_struc: 0x%" PRIxEA " missing struct at index %" PRIxEA "\n", tid, idx);
-                continue;
-            }
-            accept_struct(ctx, v, {}, struc, nullptr);
+            if(struc)
+                operand(struc);
         }
+    }
+
+    template<typename Ctx>
+    void accept_structs(Ctx& ctx, IModelVisitor& v)
+    {
+        walk_strucs([&](struc_t* struc)
+        {
+            accept_struct(ctx, v, {}, struc, nullptr);
+        });
     }
 
 #ifdef _DEBUG
@@ -2105,6 +2110,35 @@ std::string export_xml_struc(const std::string& name)
     const auto db = MakeModel();
     db.visitor->visit_start();
     ModelIncremental(*MakeHashProvider(), ~0).accept_struct(*db.visitor, BADADDR, sid);
+    db.visitor->visit_end();
+    return export_to_xml(*db.model);
+}
+
+namespace
+{
+    std::vector<struc_t*> get_ordered_strucs()
+    {
+        std::vector<struc_t*> strucs;
+        walk_strucs([&](struc_t* s)
+        {
+            strucs.push_back(s);
+        });
+        std::sort(strucs.begin(), strucs.end(), [](const struc_t* a, const struc_t* b)
+        {
+            return get_struc_name(a->id) < get_struc_name(b->id);
+        });
+        return strucs;
+    }
+}
+
+std::string export_xml_strucs()
+{
+    const auto db = MakeModel();
+    db.visitor->visit_start();
+    const auto provider = MakeHashProvider();
+    ModelIncremental inc(*provider, ~0);
+    for(const auto s : get_ordered_strucs())
+        inc.accept_struct(*db.visitor, BADADDR, s->id);
     db.visitor->visit_end();
     return export_to_xml(*db.model);
 }
