@@ -378,3 +378,40 @@ create_complex(frame.id, sid1)
         a.run(
             self.check_ea(ea),
         )
+
+    def test_create_struc_in_stack_vars(self):
+        a, b = self.setup_repos()
+        ea = 0x6601EF30
+        a.run(
+            self.script(constants + complex_constants + """
+def create_complex2(sid, complex_struc):
+    for offset, name, ftype, strid, count in complex_struc:
+        create_field(sid, offset, name, ftype, strid, count)
+    return idaapi.get_struc_size(sid)
+
+sid1 = idaapi.add_struc(-1, "complex_bot_stack", False)
+create_complex2(sid1, complex_struc3)
+frame = idaapi.get_frame(0x6601EF30)
+offset = idc.get_first_member(frame.id)
+mid = idc.get_member_id(frame.id, offset)
+idc.SetType(mid, "complex_bot_stack*")
+idaapi.set_member_name(frame, offset, "zorg")
+"""),
+            self.save_ea(ea),
+            self.save_strucs(),
+        )
+        b.run(
+            self.check_ea(ea),
+            self.check_strucs(),
+            self.script("""
+frame = idaapi.get_frame(0x6601EF30)
+offset = idc.get_first_member(frame.id)
+idaapi.set_member_name(frame, offset, "new_name")
+"""),
+            self.save_ea(ea),
+            self.save_strucs(),
+        )
+        a.run(
+            self.check_ea(ea),
+            self.check_strucs(),
+        )
