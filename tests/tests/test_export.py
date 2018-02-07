@@ -13,29 +13,24 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#!/bin/python
+
 import difflib
-import idaapi
-import idc
 import inspect
 import os
-import re
-import unittest
-import YaCo
+import run_all_tests
+import StringIO
 
 def iterate(get, size):
     for i in range(0, size):
         yield get(i)
 
-class Fixture(unittest.TestCase):
+golden_filename = "export.700.golden"
 
-    def check_golden(self, name):
-        expected_dir = os.path.abspath(os.path.dirname(inspect.getsourcefile(lambda:0)))
-        expected_path = os.path.join(expected_dir, name + ".golden")
+class Fixture(run_all_tests.Fixture):
 
-        # read actual values
-        got = None
-        with open(name, "rb") as fh:
-            got = fh.read()
+    def check_golden(self, got):
+        expected_path = os.path.join(os.path.dirname(inspect.getsourcefile(lambda:0)), golden_filename)
 
         # enable to update golden file
         if False:
@@ -48,17 +43,18 @@ class Fixture(unittest.TestCase):
             expected = fh.read()
 
         if expected != got:
-            self.fail(''.join(difflib.unified_diff(expected.splitlines(1), got.splitlines(1), name + ".golden", name)))
+            self.fail(''.join(difflib.unified_diff(expected.splitlines(1), got.splitlines(1), golden_filename, "got")))
 
-    def check_yadb(self):
-        path = idc.GetIdbPath()
-        path = re.sub(r'\w+_local\.i(db|64)$', 'database/database.yadb', path)
+    def test_export(self):
+        a, b = self.setup_repos()
+        a.run(
+            self.script("YaCo.yaco.export_database()"),
+        )
         import yadb.Root
         data = None
-        with open(path, 'rb') as fh:
+        with open(os.path.join(a.path, "database", "database.yadb"), 'rb') as fh:
             data = bytearray(fh.read())
         root = yadb.Root.Root.GetRootAsRoot(data, 0)
-        read = "export." + str(idaapi.IDA_SDK_VERSION)
         def tostr(index):
             return root.Strings(index).decode()
         def getname(version):
@@ -81,33 +77,19 @@ class Fixture(unittest.TestCase):
             ("dat", root.Datas,             root.DatasLength(),             lambda x: x.Address()),
             ("bbk", root.BasicBlocks,       root.BasicBlocksLength(),       lambda x: x.Address()),
         ]
-        with open(read, "wb") as fh:
-            fh.write("objects: %d\n" % root.ObjectsLength())
-            fh.write("systems: %d\n" % root.SystemsLength())
-            for (prefix, getter, size, getkey) in versions:
-                fh.write("\n%s: %d\n" % (prefix, size))
-                values = []
-                for it in iterate(getter, size):
-                    data[it.ObjectId()] = it
-                    name = getname(it)
-                    prototype = tostr(it.Prototype())
-                    # workaround broken usercall arguments on 32-bit binaries in ida64
-                    if "__usercall" in prototype:
-                        prototype = re.sub("@<r(\w)x>", "@<e\\1x>", prototype)
-                    # remove ids from prototypes which are unstable
-                    prototype = re.sub("/\\*%(:?[^%]+)%\\*/", "", prototype)
-                    # clean-up artifacts after prototype id removal
-                    prototype = prototype.replace(" ,", ",")
-                    prototype = prototype.replace(" )", ")")
-                    prototype = prototype.replace("  ", " ")
-                    prototype = prototype.replace(" []", "[]")
-                    values.append((getkey(it), prefix, it.Address(), name, prototype))
-                values.sort(cmp=lambda x, y: cmp(x[0], y[0]))
-                for (key, prefix, ea, name, prototype) in values:
-                    line = "%s_%-2x %s %s" % (prefix, ea, name, prototype)
-                    fh.write(line.rstrip() + "\n")
-        self.check_golden(read)
-
-    def yaexport_single(self):
-        YaCo.yaco.export_database()
-        self.check_yadb()
+        got = StringIO.StringIO()
+        got.write("objects: %d\n" % root.ObjectsLength())
+        got.write("systems: %d\n" % root.SystemsLength())
+        for (prefix, getter, size, getkey) in versions:
+            got.write("\n%s: %d\n" % (prefix, size))
+            values = []
+            for it in iterate(getter, size):
+                data[it.ObjectId()] = it
+                name = getname(it)
+                prototype = tostr(it.Prototype())
+                values.append((getkey(it), prefix, it.Address(), name, prototype))
+            values.sort(cmp=lambda x, y: cmp(x[0], y[0]))
+            for (key, prefix, ea, name, prototype) in values:
+                line = "%s_%-2x %s %s" % (prefix, ea, name, prototype)
+                got.write(line.rstrip() + "\n")
+        self.check_golden(got.getvalue())
