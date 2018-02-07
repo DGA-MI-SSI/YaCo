@@ -548,8 +548,11 @@ namespace
     }
 
     template<typename Ctx>
-    YaToolObjectId accept_struct(Ctx& ctx, IModelVisitor& v, const Parent& parent, struc_t* struc, func_t* func)
+    void accept_struct(Ctx& ctx, IModelVisitor& v, const Parent& parent, struc_t* struc, func_t* func)
     {
+        if(struc->is_ghost())
+            return;
+
         const auto struc_name = ctx.qpool_.acquire();
         const auto sid = struc->id;
         ya::wrap(&get_struc_name, *struc_name, sid);
@@ -558,7 +561,7 @@ namespace
             ctx.provider_.get_struc_id(ya::to_string_ref(*struc_name));
         const auto type = func ? OBJECT_TYPE_STACKFRAME : OBJECT_TYPE_STRUCT;
         if(ctx.skip_id(id, type))
-            return id;
+            return;
 
         const auto ea = func ? func->start_ea : struc->ordinal;
         start_object(v, type, id, parent.id, ea);
@@ -613,8 +616,6 @@ namespace
             const auto member = &struc->members[i];
             accept_struct_member(ctx, v, {id, member->soff}, struc, func, member);
         }
-
-        return id;
     }
 
     template<typename Ctx>

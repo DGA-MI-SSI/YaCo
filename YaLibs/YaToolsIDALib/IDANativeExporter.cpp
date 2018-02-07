@@ -1910,6 +1910,7 @@ namespace
         }
 
         clear_struct_fields(exporter, "struct_fields", version, struc->id);
+        struc->set_ghost(false);
     }
 }
 
