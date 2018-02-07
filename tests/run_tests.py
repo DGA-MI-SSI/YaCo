@@ -34,8 +34,6 @@ ida_dir = os.path.abspath(ida_dir_env)
 test_suites = [
     ('yainit',      'yainit',   'yainit',   ['repo/QtCore4.dll']),
     ('yaexport',    'yaexport', 'yaexport', ['QtCore4_local.i64']),
-    ('yatest',      'yaunit',   'yatest',   ['QtCore4_local.i64']),
-    ('yacheck',     'yaunit',   'yacheck',  ['QtCore4_local.i64']),
     ('svginit',     'yainit',   'yainit',   ['qt54_svg/Qt5Svgd.dll', 'qt54_svg/Qt5Svgd.pdb']),
     ('svgtest',     'yasvg',    'yasvg',    ['Qt5Svgd_local.i64']),
 ]
