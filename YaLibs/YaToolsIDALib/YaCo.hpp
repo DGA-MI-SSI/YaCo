@@ -27,6 +27,7 @@ struct IYaCo
     virtual void start() = 0;
     virtual void export_database() = 0;
     virtual void stop() = 0;
+    virtual void disable() = 0;
 };
 
 std::shared_ptr<IYaCo> MakeYaCo(IDAIsInteractive ida_is_interactive);

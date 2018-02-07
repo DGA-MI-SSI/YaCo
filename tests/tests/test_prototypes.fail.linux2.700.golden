@@ -1,0 +1,3 @@
+func:6604eae0:
+    got  struct _TEB *sub()
+    want struct _TEB *__cdecl sub()

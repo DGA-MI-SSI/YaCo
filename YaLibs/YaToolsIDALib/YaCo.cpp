@@ -96,6 +96,7 @@ namespace
         void start() override;
         void export_database() override;
         void stop() override;
+        void disable() override;
 
         // internal
         void initial_load();
@@ -199,6 +200,11 @@ void YaCo::stop()
         detach_action_from_menu("Edit/Yatools/", action_desc.name);
         unregister_action(action_desc.name); // delete the handler
     }
+}
+
+void YaCo::disable()
+{
+    hooks_->unhook();
 }
 
 void YaCo::initial_load()
