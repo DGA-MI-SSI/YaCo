@@ -124,7 +124,7 @@ class Fixture(unittest.TestCase):
         self.bin_dir = os.path.abspath(os.path.join(self.tests_dir, "..", "bin", "yaco_x64", "YaTools", "bin"))
         self.yaco_dir = os.path.abspath(os.path.join(self.tests_dir, "..", "YaCo"))
         self.ida_dir = get_ida_dir()
-        self.out_dir = os.path.abspath(os.path.join(self.tests_dir, "..", "tmp"))
+        self.out_dir = os.path.abspath(os.path.join(self.tests_dir, "..", "out"))
         sys.path.append(self.bin_dir)
         sys.path.append(self.yaco_dir)
 
