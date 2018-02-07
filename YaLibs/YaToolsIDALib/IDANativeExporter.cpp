@@ -937,12 +937,17 @@ namespace
 
     bool set_struct_member_type(const Exporter* exporter, ea_t ea, const std::string& value)
     {
-        return try_set_type(exporter, ea, value, [&](const tinfo_t& tif)
+        return try_set_type(exporter, ea, value, [&](const tinfo_t& original_tif)
         {
             struc_t* s = nullptr;
             auto* m = get_member_by_id(ea, &s);
             if(!s || !m)
                 return false;
+            auto tif = original_tif;
+            // applying int32_t[] to a member of 8 bytes create int32_t[][]
+            // so we remove array before applying it & let ida add it itself
+            if(tif.is_array() && static_cast<asize_t>(tif.get_size()) != get_member_size(m))
+                tif.remove_ptr_or_array();
             const auto err = set_member_tinfo(s, m, 0, tif, 0);
             static_assert(SMT_FAILED == 0, "smt_code_t has been modified");
             return err > SMT_FAILED;
