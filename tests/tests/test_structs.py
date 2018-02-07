@@ -219,7 +219,7 @@ idaapi.set_struc_cmt(eid, "cmt_02", False)
             self.check_struc("name_b"),
         )
 
-    def test_sub_structs(self):
+    def test_sub_strucs(self):
         a, b = self.setup_repos()
         a.run(
             self.script("""
@@ -234,7 +234,7 @@ for offset, count in sub_tests:
     idx += 1
     for i in xrange(0, count):
         idc.add_struc_member(bot, "subf_%02x" % i, offset + i, idaapi.FF_BYTE | idaapi.FF_DATA, -1, 1)
-    idc.add_struc_member(top, "sub_struct", offset, idaapi.FF_STRU | idaapi.FF_DATA, bot, idaapi.get_struc_size(bot), -1)
+    idc.add_struc_member(top, "sub_struc", offset, idaapi.FF_STRU | idaapi.FF_DATA, bot, idaapi.get_struc_size(bot), -1)
 """),
             self.save_strucs(),
         )
@@ -302,7 +302,7 @@ for k in range(0, 2):
             self.check_strucs(),
         )
 
-    def test_apply_structs(self):
+    def test_apply_strucs(self):
         a, b = self.setup_repos()
         ea = 0x66013D10
         a.run(
