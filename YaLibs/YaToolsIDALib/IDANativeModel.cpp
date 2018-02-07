@@ -314,6 +314,9 @@ namespace
     template<typename Ctx>
     void accept_enum(Ctx& ctx, IModelVisitor& v, enum_t eid)
     {
+        if(is_ghost_enum(eid))
+            return;
+
         const auto enum_name = ctx.qpool_.acquire();
         ya::wrap(&get_enum_name, *enum_name, eid);
         const auto id = ctx.provider_.get_enum_id(ya::to_string_ref(*enum_name));

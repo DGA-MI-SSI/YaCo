@@ -1357,6 +1357,7 @@ namespace
         });
 
         set_tid(exporter, id, eid, 0, OBJECT_TYPE_ENUM);
+        set_enum_ghost(eid, false);
     }
 
     void make_enum_member(Exporter& exporter, const HVersion& version, ea_t ea)
