@@ -14,13 +14,11 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # yatools dependencies
-get_filename_component(async_dir    "${ya_dir}/deps/async-0.6.1"    REALPATH)
 get_filename_component(farm_dir     "${ya_dir}/deps/farmhash-1.1"   REALPATH)
 get_filename_component(git_dir      "${ya_dir}/deps/libgit2-0.26.0" REALPATH)
 get_filename_component(gtest_dir    "${ya_dir}/deps/gtest-1.7.0"    REALPATH)
 get_filename_component(ico_dir      "${ya_dir}/deps/libiconv-1.14"  REALPATH)
 get_filename_component(mbed_dir     "${ya_dir}/deps/mbedtls-2.4.2"  REALPATH)
-get_filename_component(pympler_dir  "${ya_dir}/deps/pympler"        REALPATH)
 get_filename_component(ssh2_dir     "${ya_dir}/deps/libssh2-1.8.0"  REALPATH)
 get_filename_component(swig_dir     "${ya_dir}/deps/swig-3.0.7"     REALPATH)
 get_filename_component(xml_dir      "${ya_dir}/deps/libxml2-2.7.8"  REALPATH)

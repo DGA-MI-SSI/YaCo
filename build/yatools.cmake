@@ -82,11 +82,8 @@ make_deploy_dir(${bin_dir}/.. YaCo ${ya_dir}/YaCo)
 add_custom_command(TARGET yatools POST_BUILD
     # make sure deploy_dir exists
     COMMAND ${CMAKE_COMMAND} -E make_directory ${deploy_dir}
-    # python dependencies
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${async_dir}   ${deploy_dir}/async
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${pympler_dir} ${deploy_dir}/pympler
     # ida plugins
-    COMMAND ${CMAKE_COMMAND} -E copy ${ya_dir}/YaCo/yaco_plugin.py     ${deploy_dir}/../..
+    COMMAND ${CMAKE_COMMAND} -E copy ${ya_dir}/YaCo/yaco_plugin.py ${deploy_dir}/../..
     # flatbuffers bindings
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${fb_dir}/python/flatbuffers" "${deploy_dir}/flatbuffers"
     # generated yadb bindings
