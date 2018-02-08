@@ -15,7 +15,7 @@
 
 #!/bin/python
 
-import run_all_tests
+import runtests
 
 set_operands = """
 ea = 0x66013B90
@@ -33,7 +33,7 @@ idaapi.clr_op_type(ea+0x24, 1)
 idaapi.clr_op_type(ea+0x27, 1)
 """
 
-class Fixture(run_all_tests.Fixture):
+class Fixture(runtests.Fixture):
 
     def test_operands(self):
         a, b = self.setup_repos()

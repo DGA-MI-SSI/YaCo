@@ -15,7 +15,7 @@
 
 #!/bin/python
 
-import run_all_tests
+import runtests
 
 constants = """
 block_ea = 0x66045614
@@ -85,7 +85,7 @@ for (flags, bits, bitfield, ea, operand, fields) in enums:
     idaapi.del_enum(eid)
 """
 
-class Fixture(run_all_tests.Fixture):
+class Fixture(runtests.Fixture):
 
     def test_enums(self):
         a, b = self.setup_repos()

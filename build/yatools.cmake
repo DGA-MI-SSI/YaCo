@@ -278,19 +278,21 @@ target_link_libraries(integration_tests PRIVATE
 set_property(TEST integration_tests APPEND PROPERTY DEPENDS make_qt54_svg_testdata)
 set_property(TEST integration_tests APPEND PROPERTY DEPENDS make_qt57_svg_testdata)
 
-# yaco_tests
-function(make_yaco_test bitness idaq)
-    set(suffix ${bitness}_tests)
-    add_test(NAME yaco${suffix}
-        COMMAND ${PYTHON_EXECUTABLE} ${ya_dir}/tests/run_tests.py
-        ${deploy_dir} ya ${CMAKE_CURRENT_BINARY_DIR} ${idaq}
+# unit_tests
+foreach(unit IN ITEMS
+    comments
+    enums
+    export
+    functions
+    operands
+    prototypes
+    reference_views
+    registers
+    structs
+)
+    add_test(NAME test_${unit}
+        COMMAND "${PYTHON_EXECUTABLE}" "${ya_dir}/tests/runtests.py" -f${unit} -b "${deploy_dir}"
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     )
-    add_test(NAME svg${suffix}
-        COMMAND ${PYTHON_EXECUTABLE} ${ya_dir}/tests/run_tests.py
-        ${deploy_dir} svg ${CMAKE_CURRENT_BINARY_DIR} ${idaq}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    )
-endfunction()
-make_yaco_test(32 "ida64")
-make_yaco_test(64 "ida")
+    set_property(TEST test_${unit} APPEND PROPERTY DEPENDS make_qt54_svg_testdata)
+endforeach()

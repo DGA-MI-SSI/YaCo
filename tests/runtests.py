@@ -118,13 +118,14 @@ ea_defmask = "(~0 & ~(1 << ya.OBJECT_TYPE_STRUCT) & ~(1 << ya.OBJECT_TYPE_ENUM))
 class Fixture(unittest.TestCase):
 
     def setUp(self):
+        args, _ = get_args()
         self.dirs = []
         self.counter = 0
         self.tests_dir = os.path.abspath(os.path.join(inspect.getsourcefile(lambda:0), ".."))
-        self.bin_dir = os.path.abspath(os.path.join(self.tests_dir, "..", "bin", "yaco_x64", "YaTools", "bin"))
         self.yaco_dir = os.path.abspath(os.path.join(self.tests_dir, "..", "YaCo"))
         self.ida_dir = get_ida_dir()
         self.out_dir = os.path.abspath(os.path.join(self.tests_dir, "..", "out"))
+        self.bin_dir = args.bindir
         sys.path.append(self.bin_dir)
         sys.path.append(self.yaco_dir)
 
@@ -235,11 +236,16 @@ class Fixture(unittest.TestCase):
         shutil.copytree(a, b)
         return ra, rb
 
-if __name__ == '__main__':
+def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("-v", "--verbose", type=int, default=2, help="verbosity level")
     parser.add_argument("-f", "--filter", type=str, default="", help="filter tests")
-    args = parser.parse_args()
-    path = os.path.abspath(os.path.join(inspect.getsourcefile(lambda:0), "..", "tests"))
-    tests = unittest.defaultTestLoader.discover(path, pattern="*" + args.filter + "*.py")
-    unittest.TextTestRunner(verbosity=args.verbose).run(tests)
+    cur_dir = os.path.abspath(os.path.join(inspect.getsourcefile(lambda:0), ".."))
+    parser.add_argument("-b", "--bindir", type=os.path.abspath, default=os.path.abspath(os.path.join(cur_dir, "..", "bin", "yaco_x64", "YaTools", "bin")), help="binary directory")
+    return parser.parse_args(), cur_dir
+
+if __name__ == '__main__':
+    args, cur_dir = get_args()
+    tests = unittest.defaultTestLoader.discover(os.path.join(cur_dir, "tests"), pattern="*" + args.filter + "*.py")
+    result = unittest.TextTestRunner(verbosity=args.verbose).run(tests)
+    sys.exit(0 if not result.errors and not result.failures else -1)

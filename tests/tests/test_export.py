@@ -18,16 +18,16 @@
 import difflib
 import inspect
 import os
-import run_all_tests
+import runtests
 import StringIO
 
 def iterate(get, size):
     for i in range(0, size):
         yield get(i)
 
-golden_filename = "export.700.golden"
+golden_filename = "test_export.700.golden"
 
-class Fixture(run_all_tests.Fixture):
+class Fixture(runtests.Fixture):
 
     def check_golden(self, got):
         expected_path = os.path.join(os.path.dirname(inspect.getsourcefile(lambda:0)), golden_filename)

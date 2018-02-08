@@ -15,7 +15,7 @@
 
 #!/bin/python
 
-import run_all_tests
+import runtests
 
 set_function_name = """
 ea = 0x6602E530
@@ -40,7 +40,7 @@ frame = idaapi.get_frame(ea)
 idaapi.set_member_name(frame, 0x4,  "another_name")
 """
 
-class Fixture(run_all_tests.Fixture):
+class Fixture(runtests.Fixture):
 
     def test_rename_function(self):
         a, b = self.setup_repos()

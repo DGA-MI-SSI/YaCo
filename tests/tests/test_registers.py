@@ -15,7 +15,7 @@
 
 #!/bin/python
 
-import run_all_tests
+import runtests
 
 set_registers = """
 ea = 0x66013830
@@ -31,7 +31,7 @@ idaapi.del_regvar(func, ea, ea+0x10, "ebp")
 idaapi.del_regvar(func, ea+0x10, ea+0x20, "ebp")
 """
 
-class Fixture(run_all_tests.Fixture):
+class Fixture(runtests.Fixture):
 
     def test_register_views(self):
         a, b = self.setup_repos()

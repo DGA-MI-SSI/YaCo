@@ -18,7 +18,7 @@
 import difflib
 import inspect
 import os
-import run_all_tests
+import runtests
 import sys
 
 code = """
@@ -93,7 +93,7 @@ with open(read, "wb") as fr:
             get_set_type("stru", mid, fr, ff, get_member, ya.set_struct_member_type_at)
 """
 
-class Fixture(run_all_tests.Fixture):
+class Fixture(runtests.Fixture):
 
     def check_golden(self, repo_path, name):
         expected_dir = os.path.abspath(os.path.dirname(inspect.getsourcefile(lambda:0)))

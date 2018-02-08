@@ -15,7 +15,7 @@
 
 #!/bin/python
 
-import run_all_tests
+import runtests
 
 constants = """
 field_sizes = {
@@ -162,7 +162,7 @@ def create_complex(sid_a, sid_b):
         create_field(sid_a, offset, name, ftype, strid, count)
 """
 
-class Fixture(run_all_tests.Fixture):
+class Fixture(runtests.Fixture):
 
     def test_strucs(self):
         a, b = self.setup_repos()

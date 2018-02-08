@@ -15,7 +15,7 @@
 
 #!/bin/python
 
-import run_all_tests
+import runtests
 
 set_reference_views = """
 ea = 0x66013B00
@@ -29,7 +29,7 @@ idaapi.op_offset(ea+0xF,  0, idaapi.get_default_reftype(ea+0xF))
 idaapi.op_offset(ea+0x17, 1, idaapi.get_default_reftype(ea+0x17))
 """
 
-class Fixture(run_all_tests.Fixture):
+class Fixture(runtests.Fixture):
 
     def test_reference_views(self):
         a, b = self.setup_repos()
