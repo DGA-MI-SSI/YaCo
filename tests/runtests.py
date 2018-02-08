@@ -246,6 +246,6 @@ def get_args():
 
 if __name__ == '__main__':
     args, cur_dir = get_args()
-    tests = unittest.defaultTestLoader.discover(os.path.join(cur_dir, "tests"), pattern="*" + args.filter + "*.py")
+    tests = unittest.defaultTestLoader.discover(os.path.join(cur_dir, "tests"), pattern="*" + args.filter + ".py")
     result = unittest.TextTestRunner(verbosity=args.verbose).run(tests)
     sys.exit(0 if not result.errors and not result.failures else -1)

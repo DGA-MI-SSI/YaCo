@@ -276,17 +276,10 @@ set_property(TEST integration_tests APPEND PROPERTY DEPENDS make_qt54_svg_testda
 set_property(TEST integration_tests APPEND PROPERTY DEPENDS make_qt57_svg_testdata)
 
 # unit_tests
-foreach(unit IN ITEMS
-    comments
-    enums
-    export
-    functions
-    operands
-    prototypes
-    reference_views
-    registers
-    structs
-)
+file(GLOB files "${ya_dir}/tests/tests/*.py")
+foreach(unit ${files})
+    get_filename_component(unit ${unit} NAME_WE)
+    string(REGEX REPLACE "test_" "" unit ${unit})
     add_test(NAME test_${unit}
         COMMAND "${PYTHON_EXECUTABLE}" "${ya_dir}/tests/runtests.py" -f${unit} -b "${deploy_dir}"
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
