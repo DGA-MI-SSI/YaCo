@@ -26,13 +26,4 @@ namespace
         const auto str = to_hex<flags>(buf, x);
         dst.append(str.value, str.size);
     }
-
-    // duplicate hex function behavior from python
-    template<typename T, typename U>
-    void to_py_hex(T& dst, U value)
-    {
-        dst = "0x";
-        append_uint64<LowerCase | RemovePadding>(dst, value);
-        dst += 'L';
-    }
 }
