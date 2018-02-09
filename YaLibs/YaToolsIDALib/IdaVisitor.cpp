@@ -16,7 +16,7 @@
 #include <YaTypes.hpp>
 #include "Ida.h"
 
-#include "IDANativeExporter.hpp"
+#include "IdaVisitor.hpp"
 
 #include "Hash.hpp"
 #include "IObjectListener.hpp"
@@ -113,10 +113,10 @@ namespace
     using Enums  = std::map<YaToolObjectId, enum_t>;
     using Strucs = std::map<YaToolObjectId, tid_t>;
 
-    struct Exporter
+    struct Visitor
         : public IObjectListener
     {
-        Exporter(UseStacks use_stacks);
+        Visitor(UseStacks use_stacks);
 
         // IObjectListener
         void on_object (const HObject& object) override;
@@ -144,7 +144,7 @@ namespace
     const char ARM_txt[] = "ARM";
 }
 
-Exporter::Exporter(UseStacks use_stacks)
+Visitor::Visitor(UseStacks use_stacks)
     : qpool_(4)
     , use_stacks_(use_stacks == USE_STACKS)
 {
@@ -177,11 +177,11 @@ Exporter::Exporter(UseStacks use_stacks)
 
 namespace
 {
-    void make_name(Exporter& exporter, const HVersion& version, ea_t ea)
+    void make_name(Visitor& visitor, const HVersion& version, ea_t ea)
     {
         const auto name = version.username();
         const auto strname = make_string(name);
-        const auto qbuf = exporter.qpool_.acquire();
+        const auto qbuf = visitor.qpool_.acquire();
         ya::wrap(&get_ea_name, *qbuf, ea, 0, (getname_info_t*) NULL);
         const auto ok = set_name(ea, "");
         if(!ok)
@@ -279,7 +279,7 @@ namespace
             update_extra_cmt(ea, from++, line.data());
     }
 
-    void make_comments(Exporter& exporter, const HVersion& version, ea_t ea)
+    void make_comments(Visitor& visitor, const HVersion& version, ea_t ea)
     {
         std::set<std::tuple<offset_t, CommentType_e, std::string>> comments;
         version.walk_comments([&](offset_t offset, CommentType_e type, const const_string_ref& comment)
@@ -314,7 +314,7 @@ namespace
         });
         // delete obsolete comments
         for(ea_t it = ea, end = static_cast<ea_t>(ea + version.size()); it != BADADDR && it < end; it = get_item_end(it))
-            ya::walk_comments(exporter, it, get_flags(it), [&](const const_string_ref& cmt, CommentType_e type)
+            ya::walk_comments(visitor, it, get_flags(it), [&](const const_string_ref& cmt, CommentType_e type)
             {
                 if(!comments.count(std::make_tuple(it - ea, type, make_string(cmt))))
                     delete_comment(type, it);
@@ -610,7 +610,7 @@ namespace
             LOG(ERROR, "make_segment: 0x%" PRIxEA " unable to update segment\n", ea);
     }
 
-    void make_segment_chunk(Exporter& exporter, const HVersion& version, ea_t ea)
+    void make_segment_chunk(Visitor& visitor, const HVersion& version, ea_t ea)
     {
         // TODO : now that we have enough precision, we could delete elements
         // that are in the base but not in our segment_chunk
@@ -620,37 +620,37 @@ namespace
                 return WALK_CONTINUE;
 
             const auto blob_ea = static_cast<ea_t>(ea + offset);
-            exporter.buffer_.resize(szbuf);
-            auto ok = get_bytes(&exporter.buffer_[0], szbuf, blob_ea, GMB_READALL);
+            visitor.buffer_.resize(szbuf);
+            auto ok = get_bytes(&visitor.buffer_[0], szbuf, blob_ea, GMB_READALL);
             if(!ok)
             {
                 LOG(ERROR, "make_segment_chunk: 0x%" PRIxEA " unable to read %zd bytes\n", blob_ea, szbuf);
                 return WALK_CONTINUE;
             }
-            if(!memcmp(&exporter.buffer_[0], pbuf, szbuf))
+            if(!memcmp(&visitor.buffer_[0], pbuf, szbuf))
                 return WALK_CONTINUE;
 
             // put_many_bytes does not return any error code...
             put_bytes(blob_ea, pbuf, szbuf);
-            ok = get_bytes(&exporter.buffer_[0], szbuf, blob_ea, GMB_READALL);
-            if(!ok || memcmp(&exporter.buffer_[0], pbuf, szbuf))
+            ok = get_bytes(&visitor.buffer_[0], szbuf, blob_ea, GMB_READALL);
+            if(!ok || memcmp(&visitor.buffer_[0], pbuf, szbuf))
                 LOG(ERROR, "make_segment_chunk: 0x%" PRIxEA " unable to write %zd bytes\n", blob_ea, szbuf);
 
             return WALK_CONTINUE;
         });
     }
 
-    Tid get_tid(const Exporter& exporter, YaToolObjectId id)
+    Tid get_tid(const Visitor& visitor, YaToolObjectId id)
     {
-        const auto it = exporter.tids_.find(id);
-        if(it == exporter.tids_.end())
+        const auto it = visitor.tids_.find(id);
+        if(it == visitor.tids_.end())
             return {BADADDR, 0, OBJECT_TYPE_UNKNOWN};
         return it->second;
     }
 
-    void set_tid(Exporter& exporter, YaToolObjectId id, ea_t tid, offset_t size, YaToolObjectType_e type)
+    void set_tid(Visitor& visitor, YaToolObjectId id, ea_t tid, offset_t size, YaToolObjectType_e type)
     {
-        exporter.tids_.insert({id, {tid, static_cast<asize_t>(size), type}});
+        visitor.tids_.insert({id, {tid, static_cast<asize_t>(size), type}});
     }
 
     const std::regex r_trailing_identifier{"\\s*<?[a-zA-Z_0-9]+>?\\s*$"}; // match c/c++ identifiers
@@ -675,7 +675,7 @@ namespace
         }
     }
 
-    std::string patch_prototype(const Exporter& exporter, const std::string& src, ea_t ea)
+    std::string patch_prototype(const Visitor& visitor, const std::string& src, ea_t ea)
     {
         // remove/patch struct ids
         auto dst = src;
@@ -686,8 +686,8 @@ namespace
             const auto name = it->str(1);
             // always remove special struct comment
             replace_inline(dst, "/*%" + name + "#" + id + "%*/", "");
-            const auto k = exporter.tids_.find(to_yaid(id.data()));
-            if(k == exporter.tids_.end())
+            const auto k = visitor.tids_.find(to_yaid(id.data()));
+            if(k == visitor.tids_.end())
             {
                 LOG(WARNING, "make_prototype: 0x%" PRIxEA " unknown struct %s id %s\n", ea, name.data(), id.data());
                 continue;
@@ -906,12 +906,12 @@ namespace
     }
 
     template<typename T>
-    bool try_set_type(const Exporter* exporter, ea_t ea, const std::string& value, const T& operand)
+    bool try_set_type(const Visitor* visitor, ea_t ea, const std::string& value, const T& operand)
     {
         if(value.empty())
             return false;
 
-        const auto patched = exporter ? patch_prototype(*exporter, value, ea) : value;
+        const auto patched = visitor ? patch_prototype(*visitor, value, ea) : value;
         const auto tif = try_find_type(ea, patched.data());
         if(tif.empty())
         {
@@ -925,17 +925,17 @@ namespace
         return ok;
     }
 
-    bool set_type(const Exporter* exporter, ea_t ea, const std::string& value)
+    bool set_type(const Visitor* visitor, ea_t ea, const std::string& value)
     {
-        return try_set_type(exporter, ea, value, [&](const tinfo_t& tif)
+        return try_set_type(visitor, ea, value, [&](const tinfo_t& tif)
         {
             return apply_tinfo(ea, tif, TINFO_DEFINITE);
         });
     }
 
-    bool set_struct_member_type(const Exporter* exporter, ea_t ea, const std::string& value)
+    bool set_struct_member_type(const Visitor* visitor, ea_t ea, const std::string& value)
     {
-        return try_set_type(exporter, ea, value, [&](const tinfo_t& original_tif)
+        return try_set_type(visitor, ea, value, [&](const tinfo_t& original_tif)
         {
             struc_t* s = nullptr;
             auto* m = get_member_by_id(ea, &s);
@@ -1013,7 +1013,7 @@ namespace
         return add_func(ea, BADADDR);
     }
 
-    void make_function(const Exporter& exporter, const HVersion& version, ea_t ea)
+    void make_function(const Visitor& visitor, const HVersion& version, ea_t ea)
     {
         const auto func = get_func(ea);
         auto ok = add_function(ea, version, func);
@@ -1025,7 +1025,7 @@ namespace
             if(!set_function_flags(ea, flags))
                 LOG(ERROR, "make_function: 0x%" PRIxEA " unable to set function flags 0x%08x\n", ea, flags);
 
-        set_type(&exporter, ea, make_string(version.prototype()));
+        set_type(&visitor, ea, make_string(version.prototype()));
 
         for(const auto repeat : {false, true})
         {
@@ -1205,15 +1205,15 @@ namespace
         });
     }
 
-    void make_code(Exporter& exporter, const HVersion& version, ea_t ea)
+    void make_code(Visitor& visitor, const HVersion& version, ea_t ea)
     {
         del_func(ea);
         create_insn(ea);
-        make_name(exporter, version, ea);
+        make_name(visitor, version, ea);
         make_views(version, ea);
     }
 
-    void set_data_type(const Exporter& exporter, const HVersion& version, ea_t ea)
+    void set_data_type(const Visitor& visitor, const HVersion& version, ea_t ea)
     {
         const auto size = static_cast<size_t>(version.size());
         if(!size)
@@ -1247,8 +1247,8 @@ namespace
             bool found = false;
             version.walk_xrefs([&](offset_t /*offset*/, operand_t /*operand*/, YaToolObjectId id, const XrefAttributes* /*attrs*/)
             {
-                const auto fi = exporter.tids_.find(id);
-                if(fi == exporter.tids_.end())
+                const auto fi = visitor.tids_.find(id);
+                if(fi == visitor.tids_.end())
                     return WALK_CONTINUE;
 
                 del_items(ea, DELIT_DELNAMES, static_cast<asize_t>(size));
@@ -1269,16 +1269,16 @@ namespace
             LOG(ERROR, "make_data: 0x%" PRIxEA " unable to set data type 0x%" PRIx64 " size %zd\n", ea, static_cast<uint64_t>(type_flags), size);
     }
 
-    void make_data(Exporter& exporter, const HVersion& version, ea_t ea)
+    void make_data(Visitor& visitor, const HVersion& version, ea_t ea)
     {
-        set_data_type(exporter, version, ea);
-        make_name(exporter, version, ea);
-        set_type(&exporter, ea, make_string(version.prototype()));
+        set_data_type(visitor, version, ea);
+        make_name(visitor, version, ea);
+        set_type(&visitor, ea, make_string(version.prototype()));
     }
 
-    bool is_member(const Exporter& exporter, YaToolObjectId parent, YaToolObjectId id)
+    bool is_member(const Visitor& visitor, YaToolObjectId parent, YaToolObjectId id)
     {
-        const auto range = exporter.members_.equal_range(parent);
+        const auto range = visitor.members_.equal_range(parent);
         for(auto it = range.first; it != range.second; ++it)
             if(it->second == id)
                 return true;
@@ -1308,7 +1308,7 @@ namespace
         return import_type(idati, -1, ename.c_str());
     }
 
-    void make_enum(Exporter& exporter, const HVersion& version, ea_t ea)
+    void make_enum(Visitor& visitor, const HVersion& version, ea_t ea)
     {
         const auto id = version.id();
         const auto flags = version.flags();
@@ -1343,31 +1343,31 @@ namespace
         // remember our childs
         version.walk_xrefs([&](offset_t /*offset*/, operand_t /*operand*/, YaToolObjectId xref_id, const XrefAttributes* /*attrs*/)
         {
-            exporter.members_.emplace(id, xref_id);
+            visitor.members_.emplace(id, xref_id);
             return WALK_CONTINUE;
         });
 
-        const auto qbuf = exporter.qpool_.acquire();
+        const auto qbuf = visitor.qpool_.acquire();
         ya::walk_enum_members(eid, [&](const_t cid, uval_t value, uchar serial, bmask_t bmask)
         {
             ya::wrap(&get_enum_member_name, *qbuf, cid);
             const auto yaid = hash::hash_enum_member(id, ya::to_string_ref(*qbuf));
-            if(is_member(exporter, id, yaid))
+            if(is_member(visitor, id, yaid))
                 return;
 
             if(!del_enum_member(eid, value, serial, bmask))
                 LOG(ERROR, "make_enum: 0x%" PRIxEA ": unable to delete member %" PRIxEA " %" PRIxEA " %x %" PRIxEA "\n", ea, cid, value, serial, bmask);
         });
 
-        set_tid(exporter, id, eid, 0, OBJECT_TYPE_ENUM);
+        set_tid(visitor, id, eid, 0, OBJECT_TYPE_ENUM);
         set_enum_ghost(eid, false);
     }
 
-    void make_enum_member(Exporter& exporter, const HVersion& version, ea_t ea)
+    void make_enum_member(Visitor& visitor, const HVersion& version, ea_t ea)
     {
         const auto parent_id = version.parent_id();
-        const auto it = exporter.tids_.find(parent_id);
-        if(it == exporter.tids_.end())
+        const auto it = visitor.tids_.find(parent_id);
+        if(it == visitor.tids_.end())
         {
             LOG(ERROR, "make_enum_member: 0x%" PRIxEA " unable to find parent enum %016" PRIx64 "\n", ea, parent_id);
             return;
@@ -1376,7 +1376,7 @@ namespace
         const auto id = version.id();
         const auto name = version.username();
         const auto strname = make_string(name);
-        if(!is_member(exporter, parent_id, id))
+        if(!is_member(visitor, parent_id, id))
         {
             LOG(ERROR, "make_enum_member: %016" PRIx64 " %s: invalid member for struct %016" PRIx64 "\n", id, strname.data(), parent_id);
             return;
@@ -1404,13 +1404,13 @@ namespace
         }
     }
 
-    void make_reference_info(Exporter& exporter, const HVersion& version, ea_t ea)
+    void make_reference_info(Visitor& visitor, const HVersion& version, ea_t ea)
     {
         const auto id = version.id();
         const auto flags = version.flags();
         refinfo_t ref;
         ref.init(flags, ea);
-        exporter.refs_.emplace(id, ref);
+        visitor.refs_.emplace(id, ref);
     }
 
     void set_enum_operand(ea_t ea, offset_t offset, operand_t operand, enum_t enum_id)
@@ -1510,14 +1510,14 @@ namespace
         LOG(ERROR, "make_basic_block: 0x%" PRIxEA " unable to set path %s at offset %" PRId64 " operand %d\n", ea, pathstr.data(), path.offset, path.operand);
     }
 
-    void make_basic_block(Exporter& exporter, const HVersion& version, ea_t ea)
+    void make_basic_block(Visitor& visitor, const HVersion& version, ea_t ea)
     {
         Paths paths;
-        make_name(exporter, version, ea);
+        make_name(visitor, version, ea);
         make_views(version, ea);
         version.walk_xrefs([&](offset_t offset, operand_t operand, YaToolObjectId xref_id, const XrefAttributes* attrs)
         {
-            const auto key = get_tid(exporter, xref_id);
+            const auto key = get_tid(visitor, xref_id);
             switch(key.type)
             {
                 case OBJECT_TYPE_UNKNOWN:
@@ -1543,7 +1543,7 @@ namespace
                     set_enum_operand(ea, offset, operand, key.tid);
                     break;
             }
-            set_reference_info(exporter.refs_, ea, offset, operand, xref_id);
+            set_reference_info(visitor.refs_, ea, offset, operand, xref_id);
             return WALK_CONTINUE;
         });
         for(auto& path : paths)
@@ -1564,7 +1564,7 @@ namespace
             LOG(ERROR, "%s: 0x%" PRIxEA ":%" PRIxEA " unable to set member type to 0x%" PRIxEA " bytes\n", where, struc->id, ea, size);
     }
 
-    void clear_struct_fields(Exporter& exporter, const char* where, const HVersion& version, ea_t struct_id)
+    void clear_struct_fields(Visitor& visitor, const char* where, const HVersion& version, ea_t struct_id)
     {
         begin_type_updating(UTP_STRUCT);
 
@@ -1580,7 +1580,7 @@ namespace
         version.walk_xrefs([&](offset_t offset, operand_t /*operand*/, YaToolObjectId xid, const XrefAttributes* /*attrs*/)
         {
             fields.emplace(offset);
-            exporter.members_.emplace(vid, xid);
+            visitor.members_.emplace(vid, xid);
             return WALK_CONTINUE;
         });
 
@@ -1634,7 +1634,7 @@ namespace
             // reset known fields
             const auto field_size = offset == last_offset && offset == size ? 0 : 1;
             const auto id = hash::hash_member(vid, offset);
-            const auto key = get_tid(exporter, id);
+            const auto key = get_tid(visitor, id);
             // skip fields which have already been exported
             if(key.tid != BADADDR)
                 continue;
@@ -1680,7 +1680,7 @@ namespace
         return get_frame(func);
     }
 
-    void make_stackframe(Exporter& exporter, const HVersion& version, ea_t ea)
+    void make_stackframe(Visitor& visitor, const HVersion& version, ea_t ea)
     {
         const auto frame = get_or_add_frame(version, ea);
         if(!frame)
@@ -1690,8 +1690,8 @@ namespace
         }
 
         const auto id = version.id();
-        set_tid(exporter, id, frame->id, version.size(), OBJECT_TYPE_STACKFRAME);
-        clear_struct_fields(exporter, "stackframe_fields", version, frame->id);
+        set_tid(visitor, id, frame->id, version.size(), OBJECT_TYPE_STACKFRAME);
+        clear_struct_fields(visitor, "stackframe_fields", version, frame->id);
     }
 
     optional<YaToolObjectId> get_xref_at(const HVersion& version, offset_t offset, operand_t operand)
@@ -1708,7 +1708,7 @@ namespace
         return reply;
     }
 
-    const opinfo_t* get_member_info(opinfo_t* pop, asize_t& size, const Exporter& exporter, const HVersion& version, flags_t flags)
+    const opinfo_t* get_member_info(opinfo_t* pop, asize_t& size, const Visitor& visitor, const HVersion& version, flags_t flags)
     {
         if(is_strlit(flags))
         {
@@ -1723,7 +1723,7 @@ namespace
         if(!xref_id)
             return nullptr;
 
-        const auto xref = get_tid(exporter, *xref_id);
+        const auto xref = get_tid(visitor, *xref_id);
         if(xref.tid == BADADDR)
             return nullptr;
 
@@ -1757,19 +1757,19 @@ namespace
         return nullptr;
     }
 
-    void make_struct_member(Exporter& exporter, const char* where, const HVersion& version, ea_t ea)
+    void make_struct_member(Visitor& visitor, const char* where, const HVersion& version, ea_t ea)
     {
         const auto id = version.id();
         const auto name = make_string(version.username());
         const auto parent_id = version.parent_id();
-        const auto parent = get_tid(exporter, parent_id);
+        const auto parent = get_tid(visitor, parent_id);
         if(parent.tid == BADADDR)
         {
             LOG(ERROR, "make_%s: %016" PRIx64 " %s: missing parent struct %016" PRIx64 "\n", where, id, name.data(), parent_id);
             return;
         }
 
-        if(!is_member(exporter, parent_id, id))
+        if(!is_member(visitor, parent_id, id))
         {
             LOG(ERROR, "make_%s: %016" PRIx64 " %s: invalid member for struct %016" PRIx64 "\n", where, id, name.data(), parent_id);
             return;
@@ -1782,9 +1782,9 @@ namespace
             return;
         }
 
-        const auto sname = exporter.qpool_.acquire();
+        const auto sname = visitor.qpool_.acquire();
         ya::wrap(&get_struc_name, *sname, parent.tid);
-        const auto qbuf = exporter.qpool_.acquire();
+        const auto qbuf = visitor.qpool_.acquire();
         const auto func = get_func(get_func_by_frame(struc->id));
         for(auto it = get_struc_last_offset(struc); struc->is_union() && it != BADADDR && it < ea; ++it)
         {
@@ -1805,7 +1805,7 @@ namespace
         opinfo_t op;
         const auto flags = version.flags();
         auto size = static_cast<asize_t>(version.size());
-        const auto pop = get_member_info(&op, size, exporter, version, flags);
+        const auto pop = get_member_info(&op, size, visitor, version, flags);
         auto ok = set_member_type(struc, ea, (flags & DT_TYPE) | FF_DATA, pop, size);
         const auto is_struct_applied = ok && is_struct(flags);
         if(!ok)
@@ -1832,11 +1832,11 @@ namespace
         if(prototype.size && !is_struct_applied)
         {
             const auto strtype = make_string(prototype);
-            ok = set_struct_member_type(&exporter, member->id, strtype);
+            ok = set_struct_member_type(&visitor, member->id, strtype);
             if(!ok)
                 LOG(ERROR, "make_%s: %s.%s: unable to set prototype '%s'\n", where, sname->c_str(), name.data(), strtype.data());
         }
-        set_tid(exporter, version.id(), member->id, 0, struc->props & SF_FRAME ? OBJECT_TYPE_STACKFRAME_MEMBER : OBJECT_TYPE_STRUCT_MEMBER);
+        set_tid(visitor, version.id(), member->id, 0, struc->props & SF_FRAME ? OBJECT_TYPE_STACKFRAME_MEMBER : OBJECT_TYPE_STRUCT_MEMBER);
     }
 
     struc_t* get_struc_from_name(const char* name)
@@ -1887,7 +1887,7 @@ namespace
         return get_struc(sid);
     }
 
-    void make_struct(Exporter& exporter, const HVersion& version, ea_t ea)
+    void make_struct(Visitor& visitor, const HVersion& version, ea_t ea)
     {
         const auto name = make_string(version.username());
         const auto struc = get_or_add_struct(version, ea, name.data());
@@ -1901,7 +1901,7 @@ namespace
             LOG(ERROR, "make_struct: 0x%" PRIxEA " unable to set name %s\n", ea, name.data());
 
         const auto id = version.id();
-        set_tid(exporter, id, struc->id, version.size(), OBJECT_TYPE_STRUCT);
+        set_tid(visitor, id, struc->id, version.size(), OBJECT_TYPE_STRUCT);
 
         for(const auto repeat : {false, true})
         {
@@ -1912,12 +1912,12 @@ namespace
                 LOG(ERROR, "make_struct: 0x%" PRIxEA " unable to set %s comment to '%s'\n", ea, repeat ? "repeatable" : "non-repeatable", strcmt.data());
         }
 
-        clear_struct_fields(exporter, "struct_fields", version, struc->id);
+        clear_struct_fields(visitor, "struct_fields", version, struc->id);
         struc->set_ghost(false);
     }
 }
 
-void Exporter::on_version(const HVersion& version)
+void Visitor::on_version(const HVersion& version)
 {
     const auto ea = static_cast<ea_t>(version.address());
     switch(version.type())
@@ -1994,7 +1994,7 @@ void Exporter::on_version(const HVersion& version)
     }
 }
 
-void Exporter::on_object(const HObject& object)
+void Visitor::on_object(const HObject& object)
 {
     object.walk_versions([&](const HVersion& version)
     {
@@ -2003,7 +2003,7 @@ void Exporter::on_object(const HObject& object)
     });
 }
 
-void Exporter::on_deleted(YaToolObjectId id)
+void Visitor::on_deleted(YaToolObjectId id)
 {
     const auto it_enum = enums_.find(id);
     if(it_enum != enums_.end())
@@ -2022,7 +2022,7 @@ void Exporter::on_deleted(YaToolObjectId id)
     }
 }
 
-void Exporter::on_default(YaToolObjectId id)
+void Visitor::on_default(YaToolObjectId id)
 {
     // FIXME ?
     UNUSED(id);
@@ -2044,8 +2044,8 @@ namespace
     {
         const auto prev = inf.is_auto_enabled();
         inf.set_auto_enabled(false);
-        Exporter exporter{use_stacks};
-        model.accept(*MakeVisitorFromListener(exporter));
+        Visitor visitor{use_stacks};
+        model.accept(*MakeVisitorFromListener(visitor));
         inf.set_auto_enabled(prev);
     }
 }

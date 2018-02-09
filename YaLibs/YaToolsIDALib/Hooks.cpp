@@ -22,7 +22,7 @@
 #include "IModel.hpp"
 #include "Model.hpp"
 #include "IdaModel.hpp"
-#include "IDANativeExporter.hpp"
+#include "IdaVisitor.hpp"
 #include "XML/XMLExporter.hpp"
 #include "XML/XMLDatabaseModel.hpp"
 #include "Logger.h"

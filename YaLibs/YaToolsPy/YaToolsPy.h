@@ -20,7 +20,7 @@
 
 %{
 #include "YaCo.hpp"
-#include "IDANativeExporter.hpp"
+#include "IdaVisitor.hpp"
 #include "IdaModel.hpp"
 #include "YaGitLib.hpp"
 #include "Yatools_swig.h"
@@ -111,7 +111,7 @@
 }
 
 %include "YaCo.hpp"
-%include "IDANativeExporter.hpp"
+%include "IdaVisitor.hpp"
 %include "IdaModel.hpp"
 %include "YaGitLib.hpp"
 %include "Yatools_swig.h"

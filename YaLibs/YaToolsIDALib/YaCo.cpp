@@ -19,7 +19,7 @@
 
 #include "Repository.hpp"
 #include "Hooks.hpp"
-#include "IDANativeExporter.hpp"
+#include "IdaVisitor.hpp"
 #include "XML/XMLDatabaseModel.hpp"
 #include "FlatBufferExporter.hpp"
 #include "IdaModel.hpp"
