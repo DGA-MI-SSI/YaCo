@@ -22,7 +22,7 @@
 #include "IDANativeExporter.hpp"
 #include "XML/XMLDatabaseModel.hpp"
 #include "FlatBufferExporter.hpp"
-#include "IDANativeModel.hpp"
+#include "IdaModel.hpp"
 #include "Utils.hpp"
 #include "Yatools_swig.h"
 
@@ -166,7 +166,7 @@ void YaCo::export_database()
     }
 
     std::shared_ptr<IFlatExporter> exporter = MakeFlatBufferExporter();
-    MakeStdModel()->accept(*exporter);
+    MakeIdaModel()->accept(*exporter);
     ExportedBuffer buffer = exporter->GetBuffer();
 
     FILE* database = fopen("database/database.yadb", "wb");

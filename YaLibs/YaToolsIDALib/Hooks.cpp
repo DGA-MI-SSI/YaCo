@@ -21,7 +21,7 @@
 #include "Hash.hpp"
 #include "IModel.hpp"
 #include "Model.hpp"
-#include "IDANativeModel.hpp"
+#include "IdaModel.hpp"
 #include "IDANativeExporter.hpp"
 #include "XML/XMLExporter.hpp"
 #include "XML/XMLDatabaseModel.hpp"
@@ -871,7 +871,7 @@ void Hooks::save()
     ModelAndVisitor db = MakeModel();
     db.visitor->visit_start();
     {
-        const auto model = MakeModelIncremental();
+        const auto model = MakeIncrementalIdaModel();
         save_structs(*model, *db.visitor);
         save_enums(*model, *db.visitor);
         for (const ea_t ea : eas_)

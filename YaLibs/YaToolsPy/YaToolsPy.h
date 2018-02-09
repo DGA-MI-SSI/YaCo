@@ -21,7 +21,7 @@
 %{
 #include "YaCo.hpp"
 #include "IDANativeExporter.hpp"
-#include "IDANativeModel.hpp"
+#include "IdaModel.hpp"
 #include "YaGitLib.hpp"
 #include "Yatools_swig.h"
 #include "YaTypes.hpp"
@@ -112,7 +112,7 @@
 
 %include "YaCo.hpp"
 %include "IDANativeExporter.hpp"
-%include "IDANativeModel.hpp"
+%include "IdaModel.hpp"
 %include "YaGitLib.hpp"
 %include "Yatools_swig.h"
 %include "YaTypes.hpp"

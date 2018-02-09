@@ -25,7 +25,7 @@ class IModelAccept;
 
 std::string get_type(ea_t ea);
 
-std::shared_ptr<IModelAccept> MakeStdModel();
+std::shared_ptr<IModelAccept> MakeIdaModel();
 std::vector<ea_t> get_all_items(ea_t start, ea_t end);
 
 struct IModelIncremental
@@ -48,7 +48,7 @@ struct IModelIncremental
     virtual void delete_stack_member(IModelVisitor& v, YaToolObjectId id) = 0;
 };
 
-std::shared_ptr<IModelIncremental> MakeModelIncremental();
+std::shared_ptr<IModelIncremental> MakeIncrementalIdaModel();
 
 void export_from_ida(const std::string& filename);
 std::string export_xml(ea_t ea, int type_mask);

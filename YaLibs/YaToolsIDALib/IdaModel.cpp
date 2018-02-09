@@ -16,7 +16,7 @@
 #include <YaTypes.hpp>
 #include "Ida.h"
 
-#include "IDANativeModel.hpp"
+#include "IdaModel.hpp"
 #include "IModelAccept.hpp"
 #include "IModelVisitor.hpp"
 #include "Hash.hpp"
@@ -1878,7 +1878,7 @@ Model::Model()
 {
 }
 
-std::shared_ptr<IModelAccept> MakeStdModel()
+std::shared_ptr<IModelAccept> MakeIdaModel()
 {
     return std::make_shared<Model>();
 }
@@ -1894,7 +1894,7 @@ ModelIncremental::ModelIncremental(int type_mask)
 {
 }
 
-std::shared_ptr<IModelIncremental> MakeModelIncremental()
+std::shared_ptr<IModelIncremental> MakeIncrementalIdaModel()
 {
     return std::make_shared<ModelIncremental>(~0);
 }
