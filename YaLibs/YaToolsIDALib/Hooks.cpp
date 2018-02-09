@@ -925,9 +925,8 @@ namespace
         USE_DEPENDENCIES,
     };
 
-    bool must_add_dependencies(const HVersion& hver)
+    bool must_add_dependencies(YaToolObjectType_e type)
     {
-        const auto type = hver.type();
         // as we always recreate stacks & strucs, we always need every members
         return type == OBJECT_TYPE_STACKFRAME
             || type == OBJECT_TYPE_STRUCT
@@ -949,7 +948,7 @@ namespace
         {
             // add parent id & its dependencies
             add_id_and_dependencies(ctx, hver.parent_id(), SKIP_DEPENDENCIES);
-            if(mode != USE_DEPENDENCIES && !must_add_dependencies(hver))
+            if(mode != USE_DEPENDENCIES && !must_add_dependencies(hver.type()))
                 return WALK_CONTINUE;
             hver.walk_xrefs([&](offset_t, operand_t, auto xref_id, auto)
             {
@@ -976,11 +975,35 @@ namespace
         void visit_end()   override {}
     };
 
+    void add_missing_parents_from_deletions(DepCtx& deps, const std::unordered_set<YaToolObjectId> deleted)
+    {
+        if(deleted.empty())
+            return;
+
+        deps.model.walk_objects([&](YaToolObjectId id, const HObject& hobj)
+        {
+            if(!must_add_dependencies(hobj.type()))
+                return WALK_CONTINUE;
+            hobj.walk_versions([&](const HVersion& hver)
+            {
+                hver.walk_xrefs([&](offset_t, operand_t, auto xref_id, auto)
+                {
+                    if(deleted.count(xref_id))
+                        add_id_and_dependencies(deps, id, USE_DEPENDENCIES);
+                    return WALK_CONTINUE;
+                });
+                return WALK_CONTINUE;
+            });
+            return WALK_CONTINUE;
+        });
+    }
+
     void load_xml_files_to(IModelVisitor& visitor, const State& state)
     {
         visitor.visit_start();
 
         SkipVisitStartEndVisitor v(visitor);
+        std::unordered_set<YaToolObjectId> deleted;
         for(const auto& it : state.deleted)
         {
             auto path = fs::path(it);
@@ -993,6 +1016,7 @@ namespace
             v.visit_start_deleted_object(type);
             v.visit_id(id);
             v.visit_end_deleted_object();
+            deleted.emplace(id);
         }
 
         // state.updated contain only git modified files
@@ -1008,11 +1032,16 @@ namespace
             const auto full = MakeModel();
             MakeXmlAllDatabaseModel(".")->accept(*full.visitor);
 
+            DepCtx deps(*full.model);
+
+            // as we recreate strucs, stacks & enums
+            // if one member is deleted, we must reapply parent
+            add_missing_parents_from_deletions(deps, deleted);
+
             // load all modified objects
             const auto diff = MakeModel();
             MakeXmlFilesDatabaseModel(state.updated)->accept(*diff.visitor);
 
-            DepCtx deps(*full.model);
             diff.model->walk_objects([&](auto id, const HObject& /*hobj*/)
             {
                 // add this id & its dependencies

@@ -1549,16 +1549,13 @@ namespace
             set_path(path, ea);
     }
 
-    void set_struct_member(qstring& buffer, const char* where, struc_t* struc, const const_string_ref& name, ea_t ea, asize_t size, func_t* func, const opinfo_t* pop)
+    void set_struct_member(qstring& buffer, const char* where, struc_t* struc, ea_t ea, asize_t size, func_t* func, const opinfo_t* pop)
     {
-        if(!name.size)
-        {
-            const auto defname = ya::get_default_name(buffer, ea, func);
-            const auto ok = set_member_name(struc, ea, defname.value);
-            if(!ok)
-                LOG(ERROR, "%s: 0x%" PRIxEA ":%" PRIxEA " unable to set member name %s\n", where, struc->id, ea, defname.value);
-        }
-        const auto ok = set_member_type(struc, ea, FF_BYTE, pop, size);
+        const auto defname = ya::get_default_name(buffer, ea, func);
+        auto ok = set_member_name(struc, ea, defname.value);
+        if(!ok)
+            LOG(ERROR, "%s: 0x%" PRIxEA ":%" PRIxEA " unable to set member name %s\n", where, struc->id, ea, ""/*defname.value*/);
+        ok = set_member_type(struc, ea, FF_BYTE, pop, size);
         if(!ok)
             LOG(ERROR, "%s: 0x%" PRIxEA ":%" PRIxEA " unable to set member type to 0x%" PRIxEA " bytes\n", where, struc->id, ea, size);
     }
@@ -1638,7 +1635,7 @@ namespace
             if(key.tid != BADADDR)
                 continue;
 
-            set_struct_member(member_name, where, struc, g_empty, offset, field_size, func, nullptr);
+            set_struct_member(member_name, where, struc, offset, field_size, func, nullptr);
             for(const auto repeat : {false, true})
             {
                 const auto ok = set_member_cmt(&m, g_empty.value, repeat);

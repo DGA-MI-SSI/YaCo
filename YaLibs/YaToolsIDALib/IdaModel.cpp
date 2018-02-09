@@ -522,7 +522,12 @@ namespace
 
         // we need to skip default members else we explode on structures with thousand of default fields
         if(is_default_member(*ctx.qpool_.acquire(), struc, member, ya::to_string_ref(*qbuf)))
+        {
+            v.visit_start_deleted_object(type);
+            v.visit_id(id);
+            v.visit_end_deleted_object();
             return;
+        }
 
         start_object(v, type, id, parent.id, offset);
         const auto size = get_member_size(member);

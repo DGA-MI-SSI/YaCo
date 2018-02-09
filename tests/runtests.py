@@ -119,6 +119,7 @@ class Fixture(unittest.TestCase):
 
     def setUp(self):
         args, _ = get_args()
+        self.maxDiff = None
         self.dirs = []
         self.counter = 0
         self.tests_dir = os.path.abspath(os.path.join(inspect.getsourcefile(lambda:0), ".."))

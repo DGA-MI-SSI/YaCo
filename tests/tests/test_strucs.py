@@ -167,3 +167,23 @@ for ea, n, offset in targets:
         a.run(
             self.check_ea(ea),
         )
+
+    def test_default_struc_fields(self):
+        a, b = self.setup_repos()
+        a.run(
+            self.script("""
+sid = idaapi.add_struc(-1, "t0", False)
+idc.add_struc_member(sid, "dat_0", 0, idaapi.FF_BYTE | idaapi.FF_DATA, -1, 1)
+"""),
+            self.save_strucs(),
+        )
+        b.run(
+            self.check_strucs(),
+            self.script("""
+idaapi.set_member_name(idaapi.get_struc(idaapi.get_struc_id('t0')), 0, 'field_0')
+"""),
+            self.save_strucs(),
+        )
+        a.run(
+            self.check_strucs(),
+        )

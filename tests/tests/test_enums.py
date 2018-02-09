@@ -148,6 +148,11 @@ class Fixture(runtests.Fixture):
             self.save_enum("enum_4"),
             self.save_ea(ea)
         )
+        self.assertNotEqual(self.enums["enum_0"], "")
+        self.assertNotEqual(self.enums["enum_1"], "")
+        self.assertNotEqual(self.enums["enum_2"], "")
+        self.assertNotEqual(self.enums["enum_3"], "")
+        self.assertNotEqual(self.enums["enum_4"], "")
         b.run(
             self.check_ea(ea),
             self.check_enum("enum_0"),
@@ -173,6 +178,11 @@ class Fixture(runtests.Fixture):
             self.save_enum("enum_4"),
             self.save_ea(ea),
         )
+        self.assertMultiLineEqual(self.enums["enum_0"], "")
+        self.assertMultiLineEqual(self.enums["enum_1"], "")
+        self.assertMultiLineEqual(self.enums["enum_2"], "")
+        self.assertMultiLineEqual(self.enums["enum_3"], "")
+        self.assertMultiLineEqual(self.enums["enum_4"], "")
         a.run(
             self.check_ea(ea),
             self.check_enum("enum_0"),
