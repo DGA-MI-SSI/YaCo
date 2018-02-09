@@ -121,7 +121,6 @@ namespace
         // IObjectListener
         void on_object (const HObject& object) override;
         void on_deleted(YaToolObjectId id) override;
-        void on_default(YaToolObjectId id) override;
 
         void on_version(const HVersion& version);
 
@@ -2020,12 +2019,6 @@ void Visitor::on_deleted(YaToolObjectId id)
         strucs_.erase(it_struc);
         return;
     }
-}
-
-void Visitor::on_default(YaToolObjectId id)
-{
-    // FIXME ?
-    UNUSED(id);
 }
 
 bool set_type_at(ea_t ea, const std::string& prototype)

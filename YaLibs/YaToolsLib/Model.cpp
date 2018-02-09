@@ -345,7 +345,6 @@ struct Current
     StdVersion  version;
     StdSystem   system;
     uint64_t    offset;
-    bool        is_default;
     bool        is_deleted;
 };
 
@@ -436,9 +435,7 @@ struct Model
     void visit_start_object(YaToolObjectType_e type) override;
     void visit_start_reference_object(YaToolObjectType_e type) override;
     void visit_start_deleted_object(YaToolObjectType_e type) override;
-    void visit_start_default_object(YaToolObjectType_e type) override;
     void visit_end_deleted_object() override;
-    void visit_end_default_object() override;
     void visit_end_reference_object() override;
     void visit_id(YaToolObjectId id) override;
     void visit_start_object_version() override;
@@ -500,7 +497,6 @@ struct Model
     std::vector<StdSignature>   signatures_;
     std::vector<StdSystem>      systems_;
     std::vector<StdObject>      deleted_;
-    std::vector<StdObject>      default_;
     ModelIndex                  index_;
 };
 }
@@ -720,8 +716,6 @@ void Model::visit_end()
     if(!listener_)
         return;
 
-    for(const auto it : default_)
-        listener_->on_default(it.id);
     for(const auto it : deleted_)
         listener_->on_deleted(it.id);
     for(HObject_id_t id = 0, end = static_cast<HObject_id_t>(objects_.size()); id < end; ++id)
@@ -731,7 +725,6 @@ void Model::visit_end()
 void Model::visit_start_object(YaToolObjectType_e type)
 {
     current_->is_deleted = false;
-    current_->is_default = false;
     current_->object.reset();
     current_->object.type = type;
     current_->object.idx = static_cast<HObject_id_t>(objects_.size());
@@ -749,18 +742,7 @@ void Model::visit_start_deleted_object(YaToolObjectType_e type)
     current_->is_deleted = true;
 }
 
-void Model::visit_start_default_object(YaToolObjectType_e type)
-{
-    visit_start_object(type);
-    current_->is_default = true;
-}
-
 void Model::visit_end_deleted_object()
-{
-    visit_end_reference_object();
-}
-
-void Model::visit_end_default_object()
 {
     visit_end_reference_object();
 }
@@ -770,11 +752,6 @@ void Model::visit_end_reference_object()
     if(current_->is_deleted)
     {
         deleted_.emplace_back(current_->object);
-        return;
-    }
-    if(current_->is_default)
-    {
-        default_.emplace_back(current_->object);
         return;
     }
 
@@ -986,12 +963,6 @@ void Model::accept(IModelVisitor& visitor)
         visitor.visit_start_deleted_object(it.type);
         visitor.visit_id(it.id);
         visitor.visit_end_deleted_object();
-    }
-    for(const auto it : default_)
-    {
-        visitor.visit_start_default_object(it.type);
-        visitor.visit_id(it.id);
-        visitor.visit_end_default_object();
     }
     visitor.visit_end();
 }

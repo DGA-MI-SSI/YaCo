@@ -141,9 +141,7 @@ struct FBExporter : public IFlatExporter
     void visit_start_object(YaToolObjectType_e object_type) override;
     void visit_start_reference_object(YaToolObjectType_e object_type) override;
     void visit_start_deleted_object(YaToolObjectType_e object_type) override;
-    void visit_start_default_object(YaToolObjectType_e object_type) override;
     void visit_end_deleted_object() override;
-    void visit_end_default_object() override;
     void visit_end_reference_object() override;
     void visit_id(YaToolObjectId object_id) override;
     void visit_start_object_version() override;
@@ -231,7 +229,6 @@ struct FBExporter : public IFlatExporter
     optional<std::string>   system_equipment_;
     optional<std::string>   system_os_;
 
-    bool is_default_object_;
     bool is_ready_;
 };
 }
@@ -244,7 +241,6 @@ std::shared_ptr<IFlatExporter> MakeFlatBufferExporter()
 FBExporter::FBExporter()
     : object_type_(OBJECT_TYPE_UNKNOWN)
     , object_id_(0)
-    , is_default_object_(false)
     , is_ready_(false)
 {
 }
@@ -348,25 +344,16 @@ ExportedBuffer FBExporter::GetBuffer() const
 void FBExporter::visit_start_object(YaToolObjectType_e type)
 {
     object_type_ = type;
-    is_default_object_ = false;
 }
 
 void FBExporter::visit_start_reference_object(YaToolObjectType_e type)
 {
     object_type_ = type;
-    is_default_object_ = false;
 }
 
 void FBExporter::visit_start_deleted_object(YaToolObjectType_e type)
 {
     object_type_ = type;
-    is_default_object_ = false;
-}
-
-void FBExporter::visit_start_default_object(YaToolObjectType_e type)
-{
-    object_type_ = type;
-    is_default_object_ = true;
 }
 
 void FBExporter::visit_end_reference_object()
@@ -406,11 +393,6 @@ void FBExporter::visit_end_reference_object()
 }
 
 void FBExporter::visit_end_deleted_object()
-{
-    versions_.clear();
-}
-
-void FBExporter::visit_end_default_object()
 {
     versions_.clear();
 }

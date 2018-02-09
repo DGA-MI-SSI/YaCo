@@ -26,9 +26,7 @@ class IModelVisitor
     virtual void visit_start_object(YaToolObjectType_e object_type) = 0;
     virtual void visit_start_reference_object(YaToolObjectType_e object_type) = 0;
     virtual void visit_start_deleted_object(YaToolObjectType_e object_type) = 0;
-    virtual void visit_start_default_object(YaToolObjectType_e object_type) = 0;
     virtual void visit_end_deleted_object() = 0;
-    virtual void visit_end_default_object() = 0;
     virtual void visit_end_reference_object() = 0;
     virtual void visit_id(YaToolObjectId object_id) = 0;
     virtual void visit_start_object_version() = 0;

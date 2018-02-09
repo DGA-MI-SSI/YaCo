@@ -62,12 +62,6 @@ void DelegatingVisitor::visit_start_deleted_object(YaToolObjectType_e object_typ
         delegate->visit_start_deleted_object(object_type);
 }
 
-void DelegatingVisitor::visit_start_default_object(YaToolObjectType_e object_type)
-{
-    for(const auto& delegate : delegates_)
-        delegate->visit_start_default_object(object_type);
-}
-
 void DelegatingVisitor::visit_end_reference_object()
 {
     for(const auto& delegate : delegates_)
@@ -78,12 +72,6 @@ void DelegatingVisitor::visit_end_deleted_object()
 {
     for(const auto& delegate : delegates_)
         delegate->visit_end_deleted_object();
-}
-
-void DelegatingVisitor::visit_end_default_object()
-{
-    for(const auto& delegate : delegates_)
-        delegate->visit_end_default_object();
 }
 
 void DelegatingVisitor::visit_id(YaToolObjectId id)

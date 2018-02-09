@@ -56,7 +56,6 @@ public:
     XMLExporter_common();
 
     void visit_start_object(YaToolObjectType_e object_type) override;
-    void visit_start_default_object(YaToolObjectType_e object_type) override;
     void visit_start_object_version() override;
     void visit_parent_id(YaToolObjectId object_id) override;
     void visit_address(offset_t address) override;
@@ -111,7 +110,6 @@ public:
     void visit_end_reference_object() override;
     void visit_start_deleted_object(YaToolObjectType_e object_type) override;
     void visit_end_deleted_object() override;
-    void visit_end_default_object() override;
     void visit_id(YaToolObjectId object_id) override;
 
 private:
@@ -128,7 +126,6 @@ struct MemExporter
     void visit_end_reference_object() override;
     void visit_start_deleted_object(YaToolObjectType_e object_type) override;
     void visit_end_deleted_object() override;
-    void visit_end_default_object() override;
     void visit_id(YaToolObjectId object_id) override;
 
     std::stringstream           stream_;
@@ -342,11 +339,6 @@ void MemExporter::visit_start_deleted_object(YaToolObjectType_e object_type)
     object_type_ = object_type;
 }
 
-void XMLExporter_common::visit_start_default_object(YaToolObjectType_e object_type)
-{
-    visit_start_deleted_object(object_type);
-}
-
 void XMLExporter::visit_end_deleted_object()
 {
     try
@@ -359,24 +351,7 @@ void XMLExporter::visit_end_deleted_object()
     }
 }
 
-void XMLExporter::visit_end_default_object()
-{
-    try
-    {
-        filesystem::remove(current_xml_file_path_);
-    }
-    catch(const std::exception&)
-    {
-        //Ignore this error : default objects might already not exist
-    }
-}
-
 void MemExporter::visit_end_deleted_object()
-{
-
-}
-
-void MemExporter::visit_end_default_object()
 {
 
 }

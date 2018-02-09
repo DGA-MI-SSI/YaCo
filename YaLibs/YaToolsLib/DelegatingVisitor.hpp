@@ -38,9 +38,7 @@ public:
     void visit_start_object(YaToolObjectType_e object_type) override;
     void visit_start_reference_object(YaToolObjectType_e object_type) override;
     void visit_start_deleted_object(YaToolObjectType_e object_type) override;
-    void visit_start_default_object(YaToolObjectType_e object_type) override;
     void visit_end_deleted_object() override;
-    void visit_end_default_object() override;
     void visit_end_reference_object() override;
     void visit_id(YaToolObjectId object_id) override;
     void visit_start_object_version() override;

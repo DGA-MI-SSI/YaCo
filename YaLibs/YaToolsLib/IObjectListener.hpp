@@ -23,7 +23,6 @@ struct IObjectListener
 
     virtual void on_object (const HObject& object) = 0;
     virtual void on_deleted(YaToolObjectId id) = 0;
-    virtual void on_default(YaToolObjectId id) = 0;
 };
 
 std::shared_ptr<IModelVisitor> MakeVisitorFromListener(IObjectListener& listener);

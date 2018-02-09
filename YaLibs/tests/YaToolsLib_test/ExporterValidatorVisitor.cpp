@@ -59,9 +59,7 @@ public:
     void visit_start_object(YaToolObjectType_e object_type) override;
     void visit_start_reference_object(YaToolObjectType_e object_type) override;
     void visit_start_deleted_object(YaToolObjectType_e object_type) override;
-    void visit_start_default_object(YaToolObjectType_e object_type) override;
     void visit_end_deleted_object() override;
-    void visit_end_default_object() override;
     void visit_end_reference_object() override;
     void visit_id(YaToolObjectId object_id) override;
     void visit_start_object_version() override;
@@ -163,26 +161,10 @@ void ExporterValidatorVisitor::visit_start_deleted_object(YaToolObjectType_e obj
     id_visited = false;
 }
 
-void ExporterValidatorVisitor::visit_start_default_object(YaToolObjectType_e object_type)
-{
-    UNUSED(object_type);
-    validator_assert(state[current_state_depth] == VISIT_STARTED, "Bad state");
-    state[++current_state_depth] = VISIT_START_DEFAULT_OBJECT;
-    id_visited = false;
-}
-
 void ExporterValidatorVisitor::visit_end_deleted_object()
 {
     validator_assert(id_visited, "Id not visited");
     validator_assert(state[current_state_depth] == VISIT_START_DELETED_OBJECT, "Bad state");
-    current_state_depth--;
-    validator_assert(state[current_state_depth] == VISIT_STARTED, "Bad state");
-}
-
-void ExporterValidatorVisitor::visit_end_default_object()
-{
-    validator_assert(id_visited, "Id not visited");
-    validator_assert(state[current_state_depth] == VISIT_START_DEFAULT_OBJECT, "Bad state");
     current_state_depth--;
     validator_assert(state[current_state_depth] == VISIT_STARTED, "Bad state");
 }
