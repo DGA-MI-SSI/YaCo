@@ -238,14 +238,28 @@ class Fixture(unittest.TestCase):
 
 def get_args():
     parser = argparse.ArgumentParser()
+    parser.add_argument("--list", action="store_true", default=False, help="list test targets")
     parser.add_argument("-v", "--verbose", type=int, default=2, help="verbosity level")
     parser.add_argument("-f", "--filter", type=str, default="", help="filter tests")
     cur_dir = os.path.abspath(os.path.join(inspect.getsourcefile(lambda:0), ".."))
     parser.add_argument("-b", "--bindir", type=os.path.abspath, default=os.path.abspath(os.path.join(cur_dir, "..", "bin", "yaco_x64", "YaTools", "bin")), help="binary directory")
     return parser.parse_args(), cur_dir
 
+def get_tests(args, cur_dir):
+    tests = unittest.TestSuite()
+    for s in unittest.defaultTestLoader.discover(os.path.join(cur_dir, "tests")):
+        for f in s:
+            for test in f:
+                if args.list:
+                    print test.id()
+                if test.id().find(args.filter) != -1:
+                    tests.addTest(test)
+    return tests
+
 if __name__ == '__main__':
     args, cur_dir = get_args()
-    tests = unittest.defaultTestLoader.discover(os.path.join(cur_dir, "tests"), pattern="*" + args.filter + ".py")
+    tests = get_tests(args, cur_dir)
+    if args.list:
+        sys.exit(0)
     result = unittest.TextTestRunner(verbosity=args.verbose).run(tests)
     sys.exit(0 if not result.errors and not result.failures else -1)

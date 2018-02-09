@@ -276,13 +276,19 @@ set_property(TEST integration_tests APPEND PROPERTY DEPENDS make_qt54_svg_testda
 set_property(TEST integration_tests APPEND PROPERTY DEPENDS make_qt57_svg_testdata)
 
 # unit_tests
-file(GLOB files "${ya_dir}/tests/tests/*.py")
-foreach(unit ${files})
-    get_filename_component(unit ${unit} NAME_WE)
-    string(REGEX REPLACE "test_" "" unit ${unit})
-    add_test(NAME test_${unit}
-        COMMAND "${PYTHON_EXECUTABLE}" "${ya_dir}/tests/runtests.py" -f${unit} -b "${deploy_dir}"
+execute_process(COMMAND
+    ${PYTHON_EXECUTABLE} "${ya_dir}/tests/runtests.py" --list
+    WORKING_DIRECTORY "${ya_dir}/tests"
+    OUTPUT_VARIABLE test_names
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+string(REGEX MATCHALL "[a-zA-Z0-9._]+" test_names ${test_names})
+foreach(test ${test_names})
+    string(REGEX REPLACE ".+Fixture\." "" shortname ${test})
+    message("-- Configuring yatools/tests/${shortname}")
+    add_test(NAME ${shortname}
+        COMMAND "${PYTHON_EXECUTABLE}" "${ya_dir}/tests/runtests.py" -f${test} -b "${deploy_dir}"
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     )
-    set_property(TEST test_${unit} APPEND PROPERTY DEPENDS make_qt54_svg_testdata)
+    set_property(TEST ${shortname} APPEND PROPERTY DEPENDS make_qt54_svg_testdata)
 endforeach()
