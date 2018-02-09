@@ -37,7 +37,7 @@
 #include "DelegatingVisitor.hpp"
 
 #define MODULE_NAME "hooks"
-#include "IDAUtils.hpp"
+#include "IdaUtils.hpp"
 
 #include <cstdarg>
 #include <chrono>

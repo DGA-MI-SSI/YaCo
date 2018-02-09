@@ -29,7 +29,7 @@
 #include "git_version.h"
 
 #define MODULE_NAME "yaco"
-#include "IDAUtils.hpp"
+#include "IdaUtils.hpp"
 
 #include <chrono>
 

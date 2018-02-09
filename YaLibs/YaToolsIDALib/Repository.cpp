@@ -25,7 +25,7 @@
 #include "Utils.hpp"
 
 #define MODULE_NAME "repo"
-#include "IDAUtils.hpp"
+#include "IdaUtils.hpp"
 
 #include <ctime>
 #include <libxml/xmlreader.h>

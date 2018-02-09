@@ -1,5 +1,5 @@
 #define MODULE_NAME "ida_utils"
-#include "IDAUtils.hpp"
+#include "IdaUtils.hpp"
 
 #include "Utils.hpp"
 #include "Ida.h"
