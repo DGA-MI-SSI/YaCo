@@ -18,7 +18,7 @@
 
 #include "IDANativeExporter.hpp"
 
-#include "YaToolsHashProvider.hpp"
+#include "Hash.hpp"
 #include "IObjectListener.hpp"
 #include "HVersion.hpp"
 #include "HObject.hpp"
@@ -116,7 +116,7 @@ namespace
     struct Exporter
         : public IObjectListener
     {
-        Exporter(IHashProvider& provider, UseStacks use_stacks);
+        Exporter(UseStacks use_stacks);
 
         // IObjectListener
         void on_object (const HObject& object) override;
@@ -129,7 +129,6 @@ namespace
         using Members = std::multimap<YaToolObjectId, YaToolObjectId>;
         using EnumMemberMap = std::unordered_map<uint64_t, enum_t>;
 
-        IHashProvider&                  provider_;
         RefInfos                        refs_;
         Members                         members_;
         TidMap                          tids_;
@@ -145,9 +144,8 @@ namespace
     const char ARM_txt[] = "ARM";
 }
 
-Exporter::Exporter(IHashProvider& provider, UseStacks use_stacks)
-    : provider_(provider)
-    , qpool_(4)
+Exporter::Exporter(UseStacks use_stacks)
+    : qpool_(4)
     , use_stacks_(use_stacks == USE_STACKS)
 {
     static_assert(sizeof ARM_txt <= sizeof inf.procname, "procname size mismatch");
@@ -164,7 +162,7 @@ Exporter::Exporter(IHashProvider& provider, UseStacks use_stacks)
     {
         const auto eid = getn_enum(i);
         ya::wrap(&get_enum_name, *qbuf, eid);
-        const auto id = provider_.get_enum_id(ya::to_string_ref(*qbuf));
+        const auto id = hash::hash_enum(ya::to_string_ref(*qbuf));
         enums_.emplace(id, eid);
     }
 
@@ -172,7 +170,7 @@ Exporter::Exporter(IHashProvider& provider, UseStacks use_stacks)
     {
         const auto sid = get_struc_by_idx(idx);
         ya::wrap(&get_struc_name, *qbuf, sid);
-        const auto id = provider_.get_struc_id(ya::to_string_ref(*qbuf));
+        const auto id = hash::hash_struc(ya::to_string_ref(*qbuf));
         strucs_.emplace(id, sid);
     }
 }
@@ -1353,7 +1351,7 @@ namespace
         ya::walk_enum_members(eid, [&](const_t cid, uval_t value, uchar serial, bmask_t bmask)
         {
             ya::wrap(&get_enum_member_name, *qbuf, cid);
-            const auto yaid = exporter.provider_.get_enum_member_id(id, ya::to_string_ref(*qbuf));
+            const auto yaid = hash::hash_enum_member(id, ya::to_string_ref(*qbuf));
             if(is_member(exporter, id, yaid))
                 return;
 
@@ -1635,7 +1633,7 @@ namespace
 
             // reset known fields
             const auto field_size = offset == last_offset && offset == size ? 0 : 1;
-            const auto id = exporter.provider_.get_member_id(vid, offset);
+            const auto id = hash::hash_member(vid, offset);
             const auto key = get_tid(exporter, id);
             // skip fields which have already been exported
             if(key.tid != BADADDR)
@@ -2042,22 +2040,22 @@ bool set_struct_member_type_at(ea_t ea, const std::string& prototype)
 
 namespace
 {
-    void import_to_ida(IModelAccept& model, IHashProvider& provider, UseStacks use_stacks)
+    void import_to_ida(IModelAccept& model, UseStacks use_stacks)
     {
         const auto prev = inf.is_auto_enabled();
         inf.set_auto_enabled(false);
-        Exporter exporter{provider, use_stacks};
+        Exporter exporter{use_stacks};
         model.accept(*MakeVisitorFromListener(exporter));
         inf.set_auto_enabled(prev);
     }
 }
 
-void import_to_ida(IModelAccept& model, IHashProvider& provider)
+void import_to_ida(IModelAccept& model)
 {
-    import_to_ida(model, provider, USE_STACKS);
+    import_to_ida(model, USE_STACKS);
 }
 
 void import_to_ida(const std::string& filename)
 {
-    import_to_ida(*MakeFlatBufferDatabaseModel(filename), *MakeHashProvider(), SKIP_STACKS);
+    import_to_ida(*MakeFlatBufferDatabaseModel(filename), SKIP_STACKS);
 }

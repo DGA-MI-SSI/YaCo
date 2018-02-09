@@ -17,7 +17,7 @@
 #include "Ida.h"
 #include "YaHelpers.hpp"
 
-#include "YaToolsHashProvider.hpp"
+#include "Hash.hpp"
 #include "../Helpers.h"
 #include "StringFormat.hpp"
 
@@ -91,12 +91,12 @@ namespace
     const qstring comment_prefix = "/*%";
     const qstring comment_suffix = "%*/";
 
-    void simple_tif_to_string(qstring& dst, IHashProvider* provider, ya::Deps* deps, const tinfo_t& tif, const const_string_ref& name)
+    void simple_tif_to_string(qstring& dst, ya::TypeToStringMode_e mode, ya::Deps* deps, const tinfo_t& tif, const const_string_ref& name)
     {
         to_string(dst, tif, name.value, nullptr);
-        if(!provider)
+        if(mode == ya::NO_HEURISTIC)
             return;
-
+        
         auto subtif = tif;
         while(subtif.remove_ptr_or_array())
             continue;
@@ -111,8 +111,8 @@ namespace
             return;
 
         const auto subid = get_struc(subtid) ?
-            provider->get_struc_id(ya::to_string_ref(subtype)) :
-            provider->get_enum_id(ya::to_string_ref(subtype));
+            hash::hash_struc(ya::to_string_ref(subtype)) :
+            hash::hash_enum(ya::to_string_ref(subtype));
         if(deps)
             deps->push_back({subid, subtid});
 
@@ -171,10 +171,10 @@ namespace
         return {&txt.value[skip], txt.size - skip};
     }
 
-    void tif_to_string(qstring& dst, IHashProvider* provider, ya::Deps* deps, const tinfo_t& tif, const const_string_ref& name)
+    void tif_to_string(qstring& dst, ya::TypeToStringMode_e mode, ya::Deps* deps, const tinfo_t& tif, const const_string_ref& name)
     {
         if(!tif.is_func())
-            return simple_tif_to_string(dst, provider, deps, tif, name);
+            return simple_tif_to_string(dst, mode, deps, tif, name);
 
         func_type_data_t fi;
         auto ok = tif.get_func_details(&fi);
@@ -185,7 +185,7 @@ namespace
 
         // build type manually
         const auto rettype = tif.get_rettype();
-        print_type(dst, provider, deps, rettype, {});
+        print_type(dst, mode, deps, rettype, {});
         
         const auto cc = tif.get_cc();
         add_suffix(dst, get_calling_convention(cc));
@@ -213,7 +213,7 @@ namespace
             if(i++)
                 dst += comma_separator;
             argname.assign(arg.c_str(), arg.length());
-            print_type(arg, provider, deps, it.type, make_string_ref(argname));
+            print_type(arg, mode, deps, it.type, make_string_ref(argname));
             dst += arg;
         }
         if(cc == CM_CC_ELLIPSIS || cc == CM_CC_SPECIALE)
@@ -244,9 +244,9 @@ namespace
     }
 }
 
-void ya::print_type(qstring& dst, IHashProvider* provider, Deps* deps, const tinfo_t& tif, const const_string_ref& name)
+void ya::print_type(qstring& dst, TypeToStringMode_e mode, Deps* deps, const tinfo_t& tif, const const_string_ref& name)
 {
-    tif_to_string(dst, provider, deps, tif, name);
+    tif_to_string(dst, mode, deps, tif, name);
     if(deps)
         cleanup_deps(*deps);
 }
@@ -448,7 +448,7 @@ std::string ya::get_type(ea_t ea)
     // - names are set elsewhere
     // - mangled c++ names are rejected as prototype
     qstring buf;
-    print_type(buf, nullptr, nullptr, tif, {nullptr, 0});
+    print_type(buf, ya::NO_HEURISTIC, nullptr, tif, {nullptr, 0});
     return to_string(buf);
 }
 

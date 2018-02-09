@@ -17,7 +17,6 @@
 #include "Ida.h"
 #include "YaCo.hpp"
 
-#include "YaToolsHashProvider.hpp"
 #include "Repository.hpp"
 #include "Hooks.hpp"
 #include "IDANativeExporter.hpp"
@@ -105,7 +104,6 @@ namespace
         void discard_and_pull_idb();
 
         // Variables
-        std::shared_ptr<IHashProvider>   hash_provider_;
         std::shared_ptr<IRepository>     repository_;
         std::shared_ptr<IHooks>          hooks_;
 
@@ -121,9 +119,8 @@ namespace
 
 #define YACO_ACTION_DESC(name, label, handler) ACTION_DESC_LITERAL_OWNER(name, label, handler, nullptr, nullptr, nullptr, -1)
 YaCo::YaCo(IDAIsInteractive ida_is_interactive)
-    : hash_provider_(MakeHashProvider())
-    , repository_(MakeRepository(".", ida_is_interactive))
-    , hooks_(MakeHooks(*this, *hash_provider_, *repository_))
+    : repository_(MakeRepository(".", ida_is_interactive))
+    , hooks_(MakeHooks(*this, *repository_))
 {
     action_descs_.push_back(YACO_ACTION_DESC("yaco_toggle_rebase_push",     "YaCo - Toggle YaCo auto rebase/push",   new_handler([&]{ ext_toggle_auto_rebase_push(this); })));
     action_descs_.push_back(YACO_ACTION_DESC("yaco_sync_and_push_idb",      "YaCo - Resync idb & force push",        new_handler([&]{ ext_sync_and_push_idb(this); })));
@@ -169,7 +166,7 @@ void YaCo::export_database()
     }
 
     std::shared_ptr<IFlatExporter> exporter = MakeFlatBufferExporter();
-    MakeModel(*hash_provider_)->accept(*exporter);
+    MakeStdModel()->accept(*exporter);
     ExportedBuffer buffer = exporter->GetBuffer();
 
     FILE* database = fopen("database/database.yadb", "wb");
@@ -212,7 +209,7 @@ void YaCo::initial_load()
     const auto time_start = std::chrono::system_clock::now();
     IDA_LOG_INFO("Loading...");
 
-    import_to_ida(*MakeXmlAllDatabaseModel("."), *hash_provider_);
+    import_to_ida(*MakeXmlAllDatabaseModel("."));
 
     const auto time_end = std::chrono::system_clock::now();
     const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(time_end - time_start);

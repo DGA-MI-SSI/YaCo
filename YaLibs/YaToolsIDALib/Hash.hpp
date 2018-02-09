@@ -17,12 +17,17 @@
 
 #include "YaTypes.hpp"
 
-#include <memory>
-
-class IModelAccept;
-
-bool set_type_at                (ea_t ea, const std::string& prototype);
-bool set_struct_member_type_at  (ea_t ea, const std::string& prototype);
-
-void import_to_ida(const std::string& filename);
-void import_to_ida(IModelAccept& model);
+namespace hash
+{
+    YaToolObjectId  hash_binary         ();
+    YaToolObjectId  hash_segment        (uint64_t ea);
+    YaToolObjectId  hash_segment_chunk  (uint64_t ea);
+    YaToolObjectId  hash_enum           (const const_string_ref& name);
+    YaToolObjectId  hash_enum_member    (YaToolObjectId parent, const const_string_ref& name);
+    YaToolObjectId  hash_struc          (const const_string_ref& name);
+    YaToolObjectId  hash_stack          (uint64_t ea);
+    YaToolObjectId  hash_member         (YaToolObjectId parent, uint64_t offset);
+    YaToolObjectId  hash_function       (uint64_t ea);
+    YaToolObjectId  hash_ea             (uint64_t ea);
+    YaToolObjectId  hash_reference      (uint64_t ea, uint64_t base);
+};

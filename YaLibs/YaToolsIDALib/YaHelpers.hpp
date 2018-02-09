@@ -18,8 +18,6 @@
 #include "YaTypes.hpp"
 #include <vector>
 
-struct IHashProvider;
-
 namespace ya
 {
     struct Dependency
@@ -28,7 +26,14 @@ namespace ya
         tid_t           tid;
     };
     using Deps = std::vector<Dependency>;
-    void                print_type(qstring& dst, IHashProvider* provider, Deps* deps, const tinfo_t& tif, const const_string_ref& name);
+
+    enum TypeToStringMode_e
+    {
+        NO_HEURISTIC,
+        USE_HEURISTIC,
+    };
+
+    void                print_type(qstring& dst, TypeToStringMode_e mode, Deps* deps, const tinfo_t& tif, const const_string_ref& name);
     tinfo_t             get_tinfo(flags_t flags, const opinfo_t* op);
     tinfo_t             get_tinfo(ea_t ea);
     std::string         get_type(ea_t ea);

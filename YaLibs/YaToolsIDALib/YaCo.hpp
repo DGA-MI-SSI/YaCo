@@ -19,9 +19,6 @@
 
 #include <memory>
 
-// Forward declarations
-struct IHashProvider;
-
 struct IYaCo
 {
     virtual void start() = 0;

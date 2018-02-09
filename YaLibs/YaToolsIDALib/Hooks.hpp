@@ -19,7 +19,6 @@
 
 // Forward declarations
 struct IYaCo;
-struct IHashProvider;
 struct IRepository;
 
 struct IHooks
@@ -28,4 +27,4 @@ struct IHooks
     virtual void unhook() = 0;
 };
 
-std::shared_ptr<IHooks> MakeHooks(IYaCo& yaco, IHashProvider& hash_provider, IRepository& repo);
+std::shared_ptr<IHooks> MakeHooks(IYaCo& yaco, IRepository& repo);

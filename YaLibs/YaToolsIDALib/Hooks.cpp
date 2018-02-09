@@ -18,7 +18,7 @@
 
 #include "YaCo.hpp"
 #include "Repository.hpp"
-#include "YaToolsHashProvider.hpp"
+#include "Hash.hpp"
 #include "IModel.hpp"
 #include "Model.hpp"
 #include "IDANativeModel.hpp"
@@ -333,7 +333,7 @@ namespace
         : public IHooks
     {
 
-        Hooks(IYaCo& yaco, IHashProvider& hash_provider, IRepository& repo);
+        Hooks(IYaCo& yaco, IRepository& repo);
         ~Hooks();
 
         // IHooks
@@ -460,7 +460,6 @@ namespace
 
         // Variables
         IYaCo&           yaco_;
-        IHashProvider&   hash_provider_;
         IRepository&     repo_;
         Pool<qstring>    qpool_;
 
@@ -608,12 +607,11 @@ namespace
     }
 }
 
-Hooks::Hooks(IYaCo& yaco, IHashProvider& hash_provider, IRepository& repo)
+Hooks::Hooks(IYaCo& yaco, IRepository& repo)
     : yaco_(yaco)
-    , hash_provider_(hash_provider)
-    , repo_         (repo)
-    , qpool_        (3)
-    , enabled_      (false)
+    , repo_(repo)
+    , qpool_(3)
+    , enabled_(false)
 {
     hook_to_notification_point(HT_IDP, &idp_event_handler, this);
     hook_to_notification_point(HT_DBG, &dbg_event_handler, this);
@@ -692,7 +690,7 @@ void Hooks::update_struct(ea_t struc_id)
 {
     const auto name = qpool_.acquire();
     ya::wrap(&get_struc_name, *name, struc_id);
-    const auto id = hash_provider_.get_struc_id(ya::to_string_ref(*name));
+    const auto id = hash::hash_struc(ya::to_string_ref(*name));
     strucs_.emplace(id, Struc{struc_id, get_func_by_frame(struc_id)});
     repo_.add_auto_comment(struc_id, "Updated");
 }
@@ -716,7 +714,7 @@ namespace
     {
         const auto qbuf = hooks.qpool_.acquire();
         ya::wrap(&::get_enum_member_name, *qbuf, cid);
-        const auto id = hooks.hash_provider_.get_enum_member_id(enum_id, ya::to_string_ref(*qbuf));
+        const auto id = hash::hash_enum_member(enum_id, ya::to_string_ref(*qbuf));
         hooks.enum_members_.emplace(id, EnumMember{enum_id, eid, cid});
     }
 }
@@ -730,7 +728,7 @@ void Hooks::update_enum(enum_t enum_id)
 
     const auto name = qpool_.acquire();
     ya::wrap(&::get_enum_name, *name, enum_id);
-    const auto id = hash_provider_.get_enum_id(ya::to_string_ref(*name));
+    const auto id = hash::hash_enum(ya::to_string_ref(*name));
     enums_.emplace(id, enum_id);
     ya::walk_enum_members(enum_id, [&](const_t cid, uval_t /*value*/, uchar /*serial*/, bmask_t /*bmask*/)
     {
@@ -776,23 +774,23 @@ void Hooks::add_struct_member(ea_t struc_id, ea_t offset, const std::string& mes
     const auto name = qpool_.acquire();
     ya::wrap(&::get_struc_name, *name, struc_id);
     const auto parent_id = func_ea != BADADDR ?
-        hash_provider_.get_stack_id(func_ea) :
-        hash_provider_.get_struc_id(ya::to_string_ref(*name));
-    const auto id = hash_provider_.get_member_id(parent_id, offset);
+        hash::hash_stack(func_ea) :
+        hash::hash_struc(ya::to_string_ref(*name));
+    const auto id = hash::hash_member(parent_id, offset);
     struc_members_.emplace(id, StrucMember{parent_id, {struc_id, func_ea}, offset});
     repo_.add_auto_comment(struc_id, message);
 }
 
 namespace
 {
-    bool try_accept_struc(Hooks& h, YaToolObjectId id, const Struc& struc, qstring& qbuf)
+    bool try_accept_struc(YaToolObjectId id, const Struc& struc, qstring& qbuf)
     {
         if(struc.func_ea != BADADDR)
             return get_func_by_frame(struc.id) == struc.func_ea;
 
         // on struc renames, as struc_id is still valid, we need to validate its id again
         ya::wrap(&get_struc_name, qbuf, struc.id);
-        const auto got_id = h.hash_provider_.get_struc_id(ya::to_string_ref(qbuf));
+        const auto got_id = hash::hash_struc(ya::to_string_ref(qbuf));
         const auto idx = get_struc_idx(struc.id);
         return id == got_id && idx != BADADDR;
     }
@@ -806,7 +804,7 @@ void Hooks::save_structs(IModelIncremental& model, IModelVisitor& visitor)
         // if frame, we need to update parent function
         if(p.second.func_ea != BADADDR)
             model.accept_function(visitor, p.second.func_ea);
-        if(try_accept_struc(*this, p.first, p.second, *qbuf))
+        if(try_accept_struc(p.first, p.second, *qbuf))
             model.accept_struct(visitor, p.second.func_ea, p.second.id);
         else if(p.second.func_ea == BADADDR)
             model.delete_struc(visitor, p.first);
@@ -816,12 +814,12 @@ void Hooks::save_structs(IModelIncremental& model, IModelVisitor& visitor)
 
     for(const auto p : struc_members_)
     {
-        const auto is_valid_parent = try_accept_struc(*this, p.second.parent_id, p.second.struc, *qbuf);
+        const auto is_valid_parent = try_accept_struc(p.second.parent_id, p.second.struc, *qbuf);
         const auto struc = p.second.struc.func_ea != BADADDR ?
             get_frame(p.second.struc.func_ea) :
             get_struc(p.second.struc.id);
         const auto member = get_member(struc, p.second.offset);
-        const auto id = hash_provider_.get_member_id(p.second.parent_id, member ? member->soff : -1);
+        const auto id = hash::hash_member(p.second.parent_id, member ? member->soff : -1);
         const auto is_valid_member = p.first == id;
         if(is_valid_parent && is_valid_member)
             model.accept_struct(visitor, p.second.struc.func_ea, p.second.struc.id);
@@ -839,7 +837,7 @@ void Hooks::save_enums(IModelIncremental& model, IModelVisitor& visitor)
     {
         // on renames, as enum_id is still valid, we need to validate its id again
         ya::wrap(&get_enum_name, *qbuf, p.second);
-        const auto id = hash_provider_.get_enum_id(ya::to_string_ref(*qbuf));
+        const auto id = hash::hash_enum(ya::to_string_ref(*qbuf));
         const auto idx = get_enum_idx(p.second);
         if(idx == BADADDR || id != p.first)
             model.delete_enum(visitor, p.first);
@@ -850,9 +848,9 @@ void Hooks::save_enums(IModelIncremental& model, IModelVisitor& visitor)
     {
         // on renames, we need to check both ids
         ya::wrap(&get_enum_name, *qbuf, p.second.eid);
-        const auto parent_id = hash_provider_.get_enum_id(ya::to_string_ref(*qbuf));
+        const auto parent_id = hash::hash_enum(ya::to_string_ref(*qbuf));
         ya::wrap(&::get_enum_member_name, *qbuf, p.second.mid);
-        const auto id = hash_provider_.get_enum_member_id(parent_id, ya::to_string_ref(*qbuf));
+        const auto id = hash::hash_enum_member(parent_id, ya::to_string_ref(*qbuf));
         const auto parent = get_enum_member_enum(p.second.mid);
         if(parent == BADADDR || id != p.first || parent_id != p.second.parent_id)
             model.delete_enum_member(visitor, p.first);
@@ -873,7 +871,7 @@ void Hooks::save()
     ModelAndVisitor db = MakeModel();
     db.visitor->visit_start();
     {
-        const auto model = MakeModelIncremental(hash_provider_);
+        const auto model = MakeModelIncremental();
         save_structs(*model, *db.visitor);
         save_enums(*model, *db.visitor);
         for (const ea_t ea : eas_)
@@ -1053,7 +1051,7 @@ void Hooks::save_and_update()
         }), state.updated.end());
         const ModelAndVisitor db = MakeModel();
         load_xml_files_to(*db.visitor, state);
-        import_to_ida(*db.model, hash_provider_);
+        import_to_ida(*db.model);
     }
 
     // Let IDA apply modifications
@@ -2579,7 +2577,7 @@ void Hooks::extra_cmt_changed(va_list args)
 }
 
 
-std::shared_ptr<IHooks> MakeHooks(IYaCo& yaco, IHashProvider& hash_provider, IRepository& repo)
+std::shared_ptr<IHooks> MakeHooks(IYaCo& yaco, IRepository& repo)
 {
-    return std::make_shared<Hooks>(yaco, hash_provider, repo);
+    return std::make_shared<Hooks>(yaco, repo);
 }

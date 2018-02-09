@@ -19,7 +19,7 @@
 #include "IDANativeModel.hpp"
 #include "IModelAccept.hpp"
 #include "IModelVisitor.hpp"
-#include "YaToolsHashProvider.hpp"
+#include "Hash.hpp"
 #include "YaHelpers.hpp"
 #include "../Helpers.h"
 #include "Pool.hpp"
@@ -235,9 +235,8 @@ namespace
     {
         static const bool is_incremental = Parent::is_incremental;
 
-        Ctx(IHashProvider& provider, Parent& parent)
-            : provider_ (provider)
-            , parent_   (parent)
+        Ctx(Parent& parent)
+            : parent_   (parent)
             , qpool_    (4)
         {
             if(!strncmp(inf.procname, "ARM", sizeof inf.procname))
@@ -246,7 +245,6 @@ namespace
 
         inline bool skip_id(YaToolObjectId id, YaToolObjectType_e type) { return Parent::is_incremental ? parent_.skip_id(id, type) : false; }
 
-        IHashProvider&                  provider_;
         Parent&                         parent_;
         Pool<qstring>                   qpool_;
         std::vector<uint8_t>            buffer_;
@@ -319,7 +317,7 @@ namespace
 
         const auto enum_name = ctx.qpool_.acquire();
         ya::wrap(&get_enum_name, *enum_name, eid);
-        const auto id = ctx.provider_.get_enum_id(ya::to_string_ref(*enum_name));
+        const auto id = hash::hash_enum(ya::to_string_ref(*enum_name));
         if(ctx.skip_id(id, OBJECT_TYPE_ENUM))
             return;
 
@@ -342,7 +340,7 @@ namespace
         ya::walk_enum_members(eid, [&](const_t const_id, uval_t value, uchar /*serial*/, bmask_t bmask)
         {
             ya::wrap(&get_enum_member_name, *qbuf, const_id);
-            const auto member_id = ctx.provider_.get_enum_member_id(id, ya::to_string_ref(*qbuf));
+            const auto member_id = hash::hash_enum_member(id, ya::to_string_ref(*qbuf));
             v.visit_start_xref(0, member_id, DEFAULT_OPERAND);
             v.visit_end_xref();
             members.push_back({member_id, const_id, value, bmask});
@@ -461,7 +459,7 @@ namespace
         const auto qbuf = ctx.qpool_.acquire();
         // FIXME is_ascii vs visit_prototype confusion
         if((!EMULATE_PYTHON_MODEL_BEHAVIOR || !is_ascii) && !is_trivial_member_type(mtype))
-            ya::print_type(*qbuf, &ctx.provider_, &deps, mtype.tif, {nullptr, 0});
+            ya::print_type(*qbuf, ya::USE_HEURISTIC, &deps, mtype.tif, {nullptr, 0});
         if(!qbuf->empty())
             v.visit_prototype(ya::to_string_ref(*qbuf));
         v.visit_flags(flags);
@@ -514,7 +512,7 @@ namespace
 
         const auto sid = struc->id;
         const auto offset = member->soff;
-        const auto id = ctx.provider_.get_member_id(parent.id, offset);
+        const auto id = hash::hash_member(parent.id, offset);
         const auto type = func ? OBJECT_TYPE_STACKFRAME_MEMBER : OBJECT_TYPE_STRUCT_MEMBER;
         if(ctx.skip_id(id, type))
             return;
@@ -557,8 +555,8 @@ namespace
         const auto sid = struc->id;
         ya::wrap(&get_struc_name, *struc_name, sid);
         const auto id = func ?
-            ctx.provider_.get_stack_id(func->start_ea) :
-            ctx.provider_.get_struc_id(ya::to_string_ref(*struc_name));
+            hash::hash_stack(func->start_ea) :
+            hash::hash_struc(ya::to_string_ref(*struc_name));
         const auto type = func ? OBJECT_TYPE_STACKFRAME : OBJECT_TYPE_STRUCT;
         if(ctx.skip_id(id, type))
             return;
@@ -589,7 +587,7 @@ namespace
             if(qbuf->empty())
                 continue;
 
-            const auto mid = ctx.provider_.get_member_id(id, off);
+            const auto mid = hash::hash_member(id, off);
             v.visit_start_xref(struc->is_union() ? 0 : off, mid, DEFAULT_OPERAND);
             v.visit_end_xref();
         }
@@ -879,7 +877,7 @@ namespace
     template<typename Ctx>
     void accept_data(Ctx& ctx, IModelVisitor& v, const Parent& parent, ea_t ea)
     {
-        const auto id = ctx.provider_.get_ea_id(ea);
+        const auto id = hash::hash_ea(ea);
         if(ctx.skip_id(id, OBJECT_TYPE_DATA))
             return;
 
@@ -893,7 +891,7 @@ namespace
         ya::Deps deps;
         const auto tif = ya::get_tinfo(ea);
         const auto qbuf = ctx.qpool_.acquire();
-        ya::print_type(*qbuf, &ctx.provider_, &deps, tif, {nullptr, 0});
+        ya::print_type(*qbuf, ya::USE_HEURISTIC, &deps, tif, {nullptr, 0});
         if(!qbuf->empty())
             v.visit_prototype(ya::to_string_ref(*qbuf));
         v.visit_flags(flags);
@@ -969,14 +967,14 @@ namespace
         v.visit_start_xrefs();
         if(frame)
         {
-            const auto sid = ctx.provider_.get_stack_id(ea);
+            const auto sid = hash::hash_stack(ea);
             v.visit_start_xref(BADADDR, sid, DEFAULT_OPERAND);
             v.visit_end_xref();
         }
         const auto qbuf = ctx.qpool_.acquire();
         for(const auto& block : blocks)
         {
-            const auto bid = ctx.provider_.get_ea_id(block.start_ea);
+            const auto bid = hash::hash_ea(block.start_ea);
             const auto offset = block.start_ea - ea;
             // FIXME a block does not necessarily start after the first function basic block
             // in which case offset is negative but offset_t is unsigned...
@@ -1107,7 +1105,7 @@ namespace
             //const auto dump = ya::dump_flags(xflags);
             if(!is_valid)
                 continue;
-            const auto xref = Xref{ea - root, ctx.provider_.get_ea_id(get_root_item(xb.to)), DEFAULT_OPERAND, 0};
+            const auto xref = Xref{ea - root, hash::hash_ea(get_root_item(xb.to)), DEFAULT_OPERAND, 0};
             ctx.xrefs_.push_back(xref);
         }
     }
@@ -1121,7 +1119,7 @@ namespace
         const auto next = prev_not_tail(end);
         for(auto ea = get_first_cref_from(next); ea != BADADDR; ea = get_next_cref_from(next, ea))
         {
-            const auto id = ctx.provider_.get_ea_id(ea);
+            const auto id = hash::hash_ea(ea);
             ctx.xrefs_.push_back({ea - start, id, DEFAULT_OPERAND, 0});
         }
     }
@@ -1135,7 +1133,7 @@ namespace
 
         const auto qbuf = ctx.qpool_.acquire();
         ya::wrap(&get_enum_name, *qbuf, pop->ec.tid);
-        const auto xid = ctx.provider_.get_enum_id(ya::to_string_ref(*qbuf));
+        const auto xid = hash::hash_enum(ya::to_string_ref(*qbuf));
         deps->push_back({xid, pop->ec.tid});
         ctx.xrefs_.push_back({ea - root, xid, opidx, 0});
     }
@@ -1157,7 +1155,7 @@ namespace
         const auto tid = pop->path.ids[0];
         const auto qbuf = ctx.qpool_.acquire();
         ya::wrap(&get_struc_name, *qbuf, tid);
-        const auto sid = ctx.provider_.get_struc_id(ya::to_string_ref(*qbuf));
+        const auto sid = hash::hash_struc(ya::to_string_ref(*qbuf));
 
         deps->push_back({sid, tid});
         ctx.xrefs_.push_back({ea - root, sid, opidx, 0});
@@ -1171,7 +1169,7 @@ namespace
             if(!member)
                 break;
 
-            const auto xmid = ctx.provider_.get_member_id(sid, member->soff);
+            const auto xmid = hash::hash_member(sid, member->soff);
             ctx.xrefs_.push_back({ea - root, xmid, opidx, i});
         }
     }
@@ -1218,7 +1216,7 @@ namespace
             const auto offset = ea - root;
             const auto rflags = pop->ri.flags;
             const auto base = pop->ri.base;
-            const auto id = ctx.provider_.get_reference_id(ea, base);
+            const auto id = hash::hash_reference(ea, base);
             ctx.xrefs_.push_back({offset, id, i, 0});
             ctx.refs_.push_back({id, offset, i, rflags, base});
         }
@@ -1358,7 +1356,7 @@ namespace
     template<typename Ctx>
     void accept_code(Ctx& ctx, IModelVisitor& v, const Parent& parent, ea_t ea)
     {
-        const auto id = ctx.provider_.get_ea_id(ea);
+        const auto id = hash::hash_ea(ea);
         if(ctx.skip_id(id, OBJECT_TYPE_CODE))
             return;
 
@@ -1383,7 +1381,7 @@ namespace
     void accept_block(Ctx& ctx, IModelVisitor& v, const Parent& parent, range_t block)
     {
         const auto ea = block.start_ea;
-        const auto id = ctx.provider_.get_ea_id(ea);
+        const auto id = hash::hash_ea(ea);
         if(ctx.skip_id(id, OBJECT_TYPE_BASIC_BLOCK))
             return;
 
@@ -1432,7 +1430,7 @@ namespace
         ya::Deps deps;
         const auto tif = ya::get_tinfo(ea);
         const auto qbuf = ctx.qpool_.acquire();
-        ya::print_type(*qbuf, &ctx.provider_, &deps, tif, {nullptr, 0});
+        ya::print_type(*qbuf, ya::USE_HEURISTIC, &deps, tif, {nullptr, 0});
         if(!qbuf->empty())
             v.visit_prototype(ya::to_string_ref(*qbuf));
         v.visit_flags(func->flags);
@@ -1476,7 +1474,7 @@ namespace
     template<typename Ctx>
     void accept_function(Ctx& ctx, IModelVisitor& v, const Parent& parent, func_t* func, ea_t block_ea)
     {
-        const auto id   = ctx.provider_.get_function_id(func->start_ea);
+        const auto id = hash::hash_function(func->start_ea);
         accept_function_only(ctx, v, parent, func, id);
         if(Ctx::is_incremental)
             accept_block_ea(ctx, v, {id, func->start_ea}, func, block_ea);
@@ -1596,7 +1594,7 @@ namespace
     template<typename Ctx>
     Parent accept_segment_chunk(Ctx& ctx, IModelVisitor& v, const Parent& parent, ea_t ea, ea_t end)
     {
-        const auto id = ctx.provider_.get_segment_chunk_id(ea);
+        const auto id = hash::hash_segment_chunk(ea);
         const auto current = Parent{id, ea};
         if(ctx.skip_id(id, OBJECT_TYPE_SEGMENT_CHUNK))
             return current;
@@ -1609,7 +1607,7 @@ namespace
         for(const auto item_ea : eas)
         {
             const auto offset = item_ea - ea;
-            const auto item_id = ctx.provider_.get_ea_id(item_ea);
+            const auto item_id = hash::hash_ea(item_ea);
             v.visit_start_xref(offset, item_id, DEFAULT_OPERAND);
             v.visit_end_xref();
         }
@@ -1730,7 +1728,7 @@ namespace
     template<typename Ctx>
     Parent accept_segment(Ctx& ctx, IModelVisitor& v, const Parent& parent, segment_t* seg)
     {
-        const auto id = ctx.provider_.get_segment_id(seg->start_ea);
+        const auto id = hash::hash_segment(seg->start_ea);
         const auto current = Parent{id, seg->start_ea};
         if(ctx.skip_id(id, OBJECT_TYPE_SEGMENT))
             return current;
@@ -1745,7 +1743,7 @@ namespace
         v.visit_start_xrefs();
         walk_segment_chunks(seg, [&](ea_t ea, ea_t /*end*/)
         {
-            const auto chunk_id = ctx.provider_.get_segment_chunk_id(ea);
+            const auto chunk_id = hash::hash_segment_chunk(ea);
             v.visit_start_xref(ea - seg->start_ea, chunk_id, DEFAULT_OPERAND);
             v.visit_end_xref();
 
@@ -1775,7 +1773,7 @@ namespace
     Parent accept_binary(Ctx& ctx, IModelVisitor& v)
     {
         const auto qbuf = ctx.qpool_.acquire();
-        const auto id = ctx.provider_.get_binary_id();
+        const auto id = hash::hash_binary();
         const auto base = get_imagebase();
         const auto current = Parent{id, base};
         if(ctx.skip_id(id, OBJECT_TYPE_BINARY))
@@ -1796,7 +1794,7 @@ namespace
         v.visit_start_xrefs();
         for(auto seg = first; seg; seg = get_next_seg(seg->end_ea - 1))
         {
-            const auto seg_id = ctx.provider_.get_segment_id(seg->start_ea);
+            const auto seg_id = hash::hash_segment(seg->start_ea);
             v.visit_start_xref(seg->start_ea - base, seg_id, DEFAULT_OPERAND);
             v.visit_end_xref();
         }
@@ -1834,7 +1832,7 @@ namespace
     {
         static const bool is_incremental = false;
 
-        Model(IHashProvider& provider);
+        Model();
 
         inline bool skip_id(YaToolObjectId, YaToolObjectType_e) const { return false; }
 
@@ -1849,7 +1847,7 @@ namespace
     {
         static const bool is_incremental = true;
 
-        ModelIncremental(IHashProvider& provider, int type_mask);
+        ModelIncremental(int type_mask);
 
         // IModelIncremental accept methods
         void accept_enum(IModelVisitor& v, ea_t enum_id) override;
@@ -1875,14 +1873,14 @@ namespace
     };
 }
 
-Model::Model(IHashProvider& provider)
-    : ctx_(provider, *this)
+Model::Model()
+    : ctx_(*this)
 {
 }
 
-std::shared_ptr<IModelAccept> MakeModel(IHashProvider& provider)
+std::shared_ptr<IModelAccept> MakeStdModel()
 {
-    return std::make_shared<Model>(provider);
+    return std::make_shared<Model>();
 }
 
 void Model::accept(IModelVisitor& v)
@@ -1890,15 +1888,15 @@ void Model::accept(IModelVisitor& v)
     ::accept(ctx_, v);
 }
 
-ModelIncremental::ModelIncremental(IHashProvider& provider, int type_mask)
-    : ctx_(provider, *this)
+ModelIncremental::ModelIncremental(int type_mask)
+    : ctx_(*this)
     , type_mask_(type_mask)
 {
 }
 
-std::shared_ptr<IModelIncremental> MakeModelIncremental(IHashProvider& provider)
+std::shared_ptr<IModelIncremental> MakeModelIncremental()
 {
-    return std::make_shared<ModelIncremental>(provider, ~0);
+    return std::make_shared<ModelIncremental>(~0);
 }
 
 void ModelIncremental::accept_enum(IModelVisitor& v, ea_t enum_id)
@@ -1915,12 +1913,11 @@ bool ModelIncremental::skip_id(YaToolObjectId id, YaToolObjectType_e type)
 
 namespace
 {
-    template<typename Ctx>
-    Parent get_parent_function(Ctx& ctx, ea_t func_ea, func_t* func)
+    Parent get_parent_function(ea_t func_ea, func_t* func)
     {
         if(!func)
             return {};
-        const auto id = ctx.provider_.get_function_id(func_ea);
+        const auto id = hash::hash_function(func_ea);
         return {id, func_ea};
     }
 }
@@ -1935,7 +1932,7 @@ void ModelIncremental::accept_struct(IModelVisitor& v, ea_t func_ea, ea_t struc_
     }
 
     const auto func = get_func(func_ea);
-    ::accept_struct(ctx_, v, get_parent_function(ctx_, func_ea, func), struc, func);
+    ::accept_struct(ctx_, v, get_parent_function(func_ea, func), struc, func);
 }
 
 namespace
@@ -2047,9 +2044,8 @@ void ModelIncremental::delete_stack_member(IModelVisitor& v, YaToolObjectId id)
 
 void export_from_ida(const std::string& filename)
 {
-    const auto provider = MakeHashProvider();
     const auto exporter = MakeFlatBufferExporter();
-    Model(*provider).accept(*exporter);
+    Model().accept(*exporter);
 
     const auto buf = exporter->GetBuffer();
     FILE* fh = qfopen(filename.data(), "wb");
@@ -2064,7 +2060,7 @@ std::string export_xml(ea_t ea, int type_mask)
 {
     const auto db = MakeModel();
     db.visitor->visit_start();
-    ModelIncremental(*MakeHashProvider(), type_mask).accept_ea(*db.visitor, ea);
+    ModelIncremental(type_mask).accept_ea(*db.visitor, ea);
     db.visitor->visit_end();
     return export_to_xml(*db.model);
 }
@@ -2077,7 +2073,7 @@ std::string export_xml_enum(const std::string& name)
 
     const auto db = MakeModel();
     db.visitor->visit_start();
-    ModelIncremental(*MakeHashProvider(), ~0).accept_enum(*db.visitor, eid);
+    ModelIncremental(~0).accept_enum(*db.visitor, eid);
     db.visitor->visit_end();
     return export_to_xml(*db.model);
 }
@@ -2090,7 +2086,7 @@ std::string export_xml_struc(const std::string& name)
 
     const auto db = MakeModel();
     db.visitor->visit_start();
-    ModelIncremental(*MakeHashProvider(), ~0).accept_struct(*db.visitor, BADADDR, sid);
+    ModelIncremental(~0).accept_struct(*db.visitor, BADADDR, sid);
     db.visitor->visit_end();
     return export_to_xml(*db.model);
 }
@@ -2116,8 +2112,7 @@ std::string export_xml_strucs()
 {
     const auto db = MakeModel();
     db.visitor->visit_start();
-    const auto provider = MakeHashProvider();
-    ModelIncremental inc(*provider, ~0);
+    ModelIncremental inc(~0);
     for(const auto s : get_ordered_strucs())
         inc.accept_struct(*db.visitor, BADADDR, s->id);
     db.visitor->visit_end();
