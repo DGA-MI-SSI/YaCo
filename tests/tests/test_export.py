@@ -20,12 +20,13 @@ import inspect
 import os
 import runtests
 import StringIO
+import sys
 
 def iterate(get, size):
     for i in range(0, size):
         yield get(i)
 
-golden_filename = "test_export.700.golden"
+golden_filename = "test_export." + sys.platform + ".700.golden"
 
 class Fixture(runtests.Fixture):
 
