@@ -19,7 +19,6 @@ import argparse
 import difflib
 import inspect
 import os
-import platform
 import re
 import shutil
 import stat
@@ -43,7 +42,7 @@ def remove_dir(dirname):
     shutil.rmtree(dirname, onerror=del_rw)
 
 def sysexec(cwd, *args):
-    output = subprocess.check_output(*args, cwd=cwd, stderr=subprocess.STDOUT, shell=platform.system() != "Windows")
+    output = subprocess.check_output(*args, cwd=cwd, stderr=subprocess.STDOUT, shell=False)
     if False:
         print output
 
