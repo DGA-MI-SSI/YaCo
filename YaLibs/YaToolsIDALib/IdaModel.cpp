@@ -509,7 +509,6 @@ namespace
         if(func && is_special_member(member->id))
             return;
 
-        const auto sid = struc->id;
         const auto offset = member->soff;
         const auto id = hash::hash_member(parent.id, offset);
         const auto type = func ? OBJECT_TYPE_STACKFRAME_MEMBER : OBJECT_TYPE_STRUCT_MEMBER;
