@@ -15,6 +15,7 @@
 
 #include "Hash.hpp"
 
+#include <stddef.h>
 #include <farmhash.h>
 
 namespace
