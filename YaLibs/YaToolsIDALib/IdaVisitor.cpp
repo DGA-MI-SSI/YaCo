@@ -1529,6 +1529,7 @@ namespace
                 case OBJECT_TYPE_SEGMENT_CHUNK:
                 case OBJECT_TYPE_REFERENCE_INFO:
                 case OBJECT_TYPE_COUNT:
+                case OBJECT_TYPE_STACKFRAME_MEMBER:
                     break;
 
                 case OBJECT_TYPE_STRUCT:
