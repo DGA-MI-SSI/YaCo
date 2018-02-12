@@ -81,13 +81,10 @@ namespace
     const char name ## _txt[] = value;\
     const const_string_ref name = {name ## _txt, sizeof name ## _txt - 1};
 
-    DECLARE_REF(g_eq, "equipment");
-    DECLARE_REF(g_os, "os");
     DECLARE_REF(g_empty, "");
     DECLARE_REF(g_stack_lvars, "stack_lvars");
     DECLARE_REF(g_stack_regvars, "stack_regvars");
     DECLARE_REF(g_stack_args, "stack_args");
-    DECLARE_REF(g_none, "None");
     DECLARE_REF(g_serial, "serial");
     DECLARE_REF(g_size, "size");
     DECLARE_REF(g_udec, "unsigneddecimal");
@@ -269,14 +266,8 @@ namespace
         v.visit_address(offset_from_ea(ea));
     }
 
-    void finish_object(IModelVisitor& v, ea_t offset)
+    void finish_object(IModelVisitor& v)
     {
-        v.visit_start_matching_systems();
-        v.visit_start_matching_system(offset_from_ea(offset));
-        v.visit_matching_system_description(g_eq, g_none);
-        v.visit_matching_system_description(g_os, g_none);
-        v.visit_end_matching_system();
-        v.visit_end_matching_systems();
         v.visit_end_object_version();
         v.visit_end_reference_object();
     }
@@ -305,7 +296,7 @@ namespace
         {
             return get_enum_member_cmt(&buffer, em.const_id, repeated);
         });
-        finish_object(v, em.value);
+        finish_object(v);
     }
 
     template<typename Ctx>
@@ -346,7 +337,7 @@ namespace
         });
         v.visit_end_xrefs();
 
-        finish_object(v, idx);
+        finish_object(v);
 
         for(const auto& it : members)
             accept_enum_member(ctx, v, {id, 0}, it);
@@ -539,7 +530,7 @@ namespace
         {
             return get_member_cmt(&buffer, member->id, repeat);
         });
-        finish_object(v, offset);
+        finish_object(v);
         accept_dependencies(ctx, v, deps);
     }
 
@@ -605,7 +596,7 @@ namespace
             v.visit_attribute(g_stack_args,     int_to_ref(func->argsize));
         }
 
-        finish_object(v, 0);
+        finish_object(v);
 
         for(auto i = 0u, end = struc->memqty; i < end; ++i)
         {
@@ -898,7 +889,7 @@ namespace
         accept_comments(ctx, v, ea, ea, flags);
         v.visit_end_offsets();
         accept_data_xrefs(v, deps, ea);
-        finish_object(v, ea - parent.ea);
+        finish_object(v);
         accept_dependencies(ctx, v, deps);
     }
 
@@ -1303,7 +1294,7 @@ namespace
         {
             start_object(v, OBJECT_TYPE_REFERENCE_INFO, r.id, 0, r.base);
             v.visit_flags(r.flags);
-            finish_object(v, r.base);
+            finish_object(v);
         }
         ctx.refs_.clear();
     }
@@ -1370,7 +1361,7 @@ namespace
         accept_offsets(ctx, v, &deps, ea, end);
         accept_xrefs(ctx, v);
 
-        finish_object(v, ea - parent.ea);
+        finish_object(v);
         accept_reference_infos(ctx, v);
         accept_dependencies(ctx, v, deps);
     }
@@ -1401,7 +1392,7 @@ namespace
 
         if(ctx.plugin_)
             ctx.plugin_->accept_block(v, ea);
-        finish_object(v, ea - parent.ea);
+        finish_object(v);
         accept_reference_infos(ctx, v);
         accept_dependencies(ctx, v, deps);
     }
@@ -1447,7 +1438,7 @@ namespace
 
         if(ctx.plugin_)
             ctx.plugin_->accept_function(v, ea);
-        finish_object(v, ea - parent.ea);
+        finish_object(v);
 
         if(frame)
             accept_struct(ctx, v, {id, ea}, frame, func);
@@ -1612,7 +1603,7 @@ namespace
         v.visit_end_xrefs();
 
         accept_blobs(ctx, v, ea, end);
-        finish_object(v, ea - parent.ea);
+        finish_object(v);
 
         if(Ctx::is_incremental)
             return current;
@@ -1749,7 +1740,7 @@ namespace
         v.visit_end_xrefs();
 
         accept_segment_attributes(v, seg);
-        finish_object(v, seg->start_ea - parent.ea);
+        finish_object(v);
 
         if(Ctx::is_incremental)
             return current;
@@ -1798,7 +1789,7 @@ namespace
         }
         v.visit_end_xrefs();
 
-        finish_object(v, base);
+        finish_object(v);
 
         if(Ctx::is_incremental)
             return current;

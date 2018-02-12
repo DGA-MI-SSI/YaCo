@@ -52,11 +52,6 @@ class IModelVisitor
     virtual void visit_start_xref(offset_t offset, YaToolObjectId offset_value, operand_t operand) = 0;
     virtual void visit_end_xref() = 0;
     virtual void visit_xref_attribute(const const_string_ref& key_attribute, const const_string_ref& value_attribute) = 0;
-    virtual void visit_start_matching_systems() = 0;
-    virtual void visit_end_matching_systems() = 0;
-    virtual void visit_start_matching_system(offset_t address) = 0;
-    virtual void visit_matching_system_description(const const_string_ref& description_key, const const_string_ref& description_value) = 0;
-    virtual void visit_end_matching_system() = 0;
     virtual void visit_segments_start() = 0;
     virtual void visit_segments_end() = 0;
     virtual void visit_attribute(const const_string_ref& attr_name, const const_string_ref& attr_value) = 0;

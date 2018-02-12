@@ -64,11 +64,6 @@ public:
     void visit_start_xref(offset_t offset, YaToolObjectId offset_value, operand_t operand) override;
     void visit_end_xref() override;
     void visit_xref_attribute(const const_string_ref& key_attribute, const const_string_ref& value_attribute) override;
-    void visit_start_matching_systems() override;
-    void visit_end_matching_systems() override;
-    void visit_start_matching_system(offset_t address) override;
-    void visit_matching_system_description(const const_string_ref& description_key, const const_string_ref& description_value) override;
-    void visit_end_matching_system() override;
     void visit_segments_start() override;
     void visit_segments_end() override;
     void visit_attribute(const const_string_ref& attr_name, const const_string_ref& attr_value) override;

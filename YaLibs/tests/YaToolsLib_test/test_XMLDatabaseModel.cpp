@@ -72,11 +72,6 @@ TEST_F (TestXMLDatabaseModel, TestFiles) {
       </signatures>\n\
       <offsets/>\n\
       <xrefs/>\n\
-      <matchingsystem>\n\
-        <address>00000038</address>\n\
-        <equipment>None</equipment>\n\
-        <os>None</os>\n\
-      </matchingsystem>\n\
     </version>\n\
   </basic_block>\n\
 </sigfile>";
@@ -112,18 +107,6 @@ TEST_F (TestXMLDatabaseModel, TestFiles) {
     EXPECT_STREQ(call_queue->front().c_str(), "visit_start_xrefs()");
     EXPECT_NO_THROW(call_queue->pop());
     EXPECT_STREQ(call_queue->front().c_str(), "visit_end_xrefs()");
-    EXPECT_NO_THROW(call_queue->pop());
-    EXPECT_STREQ(call_queue->front().c_str(), "visit_start_matching_systems()");
-    EXPECT_NO_THROW(call_queue->pop());
-    EXPECT_STREQ(call_queue->front().c_str(), "visit_start_matching_system()");
-    EXPECT_NO_THROW(call_queue->pop());
-    EXPECT_STREQ(call_queue->front().c_str(), "visit_matching_system_description()");
-    EXPECT_NO_THROW(call_queue->pop());
-    EXPECT_STREQ(call_queue->front().c_str(), "visit_matching_system_description()");
-    EXPECT_NO_THROW(call_queue->pop());
-    EXPECT_STREQ(call_queue->front().c_str(), "visit_end_matching_system()");
-    EXPECT_NO_THROW(call_queue->pop());
-    EXPECT_STREQ(call_queue->front().c_str(), "visit_end_matching_systems()");
     EXPECT_NO_THROW(call_queue->pop());
     EXPECT_STREQ(call_queue->front().c_str(), "visit_end_object_version()");
     EXPECT_NO_THROW(call_queue->pop());
@@ -152,11 +135,6 @@ TEST_F (TestXMLDatabaseModel, TestFilesValidator) {
       </signatures>\n\
       <offsets/>\n\
       <xrefs/>\n\
-      <matchingsystem>\n\
-        <address>00000038</address>\n\
-        <equipment>None</equipment>\n\
-        <os>None</os>\n\
-      </matchingsystem>\n\
     </version>\n\
   </basic_block>\n\
 </sigfile>";
@@ -184,11 +162,6 @@ TEST_F (TestXMLDatabaseModel, TestOneDoubleFile) {
       </signatures>\n\
       <offsets/>\n\
       <xrefs/>\n\
-      <matchingsystem>\n\
-        <address>00000038</address>\n\
-        <equipment>None</equipment>\n\
-        <os>None</os>\n\
-      </matchingsystem>\n\
     </version>\n\
   </basic_block>\n\
   <basic_block>\n\
@@ -200,11 +173,6 @@ TEST_F (TestXMLDatabaseModel, TestOneDoubleFile) {
       </signatures>\n\
       <offsets/>\n\
       <xrefs/>\n\
-      <matchingsystem>\n\
-        <address>00000038</address>\n\
-        <equipment>None</equipment>\n\
-        <os>None</os>\n\
-      </matchingsystem>\n\
     </version>\n\
   </basic_block>\n\
 </sigfile>";
@@ -243,18 +211,6 @@ TEST_F (TestXMLDatabaseModel, TestOneDoubleFile) {
     EXPECT_NO_THROW(call_queue->pop());
     EXPECT_STREQ(call_queue->front().c_str(), "visit_end_xrefs()");
     EXPECT_NO_THROW(call_queue->pop());
-    EXPECT_STREQ(call_queue->front().c_str(), "visit_start_matching_systems()");
-    EXPECT_NO_THROW(call_queue->pop());
-    EXPECT_STREQ(call_queue->front().c_str(), "visit_start_matching_system()");
-    EXPECT_NO_THROW(call_queue->pop());
-    EXPECT_STREQ(call_queue->front().c_str(), "visit_matching_system_description()");
-    EXPECT_NO_THROW(call_queue->pop());
-    EXPECT_STREQ(call_queue->front().c_str(), "visit_matching_system_description()");
-    EXPECT_NO_THROW(call_queue->pop());
-    EXPECT_STREQ(call_queue->front().c_str(), "visit_end_matching_system()");
-    EXPECT_NO_THROW(call_queue->pop());
-    EXPECT_STREQ(call_queue->front().c_str(), "visit_end_matching_systems()");
-    EXPECT_NO_THROW(call_queue->pop());
     EXPECT_STREQ(call_queue->front().c_str(), "visit_end_object_version()");
     EXPECT_NO_THROW(call_queue->pop());
     EXPECT_STREQ(call_queue->front().c_str(), "visit_end_reference_object()");
@@ -281,18 +237,6 @@ TEST_F (TestXMLDatabaseModel, TestOneDoubleFile) {
     EXPECT_STREQ(call_queue->front().c_str(), "visit_start_xrefs()");
     EXPECT_NO_THROW(call_queue->pop());
     EXPECT_STREQ(call_queue->front().c_str(), "visit_end_xrefs()");
-    EXPECT_NO_THROW(call_queue->pop());
-    EXPECT_STREQ(call_queue->front().c_str(), "visit_start_matching_systems()");
-    EXPECT_NO_THROW(call_queue->pop());
-    EXPECT_STREQ(call_queue->front().c_str(), "visit_start_matching_system()");
-    EXPECT_NO_THROW(call_queue->pop());
-    EXPECT_STREQ(call_queue->front().c_str(), "visit_matching_system_description()");
-    EXPECT_NO_THROW(call_queue->pop());
-    EXPECT_STREQ(call_queue->front().c_str(), "visit_matching_system_description()");
-    EXPECT_NO_THROW(call_queue->pop());
-    EXPECT_STREQ(call_queue->front().c_str(), "visit_end_matching_system()");
-    EXPECT_NO_THROW(call_queue->pop());
-    EXPECT_STREQ(call_queue->front().c_str(), "visit_end_matching_systems()");
     EXPECT_NO_THROW(call_queue->pop());
     EXPECT_STREQ(call_queue->front().c_str(), "visit_end_object_version()");
     EXPECT_NO_THROW(call_queue->pop());
@@ -336,11 +280,6 @@ TEST_F (TestXMLDatabaseModel, TestOneFileWithBlob) {
         <xref offset=\"0x0000000000000C76\">0223456789ABCDEF</xref>\n\
         <xref offset=\"0x0000000000000C80\">1223456789ABCDEF</xref>\n\
       </xrefs>\n\
-      <matchingsystem>\n\
-        <address>0000000008000000</address>\n\
-        <equipment>None</equipment>\n\
-        <os>None</os>\n\
-      </matchingsystem>\n\
       <attribute key=\"org_base\">0</attribute>\n\
       <attribute key=\"comb\">2</attribute>\n\
       <attribute key=\"color\">4294967295</attribute>\n\
@@ -419,11 +358,6 @@ TEST_F (TestXMLDatabaseModel, TestOneFileWithComment) {
         <xref offset=\"0x0000000000000C76\">0223456789ABCDEF</xref>\n\
         <xref offset=\"0x0000000000000C80\">1223456789ABCDEF</xref>\n\
       </xrefs>\n\
-      <matchingsystem>\n\
-        <address>0000000008000000</address>\n\
-        <equipment>None</equipment>\n\
-        <os>None</os>\n\
-      </matchingsystem>\n\
       <attribute key=\"org_base\">0</attribute>\n\
       <attribute key=\"comb\">2</attribute>\n\
       <attribute key=\"color\">4294967295</attribute>\n\
@@ -503,11 +437,6 @@ TEST_F (TestXMLDatabaseModel, TestOneFileWithAccentuatedComment) {
         <xref offset=\"0x0000000000000C76\">0223456789ABCDEF</xref>\n\
         <xref offset=\"0x0000000000000C80\">1223456789ABCDEF</xref>\n\
       </xrefs>\n\
-      <matchingsystem>\n\
-        <address>0000000008000000</address>\n\
-        <equipment>None</equipment>\n\
-        <os>None</os>\n\
-      </matchingsystem>\n\
       <attribute key=\"org_base\">0</attribute>\n\
       <attribute key=\"comb\">2</attribute>\n\
       <attribute key=\"color\">4294967295</attribute>\n\
@@ -582,11 +511,6 @@ TEST_F (TestXMLDatabaseModel, TestOneFile_FileExporter) {
       <xref offset=\"0x0000000000000C76\">0223456789ABCDEF</xref>\n\
       <xref offset=\"0x0000000000000C80\">1223456789ABCDEF</xref>\n\
     </xrefs>\n\
-    <matchingsystem>\n\
-      <address>0000000008000000</address>\n\
-      <equipment>None</equipment>\n\
-      <os>None</os>\n\
-    </matchingsystem>\n\
     <attribute key=\"org_base\">0</attribute>\n\
     <attribute key=\"comb\">2</attribute>\n\
     <attribute key=\"color\">4294967295</attribute>\n\
@@ -662,11 +586,6 @@ TEST_F (TestXMLDatabaseModel, TestOneFileWithBlob_FileExporter) {
       <xref offset=\"0x0000000000000C76\">0223456789ABCDEF</xref>\n\
       <xref offset=\"0x0000000000000C80\">1223456789ABCDEF</xref>\n\
     </xrefs>\n\
-    <matchingsystem>\n\
-      <address>0000000008000000</address>\n\
-      <equipment>None</equipment>\n\
-      <os>None</os>\n\
-    </matchingsystem>\n\
     <attribute key=\"org_base\">0</attribute>\n\
     <attribute key=\"comb\">2</attribute>\n\
     <attribute key=\"color\">4294967295</attribute>\n\
@@ -741,11 +660,6 @@ TEST_F (TestXMLDatabaseModel, TestOneFileWithComments) {
         <xref offset=\"0x0000000000000016\">5223456789ABCDEF</xref>\n\
         <xref offset=\"0x0000000000000020\">6223456789ABCDEF</xref>\n\
       </xrefs>\n\
-      <matchingsystem>\n\
-        <address>0000000000000000</address>\n\
-        <equipment>None</equipment>\n\
-        <os>None</os>\n\
-      </matchingsystem>\n\
     </version>\n\
   </basic_block>\n\
 </sigfile>\n\
@@ -807,11 +721,6 @@ TEST_F (TestXMLDatabaseModel, TestOneFileWithCommentsThroughMemory) {
         <xref offset=\"0x0000000000000016\">5223456789ABCDEF</xref>\n\
         <xref offset=\"0x0000000000000020\">6223456789ABCDEF</xref>\n\
       </xrefs>\n\
-      <matchingsystem>\n\
-        <address>0000000000000000</address>\n\
-        <equipment>None</equipment>\n\
-        <os>None</os>\n\
-      </matchingsystem>\n\
     </version>\n\
   </basic_block>\n\
 </sigfile>\n\
@@ -884,11 +793,6 @@ TEST_F (TestXMLDatabaseModel, TestOneFileWithXrefs) {
         <xref offset=\"0x0000000000000030\">9223456789ABCDEF</xref>\n\
         <xref offset=\"0x0000000000000030\">A223456789ABCDEF</xref>\n\
       </xrefs>\n\
-      <matchingsystem>\n\
-        <address>0000000000000000</address>\n\
-        <equipment>None</equipment>\n\
-        <os>None</os>\n\
-      </matchingsystem>\n\
     </version>\n\
   </basic_block>\n\
 </sigfile>\n\
@@ -943,11 +847,6 @@ TEST_F (TestXMLDatabaseModel, TestOneFileWithXrefsThroughMemory) {
         <xref offset=\"0x0000000000000030\">A223456789ABCDEF</xref>\n\
         <xref offset=\"0x0000000000000030\" operand=\"0x0000000000000001\">8223456789ABCDEF</xref>\n\
       </xrefs>\n\
-      <matchingsystem>\n\
-        <address>0000000000000000</address>\n\
-        <equipment>None</equipment>\n\
-        <os>None</os>\n\
-      </matchingsystem>\n\
     </version>\n\
   </basic_block>\n\
 </sigfile>\n\

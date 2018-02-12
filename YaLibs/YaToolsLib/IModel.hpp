@@ -60,7 +60,6 @@ struct IVersions
     typedef std::function<ContinueWalking_e(offset_t, offset_t, const const_string_ref&)> OnHiddenAreaFn;
     typedef std::function<ContinueWalking_e(offset_t, operand_t, YaToolObjectId, const XrefAttributes*)> OnXrefFn;
     typedef std::function<ContinueWalking_e(const const_string_ref&, const const_string_ref&)> OnAttributeFn;
-    typedef std::function<ContinueWalking_e(offset_t, HSystem_id_t)> OnSystemFn;
 
     virtual void                accept(HVersion_id_t version_id, IModelVisitor& visitor) const = 0;
 
@@ -86,8 +85,6 @@ struct IVersions
     virtual void                walk_hidden_areas       (HVersion_id_t version_id, const OnHiddenAreaFn& fnWalk) const = 0;
     virtual void                walk_xrefs              (HVersion_id_t version_id, const OnXrefFn& fnWalk) const = 0;
     virtual void                walk_xref_attributes    (HVersion_id_t version_id, const XrefAttributes* hattr, const OnAttributeFn& fnWalk) const = 0;
-    virtual void                walk_systems            (HVersion_id_t version_id, const OnSystemFn& fnWalk) const = 0;
-    virtual void                walk_system_attributes  (HVersion_id_t version_id, HSystem_id_t system, const OnAttributeFn& fnWalk) const = 0;
     virtual void                walk_attributes         (HVersion_id_t version_id, const OnAttributeFn& fnWalk) const = 0;
 };
 
@@ -111,7 +108,6 @@ struct IModel
     typedef std::function<ContinueWalking_e(YaToolObjectId, const HObject&)> OnObjectAndIdFn;
     typedef std::function<ContinueWalking_e(const HObject&)> OnObjectFn;
     typedef std::function<ContinueWalking_e(const HVersion&)> OnVersionFn;
-    typedef std::function<ContinueWalking_e(HSystem_id_t)> OnSystemFn;
     typedef std::function<ContinueWalking_e(const HSignature&, const HVersion&)> OnSigAndVersionFn;
     typedef std::function<ContinueWalking_e(const HVersion&, const HVersion&)> OnVersionPairFn;
 
@@ -123,7 +119,6 @@ struct IModel
     virtual HObject             get_object                      (YaToolObjectId id) const = 0;
     virtual bool                has_object                      (YaToolObjectId id) const = 0;
     virtual void                walk_versions_without_collision (const OnSigAndVersionFn& fnWalk) const = 0;
-    virtual void                walk_systems                    (const OnSystemFn& fnWalk) const = 0;
 
     /**
      * Return all the versions from this object that match a version of another object

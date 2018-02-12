@@ -84,24 +84,6 @@ struct StdBlob
     uint64_t                offset;
 };
 
-struct StdOffset
-{
-    StdOffset(uint64_t offset, HSystem_id_t system_idx)
-        : offset(offset)
-        , system_idx(system_idx)
-    {
-    }
-
-    StdOffset()
-        : offset(0)
-        , system_idx(UINT32_MAX)
-    {
-    }
-
-    uint64_t        offset;
-    HSystem_id_t    system_idx;
-};
-
 struct StdXref
 {
     StdXref(const std::vector<StdAttribute>& attributes, uint64_t offset, YaToolObjectId id, operand_t operand)
@@ -250,7 +232,6 @@ struct StdVersion
         valueviews.clear();
         registerviews.clear();
         hiddenareas.clear();
-        offsets.clear();
         xrefs.clear();
 
         // clear strings but keep their capacities
@@ -278,7 +259,6 @@ struct StdVersion
     std::vector<StdValueView>       valueviews;
     std::vector<StdRegisterView>    registerviews;
     std::vector<StdHiddenArea>      hiddenareas;
-    std::vector<StdOffset>          offsets;
     std::vector<StdXref>            xrefs;
 
     StdUsername                 username;
@@ -321,30 +301,12 @@ struct StdObject
     uint32_t            xref_to_idx;
 };
 
-struct StdSystem
-{
-    StdSystem(const std::string& eq, const std::string& os)
-        : equipment(eq)
-        , os(os)
-    {
-    }
-
-    StdSystem()
-    {
-    }
-
-    std::string equipment;
-    std::string os;
-};
-
 typedef std::unordered_map<YaToolObjectId, bool> ObjFound;
 
 struct Current
 {
     StdObject   object;
     StdVersion  version;
-    StdSystem   system;
-    uint64_t    offset;
     bool        is_deleted;
 };
 
@@ -403,8 +365,6 @@ struct ViewVersions
     void                walk_hidden_areas       (HVersion_id_t version_id, const OnHiddenAreaFn& fnWalk) const override;
     void                walk_xrefs              (HVersion_id_t version_id, const OnXrefFn& fnWalk) const override;
     void                walk_xref_attributes    (HVersion_id_t version_id, const XrefAttributes* hattr, const OnAttributeFn& fnWalk) const override;
-    void                walk_systems            (HVersion_id_t version_id, const OnSystemFn& fnWalk) const override;
-    void                walk_system_attributes  (HVersion_id_t version_id, HSystem_id_t system, const OnAttributeFn& fnWalk) const override;
     void                walk_attributes         (HVersion_id_t version_id, const OnAttributeFn& fnWalk) const override;
 
     const Model& db_;
@@ -461,11 +421,6 @@ struct Model
     void visit_start_xref(offset_t offset, YaToolObjectId offset_value, operand_t operand) override;
     void visit_end_xref() override;
     void visit_xref_attribute(const const_string_ref& attribute_key, const const_string_ref& attribute_value) override;
-    void visit_start_matching_systems() override;
-    void visit_end_matching_systems() override;
-    void visit_start_matching_system(offset_t address) override;
-    void visit_matching_system_description(const const_string_ref& description_key, const const_string_ref& description_value) override;
-    void visit_end_matching_system() override;
     void visit_segments_start() override;
     void visit_segments_end() override;
     void visit_attribute(const const_string_ref& attr_name, const const_string_ref& attr_value) override;
@@ -484,7 +439,6 @@ struct Model
     HObject get_object                      (YaToolObjectId id) const override;
     bool    has_object                      (YaToolObjectId id) const override;
     void    walk_versions_without_collision (const OnSigAndVersionFn& fnWalk) const override;
-    void    walk_systems                    (const OnSystemFn& fnWalk) const override;
     void    walk_matching_versions          (const HObject& object, size_t min_size, const OnVersionPairFn& fnWalk) const override;
 
     IObjectListener*            listener_;
@@ -495,7 +449,6 @@ struct Model
     std::vector<StdObject>      objects_;
     std::vector<StdVersion>     versions_;
     std::vector<StdSignature>   signatures_;
-    std::vector<StdSystem>      systems_;
     std::vector<StdObject>      deleted_;
     ModelIndex                  index_;
 };
@@ -567,25 +520,12 @@ void walk_signatures(const Model& db, const StdVersion& ver, const T& operand)
 }
 
 template<typename T>
-void walk_systems(const Model&, const StdVersion& ver, const T& operand)
-{
-    for(const auto& offset : ver.offsets)
-        if(operand(offset) != WALK_CONTINUE)
-            return;
-}
-
-template<typename T>
 void walk_xrefs(const Model&, const StdVersion& version, const T& operand)
 {
     for(const auto& xref : version.xrefs)
         if(operand(xref) != WALK_CONTINUE)
             return;
 }
-
-const char               gEquipment[] = "equipment";
-const char               gOs[] = "os";
-const const_string_ref   gEquipmentRef = {gEquipment, sizeof gEquipment - 1};
-const const_string_ref   gOsRef = {gOs, sizeof gOs - 1};
 
 void accept_version(const Model& db, const StdVersion& version, IModelVisitor& visitor)
 {
@@ -648,19 +588,6 @@ void accept_version(const Model& db, const StdVersion& version, IModelVisitor& v
         return WALK_CONTINUE;
     });
     visitor.visit_end_xrefs();
-
-    // matching system
-    visitor.visit_start_matching_systems();
-    walk_systems(db, version, [&](const StdOffset& offset)
-    {
-        visitor.visit_start_matching_system(offset.offset);
-        const auto& sys = db.systems_[offset.system_idx];
-        visitor.visit_matching_system_description(gEquipmentRef, make_string_ref(sys.equipment));
-        visitor.visit_matching_system_description(gOsRef, make_string_ref(sys.os));
-        visitor.visit_end_matching_system();
-        return WALK_CONTINUE;
-    });
-    visitor.visit_end_matching_systems();
 
     // attributes
     for(const auto& attr : version.attributes)
@@ -784,10 +711,6 @@ void Model::visit_address(offset_t address)
 
 void Model::visit_end_object_version()
 {
-    std::sort(current_->version.offsets.begin(), current_->version.offsets.end(), [](const auto& a, const auto& b)
-    {
-        return a.offset < b.offset;
-    });
     versions_.emplace_back(current_->version);
 }
 
@@ -836,7 +759,6 @@ void Model::visit_header_comment(bool repeatable, const const_string_ref& commen
 
 void Model::visit_start_offsets()
 {
-    current_->version.offsets.clear();
 }
 
 void Model::visit_end_offsets()
@@ -884,49 +806,6 @@ void Model::visit_xref_attribute(const const_string_ref& key, const const_string
 
 void Model::visit_end_xref()
 {
-}
-
-void Model::visit_start_matching_systems()
-{
-}
-
-void Model::visit_end_matching_systems()
-{
-}
-
-void Model::visit_start_matching_system(offset_t offset)
-{
-    current_->offset = offset;
-}
-
-void Model::visit_matching_system_description(const const_string_ref& key, const const_string_ref& value)
-{
-    if(!strcmp(key.value, "None")
-    || !strcmp(key.value, "")
-    || !strcmp(key.value, "none"))
-        return;
-    if(!strcmp(key.value, "os"))
-        current_->system.os = make_string(value);
-    else if(!strcmp(key.value, "equipment"))
-        current_->system.equipment = make_string(value);
-}
-
-void Model::visit_end_matching_system()
-{
-    const auto find_system_idx = [&]()
-    {
-        uint32_t idx = 0;
-        for(const auto& system : systems_)
-        {
-            if(system.equipment == current_->system.equipment
-            && system.os        == current_->system.os)
-                return idx;
-            ++idx;
-        }
-        systems_.emplace_back(current_->system.equipment, current_->system.os);
-        return idx;
-    };
-    current_->version.offsets.emplace_back(current_->offset, find_system_idx());
 }
 
 void Model::visit_segments_start()
@@ -1033,14 +912,6 @@ void Model::walk_versions_without_collision(const OnSigAndVersionFn& fnWalk) con
     {
         return fnWalk({&view_signatures_, sig.idx}, {&view_versions_, signatures_[sig.idx].version_idx});
     });
-}
-
-void Model::walk_systems(const OnSystemFn& fnWalk) const
-{
-    const auto end = static_cast<HSystem_id_t>(systems_.size());
-    for(HSystem_id_t id = 0; id < end; ++id)
-        if(fnWalk(id) == WALK_STOP)
-            return;
 }
 
 HObject Model::get_object(YaToolObjectId id) const
@@ -1294,21 +1165,6 @@ void ViewVersions::walk_xref_attributes(HVersion_id_t, const XrefAttributes* hat
     for(const auto& attr : xref->attributes)
         if(fnWalk(make_string_ref(attr.key), make_string_ref(attr.value)) != WALK_CONTINUE)
             return;
-}
-
-void ViewVersions::walk_systems(HVersion_id_t version_id, const OnSystemFn& fnWalk) const
-{
-    ::walk_systems(db_, db_.versions_[version_id], [&](const StdOffset& offset)
-    {
-        return fnWalk(offset.offset, offset.system_idx);
-    });
-}
-
-void ViewVersions::walk_system_attributes(HVersion_id_t, HSystem_id_t system_id, const OnAttributeFn& fnWalk) const
-{
-    const auto& system = db_.systems_[system_id];
-    fnWalk(gEquipmentRef, make_string_ref(system.equipment));
-    fnWalk(gOsRef, make_string_ref(system.os));
 }
 
 void ViewVersions::walk_attributes(HVersion_id_t version_id, const OnAttributeFn& fnWalk) const

@@ -562,45 +562,6 @@ void XMLDatabaseModelImpl::accept_version(xmlNodePtr node, IModelVisitor& visito
     }
     /*********************************************/
 
-
-    /********************  matching system *******/
-    visitor.visit_start_matching_systems();
-
-    for (xmlNodePtr child = node->children; child != nullptr; child = child->next)
-    {
-        if (xmlStrcasecmp(child->name, BAD_CAST"matchingsystem") == 0)
-        {
-            offset_t offset = UNKNOWN_ADDR;
-            std::map<const std::string, const std::string> description;
-            for (xmlNodePtr system = child->children; system != nullptr; system = system->next)
-            {
-                if (xmlStrcasecmp(system->name, BAD_CAST"equipment") == 0)
-                {
-                    description.insert(std::make_pair("equipment", xml_get_content(system->children)));
-                }
-                else if (xmlStrcasecmp(system->name, BAD_CAST"os") == 0)
-                {
-                    description.insert(std::make_pair("os", xml_get_content(system->children)));
-                }
-                else if (xmlStrcasecmp(system->name, BAD_CAST"address") == 0)
-                {
-                    offset = strtoull(xml_get_content(system->children).data(), nullptr, 16);
-                }
-            }
-            visitor.visit_start_matching_system(offset);
-
-            for (auto it = description.begin(); it != description.end(); it++)
-            {
-                visitor.visit_matching_system_description(make_string_ref(it->first), make_string_ref(it->second));
-            }
-
-            visitor.visit_end_matching_system();
-        }
-    }
-
-    visitor.visit_end_matching_systems();
-    /*********************************************/
-
     /******************** attributes *************/
     for (xmlNodePtr child = node->children; child != nullptr; child = child->next)
     {

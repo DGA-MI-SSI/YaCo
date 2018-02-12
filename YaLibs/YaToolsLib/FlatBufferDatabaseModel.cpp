@@ -189,8 +189,6 @@ struct ViewVersions : public IVersions
     void                walk_hidden_areas       (HVersion_id_t version_id, const OnHiddenAreaFn& fnWalk) const override;
     void                walk_xrefs              (HVersion_id_t version_id, const OnXrefFn& fnWalk) const override;
     void                walk_xref_attributes    (HVersion_id_t version_id, const XrefAttributes* hattr, const OnAttributeFn& fnWalk) const override;
-    void                walk_systems            (HVersion_id_t version_id, const OnSystemFn& fnWalk) const override;
-    void                walk_system_attributes  (HVersion_id_t version_id, HSystem_id_t system, const OnAttributeFn& fnWalk) const override;
     void                walk_attributes         (HVersion_id_t version_id, const OnAttributeFn& fnWalk) const override;
 
     FlatBufferDatabaseModel&    db_;
@@ -228,7 +226,6 @@ struct FlatBufferDatabaseModel : public IModel
     HObject             get_object                      (YaToolObjectId id) const override;
     bool                has_object                      (YaToolObjectId id) const override;
     void                walk_versions_without_collision (const OnSigAndVersionFn& fnWalk) const override;
-    void                walk_systems                    (const OnSystemFn& fnWalk) const override;
     void                walk_matching_versions          (const HObject& object, size_t min_size, const OnVersionPairFn& fnWalk) const override;
 
     std::shared_ptr<Mmap_ABC>   buffer_;
@@ -242,13 +239,7 @@ struct FlatBufferDatabaseModel : public IModel
     ViewSignatures              view_signatures_;
 };
 
-const char               gEquipment[] = "equipment";
-const char               gOs[] = "os";
-const char               gNone[] = "None";
 const char               gEmpty[] = "";
-const const_string_ref   gEquipmentRef = {gEquipment, sizeof gEquipment - 1};
-const const_string_ref   gOsRef = {gOs, sizeof gOs - 1};
-const const_string_ref   gNoneRef = {gNone, sizeof gNone - 1};
 const const_string_ref   gEmptyRef = {gEmpty, sizeof gEmpty - 1};
 
 const_string_ref make_string_ref_from(const fb::String* value)
@@ -604,19 +595,6 @@ void walk_signatures(const FlatBufferDatabaseModel& db, const VersionCtx& ctx, c
 }
 
 template<typename T>
-void walk_systems(const FlatBufferDatabaseModel& db, const VersionCtx& ctx, const T& operand)
-{
-    const auto* systems = db.root_->systems();
-    if(!systems)
-        return;
-    walk_stoppable(ctx.version->offsets(), [&](const yadb::Offset* off)
-    {
-        const auto& system = systems->Get(off->system_idx());
-        return operand(system, off);
-    });
-}
-
-template<typename T>
 void walk_xrefs(const FlatBufferDatabaseModel&, const VersionCtx& ctx, const T& operand)
 {
     walk_stoppable(ctx.version->xrefs(), [&](const yadb::Xref* xref)
@@ -714,23 +692,6 @@ void accept_version(const FlatBufferDatabaseModel& db, const VersionCtx& ctx, IM
         return WALK_CONTINUE;
     });
     visitor.visit_end_xrefs();
-
-    // matching system
-    visitor.visit_start_matching_systems();
-    walk_systems(db, ctx, [&](const auto* system, const auto* sysoff)
-    {
-        visitor.visit_start_matching_system(sysoff->offset());
-        const auto visit = [&](const auto& key, auto text)
-        {
-            const auto value = text ? string_from(db, text) : gNoneRef;
-            visitor.visit_matching_system_description(key, value);
-        };
-        visit(gEquipmentRef, system->equipment());
-        visit(gOsRef, system->os());
-        visitor.visit_end_matching_system();
-        return WALK_CONTINUE;
-    });
-    visitor.visit_end_matching_systems();
 
     // attributes
     walk(version->attributes(), [&](const auto* attribute)
@@ -880,14 +841,6 @@ void FlatBufferDatabaseModel::walk_versions_without_collision(const OnSigAndVers
     {
         return fnWalk({&view_signatures_, sig.idx}, {&view_versions_, signatures_[sig.idx].version_id});
     });
-}
-
-void FlatBufferDatabaseModel::walk_systems(const OnSystemFn& fnWalk) const
-{
-    const auto end = static_cast<HSystem_id_t>(get_size(root_->systems()));
-    for(HSystem_id_t id = 0; id < end; ++id)
-        if(fnWalk(id) == WALK_STOP)
-            return;
 }
 
 void FlatBufferDatabaseModel::walk_matching_versions(const HObject& object, size_t min_size, const OnVersionPairFn& fnWalk) const
@@ -1188,30 +1141,6 @@ void ViewVersions::walk_xref_attributes(HVersion_id_t, const XrefAttributes* hat
             return WALK_CONTINUE;
         return fnWalk(string_from(db_, key), string_from(db_, val));
     });
-}
-
-void ViewVersions::walk_systems(HVersion_id_t version_id, const OnSystemFn& fnWalk) const
-{
-    const auto& version = db_.versions_[version_id];
-    ::walk_systems(db_, version, [&](const auto*, const auto* sysoff)
-    {
-        return fnWalk(sysoff->offset(), sysoff->system_idx());
-    });
-}
-
-void ViewVersions::walk_system_attributes(HVersion_id_t, HSystem_id_t system_id, const OnAttributeFn& fnWalk) const
-{
-    const auto* systems = db_.root_->systems();
-    if(!systems)
-        return;
-
-    const auto system = systems->Get(system_id);
-    const auto make_ref = [&](const auto value)
-    {
-        return value ? string_from(db_, value) : gNoneRef;
-    };
-    fnWalk(gEquipmentRef, make_ref(system->equipment()));
-    fnWalk(gOsRef, make_ref(system->os()));
 }
 
 void ViewVersions::walk_attributes(HVersion_id_t version_id, const OnAttributeFn& fnWalk) const

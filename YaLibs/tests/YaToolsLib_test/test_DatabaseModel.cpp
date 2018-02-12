@@ -62,31 +62,7 @@ protected:
     }
 };
 
-namespace
-{
-    struct MatchingSystem
-    {
-        MatchingSystem(int id, const std::map<std::string, std::string>& attributes)
-            : id(id)
-            , attributes(attributes)
-        {
-        }
-
-        void accept(IModelVisitor& visitor)
-        {
-            for(const auto& it : attributes)
-                visitor.visit_matching_system_description(make_string_ref(it.first), make_string_ref(it.second));
-        }
-
-        int id;
-        std::map<std::string, std::string> attributes;
-    };
-}
-
 static const std::string gEmpty;
-
-MatchingSystem sysA(0xa, {{"os", "os1"}, {"equipment", "eq1"}});
-MatchingSystem sysB(0xb, {{"os", "os2"}, {"equipment", "eq2"}});
 
 struct Xref
 {
@@ -97,18 +73,15 @@ struct Xref
 
 void create_object(std::shared_ptr<IModelVisitor> visitor, YaToolObjectId id,
                    const std::vector<const char*>& crcVals,
-                   const std::vector<MatchingSystem>& systems,
                    const std::vector<std::vector<Xref>>& xrefs)
 {
     visitor->visit_start_reference_object(OBJECT_TYPE_DATA);
     visitor->visit_id(id);
 
-    EXPECT_EQ(crcVals.size(), systems.size());
     uint32_t i;
     for(i=0; i<crcVals.size(); i++)
     {
         auto crcVal = crcVals[i];
-        auto system = systems[i];
         visitor->visit_start_object_version();
         visitor->visit_size(0x20);
         visitor->visit_start_signatures();
@@ -116,12 +89,6 @@ void create_object(std::shared_ptr<IModelVisitor> visitor, YaToolObjectId id,
         visitor->visit_end_signatures();
         visitor->visit_start_xrefs();
         visitor->visit_end_xrefs();
-
-        visitor->visit_start_matching_systems();
-        visitor->visit_start_matching_system(i);
-        system.accept(*visitor);
-        visitor->visit_end_matching_system();
-        visitor->visit_end_matching_systems();
 
         visitor->visit_start_xrefs();
         if(i < xrefs.size())
@@ -158,21 +125,12 @@ void create_model(std::shared_ptr<IModelVisitor> visitor)
     visitor->visit_start_xref(0x30, 0xDDDDDDDD, 0);  visitor->visit_end_xref();
     visitor->visit_end_xrefs();
 
-    visitor->visit_start_matching_systems();
-    visitor->visit_start_matching_system(0x1);
-    sysB.accept(*visitor);
-    visitor->visit_end_matching_system();
-    visitor->visit_start_matching_system(0x2);
-    sysA.accept(*visitor);
-    visitor->visit_end_matching_system();
-    visitor->visit_end_matching_systems();
-
     visitor->visit_end_object_version();
     visitor->visit_end_reference_object();
 
-    create_object(visitor, 0xBBBBBBBB, {"11111111"}, {sysA}, {{{0x10, 0, 0xDDDDDDDD}}});
-    create_object(visitor, 0xDDDDDDDD, {"22222222", "44444444"}, {sysA, sysB}, {{{0x20, 1, 0xCCCCCCCC}, {0x20, 2, 0xBBBBBBBB}}});
-    create_object(visitor, 0xCCCCCCCC, {"22222222", "33333333"}, {sysA, sysB}, {});
+    create_object(visitor, 0xBBBBBBBB, {"11111111"}, {{{0x10, 0, 0xDDDDDDDD}}});
+    create_object(visitor, 0xDDDDDDDD, {"22222222", "44444444"}, {{{0x20, 1, 0xCCCCCCCC}, {0x20, 2, 0xBBBBBBBB}}});
+    create_object(visitor, 0xCCCCCCCC, {"22222222", "33333333"}, {});
     visitor->visit_end();
 }
 
@@ -210,7 +168,6 @@ public:
     virtual HObject     get_object(YaToolObjectId) const { return HObject{nullptr, 0}; };
     virtual bool        has_object(YaToolObjectId) const { return false; };
     virtual void        walk_versions_without_collision(const OnSigAndVersionFn&) const {};
-    virtual void        walk_systems(const OnSystemFn&) const {};
     virtual void        walk_matching_versions(const HObject&, size_t, const OnVersionPairFn&) const {};
 };
 }
@@ -262,66 +219,6 @@ TEST_F(TestYaToolDatabaseModel, memoryModel_ReferencedObjects) {
 
 TEST_F(TestYaToolDatabaseModel, FBModel_ReferencedObjects) {
     ReferencedObjects_Impl(create_FBSignatureDB());
-}
-
-void MatchingSystems_Impl(std::shared_ptr<IModel>db)
-{
-    std::multiset<HSystem_id_t> systems;
-    db->walk_systems([&](HSystem_id_t system)
-    {
-        systems.insert(system);
-        return WALK_CONTINUE;
-    });
-    expect_eq(systems, {0, 1});
-
-    std::multiset<std::tuple<std::string, offset_t, std::string, std::string>> values;
-    const auto checkobj = [&](auto id)
-    {
-        const auto hobj = db->get_object(id);
-        EXPECT_EQ(id, hobj.id());
-        hobj.walk_versions([&](const HVersion& hver)
-        {
-            EXPECT_EQ(id, hver.id());
-            hver.walk_systems([&](offset_t offset, HSystem_id_t sysid)
-            {
-                hver.walk_system_attributes(sysid, [&](const const_string_ref& key, const const_string_ref& val)
-                {
-                    values.insert(std::make_tuple(str(id), offset, make_string(key), make_string(val)));
-                    return WALK_CONTINUE;
-                });
-                return WALK_CONTINUE;
-            });
-            return WALK_CONTINUE;
-        });
-    };
-    checkobj(0xAAAAAAAA);
-    checkobj(0xBBBBBBBB);
-    checkobj(0xCCCCCCCC);
-    checkobj(0xDDDDDDDD);
-    expect_eq(values, {
-        std::make_tuple("00000000AAAAAAAA", 1, "equipment", "eq2"),
-        std::make_tuple("00000000AAAAAAAA", 1, "os", "os2"),
-        std::make_tuple("00000000AAAAAAAA", 2, "equipment", "eq1"),
-        std::make_tuple("00000000AAAAAAAA", 2, "os", "os1"),
-        std::make_tuple("00000000BBBBBBBB", 0, "equipment", "eq1"),
-        std::make_tuple("00000000BBBBBBBB", 0, "os", "os1"),
-        std::make_tuple("00000000CCCCCCCC", 0, "equipment", "eq1"),
-        std::make_tuple("00000000CCCCCCCC", 0, "os", "os1"),
-        std::make_tuple("00000000CCCCCCCC", 1, "equipment", "eq2"),
-        std::make_tuple("00000000CCCCCCCC", 1, "os", "os2"),
-        std::make_tuple("00000000DDDDDDDD", 0, "equipment", "eq1"),
-        std::make_tuple("00000000DDDDDDDD", 0, "os", "os1"),
-        std::make_tuple("00000000DDDDDDDD", 1, "equipment", "eq2"),
-        std::make_tuple("00000000DDDDDDDD", 1, "os", "os2"),
-    });
-}
-
-TEST_F(TestYaToolDatabaseModel, memoryModel_MatchingSystems) {
-    MatchingSystems_Impl(create_memorySignatureDB());
-}
-
-TEST_F(TestYaToolDatabaseModel, FBModel_MatchingSystems) {
-    MatchingSystems_Impl(create_FBSignatureDB());
 }
 
 class MockSignatureDatabase1

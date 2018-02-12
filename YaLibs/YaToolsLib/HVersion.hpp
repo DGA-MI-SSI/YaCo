@@ -58,9 +58,6 @@ struct HVersion
     void                walk_xrefs              (const IVersions::OnXrefFn& fnWalk) const;
     bool                has_xrefs               () const;
     void                walk_xref_attributes    (const XrefAttributes* hattr, const IVersions::OnAttributeFn& fnWalk) const;
-    void                walk_systems            (const IVersions::OnSystemFn& fnWalk) const;
-    bool                has_systems             () const;
-    void                walk_system_attributes  (HSystem_id_t system, const IVersions::OnAttributeFn& fnWalk) const;
     void                walk_attributes         (const IVersions::OnAttributeFn& fnWalk) const;
     bool                has_attributes          () const;
 

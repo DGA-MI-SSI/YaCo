@@ -118,12 +118,6 @@ static yadb::SignatureMethod get_signature_method(SignatureMethod_e value)
     return yadb::SignatureMethod_Unknown;
 }
 
-struct System
-{
-    std::string equipment;
-    std::string os;
-};
-
 struct Xref
 {
     YaToolObjectId  id;
@@ -167,11 +161,6 @@ struct FBExporter : public IFlatExporter
     void visit_start_xref(offset_t offset, YaToolObjectId offset_value, operand_t operand) override;
     void visit_end_xref() override;
     void visit_xref_attribute(const const_string_ref& attribute_key, const const_string_ref& attribute_value) override;
-    void visit_start_matching_systems() override;
-    void visit_end_matching_systems() override;
-    void visit_start_matching_system(offset_t address) override;
-    void visit_matching_system_description(const const_string_ref& description_key, const const_string_ref& description_value) override;
-    void visit_end_matching_system() override;
     void visit_segments_start() override;
     void visit_segments_end() override;
     void visit_attribute(const const_string_ref& attr_name, const const_string_ref& attr_value) override;
@@ -183,7 +172,6 @@ struct FBExporter : public IFlatExporter
     fb::FlatBufferBuilder fbbuilder_;
 
     std::vector<yadb::Object>                   objects_;
-    std::vector<System>                         systems_;
     std::vector<fb::Offset<yadb::Version>>      versions_;
     std::vector<fb::Offset<yadb::Version>>      binaries_;
     std::vector<fb::Offset<yadb::Version>>      structs_;
@@ -220,14 +208,8 @@ struct FBExporter : public IFlatExporter
     std::vector<yadb::ValueView>        value_views_;
     std::vector<yadb::RegisterView>     register_views_;
     std::vector<yadb::HiddenArea>       hidden_areas_;
-    std::vector<yadb::Offset>           offsets_;
     std::vector<fb::Offset<yadb::Xref>> xrefs_;
     std::vector<yadb::Signature>        signatures_;
-
-    // system
-    optional<uint64_t>      system_address_;
-    optional<std::string>   system_equipment_;
-    optional<std::string>   system_os_;
 
     bool is_ready_;
 };
@@ -299,21 +281,8 @@ void FBExporter::visit_start()
 
 void FBExporter::visit_end()
 {
-    auto systems = [&]
-    {
-        std::vector<yadb::System> fbsys;
-        for(const auto& sys : systems_)
-            fbsys.emplace_back(
-                index_string(*this, make_string_ref(sys.equipment)), 
-                index_string(*this, make_string_ref(sys.os))
-            );
-        systems_.clear();
-        return fbsys;
-    }();
-
     yadb::FinishRootBuffer(fbbuilder_, yadb::CreateRoot(fbbuilder_,
         make_structs(fbbuilder_, objects_),
-        make_structs(fbbuilder_, systems),
         make_tables(fbbuilder_, binaries_),
         make_tables(fbbuilder_, structs_),
         make_tables(fbbuilder_, struct_members_),
@@ -435,7 +404,6 @@ void FBExporter::visit_end_object_version()
         make_structs(fbbuilder_, value_views_),
         make_structs(fbbuilder_, register_views_),
         make_structs(fbbuilder_, hidden_areas_),
-        make_structs(fbbuilder_, offsets_),
         make_tables(fbbuilder_, xrefs_),
         make_structs(fbbuilder_, signatures_)
     ));
@@ -562,60 +530,6 @@ void FBExporter::visit_end_xref()
 }
 
 void FBExporter::visit_end_xrefs()
-{
-}
-
-void FBExporter::visit_start_matching_systems()
-{
-}
-
-void FBExporter::visit_start_matching_system(offset_t address)
-{
-    system_address_ = address;
-}
-
-void FBExporter::visit_matching_system_description(const const_string_ref& description_key, const const_string_ref& description_value)
-{
-    if(!strcmp(description_value.value, "None")
-    || !strcmp(description_value.value, "")
-    || !strcmp(description_value.value, "none"))
-        return;
-    if(!strcmp(description_key.value, "os"))
-        system_os_ = make_string(description_value);
-    else if(!strcmp(description_key.value, "equipment"))
-        system_equipment_ = make_string(description_value);
-}
-
-void FBExporter::visit_end_matching_system()
-{
-    assert(system_address_);
-    const auto is_equal = [](const auto& value, auto& optional)
-    {
-        if(!optional)
-            return value.empty();
-        return !strcmp(optional->data(), value.data());
-    };
-    const auto get_string = [&](const auto& optional)
-    {
-        return optional ? *optional : std::string();
-    };
-    const auto find_system_idx = [&]()
-    {
-        uint32_t idx = 0;
-        for(auto& system : systems_)
-        {
-            if(is_equal(system.equipment, system_equipment_)
-            && is_equal(system.os,        system_os_))
-                return idx;
-            ++idx;
-        }
-        systems_.push_back({get_string(system_equipment_), get_string(system_os_)});;
-        return idx;
-    };
-    offsets_.emplace_back(*system_address_, find_system_idx());
-}
-
-void FBExporter::visit_end_matching_systems()
 {
 }
 

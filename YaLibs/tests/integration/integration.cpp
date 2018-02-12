@@ -89,16 +89,6 @@ namespace
                     values.insert(std::make_tuple("signature", str(href), str(hver), str(hsig)));
                     return WALK_CONTINUE;
                 });
-                hver.walk_systems([&](offset_t offset, HSystem_id_t sysid)
-                {
-                    hver.walk_system_attributes(sysid, [&](const const_string_ref& key, const const_string_ref& val)
-                    {
-                        const auto v = std::to_string(offset) + "_" + make_string(key) + "_" + make_string(val);
-                        values.insert(std::make_tuple("sys_attr", str(href), str(hver), v));
-                        return WALK_CONTINUE;
-                    });
-                    return WALK_CONTINUE;
-                });
                 hver.walk_xrefs_from([&](offset_t offset, operand_t operand, const HObject& obj)
                 {
                     const auto v = std::to_string(offset) + "_" + std::to_string(operand) + "_" + str(obj);

@@ -428,33 +428,6 @@ MergeStatus_e Merger::mergeObjectVersions( IModelVisitor& visitor_db, std::set<Y
     }
     /**********************************************/
 
-    /************* matching systems ***************/
-    switch(relation.type_)
-    {
-    case RELATION_TYPE_EXACT_MATCH:
-    default:
-        if (relation.version2_.has_systems())
-        {
-            visitor_db.visit_start_matching_systems();
-            relation.version2_.walk_systems([&](offset_t address, HSystem_id_t system)
-            {
-                visitor_db.visit_start_matching_system(address);
-                relation.version2_.walk_system_attributes(system, [&](const const_string_ref& key, const const_string_ref& value)
-                {
-                    visitor_db.visit_matching_system_description(key, value);
-                    return WALK_CONTINUE;
-                });
-                visitor_db.visit_end_matching_system();
-                return WALK_CONTINUE;
-            });
-            visitor_db.visit_end_matching_systems();
-        }
-        break;
-
-    }
-    /**********************************************/
-
-
     /*********** attributes ***********************/
     std::map<std::string, std::string> attributes;
     switch(relation.type_)

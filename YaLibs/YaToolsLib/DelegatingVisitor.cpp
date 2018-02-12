@@ -225,37 +225,6 @@ void DelegatingVisitor::visit_end_xrefs()
         delegate->visit_end_xrefs();
 }
 
-void DelegatingVisitor::visit_start_matching_systems()
-{
-    for(const auto& delegate : delegates_)
-        delegate->visit_start_matching_systems();
-}
-
-void DelegatingVisitor::visit_start_matching_system(offset_t address)
-{
-    for(const auto& delegate : delegates_)
-        delegate->visit_start_matching_system(address);
-}
-
-void DelegatingVisitor::visit_matching_system_description(
-        const const_string_ref& description_key, const const_string_ref& description_value)
-{
-    for(const auto& delegate : delegates_)
-        delegate->visit_matching_system_description(description_key, description_value);
-}
-
-void DelegatingVisitor::visit_end_matching_system()
-{
-    for(const auto& delegate : delegates_)
-        delegate->visit_end_matching_system();
-}
-
-void DelegatingVisitor::visit_end_matching_systems()
-{
-    for(const auto& delegate : delegates_)
-        delegate->visit_end_matching_systems();
-}
-
 void DelegatingVisitor::visit_segments_start()
 {
     for(const auto& delegate : delegates_)

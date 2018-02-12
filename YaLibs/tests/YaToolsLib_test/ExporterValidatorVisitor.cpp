@@ -85,11 +85,6 @@ public:
     void visit_start_xref(offset_t offset, YaToolObjectId offset_value, operand_t operand) override;
     void visit_end_xref() override;
     void visit_xref_attribute(const const_string_ref& attribute_key, const const_string_ref& attribute_value) override;
-    void visit_start_matching_systems() override;
-    void visit_end_matching_systems() override;
-    void visit_start_matching_system(offset_t address) override;
-    void visit_matching_system_description(const const_string_ref& description_key, const const_string_ref& description_value) override;
-    void visit_end_matching_system() override;
     void visit_segments_start() override;
     void visit_segments_end() override;
     void visit_attribute(const const_string_ref& attr_name, const const_string_ref& attr_value) override;
@@ -363,40 +358,6 @@ void ExporterValidatorVisitor::visit_end_xref()
     validator_assert(state[current_state_depth] == VISIT_XREF, "Bad state");
     current_state_depth--;
     validator_assert(state[current_state_depth] == VISIT_XREFS, "Bad state");
-}
-
-void ExporterValidatorVisitor::visit_start_matching_systems()
-{
-    validator_assert(state[current_state_depth] == VISIT_OBJECT_VERSION, "Bad state");
-    state[++current_state_depth] = VISIT_MATCHING_SYSTEMS;
-}
-
-void ExporterValidatorVisitor::visit_start_matching_system(offset_t address)
-{
-    UNUSED(address);
-    validator_assert(state[current_state_depth] == VISIT_MATCHING_SYSTEMS, "Bad state");
-    state[++current_state_depth] = VISIT_MATCHING_SYSTEM;
-}
-
-void ExporterValidatorVisitor::visit_matching_system_description(const const_string_ref& description_key, const const_string_ref& description_value)
-{
-    UNUSED(description_key);
-    UNUSED(description_value);
-    validator_assert(state[current_state_depth] == VISIT_MATCHING_SYSTEM, "Bad state");
-}
-
-void ExporterValidatorVisitor::visit_end_matching_system()
-{
-    validator_assert(state[current_state_depth] == VISIT_MATCHING_SYSTEM, "Bad state");
-    current_state_depth--;
-    validator_assert(state[current_state_depth] == VISIT_MATCHING_SYSTEMS, "Bad state");
-}
-
-void ExporterValidatorVisitor::visit_end_matching_systems()
-{
-    validator_assert(state[current_state_depth] == VISIT_MATCHING_SYSTEMS, "Bad state");
-    current_state_depth--;
-    validator_assert(state[current_state_depth] == VISIT_OBJECT_VERSION, "Bad state");
 }
 
 void ExporterValidatorVisitor::visit_segments_start()

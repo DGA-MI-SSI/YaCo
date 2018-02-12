@@ -33,7 +33,6 @@ struct HSystem;
 
 typedef uint32_t HObject_id_t;
 typedef uint32_t HVersion_id_t;
-typedef uint32_t HSystem_id_t;
 typedef uint32_t HSignature_id_t;
 typedef uint32_t VersionRelation_id_t;
 

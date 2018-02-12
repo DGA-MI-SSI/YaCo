@@ -87,11 +87,6 @@ table Blob {
     data:   [ubyte];
 }
 
-struct Offset {
-    offset:         ulong;
-    system_idx:     uint;
-}
-
 table Xref {
     offset:         ulong;
     id:             ulong;
@@ -122,14 +117,8 @@ table Version {
     valueviews:                     [ValueView];
     registerviews:                  [RegisterView];
     hiddenareas:                    [HiddenArea];
-    offsets:                        [Offset];
     xrefs:                          [Xref];
     signatures:                     [Signature];
-}
-
-struct System {
-    equipment:  uint;
-    os:         uint;
 }
 
 struct Object {
@@ -139,7 +128,6 @@ struct Object {
 
 table Root {
     objects:            [Object];
-    systems:            [System];
     binaries:           [Version];
     structs:            [Version];
     struct_members:     [Version];

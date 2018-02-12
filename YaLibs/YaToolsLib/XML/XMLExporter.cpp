@@ -79,11 +79,6 @@ public:
     void visit_start_xref(offset_t offset, YaToolObjectId offset_value, operand_t operand) override;
     void visit_end_xref() override;
     void visit_xref_attribute(const const_string_ref& attribute_key, const const_string_ref& attribute_value) override;
-    void visit_start_matching_systems() override;
-    void visit_end_matching_systems() override;
-    void visit_start_matching_system(offset_t address) override;
-    void visit_matching_system_description(const const_string_ref& description_key, const const_string_ref& description_value) override;
-    void visit_end_matching_system() override;
     void visit_segments_start() override;
     void visit_segments_end() override;
     void visit_attribute(const const_string_ref& attr_name, const const_string_ref& attr_value) override;
@@ -567,19 +562,6 @@ void XMLExporter_common::visit_end_xrefs()
     end_element(*writer_, "xrefs");
 }
 
-void XMLExporter_common::visit_start_matching_systems()
-{
-    if(false)
-        start_element(*writer_, "matchingsystem");
-}
-
-
-void XMLExporter_common::visit_end_matching_systems()
-{
-    if(false)
-        end_element(*writer_, "matchingsystem");
-}
-
 void XMLExporter_common::visit_segments_start()
 {
 
@@ -620,24 +602,6 @@ void XMLExporter_common::visit_end_xref()
 void XMLExporter_common::visit_xref_attribute(const const_string_ref& attribute_key, const const_string_ref& attribute_value)
 {
     add_attribute(*writer_, make_text(bufkey_, attribute_key), make_text(bufval_, attribute_value));
-}
-
-void XMLExporter_common::visit_start_matching_system(offset_t address)
-{
-    char buf[sizeof address * 2 + 1];
-    start_element(*writer_, "matchingsystem");
-    if(address != UNKNOWN_ADDR)
-        add_element(*writer_, "address", to_hex<NullTerminate>(buf, address).value);
-}
-
-void XMLExporter_common::visit_matching_system_description(const const_string_ref& description_key, const const_string_ref& description_value)
-{
-    add_element(*writer_, make_text(bufkey_, description_key), make_text(bufval_, description_value));
-}
-
-void XMLExporter_common::visit_end_matching_system()
-{
-    end_element(*writer_, "matchingsystem");
 }
 
 void XMLExporter_common::visit_blob(offset_t offset, const void* blob, size_t len)

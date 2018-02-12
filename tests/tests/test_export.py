@@ -80,7 +80,6 @@ class Fixture(runtests.Fixture):
         ]
         got = StringIO.StringIO()
         got.write("objects: %d\n" % root.ObjectsLength())
-        got.write("systems: %d\n" % root.SystemsLength())
         for (prefix, getter, size, getkey) in versions:
             got.write("\n%s: %d\n" % (prefix, size))
             values = []
