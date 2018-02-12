@@ -23,7 +23,6 @@
 #include "YaHelpers.hpp"
 #include "../Helpers.h"
 #include "Pool.hpp"
-#include "StringFormat.hpp"
 #include "Plugins.hpp"
 #include "FlatBufferExporter.hpp"
 #include "Utils.hpp"
@@ -438,7 +437,7 @@ namespace
     const_string_ref to_hex_ref(qstring* qbuf, T value)
     {
         *qbuf = "0x";
-        append_uint64(*qbuf, value);
+        ya::append_uint64(*qbuf, value);
         return ya::to_string_ref(*qbuf);
     }
 

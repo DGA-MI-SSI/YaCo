@@ -19,7 +19,6 @@
 
 #include "Hash.hpp"
 #include "../Helpers.h"
-#include "StringFormat.hpp"
 
 #include <algorithm>
 
@@ -118,7 +117,7 @@ namespace
 
         subtype.insert(0, comment_prefix);
         subtype += '#';
-        append_uint64(subtype, subid);
+        ya::append_uint64(subtype, subid);
         subtype += comment_suffix;
 
         auto comment_size = subtype.length();

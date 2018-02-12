@@ -27,7 +27,6 @@
 #include "Yatools.h"
 #include "../Helpers.h"
 #include "YaHelpers.hpp"
-#include "StringFormat.hpp"
 #include "Pool.hpp"
 #include "Plugins.hpp"
 #include "FlatBufferDatabaseModel.hpp"

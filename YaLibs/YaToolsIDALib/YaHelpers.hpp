@@ -16,6 +16,8 @@
 #pragma once
 
 #include "YaTypes.hpp"
+#include "BinHex.hpp"
+
 #include <vector>
 
 namespace ya
@@ -174,5 +176,13 @@ namespace ya
             if(!it.value.empty())
                 operand(make_string_ref(it.value), COMMENT_BOOKMARK);
         }
+    }
+
+    template<uint32_t flags = 0, typename T>
+    void append_uint64(T& dst, uint64_t x)
+    {
+        char buf[sizeof x * 2];
+        const auto str = to_hex<flags>(buf, x);
+        dst.append(str.value, str.size);
     }
 }
