@@ -306,7 +306,7 @@ namespace
     struct Repository
         : public IRepository
     {
-        Repository(const std::string& path, IDAIsInteractive ida_is_interactive);
+        Repository(const std::string& path);
 
         // IRepository
         void add_auto_comment(ea_t ea, const std::string& text) override;
@@ -334,16 +334,14 @@ namespace
         bool remote_exist(const std::string& remote);
         std::string get_commit(const std::string& ref);
 
-        bool ida_is_interactive_;
         GitRepo repo_;
         std::vector<AutoComment> auto_comments_;
         bool repo_auto_sync_;
     };
 }
 
-Repository::Repository(const std::string& path, IDAIsInteractive ida_is_interactive)
-    : ida_is_interactive_(ida_is_interactive == IDAIsInteractive::IS_INTERACTIVE)
-    , repo_(path)
+Repository::Repository(const std::string& path)
+    : repo_(path)
     , auto_comments_()
     , repo_auto_sync_(true)
 {
@@ -366,8 +364,7 @@ Repository::Repository(const std::string& path, IDAIsInteractive ida_is_interact
     else
         IDA_LOG_ERROR("Unable to commit IDB");
 
-    if (ida_is_interactive_)
-        ask_for_remote();
+    ask_for_remote();
 
     if (!push("master", "master"))
         IDA_LOG_ERROR("Unable to push");
@@ -423,9 +420,6 @@ void Repository::check_valid_cache_startup()
             return;
         }
     }
-
-    if (!ida_is_interactive_)
-        return;
 
     IDA_LOG_INFO("IDA need to restart with local IDB");
     std::string msg = "To use YaCo you must name your IDB with _local suffix. YaCo will create one for you.\nRestart IDA and open ";
@@ -932,7 +926,7 @@ std::string Repository::get_commit(const std::string& ref)
     return commit;
 }
 
-std::shared_ptr<IRepository> MakeRepository(const std::string& path, IDAIsInteractive ida_is_interactive)
+std::shared_ptr<IRepository> MakeRepository(const std::string& path)
 {
-    return std::make_shared<Repository>(path, ida_is_interactive);
+    return std::make_shared<Repository>(path);
 }

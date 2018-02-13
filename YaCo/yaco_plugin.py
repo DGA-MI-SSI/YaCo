@@ -29,7 +29,7 @@ def start():
     else:
         import YaToolsPy32 as ya
     if not yaco:
-        yaco = ya.MakeYaCo(ya.IS_INTERACTIVE)
+        yaco = ya.MakeYaCo()
 
 
 def close():

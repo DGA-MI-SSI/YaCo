@@ -25,4 +25,4 @@ struct IYaCo
     virtual void disable() = 0;
 };
 
-std::shared_ptr<IYaCo> MakeYaCo(IDAIsInteractive ida_is_interactive);
+std::shared_ptr<IYaCo> MakeYaCo();

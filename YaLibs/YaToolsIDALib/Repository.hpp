@@ -46,4 +46,4 @@ struct IRepository
     virtual void discard_and_pull_idb() = 0;
 };
 
-std::shared_ptr<IRepository> MakeRepository(const std::string& path, IDAIsInteractive ida_is_interactive);
+std::shared_ptr<IRepository> MakeRepository(const std::string& path);

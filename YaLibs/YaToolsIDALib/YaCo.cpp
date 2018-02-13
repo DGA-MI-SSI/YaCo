@@ -89,7 +89,7 @@ namespace
     struct YaCo
         : public IYaCo
     {
-         YaCo(IDAIsInteractive ida_is_interactive);
+         YaCo();
         ~YaCo();
 
         // IYaCo
@@ -117,8 +117,9 @@ namespace
 }
 
 #define YACO_ACTION_DESC(name, label, handler) ACTION_DESC_LITERAL_OWNER(name, label, handler, nullptr, nullptr, nullptr, -1)
-YaCo::YaCo(IDAIsInteractive ida_is_interactive)
-    : repository_(MakeRepository(".", ida_is_interactive))
+
+YaCo::YaCo()
+    : repository_(MakeRepository("."))
     , hooks_(MakeHooks(*this, *repository_))
 {
     IDA_LOG_INFO("YaCo %s", GitVersion);
@@ -251,11 +252,10 @@ void YaCo::discard_and_pull_idb()
     qexit(0);
 }
 
-
-std::shared_ptr<IYaCo> MakeYaCo(IDAIsInteractive ida_is_interactive)
+std::shared_ptr<IYaCo> MakeYaCo()
 {
     auto idb_path = get_current_idb_path();
     remove_file_extention(idb_path);
     StartYatools(idb_path.generic_string().data());
-    return std::make_shared<YaCo>(ida_is_interactive);
+    return std::make_shared<YaCo>();
 }

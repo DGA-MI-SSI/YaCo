@@ -44,12 +44,6 @@ typedef uint32_t YaToolFlag_T;
 
 #define UNKNOWN_ADDR    static_cast<offset_t>(~0)
 
-enum IDAIsInteractive
-{
-    IS_NOT_INTERACTIVE,
-    IS_INTERACTIVE
-};
-
 enum ContinueWalking_e
 {
     WALK_CONTINUE,
