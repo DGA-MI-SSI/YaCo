@@ -638,10 +638,10 @@ void Hooks::unhook()
 void Hooks::rename(ea_t ea, const std::string& new_name, const std::string& type, const std::string& old_name)
 {
     std::string message{ type };
-    if (!type.empty())
+    if(!type.empty())
         message += ' ';
     message += "renamed ";
-    if (!old_name.empty())
+    if(!old_name.empty())
     {
         message += "from ";
         message += old_name;
@@ -739,14 +739,14 @@ void Hooks::update_enum(enum_t enum_id)
 
 void Hooks::change_operand_type(ea_t ea)
 {
-    if (get_func(ea) || is_code(get_flags(ea)))
+    if(get_func(ea) || is_code(get_flags(ea)))
     {
         eas_.insert(ea);
         repo_.add_auto_comment(ea, "Operand type change");
         return;
     }
 
-    if (is_member_id(ea))
+    if(is_member_id(ea))
         return; // this is a member id: hook already present (update_struct_member)
 
     IDA_LOG_WARNING("Operand type changed at %s, code out of a function: not implemented", ea_to_hex(ea).c_str());
@@ -1059,7 +1059,7 @@ void Hooks::save_and_update()
 {
     // save and commit changes
     save();
-    if (!repo_.commit_cache())
+    if(!repo_.commit_cache())
     {
         IDA_LOG_WARNING("An error occurred during YaCo commit");
         warning("An error occured during YaCo commit: please relaunch IDA");
@@ -1109,21 +1109,11 @@ void Hooks::flush()
     segments_.clear();
 }
 
-static void log_closebase()
-{
-    LOG_IDB_EVENT("The database will be closed now");
-}
-
 void Hooks::closebase(va_list args)
 {
     UNUSED(args);
 
-    log_closebase();
-}
-
-static void log_savebase()
-{
-    LOG_IDB_EVENT("The database is being saved");
+    LOG_IDB_EVENT("The database will be closed now");
 }
 
 void Hooks::savebase(va_list args)
@@ -1131,74 +1121,49 @@ void Hooks::savebase(va_list args)
     UNUSED(args);
 
     msg("\n");
-    log_savebase();
+    LOG_IDB_EVENT("The database is being saved");
 
     save_and_update();
-}
-
-static void log_upgraded(int from)
-{
-    LOG_IDB_EVENT("The database has been upgraded (old IDB version: %d)", from);
 }
 
 void Hooks::upgraded(va_list args)
 {
     const auto from = va_arg(args, int);
 
-    log_upgraded(from);
-}
-
-static void log_auto_empty()
-{
-    LOG_IDB_EVENT("All analysis queues are empty");
+    LOG_IDB_EVENT("The database has been upgraded (old IDB version: %d)", from);
 }
 
 void Hooks::auto_empty(va_list args)
 {
     UNUSED(args);
 
-    log_auto_empty();
-}
-
-static void log_auto_empty_finally()
-{
-    LOG_IDB_EVENT("All analysis queues are empty definitively");
+    LOG_IDB_EVENT("All analysis queues are empty");
 }
 
 void Hooks::auto_empty_finally(va_list args)
 {
     UNUSED(args);
 
-    log_auto_empty_finally();
-}
-
-static void log_determined_main(ea_t main)
-{
-    LOG_IDB_EVENT("The main() function has been determined (address of the main() function: " EA_FMT ")", main);
+    LOG_IDB_EVENT("All analysis queues are empty definitively");
 }
 
 void Hooks::determined_main(va_list args)
 {
     const auto main = va_arg(args, ea_t);
 
-    log_determined_main(main);
-}
-
-static void log_local_types_changed()
-{
-    LOG_IDB_EVENT("Local types have been changed");
+    LOG_IDB_EVENT("The main() function has been determined (address of the main() function: " EA_FMT ")", main);
 }
 
 void Hooks::local_types_changed(va_list args)
 {
     UNUSED(args);
 
-    log_local_types_changed();
+    LOG_IDB_EVENT("Local types have been changed");
 }
 
 static void log_extlang_changed(int kind, const extlang_t* el, int idx)
 {
-    if (!LOG_IDB_EVENTS)
+    if(!LOG_IDB_EVENTS)
         return;
 
     UNUSED(idx);
@@ -1228,30 +1193,20 @@ void Hooks::extlang_changed(va_list args)
     log_extlang_changed(kind, el, idx);
 }
 
-static void log_idasgn_loaded(const char* short_sig_name)
-{
-    // FLIRT = Fast Library Identificationand Recognition Technology
-    // normal processing = not for recognition of startup sequences
-    LOG_IDB_EVENT("FLIRT signature %s has been loaded for normal processing", short_sig_name);
-}
-
 void Hooks::idasgn_loaded(va_list args)
 {
     const auto short_sig_name = va_arg(args, const char*);
-
-    log_idasgn_loaded(short_sig_name);
-}
-
-static void log_kernel_config_loaded()
-{
-    LOG_IDB_EVENT("Kernel configuration loaded (ida.cfg parsed)");
+    
+    // FLIRT = Fast Library Identification and Recognition Technology
+    // normal processing = not for recognition of startup sequences
+    LOG_IDB_EVENT("FLIRT signature %s has been loaded for normal processing", short_sig_name);
 }
 
 void Hooks::kernel_config_loaded(va_list args)
 {
     UNUSED(args);
 
-    log_kernel_config_loaded();
+    LOG_IDB_EVENT("Kernel configuration loaded (ida.cfg parsed)");
 }
 
 static void log_loader_finished(const linput_t* li, uint16 neflags, const char* filetypename)
@@ -1270,28 +1225,18 @@ void Hooks::loader_finished(va_list args)
     log_loader_finished(li, neflags, filetypename);
 }
 
-static void log_flow_chart_created(const qflow_chart_t* fc)
-{
-    LOG_IDB_EVENT("Gui has retrieved a function flow chart (from " EA_FMT " to " EA_FMT ", name: %s, function: %s)", fc->bounds.start_ea, fc->bounds.end_ea, fc->title.c_str(), get_func_name(fc->pfn->start_ea).c_str());
-}
-
 void Hooks::flow_chart_created(va_list args)
 {
     qflow_chart_t* fc = va_arg(args, qflow_chart_t*);
 
-    log_flow_chart_created(fc);
-}
-
-static void log_compiler_changed()
-{
-    LOG_IDB_EVENT("The kernel has changed the compiler information");
+    LOG_IDB_EVENT("Gui has retrieved a function flow chart (from " EA_FMT " to " EA_FMT ", name: %s, function: %s)", fc->bounds.start_ea, fc->bounds.end_ea, fc->title.c_str(), get_func_name(fc->pfn->start_ea).c_str());
 }
 
 void Hooks::compiler_changed(va_list args)
 {
     UNUSED(args);
-
-    log_compiler_changed();
+    
+    LOG_IDB_EVENT("The kernel has changed the compiler information");
 }
 
 static void log_changing_ti(ea_t ea, const type_t* new_type, const p_list* new_fnames)
@@ -1382,68 +1327,49 @@ void Hooks::changing_op_type(va_list args)
     log_changing_op_type(ea, n, opinfo);
 }
 
-static void log_op_type_changed(ea_t ea, int n)
-{
-    UNUSED(n);
-    LOG_IDB_EVENT("An operand type at " EA_FMT " has been set or deleted", ea);
-}
-
 void Hooks::op_type_changed(va_list args)
 {
     const auto ea = va_arg(args, ea_t);
     const auto n  = va_arg(args, int);
 
-    log_op_type_changed(ea, n);
+    UNUSED(n);
+    LOG_IDB_EVENT("An operand type at " EA_FMT " has been set or deleted", ea);
 
     change_operand_type(ea);
-}
-
-static void log_enum_created(enum_t id)
-{
-    LOG_IDB_EVENT("Enum type %s has been created", get_enum_name(id).c_str());
 }
 
 void Hooks::enum_created(va_list args)
 {
     const auto id = va_arg(args, enum_t);
 
-    log_enum_created(id);
+    LOG_IDB_EVENT("Enum type %s has been created", get_enum_name(id).c_str());
 
     update_enum(id);
-}
-
-static void log_deleting_enum(enum_t id)
-{
-    LOG_IDB_EVENT("Enum type %s is to be deleted", get_enum_name(id).c_str());
 }
 
 void Hooks::deleting_enum(va_list args)
 {
     const auto id = va_arg(args, enum_t);
 
-    log_deleting_enum(id);
-    update_enum(id);
-}
+    LOG_IDB_EVENT("Enum type %s is to be deleted", get_enum_name(id).c_str());
 
-static void log_enum_deleted(enum_t id)
-{
-    UNUSED(id);
-    LOG_IDB_EVENT("An enum type has been deleted");
+    update_enum(id);
 }
 
 void Hooks::enum_deleted(va_list args)
 {
     const auto id = va_arg(args, enum_t);
 
-    log_enum_deleted(id);
+    UNUSED(id);
+    LOG_IDB_EVENT("An enum type has been deleted");
 }
 
 static void log_renaming_enum(tid_t id, bool is_enum, const char* newname)
 {
-    if (!LOG_IDB_EVENTS)
+    if(!LOG_IDB_EVENTS)
         return;
 
-    if (is_enum)
+    if(is_enum)
         LOG_IDB_EVENT("Enum type %s is to be renamed to %s", get_enum_name(id).c_str(), newname);
     else
         LOG_IDB_EVENT("A member of enum type %s is to be renamed from %s to %s", get_enum_member_name(id).c_str(), get_enum_name(get_enum_member_enum(id)).c_str(), newname);
@@ -1461,10 +1387,10 @@ void Hooks::renaming_enum(va_list args)
 
 static void log_enum_renamed(tid_t id)
 {
-    if (!LOG_IDB_EVENTS)
+    if(!LOG_IDB_EVENTS)
         return;
 
-    if (get_enum_member_enum(id) == BADADDR)
+    if(get_enum_member_enum(id) == BADADDR)
         LOG_IDB_EVENT("An enum type has been renamed %s", get_enum_name(id).c_str());
     else
         LOG_IDB_EVENT("A member of enum type %s has been renamed %s", get_enum_name(get_enum_member_enum(id)).c_str(), get_enum_member_name(id).c_str());
@@ -1479,39 +1405,29 @@ void Hooks::enum_renamed(va_list args)
     update_enum(id);
 }
 
-static void log_changing_enum_bf(enum_t id, bool new_bf)
-{
-    LOG_IDB_EVENT("Enum type %s 'bitfield' attribute is to be changed to %s", get_enum_name(id).c_str(), BOOL_STR[new_bf]);
-}
-
 void Hooks::changing_enum_bf(va_list args)
 {
     const auto id     = va_arg(args, enum_t);
     const auto new_bf = static_cast<bool>(va_arg(args, int));
 
-    log_changing_enum_bf(id, new_bf);
-}
-
-static void log_enum_bf_changed(enum_t id)
-{
-    LOG_IDB_EVENT("Enum type %s 'bitfield' attribute has been changed", get_enum_name(id).c_str());
+    LOG_IDB_EVENT("Enum type %s 'bitfield' attribute is to be changed to %s", get_enum_name(id).c_str(), BOOL_STR[new_bf]);
 }
 
 void Hooks::enum_bf_changed(va_list args)
 {
     const auto id = va_arg(args, enum_t);
 
-    log_enum_bf_changed(id);
+    LOG_IDB_EVENT("Enum type %s 'bitfield' attribute has been changed", get_enum_name(id).c_str());
 
     update_enum(id);
 }
 
 static void log_changing_enum_cmt(enum_t id, bool repeatable, const char* newcmt)
 {
-    if (!LOG_IDB_EVENTS)
+    if(!LOG_IDB_EVENTS)
         return;
 
-    if (get_enum_member_enum(id) == BADADDR)
+    if(get_enum_member_enum(id) == BADADDR)
         LOG_IDB_EVENT("Enum type %s %scomment is to be changed from \"%s\" to \"%s\"", get_enum_name(id).c_str(), REPEATABLE_STR[repeatable], get_enum_cmt(id, repeatable).c_str(), newcmt);
     else
         LOG_IDB_EVENT("Enum type %s member %s %scomment is to be changed from \"%s\" to \"%s\"", get_enum_name(get_enum_member_enum(id)).c_str(), get_enum_member_name(id).c_str(), REPEATABLE_STR[repeatable], get_enum_member_cmt(id, repeatable).c_str(), newcmt);
@@ -1528,10 +1444,10 @@ void Hooks::changing_enum_cmt(va_list args)
 
 static void log_enum_cmt_changed(enum_t id, bool repeatable)
 {
-    if (!LOG_IDB_EVENTS)
+    if(!LOG_IDB_EVENTS)
         return;
 
-    if (get_enum_member_enum(id) == BADADDR)
+    if(get_enum_member_enum(id) == BADADDR)
         LOG_IDB_EVENT("Enum type %s %scomment has been changed to \"%s\"", get_enum_name(id).c_str(), REPEATABLE_STR[repeatable], get_enum_cmt(id, repeatable).c_str());
     else
         LOG_IDB_EVENT("Enum type %s member %s %scomment has been changed to \"%s\"", get_enum_name(get_enum_member_enum(id)).c_str(), get_enum_member_name(id).c_str(), REPEATABLE_STR[repeatable], get_enum_member_cmt(id, repeatable).c_str());
@@ -1545,14 +1461,9 @@ void Hooks::enum_cmt_changed(va_list args)
     log_enum_cmt_changed(id, repeatable);
 
     enum_t enum_id = get_enum_member_enum(id);
-    if (enum_id == BADADDR)
+    if(enum_id == BADADDR)
         enum_id = id;
     update_enum(enum_id);
-}
-
-static void log_enum_member_created(enum_t id, const_t cid)
-{
-    LOG_IDB_EVENT("Enum type %s member %s has been created", get_enum_name(id).c_str(), get_enum_member_name(cid).c_str());
 }
 
 void Hooks::enum_member_created(va_list args)
@@ -1560,13 +1471,8 @@ void Hooks::enum_member_created(va_list args)
     const auto eid = va_arg(args, enum_t);
     const auto cid = va_arg(args, const_t);
 
-    log_enum_member_created(eid, cid);
+    LOG_IDB_EVENT("Enum type %s member %s has been created", get_enum_name(eid).c_str(), get_enum_member_name(cid).c_str());
     update_enum(eid);
-}
-
-static void log_deleting_enum_member(enum_t id, const_t cid)
-{
-    LOG_IDB_EVENT("Enum type %s member %s is to be deleted", get_enum_name(id).c_str(), get_enum_member_name(cid).c_str());
 }
 
 void Hooks::deleting_enum_member(va_list args)
@@ -1574,14 +1480,8 @@ void Hooks::deleting_enum_member(va_list args)
     const auto eid = va_arg(args, enum_t);
     const auto cid = va_arg(args, const_t);
 
-    log_deleting_enum_member(eid, cid);
+    LOG_IDB_EVENT("Enum type %s member %s is to be deleted", get_enum_name(eid).c_str(), get_enum_member_name(cid).c_str());
     update_enum(eid);
-}
-
-static void log_enum_member_deleted(enum_t id, const_t cid)
-{
-    UNUSED(cid);
-    LOG_IDB_EVENT("A member of enum type %s has been deleted", get_enum_name(id).c_str());
 }
 
 void Hooks::enum_member_deleted(va_list args)
@@ -1589,17 +1489,19 @@ void Hooks::enum_member_deleted(va_list args)
     const auto eid = va_arg(args, enum_t);
     const auto cid = va_arg(args, const_t);
 
-    log_enum_member_deleted(eid, cid);
+    UNUSED(cid);
+    LOG_IDB_EVENT("A member of enum type %s has been deleted", get_enum_name(eid).c_str());
+
     update_enum(eid);
 }
 
 static void log_struc_created(tid_t struc_id)
 {
-    if (!LOG_IDB_EVENTS)
+    if(!LOG_IDB_EVENTS)
         return;
 
-    ea_t func_ea = get_func_by_frame(struc_id);
-    if (func_ea != BADADDR)
+    const auto func_ea = get_func_by_frame(struc_id);
+    if(func_ea != BADADDR)
         LOG_IDB_EVENT("Stackframe of function %s has been created", get_func_name(func_ea).c_str());
     else
         LOG_IDB_EVENT("Structure type %s has been created", get_struc_name(struc_id).c_str());
@@ -1615,11 +1517,11 @@ void Hooks::struc_created(va_list args)
 
 static void log_deleting_struc(const struc_t* sptr)
 {
-    if (!LOG_IDB_EVENTS)
+    if(!LOG_IDB_EVENTS)
         return;
 
-    ea_t func_ea = get_func_by_frame(sptr->id);
-    if (func_ea != BADADDR)
+    const auto func_ea = get_func_by_frame(sptr->id);
+    if(func_ea != BADADDR)
         LOG_IDB_EVENT("Stackframe of function %s is to be deleted", get_func_name(func_ea).c_str());
     else
         LOG_IDB_EVENT("Structure type %s is to be deleted", get_struc_name(sptr->id).c_str());
@@ -1633,48 +1535,28 @@ void Hooks::deleting_struc(va_list args)
     update_struct(sptr->id);
 }
 
-static void log_struc_deleted(tid_t struc_id)
-{
-    UNUSED(struc_id);
-    LOG_IDB_EVENT("A structure type or stackframe has been deleted");
-}
-
 void Hooks::struc_deleted(va_list args)
 {
     const auto struc_id = va_arg(args, tid_t);
 
-    log_struc_deleted(struc_id);
-    update_struct(struc_id);
-}
+    UNUSED(struc_id);
+    LOG_IDB_EVENT("A structure type or stackframe has been deleted");
 
-static void log_changing_struc_align(const struc_t* sptr)
-{
-    LOG_IDB_EVENT("Structure type %s alignment is being changed from 0x%X", get_struc_name(sptr->id).c_str(), static_cast<int>(std::pow(2, sptr->get_alignment())));
+    update_struct(struc_id);
 }
 
 void Hooks::changing_struc_align(va_list args)
 {
     const auto sptr = va_arg(args, struc_t*);
 
-    log_changing_struc_align(sptr);
-}
-
-static void log_struc_align_changed(const struc_t* sptr)
-{
-    LOG_IDB_EVENT("Structure type %s alignment has been changed to 0x%X", get_struc_name(sptr->id).c_str(), static_cast<int>(std::pow(2, sptr->get_alignment())));
+    LOG_IDB_EVENT("Structure type %s alignment is being changed from 0x%X", get_struc_name(sptr->id).c_str(), static_cast<int>(std::pow(2, sptr->get_alignment())));
 }
 
 void Hooks::struc_align_changed(va_list args)
 {
     const auto sptr = va_arg(args, struc_t*);
 
-    log_struc_align_changed(sptr);
-}
-
-static void log_renaming_struc(tid_t struc_id, const char* oldname, const char* newname)
-{
-    UNUSED(struc_id);
-    LOG_IDB_EVENT("Structure type %s is to be renamed to %s", oldname, newname);
+    LOG_IDB_EVENT("Structure type %s alignment has been changed to 0x%X", get_struc_name(sptr->id).c_str(), static_cast<int>(std::pow(2, sptr->get_alignment())));
 }
 
 void Hooks::renaming_struc(va_list args)
@@ -1683,40 +1565,36 @@ void Hooks::renaming_struc(va_list args)
     const auto oldname  = va_arg(args, const char*);
     const auto newname  = va_arg(args, const char*);
 
-    log_renaming_struc(struc_id, oldname, newname);
+    UNUSED(struc_id);
+    LOG_IDB_EVENT("Structure type %s is to be renamed to %s", oldname, newname);
 
     update_struct(struc_id);
-}
-
-static void log_struc_renamed(const struc_t* sptr)
-{
-    LOG_IDB_EVENT("A structure type has been renamed %s", get_struc_name(sptr->id).c_str());
 }
 
 void Hooks::struc_renamed(va_list args)
 {
     const auto sptr = va_arg(args, struc_t*);
 
-    log_struc_renamed(sptr);
+    LOG_IDB_EVENT("A structure type has been renamed %s", get_struc_name(sptr->id).c_str());
     update_struct(sptr->id);
 }
 
 static void log_expanding_struc(const struc_t* sptr, ea_t offset, adiff_t delta)
 {
-    if (!LOG_IDB_EVENTS)
+    if(!LOG_IDB_EVENTS)
         return;
 
-    ea_t func_ea = get_func_by_frame(sptr->id);
-    if (func_ea != BADADDR)
+    const auto func_ea = get_func_by_frame(sptr->id);
+    if(func_ea != BADADDR)
     {
-        if (delta > 0)
+        if(delta > 0)
             LOG_IDB_EVENT("Stackframe of function %s is to be expanded of 0x%" EA_PREFIX "X bytes at offset 0x%" EA_PREFIX "X", get_func_name(func_ea).c_str(), delta, offset);
         else
             LOG_IDB_EVENT("Stackframe of function %s is to be shrunk of 0x%" EA_PREFIX "X bytes at offset 0x%" EA_PREFIX "X", get_func_name(func_ea).c_str(), ~delta + 1, offset);
     }
     else
     {
-        if (delta > 0)
+        if(delta > 0)
             LOG_IDB_EVENT("Structure type %s is to be expanded of 0x%" EA_PREFIX "X bytes at offset 0x%" EA_PREFIX "X", get_struc_name(sptr->id).c_str(), delta, offset);
         else
             LOG_IDB_EVENT("Structure type %s is to be shrunk of 0x%" EA_PREFIX "X bytes at offset 0x%" EA_PREFIX "X", get_struc_name(sptr->id).c_str(), ~delta + 1, offset);
@@ -1735,11 +1613,11 @@ void Hooks::expanding_struc(va_list args)
 
 static void log_struc_expanded(const struc_t* sptr)
 {
-    if (!LOG_IDB_EVENTS)
+    if(!LOG_IDB_EVENTS)
         return;
 
-    ea_t func_ea = get_func_by_frame(sptr->id);
-    if (func_ea != BADADDR)
+    const auto func_ea = get_func_by_frame(sptr->id);
+    if(func_ea != BADADDR)
         LOG_IDB_EVENT("Stackframe of function %s has been expanded/shrank", get_func_name(func_ea).c_str());
     else
         LOG_IDB_EVENT("Structure type %s has been expanded/shrank", get_struc_name(sptr->id).c_str());
@@ -1755,11 +1633,11 @@ void Hooks::struc_expanded(va_list args)
 
 static void log_struc_member_created(const struc_t* sptr, const member_t* mptr)
 {
-    if (!LOG_IDB_EVENTS)
+    if(!LOG_IDB_EVENTS)
         return;
 
-    ea_t func_ea = get_func_by_frame(sptr->id);
-    if (func_ea != BADADDR)
+    const auto func_ea = get_func_by_frame(sptr->id);
+    if(func_ea != BADADDR)
         LOG_IDB_EVENT("Stackframe of function %s member %s has been created", get_func_name(func_ea).c_str(), get_member_name(mptr->id).c_str());
     else
         LOG_IDB_EVENT("Structure type %s member %s has been created", get_struc_name(sptr->id).c_str(), get_member_name(mptr->id).c_str());
@@ -1777,11 +1655,11 @@ void Hooks::struc_member_created(va_list args)
 
 static void log_deleting_struc_member(const struc_t* sptr, const member_t* mptr)
 {
-    if (!LOG_IDB_EVENTS)
+    if(!LOG_IDB_EVENTS)
         return;
 
-    ea_t func_ea = get_func_by_frame(sptr->id);
-    if (func_ea != BADADDR)
+    const auto func_ea = get_func_by_frame(sptr->id);
+    if(func_ea != BADADDR)
         LOG_IDB_EVENT("Stackframe of function %s member %s is to be deleted", get_func_name(func_ea).c_str(), get_member_name(mptr->id).c_str());
     else
         LOG_IDB_EVENT("Structure type %s member %s is to be deleted", get_struc_name(sptr->id).c_str(), get_member_name(mptr->id).c_str());
@@ -1799,12 +1677,12 @@ void Hooks::deleting_struc_member(va_list args)
 
 static void log_struc_member_deleted(const struc_t* sptr, tid_t member_id, ea_t offset)
 {
-    if (!LOG_IDB_EVENTS)
+    if(!LOG_IDB_EVENTS)
         return;
 
     UNUSED(member_id);
-    ea_t func_ea = get_func_by_frame(sptr->id);
-    if (func_ea != BADADDR)
+    const auto func_ea = get_func_by_frame(sptr->id);
+    if(func_ea != BADADDR)
         LOG_IDB_EVENT("Stackframe of function %s member at offset 0x%" EA_PREFIX "X has been deleted", get_func_name(func_ea).c_str(), offset);
     else
         LOG_IDB_EVENT("Structure type %s member at offset 0x%" EA_PREFIX "X has been deleted", get_struc_name(sptr->id).c_str(), offset);
@@ -1823,11 +1701,11 @@ void Hooks::struc_member_deleted(va_list args)
 
 static void log_renaming_struc_member(const struc_t* sptr, const member_t* mptr, const char* newname)
 {
-    if (!LOG_IDB_EVENTS)
+    if(!LOG_IDB_EVENTS)
         return;
 
-    ea_t func_ea = get_func_by_frame(sptr->id);
-    if (func_ea != BADADDR)
+    const auto func_ea = get_func_by_frame(sptr->id);
+    if(func_ea != BADADDR)
         LOG_IDB_EVENT("A member of stackframe of function %s is to be renamed from %s to %s", get_func_name(func_ea).c_str(), get_member_name(mptr->id).c_str(), newname);
     else
         LOG_IDB_EVENT("A member of structure type %s is to be renamed from %s to %s", get_struc_name(sptr->id).c_str(), get_member_name(mptr->id).c_str(), newname);
@@ -1845,11 +1723,11 @@ void Hooks::renaming_struc_member(va_list args)
 
 static void log_struc_member_renamed(const struc_t* sptr, const member_t* mptr)
 {
-    if (!LOG_IDB_EVENTS)
+    if(!LOG_IDB_EVENTS)
         return;
 
-    ea_t func_ea = get_func_by_frame(sptr->id);
-    if (func_ea != BADADDR)
+    const auto func_ea = get_func_by_frame(sptr->id);
+    if(func_ea != BADADDR)
         LOG_IDB_EVENT("A member of stackframe of function %s has been renamed to %s", get_func_name(func_ea).c_str(), get_member_name(mptr->id).c_str());
     else
         LOG_IDB_EVENT("A member of structure type %s has been renamed to %s", get_struc_name(sptr->id).c_str(), get_member_name(mptr->id).c_str());
@@ -1867,14 +1745,15 @@ void Hooks::struc_member_renamed(va_list args)
 
 static void log_changing_struc_member(const struc_t* sptr, const member_t* mptr, flags_t flag, const opinfo_t* ti, asize_t nbytes)
 {
-    if (!LOG_IDB_EVENTS)
+    if(!LOG_IDB_EVENTS)
         return;
 
     UNUSED(flag);
     UNUSED(ti);
     UNUSED(nbytes);
-    ea_t func_ea = get_func_by_frame(sptr->id);
-    if (func_ea != BADADDR)
+    
+    const auto  func_ea = get_func_by_frame(sptr->id);
+    if(func_ea != BADADDR)
         LOG_IDB_EVENT("Stackframe of function %s member %s is to be changed", get_func_name(func_ea).c_str(), get_member_name(mptr->id).c_str());
     else
         LOG_IDB_EVENT("Structure type %s member %s is to be changed", get_struc_name(sptr->id).c_str(), get_member_name(mptr->id).c_str());
@@ -1894,11 +1773,11 @@ void Hooks::changing_struc_member(va_list args)
 
 static void log_struc_member_changed(const struc_t* sptr, const member_t* mptr)
 {
-    if (!LOG_IDB_EVENTS)
+    if(!LOG_IDB_EVENTS)
         return;
 
-    ea_t func_ea = get_func_by_frame(sptr->id);
-    if (func_ea != BADADDR)
+    const auto func_ea = get_func_by_frame(sptr->id);
+    if(func_ea != BADADDR)
         LOG_IDB_EVENT("Stackframe of function %s member %s has been changed", get_func_name(func_ea).c_str(), get_member_name(mptr->id).c_str());
     else
         LOG_IDB_EVENT("Structure type %s member %s has been changed", get_struc_name(sptr->id).c_str(), get_member_name(mptr->id).c_str());
@@ -1917,22 +1796,21 @@ void Hooks::struc_member_changed(va_list args)
 
 static void log_changing_struc_cmt(tid_t struc_id, bool repeatable, const char* newcmt)
 {
-    if (!LOG_IDB_EVENTS)
+    if(!LOG_IDB_EVENTS)
         return;
 
-    if (get_struc(struc_id))
+    if(get_struc(struc_id))
     {
         LOG_IDB_EVENT("Structure type %s %scomment is to be changed from \"%s\" to \"%s\"", get_struc_name(struc_id).c_str(), REPEATABLE_STR[repeatable], get_struc_cmt(struc_id, repeatable).c_str(), newcmt);
+        return;
     }
+     
+    const auto struc = get_member_struc(get_member_fullname(struc_id).c_str());
+    const auto func_ea = get_func_by_frame(struc->id);
+    if(func_ea != BADADDR)
+        LOG_IDB_EVENT("Stackframe of function %s member %s %scomment is to be changed from \"%s\" to \"%s\"", get_func_name(func_ea).c_str(), get_member_name(struc_id).c_str(), REPEATABLE_STR[repeatable], get_member_name(struc_id).c_str(), newcmt);
     else
-    {
-        struc_t* struc = get_member_struc(get_member_fullname(struc_id).c_str());
-        ea_t func_ea = get_func_by_frame(struc->id);
-        if (func_ea != BADADDR)
-            LOG_IDB_EVENT("Stackframe of function %s member %s %scomment is to be changed from \"%s\" to \"%s\"", get_func_name(func_ea).c_str(), get_member_name(struc_id).c_str(), REPEATABLE_STR[repeatable], get_member_name(struc_id).c_str(), newcmt);
-        else
-            LOG_IDB_EVENT("Structure type %s member %s %scomment is to be changed from \"%s\" to \"%s\"", get_struc_name(struc->id).c_str(), get_member_name(struc_id).c_str(), REPEATABLE_STR[repeatable], get_member_name(struc_id).c_str(), newcmt);
-    }
+        LOG_IDB_EVENT("Structure type %s member %s %scomment is to be changed from \"%s\" to \"%s\"", get_struc_name(struc->id).c_str(), get_member_name(struc_id).c_str(), REPEATABLE_STR[repeatable], get_member_name(struc_id).c_str(), newcmt);
 }
 
 void Hooks::changing_struc_cmt(va_list args)
@@ -1947,22 +1825,21 @@ void Hooks::changing_struc_cmt(va_list args)
 
 static void log_struc_cmt_changed(tid_t struc_id, bool repeatable)
 {
-    if (!LOG_IDB_EVENTS)
+    if(!LOG_IDB_EVENTS)
         return;
 
-    if (get_struc(struc_id))
+    if(get_struc(struc_id))
     {
         LOG_IDB_EVENT("Structure type %s %scomment has been changed to \"%s\"", get_struc_name(struc_id).c_str(), REPEATABLE_STR[repeatable], get_struc_cmt(struc_id, repeatable).c_str());
+        return;
     }
+
+    const auto struc = get_member_struc(get_member_fullname(struc_id).c_str());
+    const auto func_ea = get_func_by_frame(struc->id);
+    if(func_ea != BADADDR)
+        LOG_IDB_EVENT("Stackframe of function %s member %s %scomment has been changed to \"%s\"", get_func_name(func_ea).c_str(), get_member_name(struc_id).c_str(), REPEATABLE_STR[repeatable], get_member_name(struc_id).c_str());
     else
-    {
-        struc_t* struc = get_member_struc(get_member_fullname(struc_id).c_str());
-        ea_t func_ea = get_func_by_frame(struc->id);
-        if (func_ea != BADADDR)
-            LOG_IDB_EVENT("Stackframe of function %s member %s %scomment has been changed to \"%s\"", get_func_name(func_ea).c_str(), get_member_name(struc_id).c_str(), REPEATABLE_STR[repeatable], get_member_name(struc_id).c_str());
-        else
-            LOG_IDB_EVENT("Structure type %s member %s %scomment has been changed to \"%s\"", get_struc_name(struc->id).c_str(), get_member_name(struc_id).c_str(), REPEATABLE_STR[repeatable], get_member_name(struc_id).c_str());
-    }
+        LOG_IDB_EVENT("Structure type %s member %s %scomment has been changed to \"%s\"", get_struc_name(struc->id).c_str(), get_member_name(struc_id).c_str(), REPEATABLE_STR[repeatable], get_member_name(struc_id).c_str());
 }
 
 void Hooks::struc_cmt_changed(va_list args)
@@ -1972,51 +1849,41 @@ void Hooks::struc_cmt_changed(va_list args)
 
     log_struc_cmt_changed(struc_id, repeatable);
 
-    tid_t real_struc_id = struc_id;
-    if (!get_struc(struc_id))
+    auto real_struc_id = struc_id;
+    if(!get_struc(struc_id))
     {
         const auto member_fullname = qpool_.acquire();
         ya::wrap(&::get_member_fullname, *member_fullname, struc_id);
-        struc_t* struc = get_member_struc(member_fullname->c_str());
+        auto* struc = get_member_struc(member_fullname->c_str());
         if(struc)
             real_struc_id = struc->id;
     }
     update_struct(real_struc_id);
 }
 
-static void log_segm_added(const segment_t* s)
-{
-    LOG_IDB_EVENT("Segment %s has been created from " EA_FMT " to " EA_FMT, get_segm_name(s).c_str(), s->start_ea, s->end_ea);
-}
-
 void Hooks::segm_added(va_list args)
 {
     const auto s = va_arg(args, segment_t*);
 
-    log_segm_added(s);
+    LOG_IDB_EVENT("Segment %s has been created from " EA_FMT " to " EA_FMT, get_segm_name(s).c_str(), s->start_ea, s->end_ea);
 
     update_segment(s->start_ea);
 }
 
 static void log_deleting_segm(ea_t start_ea)
 {
-    if (!LOG_IDB_EVENTS)
+    if(!LOG_IDB_EVENTS)
         return;
 
-    const segment_t* s = getseg(start_ea);
+    const auto* s = getseg(start_ea);
     LOG_IDB_EVENT("Segment %s (from " EA_FMT " to " EA_FMT ") is to be deleted", get_segm_name(s).c_str(), s->start_ea, s->end_ea);
 }
 
 void Hooks::deleting_segm(va_list args)
 {
     const auto start_ea = va_arg(args, ea_t);
-
+    
     log_deleting_segm(start_ea);
-}
-
-static void log_segm_deleted(ea_t start_ea, ea_t end_ea)
-{
-    LOG_IDB_EVENT("A segment (from " EA_FMT " to " EA_FMT ") has been deleted", start_ea, end_ea);
 }
 
 void Hooks::segm_deleted(va_list args)
@@ -2024,15 +1891,9 @@ void Hooks::segm_deleted(va_list args)
     const auto start_ea = va_arg(args, ea_t);
     const auto end_ea   = va_arg(args, ea_t);
 
-    log_segm_deleted(start_ea, end_ea);
+    LOG_IDB_EVENT("A segment (from " EA_FMT " to " EA_FMT ") has been deleted", start_ea, end_ea);
 
     update_segment(start_ea);
-}
-
-static void log_changing_segm_start(const segment_t* s, ea_t new_start, int segmod_flags)
-{
-    UNUSED(segmod_flags);
-    LOG_IDB_EVENT("Segment %s start address is to be changed from " EA_FMT " to " EA_FMT, get_segm_name(s).c_str(), s->start_ea, new_start);
 }
 
 void Hooks::changing_segm_start(va_list args)
@@ -2041,12 +1902,8 @@ void Hooks::changing_segm_start(va_list args)
     const auto new_start    = va_arg(args, ea_t);
     const auto segmod_flags = va_arg(args, int);
 
-    log_changing_segm_start(s, new_start, segmod_flags);
-}
-
-static void log_segm_start_changed(const segment_t* s, ea_t oldstart)
-{
-    LOG_IDB_EVENT("Segment %s start address has been changed from " EA_FMT " to " EA_FMT, get_segm_name(s).c_str(), oldstart, s->start_ea);
+    UNUSED(segmod_flags);
+    LOG_IDB_EVENT("Segment %s start address is to be changed from " EA_FMT " to " EA_FMT, get_segm_name(s).c_str(), s->start_ea, new_start);
 }
 
 void Hooks::segm_start_changed(va_list args)
@@ -2054,15 +1911,9 @@ void Hooks::segm_start_changed(va_list args)
     const auto s        = va_arg(args, segment_t*);
     const auto oldstart = va_arg(args, ea_t);
 
-    log_segm_start_changed(s, oldstart);
+    LOG_IDB_EVENT("Segment %s start address has been changed from " EA_FMT " to " EA_FMT, get_segm_name(s).c_str(), oldstart, s->start_ea);
 
     update_segment(s->start_ea);
-}
-
-static void log_changing_segm_end(const segment_t* s, ea_t new_end, int segmod_flags)
-{
-    UNUSED(segmod_flags);
-    LOG_IDB_EVENT("Segment %s end address is to be changed from " EA_FMT " to " EA_FMT, get_segm_name(s).c_str(), s->end_ea, new_end);
 }
 
 void Hooks::changing_segm_end(va_list args)
@@ -2071,12 +1922,8 @@ void Hooks::changing_segm_end(va_list args)
     const auto new_end      = va_arg(args, ea_t);
     const auto segmod_flags = va_arg(args, int);
 
-    log_changing_segm_end(s, new_end, segmod_flags);
-}
-
-static void log_segm_end_changed(const segment_t* s, ea_t oldend)
-{
-    LOG_IDB_EVENT("Segment %s end address has been changed from " EA_FMT " to " EA_FMT, get_segm_name(s).c_str(), oldend, s->end_ea);
+    UNUSED(segmod_flags);
+    LOG_IDB_EVENT("Segment %s end address is to be changed from " EA_FMT " to " EA_FMT, get_segm_name(s).c_str(), s->end_ea, new_end);
 }
 
 void Hooks::segm_end_changed(va_list args)
@@ -2084,15 +1931,9 @@ void Hooks::segm_end_changed(va_list args)
     const auto s      = va_arg(args, segment_t*);
     const auto oldend = va_arg(args, ea_t);
 
-    log_segm_end_changed(s, oldend);
+    LOG_IDB_EVENT("Segment %s end address has been changed from " EA_FMT " to " EA_FMT, get_segm_name(s).c_str(), oldend, s->end_ea);
 
     update_segment(s->start_ea);
-}
-
-static void log_changing_segm_name(const segment_t* s, const char* oldname)
-{
-    UNUSED(s);
-    LOG_IDB_EVENT("Segment %s is being renamed", oldname);
 }
 
 void Hooks::changing_segm_name(va_list args)
@@ -2100,13 +1941,8 @@ void Hooks::changing_segm_name(va_list args)
     const auto s       = va_arg(args, segment_t*);
     const auto oldname = va_arg(args, const char*);
 
-    log_changing_segm_name(s, oldname);
-}
-
-static void log_segm_name_changed(const segment_t* s, const char* name)
-{
     UNUSED(s);
-    LOG_IDB_EVENT("A segment has been renamed %s", name);
+    LOG_IDB_EVENT("Segment %s is being renamed", oldname);
 }
 
 void Hooks::segm_name_changed(va_list args)
@@ -2114,26 +1950,17 @@ void Hooks::segm_name_changed(va_list args)
     const auto s    = va_arg(args, segment_t*);
     const auto name = va_arg(args, const char*);
 
-    log_segm_name_changed(s, name);
+    UNUSED(s);
+    LOG_IDB_EVENT("A segment has been renamed %s", name);
 
     update_segment(s->start_ea);
-}
-
-static void log_changing_segm_class(const segment_t* s)
-{
-    LOG_IDB_EVENT("Segment %s class is being changed from %s", get_segm_name(s).c_str(), get_segm_class(s).c_str());
 }
 
 void Hooks::changing_segm_class(va_list args)
 {
     const auto s = va_arg(args, segment_t*);
 
-    log_changing_segm_class(s);
-}
-
-static void log_segm_class_changed(const segment_t* s, const char* sclass)
-{
-    LOG_IDB_EVENT("Segment %s class has been changed to %s", get_segm_name(s).c_str(), sclass);
+    LOG_IDB_EVENT("Segment %s class is being changed from %s", get_segm_name(s).c_str(), get_segm_class(s).c_str());
 }
 
 void Hooks::segm_class_changed(va_list args)
@@ -2141,14 +1968,9 @@ void Hooks::segm_class_changed(va_list args)
     const auto s      = va_arg(args, segment_t*);
     const auto sclass = va_arg(args, const char*);
 
-    log_segm_class_changed(s, sclass);
+    LOG_IDB_EVENT("Segment %s class has been changed to %s", get_segm_name(s).c_str(), sclass);
 
     update_segment(s->start_ea);
-}
-
-static void log_segm_attrs_updated(const segment_t* s)
-{
-    LOG_IDB_EVENT("Segment %s attributes has been changed", get_segm_name(s).c_str());
 }
 
 void Hooks::segm_attrs_updated(va_list args)
@@ -2156,18 +1978,18 @@ void Hooks::segm_attrs_updated(va_list args)
     // This event is generated for secondary segment attributes (examples: color, permissions, etc)
     const auto s = va_arg(args, segment_t*);
 
-    log_segm_attrs_updated(s);
+    LOG_IDB_EVENT("Segment %s attributes has been changed", get_segm_name(s).c_str());
 
     update_segment(s->start_ea);
 }
 
 static void log_segm_moved(ea_t from, ea_t to, asize_t size, bool changed_netmap)
 {
-    if (!LOG_IDB_EVENTS)
+    if(!LOG_IDB_EVENTS)
         return;
 
     const segment_t* s = getseg(to);
-    const char changed_netmap_txt[2][18] = { "", " (changed netmap)" };
+    const char changed_netmap_txt[][18] = { "", " (changed netmap)" };
     LOG_IDB_EVENT("Segment %s has been moved from " EA_FMT "-" EA_FMT " to " EA_FMT "-" EA_FMT "%s", get_segm_name(s).c_str(), from, from + size, to, to + size, changed_netmap_txt[changed_netmap]);
 }
 
@@ -2180,53 +2002,33 @@ void Hooks::segm_moved(va_list args)
 
     log_segm_moved(from, to, size, changed_netmap);
 
-    const segment_t* s = getseg(to);
+    const auto* s = getseg(to);
     update_segment(s->start_ea);
-}
-
-static void log_allsegs_moved(const segm_move_infos_t* info)
-{
-    LOG_IDB_EVENT("Program rebasing is complete, %zd segments have been moved", info->size());
 }
 
 void Hooks::allsegs_moved(va_list args)
 {
     const auto info = va_arg(args, segm_move_infos_t*);
 
-    log_allsegs_moved(info);
-}
-
-static void log_func_added(const func_t* pfn)
-{
-    LOG_IDB_EVENT("Function %s has been created from " EA_FMT " to " EA_FMT, get_func_name(pfn->start_ea).c_str(), pfn->start_ea, pfn->end_ea);
+    LOG_IDB_EVENT("Program rebasing is complete, %zd segments have been moved", info->size());
 }
 
 void Hooks::func_added(va_list args)
 {
     const auto pfn = va_arg(args, func_t*);
 
-    log_func_added(pfn);
+    LOG_IDB_EVENT("Function %s has been created from " EA_FMT " to " EA_FMT, get_func_name(pfn->start_ea).c_str(), pfn->start_ea, pfn->end_ea);
 
     add_function(pfn->start_ea);
-}
-
-static void log_func_updated(const func_t* pfn)
-{
-    LOG_IDB_EVENT("Function %s has been updated", get_func_name(pfn->start_ea).c_str());
 }
 
 void Hooks::func_updated(va_list args)
 {
     const auto pfn = va_arg(args, func_t*);
 
-    log_func_updated(pfn);
+    LOG_IDB_EVENT("Function %s has been updated", get_func_name(pfn->start_ea).c_str());
 
     update_function(pfn->start_ea);
-}
-
-static void log_set_func_start(const func_t* pfn, ea_t new_start)
-{
-    LOG_IDB_EVENT("Function %s chunk start address will be changed from " EA_FMT " to " EA_FMT, get_func_name(pfn->start_ea).c_str(), pfn->start_ea, new_start);
 }
 
 void Hooks::set_func_start(va_list args)
@@ -2234,14 +2036,9 @@ void Hooks::set_func_start(va_list args)
     const auto pfn       = va_arg(args, func_t*);
     const auto new_start = va_arg(args, ea_t);
 
-    log_set_func_start(pfn, new_start);
+    LOG_IDB_EVENT("Function %s chunk start address will be changed from " EA_FMT " to " EA_FMT, get_func_name(pfn->start_ea).c_str(), pfn->start_ea, new_start);
 
     update_function(pfn->start_ea);
-}
-
-static void log_set_func_end(const func_t* pfn, ea_t new_end)
-{
-    LOG_IDB_EVENT("Function %s chunk end address will be changed from " EA_FMT " to " EA_FMT, get_func_name(pfn->start_ea).c_str(), pfn->end_ea, new_end);
 }
 
 void Hooks::set_func_end(va_list args)
@@ -2249,55 +2046,35 @@ void Hooks::set_func_end(va_list args)
     const auto pfn     = va_arg(args, func_t*);
     const auto new_end = va_arg(args, ea_t);
 
-    log_set_func_end(pfn, new_end);
+    LOG_IDB_EVENT("Function %s chunk end address will be changed from " EA_FMT " to " EA_FMT, get_func_name(pfn->start_ea).c_str(), pfn->end_ea, new_end);
 
     update_function(pfn->start_ea);
-}
-
-static void log_deleting_func(const func_t* pfn)
-{
-    LOG_IDB_EVENT("Function %s is about to be deleted (" EA_FMT " to " EA_FMT")", get_func_name(pfn->start_ea).c_str(), pfn->start_ea, pfn->end_ea);
 }
 
 void Hooks::deleting_func(va_list args)
 {
     const auto pfn = va_arg(args, func_t*);
 
-    log_deleting_func(pfn);
+    LOG_IDB_EVENT("Function %s is about to be deleted (" EA_FMT " to " EA_FMT")", get_func_name(pfn->start_ea).c_str(), pfn->start_ea, pfn->end_ea);
 
     delete_function(pfn->start_ea);
-}
-
-static void log_frame_deleted(const func_t* pfn)
-{
-    UNUSED(pfn);
-    LOG_IDB_EVENT("A function frame has been deleted");
 }
 
 void Hooks::frame_deleted(va_list args)
 {
     const auto pfn = va_arg(args, func_t*);
-
-    log_frame_deleted(pfn);
-}
-
-static void log_thunk_func_created(const func_t* pfn)
-{
-    LOG_IDB_EVENT("Function %s thunk bit has been set to %s", get_func_name(pfn->start_ea).c_str(), BOOL_STR[!!(pfn->flags & FUNC_THUNK)]);
+    
+    UNUSED(pfn);
+    LOG_IDB_EVENT("A function frame has been deleted");
 }
 
 void Hooks::thunk_func_created(va_list args)
 {
     const auto pfn = va_arg(args, func_t*);
 
-    log_thunk_func_created(pfn);
+    LOG_IDB_EVENT("Function %s thunk bit has been set to %s", get_func_name(pfn->start_ea).c_str(), BOOL_STR[!!(pfn->flags & FUNC_THUNK)]);
 
     update_function(pfn->start_ea);
-}
-
-static void log_func_tail_appended(const func_t* pfn, const func_t* tail)
-{
-    LOG_IDB_EVENT("Function %s tail chunk from " EA_FMT " to " EA_FMT " has been appended", get_func_name(pfn->start_ea).c_str(), tail->start_ea, tail->end_ea);
 }
 
 void Hooks::func_tail_appended(va_list args)
@@ -2305,14 +2082,9 @@ void Hooks::func_tail_appended(va_list args)
     const auto pfn  = va_arg(args, func_t*);
     const auto tail = va_arg(args, func_t*);
 
-    log_func_tail_appended(pfn, tail);
+    LOG_IDB_EVENT("Function %s tail chunk from " EA_FMT " to " EA_FMT " has been appended", get_func_name(pfn->start_ea).c_str(), tail->start_ea, tail->end_ea);
 
     update_function(pfn->start_ea);
-}
-
-static void log_deleting_func_tail(const func_t* pfn, const range_t* tail)
-{
-    LOG_IDB_EVENT("Function %s tail chunk from " EA_FMT " to " EA_FMT " is to be removed", get_func_name(pfn->start_ea).c_str(), tail->start_ea, tail->end_ea);
 }
 
 void Hooks::deleting_func_tail(va_list args)
@@ -2320,12 +2092,7 @@ void Hooks::deleting_func_tail(va_list args)
     const auto pfn  = va_arg(args, func_t*);
     const auto tail = va_arg(args, const range_t*);
 
-    log_deleting_func_tail(pfn, tail);
-}
-
-static void log_func_tail_deleted(const func_t* pfn, ea_t tail_ea)
-{
-    LOG_IDB_EVENT("Function %s tail chunk at " EA_FMT " has been removed", get_func_name(pfn->start_ea).c_str(), tail_ea);
+    LOG_IDB_EVENT("Function %s tail chunk from " EA_FMT " to " EA_FMT " is to be removed", get_func_name(pfn->start_ea).c_str(), tail->start_ea, tail->end_ea);
 }
 
 void Hooks::func_tail_deleted(va_list args)
@@ -2333,14 +2100,9 @@ void Hooks::func_tail_deleted(va_list args)
     const auto pfn     = va_arg(args, func_t*);
     const auto tail_ea = va_arg(args, ea_t);
 
-    log_func_tail_deleted(pfn, tail_ea);
+    LOG_IDB_EVENT("Function %s tail chunk at " EA_FMT " has been removed", get_func_name(pfn->start_ea).c_str(), tail_ea);
 
     update_function(pfn->start_ea);
-}
-
-static void log_tail_owner_changed(const func_t* pfn, ea_t owner_func, ea_t old_owner)
-{
-    LOG_IDB_EVENT("Tail chunk from " EA_FMT " to " EA_FMT " owner function changed from %s to %s", pfn->start_ea, pfn->end_ea, get_func_name(old_owner).c_str(), get_func_name(owner_func).c_str());
 }
 
 void Hooks::tail_owner_changed(va_list args)
@@ -2349,76 +2111,51 @@ void Hooks::tail_owner_changed(va_list args)
     const auto owner_func = va_arg(args, ea_t);
     const auto old_owner  = va_arg(args, ea_t);
 
-    log_tail_owner_changed(pfn, owner_func, old_owner);
+    LOG_IDB_EVENT("Tail chunk from " EA_FMT " to " EA_FMT " owner function changed from %s to %s", pfn->start_ea, pfn->end_ea, get_func_name(old_owner).c_str(), get_func_name(owner_func).c_str());
 
     update_function(owner_func);
     update_function(old_owner);
-}
-
-static void log_func_noret_changed(const func_t* pfn)
-{
-    LOG_IDB_EVENT("Function %s FUNC_NORET flag has been changed to %s", get_func_name(pfn->start_ea).c_str(), BOOL_STR[!!(pfn->flags & FUNC_NORET)]);
 }
 
 void Hooks::func_noret_changed(va_list args)
 {
     const auto pfn = va_arg(args, func_t*);
 
-    log_func_noret_changed(pfn);
+    LOG_IDB_EVENT("Function %s FUNC_NORET flag has been changed to %s", get_func_name(pfn->start_ea).c_str(), BOOL_STR[!!(pfn->flags & FUNC_NORET)]);
 
     update_function(pfn->start_ea);
-}
-
-static void log_stkpnts_changed(const func_t* pfn)
-{
-    LOG_IDB_EVENT("Function %s stack change points have been modified", get_func_name(pfn->start_ea).c_str());
 }
 
 void Hooks::stkpnts_changed(va_list args)
 {
     const auto pfn = va_arg(args, func_t*);
 
-    log_stkpnts_changed(pfn);
+    LOG_IDB_EVENT("Function %s stack change points have been modified", get_func_name(pfn->start_ea).c_str());
 
     update_function(pfn->start_ea);
-}
-
-static void log_updating_tryblks(const tryblks_t* tbv)
-{
-    UNUSED(tbv);
-    LOG_IDB_EVENT("About to update try block information");
 }
 
 void Hooks::updating_tryblks(va_list args)
 {
     const auto tbv = va_arg(args, const tryblks_t*);
 
-    log_updating_tryblks(tbv);
-}
-
-static void log_tryblks_updated(const tryblks_t* tbv)
-{
     UNUSED(tbv);
-    LOG_IDB_EVENT("Updated try block information");
+    LOG_IDB_EVENT("About to update try block information");
 }
 
 void Hooks::tryblks_updated(va_list args)
 {
     const auto tbv = va_arg(args, const tryblks_t*);
 
-    log_tryblks_updated(tbv);
-}
-
-static void log_deleting_tryblks(const range_t* range)
-{
-    LOG_IDB_EVENT("About to delete try block information in range " EA_FMT "-" EA_FMT, range->start_ea, range->end_ea);
+    UNUSED(tbv);
+    LOG_IDB_EVENT("Updated try block information");
 }
 
 void Hooks::deleting_tryblks(va_list args)
 {
     const auto range = va_arg(args, const range_t*);
 
-    log_deleting_tryblks(range);
+    LOG_IDB_EVENT("About to delete try block information in range " EA_FMT "-" EA_FMT, range->start_ea, range->end_ea);
 }
 
 static void log_sgr_changed(ea_t start_ea, ea_t end_ea, int regnum, sel_t value, sel_t old_value, uchar tag)
@@ -2444,26 +2181,13 @@ void Hooks::sgr_changed(va_list args)
     log_sgr_changed(start_ea, end_ea, regnum, value, old_value, tag);
 }
 
-static void log_make_code(const insn_t* insn)
-{
-    LOG_IDB_EVENT("An instruction is being created at " EA_FMT, insn->ea);
-}
-
 void Hooks::make_code(va_list args)
 {
     const auto insn = va_arg(args, const insn_t*);
 
-    log_make_code(insn);
+    LOG_IDB_EVENT("An instruction is being created at " EA_FMT, insn->ea);
 
     make_code(insn->ea);
-}
-
-static void log_make_data(ea_t ea, flags_t flags, tid_t tid, asize_t len)
-{
-    UNUSED(flags);
-    UNUSED(tid);
-    UNUSED(len);
-    LOG_IDB_EVENT("A data item is being created at " EA_FMT, ea);
 }
 
 void Hooks::make_data(va_list args)
@@ -2473,15 +2197,12 @@ void Hooks::make_data(va_list args)
     const auto tid   = va_arg(args, tid_t);
     const auto len   = va_arg(args, asize_t);
 
-    log_make_data(ea, flags, tid, len);
+    UNUSED(flags);
+    UNUSED(tid);
+    UNUSED(len);
+    LOG_IDB_EVENT("A data item is being created at " EA_FMT, ea);
 
     make_data(ea);
-}
-
-static void log_destroyed_items(ea_t ea1, ea_t ea2, bool will_disable_range)
-{
-    UNUSED(will_disable_range);
-    LOG_IDB_EVENT("Instructions/data have been destroyed in " EA_FMT "-" EA_FMT, ea1, ea2);
 }
 
 void Hooks::destroyed_items(va_list args)
@@ -2490,13 +2211,8 @@ void Hooks::destroyed_items(va_list args)
     const auto ea2                = va_arg(args, ea_t);
     const auto will_disable_range = static_cast<bool>(va_arg(args, int));
 
-    log_destroyed_items(ea1, ea2, will_disable_range);
-}
-
-static void log_renamed(ea_t ea, const char* new_name, bool local_name)
-{
-    UNUSED(local_name);
-    LOG_IDB_EVENT("Byte at " EA_FMT " renamed to %s", ea, new_name);
+    UNUSED(will_disable_range);
+    LOG_IDB_EVENT("Instructions/data have been destroyed in " EA_FMT "-" EA_FMT, ea1, ea2);
 }
 
 void Hooks::renamed(va_list args)
@@ -2508,13 +2224,10 @@ void Hooks::renamed(va_list args)
     if(get_struc(ea))
         return;
 
-    log_renamed(ea, new_name, local_name);
+    UNUSED(local_name);
+    LOG_IDB_EVENT("Byte at " EA_FMT " renamed to %s", ea, new_name);
+    
     rename(ea, new_name, "", "");
-}
-
-static void log_byte_patched(ea_t ea, uint32 old_value)
-{
-    LOG_IDB_EVENT("Byte at " EA_FMT " has been changed from 0x%02X to 0x%02X", ea, old_value, get_byte(ea));
 }
 
 void Hooks::byte_patched(va_list args)
@@ -2522,12 +2235,7 @@ void Hooks::byte_patched(va_list args)
     const auto ea        = va_arg(args, ea_t);
     const auto old_value = va_arg(args, uint32);
 
-    log_byte_patched(ea, old_value);
-}
-
-static void log_changing_cmt(ea_t ea, bool repeatable_cmt, const char* newcmt)
-{
-    LOG_IDB_EVENT("Item at " EA_FMT " %scomment is to be changed from \"%s\" to \"%s\"", ea, REPEATABLE_STR[repeatable_cmt], get_cmt(ea, repeatable_cmt).c_str(), newcmt);
+    LOG_IDB_EVENT("Byte at " EA_FMT " has been changed from 0x%02X to 0x%02X", ea, old_value, get_byte(ea));
 }
 
 void Hooks::changing_cmt(va_list args)
@@ -2536,12 +2244,7 @@ void Hooks::changing_cmt(va_list args)
     const auto repeatable_cmt = static_cast<bool>(va_arg(args, int));
     const auto newcmt         = va_arg(args, const char*);
 
-    log_changing_cmt(ea, repeatable_cmt, newcmt);
-}
-
-static void log_cmt_changed(ea_t ea, bool repeatable_cmt)
-{
-    LOG_IDB_EVENT("Item at " EA_FMT " %scomment has been changed to \"%s\"", ea, REPEATABLE_STR[repeatable_cmt], get_cmt(ea, repeatable_cmt).c_str());
+    LOG_IDB_EVENT("Item at " EA_FMT " %scomment is to be changed from \"%s\" to \"%s\"", ea, REPEATABLE_STR[repeatable_cmt], get_cmt(ea, repeatable_cmt).c_str(), newcmt);
 }
 
 void Hooks::cmt_changed(va_list args)
@@ -2549,14 +2252,9 @@ void Hooks::cmt_changed(va_list args)
     const auto ea             = va_arg(args, ea_t);
     const auto repeatable_cmt = static_cast<bool>(va_arg(args, int));
 
-    log_cmt_changed(ea, repeatable_cmt);
+    LOG_IDB_EVENT("Item at " EA_FMT " %scomment has been changed to \"%s\"", ea, REPEATABLE_STR[repeatable_cmt], get_cmt(ea, repeatable_cmt).c_str());
 
     update_comment(ea);
-}
-
-static void log_changing_range_cmt(range_kind_t kind, const range_t* a, const char* cmt, bool repeatable)
-{
-    LOG_IDB_EVENT("%s range from " EA_FMT " to " EA_FMT " %scomment is to be changed to \"%s\"", range_kind_to_str(kind), a->start_ea, a->end_ea, REPEATABLE_STR[repeatable], cmt);
 }
 
 void Hooks::changing_range_cmt(va_list args)
@@ -2566,12 +2264,7 @@ void Hooks::changing_range_cmt(va_list args)
     const auto cmt        = va_arg(args, const char*);
     const auto repeatable = static_cast<bool>(va_arg(args, int));
 
-    log_changing_range_cmt(kind, a, cmt, repeatable);
-}
-
-static void log_range_cmt_changed(range_kind_t kind, const range_t* a, const char* cmt, bool repeatable)
-{
-    LOG_IDB_EVENT("%s range from " EA_FMT " to " EA_FMT " %scomment has been changed to \"%s\"", range_kind_to_str(kind), a->start_ea, a->end_ea, REPEATABLE_STR[repeatable], cmt);
+    LOG_IDB_EVENT("%s range from " EA_FMT " to " EA_FMT " %scomment is to be changed to \"%s\"", range_kind_to_str(kind), a->start_ea, a->end_ea, REPEATABLE_STR[repeatable], cmt);
 }
 
 void Hooks::range_cmt_changed(va_list args)
@@ -2581,15 +2274,9 @@ void Hooks::range_cmt_changed(va_list args)
     const auto cmt        = va_arg(args, const char*);
     const auto repeatable = static_cast<bool>(va_arg(args, int));
 
-    log_range_cmt_changed(kind, a, cmt, repeatable);
+    LOG_IDB_EVENT("%s range from " EA_FMT " to " EA_FMT " %scomment has been changed to \"%s\"", range_kind_to_str(kind), a->start_ea, a->end_ea, REPEATABLE_STR[repeatable], cmt);
 
     update_comment(a->start_ea);
-}
-
-static void log_extra_cmt_changed(ea_t ea, int line_idx, const char* cmt)
-{
-    UNUSED(line_idx);
-    LOG_IDB_EVENT("Extra comment at " EA_FMT " has been changed to \"%s\"", ea, cmt);
 }
 
 void Hooks::extra_cmt_changed(va_list args)
@@ -2598,7 +2285,8 @@ void Hooks::extra_cmt_changed(va_list args)
     const auto line_idx = va_arg(args, int);
     const auto cmt      = va_arg(args, const char*);
 
-    log_extra_cmt_changed(ea, line_idx, cmt);
+    UNUSED(line_idx);
+    LOG_IDB_EVENT("Extra comment at " EA_FMT " has been changed to \"%s\"", ea, cmt);
 
     update_comment(ea);
 }
