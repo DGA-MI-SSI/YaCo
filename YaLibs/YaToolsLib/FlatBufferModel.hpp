@@ -19,8 +19,11 @@
 #include <string>
 #include <vector>
 
-class IModelAccept;
+struct IModel;
 
-std::shared_ptr<IModelAccept> MakeXmlAllDatabaseModel  (const std::string& folder);
-std::shared_ptr<IModelAccept> MakeXmlDatabaseModel     (const std::string& folder);
-std::shared_ptr<IModelAccept> MakeXmlFilesDatabaseModel(const std::vector<std::string>& files);
+struct Mmap_ABC;
+
+std::shared_ptr<IModel> MakeFlatBufferModel(const std::shared_ptr<Mmap_ABC>& mmap);
+std::shared_ptr<IModel> MakeFlatBufferModel(const std::string& filename);
+std::shared_ptr<IModel> MakeMultiFlatBufferModel(const std::vector<std::string>& filenames);
+

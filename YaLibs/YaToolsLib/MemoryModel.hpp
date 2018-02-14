@@ -15,19 +15,16 @@
 
 #pragma once
 
+#include "IModelVisitor.hpp"
 #include <memory>
-#include <string>
-#include <vector>
 
 struct IModel;
+class IModelVisitor;
 
-struct Mmap_ABC;
+struct ModelAndVisitor
+{
+    std::shared_ptr<IModel>         model;
+    std::shared_ptr<IModelVisitor>  visitor;
+};
 
-std::shared_ptr<IModel> MakeFlatBufferDatabaseModel(const std::shared_ptr<Mmap_ABC>& mmap);
-std::shared_ptr<IModel> MakeFlatBufferDatabaseModel(const std::string& filename);
-
-std::shared_ptr<IModel> MakeMultiFlatBufferDatabaseModel(const std::vector<std::string>& filenames);
-
-std::shared_ptr<IModel> MakeFlatBufferDatabaseModel(const std::string& filename);
-std::shared_ptr<IModel> MakeMultiFlatBufferDatabaseModel(const std::vector<std::string>& filenames);
-
+ModelAndVisitor MakeMemoryModel();

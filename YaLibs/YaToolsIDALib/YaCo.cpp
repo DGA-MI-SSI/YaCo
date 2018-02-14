@@ -20,8 +20,8 @@
 #include "Repository.hpp"
 #include "Hooks.hpp"
 #include "IdaVisitor.hpp"
-#include "XML/XMLDatabaseModel.hpp"
-#include "FlatBufferExporter.hpp"
+#include "XmlModel.hpp"
+#include "FlatBufferVisitor.hpp"
 #include "IdaModel.hpp"
 #include "Utils.hpp"
 #include "Yatools_swig.h"
@@ -157,7 +157,7 @@ void YaCo::export_database()
         return;
     }
 
-    std::shared_ptr<IFlatExporter> exporter = MakeFlatBufferExporter();
+    const auto exporter = MakeFlatBufferVisitor();
     MakeIdaModel()->accept(*exporter);
     ExportedBuffer buffer = exporter->GetBuffer();
 
@@ -201,7 +201,7 @@ void YaCo::initial_load()
     const auto time_start = std::chrono::system_clock::now();
     IDA_LOG_INFO("Loading...");
 
-    import_to_ida(*MakeXmlAllDatabaseModel("."));
+    import_to_ida(*MakeXmlAllModel("."));
 
     const auto time_end = std::chrono::system_clock::now();
     const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(time_end - time_start);

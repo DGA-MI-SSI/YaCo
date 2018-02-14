@@ -15,16 +15,14 @@
 
 #pragma once
 
-#include "IModelVisitor.hpp"
-#include <memory>
+#include "IModelAccept.hpp"
 
-struct IModel;
+#include <memory>
+#include <string>
+
 class IModelVisitor;
 
-struct ModelAndVisitor
-{
-    std::shared_ptr<IModel>         model;
-    std::shared_ptr<IModelVisitor>  visitor;
-};
+std::shared_ptr<IModelVisitor> MakeXmlVisitor      (const std::string& path);
+std::shared_ptr<IModelVisitor> MakeFileXmlVisitor  (const std::string& path);
 
-ModelAndVisitor MakeModel();
+std::string export_to_xml(IModelAccept& model);

@@ -15,14 +15,12 @@
 
 #pragma once
 
-#include "IModelAccept.hpp"
-
 #include <memory>
 #include <string>
+#include <vector>
 
-class IModelVisitor;
+class IModelAccept;
 
-std::shared_ptr<IModelVisitor> MakeXmlExporter      (const std::string& path);
-std::shared_ptr<IModelVisitor> MakeFileXmlExporter  (const std::string& path);
-
-std::string export_to_xml(IModelAccept& model);
+std::shared_ptr<IModelAccept> MakeXmlAllModel  (const std::string& folder);
+std::shared_ptr<IModelAccept> MakeXmlModel     (const std::string& folder);
+std::shared_ptr<IModelAccept> MakeXmlFilesModel(const std::vector<std::string>& files);

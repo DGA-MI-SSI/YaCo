@@ -13,9 +13,9 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "FlatBufferDatabaseModel.hpp"
+#include "FlatBufferModel.hpp"
 
-#include "FlatBufferExporter.hpp"
+#include "FlatBufferVisitor.hpp"
 #include "DelegatingVisitor.hpp"
 #include "HVersion.hpp"
 #include "HObject.hpp"
@@ -135,11 +135,11 @@ struct SignatureCtx
 };
 STATIC_ASSERT_POD(SignatureCtx);
 
-struct FlatBufferDatabaseModel;
+struct FlatBufferModel;
 
 struct ViewObjects : public IObjects
 {
-    ViewObjects(FlatBufferDatabaseModel& db)
+    ViewObjects(FlatBufferModel& db)
         : db_(db)
     {
     }
@@ -154,12 +154,12 @@ struct ViewObjects : public IObjects
     void                walk_xrefs_to   (HObject_id_t object_id, const OnObjectFn& fnWalk) const override;
     bool                match           (HObject_id_t object_id, const HObject& remote) const override;
 
-    FlatBufferDatabaseModel&    db_;
+    FlatBufferModel&    db_;
 };
 
 struct ViewVersions : public IVersions
 {
-    ViewVersions(FlatBufferDatabaseModel& db)
+    ViewVersions(FlatBufferModel& db)
         : db_(db)
     {
     }
@@ -191,12 +191,12 @@ struct ViewVersions : public IVersions
     void                walk_xref_attributes    (HVersion_id_t version_id, const XrefAttributes* hattr, const OnAttributeFn& fnWalk) const override;
     void                walk_attributes         (HVersion_id_t version_id, const OnAttributeFn& fnWalk) const override;
 
-    FlatBufferDatabaseModel&    db_;
+    FlatBufferModel&    db_;
 };
 
 struct ViewSignatures : public ISignatures
 {
-    ViewSignatures(FlatBufferDatabaseModel& db)
+    ViewSignatures(FlatBufferModel& db)
         : db_(db)
     {
     }
@@ -204,12 +204,12 @@ struct ViewSignatures : public ISignatures
     // ISignatures methods
     Signature get(HSignature_id_t sig_id) const override;
 
-    FlatBufferDatabaseModel& db_;
+    FlatBufferModel& db_;
 };
 
-struct FlatBufferDatabaseModel : public IModel
+struct FlatBufferModel : public IModel
 {
-    FlatBufferDatabaseModel(const std::shared_ptr<Mmap_ABC>& mmap);
+    FlatBufferModel(const std::shared_ptr<Mmap_ABC>& mmap);
 
     // private methods
     void setup();
@@ -257,7 +257,7 @@ struct VisitorWithoutVisitStartEnd : public DelegatingVisitor
 
 struct ExportedMmap : public Mmap_ABC
 {
-    ExportedMmap(const std::shared_ptr<IFlatExporter>& exporter)
+    ExportedMmap(const std::shared_ptr<IFlatBufferVisitor>& exporter)
         : exporter_(exporter)
         , buffer_  (exporter->GetBuffer())
     {
@@ -273,43 +273,43 @@ struct ExportedMmap : public Mmap_ABC
         return buffer_.size;
     }
 
-    std::shared_ptr<IFlatExporter>  exporter_;
-    ExportedBuffer                  buffer_;
+    std::shared_ptr<IFlatBufferVisitor>  exporter_;
+    ExportedBuffer                       buffer_;
 };
 }
 
-std::shared_ptr<IModel> MakeFlatBufferDatabaseModel(const std::shared_ptr<Mmap_ABC>& mmap)
+std::shared_ptr<IModel> MakeFlatBufferModel(const std::shared_ptr<Mmap_ABC>& mmap)
 {
-    return std::make_shared<FlatBufferDatabaseModel>(mmap);
+    return std::make_shared<FlatBufferModel>(mmap);
 }
 
-std::shared_ptr<IModel> MakeFlatBufferDatabaseModel(const std::string& filename)
+std::shared_ptr<IModel> MakeFlatBufferModel(const std::string& filename)
 {
-    return MakeFlatBufferDatabaseModel(MmapFile(filename.data()));
+    return MakeFlatBufferModel(MmapFile(filename.data()));
 }
 
-std::shared_ptr<IFlatExporter> ExportToFlatBuffer(const std::vector<std::string>& filenames)
+std::shared_ptr<IFlatBufferVisitor> ExportToFlatBuffer(const std::vector<std::string>& filenames)
 {
     // export all input filenames into our in-memory flatbuffer export
-    auto exporter = MakeFlatBufferExporter();
+    auto exporter = MakeFlatBufferVisitor();
     VisitorWithoutVisitStartEnd visitor;
     visitor.add_delegate(exporter);
     exporter->visit_start();
     for(const auto& filename : filenames)
     {
         LOG(INFO, "* importing %s\n", filename.data());
-        MakeFlatBufferDatabaseModel(filename)->accept(visitor);
+        MakeFlatBufferModel(filename)->accept(visitor);
     }
     exporter->visit_end();
     return exporter;
 }
 
-std::shared_ptr<IModel> MakeMultiFlatBufferDatabaseModel(const std::vector<std::string>& filenames)
+std::shared_ptr<IModel> MakeMultiFlatBufferModel(const std::vector<std::string>& filenames)
 {
     if(filenames.size() == 1)
-        return MakeFlatBufferDatabaseModel(filenames.front());
+        return MakeFlatBufferModel(filenames.front());
     auto exporter = ExportToFlatBuffer(filenames);
-    return MakeFlatBufferDatabaseModel(std::make_shared<ExportedMmap>(exporter));
+    return MakeFlatBufferModel(std::make_shared<ExportedMmap>(exporter));
 }
 
 bool merge_yadbs_to_yadb(const std::string& output, const std::vector<std::string>& inputs)
@@ -342,7 +342,7 @@ bool ValidateFlatBuffer(const void* data, size_t szdata)
 }
 #endif
 
-FlatBufferDatabaseModel::FlatBufferDatabaseModel(const std::shared_ptr<Mmap_ABC>& mmap)
+FlatBufferModel::FlatBufferModel(const std::shared_ptr<Mmap_ABC>& mmap)
     : buffer_           (mmap)
     , root_             (nullptr)
     , view_objects_     (*this)
@@ -382,7 +382,7 @@ static size_t get_size(const T* pdata)
     return 0;
 }
 
-static const fb::Vector<fb::Offset<yadb::Version>>* get_versions_from(const FlatBufferDatabaseModel& db, YaToolObjectType_e type)
+static const fb::Vector<fb::Offset<yadb::Version>>* get_versions_from(const FlatBufferModel& db, YaToolObjectType_e type)
 {
     switch(type)
     {
@@ -407,14 +407,14 @@ static const fb::Vector<fb::Offset<yadb::Version>>* get_versions_from(const Flat
 }
 
 template<typename T>
-static void walk_all_version_arrays(FlatBufferDatabaseModel& db, const T& operand)
+static void walk_all_version_arrays(FlatBufferModel& db, const T& operand)
 {
     for(const auto type : ordered_types)
         operand(get_versions_from(db, type), type);
 }
 
 template<typename T>
-static void walk_all_versions(FlatBufferDatabaseModel& db, const T& operand)
+static void walk_all_versions(FlatBufferModel& db, const T& operand)
 {
     walk_all_version_arrays(db, [&](const auto* values, YaToolObjectType_e type)
     {
@@ -425,12 +425,12 @@ static void walk_all_versions(FlatBufferDatabaseModel& db, const T& operand)
     });
 }
 
-static const_string_ref string_from(const FlatBufferDatabaseModel& db, uint32_t index)
+static const_string_ref string_from(const FlatBufferModel& db, uint32_t index)
 {
     return make_string_ref_from(db.root_->strings()->Get(index));
 }
 
-static void parse_objects(FlatBufferDatabaseModel& db)
+static void parse_objects(FlatBufferModel& db)
 {
     // create object contexts
     LOG(INFO, "parsing %zd 0x%zx objects\n", db.objects_.capacity(), db.objects_.capacity());
@@ -463,7 +463,7 @@ static void parse_objects(FlatBufferDatabaseModel& db)
     finish_objects(db.index_);
 }
 
-static void parse_versions(FlatBufferDatabaseModel& db)
+static void parse_versions(FlatBufferModel& db)
 {
     // create version contexts
     LOG(INFO, "parse versions\n");
@@ -504,7 +504,7 @@ static void parse_versions(FlatBufferDatabaseModel& db)
     finish_sigs(db.index_, sigmap);
 }
 
-static void index_xrefs(FlatBufferDatabaseModel& db)
+static void index_xrefs(FlatBufferModel& db)
 {
     // create xrefs_to contexts
     LOG(INFO, "index xrefs\n");
@@ -517,7 +517,7 @@ static void index_xrefs(FlatBufferDatabaseModel& db)
     });
 }
 
-void FlatBufferDatabaseModel::setup()
+void FlatBufferModel::setup()
 {
     LOG(INFO, "initialize model\n");
     const size_t num_objects = get_size(root_->objects());
@@ -559,7 +559,7 @@ void FlatBufferDatabaseModel::setup()
 namespace
 {
 template<typename T>
-void walk_versions(const FlatBufferDatabaseModel& db, const ObjectCtx& object, const T& operand)
+void walk_versions(const FlatBufferModel& db, const ObjectCtx& object, const T& operand)
 {
     const auto end = db.versions_.size();
     for(auto i = object.version_id; i < end; ++i)
@@ -573,13 +573,13 @@ void walk_versions(const FlatBufferDatabaseModel& db, const ObjectCtx& object, c
 }
 
 template<typename T>
-void walk_xrefs_to(const FlatBufferDatabaseModel& db, const ObjectCtx& object, const T& operand)
+void walk_xrefs_to(const FlatBufferModel& db, const ObjectCtx& object, const T& operand)
 {
     walk_xrefs(db.index_, object.idx, object.xrefs_to_idx, operand);
 }
 
 template<typename T>
-void walk_signatures(const FlatBufferDatabaseModel& db, const VersionCtx& ctx, const T& operand)
+void walk_signatures(const FlatBufferModel& db, const VersionCtx& ctx, const T& operand)
 {
     optional<HVersion_id_t> version_id;
     const auto end = db.signatures_.size();
@@ -595,7 +595,7 @@ void walk_signatures(const FlatBufferDatabaseModel& db, const VersionCtx& ctx, c
 }
 
 template<typename T>
-void walk_xrefs(const FlatBufferDatabaseModel&, const VersionCtx& ctx, const T& operand)
+void walk_xrefs(const FlatBufferModel&, const VersionCtx& ctx, const T& operand)
 {
     walk_stoppable(ctx.version->xrefs(), [&](const yadb::Xref* xref)
     {
@@ -603,7 +603,7 @@ void walk_xrefs(const FlatBufferDatabaseModel&, const VersionCtx& ctx, const T& 
     });
 }
 
-void accept_version(const FlatBufferDatabaseModel& db, const VersionCtx& ctx, IModelVisitor& visitor)
+void accept_version(const FlatBufferModel& db, const VersionCtx& ctx, IModelVisitor& visitor)
 {
     const auto* version = ctx.version;
     visitor.visit_start_object_version();
@@ -709,7 +709,7 @@ void accept_version(const FlatBufferDatabaseModel& db, const VersionCtx& ctx, IM
     visitor.visit_end_object_version();
 }
 
-void accept_object(const FlatBufferDatabaseModel& db, const ObjectCtx& object, IModelVisitor& visitor)
+void accept_object(const FlatBufferModel& db, const ObjectCtx& object, IModelVisitor& visitor)
 {
     visitor.visit_start_reference_object(object.type);
     visitor.visit_id(object.id);
@@ -777,7 +777,7 @@ ProgressLogger<T> MakeProgressLogger(size_t max, const T& now)
 #endif
 }
 
-void FlatBufferDatabaseModel::accept(IModelVisitor& visitor)
+void FlatBufferModel::accept(IModelVisitor& visitor)
 {
     DECLARE_PROGRESS_LOGGER(objects_.size());
     visitor.visit_start();
@@ -789,7 +789,7 @@ void FlatBufferDatabaseModel::accept(IModelVisitor& visitor)
     visitor.visit_end();
 }
 
-void FlatBufferDatabaseModel::walk_objects(const OnObjectAndIdFn& fnWalk) const
+void FlatBufferModel::walk_objects(const OnObjectAndIdFn& fnWalk) const
 {
     const auto end = static_cast<HObject_id_t>(objects_.size());
     for(HObject_id_t id = 0; id < end; ++id)
@@ -797,12 +797,12 @@ void FlatBufferDatabaseModel::walk_objects(const OnObjectAndIdFn& fnWalk) const
             return;
 }
 
-size_t FlatBufferDatabaseModel::num_objects() const
+size_t FlatBufferModel::num_objects() const
 {
     return objects_.size();
 }
 
-void FlatBufferDatabaseModel::walk_objects_with_signature(const HSignature& hash, const OnObjectFn& fnWalk) const
+void FlatBufferModel::walk_objects_with_signature(const HSignature& hash, const OnObjectFn& fnWalk) const
 {
     walk_sigs(index_, make_string_ref(hash.get()), [&](const Sig& sig)
     {
@@ -810,12 +810,12 @@ void FlatBufferDatabaseModel::walk_objects_with_signature(const HSignature& hash
     });
 }
 
-size_t FlatBufferDatabaseModel::num_objects_with_signature(const HSignature& hash) const
+size_t FlatBufferModel::num_objects_with_signature(const HSignature& hash) const
 {
     return num_sigs(index_, make_string_ref(hash.get()));
 }
 
-void FlatBufferDatabaseModel::walk_versions_with_signature(const HSignature& hash, const OnVersionFn& fnWalk) const
+void FlatBufferModel::walk_versions_with_signature(const HSignature& hash, const OnVersionFn& fnWalk) const
 {
     walk_sigs(index_, make_string_ref(hash.get()), [&](const Sig& sig)
     {
@@ -823,19 +823,19 @@ void FlatBufferDatabaseModel::walk_versions_with_signature(const HSignature& has
     });
 }
 
-HObject FlatBufferDatabaseModel::get_object(YaToolObjectId id) const
+HObject FlatBufferModel::get_object(YaToolObjectId id) const
 {
     if(const auto object_id = find_object_id(index_, id))
         return{&view_objects_, *object_id};
     return{nullptr, 0};
 }
 
-bool FlatBufferDatabaseModel::has_object(YaToolObjectId id) const
+bool FlatBufferModel::has_object(YaToolObjectId id) const
 {
     return !!find_object_id(index_, id);
 }
 
-void FlatBufferDatabaseModel::walk_versions_without_collision(const OnSigAndVersionFn& fnWalk) const
+void FlatBufferModel::walk_versions_without_collision(const OnSigAndVersionFn& fnWalk) const
 {
     walk_all_unique_sigs(index_, [&](const Sig& sig)
     {
@@ -843,7 +843,7 @@ void FlatBufferDatabaseModel::walk_versions_without_collision(const OnSigAndVers
     });
 }
 
-void FlatBufferDatabaseModel::walk_matching_versions(const HObject& object, size_t min_size, const OnVersionPairFn& fnWalk) const
+void FlatBufferModel::walk_matching_versions(const HObject& object, size_t min_size, const OnVersionPairFn& fnWalk) const
 {
     // iterate over remote objection versions
     object.walk_versions([&](const HVersion& remoteVersion)

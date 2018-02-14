@@ -25,12 +25,12 @@ struct ExportedBuffer
     size_t size;
 };
 
-struct IFlatExporter
+struct IFlatBufferVisitor
     : public IModelVisitor
 {
-    ~IFlatExporter() override {}
+    ~IFlatBufferVisitor() override {}
 
     virtual ExportedBuffer GetBuffer() const = 0;
 };
 
-std::shared_ptr<IFlatExporter> MakeFlatBufferExporter();
+std::shared_ptr<IFlatBufferVisitor> MakeFlatBufferVisitor();

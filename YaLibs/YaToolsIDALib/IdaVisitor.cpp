@@ -29,7 +29,7 @@
 #include "YaHelpers.hpp"
 #include "Pool.hpp"
 #include "Plugins.hpp"
-#include "FlatBufferDatabaseModel.hpp"
+#include "FlatBufferModel.hpp"
 #include "Utils.hpp"
 
 #include <algorithm>
@@ -2047,5 +2047,5 @@ void import_to_ida(IModelAccept& model)
 
 void import_to_ida(const std::string& filename)
 {
-    import_to_ida(*MakeFlatBufferDatabaseModel(filename), SKIP_STACKS);
+    import_to_ida(*MakeFlatBufferModel(filename), USE_STACKS);
 }

@@ -44,13 +44,13 @@ std::shared_ptr<IModel> create_fbmodel_with(const T& operand)
 {
     const auto get_mmap = [&]
     {
-        auto exporter = MakeFlatBufferExporter();
+        auto exporter = MakeFlatBufferVisitor();
         operand(exporter);
         const auto buf = exporter->GetBuffer();
         return std::make_shared<Buffer>(buf.value, buf.size);
     };
     // enforce exporter deletion before model creation
-    return MakeFlatBufferDatabaseModel(get_mmap());
+    return MakeFlatBufferModel(get_mmap());
 }
 
 template<typename T>

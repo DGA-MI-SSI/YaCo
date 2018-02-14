@@ -13,11 +13,11 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "XML/XMLDatabaseModel.hpp"
+#include "XmlModel.hpp"
 #include "IModelVisitor.hpp"
 #include "IModel.hpp"
-#include "XML/XMLExporter.hpp"
-#include "FlatBufferDatabaseModel.hpp"
+#include "XmlVisitor.hpp"
+#include "FlatBufferModel.hpp"
 #include "../../YaLibs/Helpers.h"
 #include "Yatools.h"
 #include "Logger.h"
@@ -67,9 +67,9 @@ int main(int argc, char** argv)
     {
         filenames.push_back(argv[i]);
     }
-    const auto model = MakeMultiFlatBufferDatabaseModel(filenames);
+    const auto model = MakeMultiFlatBufferModel(filenames);
 
-    auto exporter = MakeFileXmlExporter(argv[1]);
+    auto exporter = MakeFileXmlVisitor(argv[1]);
 
     model->accept(*exporter);
 

@@ -27,9 +27,9 @@
 #include "PathDebuggerVisitor.hpp"
 #include "ExporterValidatorVisitor.hpp"
 #include "DelegatingVisitor.hpp"
-#include "Model.hpp"
-#include "FlatBufferDatabaseModel.hpp"
-#include "FlatBufferExporter.hpp"
+#include "MemoryModel.hpp"
+#include "FlatBufferModel.hpp"
+#include "FlatBufferVisitor.hpp"
 #include "FileUtils.hpp"
 
 #include "test_model.hpp"
@@ -136,7 +136,7 @@ void create_model(std::shared_ptr<IModelVisitor> visitor)
 
 std::shared_ptr<IModel> create_memorySignatureDB()
 {
-    auto db = MakeModel();
+    auto db = MakeMemoryModel();
     create_model(db.visitor);
     return db.model;
 }
@@ -177,7 +177,7 @@ TEST_F(TestYaToolDatabaseModel, model) {
      * This test ensures that the model created with create_model is consistent and passes
      * validation through ExporterValidatorVisitor
      */
-    auto db = MakeModel();
+    auto db = MakeMemoryModel();
     auto validator = MakeExporterValidatorVisitor();
     auto exporter = make_shared<DelegatingVisitor>();
     exporter->add_delegate(db.visitor);
@@ -397,7 +397,7 @@ void Object::accept(IModelVisitor& visitor)
 
 static HObject create_href(Ctx& ctx, Object& object)
 {
-    ctx.models.push_back(MakeModel());
+    ctx.models.push_back(MakeMemoryModel());
     auto& db = ctx.models.back();
     db.visitor->visit_start();
     object.accept(*db.visitor);
@@ -983,7 +983,7 @@ static void testObjectWithoutVersion(IModel& db)
 
 TEST_F(TestYaToolDatabaseModel, memoryModel_objectWithoutVersion)
 {
-    const auto db = MakeModel();
+    const auto db = MakeMemoryModel();
     create_model_objects_without_versions(*db.visitor);
     testObjectWithoutVersion(*db.model);
 }

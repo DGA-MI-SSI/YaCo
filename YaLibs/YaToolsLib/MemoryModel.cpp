@@ -13,7 +13,7 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "Model.hpp"
+#include "MemoryModel.hpp"
 
 #include "../Helpers.h"
 #include "IModel.hpp"
@@ -462,7 +462,7 @@ Model::Model(IObjectListener* listener)
 {
 }
 
-ModelAndVisitor MakeModel()
+ModelAndVisitor MakeMemoryModel()
 {
     const auto ptr = std::make_shared<Model>(nullptr);
     return {ptr, ptr};

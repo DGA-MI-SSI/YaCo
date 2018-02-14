@@ -23,11 +23,11 @@
 #endif
 
 #include "test_common.hpp"
-#include "XML/XMLDatabaseModel.hpp"
+#include "XmlModel.hpp"
 #include "ExporterValidatorVisitor.hpp"
-#include "XML/XMLExporter.hpp"
+#include "XmlVisitor.hpp"
 #include "IModel.hpp"
-#include "Model.hpp"
+#include "MemoryModel.hpp"
 
 #include "gtest/gtest.h"
 #include <queue>
@@ -80,7 +80,7 @@ TEST_F (TestXMLDatabaseModel, TestFiles) {
     TestDatabaseModelVisitor visitor(call_queue);
     std::vector<std::string> input_files {filename.string()};
 
-    MakeXmlFilesDatabaseModel(input_files)->accept(visitor);
+    MakeXmlFilesModel(input_files)->accept(visitor);
 
     EXPECT_FALSE(call_queue->empty());
     EXPECT_STREQ(call_queue->front().c_str(), "visit_start()");
@@ -141,7 +141,7 @@ TEST_F (TestXMLDatabaseModel, TestFilesValidator) {
 
     auto visitor = MakeExporterValidatorVisitor();
     std::vector<std::string> input_files {filename.string()};
-    auto model = MakeXmlFilesDatabaseModel(input_files);
+    auto model = MakeXmlFilesModel(input_files);
     EXPECT_NO_THROW(model->accept(*visitor));
 }
 
@@ -181,7 +181,7 @@ TEST_F (TestXMLDatabaseModel, TestOneDoubleFile) {
     TestDatabaseModelVisitor visitor(call_queue);
     std::vector<std::string> input_files {filename.string()};
 
-    MakeXmlFilesDatabaseModel(input_files)->accept(visitor);
+    MakeXmlFilesModel(input_files)->accept(visitor);
 
     EXPECT_FALSE(call_queue->empty());
 
@@ -300,12 +300,12 @@ TEST_F (TestXMLDatabaseModel, TestOneFileWithBlob) {
     TestDatabaseModelVisitor visitor(call_queue);
     std::vector<std::string> input_files {filename.string()};
 
-    MakeXmlFilesDatabaseModel(input_files)->accept(visitor);
+    MakeXmlFilesModel(input_files)->accept(visitor);
 
     EXPECT_FALSE(call_queue->empty());
     string output_path("output");
-    auto visitor_2 = MakeXmlExporter(output_path);
-    MakeXmlFilesDatabaseModel(input_files)->accept(*visitor_2);
+    auto visitor_2 = MakeXmlVisitor(output_path);
+    MakeXmlFilesModel(input_files)->accept(*visitor_2);
     ifstream output1;
     output1.open(filename.string());
 
@@ -378,12 +378,12 @@ TEST_F (TestXMLDatabaseModel, TestOneFileWithComment) {
     TestDatabaseModelVisitor visitor(call_queue);
     std::vector<std::string> input_files {filename.string()};
 
-    MakeXmlFilesDatabaseModel(input_files)->accept(visitor);
+    MakeXmlFilesModel(input_files)->accept(visitor);
 
     EXPECT_FALSE(call_queue->empty());
     string output_path("output");
-    auto visitor_2 = MakeXmlExporter(output_path);
-    MakeXmlFilesDatabaseModel(input_files)->accept(*visitor_2);
+    auto visitor_2 = MakeXmlVisitor(output_path);
+    MakeXmlFilesModel(input_files)->accept(*visitor_2);
     ifstream output1;
     output1.open(filename.string());
 
@@ -457,12 +457,12 @@ TEST_F (TestXMLDatabaseModel, TestOneFileWithAccentuatedComment) {
     TestDatabaseModelVisitor visitor(call_queue);
     std::vector<std::string> input_files {filename.string()};
 
-    MakeXmlFilesDatabaseModel(input_files)->accept(visitor);
+    MakeXmlFilesModel(input_files)->accept(visitor);
 
     EXPECT_FALSE(call_queue->empty());
     string output_path("output");
-    auto visitor_2 = MakeXmlExporter(output_path);
-    MakeXmlFilesDatabaseModel(input_files)->accept(*visitor_2);
+    auto visitor_2 = MakeXmlVisitor(output_path);
+    MakeXmlFilesModel(input_files)->accept(*visitor_2);
     ifstream output1;
     output1.open(filename.string());
 
@@ -530,13 +530,13 @@ TEST_F (TestXMLDatabaseModel, TestOneFile_FileExporter) {
     TestDatabaseModelVisitor visitor(call_queue);
     std::vector<std::string> input_files {filename.string()};
 
-    auto model1 = MakeXmlFilesDatabaseModel(input_files);
+    auto model1 = MakeXmlFilesModel(input_files);
     EXPECT_NO_THROW(model1->accept(visitor));
 
     EXPECT_FALSE(call_queue->empty());
     string output_path("output.xml");
-    auto visitor_2 = MakeFileXmlExporter(output_path);
-    auto model2 = MakeXmlFilesDatabaseModel(input_files);
+    auto visitor_2 = MakeFileXmlVisitor(output_path);
+    auto model2 = MakeXmlFilesModel(input_files);
     EXPECT_NO_THROW(model2->accept(*visitor_2));
     ifstream output1;
     output1.open(filename.string());
@@ -606,13 +606,13 @@ TEST_F (TestXMLDatabaseModel, TestOneFileWithBlob_FileExporter) {
     TestDatabaseModelVisitor visitor(call_queue);
     std::vector<std::string> input_files {filename.string()};
 
-    auto model = MakeXmlFilesDatabaseModel(input_files);
+    auto model = MakeXmlFilesModel(input_files);
     EXPECT_NO_THROW(model->accept(visitor));
 
     EXPECT_FALSE(call_queue->empty());
     string output_path("output.xml");
-    auto visitor_2 = MakeFileXmlExporter(output_path);
-    auto model2 = MakeXmlFilesDatabaseModel(input_files);
+    auto visitor_2 = MakeFileXmlVisitor(output_path);
+    auto model2 = MakeXmlFilesModel(input_files);
     EXPECT_NO_THROW(model2->accept(*visitor_2));
     ifstream output1;
     output1.open(filename.string());
@@ -669,12 +669,12 @@ TEST_F (TestXMLDatabaseModel, TestOneFileWithComments) {
     TestDatabaseModelVisitor visitor(call_queue);
     std::vector<std::string> input_files {filename.string()};
 
-    MakeXmlFilesDatabaseModel(input_files)->accept(visitor);
+    MakeXmlFilesModel(input_files)->accept(visitor);
 
     EXPECT_FALSE(call_queue->empty());
     string output_path("output");
-    auto visitor_2 = MakeXmlExporter(output_path);
-    MakeXmlFilesDatabaseModel(input_files)->accept(*visitor_2);
+    auto visitor_2 = MakeXmlVisitor(output_path);
+    MakeXmlFilesModel(input_files)->accept(*visitor_2);
     ifstream output1;
     output1.open(filename.string());
 
@@ -730,13 +730,13 @@ TEST_F (TestXMLDatabaseModel, TestOneFileWithCommentsThroughMemory) {
     TestDatabaseModelVisitor visitor(call_queue);
     std::vector<std::string> input_files {filename.string()};
 
-    MakeXmlFilesDatabaseModel(input_files)->accept(visitor);
+    MakeXmlFilesModel(input_files)->accept(visitor);
 
     EXPECT_FALSE(call_queue->empty());
     string output_path("output");
-    auto visitor_2 = MakeXmlExporter(output_path);
-    auto visitor_model = MakeModel();
-    MakeXmlFilesDatabaseModel(input_files)->accept(*visitor_model.visitor);
+    auto visitor_2 = MakeXmlVisitor(output_path);
+    auto visitor_model = MakeMemoryModel();
+    MakeXmlFilesModel(input_files)->accept(*visitor_model.visitor);
 
     visitor_model.model->accept(*visitor_2);
     ifstream output1;
@@ -755,7 +755,7 @@ TEST_F (TestXMLDatabaseModel, TestOneFileWithCommentsThroughMemory) {
 
 TEST_F(TestXMLDatabaseModel, test_xml_escape) {
     path filename("4223456789ABCDEF.xml");
-    auto visitor = MakeFileXmlExporter(filename.string());
+    auto visitor = MakeFileXmlVisitor(filename.string());
     EXPECT_NO_THROW(visitor->visit_start());
     EXPECT_NO_THROW(visitor->visit_start_reference_object(OBJECT_TYPE_BASIC_BLOCK));
     EXPECT_NO_THROW(visitor->visit_offset_comments(12, COMMENT_REPEATABLE, make_string_ref("pl<op")));
@@ -802,12 +802,12 @@ TEST_F (TestXMLDatabaseModel, TestOneFileWithXrefs) {
     TestDatabaseModelVisitor visitor(call_queue);
     std::vector<std::string> input_files {filename.string()};
 
-    MakeXmlFilesDatabaseModel(input_files)->accept(visitor);
+    MakeXmlFilesModel(input_files)->accept(visitor);
 
     EXPECT_FALSE(call_queue->empty());
     string output_path("output");
-    auto visitor_2 = MakeXmlExporter(output_path);
-    MakeXmlFilesDatabaseModel(input_files)->accept(*visitor_2);
+    auto visitor_2 = MakeXmlVisitor(output_path);
+    MakeXmlFilesModel(input_files)->accept(*visitor_2);
     ifstream output1;
     output1.open(filename.string());
 
@@ -856,13 +856,13 @@ TEST_F (TestXMLDatabaseModel, TestOneFileWithXrefsThroughMemory) {
     TestDatabaseModelVisitor visitor(call_queue);
     std::vector<std::string> input_files {filename.string()};
 
-    MakeXmlFilesDatabaseModel(input_files)->accept(visitor);
+    MakeXmlFilesModel(input_files)->accept(visitor);
 
     EXPECT_FALSE(call_queue->empty());
     string output_path("output");
-    auto visitor_2 = MakeXmlExporter(output_path);
-    auto visitor_model = MakeModel();
-    MakeXmlFilesDatabaseModel(input_files)->accept(*visitor_model.visitor);
+    auto visitor_2 = MakeXmlVisitor(output_path);
+    auto visitor_model = MakeMemoryModel();
+    MakeXmlFilesModel(input_files)->accept(*visitor_model.visitor);
 
     visitor_model.model->accept(*visitor_2);
     ifstream output1;

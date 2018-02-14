@@ -13,8 +13,8 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <FlatBufferDatabaseModel.hpp>
-#include <FlatBufferExporter.hpp>
+#include <FlatBufferModel.hpp>
+#include <FlatBufferVisitor.hpp>
 #include <IModel.hpp>
 #include <IObjectListener.hpp>
 #include <Yatools.h>
@@ -83,7 +83,7 @@ int main(int argc, const char* argv[])
     LOG_Init(YATOOLS_GetLogger(pCtx), &Cfg);
 
     LOG(INFO, "create flat buffer exporter\n");
-    const auto output = MakeFlatBufferExporter();
+    const auto output = MakeFlatBufferVisitor();
 
     LOG(INFO, "create address solver\n");
     Listener listener;
@@ -92,7 +92,7 @@ int main(int argc, const char* argv[])
     std::shared_ptr<IModel> input;
     Benchmark("load flatbuffer", [&]
     {
-        input = MakeFlatBufferDatabaseModel(argv[1]);
+        input = MakeFlatBufferModel(argv[1]);
     });
 
     LOG(INFO, "transfer model\n");

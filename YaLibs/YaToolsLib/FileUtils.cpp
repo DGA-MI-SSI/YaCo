@@ -15,9 +15,9 @@
 
 #include "FileUtils.hpp"
 #include "IModelAccept.hpp"
-#include "FlatBufferDatabaseModel.hpp"
-#include "FlatBufferExporter.hpp"
-#include "XML/XMLDatabaseModel.hpp"
+#include "FlatBufferModel.hpp"
+#include "FlatBufferVisitor.hpp"
+#include "XmlModel.hpp"
 
 #include <memory>
 #include <string>
@@ -192,8 +192,8 @@ std::shared_ptr<Mmap_ABC> MmapFile(const char* pPath)
 
 bool merge_xmls_to_yadb(const std::string& output, const std::vector<std::string>& inputs)
 {
-    const auto exporter = MakeFlatBufferExporter();
-    MakeXmlFilesDatabaseModel(inputs)->accept(*exporter);
+    const auto exporter = MakeFlatBufferVisitor();
+    MakeXmlFilesModel(inputs)->accept(*exporter);
 
     // export buffer to file
     const auto buf = exporter->GetBuffer();

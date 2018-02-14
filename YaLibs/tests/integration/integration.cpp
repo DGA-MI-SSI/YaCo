@@ -18,14 +18,14 @@
 #include "../Helpers.h"
 #include "HVersion.hpp"
 #include "HObject.hpp"
-#include "XML/XMLExporter.hpp"
-#include "Model.hpp"
-#include "XML/XMLDatabaseModel.hpp"
+#include "XmlVisitor.hpp"
+#include "MemoryModel.hpp"
+#include "XmlModel.hpp"
 #include "FileUtils.hpp"
 #include "IObjectListener.hpp"
 #include "IModelVisitor.hpp"
-#include "FlatBufferDatabaseModel.hpp"
-#include "FlatBufferExporter.hpp"
+#include "FlatBufferModel.hpp"
+#include "FlatBufferVisitor.hpp"
 #include "../YaToolsLib_test/test_model.hpp"
 #include "Yatools.h"
 #include "Logger.h"
@@ -165,13 +165,13 @@ namespace
 
     void CheckModelConversions(const char* input)
     {
-        const auto expected_model = MakeMultiFlatBufferDatabaseModel({input});
+        const auto expected_model = MakeMultiFlatBufferModel({input});
         const auto expected = walk_model(*expected_model);
 
         // check fb -> std conversions
         auto stdmodel = [&]
         {
-            const auto db = MakeModel();
+            const auto db = MakeMemoryModel();
             expected_model->accept(*db.visitor);
             return walk_model(*db.model);
         }();
@@ -182,13 +182,13 @@ namespace
         {
             const TmpDir dir;
             const auto xml = (dir.path / "database.xml").string();
-            expected_model->accept(*MakeFileXmlExporter({xml}));
-            const auto db = MakeModel();
+            expected_model->accept(*MakeFileXmlVisitor({xml}));
+            const auto db = MakeMemoryModel();
             db.visitor->visit_start();
             Listener listener(*db.visitor);
             create_fbmodel_with([&](const auto& visitor)
             {
-                MakeXmlFilesDatabaseModel({xml})->accept(*visitor);
+                MakeXmlFilesModel({xml})->accept(*visitor);
             })->accept(*MakeVisitorFromListener(listener));
             db.visitor->visit_end();
             return walk_model(*db.model);

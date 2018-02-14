@@ -20,11 +20,11 @@
 #include "Repository.hpp"
 #include "Hash.hpp"
 #include "IModel.hpp"
-#include "Model.hpp"
+#include "MemoryModel.hpp"
 #include "IdaModel.hpp"
 #include "IdaVisitor.hpp"
-#include "XML/XMLExporter.hpp"
-#include "XML/XMLDatabaseModel.hpp"
+#include "XmlVisitor.hpp"
+#include "XmlModel.hpp"
 #include "Logger.h"
 #include "Yatools.h"
 #include "Utils.hpp"
@@ -973,7 +973,7 @@ void Hooks::save()
     IDA_LOG_INFO("Saving cache...");
     const auto time_start = std::chrono::system_clock::now();
 
-    ModelAndVisitor db = MakeModel();
+    ModelAndVisitor db = MakeMemoryModel();
     db.visitor->visit_start();
     {
         const auto model = MakeIncrementalIdaModel();
@@ -985,7 +985,7 @@ void Hooks::save()
             model->accept_segment(*db.visitor, segment_ea);
     }
     db.visitor->visit_end();
-    db.model->accept(*MakeXmlExporter(get_cache_folder_path()));
+    db.model->accept(*MakeXmlVisitor(get_cache_folder_path()));
 
     const auto time_end = std::chrono::system_clock::now();
     const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(time_end - time_start);
@@ -1134,8 +1134,8 @@ namespace
         const auto files = [&]
         {
             // load all xml files into a new model which we will query
-            const auto full = MakeModel();
-            MakeXmlAllDatabaseModel(".")->accept(*full.visitor);
+            const auto full = MakeMemoryModel();
+            MakeXmlAllModel(".")->accept(*full.visitor);
 
             DepCtx deps(*full.model);
 
@@ -1144,8 +1144,8 @@ namespace
             add_missing_parents_from_deletions(deps, deleted);
 
             // load all modified objects
-            const auto diff = MakeModel();
-            MakeXmlFilesDatabaseModel(state.updated)->accept(*diff.visitor);
+            const auto diff = MakeMemoryModel();
+            MakeXmlFilesModel(state.updated)->accept(*diff.visitor);
 
             diff.model->walk_objects([&](auto id, const HObject& /*hobj*/)
             {
@@ -1155,7 +1155,7 @@ namespace
             });
             return deps.files;
         }();
-        MakeXmlFilesDatabaseModel(files)->accept(v);
+        MakeXmlFilesModel(files)->accept(v);
         visitor.visit_end();
     }
 }
@@ -1183,7 +1183,7 @@ void Hooks::save_and_update()
             const auto it = p.begin();
             return it == p.end() || *it != cache;
         }), state.updated.end());
-        const ModelAndVisitor db = MakeModel();
+        const ModelAndVisitor db = MakeMemoryModel();
         load_xml_files_to(*db.visitor, state);
         import_to_ida(*db.model);
     }

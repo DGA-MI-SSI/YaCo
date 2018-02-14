@@ -13,7 +13,7 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "FlatBufferExporter.hpp"
+#include "FlatBufferVisitor.hpp"
 
 #include "IModelAccept.hpp"
 #include "IModelVisitor.hpp"
@@ -125,9 +125,9 @@ struct Xref
     operand_t       operand;
 };
 
-struct FBExporter : public IFlatExporter
+struct FlatBufferVisitor : public IFlatBufferVisitor
 {
-    FBExporter();
+    FlatBufferVisitor();
 
     // IModelVisitor
     void visit_start() override;
@@ -215,19 +215,19 @@ struct FBExporter : public IFlatExporter
 };
 }
 
-std::shared_ptr<IFlatExporter> MakeFlatBufferExporter()
+std::shared_ptr<IFlatBufferVisitor> MakeFlatBufferVisitor()
 {
-    return std::make_shared<FBExporter>();
+    return std::make_shared<FlatBufferVisitor>();
 }
 
-FBExporter::FBExporter()
+FlatBufferVisitor::FlatBufferVisitor()
     : object_type_(OBJECT_TYPE_UNKNOWN)
     , object_id_(0)
     , is_ready_(false)
 {
 }
 
-static uint32_t index_string(FBExporter& db, const const_string_ref& ref)
+static uint32_t index_string(FlatBufferVisitor& db, const const_string_ref& ref)
 {
     if(!ref.size || !ref.value)
         return 0;
@@ -236,7 +236,7 @@ static uint32_t index_string(FBExporter& db, const const_string_ref& ref)
     return static_cast<uint32_t>(db.strings_.size() - 1);
 }
 
-static uint32_t make_string(FBExporter& db, optional<std::string>& ref)
+static uint32_t make_string(FlatBufferVisitor& db, optional<std::string>& ref)
 {
     if(!ref)
         return 0;
@@ -273,13 +273,13 @@ static fb::Offset<fb::Vector<T>> make_tables(fb::FlatBufferBuilder& fbb, std::ve
     return reply;
 }
 
-void FBExporter::visit_start()
+void FlatBufferVisitor::visit_start()
 {
     // add an empty string first so index = 0 == an empty string
     strings_.emplace_back(fbbuilder_.CreateSharedString("", 0));
 }
 
-void FBExporter::visit_end()
+void FlatBufferVisitor::visit_end()
 {
     yadb::FinishRootBuffer(fbbuilder_, yadb::CreateRoot(fbbuilder_,
         make_structs(fbbuilder_, objects_),
@@ -302,7 +302,7 @@ void FBExporter::visit_end()
     is_ready_ = true;
 }
 
-ExportedBuffer FBExporter::GetBuffer() const
+ExportedBuffer FlatBufferVisitor::GetBuffer() const
 {
     STATIC_ASSERT_POD(ExportedBuffer);
     if(!is_ready_)
@@ -310,22 +310,22 @@ ExportedBuffer FBExporter::GetBuffer() const
     return ExportedBuffer{fbbuilder_.GetBufferPointer(), fbbuilder_.GetSize()};
 }
 
-void FBExporter::visit_start_object(YaToolObjectType_e type)
+void FlatBufferVisitor::visit_start_object(YaToolObjectType_e type)
 {
     object_type_ = type;
 }
 
-void FBExporter::visit_start_reference_object(YaToolObjectType_e type)
+void FlatBufferVisitor::visit_start_reference_object(YaToolObjectType_e type)
 {
     object_type_ = type;
 }
 
-void FBExporter::visit_start_deleted_object(YaToolObjectType_e type)
+void FlatBufferVisitor::visit_start_deleted_object(YaToolObjectType_e type)
 {
     object_type_ = type;
 }
 
-void FBExporter::visit_end_reference_object()
+void FlatBufferVisitor::visit_end_reference_object()
 {
     const auto dstvec = [&]() -> std::vector<fb::Offset<yadb::Version>>*
     {
@@ -361,31 +361,31 @@ void FBExporter::visit_end_reference_object()
     objects_.emplace_back(object_id_, get_object_type(object_type_));
 }
 
-void FBExporter::visit_end_deleted_object()
+void FlatBufferVisitor::visit_end_deleted_object()
 {
     versions_.clear();
 }
 
-void FBExporter::visit_id(YaToolObjectId id)
+void FlatBufferVisitor::visit_id(YaToolObjectId id)
 {
     object_id_ = id;
 }
 
-void FBExporter::visit_parent_id(YaToolObjectId id)
+void FlatBufferVisitor::visit_parent_id(YaToolObjectId id)
 {
     parent_id_ = id;
 }
 
-void FBExporter::visit_address(offset_t address)
+void FlatBufferVisitor::visit_address(offset_t address)
 {
     address_ = address;
 }
 
-void FBExporter::visit_start_object_version()
+void FlatBufferVisitor::visit_start_object_version()
 {
 }
 
-void FBExporter::visit_end_object_version()
+void FlatBufferVisitor::visit_end_object_version()
 {
     versions_.push_back(yadb::CreateVersion(fbbuilder_,
         object_id_,
@@ -410,21 +410,21 @@ void FBExporter::visit_end_object_version()
     username_.clear();
 }
 
-void FBExporter::visit_name(const const_string_ref& name, int flags)
+void FlatBufferVisitor::visit_name(const const_string_ref& name, int flags)
 {
     username_.emplace_back(flags, index_string(*this, name));
 }
 
-void FBExporter::visit_size(offset_t size)
+void FlatBufferVisitor::visit_size(offset_t size)
 {
     size_ = static_cast<uint32_t>(size);
 }
 
-void FBExporter::visit_start_signatures()
+void FlatBufferVisitor::visit_start_signatures()
 {
 }
 
-void FBExporter::visit_signature(SignatureMethod_e method, SignatureAlgo_e algo, const const_string_ref& hex)
+void FlatBufferVisitor::visit_signature(SignatureMethod_e method, SignatureAlgo_e algo, const const_string_ref& hex)
 {
     signatures_.emplace_back(
         index_string(*this, hex),
@@ -433,31 +433,31 @@ void FBExporter::visit_signature(SignatureMethod_e method, SignatureAlgo_e algo,
     );
 }
 
-void FBExporter::visit_end_signatures()
+void FlatBufferVisitor::visit_end_signatures()
 {
 }
 
-void FBExporter::visit_prototype(const const_string_ref& prototype)
+void FlatBufferVisitor::visit_prototype(const const_string_ref& prototype)
 {
     prototype_ = make_string(prototype);
 }
 
-void FBExporter::visit_string_type(int str_type)
+void FlatBufferVisitor::visit_string_type(int str_type)
 {
     string_type_ = static_cast<uint8_t>(str_type);
 }
 
-void FBExporter::visit_header_comment(bool repeatable, const const_string_ref& comment)
+void FlatBufferVisitor::visit_header_comment(bool repeatable, const const_string_ref& comment)
 {
     auto& dst = repeatable ? comment_repeatable_ : comment_nonrepeatable_;
     dst = make_string(comment);
 }
 
-void FBExporter::visit_start_offsets()
+void FlatBufferVisitor::visit_start_offsets()
 {
 }
 
-void FBExporter::visit_offset_comments(offset_t offset, CommentType_e comment_type, const const_string_ref& comment)
+void FlatBufferVisitor::visit_offset_comments(offset_t offset, CommentType_e comment_type, const const_string_ref& comment)
 {
     comments_.emplace_back(offset,
         index_string(*this, comment),
@@ -465,7 +465,7 @@ void FBExporter::visit_offset_comments(offset_t offset, CommentType_e comment_ty
     );
 }
 
-void FBExporter::visit_offset_valueview(offset_t offset, operand_t operand,
+void FlatBufferVisitor::visit_offset_valueview(offset_t offset, operand_t operand,
         const const_string_ref& view_value)
 {
     value_views_.emplace_back(
@@ -475,7 +475,7 @@ void FBExporter::visit_offset_valueview(offset_t offset, operand_t operand,
     );
 }
 
-void FBExporter::visit_offset_registerview(offset_t offset, offset_t end_offset,
+void FlatBufferVisitor::visit_offset_registerview(offset_t offset, offset_t end_offset,
         const const_string_ref& register_name, const const_string_ref& register_new_name)
 {
     register_views_.emplace_back(
@@ -486,7 +486,7 @@ void FBExporter::visit_offset_registerview(offset_t offset, offset_t end_offset,
     );
 }
 
-void FBExporter::visit_offset_hiddenarea(offset_t offset, offset_t area_size,
+void FlatBufferVisitor::visit_offset_hiddenarea(offset_t offset, offset_t area_size,
         const const_string_ref& hidden_area_value)
 {
     hidden_areas_.emplace_back(
@@ -496,20 +496,20 @@ void FBExporter::visit_offset_hiddenarea(offset_t offset, offset_t area_size,
     );
 }
 
-void FBExporter::visit_end_offsets()
+void FlatBufferVisitor::visit_end_offsets()
 {
 }
 
-void FBExporter::visit_start_xrefs()
+void FlatBufferVisitor::visit_start_xrefs()
 {
 }
 
-void FBExporter::visit_start_xref(offset_t offset, YaToolObjectId id, operand_t operand)
+void FlatBufferVisitor::visit_start_xref(offset_t offset, YaToolObjectId id, operand_t operand)
 {
     xref_ = Xref{id, offset, operand};
 }
 
-void FBExporter::visit_xref_attribute(const const_string_ref& attribute_key,
+void FlatBufferVisitor::visit_xref_attribute(const const_string_ref& attribute_key,
         const const_string_ref& attribute_value)
 {
     attributes_.emplace_back(
@@ -518,7 +518,7 @@ void FBExporter::visit_xref_attribute(const const_string_ref& attribute_key,
     );
 }
 
-void FBExporter::visit_end_xref()
+void FlatBufferVisitor::visit_end_xref()
 {
     xrefs_.push_back(yadb::CreateXref(fbbuilder_,
         xref_->offset,
@@ -529,19 +529,19 @@ void FBExporter::visit_end_xref()
     xref_ = nullopt;
 }
 
-void FBExporter::visit_end_xrefs()
+void FlatBufferVisitor::visit_end_xrefs()
 {
 }
 
-void FBExporter::visit_segments_start()
+void FlatBufferVisitor::visit_segments_start()
 {
 }
 
-void FBExporter::visit_segments_end()
+void FlatBufferVisitor::visit_segments_end()
 {
 }
 
-void FBExporter::visit_attribute(const const_string_ref& attr_name, const const_string_ref& attr_value)
+void FlatBufferVisitor::visit_attribute(const const_string_ref& attr_name, const const_string_ref& attr_value)
 {
     attributes_.emplace_back(
         index_string(*this, attr_name),
@@ -549,7 +549,7 @@ void FBExporter::visit_attribute(const const_string_ref& attr_name, const const_
     );
 }
 
-void FBExporter::visit_flags(flags_t flags)
+void FlatBufferVisitor::visit_flags(flags_t flags)
 {
     flags_ = flags;
 }
@@ -561,7 +561,7 @@ static fb::Offset<fb::Vector<uint8_t>> create_blob(fb::FlatBufferBuilder& fbb, c
     return fbb.CreateVector(reinterpret_cast<const uint8_t*>(ptr), size);
 }
 
-void FBExporter::visit_blob(offset_t offset, const void* blob, size_t len)
+void FlatBufferVisitor::visit_blob(offset_t offset, const void* blob, size_t len)
 {
     blobs_.push_back(yadb::CreateBlob(fbbuilder_,
         offset,

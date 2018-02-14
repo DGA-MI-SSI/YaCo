@@ -24,10 +24,10 @@
 #include "../Helpers.h"
 #include "Pool.hpp"
 #include "Plugins.hpp"
-#include "FlatBufferExporter.hpp"
+#include "FlatBufferVisitor.hpp"
 #include "Utils.hpp"
-#include "Model.hpp"
-#include "XML/XMLExporter.hpp"
+#include "MemoryModel.hpp"
+#include "XmlVisitor.hpp"
 #include "IModel.hpp"
 
 #include <Logger.h>
@@ -2033,7 +2033,7 @@ void ModelIncremental::delete_stack_member(IModelVisitor& v, YaToolObjectId id)
 
 void export_from_ida(const std::string& filename)
 {
-    const auto exporter = MakeFlatBufferExporter();
+    const auto exporter = MakeFlatBufferVisitor();
     Model().accept(*exporter);
 
     const auto buf = exporter->GetBuffer();
@@ -2047,7 +2047,7 @@ void export_from_ida(const std::string& filename)
 
 std::string export_xml(ea_t ea, int type_mask)
 {
-    const auto db = MakeModel();
+    const auto db = MakeMemoryModel();
     db.visitor->visit_start();
     ModelIncremental(type_mask).accept_ea(*db.visitor, ea);
     db.visitor->visit_end();
@@ -2060,7 +2060,7 @@ std::string export_xml_enum(const std::string& name)
     if(eid == BADADDR)
         return std::string();
 
-    const auto db = MakeModel();
+    const auto db = MakeMemoryModel();
     db.visitor->visit_start();
     ModelIncremental(~0).accept_enum(*db.visitor, eid);
     db.visitor->visit_end();
@@ -2073,7 +2073,7 @@ std::string export_xml_struc(const std::string& name)
     if(sid == BADADDR)
         return std::string();
 
-    const auto db = MakeModel();
+    const auto db = MakeMemoryModel();
     db.visitor->visit_start();
     ModelIncremental(~0).accept_struct(*db.visitor, BADADDR, sid);
     db.visitor->visit_end();
@@ -2099,7 +2099,7 @@ namespace
 
 std::string export_xml_strucs()
 {
-    const auto db = MakeModel();
+    const auto db = MakeMemoryModel();
     db.visitor->visit_start();
     ModelIncremental inc(~0);
     for(const auto s : get_ordered_strucs())

@@ -13,11 +13,11 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "XMLExporter.hpp"
+#include "XmlVisitor.hpp"
 
 #include "IModelAccept.hpp"
 #include "Hexa.h"
-#include "../../Helpers.h"
+#include "../Helpers.h"
 #include "Logger.h"
 #include "Yatools.h"
 #include "Signature.hpp"
@@ -49,10 +49,10 @@ namespace
 #define XML_ENCODING "iso-8859-15"
 #define INDENT_STRING "  "
 
-class XMLExporter_common : public IModelVisitor
+class XmlVisitor_common : public IModelVisitor
 {
 public:
-    XMLExporter_common();
+    XmlVisitor_common();
 
     void visit_start_object(YaToolObjectType_e object_type) override;
     void visit_start_object_version() override;
@@ -94,10 +94,10 @@ protected:
     bool                            delete_file_;
 };
 
-class XMLExporter : public XMLExporter_common
+class XmlVisitor : public XmlVisitor_common
 {
 public:
-    XMLExporter(const std::string& path);
+    XmlVisitor(const std::string& path);
     void visit_start() override;
     void visit_end() override;
     void visit_start_reference_object(YaToolObjectType_e object_type) override;
@@ -112,7 +112,7 @@ private:
 };
 
 struct MemExporter
-    : public XMLExporter_common
+    : public XmlVisitor_common
 {
     void visit_start() override;
     void visit_end() override;
@@ -126,23 +126,23 @@ struct MemExporter
     std::shared_ptr<xmlBuffer>  buffer_;
 };
 
-struct FileXMLExporter
+struct FileXmlVisitor
     : public MemExporter
 {
-    FileXMLExporter(const std::string& path);
+    FileXmlVisitor(const std::string& path);
     void visit_end() override;
     const std::string path_;
 };
 }
 
-std::shared_ptr<IModelVisitor> MakeXmlExporter(const std::string& path)
+std::shared_ptr<IModelVisitor> MakeXmlVisitor(const std::string& path)
 {
-    return std::make_shared<XMLExporter>(path);
+    return std::make_shared<XmlVisitor>(path);
 }
 
-std::shared_ptr<IModelVisitor> MakeFileXmlExporter(const std::string& path)
+std::shared_ptr<IModelVisitor> MakeFileXmlVisitor(const std::string& path)
 {
-    return std::make_shared<FileXMLExporter>(path);
+    return std::make_shared<FileXmlVisitor>(path);
 }
 
 std::string export_to_xml(IModelAccept& model)
@@ -152,23 +152,23 @@ std::string export_to_xml(IModelAccept& model)
     return mem.stream_.str();
 }
 
-FileXMLExporter::FileXMLExporter(const std::string& path)
+FileXmlVisitor::FileXmlVisitor(const std::string& path)
     : path_     (path)
 {
 }
 
-XMLExporter::XMLExporter(const std::string& path)
+XmlVisitor::XmlVisitor(const std::string& path)
     : path_     (path)
 {
 }
 
-XMLExporter_common::XMLExporter_common()
+XmlVisitor_common::XmlVisitor_common()
     : object_type_  (OBJECT_TYPE_DATA)
     , delete_file_  (false)
 {
 }
 
-void XMLExporter::visit_start()
+void XmlVisitor::visit_start()
 {
     //ensure destination folders
     filesystem::path root_folder(path_);
@@ -192,7 +192,7 @@ void XMLExporter::visit_start()
     }
 }
 
-void XMLExporter::visit_end()
+void XmlVisitor::visit_end()
 {
 }
 
@@ -211,7 +211,7 @@ void MemExporter::visit_end()
     stream_ << "</sigfile>";
 }
 
-void FileXMLExporter::visit_end()
+void FileXmlVisitor::visit_end()
 {
     MemExporter::visit_end();
     std::ofstream output;
@@ -220,7 +220,7 @@ void FileXMLExporter::visit_end()
     output.close();
 }
 
-void XMLExporter_common::visit_start_object(YaToolObjectType_e object_type)
+void XmlVisitor_common::visit_start_object(YaToolObjectType_e object_type)
 {
     UNUSED(object_type);
 }
@@ -271,7 +271,7 @@ void write_string(xmlTextWriter& xml, const char* content)
 }
 }
 
-void XMLExporter::visit_start_reference_object(YaToolObjectType_e object_type)
+void XmlVisitor::visit_start_reference_object(YaToolObjectType_e object_type)
 {
     delete_file_ = false;
     int rc = 0;
@@ -312,7 +312,7 @@ void MemExporter::visit_start_reference_object(YaToolObjectType_e object_type)
     start_element(*writer_, get_object_type_string(object_type));
 }
 
-void XMLExporter::visit_start_deleted_object(YaToolObjectType_e object_type)
+void XmlVisitor::visit_start_deleted_object(YaToolObjectType_e object_type)
 {
     delete_file_ = true;
     object_type_ = object_type;
@@ -333,7 +333,7 @@ void MemExporter::visit_start_deleted_object(YaToolObjectType_e object_type)
     object_type_ = object_type;
 }
 
-void XMLExporter::visit_end_deleted_object()
+void XmlVisitor::visit_end_deleted_object()
 {
     try
     {
@@ -350,7 +350,7 @@ void MemExporter::visit_end_deleted_object()
 
 }
 
-void XMLExporter::visit_end_reference_object()
+void XmlVisitor::visit_end_reference_object()
 {
     int rc = 0;
 
@@ -380,7 +380,7 @@ void MemExporter::visit_end_reference_object()
     buffer_.reset();
 }
 
-void XMLExporter::visit_id(YaToolObjectId object_id)
+void XmlVisitor::visit_id(YaToolObjectId object_id)
 {
     char buf[sizeof object_id * 2 + 1];
     to_hex<NullTerminate>(buf, object_id);
@@ -405,12 +405,12 @@ void MemExporter::visit_id(YaToolObjectId object_id)
     add_element(*writer_, "id", buf);
 }
 
-void XMLExporter_common::visit_start_object_version()
+void XmlVisitor_common::visit_start_object_version()
 {
     start_element(*writer_, "version");
 }
 
-void XMLExporter_common::visit_parent_id(YaToolObjectId object_id)
+void XmlVisitor_common::visit_parent_id(YaToolObjectId object_id)
 {
     if(!object_id)
         return;
@@ -420,7 +420,7 @@ void XMLExporter_common::visit_parent_id(YaToolObjectId object_id)
     add_element(*writer_, "parent_id", buf);
 }
 
-void XMLExporter_common::visit_address(offset_t address)
+void XmlVisitor_common::visit_address(offset_t address)
 {
     if(!address)
         return;
@@ -430,12 +430,12 @@ void XMLExporter_common::visit_address(offset_t address)
     add_element(*writer_, "address", str.value);
 }
 
-void XMLExporter_common::visit_end_object_version()
+void XmlVisitor_common::visit_end_object_version()
 {
     end_element(*writer_, "version");
 }
 
-void XMLExporter_common::visit_name(const const_string_ref& name, int flags)
+void XmlVisitor_common::visit_name(const const_string_ref& name, int flags)
 {
     start_element(*writer_, "userdefinedname");
     if(flags)
@@ -450,19 +450,19 @@ void XMLExporter_common::visit_name(const const_string_ref& name, int flags)
     end_element(*writer_, "userdefinedname");
 }
 
-void XMLExporter_common::visit_size(offset_t size)
+void XmlVisitor_common::visit_size(offset_t size)
 {
     char buf[2 + sizeof size * 2 + 1];
     to_hex<HexaPrefix | NullTerminate>(buf, size);
     add_element(*writer_, "size", buf);
 }
 
-void  XMLExporter_common::visit_start_signatures()
+void  XmlVisitor_common::visit_start_signatures()
 {
     start_element(*writer_, "signatures");
 }
 
-void XMLExporter_common::visit_signature(SignatureMethod_e method, SignatureAlgo_e algo, const const_string_ref& hex)
+void XmlVisitor_common::visit_signature(SignatureMethod_e method, SignatureAlgo_e algo, const const_string_ref& hex)
 {
     start_element(*writer_, "signature");
     add_attribute(*writer_, "algo", get_signature_algo_string(algo));
@@ -471,17 +471,17 @@ void XMLExporter_common::visit_signature(SignatureMethod_e method, SignatureAlgo
     end_element(*writer_, "signature");
 }
 
-void XMLExporter_common::visit_end_signatures()
+void XmlVisitor_common::visit_end_signatures()
 {
     end_element(*writer_, "signatures");
 }
 
-void XMLExporter_common::visit_prototype(const const_string_ref& prototype)
+void XmlVisitor_common::visit_prototype(const const_string_ref& prototype)
 {
     add_element(*writer_, "proto", make_text(bufkey_, prototype));
 }
 
-void XMLExporter_common::visit_string_type(int str_type)
+void XmlVisitor_common::visit_string_type(int str_type)
 {
     char str_type_buffer[sizeof(str_type) * 2 + 2] = { 0 };
     sprintf(str_type_buffer, "%d", str_type);
@@ -506,23 +506,23 @@ static std::string xml_escape(const const_string_ref& ref)
     return xml_escape(make_string(ref));
 }
 
-void XMLExporter_common::visit_header_comment(bool repeatable, const const_string_ref& comment)
+void XmlVisitor_common::visit_header_comment(bool repeatable, const const_string_ref& comment)
 {
     const char* key = repeatable ? "repeatable_headercomment" : "nonrepeatable_headercomment";
     add_element(*writer_, key, xml_escape(comment).data());
 }
 
-void XMLExporter_common::visit_start_offsets()
+void XmlVisitor_common::visit_start_offsets()
 {
     start_element(*writer_, "offsets");
 }
 
-void XMLExporter_common::visit_end_offsets()
+void XmlVisitor_common::visit_end_offsets()
 {
     end_element(*writer_, "offsets");
 }
 
-void XMLExporter_common::visit_offset_comments(offset_t offset, CommentType_e comment_type, const const_string_ref& comment)
+void XmlVisitor_common::visit_offset_comments(offset_t offset, CommentType_e comment_type, const const_string_ref& comment)
 {
     char buf[sizeof offset * 2 + 1];
     start_element(*writer_, "comments");
@@ -532,7 +532,7 @@ void XMLExporter_common::visit_offset_comments(offset_t offset, CommentType_e co
     end_element(*writer_, "comments");
 }
 
-void XMLExporter_common::visit_offset_valueview(offset_t offset, operand_t operand, const const_string_ref& view_value)
+void XmlVisitor_common::visit_offset_valueview(offset_t offset, operand_t operand, const const_string_ref& view_value)
 {
     char offbuf[sizeof offset * 2 + 1];
     char opbuf[sizeof operand * 2 + 1];
@@ -543,7 +543,7 @@ void XMLExporter_common::visit_offset_valueview(offset_t offset, operand_t opera
     end_element(*writer_, "valueview");
 }
 
-void XMLExporter_common::visit_offset_registerview(offset_t offset, offset_t end_offset, const const_string_ref& register_name, const const_string_ref& register_new_name)
+void XmlVisitor_common::visit_offset_registerview(offset_t offset, offset_t end_offset, const const_string_ref& register_name, const const_string_ref& register_new_name)
 {
     char buf[sizeof offset * 2 + 1];
     start_element(*writer_, "registerview");
@@ -554,7 +554,7 @@ void XMLExporter_common::visit_offset_registerview(offset_t offset, offset_t end
     end_element(*writer_, "registerview");
 }
 
-void XMLExporter_common::visit_offset_hiddenarea(offset_t offset, offset_t area_size, const const_string_ref& hidden_area_value)
+void XmlVisitor_common::visit_offset_hiddenarea(offset_t offset, offset_t area_size, const const_string_ref& hidden_area_value)
 {
     char buf[sizeof offset * 2 + 1];
     start_element(*writer_, "hiddenarea");
@@ -564,27 +564,27 @@ void XMLExporter_common::visit_offset_hiddenarea(offset_t offset, offset_t area_
     end_element(*writer_, "hiddenarea");
 }
 
-void XMLExporter_common::visit_start_xrefs()
+void XmlVisitor_common::visit_start_xrefs()
 {
     start_element(*writer_, "xrefs");
 }
 
-void XMLExporter_common::visit_end_xrefs()
+void XmlVisitor_common::visit_end_xrefs()
 {
     end_element(*writer_, "xrefs");
 }
 
-void XMLExporter_common::visit_segments_start()
+void XmlVisitor_common::visit_segments_start()
 {
 
 }
 
-void XMLExporter_common::visit_segments_end()
+void XmlVisitor_common::visit_segments_end()
 {
 
 }
 
-void XMLExporter_common::visit_attribute(const const_string_ref& attr_name, const const_string_ref& attr_value)
+void XmlVisitor_common::visit_attribute(const const_string_ref& attr_name, const const_string_ref& attr_value)
 {
     start_element(*writer_, "attribute");
     add_attribute(*writer_, "key", make_text(bufkey_, attr_name));
@@ -592,7 +592,7 @@ void XMLExporter_common::visit_attribute(const const_string_ref& attr_name, cons
     end_element(*writer_, "attribute");
 }
 
-void XMLExporter_common::visit_start_xref(offset_t offset, YaToolObjectId offset_value, operand_t operand)
+void XmlVisitor_common::visit_start_xref(offset_t offset, YaToolObjectId offset_value, operand_t operand)
 {
     char offbuf[2 + sizeof offset * 2 + 1];
     start_element(*writer_, "xref");
@@ -605,18 +605,18 @@ void XMLExporter_common::visit_start_xref(offset_t offset, YaToolObjectId offset
     tmp_value_ = make_string(to_hex(buf, offset_value));
 }
 
-void XMLExporter_common::visit_end_xref()
+void XmlVisitor_common::visit_end_xref()
 {
     write_string(*writer_, tmp_value_.data());
     end_element(*writer_, "xref");
 }
 
-void XMLExporter_common::visit_xref_attribute(const const_string_ref& attribute_key, const const_string_ref& attribute_value)
+void XmlVisitor_common::visit_xref_attribute(const const_string_ref& attribute_key, const const_string_ref& attribute_value)
 {
     add_attribute(*writer_, make_text(bufkey_, attribute_key), make_text(bufval_, attribute_value));
 }
 
-void XMLExporter_common::visit_blob(offset_t offset, const void* blob, size_t len)
+void XmlVisitor_common::visit_blob(offset_t offset, const void* blob, size_t len)
 {
     std::vector<char> buffer(len*2 + 1);
 
@@ -632,7 +632,7 @@ void XMLExporter_common::visit_blob(offset_t offset, const void* blob, size_t le
     end_element(*writer_, "blob");
 }
 
-void XMLExporter_common::visit_flags(flags_t flags)
+void XmlVisitor_common::visit_flags(flags_t flags)
 {
     if(!flags)
         return;

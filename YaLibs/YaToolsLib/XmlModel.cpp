@@ -13,16 +13,16 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "XMLDatabaseModel.hpp"
+#include "XmlModel.hpp"
 
 #include "Hexa.h"
 #include "DelegatingVisitor.hpp"
 #include "Signature.hpp"
 #include "IModelAccept.hpp"
-#include "../IModelVisitor.hpp"
-#include "../YaTypes.hpp"
-#include "../Logger.h"
-#include "../Yatools.h"
+#include "IModelVisitor.hpp"
+#include "YaTypes.hpp"
+#include "Logger.h"
+#include "Yatools.h"
 
 #include <algorithm>
 #include <string>
@@ -77,7 +77,7 @@ namespace
         "basic_block",
     };
 
-    struct XMLDatabaseModelImpl : public IModelAccept
+    struct XmlModel : public IModelAccept
     {
         void accept_file(const std::string& filename, IModelVisitor& visitor);
         void accept_file_node(xmlNodePtr node, IModelVisitor& visitor);
@@ -90,9 +90,9 @@ namespace
         }
     };
 
-    struct XMLDatabaseModelFiles : public XMLDatabaseModelImpl
+    struct XmlModelFiles : public XmlModel
     {
-        XMLDatabaseModelFiles(const std::vector<std::string>& files)
+        XmlModelFiles(const std::vector<std::string>& files)
             : files(files)
         {
         }
@@ -102,9 +102,9 @@ namespace
         std::vector<std::string> files;
     };
 
-    struct XMLDatabaseModelPath : public XMLDatabaseModelImpl
+    struct XmlModelPath : public XmlModel
     {
-        XMLDatabaseModelPath(const std::string& path)
+        XmlModelPath(const std::string& path)
             : path(path)
         {
         }
@@ -137,19 +137,19 @@ namespace
     };
 }
 
-std::shared_ptr<IModelAccept> MakeXmlAllDatabaseModel(const std::string& folder)
+std::shared_ptr<IModelAccept> MakeXmlAllModel(const std::string& folder)
 {
     return std::make_shared<XMLAllDatabaseModel>(folder);
 }
 
 std::shared_ptr<IModelAccept> MakeXmlDatabaseModel(const std::string& folder)
 {
-    return std::make_shared<XMLDatabaseModelPath>(folder);
+    return std::make_shared<XmlModelPath>(folder);
 }
 
-std::shared_ptr<IModelAccept> MakeXmlFilesDatabaseModel(const std::vector<std::string>& files)
+std::shared_ptr<IModelAccept> MakeXmlFilesModel(const std::vector<std::string>& files)
 {
-    return std::make_shared<XMLDatabaseModelFiles>(files);
+    return std::make_shared<XmlModelFiles>(files);
 }
 
 XMLAllDatabaseModel::XMLAllDatabaseModel(const std::string& folder)
@@ -163,13 +163,13 @@ void XMLAllDatabaseModel::accept(IModelVisitor& visitor)
     SkipVisitStartEndVisitor visitor_(visitor);
     const auto cache_path = filesystem::path(folder) / "cache";
     if(filesystem::is_directory(cache_path))
-        XMLDatabaseModelPath(cache_path.string()).accept(visitor_);
+        XmlModelPath(cache_path.string()).accept(visitor_);
     else
         YALOG_ERROR(nullptr, "input cache not found as %s\n", cache_path.generic_string().data());
     visitor.visit_end();
 }
 
-void XMLDatabaseModelFiles::accept(IModelVisitor& visitor)
+void XmlModelFiles::accept(IModelVisitor& visitor)
 {
     visitor.visit_start();
     std::sort(files.begin(), files.end(), [](const filesystem::path& a, const filesystem::path& b)
@@ -189,7 +189,7 @@ void XMLDatabaseModelFiles::accept(IModelVisitor& visitor)
     visitor.visit_end();
 }
 
-void XMLDatabaseModelImpl::accept_file(const std::string& filename, IModelVisitor& visitor)
+void XmlModel::accept_file(const std::string& filename, IModelVisitor& visitor)
 {
     auto reader = std::shared_ptr<xmlTextReader>(xmlReaderForFile(filename.c_str(), nullptr, 0),xmlFreeTextReader);
     if(reader.get() == nullptr)
@@ -211,7 +211,7 @@ void XMLDatabaseModelImpl::accept_file(const std::string& filename, IModelVisito
     } while(xmlTextReaderNext(reader.get()) == 1);
 }
 
-void XMLDatabaseModelPath::accept(IModelVisitor& visitor)
+void XmlModelPath::accept(IModelVisitor& visitor)
 {
     visitor.visit_start();
     const auto& folder_names = getFolderNames();
@@ -253,7 +253,7 @@ void XMLDatabaseModelPath::accept(IModelVisitor& visitor)
 }
 
 
-void XMLDatabaseModelImpl::accept_file_node(xmlNodePtr node, IModelVisitor& visitor)
+void XmlModel::accept_file_node(xmlNodePtr node, IModelVisitor& visitor)
 {
     for(const auto& object_type : getFolderNames())
         accept_reference_object(object_type, node, visitor);
@@ -279,7 +279,7 @@ static std::string xml_get_prop(xmlNode* node, const char* name)
     return reply;
 }
 
-void XMLDatabaseModelImpl::accept_reference_object(const std::string& object_type, xmlNodePtr node, IModelVisitor& visitor)
+void XmlModel::accept_reference_object(const std::string& object_type, xmlNodePtr node, IModelVisitor& visitor)
 {
     if (xmlStrcmp(node->name, BAD_CAST object_type.c_str()) == 0)
     {
@@ -316,7 +316,7 @@ void XMLDatabaseModelImpl::accept_reference_object(const std::string& object_typ
     }
 }
 
-void XMLDatabaseModelImpl::accept_version(xmlNodePtr node, IModelVisitor& visitor)
+void XmlModel::accept_version(xmlNodePtr node, IModelVisitor& visitor)
 {
 
     std::string name;

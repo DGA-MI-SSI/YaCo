@@ -18,9 +18,9 @@
 #include "HVersion.hpp"
 #include "HObject.hpp"
 #include "IModelVisitor.hpp"
-#include "Model.hpp"
-#include "XML/XMLDatabaseModel.hpp"
-#include "XML/XMLExporter.hpp"
+#include "MemoryModel.hpp"
+#include "XmlModel.hpp"
+#include "XmlVisitor.hpp"
 #include "../Helpers.h"
 
 #include <functional>
@@ -61,12 +61,12 @@ MergeStatus_e Merger::smartMerge(   const char* input_file1, const char* input_f
     auto file_vect2 = std::vector<std::string>();
     file_vect2.push_back(std::string(input_file2));
 
-    auto database1 = MakeModel();
-    auto database2 = MakeModel();
+    auto database1 = MakeMemoryModel();
+    auto database2 = MakeMemoryModel();
 
     // reload two databases with one object version in each database
-    MakeXmlFilesDatabaseModel(file_vect1)->accept(*database1.visitor);
-    MakeXmlFilesDatabaseModel(file_vect2)->accept(*database2.visitor);
+    MakeXmlFilesModel(file_vect1)->accept(*database1.visitor);
+    MakeXmlFilesModel(file_vect2)->accept(*database2.visitor);
 
     /* Check only one object version is present in each database */
     int count1 = 0;
@@ -115,7 +115,7 @@ MergeStatus_e Merger::smartMerge(   const char* input_file1, const char* input_f
         throw("PythonResolveFileConflictCallback: callback: invalid number of object version in reference object");
     }
 
-    auto visitor1 = MakeModel();
+    auto visitor1 = MakeMemoryModel();
 
     /* Build relation */
     Relation relation;
@@ -135,7 +135,7 @@ MergeStatus_e Merger::smartMerge(   const char* input_file1, const char* input_f
     if(retval != OBJECT_MERGE_STATUS_NOT_UPDATED)
     {
         const std::string output_path = std::string(output_file_result);
-        auto xml_exporter = MakeFileXmlExporter(output_path);
+        auto xml_exporter = MakeFileXmlVisitor(output_path);
         visitor1.model->accept(*xml_exporter);
     }
 
