@@ -31,7 +31,7 @@ struct IRepository
 {
     virtual ~IRepository() = default;
 
-    virtual void add_auto_comment(ea_t ea, const std::string& text) = 0;
+    virtual void add_comment(const std::string& msg) = 0;
 
     virtual void check_valid_cache_startup() = 0;
 

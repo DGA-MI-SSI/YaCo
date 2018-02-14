@@ -183,51 +183,6 @@ namespace
         IDA_LOG_INFO("Copied current IDB to original IDB");
         return true;
     }
-
-    std::string generate_auto_comment_prefix(ea_t ea)
-    {
-        if (get_struc(ea))
-        {
-            if (get_struc_idx(ea) == BADADDR)
-            {
-                qstring func_name;
-                get_func_name(&func_name, get_func_by_frame(ea));
-                return "stackframe '" + std::string(func_name.c_str()) + "'";
-            }
-
-            return "structure '" + std::string(get_struc_name(ea).c_str()) + "'";
-        }
-
-        if (get_enum_idx(ea) != BADADDR)
-            return "enum '" + std::string(get_enum_name(ea).c_str()) + "'";
-
-        std::string prefix = ea_to_hex(ea);
-        func_t* func = get_func(ea);
-        if (!func)
-            return prefix;
-
-        qstring buffer;
-        get_func_name(&buffer, ea);
-        if (buffer.empty())
-            return prefix;
-
-        prefix += ',';
-        prefix += buffer.c_str();
-
-        if (ea == func->start_ea)
-            return prefix;
-
-        if (get_ea_name(&buffer, ea, GN_LOCAL) && !buffer.empty())
-        {
-            prefix += ':';
-            prefix += buffer.c_str();
-            return prefix;
-        }
-
-        prefix += '+';
-        prefix += ea_to_hex(ea - func->start_ea);
-        return prefix;
-    }
 }
 
 namespace
@@ -290,26 +245,13 @@ bool IDAInteractiveFileConflictResolver::callback(const std::string& input_file1
 
 namespace
 {
-    struct AutoComment
-    {
-        AutoComment(const std::string& prefix_, const std::string& text_)
-            : prefix(prefix_)
-            , text(text_)
-        {
-
-        }
-
-        std::string prefix;
-        std::string text;
-    };
-
     struct Repository
         : public IRepository
     {
         Repository(const std::string& path);
 
         // IRepository
-        void add_auto_comment(ea_t ea, const std::string& text) override;
+        void add_comment(const std::string& msg) override;
         void check_valid_cache_startup() override; // can stop IDA
         State update_cache() override;
         bool commit_cache() override;
@@ -335,14 +277,13 @@ namespace
         std::string get_commit(const std::string& ref);
 
         GitRepo repo_;
-        std::vector<AutoComment> auto_comments_;
+        std::vector<std::string> comments_;
         bool repo_auto_sync_;
     };
 }
 
 Repository::Repository(const std::string& path)
     : repo_(path)
-    , auto_comments_()
     , repo_auto_sync_(true)
 {
     const bool repo_already_exists = is_git_working_dir(path);
@@ -370,9 +311,9 @@ Repository::Repository(const std::string& path)
         IDA_LOG_ERROR("Unable to push");
 }
 
-void Repository::add_auto_comment(ea_t ea, const std::string & text)
+void Repository::add_comment(const std::string& msg)
 {
-    auto_comments_.emplace_back(generate_auto_comment_prefix(ea), text);
+    comments_.emplace_back(msg);
 }
 
 void Repository::check_valid_cache_startup()
@@ -525,44 +466,25 @@ bool Repository::commit_cache()
             IDA_LOG_ERROR("unable to remove %s for index", f.c_str());
     IDA_LOG_INFO("%zd modified %zd added %zd deleted", modified_files.size(), untracked_files.size(), deleted_files.size());
 
-    size_t max_prefix_len = 0;
-    size_t max_txt_len = 0;
-    for (const AutoComment& comment : auto_comments_)
-    {
-        max_prefix_len = std::max(comment.prefix.size(), max_prefix_len);
-        max_txt_len = std::max(comment.text.size(), max_txt_len);
-    }
+    // sort & dedup
+    std::sort(comments_.begin(), comments_.end());
+    comments_.erase(std::unique(comments_.begin(), comments_.end()), comments_.end());
 
-    std::sort(auto_comments_.begin(), auto_comments_.end(),
-        [](const AutoComment& a, const AutoComment& b)
-    {
-        return std::make_pair(a.prefix, a.text) < std::make_pair(b.prefix, b.text);
-    });
-
-    size_t max_total_len = max_prefix_len + max_txt_len + 4; // for '[', ']', ' ', '\0'
-    std::vector<char> buffer(max_total_len);
     std::string commit_msg;
-    bool need_truncate = false;
-    for (const AutoComment& comment : auto_comments_)
+    for(const auto& it : comments_)
     {
-        auto len = snprintf(buffer.data(), max_total_len, "[%-*s] %s", static_cast<int>(max_prefix_len), comment.prefix.c_str(), comment.text.c_str());
-        if (!len)
-            continue;
-
-        commit_msg.append(buffer.data(), len);
-        commit_msg += '\n';
-        need_truncate = commit_msg.size() > TRUNCATE_COMMIT_MSG_LENGTH;
-        if (need_truncate)
-            break;
+        commit_msg.append(it);
+        commit_msg.append("\n");
     }
-    if (need_truncate)
+    comments_.clear();
+
+    if(commit_msg.size() > TRUNCATE_COMMIT_MSG_LENGTH)
     {
         commit_msg.erase(TRUNCATE_COMMIT_MSG_LENGTH);
         commit_msg += "\n...truncated";
     }
-
-    if (commit_msg.empty())
-        commit_msg = "Undefined changes";
+    if(commit_msg.empty())
+        commit_msg = "unknown changes";
 
     if (!commit(commit_msg))
     {
@@ -570,7 +492,6 @@ bool Repository::commit_cache()
         return false;
     }
 
-    auto_comments_.clear();
     IDA_LOG_INFO("Changes committed");
     return true;
 }

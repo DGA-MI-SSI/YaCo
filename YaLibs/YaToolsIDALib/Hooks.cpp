@@ -326,7 +326,6 @@ namespace
     using StructMembers = std::map<YaToolObjectId, StrucMember>;
     using Enums         = std::map<YaToolObjectId, enum_t>;
     using EnumMembers   = std::map<YaToolObjectId, EnumMember>;
-    using Comments      = std::set<ea_t>;
     using Segments      = std::set<ea_t>;
 
     struct Hooks
@@ -341,8 +340,7 @@ namespace
         void unhook() override;
 
         // Internal
-        void rename(ea_t ea, const std::string& new_name, const std::string& type, const std::string& old_name);
-        void update_comment(ea_t ea);
+        void rename(ea_t ea, const std::string& name);
         void delete_function(ea_t ea);
         void make_code(ea_t ea);
         void make_data(ea_t ea);
@@ -352,12 +350,12 @@ namespace
         void update_struct_member(tid_t struct_id, tid_t member_id, ea_t offset);
         void delete_struct_member(tid_t struct_id, ea_t offset);
         void update_enum(enum_t enum_id);
-        void change_operand_type(ea_t ea);
+        void change_operand_type(ea_t ea, int n);
         void update_segment(ea_t start_ea);
         void change_type_information(ea_t ea);
 
-        void add_ea(ea_t ea, const std::string& message);
-        void add_struct_member(ea_t struct_id, ea_t member_offset, const std::string& message);
+        void add_ea(ea_t ea);
+        void add_struct_member(ea_t struct_id, ea_t member_offset);
 
         void save_structs(IModelIncremental& model, IModelVisitor& visitor);
         void save_enums(IModelIncremental& model, IModelVisitor& visitor);
@@ -468,7 +466,6 @@ namespace
         StructMembers   struc_members_;
         Enums           enums_;
         EnumMembers     enum_members_;
-        Comments        comments_;
         Segments        segments_;
 
         bool            enabled_;
@@ -635,55 +632,165 @@ void Hooks::unhook()
     enabled_ = false;
 }
 
-void Hooks::rename(ea_t ea, const std::string& new_name, const std::string& type, const std::string& old_name)
+namespace
 {
-    std::string message{ type };
-    if(!type.empty())
-        message += ' ';
-    message += "renamed ";
-    if(!old_name.empty())
+    std::string to_hex(uint64_t ea)
     {
-        message += "from ";
-        message += old_name;
+        char dst[2 + sizeof ea * 2];
+        ea = swap(ea);
+        const auto ref = binhex<sizeof ea, RemovePadding | HexaPrefix>(dst, &ea);
+        return make_string(ref);
     }
-    message += "to ";
-    message += new_name;
-    add_ea(ea, message);
+
+    template<typename T>
+    std::string to_string(const T& value)
+    {
+        std::stringstream stream;
+        stream << value;
+        return stream.str();
+    }
+
+    std::string make_frame_prefix(struc_t* frame)
+    {
+        const auto func_ea = get_func_by_frame(frame->id);
+        return to_hex(func_ea) + ": stack ";
+    }
+
+    std::string make_struc_prefix(struc_t* struc)
+    {
+        if(struc->props & SF_FRAME)
+            return make_frame_prefix(struc);
+
+        qstring name;
+        get_struc_name(&name, struc->id);
+        if(name.empty())
+            return std::string();
+
+        return std::string("struc ") + name.c_str() + ": ";
+    }
+
+    std::string make_stackmember_prefix(struc_t* frame, member_t* member)
+    {
+        qstring name;
+        get_member_name(&name, member->id);
+        auto prefix = make_frame_prefix(frame);
+        if(prefix.empty() || name.empty())
+            return prefix;
+
+        while(name[0] == ' ')
+            name.remove(0, 1);
+        prefix.resize(prefix.size() - 1); // remove last ' '
+        return prefix + "." + name.c_str() + " ";
+    }
+
+    std::string make_member_prefix(struc_t* struc, member_t* member)
+    {
+        if(struc->props & SF_FRAME)
+            return make_stackmember_prefix(struc, member);
+
+        qstring name;
+        get_member_name(&name, member->id);
+        auto prefix = make_struc_prefix(struc);
+        if(prefix.empty() || name.empty())
+            return prefix;
+
+        while(name[0] == ' ')
+            name.remove(0, 1);
+        prefix.resize(prefix.size() - 2); // remove last ": "
+        return prefix + "." + name.c_str() + ": ";
+    }
+
+    std::string make_enum_prefix(enum_t eid)
+    {
+        qstring name;
+        get_enum_name(&name, eid);
+        if(name.empty())
+            return std::string();
+
+        return std::string("enum ") + name.c_str() + ": ";
+    }
+
+    std::string make_enum_member_prefix(enum_t eid, const_t mid)
+    {
+        qstring name;
+        get_enum_member_name(&name, mid);
+        auto prefix = make_enum_prefix(eid);
+        if(prefix.empty() || name.empty())
+            return std::string();
+
+        prefix.resize(prefix.size() - 2); // remove last ": "
+        return prefix + "." + name.c_str() + ": ";
+    }
+
+    std::string make_comment_prefix(ea_t ea)
+    {
+        if(ea == BADADDR)
+            return std::string();
+
+        auto struc = get_struc(ea);
+        if(struc)
+            return make_struc_prefix(struc);
+
+        const auto member = get_member_by_id(ea, &struc);
+        if(member)
+            return make_member_prefix(struc, member);
+
+        const auto idx = get_enum_idx(ea);
+        if(idx != BADADDR)
+            return make_enum_prefix(ea);
+
+        const auto eid = get_enum_member_enum(ea);
+        if(eid != BADADDR)
+            return make_enum_member_prefix(eid, ea);
+
+        if(!getseg(ea))
+            return std::string();
+
+        return to_hex(ea) + ": ";
+    }
+
+    void add_auto_comment(IRepository& repo, ea_t ea, const std::string& msg)
+    {
+        const auto prefix = make_comment_prefix(ea);
+        if(!prefix.empty())
+            repo.add_comment(prefix + msg);
+    }
 }
 
-void Hooks::update_comment(ea_t ea)
+void Hooks::rename(ea_t ea, const std::string& name)
 {
-    comments_.insert(ea);
+    add_auto_comment(repo_, ea, "renamed to '" + name + "'");
+    add_ea(ea);
 }
 
 void Hooks::delete_function(ea_t ea)
 {
-    add_ea(ea, "Delete function");
+    repo_.add_comment(to_hex(ea) + ": func deleted");
+    add_ea(ea);
 }
 
 void Hooks::make_code(ea_t ea)
 {
-    add_ea(ea, "Create code");
+    repo_.add_comment(to_hex(ea) + ": code created");
+    add_ea(ea);
 }
 
 void Hooks::make_data(ea_t ea)
 {
-    add_ea(ea, "Create data");
+    repo_.add_comment(to_hex(ea) + ": data created");
+    add_ea(ea);
 }
 
 void Hooks::add_function(ea_t ea)
 {
-    // Comments from Python:
-    // invalid all addresses in this function(they depend(relatively) on this function now, no on code)
-    // Warning : deletion of objects not implemented
-    // TODO : implement deletion of objects inside newly created function range
-    // TODO : use function chunks to iterate over function code
-    add_ea(ea, "Create function");
+    repo_.add_comment(to_hex(ea) + ": func created");
+    add_ea(ea);
 }
 
 void Hooks::update_function(ea_t ea)
 {
-    add_ea(ea, "Update function");
+    repo_.add_comment(to_hex(ea) + ": func updated");
+    add_ea(ea);
 }
 
 void Hooks::update_struct(ea_t struc_id)
@@ -692,20 +799,21 @@ void Hooks::update_struct(ea_t struc_id)
     ya::wrap(&get_struc_name, *name, struc_id);
     const auto id = hash::hash_struc(ya::to_string_ref(*name));
     strucs_.emplace(id, Struc{struc_id, get_func_by_frame(struc_id)});
-    repo_.add_auto_comment(struc_id, "Updated");
+    add_auto_comment(repo_, struc_id, "updated");
 }
 
-void Hooks::update_struct_member(tid_t struct_id, tid_t member_id, ea_t offset)
+void Hooks::update_struct_member(tid_t sid, tid_t mid, ea_t offset)
 {
-    const auto fullname = qpool_.acquire();
-    ya::wrap(&::get_member_fullname, *fullname, member_id);
-    const std::string message = "Member updated at offset " + ea_to_hex(offset) + " : " + fullname->c_str();
-    add_struct_member(struct_id, offset, message);
+    add_auto_comment(repo_, mid, "updated");
+    add_struct_member(sid, offset);
 }
 
-void Hooks::delete_struct_member(tid_t struct_id, ea_t offset)
+void Hooks::delete_struct_member(tid_t sid, ea_t offset)
 {
-    add_struct_member(struct_id, offset, "Member deleted");
+    const auto member = get_member(get_struc(sid), offset);
+    if(member)
+        add_auto_comment(repo_, member->id, "deleted");
+    add_struct_member(sid, offset);
 }
 
 namespace
@@ -716,6 +824,7 @@ namespace
         ya::wrap(&::get_enum_member_name, *qbuf, cid);
         const auto id = hash::hash_enum_member(enum_id, ya::to_string_ref(*qbuf));
         hooks.enum_members_.emplace(id, EnumMember{enum_id, eid, cid});
+        add_auto_comment(hooks.repo_, cid, "updated");
     }
 }
 
@@ -734,15 +843,15 @@ void Hooks::update_enum(enum_t enum_id)
     {
         ::update_enum_member(*this, id, enum_id, cid);
     });
-    repo_.add_auto_comment(enum_id, "Updated");
+    add_auto_comment(repo_, enum_id, "updated");
 }
 
-void Hooks::change_operand_type(ea_t ea)
+void Hooks::change_operand_type(ea_t ea, int n)
 {
     if(get_func(ea) || is_code(get_flags(ea)))
     {
         eas_.insert(ea);
-        repo_.add_auto_comment(ea, "Operand type change");
+        repo_.add_comment(to_hex(ea) + ": updated operand " + to_string(n));
         return;
     }
 
@@ -752,23 +861,24 @@ void Hooks::change_operand_type(ea_t ea)
     IDA_LOG_WARNING("Operand type changed at %s, code out of a function: not implemented", ea_to_hex(ea).c_str());
 }
 
-void Hooks::update_segment(ea_t start_ea)
+void Hooks::update_segment(ea_t ea)
 {
-    segments_.insert(start_ea);
+    repo_.add_comment(to_hex(ea) + ": segm updated");
+    segments_.insert(ea);
 }
 
 void Hooks::change_type_information(ea_t ea)
 {
-    add_ea(ea, "Type information changed");
+    add_auto_comment(repo_, ea, "type updated");
+    add_ea(ea);
 }
 
-void Hooks::add_ea(ea_t ea, const std::string& message)
+void Hooks::add_ea(ea_t ea)
 {
     eas_.insert(ea);
-    repo_.add_auto_comment(ea, message);
 }
 
-void Hooks::add_struct_member(ea_t struc_id, ea_t offset, const std::string& message)
+void Hooks::add_struct_member(ea_t struc_id, ea_t offset)
 {
     const auto func_ea = get_func_by_frame(struc_id);
     const auto name = qpool_.acquire();
@@ -778,7 +888,6 @@ void Hooks::add_struct_member(ea_t struc_id, ea_t offset, const std::string& mes
         hash::hash_struc(ya::to_string_ref(*name));
     const auto id = hash::hash_member(parent_id, offset);
     struc_members_.emplace(id, StrucMember{parent_id, {struc_id, func_ea}, offset});
-    repo_.add_auto_comment(struc_id, message);
 }
 
 namespace
@@ -863,10 +972,6 @@ void Hooks::save()
 {
     IDA_LOG_INFO("Saving cache...");
     const auto time_start = std::chrono::system_clock::now();
-
-    // add comments to adresses to process
-    for (const ea_t ea : comments_)
-        add_ea(ea, "Changed comment");
 
     ModelAndVisitor db = MakeModel();
     db.visitor->visit_start();
@@ -1105,7 +1210,6 @@ void Hooks::flush()
     struc_members_.clear();
     enums_.clear();
     enum_members_.clear();
-    comments_.clear();
     segments_.clear();
 }
 
@@ -1332,10 +1436,9 @@ void Hooks::op_type_changed(va_list args)
     const auto ea = va_arg(args, ea_t);
     const auto n  = va_arg(args, int);
 
-    UNUSED(n);
     LOG_IDB_EVENT("An operand type at " EA_FMT " has been set or deleted", ea);
 
-    change_operand_type(ea);
+    change_operand_type(ea, n);
 }
 
 void Hooks::enum_created(va_list args)
@@ -2227,7 +2330,7 @@ void Hooks::renamed(va_list args)
     UNUSED(local_name);
     LOG_IDB_EVENT("Byte at " EA_FMT " renamed to %s", ea, new_name);
     
-    rename(ea, new_name, "", "");
+    rename(ea, new_name);
 }
 
 void Hooks::byte_patched(va_list args)
@@ -2254,7 +2357,8 @@ void Hooks::cmt_changed(va_list args)
 
     LOG_IDB_EVENT("Item at " EA_FMT " %scomment has been changed to \"%s\"", ea, REPEATABLE_STR[repeatable_cmt], get_cmt(ea, repeatable_cmt).c_str());
 
-    update_comment(ea);
+    repo_.add_comment(to_hex(ea) + ": cmt updated");
+    add_ea(ea);
 }
 
 void Hooks::changing_range_cmt(va_list args)
@@ -2276,7 +2380,8 @@ void Hooks::range_cmt_changed(va_list args)
 
     LOG_IDB_EVENT("%s range from " EA_FMT " to " EA_FMT " %scomment has been changed to \"%s\"", range_kind_to_str(kind), a->start_ea, a->end_ea, REPEATABLE_STR[repeatable], cmt);
 
-    update_comment(a->start_ea);
+    repo_.add_comment(to_hex(a->start_ea) + ": cmt updated");
+    add_ea(a->start_ea);
 }
 
 void Hooks::extra_cmt_changed(va_list args)
@@ -2288,7 +2393,8 @@ void Hooks::extra_cmt_changed(va_list args)
     UNUSED(line_idx);
     LOG_IDB_EVENT("Extra comment at " EA_FMT " has been changed to \"%s\"", ea, cmt);
 
-    update_comment(ea);
+    repo_.add_comment(to_hex(ea) + ": cmt updated");
+    add_ea(ea);
 }
 
 
