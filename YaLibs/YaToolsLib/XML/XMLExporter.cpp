@@ -15,7 +15,6 @@
 
 #include "XMLExporter.hpp"
 
-#include "common.hpp"
 #include "IModelAccept.hpp"
 #include "Hexa.h"
 #include "../../Helpers.h"
@@ -487,6 +486,19 @@ void XMLExporter_common::visit_string_type(int str_type)
     char str_type_buffer[sizeof(str_type) * 2 + 2] = { 0 };
     sprintf(str_type_buffer, "%d", str_type);
     add_element(*writer_, "str_type", str_type_buffer);
+}
+
+namespace
+{
+    std::string xml_escape(const std::string& input)
+    {
+        auto output = input;
+        std::transform(output.begin(), output.end(), output.begin(), [&](uint8_t c) -> char
+        {
+            return c >= 128 || c < 0x9 || (c > 0xd && c < 0x20) ? '?' : c;
+        });
+        return output;
+    }
 }
 
 static std::string xml_escape(const const_string_ref& ref)

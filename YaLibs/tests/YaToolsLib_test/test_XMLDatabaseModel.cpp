@@ -26,7 +26,6 @@
 #include "XML/XMLDatabaseModel.hpp"
 #include "ExporterValidatorVisitor.hpp"
 #include "XML/XMLExporter.hpp"
-#include "XML/common.hpp"
 #include "IModel.hpp"
 #include "Model.hpp"
 
