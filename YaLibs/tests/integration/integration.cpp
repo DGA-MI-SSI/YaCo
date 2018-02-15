@@ -130,16 +130,12 @@ namespace
         {
         }
 
-        virtual void on_object(const HObject& object)
+        void on_object(const HObject& object) override
         {
             object.accept(visitor);
         }
 
-        virtual void on_deleted(YaToolObjectId)
-        {
-        }
-
-        virtual void on_default(YaToolObjectId)
+        void on_deleted(YaToolObjectId) override
         {
         }
 

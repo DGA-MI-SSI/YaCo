@@ -46,11 +46,14 @@ int TestInTempFolder::index = 0;
 
 class TestXMLDatabaseModel : public TestInTempFolder {
 protected:
-    virtual void SetUp() {
+
+    void SetUp() override
+    {
         TestInTempFolder::SetUp();
     }
 
-    virtual void TearDown() {
+    void TearDown() override
+    {
         TestInTempFolder::TearDown();
     }
 };

@@ -34,15 +34,11 @@ namespace
 {
 struct Listener : public IObjectListener
 {
-    virtual void on_object(const HObject&)
+    void on_object(const HObject&) override
     {
     }
 
-    virtual void on_deleted(YaToolObjectId)
-    {
-    }
-
-    virtual void on_default(YaToolObjectId)
+    void on_deleted(YaToolObjectId) override
     {
     }
 };

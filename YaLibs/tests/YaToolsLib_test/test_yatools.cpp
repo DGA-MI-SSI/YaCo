@@ -42,7 +42,7 @@ namespace
     class Fixture : public testing::Test
     {
     protected:
-        virtual void SetUp()
+        void SetUp() override
         {
             EXPECT_TRUE(yaok);
         }

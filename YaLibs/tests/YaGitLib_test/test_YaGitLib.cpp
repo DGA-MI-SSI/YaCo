@@ -31,10 +31,12 @@ using namespace testing::internal;
 int TestInTempFolder::index = 0;
 
 class TestYaGitLib : public TestInTempFolder {
-    virtual void SetUp() {
+    void SetUp() override
+    {
         TestInTempFolder::SetUp();
     }
-    virtual void TearDown() {
+    void TearDown() override
+    {
         TestInTempFolder::TearDown();
     }
 };

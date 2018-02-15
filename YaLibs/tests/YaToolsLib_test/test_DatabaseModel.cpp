@@ -52,14 +52,6 @@ using namespace std;
 class TestYaToolDatabaseModel
     : public testing::Test
 {
-protected:
-    virtual void SetUp()
-    {
-    }
-
-    virtual void TearDown()
-    {
-    }
 };
 
 static const std::string gEmpty;
@@ -157,18 +149,16 @@ public:
     MockDatabase(){}
     virtual ~MockDatabase(){}
 
-    virtual void        accept(IModelVisitor&) {};
-    virtual void        walk_objects(const OnObjectAndIdFn&) const {};
-    virtual size_t      num_objects() const { return 0; };
-    virtual void        walk_objects_with_signature(const HSignature&, const OnObjectFn&) const {};
-    virtual size_t      num_objects_with_signature(const HSignature&) const { return 0; };
-    virtual void        walk_versions_with_signature(const HSignature&, const OnVersionFn&) const {};
-    virtual void        walk_matching_objects(const HObject&, const OnObjectFn&) const {};
-    virtual size_t      num_matching_objects(const HObject&) const { return 0; };
-    virtual HObject     get_object(YaToolObjectId) const { return HObject{nullptr, 0}; };
-    virtual bool        has_object(YaToolObjectId) const { return false; };
-    virtual void        walk_versions_without_collision(const OnSigAndVersionFn&) const {};
-    virtual void        walk_matching_versions(const HObject&, size_t, const OnVersionPairFn&) const {};
+    void        accept(IModelVisitor&) override {};
+    void        walk_objects(const OnObjectAndIdFn&) const override {};
+    size_t      num_objects() const override { return 0; };
+    void        walk_objects_with_signature(const HSignature&, const OnObjectFn&) const override {};
+    size_t      num_objects_with_signature(const HSignature&) const override { return 0; };
+    void        walk_versions_with_signature(const HSignature&, const OnVersionFn&) const override {};
+    HObject     get_object(YaToolObjectId) const override { return HObject{nullptr, 0}; };
+    bool        has_object(YaToolObjectId) const override { return false; };
+    void        walk_versions_without_collision(const OnSigAndVersionFn&) const override {};
+    void        walk_matching_versions(const HObject&, size_t, const OnVersionPairFn&) const override {};
 };
 }
 
@@ -231,7 +221,7 @@ public:
     {
     }
 
-    virtual Signature get(HSignature_id_t) const
+    Signature get(HSignature_id_t) const override
     {
         return sig;
     }
