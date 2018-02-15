@@ -25,6 +25,7 @@
 #include "IdaModel.hpp"
 #include "Utils.hpp"
 #include "Yatools_swig.h"
+#include "IObjectListener.hpp"
 
 #include "git_version.h"
 
@@ -201,7 +202,7 @@ void YaCo::initial_load()
     const auto time_start = std::chrono::system_clock::now();
     IDA_LOG_INFO("Loading...");
 
-    import_to_ida(*MakeXmlAllModel("."));
+    MakeXmlAllModel(".")->accept(*MakeVisitorFromListener(*MakeIdaListener()));
 
     const auto time_end = std::chrono::system_clock::now();
     const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(time_end - time_start);

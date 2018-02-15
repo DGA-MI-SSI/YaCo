@@ -35,6 +35,7 @@
 #include "HObject.hpp"
 #include "HVersion.hpp"
 #include "DelegatingVisitor.hpp"
+#include "IObjectListener.hpp"
 
 #define MODULE_NAME "hooks"
 #include "IdaUtils.hpp"
@@ -1183,9 +1184,7 @@ void Hooks::save_and_update()
             const auto it = p.begin();
             return it == p.end() || *it != cache;
         }), state.updated.end());
-        const ModelAndVisitor db = MakeMemoryModel();
-        load_xml_files_to(*db.visitor, state);
-        import_to_ida(*db.model);
+        load_xml_files_to(*MakeVisitorFromListener(*MakeIdaListener()), state);
     }
 
     // Let IDA apply modifications

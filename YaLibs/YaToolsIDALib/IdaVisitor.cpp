@@ -103,19 +103,14 @@ namespace
     };
     using Bookmarks = std::vector<Bookmark>;
 
-    enum UseStacks
-    {
-        SKIP_STACKS,
-        USE_STACKS,
-    };
-
     using Enums  = std::map<YaToolObjectId, enum_t>;
     using Strucs = std::map<YaToolObjectId, tid_t>;
 
     struct Visitor
         : public IObjectListener
     {
-        Visitor(UseStacks use_stacks);
+         Visitor();
+        ~Visitor();
 
         // IObjectListener
         void on_object (const HObject& object) override;
@@ -136,16 +131,18 @@ namespace
         Bookmarks                       bookmarks_;
         Enums                           enums_;
         Strucs                          strucs_;
-        bool                            use_stacks_;
+        const bool                      had_auto_enabled_;
     };
 
     const char ARM_txt[] = "ARM";
 }
 
-Visitor::Visitor(UseStacks use_stacks)
+Visitor::Visitor()
     : qpool_(4)
-    , use_stacks_(use_stacks == USE_STACKS)
+    , had_auto_enabled_(inf.is_auto_enabled())
 {
+    inf.set_auto_enabled(false);
+
     static_assert(sizeof ARM_txt <= sizeof inf.procname, "procname size mismatch");
     if(!memcmp(inf.procname, ARM_txt, sizeof ARM_txt))
         plugin_ = MakeArmPluginVisitor();
@@ -171,6 +168,11 @@ Visitor::Visitor(UseStacks use_stacks)
         const auto id = hash::hash_struc(ya::to_string_ref(*qbuf));
         strucs_.emplace(id, sid);
     }
+}
+
+Visitor::~Visitor()
+{
+    inf.set_auto_enabled(had_auto_enabled_);
 }
 
 namespace
@@ -1928,8 +1930,7 @@ void Visitor::on_version(const HVersion& version)
             break;
 
         case OBJECT_TYPE_STACKFRAME:
-            if(use_stacks_)
-                make_stackframe(*this, version, ea);
+            make_stackframe(*this, version, ea);
             break;
 
         case OBJECT_TYPE_ENUM:
@@ -1967,8 +1968,7 @@ void Visitor::on_version(const HVersion& version)
             break;
 
         case OBJECT_TYPE_STACKFRAME_MEMBER:
-            if(use_stacks_)
-                make_struct_member(*this, "stackframe_member", version, ea);
+            make_struct_member(*this, "stackframe_member", version, ea);
             break;
 
         case OBJECT_TYPE_DATA:
@@ -2028,24 +2028,13 @@ bool set_struct_member_type_at(ea_t ea, const std::string& prototype)
     return set_struct_member_type(nullptr, ea, prototype);
 }
 
-namespace
+std::shared_ptr<IObjectListener> MakeIdaListener()
 {
-    void import_to_ida(IModelAccept& model, UseStacks use_stacks)
-    {
-        const auto prev = inf.is_auto_enabled();
-        inf.set_auto_enabled(false);
-        Visitor visitor{use_stacks};
-        model.accept(*MakeVisitorFromListener(visitor));
-        inf.set_auto_enabled(prev);
-    }
-}
-
-void import_to_ida(IModelAccept& model)
-{
-    import_to_ida(model, USE_STACKS);
+    return std::make_shared<Visitor>();
 }
 
 void import_to_ida(const std::string& filename)
 {
-    import_to_ida(*MakeFlatBufferModel(filename), USE_STACKS);
+    Visitor visitor;
+    MakeFlatBufferModel(filename)->accept(*MakeVisitorFromListener(visitor));
 }

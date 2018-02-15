@@ -19,10 +19,10 @@
 
 #include <memory>
 
-class IModelAccept;
+struct IObjectListener;
 
 bool set_type_at                (ea_t ea, const std::string& prototype);
 bool set_struct_member_type_at  (ea_t ea, const std::string& prototype);
 
 void import_to_ida(const std::string& filename);
-void import_to_ida(IModelAccept& model);
+std::shared_ptr<IObjectListener> MakeIdaListener();
