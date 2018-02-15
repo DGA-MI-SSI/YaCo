@@ -17,7 +17,6 @@
 
 #include "IModelAccept.hpp"
 #include "IModelVisitor.hpp"
-#include "Hexa.h"
 #include "Signature.hpp"
 #include "Logger.h"
 #include "Yatools.h"

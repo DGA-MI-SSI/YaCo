@@ -15,7 +15,6 @@
 
 #include "XmlModel.hpp"
 
-#include "Hexa.h"
 #include "DelegatingVisitor.hpp"
 #include "Signature.hpp"
 #include "IModelAccept.hpp"
@@ -23,6 +22,7 @@
 #include "YaTypes.hpp"
 #include "Logger.h"
 #include "Yatools.h"
+#include "BinHex.hpp"
 
 #include <algorithm>
 #include <string>
@@ -567,13 +567,14 @@ void XmlModel::accept_version(xmlNodePtr node, IModelVisitor& visitor)
     }
     /*********************************************/
 
+    std::vector<uint8_t> buffer;
     for(const auto& it : blobs)
     {
-        const offset_t offset = it.first;
-        size_t byte_count = (it.second.length()+1)/2;
-        std::vector<uint8_t> buffer(byte_count);
-        hex_to_buffer(it.second.c_str(), byte_count, &buffer[0]);
-        visitor.visit_blob(offset, &buffer[0], byte_count);
+        const auto offset = it.first;
+        const auto sizein = (it.second.size() + 1) >> 1;
+        buffer.resize(sizein);
+        const auto sizeout = hexbin(&buffer[0], sizein, it.second.data(), it.second.size());
+        visitor.visit_blob(offset, &buffer[0], sizeout);
     }
     visitor.visit_end_object_version();
 }

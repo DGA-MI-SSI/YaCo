@@ -15,8 +15,13 @@
 
 #pragma once
 
+#include <stdint.h>
+
+size_t hexbin(void* vdst, size_t szdst, const char* src, size_t szsrc);
+
 namespace
 {
+
     const char hexchars_upper[] = "0123456789ABCDEF";
     const char hexchars_lower[] = "0123456789abcdef";
 
@@ -28,11 +33,21 @@ namespace
         HexaPrefix          = 1 << 3,   // add 0x prefix
     };
 
+    template<size_t szhex>
+    void binhex(char* dst, const char (&hexchars)[szhex], const void* vsrc, size_t size)
+    {
+        const uint8_t* src = static_cast<const uint8_t*>(vsrc);
+        for(size_t i = 0; i < size; ++i)
+        {
+            dst[i*2 + 0] = hexchars[src[i] >> 4];
+            dst[i*2 + 1] = hexchars[src[i] & 0x0F];
+        }
+    }
+
     template<size_t size, uint32_t flags = 0, size_t szdst>
-    const_string_ref binhex(char (&dst)[szdst], const void* vsrc)
+    const_string_ref binhex(char (&dst)[szdst], const void* src)
     {
         static_assert(szdst == !!(flags & HexaPrefix) * 2  + size * 2 + !!(flags & NullTerminate), "invalid destination size");
-        const uint8_t* src = static_cast<const uint8_t*>(vsrc);
         const auto& hexchars = flags &  LowerCase ? hexchars_lower : hexchars_upper;
         const auto prefix = flags & HexaPrefix ? 2 : 0;
         if(flags & HexaPrefix)
@@ -40,16 +55,12 @@ namespace
             dst[0] = '0';
             dst[1] = 'x';
         }
-        for(size_t i = 0; i < size; ++i)
-        {
-            dst[prefix + i*2 + 0] = hexchars[src[i] >> 4];
-            dst[prefix + i*2 + 1] = hexchars[src[i] & 0x0F];
-        }
+        binhex(&dst[prefix], hexchars, src, size);
         if(flags & NullTerminate)
             dst[prefix + size * 2] = 0;
         if(!(flags & RemovePadding))
             return {dst, prefix + size * 2};
-        
+
         size_t skip = 0;
         // we need at least one 0
         while(skip + 1 < size * 2  && dst[prefix + skip] == '0')

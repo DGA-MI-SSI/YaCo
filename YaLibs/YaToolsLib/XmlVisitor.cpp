@@ -16,8 +16,6 @@
 #include "XmlVisitor.hpp"
 
 #include "IModelAccept.hpp"
-#include "Hexa.h"
-#include "../Helpers.h"
 #include "Logger.h"
 #include "Yatools.h"
 #include "Signature.hpp"
@@ -618,13 +616,11 @@ void XmlVisitor_common::visit_xref_attribute(const const_string_ref& attribute_k
 
 void XmlVisitor_common::visit_blob(offset_t offset, const void* blob, size_t len)
 {
-    std::vector<char> buffer(len*2 + 1);
-
-    buffer_to_hex(blob, len, &buffer[0]);
-    buffer[len*2] = 0;
-
+    std::vector<char> buffer;
+    buffer.resize(len * 2 + 1);
+    buffer[len * 2] = 0;
+    binhex(&buffer[0], hexchars_upper, blob, len);
     static_assert(sizeof offset == sizeof(uint64_t), "bad offset_t sizeof");
-
     char buf[sizeof offset * 2 + 1];
     start_element(*writer_, "blob");
     add_attribute(*writer_, "offset", to_hex<NullTerminate>(buf, offset).value);

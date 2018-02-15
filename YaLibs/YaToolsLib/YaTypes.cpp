@@ -15,7 +15,6 @@
 
 #include "YaTypes.hpp"
 
-#include "Hexa.h"
 #include "Helpers.h"
 
 #include <farmhash.h>
