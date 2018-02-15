@@ -142,11 +142,6 @@ std::shared_ptr<IModelAccept> MakeXmlAllModel(const std::string& folder)
     return std::make_shared<XMLAllDatabaseModel>(folder);
 }
 
-std::shared_ptr<IModelAccept> MakeXmlDatabaseModel(const std::string& folder)
-{
-    return std::make_shared<XmlModelPath>(folder);
-}
-
 std::shared_ptr<IModelAccept> MakeXmlFilesModel(const std::vector<std::string>& files)
 {
     return std::make_shared<XmlModelFiles>(files);
