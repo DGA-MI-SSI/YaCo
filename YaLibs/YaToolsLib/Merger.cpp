@@ -21,7 +21,7 @@
 #include "MemoryModel.hpp"
 #include "XmlModel.hpp"
 #include "XmlVisitor.hpp"
-#include "../Helpers.h"
+#include "Helpers.h"
 
 #include <functional>
 #include <string>

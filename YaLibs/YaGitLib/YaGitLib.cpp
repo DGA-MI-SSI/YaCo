@@ -20,6 +20,8 @@
 
 #include <string.h>
 
+#define UNUSED(X) ((void)(X))
+
 #ifdef _MSC_VER
 #   include <io.h>
 #   include <stdio.h>
@@ -44,7 +46,6 @@
 
 #include "YaGitLib.hpp"
 #include "ResolveFileConflictCallback.hpp"
-#include "../Helpers.h"
 
 using namespace std;
 using namespace std::experimental;

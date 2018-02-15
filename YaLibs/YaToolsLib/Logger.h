@@ -16,7 +16,8 @@
 #pragma once
 #include <stdio.h>
 #include <stdint.h>
-#include "../Helpers.h"
+
+#include "Helpers.h"
 
 // levels are sorted in decreasing severity order
 enum LOG_ELevel

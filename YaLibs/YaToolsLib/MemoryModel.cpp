@@ -15,7 +15,7 @@
 
 #include "MemoryModel.hpp"
 
-#include "../Helpers.h"
+#include "Helpers.h"
 #include "IModel.hpp"
 #include "HObject.hpp"
 #include "HVersion.hpp"

@@ -14,8 +14,9 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "YaTypes.hpp"
+
 #include "Hexa.h"
-#include "../Helpers.h"
+#include "Helpers.h"
 
 #include <farmhash.h>
 

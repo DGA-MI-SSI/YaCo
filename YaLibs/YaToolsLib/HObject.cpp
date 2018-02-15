@@ -15,7 +15,7 @@
 
 #include "HObject.hpp"
 
-#include "../Helpers.h"
+#include "Helpers.h"
 
 STATIC_ASSERT_POD(HObject);
 

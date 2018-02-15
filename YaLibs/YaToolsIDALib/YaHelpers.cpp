@@ -16,9 +16,9 @@
 #include "YaTypes.hpp"
 #include "Ida.h"
 #include "YaHelpers.hpp"
+#include "Helpers.h"
 
 #include "Hash.hpp"
-#include "../Helpers.h"
 
 #include <algorithm>
 

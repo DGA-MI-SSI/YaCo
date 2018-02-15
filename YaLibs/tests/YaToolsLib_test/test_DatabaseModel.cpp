@@ -20,7 +20,7 @@
 #endif
 
 #include "test_common.hpp"
-#include "../Helpers.h"
+#include "Helpers.h"
 
 #include "HVersion.hpp"
 #include "HObject.hpp"

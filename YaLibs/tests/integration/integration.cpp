@@ -15,7 +15,6 @@
 
 #include "gtest/gtest.h"
 
-#include "../Helpers.h"
 #include "HVersion.hpp"
 #include "HObject.hpp"
 #include "XmlVisitor.hpp"

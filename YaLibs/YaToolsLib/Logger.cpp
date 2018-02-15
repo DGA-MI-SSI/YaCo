@@ -15,8 +15,6 @@
 
 #include "Logger.h"
 
-#include "../Helpers.h"
-
 #include <stdint.h>
 #include <memory.h>
 #include <stdarg.h>
