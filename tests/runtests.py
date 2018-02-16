@@ -263,7 +263,7 @@ def get_tests(args, cur_dir):
             for test in f:
                 if args.list:
                     print test.id()
-                if test.id().find(args.filter) != -1:
+                if test.id().endswith(args.filter):
                     tests.addTest(test)
     return tests
 
