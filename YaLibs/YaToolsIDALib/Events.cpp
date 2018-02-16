@@ -372,6 +372,9 @@ void Events::touch_func(ea_t ea)
 {
     add_auto_comment(repo_, ea);
     add_ea(*this, hash::hash_function(ea), OBJECT_TYPE_FUNCTION, ea);
+    const auto frame = get_frame(ea);
+    if(frame)
+        touch_struc(frame->id);
 }
 
 void Events::touch_code(ea_t ea)
