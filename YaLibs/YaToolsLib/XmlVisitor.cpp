@@ -37,6 +37,7 @@
 #   include <experimental/filesystem>
 #endif
 
+#include <algorithm>
 #include <fstream>
 
 using namespace std;
