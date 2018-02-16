@@ -1214,10 +1214,10 @@ namespace
 
     void set_data_type(const Visitor& visitor, const HVersion& version, ea_t ea)
     {
-        const auto size = std::max(1ul, static_cast<size_t>(version.size()));
+        const auto size = std::max(static_cast<offset_t>(1), version.size());
 
         if(!is_unknown(get_flags(ea)))
-            if(!del_items(ea, DELIT_EXPAND, size))
+            if(!del_items(ea, DELIT_EXPAND, static_cast<asize_t>(size)))
             {
                 LOG(ERROR, "make_data: 0x%" PRIxEA " unable to set unknown\n", ea);
                 return;
