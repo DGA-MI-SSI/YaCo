@@ -868,7 +868,7 @@ namespace
         // ensure head of data
         ea = get_item_head(ea);
 
-        const auto id = hash::hash_ea(ea);
+        const auto id = hash::hash_data(ea);
         if(ctx.skip_id(id, OBJECT_TYPE_DATA))
             return;
 
@@ -952,6 +952,19 @@ namespace
         });
     }
 
+    YaToolObjectId hash_ea(ea_t ea)
+    {
+        const auto func = get_func(ea);
+        if(func)
+            return hash::hash_block(ea);
+
+        const auto flags = get_flags(ea);
+        if(is_code(flags))
+            return hash::hash_code(ea);
+
+        return hash::hash_data(ea);
+    }
+
     template<typename Ctx>
     void accept_function_xrefs(Ctx& ctx, IModelVisitor& v, ea_t ea, struc_t* frame, const qflow_chart_t::blocks_t& blocks)
     {
@@ -965,7 +978,7 @@ namespace
         const auto qbuf = ctx.qpool_.acquire();
         for(const auto& block : blocks)
         {
-            const auto bid = hash::hash_ea(block.start_ea);
+            const auto bid = hash_ea(block.start_ea);
             const auto offset = block.start_ea - ea;
             // FIXME a block does not necessarily start after the first function basic block
             // in which case offset is negative but offset_t is unsigned...
@@ -1096,7 +1109,7 @@ namespace
             //const auto dump = ya::dump_flags(xflags);
             if(!is_valid)
                 continue;
-            const auto xref = Xref{ea - root, hash::hash_ea(get_root_item(xb.to)), DEFAULT_OPERAND, 0};
+            const auto xref = Xref{ea - root, hash_ea(get_root_item(xb.to)), DEFAULT_OPERAND, 0};
             ctx.xrefs_.push_back(xref);
         }
     }
@@ -1110,7 +1123,7 @@ namespace
         const auto next = prev_not_tail(end);
         for(auto ea = get_first_cref_from(next); ea != BADADDR; ea = get_next_cref_from(next, ea))
         {
-            const auto id = hash::hash_ea(ea);
+            const auto id = hash_ea(ea);
             ctx.xrefs_.push_back({ea - start, id, DEFAULT_OPERAND, 0});
         }
     }
@@ -1347,7 +1360,7 @@ namespace
     template<typename Ctx>
     void accept_code(Ctx& ctx, IModelVisitor& v, const Parent& parent, ea_t ea)
     {
-        const auto id = hash::hash_ea(ea);
+        const auto id = hash::hash_code(ea);
         if(ctx.skip_id(id, OBJECT_TYPE_CODE))
             return;
 
@@ -1372,7 +1385,7 @@ namespace
     void accept_block(Ctx& ctx, IModelVisitor& v, const Parent& parent, range_t block)
     {
         const auto ea = block.start_ea;
-        const auto id = hash::hash_ea(ea);
+        const auto id = hash::hash_block(ea);
         if(ctx.skip_id(id, OBJECT_TYPE_BASIC_BLOCK))
             return;
 
@@ -1598,7 +1611,7 @@ namespace
         for(const auto item_ea : eas)
         {
             const auto offset = item_ea - ea;
-            const auto item_id = hash::hash_ea(item_ea);
+            const auto item_id = hash_ea(item_ea);
             v.visit_start_xref(offset, item_id, DEFAULT_OPERAND);
             v.visit_end_xref();
         }

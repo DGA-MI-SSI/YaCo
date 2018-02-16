@@ -28,6 +28,8 @@ namespace hash
     YaToolObjectId  hash_stack          (uint64_t ea);
     YaToolObjectId  hash_member         (YaToolObjectId parent, uint64_t offset);
     YaToolObjectId  hash_function       (uint64_t ea);
-    YaToolObjectId  hash_ea             (uint64_t ea);
+    YaToolObjectId  hash_code           (uint64_t ea);
+    YaToolObjectId  hash_data           (uint64_t ea);
+    YaToolObjectId  hash_block          (uint64_t ea);
     YaToolObjectId  hash_reference      (uint64_t ea, uint64_t base);
 };

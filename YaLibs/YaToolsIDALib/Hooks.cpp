@@ -302,6 +302,12 @@ namespace
         return cache_folder_path;
     }
 
+    struct Ea
+    {
+        YaToolObjectType_e  type;
+        ea_t                ea;
+    };
+
     struct Struc
     {
         tid_t id;
@@ -322,19 +328,18 @@ namespace
         const_t        mid;
     };
 
-    using Eas           = std::set<ea_t>;
+    using Eas           = std::map<YaToolObjectId, Ea>;
     using Structs       = std::map<YaToolObjectId, Struc>;
     using StructMembers = std::map<YaToolObjectId, StrucMember>;
     using Enums         = std::map<YaToolObjectId, enum_t>;
     using EnumMembers   = std::map<YaToolObjectId, EnumMember>;
     using Segments      = std::set<ea_t>;
-    using Functions     = std::set<ea_t>;
 
     struct Hooks
         : public IHooks
     {
 
-        Hooks(IYaCo& yaco, IRepository& repo);
+         Hooks(IYaCo& yaco, IRepository& repo);
         ~Hooks();
 
         // IHooks
@@ -356,13 +361,14 @@ namespace
         void update_segment(ea_t start_ea);
         void change_type_information(ea_t ea);
 
+        void add_ea(YaToolObjectId id, YaToolObjectType_e type, ea_t ea);
         void add_ea(ea_t ea);
         void add_struct_member(ea_t struct_id, ea_t member_offset);
 
-        void cleanup_data_code(IModelIncremental& model, IModelVisitor& visitor);
-        void save_structs(IModelIncremental& model, IModelVisitor& visitor);
-        void save_enums(IModelIncremental& model, IModelVisitor& visitor);
-        void save_functions(IModelIncremental& model, IModelVisitor& visitor);
+        void save_structs   (IModelIncremental& model, IModelVisitor& visitor);
+        void save_enums     (IModelIncremental& model, IModelVisitor& visitor);
+        void save_eas       (IModelIncremental& model, IModelVisitor& visitor);
+
         void save();
         void save_and_update();
 
@@ -466,13 +472,11 @@ namespace
         Pool<qstring>    qpool_;
 
         Eas             eas_;
-        Eas             modified_type_eas_;
         Structs         strucs_;
         StructMembers   struc_members_;
         Enums           enums_;
         EnumMembers     enum_members_;
         Segments        segments_;
-        Functions       functions_;
 
         bool            enabled_;
     };
@@ -772,34 +776,31 @@ void Hooks::rename(ea_t ea, const std::string& name)
 void Hooks::delete_function(ea_t ea)
 {
     repo_.add_comment(to_hex(ea) + ": func deleted");
-    functions_.insert(ea);
-    add_ea(ea);
+    add_ea(hash::hash_function(ea), OBJECT_TYPE_FUNCTION, ea);
 }
 
 void Hooks::make_code(ea_t ea)
 {
     repo_.add_comment(to_hex(ea) + ": code created");
-    modified_type_eas_.insert(ea);
-    add_ea(ea);
+    add_ea(hash::hash_code(ea), OBJECT_TYPE_CODE, ea);
 }
 
 void Hooks::make_data(ea_t ea)
 {
     repo_.add_comment(to_hex(ea) + ": data created");
-    modified_type_eas_.insert(ea);
-    add_ea(ea);
+    add_ea(hash::hash_data(ea), OBJECT_TYPE_DATA, ea);
 }
 
 void Hooks::add_function(ea_t ea)
 {
     repo_.add_comment(to_hex(ea) + ": func created");
-    add_ea(ea);
+    add_ea(hash::hash_function(ea), OBJECT_TYPE_FUNCTION, ea);
 }
 
 void Hooks::update_function(ea_t ea)
 {
     repo_.add_comment(to_hex(ea) + ": func updated");
-    add_ea(ea);
+    add_ea(hash::hash_function(ea), OBJECT_TYPE_FUNCTION, ea);
 }
 
 namespace
@@ -869,9 +870,12 @@ void Hooks::update_enum(enum_t enum_id)
 
 void Hooks::change_operand_type(ea_t ea, int n)
 {
+    if(n == -1)
+        return;
+
     if(get_func(ea) || is_code(get_flags(ea)))
     {
-        eas_.insert(ea);
+        add_ea(ea);
         repo_.add_comment(to_hex(ea) + ": updated operand " + to_string(n));
         return;
     }
@@ -894,9 +898,42 @@ void Hooks::change_type_information(ea_t ea)
     add_ea(ea);
 }
 
+namespace
+{
+    struct IdAndType
+    {
+        YaToolObjectId     id;
+        YaToolObjectType_e type;
+    };
+
+    IdAndType get_ea_type(ea_t ea)
+    {
+        const auto func = get_func(ea);
+        if(func)
+            return {hash::hash_function(ea), OBJECT_TYPE_FUNCTION};
+
+        if(is_code(flags))
+            return {hash::hash_code(ea), OBJECT_TYPE_CODE};
+
+        if(is_data(flags))
+            return {hash::hash_data(ea), OBJECT_TYPE_DATA};
+
+        return {hash::hash_block(ea), OBJECT_TYPE_UNKNOWN};
+    }
+}
+
+void Hooks::add_ea(YaToolObjectId id, YaToolObjectType_e type, ea_t ea)
+{
+    eas_.emplace(id, Ea{type, ea});
+}
+
 void Hooks::add_ea(ea_t ea)
 {
-    eas_.insert(ea);
+    const auto ctx = get_ea_type(ea);
+    if(ctx.type == OBJECT_TYPE_UNKNOWN)
+        return;
+
+    add_ea(ctx.id, ctx.type, ea);
 }
 
 void Hooks::add_struct_member(ea_t struc_id, ea_t offset)
@@ -924,16 +961,6 @@ namespace
         const auto idx = get_struc_idx(struc.id);
         return id == got_id && idx != BADADDR;
     }
-}
-
-void Hooks::save_functions(IModelIncremental& model, IModelVisitor& visitor)
-{
-    for(const auto f: functions_)
-    {
-        if(!get_func(f))
-            model.delete_func(visitor, hash::hash_function(f));
-    }
-    functions_.clear();
 }
 
 void Hooks::save_structs(IModelIncremental& model, IModelVisitor& visitor)
@@ -999,28 +1026,56 @@ void Hooks::save_enums(IModelIncremental& model, IModelVisitor& visitor)
     }
 }
 
-void Hooks::cleanup_data_code(IModelIncremental& model, IModelVisitor& visitor)
+namespace
 {
-    for(const auto ea: modified_type_eas_)
+    void save_func(IModelIncremental& model, IModelVisitor& visitor, YaToolObjectId id, ea_t ea)
     {
-        const auto id = hash::hash_ea(ea);
-        const auto flags = get_flags(ea);
-        if(is_data(flags))
-        {
-            model.delete_code(visitor, id);
-        }
-        else if(is_code(flags))
-        {
-            model.delete_data(visitor, id);
-        }
-        else
-        {
-            model.delete_code(visitor, id);
-            model.delete_data(visitor, id);
+        const auto got = hash::hash_function(ea);
+        const auto func = get_func(ea);
+        if(got != id || !func)
+            return model.delete_func(visitor, id);
 
-        }
+        model.accept_function(visitor, ea);
+        model.delete_code(visitor, hash::hash_code(ea));
+        model.delete_data(visitor, hash::hash_data(ea));
     }
-    modified_type_eas_.clear();
+
+    void save_code(IModelIncremental& model, IModelVisitor& visitor, YaToolObjectId id, ea_t ea)
+    {
+        const auto got = hash::hash_code(ea);
+        const auto flags = get_flags(ea);
+        const auto is_code_not_func = is_code(flags) && !get_func(ea);
+        if(got != id || !is_code_not_func)
+            return model.delete_code(visitor, id);
+
+        model.accept_ea(visitor, ea);
+        model.delete_func(visitor, hash::hash_function(ea));
+        model.delete_data(visitor, hash::hash_data(ea));
+    }
+
+    void save_data(IModelIncremental& model, IModelVisitor& visitor, YaToolObjectId id, ea_t ea)
+    {
+        const auto got = hash::hash_data(ea);
+        const auto flags = get_flags(ea);
+        if(got != id || !is_data(flags))
+            return model.delete_data(visitor, id);
+
+        model.accept_ea(visitor, ea);
+        model.delete_func(visitor, hash::hash_function(ea));
+        model.delete_code(visitor, hash::hash_code(ea));
+    }
+}
+
+void Hooks::save_eas(IModelIncremental& model, IModelVisitor& visitor)
+{
+    for(const auto p : eas_)
+        switch(p.second.type)
+        {
+            case OBJECT_TYPE_FUNCTION:  save_func(model, visitor, p.first, p.second.ea); break;
+            case OBJECT_TYPE_CODE:      save_code(model, visitor, p.first, p.second.ea); break;
+            case OBJECT_TYPE_DATA:      save_data(model, visitor, p.first, p.second.ea); break;
+            default:                    assert(false); break;
+        }
 }
 
 void Hooks::save()
@@ -1032,13 +1087,9 @@ void Hooks::save()
     db.visitor->visit_start();
     {
         const auto model = MakeIncrementalIdaModel();
-        if(0)
-            cleanup_data_code(*model, *db.visitor);
-        save_functions(*model, *db.visitor);
         save_structs(*model, *db.visitor);
         save_enums(*model, *db.visitor);
-        for (const ea_t ea : eas_)
-            model->accept_ea(*db.visitor, ea);
+        save_eas(*model, *db.visitor);
         for (const ea_t segment_ea : segments_)
             model->accept_segment(*db.visitor, segment_ea);
     }
