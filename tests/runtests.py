@@ -120,6 +120,7 @@ ea_defmask = "(~0 & ~(1 << ya.OBJECT_TYPE_STRUCT) & ~(1 << ya.OBJECT_TYPE_ENUM))
 
 
 class Fixture(unittest.TestCase):
+    out_dir = "out"
 
     def setUp(self):
         args, _ = get_args()
@@ -129,7 +130,7 @@ class Fixture(unittest.TestCase):
         self.tests_dir = os.path.abspath(os.path.join(inspect.getsourcefile(lambda:0), ".."))
         self.yaco_dir = os.path.abspath(os.path.join(self.tests_dir, "..", "YaCo"))
         self.ida_dir = get_ida_dir()
-        self.out_dir = os.path.abspath(os.path.join(self.tests_dir, "..", "out"))
+        self.out_dir = os.path.abspath(os.path.join(self.tests_dir, "..", Fixture.out_dir))
         self.bin_dir = args.bindir
         sys.path.append(self.bin_dir)
         sys.path.append(self.yaco_dir)
@@ -250,6 +251,8 @@ def get_args():
     current_dir = os.path.abspath(os.path.join(__file__, ".."))
     yatools_bin_dir = os.path.abspath(os.path.join(current_dir, "..", "bin", "yaco_x64", "YaTools", "bin"))
     parser.add_argument("-b", "--bindir", type=os.path.abspath, default=yatools_bin_dir, help="binary directory")
+    parser.add_argument("-nc", "--no-cleanup", action="store_true", help="do not remove temp folders")
+    parser.add_argument("-tf", "--temp_folder", default="out", help="temporary folder for test (default: out)")
     return parser.parse_args(), current_dir
 
 
@@ -266,6 +269,13 @@ def get_tests(args, cur_dir):
 
 if __name__ == '__main__':
     args, cur_dir = get_args()
+    import runtests
+    if args.no_cleanup:
+        def nop(_):
+            pass
+        runtests.remove_dir = nop
+    runtests.Fixture.out_dir = args.temp_folder
+
     tests = get_tests(args, cur_dir)
     if args.list:
         sys.exit(0)
