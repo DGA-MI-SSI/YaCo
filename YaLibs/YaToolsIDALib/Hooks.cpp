@@ -794,12 +794,24 @@ void Hooks::update_function(ea_t ea)
     add_ea(ea);
 }
 
+namespace
+{
+    YaToolObjectId get_struc_stack_id(Hooks& hooks, ea_t struc_id, ea_t func_ea)
+    {
+        if(func_ea != BADADDR)
+            return hash::hash_stack(func_ea);
+
+        const auto name = hooks.qpool_.acquire();
+        ya::wrap(&get_struc_name, *name, struc_id);
+        return hash::hash_struc(ya::to_string_ref(*name));
+    }
+}
+
 void Hooks::update_struct(ea_t struc_id)
 {
-    const auto name = qpool_.acquire();
-    ya::wrap(&get_struc_name, *name, struc_id);
-    const auto id = hash::hash_struc(ya::to_string_ref(*name));
-    strucs_.emplace(id, Struc{struc_id, get_func_by_frame(struc_id)});
+    const auto func_ea = get_func_by_frame(struc_id);
+    const auto id = get_struc_stack_id(*this, struc_id, func_ea);
+    strucs_.emplace(id, Struc{struc_id, func_ea});
     add_auto_comment(repo_, struc_id, "updated");
 }
 
