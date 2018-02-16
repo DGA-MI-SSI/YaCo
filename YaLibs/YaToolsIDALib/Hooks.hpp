@@ -23,6 +23,7 @@ struct IRepository;
 
 struct IHooks
 {
+    virtual ~IHooks() = default;
     virtual void hook() = 0;
     virtual void unhook() = 0;
 };
