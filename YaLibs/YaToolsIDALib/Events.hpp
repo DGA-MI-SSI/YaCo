@@ -17,17 +17,21 @@
 
 #include <memory>
 
-// Forward declarations
-struct IYaCo;
 struct IRepository;
-struct IEvents;
 
-struct IHooks
+struct IEvents
 {
-    virtual ~IHooks() = default;
+    virtual ~IEvents() = default;
 
-    virtual void hook() = 0;
-    virtual void unhook() = 0;
+    virtual void touch_struc(tid_t struc_id) = 0;
+    virtual void touch_enum (enum_t enum_id) = 0;
+    virtual void touch_func (ea_t ea) = 0;
+    virtual void touch_code (ea_t ea) = 0;
+    virtual void touch_data (ea_t ea) = 0;
+    virtual void touch_ea   (ea_t ea) = 0;
+
+    virtual void save               () = 0;
+    virtual void update             () = 0;
 };
 
-std::shared_ptr<IHooks> MakeHooks(IEvents& events);
+std::shared_ptr<IEvents> MakeEvents(IRepository& repo);

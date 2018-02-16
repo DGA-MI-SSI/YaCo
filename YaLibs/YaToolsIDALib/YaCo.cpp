@@ -20,6 +20,7 @@
 #include "Repository.hpp"
 #include "Hooks.hpp"
 #include "IdaVisitor.hpp"
+#include "Events.hpp"
 #include "XmlModel.hpp"
 #include "FlatBufferVisitor.hpp"
 #include "IdaModel.hpp"
@@ -104,7 +105,8 @@ namespace
         void discard_and_pull_idb();
 
         // Variables
-        std::shared_ptr<IRepository> repository_;
+        std::shared_ptr<IRepository> repo_;
+        std::shared_ptr<IEvents>     events_;
         std::shared_ptr<IHooks>      hooks_;
 
         std::vector<action_desc_t>   action_descs_;
@@ -120,12 +122,13 @@ namespace
 #define YACO_ACTION_DESC(name, label, handler) ACTION_DESC_LITERAL_OWNER(name, label, handler, nullptr, nullptr, nullptr, -1)
 
 YaCo::YaCo()
-    : repository_(MakeRepository("."))
-    , hooks_(MakeHooks(*this, *repository_))
+    : repo_(MakeRepository("."))
+    , events_(MakeEvents(*repo_))
+    , hooks_(MakeHooks(*events_))
 {
     IDA_LOG_INFO("YaCo %s", GitVersion);
 
-    repository_->check_valid_cache_startup();
+    repo_->check_valid_cache_startup();
 
     // hooks not hooked yet
     initial_load();
@@ -188,7 +191,8 @@ YaCo::~YaCo()
         unregister_action(action_desc.name); // delete the handler
     }
     hooks_.reset();
-    repository_.reset();
+    events_.reset();
+    repo_.reset();
     StopYatools();
 }
 
@@ -211,7 +215,7 @@ void YaCo::initial_load()
 
 void YaCo::toggle_auto_rebase_push()
 {
-    repository_->toggle_repo_auto_sync();
+    repo_->toggle_repo_auto_sync();
 }
 
 void YaCo::sync_and_push_idb()
@@ -229,7 +233,7 @@ void YaCo::sync_and_push_idb()
         return;
 
     hooks_->unhook();
-    repository_->sync_and_push_original_idb();
+    repo_->sync_and_push_original_idb();
 
     warning("Force push complete, you can restart IDA and other YaCo users can \"Force pull\"");
     qexit(0);
@@ -246,7 +250,7 @@ void YaCo::discard_and_pull_idb()
         return;
 
     hooks_->unhook();
-    repository_->discard_and_pull_idb();
+    repo_->discard_and_pull_idb();
 
     set_database_flag(DBFL_KILL);
     warning("Force pull complete, you can restart IDA");
