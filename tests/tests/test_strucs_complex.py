@@ -172,6 +172,7 @@ for offset, count, field_type, string_type, comment, repeatable in create_field:
 """),
             self.save_strucs()
         )
+        a.check_git(added=["struc"] * 19 + ["strucmember"] * 19)
         b.run(
             self.check_strucs(),
         )
@@ -193,6 +194,7 @@ for field_type, name, proto in set_field_prototype:
 """),
             self.save_strucs(),
         )
+        a.check_git(added=["struc", "strucmember"] * 3)
         b.run(
             self.check_strucs(),
         )
@@ -207,6 +209,7 @@ create_complex(sid0, sid1)
 """),
             self.save_strucs(),
         )
+        a.check_git(["struc"] * 2 + ["strucmember"] * 16)
         self.assertRegexpMatches(self.strucs, "complex_bot_struc")
         ea = 0x6601EF30
         b.run(
@@ -224,6 +227,9 @@ create_complex(frame.id, sid1)
 """),
             self.save_ea(ea),
         )
+        b.check_git(added=["binary", "segment", "segment_chunk", "function",
+            "stackframe"] + ["stackframe_member"] * 12 + ["basic_block"] * 54 +
+            ["struc"] + ["strucmember"] * 4)
         self.assertRegexpMatches(self.eas[ea], "complex_bot_stack")
         a.run(
             self.check_ea(ea),
@@ -261,6 +267,7 @@ idaapi.set_member_name(frame, offset, "new_name")
             self.save_ea(ea),
             self.save_strucs(),
         )
+        b.check_git(modified=["stackframe_member"])
         a.run(
             self.check_ea(ea),
             self.check_strucs(),

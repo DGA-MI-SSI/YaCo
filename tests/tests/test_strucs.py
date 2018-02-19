@@ -29,12 +29,14 @@ idaapi.set_struc_cmt(eid, "cmt_02", False)
 """),
             self.save_struc("name_a"),
         )
+        a.check_git(added=["struc"])
         b.run(
             self.check_struc("name_a"),
             self.script("idaapi.set_struc_name(idaapi.get_struc_id('name_a'), 'name_b')"),
             self.save_struc("name_a"),
             self.save_struc("name_b"),
         )
+        b.check_git(moved=["struc"])
         self.assertEqual(self.strucs["name_a"], "")
         self.assertNotEqual(self.strucs["name_b"], "")
         a.run(
@@ -43,6 +45,7 @@ idaapi.set_struc_cmt(eid, "cmt_02", False)
             self.script("idaapi.del_struc(idaapi.get_struc(idaapi.get_struc_id('name_b')))"),
             self.save_struc("name_b"),
         )
+        a.check_git(deleted=["struc"])
         self.assertEqual(self.strucs["name_b"], "")
 
     def test_struc_members(self):
@@ -51,17 +54,20 @@ idaapi.set_struc_cmt(eid, "cmt_02", False)
             self.script("idc.add_struc_member(idaapi.add_struc(-1, 'name_a', False), 'field_a', 0, idaapi.FF_DATA, -1, 1)"),
             self.save_struc("name_a"),
         )
+        a.check_git(added=["struc", "strucmember"])
         b.run(
             self.check_struc("name_a"),
             self.script("idaapi.set_member_name(idaapi.get_struc(idaapi.get_struc_id('name_a')), 0, 'field_b')"),
             self.save_struc("name_a"),
         )
+        b.check_git(modified=["strucmember"])
         a.run(
             self.check_struc("name_a"),
             self.script("idaapi.set_struc_name(idaapi.get_struc_id('name_a'), 'name_b')"),
             self.save_struc("name_a"),
             self.save_struc("name_b"),
         )
+        a.check_git(moved=["struc", "strucmember"])
         self.assertEqual(self.strucs["name_a"], "")
         self.assertNotEqual(self.strucs["name_b"], "")
         b.run(
@@ -70,6 +76,7 @@ idaapi.set_struc_cmt(eid, "cmt_02", False)
             self.script("idaapi.del_struc_member(idaapi.get_struc(idaapi.get_struc_id('name_b')), 0)"),
             self.save_struc("name_b"),
         )
+        b.check_git(modified=["struc"], deleted=["strucmember"])
         a.run(
             self.check_struc("name_b"),
         )
@@ -93,6 +100,7 @@ for offset, count in sub_tests:
 """),
             self.save_strucs(),
         )
+        a.check_git(added=["struc"] * 8 + ["strucmember"] * 38)
         b.run(
             self.check_strucs(),
         )
@@ -112,6 +120,7 @@ for k in range(0, 2):
 """),
             self.save_strucs(),
         )
+        a.check_git(added=["struc"] * 2 + ["strucmember"] * 2)
         b.run(
             self.check_strucs(),
         )
@@ -153,6 +162,9 @@ for ea, n, offset in targets:
             self.save_strucs(),
             self.save_ea(ea),
         )
+        a.check_git(added=["binary", "segment", "segment_chunk", "function",
+            "stackframe", "stackframe_member", "stackframe_member", "basic_block"] +
+            ["struc"] * 2 + ["strucmember"] * 112)
         self.assertRegexpMatches(self.eas[ea], "path_idx")
         b.run(
             self.check_ea(ea),
@@ -163,6 +175,7 @@ for ea, n, offset in targets:
 """),
             self.save_ea(ea),
         )
+        b.check_git(modified=["basic_block"])
         self.assertNotRegexpMatches(self.eas[ea], "path_idx")
         a.run(
             self.check_ea(ea),
@@ -177,6 +190,7 @@ idc.add_struc_member(sid, "dat_0", 0, idaapi.FF_BYTE | idaapi.FF_DATA, -1, 1)
 """),
             self.save_strucs(),
         )
+        a.check_git(added=["struc", "strucmember"])
         b.run(
             self.check_strucs(),
             self.script("""
@@ -184,6 +198,7 @@ idaapi.set_member_name(idaapi.get_struc(idaapi.get_struc_id('t0')), 0, 'field_0'
 """),
             self.save_strucs(),
         )
+        b.check_git(deleted=["strucmember"])
         a.run(
             self.check_strucs(),
         )

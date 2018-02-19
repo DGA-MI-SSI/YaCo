@@ -40,11 +40,14 @@ class Fixture(runtests.Fixture):
             self.script(set_registers),
             self.save_ea(ea),
         )
+        a.check_git(added=["binary", "segment", "segment_chunk", "function",
+            "stackframe", "stackframe_member", "basic_block"])
         b.run(
             self.check_ea(ea),
             self.script(reset_registers),
             self.save_ea(ea),
         )
+        b.check_git(modified=["basic_block"])
         a.run(
             self.check_ea(ea),
         )

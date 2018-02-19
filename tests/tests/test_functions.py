@@ -74,6 +74,7 @@ class Fixture(runtests.Fixture):
             self.script(reset_function_name),
             self.save_ea(ea),
         )
+        b.check_git(modified=["basic_block"])
         a.run(
             self.check_ea(ea),
         )
@@ -93,6 +94,7 @@ class Fixture(runtests.Fixture):
             self.script(rename_stackvars_again),
             self.save_ea(ea),
         )
+        b.check_git(modified=["stackframe_member"])
         a.run(
             self.check_ea(ea),
         )
@@ -104,6 +106,7 @@ class Fixture(runtests.Fixture):
             self.script(create_function),
             self.save_ea(ea)
         )
+        # FIXME a.check_git(SOMETHING)
         b.run(
             self.check_ea(ea),
         )
@@ -115,6 +118,9 @@ class Fixture(runtests.Fixture):
             self.script(create_and_rename_function),
             self.save_ea(ea)
         )
+        a.check_git(added=["binary", "segment", "segment_chunk", "segment_chunk"] +
+            ["function", "stackframe"] * 3 + ["stackframe_member"] * 13 +
+            ["basic_block"] * 18)
         b.run(
             self.check_ea(ea),
         )
@@ -160,6 +166,7 @@ idaapi.set_name(ea, "new_function_EF30")
 """),
             self.save_ea(ea)
         )
+        # FIXME a.check_git(SOMETHING)
         b.run(
             self.check_ea(ea)
         )

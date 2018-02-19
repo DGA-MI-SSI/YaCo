@@ -93,12 +93,14 @@ class Fixture(runtests.Fixture):
             self.script("idc.AddEnum(-1, 'name_a', idaapi.hexflag())"),
             self.save_enum("name_a"),
         )
+        a.check_git(added=["enum"])
         b.run(
             self.check_enum("name_a"),
             self.script("idaapi.set_enum_name(idaapi.get_enum('name_a'), 'name_b')"),
             self.save_enum("name_a"),
             self.save_enum("name_b"),
         )
+        b.check_git(moved=["enum"])
         self.assertEqual(self.enums["name_a"], "")
         a.run(
             self.check_enum("name_a"),
@@ -106,25 +108,29 @@ class Fixture(runtests.Fixture):
             self.script("idaapi.del_enum(idaapi.get_enum('name_b'))"),
             self.save_enum("name_b"),
         )
+        a.check_git(deleted=["enum"])
         self.assertEqual(self.enums["name_b"], "")
 
     def test_enum_members(self):
         a, b = self.setup_repos()
         a.run(
-            self.script("idaapi.add_enum_member(idc.AddEnum(-1, 'name_c', idaapi.hexflag()), 'field_a', 0, -1)"),
+            self.script("idaapi.add_enum_member(idc.AddEnum(-1, 'name_a', idaapi.hexflag()), 'field_a', 0, -1)"),
             self.save_enum("name_a"),
         )
+        a.check_git(added=["enum", "enum_member"])
         b.run(
             self.check_enum("name_a"),
             self.script("idaapi.set_enum_member_name(idaapi.get_enum_member_by_name('field_a'), 'field_b')"),
             self.save_enum("name_a"),
         )
+        b.check_git(modified=["enum"], moved=["enum_member"])
         a.run(
             self.check_enum("name_a"),
             self.script("idaapi.set_enum_name(idaapi.get_enum('name_a'), 'name_b')"),
             self.save_enum("name_a"),
             self.save_enum("name_b"),
         )
+        a.check_git(moved=["enum", "enum_member"])
         self.assertEqual(self.enums["name_a"], "")
         b.run(
             self.check_enum("name_a"),
@@ -132,6 +138,7 @@ class Fixture(runtests.Fixture):
             self.script("idaapi.del_enum_member(idaapi.get_enum('name_b'), 0, 0, -1)"),
             self.save_enum("name_b"),
         )
+        b.check_git(deleted=["enum_member"], modified=["enum"])
         a.run(
             self.check_enum("name_b"),
         )
@@ -163,11 +170,13 @@ class Fixture(runtests.Fixture):
             self.script(constants + unapply_enums),
             self.save_ea(ea),
         )
+        b.check_git(modified=["basic_block"])
         a.run(
             self.check_ea(ea),
             self.script(constants + apply_enums),
             self.save_ea(ea),
         )
+        a.check_git(modified=["basic_block"])
         b.run(
             self.check_ea(ea),
             self.script(constants + del_enums),
@@ -178,6 +187,7 @@ class Fixture(runtests.Fixture):
             self.save_enum("enum_4"),
             self.save_ea(ea),
         )
+        b.check_git(deleted=["enum"] * 5 + ["enum_member"] * 15)
         self.assertMultiLineEqual(self.enums["enum_0"], "")
         self.assertMultiLineEqual(self.enums["enum_1"], "")
         self.assertMultiLineEqual(self.enums["enum_2"], "")

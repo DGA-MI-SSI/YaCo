@@ -45,9 +45,12 @@ def remove_dir(dirname):
 
 
 def sysexec(cwd, *args):
+    if False:
+        print cwd + ": " + " ".join(*args)
     output = subprocess.check_output(*args, cwd=cwd, stderr=subprocess.STDOUT, shell=False)
     if False:
         print output
+    return output
 
 ida_start = """
 import idaapi
@@ -115,6 +118,51 @@ with open("%s", "wb") as fh:
         self.run_script(scripts)
         for (check, name) in todo:
             check(name)
+
+    def check_git(self, added=None, modified=None, deleted=None, moved=None):
+        if not added:
+            added = []
+        if not modified:
+            modified = []
+        if not deleted:
+            deleted = []
+        if not moved:
+            moved = []
+        want_state = {"added":added, "modified":modified, "deleted":deleted, "moved":moved}
+        output = sysexec(self.path, ["git", "diff", "--name-status", "HEAD~1..HEAD"])
+        files = output.split("\n")
+        got_added, got_modified, got_deleted, got_moved = [], [], [], []
+        def add_simple(line):
+            state, path = line.split()
+            _, otype, name = re.split("[\\\/]", path)
+            name = re.sub("\.xml$", "", name) # currently unused
+            if state == 'A':
+                got_added.append(otype)
+            if state == 'M':
+                got_modified.append(otype)
+            if state == 'D':
+                got_deleted.append(otype)
+        def add_moved(line):
+            _, path_a, path_b = line.split()
+            _, otype_a, _ = re.split("[\\\/]", path_a)
+            _, otype_b, _ = re.split("[\\\/]", path_b)
+            self.ctx.assertEqual(otype_a, otype_b)
+            got_moved.append(otype_a)
+        for line in files:
+            if not len(line):
+                continue
+            try:
+                add_simple(line)
+            except:
+                pass
+            try:
+                add_moved(line)
+            except:
+                pass
+        for x in [added, modified, deleted, moved, got_added, got_modified, got_deleted, got_moved]:
+            x.sort()
+        got_state = {"added":got_added, "modified":got_modified, "deleted":got_deleted, "moved":got_moved}
+        self.ctx.assertEqual(want_state, got_state)
 
 ea_defmask = "(~0 & ~(1 << ya.OBJECT_TYPE_STRUCT) & ~(1 << ya.OBJECT_TYPE_ENUM)) & ~(1 << ya.OBJECT_TYPE_SEGMENT_CHUNK)"
 
