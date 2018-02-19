@@ -62,6 +62,23 @@ idc.del_items(ea, idc.DELIT_SIMPLE, 5)
 
 class Fixture(runtests.Fixture):
 
+    def test_touch_function(self):
+        a, b = self.setup_repos()
+        ea = 0x66032B50
+        a.run(
+            self.script("""
+ea = 0x66032B50
+frame = idaapi.get_frame(ea)
+idaapi.set_member_name(frame, 0, "somevar")
+"""),
+        )
+        a.check_git(
+            added=[
+                "binary", "segment", "segment_chunk", "function", "basic_block",
+                "stackframe", "stackframe_member", "stackframe_member",
+            ]
+        )
+
     def test_rename_function(self):
         a, b = self.setup_repos()
         ea = 0x6602E530
