@@ -53,9 +53,15 @@ namespace
 {
     struct Ea
     {
+        YaToolObjectId      id;
         YaToolObjectType_e  type;
         ea_t                ea;
     };
+
+    bool operator<(const Ea& a, const Ea& b)
+    {
+        return std::make_pair(a.id, a.type) < std::make_pair(b.id, b.type);
+    }
 
     struct Struc
     {
@@ -77,7 +83,7 @@ namespace
         const_t        mid;
     };
 
-    using Eas           = std::map<YaToolObjectId, Ea>;
+    using Eas           = std::set<Ea>;
     using Structs       = std::map<YaToolObjectId, Struc>;
     using StructMembers = std::map<YaToolObjectId, StrucMember>;
     using Enums         = std::map<YaToolObjectId, enum_t>;
@@ -275,26 +281,26 @@ namespace
 
         const auto flags = get_flags(ea);
         if(is_code(flags))
-            return {hash::hash_code(ea), OBJECT_TYPE_CODE};
+            return {hash::hash_ea(ea), OBJECT_TYPE_CODE};
 
         if(is_data(flags))
-            return {hash::hash_data(ea), OBJECT_TYPE_DATA};
+            return {hash::hash_ea(ea), OBJECT_TYPE_DATA};
 
-        return {hash::hash_block(ea), OBJECT_TYPE_UNKNOWN};
+        return {hash::hash_ea(ea), OBJECT_TYPE_UNKNOWN};
     }
 
-    void add_ea(Events& ev, YaToolObjectId id, YaToolObjectType_e type, ea_t ea)
+    bool add_ea(Events& ev, YaToolObjectId id, YaToolObjectType_e type, ea_t ea)
     {
-        ev.eas_.emplace(id, Ea{type, ea});
+        return ev.eas_.emplace(Ea{id, type, ea}).second;
     }
 
-    void add_ea(Events& ev, ea_t ea)
+    bool add_ea(Events& ev, ea_t ea)
     {
         const auto ctx = get_ea_type(ea);
         if(ctx.type == OBJECT_TYPE_UNKNOWN)
-            return;
+            return false;
 
-        add_ea(ev, ctx.id, ctx.type, ea);
+        return add_ea(ev, ctx.id, ctx.type, ea);
     }
 
     void update_struc_member(Events& ev, struc_t* struc, const qstring& name, member_t* m)
@@ -333,24 +339,32 @@ namespace
         });
         add_auto_comment(ev.repo_, enum_id, "updated");
     }
+
+    ea_t update_struc(Events& ev, tid_t struc_id)
+    {
+        add_auto_comment(ev.repo_, struc_id);
+        const auto func_ea = get_func_by_frame(struc_id);
+        const auto id = get_struc_stack_id(ev, struc_id, func_ea);
+        ev.strucs_.emplace(id, Struc{struc_id, func_ea});
+
+        const auto struc = get_struc(struc_id);
+        if(!struc)
+            return func_ea;
+
+        const auto name = ev.qpool_.acquire();
+        ya::wrap(&::get_struc_name, *name, struc->id);
+        for(size_t i = 0; struc && i < struc->memqty; ++i)
+            update_struc_member(ev, struc, *name, &struc->members[i]);
+
+        return func_ea;
+    }
 }
 
 void Events::touch_struc(tid_t struc_id)
 {
-    add_auto_comment(repo_, struc_id);
-    const auto func_ea = get_func_by_frame(struc_id);
-    const auto id = get_struc_stack_id(*this, struc_id, func_ea);
-    strucs_.emplace(id, Struc{struc_id, func_ea});
+    const auto func_ea = update_struc(*this, struc_id);
     if(func_ea != BADADDR)
         touch_func(func_ea);
-    const auto struc = get_struc(struc_id);
-    if(!struc)
-        return;
-    
-    const auto name = qpool_.acquire();
-    ya::wrap(&::get_struc_name, *name, struc->id);
-    for(size_t i = 0; struc && i < struc->memqty; ++i)
-        update_struc_member(*this, struc, *name, &struc->members[i]);
 }
 
 void Events::touch_enum(enum_t enum_id)
@@ -364,29 +378,44 @@ void Events::touch_enum(enum_t enum_id)
 
 void Events::touch_ea(ea_t ea)
 {
-    add_auto_comment(repo_, ea);
-    add_ea(*this, ea);
+    const auto ok = add_ea(*this, ea);
+    if(ok)
+        add_auto_comment(repo_, ea);
 }
 
 void Events::touch_func(ea_t ea)
 {
-    add_auto_comment(repo_, ea);
-    add_ea(*this, hash::hash_function(ea), OBJECT_TYPE_FUNCTION, ea);
+    const auto ok = add_ea(*this, hash::hash_function(ea), OBJECT_TYPE_FUNCTION, ea);
+    if(ok)
+        add_auto_comment(repo_, ea);
+
+    // add stack
     const auto frame = get_frame(ea);
     if(frame)
-        touch_struc(frame->id);
+        update_struc(*this, frame->id);
+
+    // add basic blocks
+    const auto func = get_func(ea);
+    if(!func)
+        return;
+
+    qflow_chart_t flow(nullptr, func, func->start_ea, func->end_ea, 0);
+    for(const auto block : flow.blocks)
+        add_ea(*this, hash::hash_ea(block.start_ea), OBJECT_TYPE_BASIC_BLOCK, block.start_ea);
 }
 
 void Events::touch_code(ea_t ea)
 {
-    add_auto_comment(repo_, ea);
-    add_ea(*this, hash::hash_code(ea), OBJECT_TYPE_CODE, ea);
+    const auto ok = add_ea(*this, hash::hash_ea(ea), OBJECT_TYPE_CODE, ea);
+    if(ok)
+        add_auto_comment(repo_, ea);
 }
 
 void Events::touch_data(ea_t ea)
 {
-    add_auto_comment(repo_, ea);
-    add_ea(*this, hash::hash_data(ea), OBJECT_TYPE_DATA, ea);
+    const auto ok = add_ea(*this, hash::hash_ea(ea), OBJECT_TYPE_DATA, ea);
+    if(ok)
+        add_auto_comment(repo_, ea);
 }
 
 namespace
@@ -471,47 +500,74 @@ namespace
         const auto got = hash::hash_function(ea);
         const auto func = get_func(ea);
         if(got != id || !func)
-            return model.delete_func(visitor, id);
+        {
+            model.delete_func(visitor, id);
+            model.accept_ea(visitor, ea);
+            return;
+        }
 
+        const auto ea_id = hash::hash_ea(ea);
         model.accept_function(visitor, ea);
-        model.delete_code(visitor, hash::hash_code(ea));
-        model.delete_data(visitor, hash::hash_data(ea));
+        model.delete_code(visitor, ea_id);
+        model.delete_data(visitor, ea_id);
     }
 
     void save_code(IModelIncremental& model, IModelVisitor& visitor, YaToolObjectId id, ea_t ea)
     {
-        const auto got = hash::hash_code(ea);
+        const auto got = hash::hash_ea(ea);
         const auto flags = get_flags(ea);
         const auto is_code_not_func = is_code(flags) && !get_func(ea);
         if(got != id || !is_code_not_func)
-            return model.delete_code(visitor, id);
+        {
+            model.delete_code(visitor, id);
+            model.accept_ea(visitor, ea);
+            return;
+        }
 
         model.accept_ea(visitor, ea);
         model.delete_func(visitor, hash::hash_function(ea));
-        model.delete_data(visitor, hash::hash_data(ea));
+        model.delete_data(visitor, got);
     }
 
     void save_data(IModelIncremental& model, IModelVisitor& visitor, YaToolObjectId id, ea_t ea)
     {
-        const auto got = hash::hash_data(ea);
+        const auto got = hash::hash_ea(ea);
         const auto flags = get_flags(ea);
         if(got != id || !is_data(flags))
-            return model.delete_data(visitor, id);
+        {
+            model.delete_data(visitor, id);
+            model.accept_ea(visitor, ea);
+            return;
+        }
 
         model.accept_ea(visitor, ea);
         model.delete_func(visitor, hash::hash_function(ea));
-        model.delete_code(visitor, hash::hash_code(ea));
+        model.delete_code(visitor, got);
+    }
+
+    void save_block(IModelIncremental& model, IModelVisitor& visitor, YaToolObjectId id, ea_t ea)
+    {
+        const auto got = hash::hash_ea(ea);
+        const auto func = get_func(ea);
+        if(got != id || !func)
+        {
+            model.delete_block(visitor, id);
+            return;
+        }
+
+        model.accept_ea(visitor, ea);
     }
 
     void save_eas(Events& ev, IModelIncremental& model, IModelVisitor& visitor)
     {
         for(const auto p : ev.eas_)
-            switch(p.second.type)
+            switch(p.type)
             {
-                case OBJECT_TYPE_FUNCTION:  save_func(model, visitor, p.first, p.second.ea); break;
-                case OBJECT_TYPE_CODE:      save_code(model, visitor, p.first, p.second.ea); break;
-                case OBJECT_TYPE_DATA:      save_data(model, visitor, p.first, p.second.ea); break;
-                default:                    assert(false); break;
+                case OBJECT_TYPE_FUNCTION:      save_func(model, visitor, p.id, p.ea); break;
+                case OBJECT_TYPE_CODE:          save_code(model, visitor, p.id, p.ea); break;
+                case OBJECT_TYPE_DATA:          save_data(model, visitor, p.id, p.ea); break;
+                case OBJECT_TYPE_BASIC_BLOCK:   save_block(model, visitor, p.id, p.ea); break;
+                default:                        assert(false); break;
             }
     }
 

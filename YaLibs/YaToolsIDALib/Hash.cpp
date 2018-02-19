@@ -106,18 +106,9 @@ YaToolObjectId hash::hash_function(uint64_t ea)
     return process_hash({0, ea, OBJECT_TYPE_FUNCTION});
 }
 
-YaToolObjectId hash::hash_code(uint64_t ea)
+YaToolObjectId hash::hash_ea(uint64_t ea)
 {
-    return process_hash({0, ea, OBJECT_TYPE_CODE});
-}
-
-YaToolObjectId hash::hash_data(uint64_t ea)
-{
-    return process_hash({0, ea, OBJECT_TYPE_DATA});
-}
-
-YaToolObjectId hash::hash_block(uint64_t ea)
-{
+    // either CODE, DATA or BASIC_BLOCK
     return process_hash({0, ea, OBJECT_TYPE_BASIC_BLOCK});
 }
 
