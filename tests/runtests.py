@@ -224,6 +224,10 @@ class Fixture(unittest.TestCase):
 
     # set two linked repos
     def setup_repos(self):
+        try:
+            os.makedirs(self.out_dir)
+        except:
+            pass
         work_dir = tempfile.mkdtemp(prefix='repo_', dir=self.out_dir)
         self.dirs.append(work_dir)
         qt54 = os.path.join(self.tests_dir, "..", "testdata", "qt54_svg")
