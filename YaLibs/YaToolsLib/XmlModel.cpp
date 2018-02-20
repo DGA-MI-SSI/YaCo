@@ -15,7 +15,6 @@
 
 #include "XmlModel.hpp"
 
-#include "DelegatingVisitor.hpp"
 #include "Signature.hpp"
 #include "IModelAccept.hpp"
 #include "IModelVisitor.hpp"
@@ -140,21 +139,6 @@ namespace
         void accept(IModelVisitor& visitor) override;
 
         const std::string folder_;
-    };
-
-    void SkipDelete(IModelVisitor* ptr)
-    {
-        UNUSED(ptr);
-    }
-
-    struct SkipVisitStartEndVisitor : public DelegatingVisitor
-    {
-        SkipVisitStartEndVisitor(IModelVisitor& next_visitor)
-        {
-            add_delegate(std::shared_ptr<IModelVisitor>(&next_visitor, &SkipDelete));
-        }
-        void visit_start() override {}
-        void visit_end()   override {}
     };
 }
 
@@ -551,7 +535,6 @@ void XmlModelMemory::accept(IModelVisitor& visitor)
 
 void XmlModelPath::accept(IModelVisitor& visitor)
 {
-    visitor.visit_start();
     try
     {
         filesystem::path root_folder(path_);
@@ -586,16 +569,14 @@ void XmlModelPath::accept(IModelVisitor& visitor)
     {
         YALOG_ERROR(nullptr, "%s\n", ex.what());
     }
-    visitor.visit_end();
 }
 
 void XMLAllDatabaseModel::accept(IModelVisitor& visitor)
 {
     visitor.visit_start();
-    SkipVisitStartEndVisitor visitor_(visitor);
     const auto cache_path = filesystem::path(folder_) / "cache";
     if(filesystem::is_directory(cache_path))
-        XmlModelPath(cache_path.string()).accept(visitor_);
+        XmlModelPath(cache_path.string()).accept(visitor);
     else
         YALOG_ERROR(nullptr, "input cache not found as %s\n", cache_path.generic_string().data());
     visitor.visit_end();
