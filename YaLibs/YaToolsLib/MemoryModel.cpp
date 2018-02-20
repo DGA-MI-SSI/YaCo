@@ -392,7 +392,6 @@ struct Model
     // IModelVisitor
     void visit_start() override;
     void visit_end() override;
-    void visit_start_object(YaToolObjectType_e type) override;
     void visit_start_reference_object(YaToolObjectType_e type) override;
     void visit_start_deleted_object(YaToolObjectType_e type) override;
     void visit_end_deleted_object() override;
@@ -635,7 +634,7 @@ void Model::visit_end()
     current_.reset();
 }
 
-void Model::visit_start_object(YaToolObjectType_e type)
+void Model::visit_start_reference_object(YaToolObjectType_e type)
 {
     current_->is_deleted = false;
     current_->object.reset();
@@ -644,14 +643,9 @@ void Model::visit_start_object(YaToolObjectType_e type)
     current_->object.version_idx = static_cast<HVersion_id_t>(versions_.size());
 }
 
-void Model::visit_start_reference_object(YaToolObjectType_e type)
-{
-    visit_start_object(type);
-}
-
 void Model::visit_start_deleted_object(YaToolObjectType_e type)
 {
-    visit_start_object(type);
+    visit_start_reference_object(type);
     current_->is_deleted = true;
 }
 

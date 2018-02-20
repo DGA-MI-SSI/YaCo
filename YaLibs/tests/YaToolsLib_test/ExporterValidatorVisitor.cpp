@@ -56,7 +56,6 @@ public:
     ~ExporterValidatorVisitor() override;
     void visit_start() override;
     void visit_end() override;
-    void visit_start_object(YaToolObjectType_e object_type) override;
     void visit_start_reference_object(YaToolObjectType_e object_type) override;
     void visit_start_deleted_object(YaToolObjectType_e object_type) override;
     void visit_end_deleted_object() override;
@@ -132,14 +131,6 @@ void ExporterValidatorVisitor::visit_end()
 }
 
 //============= REFERENCE OBJECT ==============
-void ExporterValidatorVisitor::visit_start_object(YaToolObjectType_e object_type)
-{
-    UNUSED(object_type);
-    validator_assert(state[current_state_depth] == VISIT_STARTED, "Bad state");
-    state[++current_state_depth] = VISIT_START_OBJECT;
-    id_visited = false;
-}
-
 void ExporterValidatorVisitor::visit_start_reference_object(YaToolObjectType_e object_type)
 {
     UNUSED(object_type);

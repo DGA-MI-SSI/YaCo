@@ -130,7 +130,6 @@ struct FlatBufferVisitor : public IFlatBufferVisitor
     // IModelVisitor
     void visit_start() override;
     void visit_end() override;
-    void visit_start_object(YaToolObjectType_e object_type) override;
     void visit_start_reference_object(YaToolObjectType_e object_type) override;
     void visit_start_deleted_object(YaToolObjectType_e object_type) override;
     void visit_end_deleted_object() override;
@@ -306,11 +305,6 @@ ExportedBuffer FlatBufferVisitor::GetBuffer() const
     if(!is_ready_)
         return ExportedBuffer{nullptr, 0};
     return ExportedBuffer{fbbuilder_.GetBufferPointer(), fbbuilder_.GetSize()};
-}
-
-void FlatBufferVisitor::visit_start_object(YaToolObjectType_e type)
-{
-    object_type_ = type;
 }
 
 void FlatBufferVisitor::visit_start_reference_object(YaToolObjectType_e type)

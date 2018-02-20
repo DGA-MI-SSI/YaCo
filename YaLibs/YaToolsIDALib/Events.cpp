@@ -29,7 +29,6 @@
 #include "IdaUtils.hpp"
 #include "XmlModel.hpp"
 #include "MemoryModel.hpp"
-#include "DelegatingVisitor.hpp"
 #include "IModel.hpp"
 #include "XmlVisitor.hpp"
 #include "Utils.hpp"

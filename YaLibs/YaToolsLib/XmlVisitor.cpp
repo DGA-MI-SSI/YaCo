@@ -53,7 +53,6 @@ class XmlVisitor_common : public IModelVisitor
 public:
     XmlVisitor_common();
 
-    void visit_start_object(YaToolObjectType_e object_type) override;
     void visit_start_object_version() override;
     void visit_parent_id(YaToolObjectId object_id) override;
     void visit_address(offset_t address) override;
@@ -217,11 +216,6 @@ void FileXmlVisitor::visit_end()
     output.open(path_);
     output << stream_.str();
     output.close();
-}
-
-void XmlVisitor_common::visit_start_object(YaToolObjectType_e object_type)
-{
-    UNUSED(object_type);
 }
 
 namespace

@@ -35,7 +35,6 @@ public:
 
     void visit_start() override;
     void visit_end() override;
-    void visit_start_object(YaToolObjectType_e object_type) override;
     void visit_start_reference_object(YaToolObjectType_e object_type) override;
     void visit_start_deleted_object(YaToolObjectType_e object_type) override;
     void visit_end_deleted_object() override;
@@ -111,13 +110,6 @@ void PathDebuggerVisitor::visit_end()
 {
     LOG_IN();
     DelegatingVisitor::visit_end();
-    LOG_OUT();
-}
-
-void PathDebuggerVisitor::visit_start_object(YaToolObjectType_e object_type)
-{
-    LOG("PathDebuggerVisitor:%x: in "  " -- object_type=%x\n", id_, object_type);
-    DelegatingVisitor::visit_start_object(object_type);
     LOG_OUT();
 }
 

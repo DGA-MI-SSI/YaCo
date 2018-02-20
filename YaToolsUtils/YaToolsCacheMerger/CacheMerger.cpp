@@ -21,7 +21,6 @@
 #include "MemoryModel.hpp"
 #include "IModelAccept.hpp"
 #include "IModel.hpp"
-#include "DelegatingVisitor.hpp"
 using namespace std;
 
 

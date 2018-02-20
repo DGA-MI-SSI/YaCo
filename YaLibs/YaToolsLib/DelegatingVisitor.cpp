@@ -42,13 +42,6 @@ void DelegatingVisitor::visit_end()
         delegate->visit_end();
 }
 
-void DelegatingVisitor::visit_start_object(
-        YaToolObjectType_e object_type)
-{
-    for(const auto& delegate : delegates_)
-        delegate->visit_start_object(object_type);
-}
-
 void DelegatingVisitor::visit_start_reference_object(
         YaToolObjectType_e object_type)
 {
