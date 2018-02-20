@@ -21,5 +21,6 @@
 
 class IModelAccept;
 
-std::shared_ptr<IModelAccept> MakeXmlAllModel  (const std::string& folder);
-std::shared_ptr<IModelAccept> MakeXmlFilesModel(const std::vector<std::string>& files);
+std::shared_ptr<IModelAccept> MakeXmlAllModel   (const std::string& folder);
+std::shared_ptr<IModelAccept> MakeXmlFilesModel (const std::vector<std::string>& files);
+std::shared_ptr<IModelAccept> MakeXmlMemoryModel(const std::string& data);
