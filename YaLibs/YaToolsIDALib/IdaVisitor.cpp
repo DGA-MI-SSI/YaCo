@@ -19,7 +19,7 @@
 #include "IdaVisitor.hpp"
 
 #include "Hash.hpp"
-#include "IObjectListener.hpp"
+#include "IModelSink.hpp"
 #include "HVersion.hpp"
 #include "HObject.hpp"
 #include "IModel.hpp"
@@ -106,16 +106,14 @@ namespace
     using Strucs = std::map<YaToolObjectId, tid_t>;
 
     struct Visitor
-        : public IObjectListener
+        : public IModelSink
     {
          Visitor();
         ~Visitor();
 
-        // IObjectListener
-        void on_object (const HObject& object) override;
-        void on_deleted(YaToolObjectId id) override;
-
-        void on_version(const HVersion& version);
+        // IModelSink
+        void update(const IModel& model) override;
+        void remove(const IModel& model) override;
 
         using TidMap = std::unordered_map<YaToolObjectId, Tid>;
         using Members = std::multimap<YaToolObjectId, YaToolObjectId>;
@@ -1914,109 +1912,126 @@ namespace
         clear_struct_fields(visitor, "struct_fields", version, struc->id);
         struc->set_ghost(false);
     }
-}
 
-void Visitor::on_version(const HVersion& version)
-{
-    const auto ea = static_cast<ea_t>(version.address());
-    switch(version.type())
+    void update_version(Visitor& visitor, const HVersion& version)
     {
-        case OBJECT_TYPE_UNKNOWN:
-        case OBJECT_TYPE_BINARY:
-        case OBJECT_TYPE_COUNT:
-            break;
+        const auto ea = static_cast<ea_t>(version.address());
+        switch(version.type())
+        {
+            case OBJECT_TYPE_UNKNOWN:
+            case OBJECT_TYPE_BINARY:
+            case OBJECT_TYPE_COUNT:
+                break;
 
-        case OBJECT_TYPE_STRUCT:
-            make_struct(*this, version, ea);
-            break;
+            case OBJECT_TYPE_STRUCT:
+                make_struct(visitor, version, ea);
+                break;
 
-        case OBJECT_TYPE_STACKFRAME:
-            make_stackframe(*this, version, ea);
-            break;
+            case OBJECT_TYPE_STACKFRAME:
+                make_stackframe(visitor, version, ea);
+                break;
 
-        case OBJECT_TYPE_ENUM:
-            make_enum(*this, version, ea);
-            break;
+            case OBJECT_TYPE_ENUM:
+                make_enum(visitor, version, ea);
+                break;
 
-        case OBJECT_TYPE_CODE:
-            make_code(*this, version, ea);
-            make_comments(*this, version, ea);
-            break;
+            case OBJECT_TYPE_CODE:
+                make_code(visitor, version, ea);
+                make_comments(visitor, version, ea);
+                break;
 
-        case OBJECT_TYPE_FUNCTION:
-            if(plugin_)
-                plugin_->make_function_enter(version, ea);
-            make_function(*this, version, ea);
-            if(plugin_)
-                plugin_->make_function_exit(version, ea);
-            break;
+            case OBJECT_TYPE_FUNCTION:
+                if(visitor.plugin_)
+                    visitor.plugin_->make_function_enter(version, ea);
+                make_function(visitor, version, ea);
+                if(visitor.plugin_)
+                    visitor.plugin_->make_function_exit(version, ea);
+                break;
 
-        case OBJECT_TYPE_BASIC_BLOCK:
-            if(plugin_)
-                plugin_->make_basic_block_enter(version, ea);
-            make_basic_block(*this, version, ea);
-            make_comments(*this, version, ea);
-            if(plugin_)
-                plugin_->make_basic_block_exit(version, ea);
-            break;
+            case OBJECT_TYPE_BASIC_BLOCK:
+                if(visitor.plugin_)
+                    visitor.plugin_->make_basic_block_enter(version, ea);
+                make_basic_block(visitor, version, ea);
+                make_comments(visitor, version, ea);
+                if(visitor.plugin_)
+                    visitor.plugin_->make_basic_block_exit(version, ea);
+                break;
 
-        case OBJECT_TYPE_STRUCT_MEMBER:
-            make_struct_member(*this, "struct_member", version, ea);
-            break;
+            case OBJECT_TYPE_STRUCT_MEMBER:
+                make_struct_member(visitor, "struct_member", version, ea);
+                break;
 
-        case OBJECT_TYPE_ENUM_MEMBER:
-            make_enum_member(*this, version, ea);
-            break;
+            case OBJECT_TYPE_ENUM_MEMBER:
+                make_enum_member(visitor, version, ea);
+                break;
 
-        case OBJECT_TYPE_STACKFRAME_MEMBER:
-            make_struct_member(*this, "stackframe_member", version, ea);
-            break;
+            case OBJECT_TYPE_STACKFRAME_MEMBER:
+                make_struct_member(visitor, "stackframe_member", version, ea);
+                break;
 
-        case OBJECT_TYPE_DATA:
-            make_data(*this, version, ea);
-            make_comments(*this, version, ea);
-            break;
+            case OBJECT_TYPE_DATA:
+                make_data(visitor, version, ea);
+                make_comments(visitor, version, ea);
+                break;
 
-        case OBJECT_TYPE_SEGMENT:
-            make_segment(version, ea);
-            break;
+            case OBJECT_TYPE_SEGMENT:
+                make_segment(version, ea);
+                break;
 
-        case OBJECT_TYPE_SEGMENT_CHUNK:
-            make_segment_chunk(*this, version, ea);
-            break;
+            case OBJECT_TYPE_SEGMENT_CHUNK:
+                make_segment_chunk(visitor, version, ea);
+                break;
 
-        case OBJECT_TYPE_REFERENCE_INFO:
-            make_reference_info(*this, version, ea);
-            break;
+            case OBJECT_TYPE_REFERENCE_INFO:
+                make_reference_info(visitor, version, ea);
+                break;
+        }
     }
 }
 
-void Visitor::on_object(const HObject& object)
+void Visitor::update(const IModel& model)
 {
-    object.walk_versions([&](const HVersion& version)
+    model.walk_objects([&](YaToolObjectId /*id*/, const HObject& hobj)
     {
-        on_version(version);
+        hobj.walk_versions([&](const HVersion& hver)
+        {
+            update_version(*this, hver);
+            return WALK_CONTINUE;
+        });
         return WALK_CONTINUE;
     });
 }
 
-void Visitor::on_deleted(YaToolObjectId id)
+namespace
 {
-    const auto it_enum = enums_.find(id);
-    if(it_enum != enums_.end())
+    void remove_object(Visitor& visitor, const HObject& hobj)
     {
-        del_enum(it_enum->second);
-        enums_.erase(it_enum);
-        return;
-    }
+        const auto id = hobj.id();
+        const auto it_enum = visitor.enums_.find(id);
+        if(it_enum != visitor.enums_.end())
+        {
+            del_enum(it_enum->second);
+            visitor.enums_.erase(it_enum);
+            return;
+        }
 
-    const auto it_struc = strucs_.find(id);
-    if(it_struc != strucs_.end())
-    {
-        del_struc(get_struc(it_struc->second));
-        strucs_.erase(it_struc);
-        return;
+        const auto it_struc = visitor.strucs_.find(id);
+        if(it_struc != visitor.strucs_.end())
+        {
+            del_struc(get_struc(it_struc->second));
+            visitor.strucs_.erase(it_struc);
+            return;
+        }
     }
+}
+
+void Visitor::remove(const IModel& model)
+{
+    model.walk_objects([&](YaToolObjectId /*id*/, const HObject& hobj)
+    {
+        ::remove_object(*this, hobj);
+        return WALK_CONTINUE;
+    });
 }
 
 bool set_type_at(ea_t ea, const std::string& prototype)
@@ -2029,7 +2044,7 @@ bool set_struct_member_type_at(ea_t ea, const std::string& prototype)
     return set_struct_member_type(nullptr, ea, prototype);
 }
 
-std::shared_ptr<IObjectListener> MakeIdaListener()
+std::shared_ptr<IModelSink> MakeIdaSink()
 {
     return std::make_shared<Visitor>();
 }
@@ -2037,5 +2052,5 @@ std::shared_ptr<IObjectListener> MakeIdaListener()
 void import_to_ida(const std::string& filename)
 {
     Visitor visitor;
-    MakeFlatBufferModel(filename)->accept(*MakeVisitorFromListener(visitor));
+    visitor.update(*MakeFlatBufferModel(filename));
 }

@@ -19,10 +19,11 @@
 
 #include <memory>
 
-struct IObjectListener;
+struct IModelSink;
 
 bool set_type_at                (ea_t ea, const std::string& prototype);
 bool set_struct_member_type_at  (ea_t ea, const std::string& prototype);
 
 void import_to_ida(const std::string& filename);
-std::shared_ptr<IObjectListener> MakeIdaListener();
+
+std::shared_ptr<IModelSink> MakeIdaSink();

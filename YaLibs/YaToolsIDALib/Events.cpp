@@ -34,7 +34,7 @@
 #include "XmlVisitor.hpp"
 #include "Utils.hpp"
 #include "IdaVisitor.hpp"
-#include "IObjectListener.hpp"
+#include "IModelSink.hpp"
 #include "IdaModel.hpp"
 
 #include <chrono>
@@ -689,21 +689,6 @@ namespace
         });
     }
 
-    void SkipDelete(IModelVisitor* ptr)
-    {
-        UNUSED(ptr);
-    }
-
-    struct SkipVisitStartEndVisitor : public DelegatingVisitor
-    {
-        SkipVisitStartEndVisitor(IModelVisitor& next_visitor)
-        {
-            add_delegate(std::shared_ptr<IModelVisitor>(&next_visitor, &SkipDelete));
-        }
-        void visit_start() override {}
-        void visit_end()   override {}
-    };
-
     void add_missing_parents_from_deletions(DepCtx& deps, const std::unordered_set<YaToolObjectId> deleted)
     {
         if(deleted.empty())
@@ -727,26 +712,32 @@ namespace
         });
     }
 
-    void load_xml_files_to(IModelVisitor& visitor, const State& state)
+    void load_xml_files_to(IModelSink& sink, const State& state)
     {
-        visitor.visit_start();
-
-        SkipVisitStartEndVisitor v(visitor);
-        std::unordered_set<YaToolObjectId> deleted;
-        for(const auto& it : state.deleted)
+        const auto deleted = [&]
         {
-            auto path = fs::path(it);
-            path.replace_extension("");
-            const auto idstr = path.filename().generic_string();
-            const auto id = YaToolObjectId_From_String(idstr.data(), idstr.size());
-            path.remove_filename();
-            const auto typestr = path.filename();
-            const auto type = get_object_type(typestr.generic_string().data());
-            v.visit_start_deleted_object(type);
-            v.visit_id(id);
-            v.visit_end_deleted_object();
-            deleted.emplace(id);
-        }
+            std::unordered_set<YaToolObjectId> ids;
+            const auto db = MakeMemoryModel();
+            auto& v = *db.visitor;
+            v.visit_start();
+            for(const auto& it : state.deleted)
+            {
+                auto path = fs::path(it);
+                path.replace_extension("");
+                const auto idstr = path.filename().generic_string();
+                const auto id = YaToolObjectId_From_String(idstr.data(), idstr.size());
+                path.remove_filename();
+                const auto typestr = path.filename();
+                const auto type = get_object_type(typestr.generic_string().data());
+                v.visit_start_reference_object(type);
+                v.visit_id(id);
+                v.visit_end_reference_object();
+                ids.emplace(id);
+            }
+            v.visit_end();
+            sink.remove(*db.model);
+            return ids;
+        }();
 
         // state.updated contain only git modified files
         // i.e: if you apply a stack member on a basic block
@@ -779,8 +770,10 @@ namespace
             });
             return deps.files;
         }();
-        MakeXmlFilesModel(files)->accept(v);
-        visitor.visit_end();
+
+        const auto mem = MakeMemoryModel();
+        MakeXmlFilesModel(files)->accept(*mem.visitor);
+        sink.update(*mem.model);
     }
 }
 
@@ -796,7 +789,7 @@ void Events::update()
             const auto it = p.begin();
             return it == p.end() || *it != cache;
         }), state.updated.end());
-        load_xml_files_to(*MakeVisitorFromListener(*MakeIdaListener()), state);
+        load_xml_files_to(*MakeIdaSink(), state);
     }
 
     // Let IDA apply modifications

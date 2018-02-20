@@ -17,12 +17,12 @@
 
 #include "YaTypes.hpp"
 
-struct IObjectListener
+struct IModel;
+
+struct IModelSink
 {
-    virtual ~IObjectListener() {}
+    virtual ~IModelSink() {}
 
-    virtual void on_object (const HObject& object) = 0;
-    virtual void on_deleted(YaToolObjectId id) = 0;
+    virtual void remove(const IModel& model) = 0;
+    virtual void update(const IModel& model) = 0;
 };
-
-std::shared_ptr<IModelVisitor> MakeVisitorFromListener(IObjectListener& listener);

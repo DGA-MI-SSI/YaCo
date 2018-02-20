@@ -21,7 +21,7 @@
 #include "MemoryModel.hpp"
 #include "XmlModel.hpp"
 #include "FileUtils.hpp"
-#include "IObjectListener.hpp"
+#include "IModelSink.hpp"
 #include "IModelVisitor.hpp"
 #include "FlatBufferModel.hpp"
 #include "FlatBufferVisitor.hpp"
@@ -123,19 +123,23 @@ namespace
     }
 
     struct Listener
-        : public IObjectListener
+        : public IModelSink
     {
         Listener(IModelVisitor& visitor)
             : visitor(visitor)
         {
         }
 
-        void on_object(const HObject& object) override
+        void update(const IModel& model) override
         {
-            object.accept(visitor);
+            model.walk_objects([&](auto, const HObject& hobj)
+            {
+                hobj.accept(visitor);
+                return WALK_CONTINUE;
+            });
         }
 
-        void on_deleted(YaToolObjectId) override
+        void remove(const IModel&) override
         {
         }
 
@@ -181,10 +185,10 @@ namespace
             const auto db = MakeMemoryModel();
             db.visitor->visit_start();
             Listener listener(*db.visitor);
-            create_fbmodel_with([&](const auto& visitor)
+            listener.update(*create_fbmodel_with([&](const auto& visitor)
             {
                 MakeXmlFilesModel({xml})->accept(*visitor);
-            })->accept(*MakeVisitorFromListener(listener));
+            }));
             db.visitor->visit_end();
             return walk_model(*db.model);
         }();

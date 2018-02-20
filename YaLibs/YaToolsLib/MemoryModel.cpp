@@ -20,7 +20,7 @@
 #include "HObject.hpp"
 #include "HVersion.hpp"
 #include "HSignature.hpp"
-#include "IObjectListener.hpp"
+#include "IModelSink.hpp"
 #include "ModelIndex.hpp"
 
 #include <assert.h>
@@ -387,7 +387,7 @@ struct Model
     : public IModelVisitor
     , public IModel
 {
-    Model(IObjectListener* listener);
+    Model();
 
     // IModelVisitor
     void visit_start() override;
@@ -441,7 +441,6 @@ struct Model
     void    walk_versions_without_collision (const OnSigAndVersionFn& fnWalk) const override;
     void    walk_matching_versions          (const HObject& object, size_t min_size, const OnVersionPairFn& fnWalk) const override;
 
-    IObjectListener*            listener_;
     ViewObjects                 view_objects_;
     ViewVersions                view_versions_;
     ViewSignatures              view_signatures_;
@@ -454,9 +453,8 @@ struct Model
 };
 }
 
-Model::Model(IObjectListener* listener)
-    : listener_         (listener)
-    , view_objects_     (*this)
+Model::Model()
+    : view_objects_     (*this)
     , view_versions_    (*this)
     , view_signatures_  (*this)
 {
@@ -464,13 +462,8 @@ Model::Model(IObjectListener* listener)
 
 ModelAndVisitor MakeMemoryModel()
 {
-    const auto ptr = std::make_shared<Model>(nullptr);
+    const auto ptr = std::make_shared<Model>();
     return {ptr, ptr};
-}
-
-std::shared_ptr<IModelVisitor> MakeVisitorFromListener(IObjectListener& listener)
-{
-    return std::make_shared<Model>(&listener);
 }
 
 void Model::visit_start()
@@ -640,13 +633,6 @@ void Model::visit_end()
 {
     finish_index(*this);
     current_.reset();
-    if(!listener_)
-        return;
-
-    for(const auto it : deleted_)
-        listener_->on_deleted(it.id);
-    for(HObject_id_t id = 0, end = static_cast<HObject_id_t>(objects_.size()); id < end; ++id)
-        listener_->on_object({&view_objects_, id});
 }
 
 void Model::visit_start_object(YaToolObjectType_e type)

@@ -113,11 +113,11 @@ struct IModel
 
     virtual void                walk_objects                    (const OnObjectAndIdFn& fnWalk) const = 0;
     virtual size_t              num_objects                     () const = 0;
+    virtual HObject             get_object                      (YaToolObjectId id) const = 0;
+    virtual bool                has_object                      (YaToolObjectId id) const = 0;
     virtual void                walk_objects_with_signature     (const HSignature& hash, const OnObjectFn& fnWalk) const = 0;
     virtual size_t              num_objects_with_signature      (const HSignature& hash) const = 0;
     virtual void                walk_versions_with_signature    (const HSignature& hash, const OnVersionFn& fnWalk) const = 0;
-    virtual HObject             get_object                      (YaToolObjectId id) const = 0;
-    virtual bool                has_object                      (YaToolObjectId id) const = 0;
     virtual void                walk_versions_without_collision (const OnSigAndVersionFn& fnWalk) const = 0;
 
     /**
