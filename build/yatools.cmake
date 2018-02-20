@@ -145,9 +145,6 @@ add_tool(yacachemerger YaToolsUtils/YaToolsCacheMerger)
 # yadbdbmerger
 add_tool(yadbdbmerger YaToolsUtils/YaToolsYADBDBMerger)
 
-# depres
-add_tool(depres YaToolsUtils/depres)
-
 # swig modules
 function(add_swig_mod target name)
     add_swig_module(${target} yatools/swig ${ARGN})
