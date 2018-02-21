@@ -53,15 +53,16 @@ using namespace std::experimental;
 #define DEFAULT_NAME "git_default_name"
 #define DEFAULT_EMAIL "git_default@mail.com"
 
-static void check_git_error(int result)
+static void throw_git_error()
 {
-    {
-        if (result != 0)
-        {
-            const git_error* error = giterr_last();
-            throw std::runtime_error(error->message);
-        }
-    }
+    throw std::runtime_error(giterr_last()->message);
+}
+
+
+static void check_git_error(int err)
+{
+    if(err)
+        throw_git_error();
 }
 
 template<typename T, typename Init_T, typename Exit_T>
@@ -1188,4 +1189,98 @@ void GitRepo::create_tag(const std::string& target, const std::string& tag_name,
 
     check_git_error(git_tag_create(&oid, repository, tag_name.c_str(),
             target_.get(), tagger.get(), message.c_str(), 1));
+}
+
+namespace
+{
+    template<typename T>
+    struct Defer
+    {
+        Defer(const T& defer)
+            : defer_(defer)
+        {
+        }
+
+        ~Defer()
+        {
+            defer_();
+        }
+
+        const T& defer_;
+    };
+
+    template<typename T>
+    Defer<T> defer(const T& defer)
+    {
+        return Defer<T>(defer);
+    }
+
+    std::shared_ptr<git_tree> get_tree(git_repository* repo, const std::string& target)
+    {
+        git_oid oid;
+        int err = 0;
+
+        err = git_oid_fromstr(&oid, target.data());
+        if(err)
+            err = git_reference_name_to_id(&oid, repo, target.data());
+        if(err)
+            throw_git_error();
+
+        git_commit* commit = nullptr;
+        const auto free_commit = defer([&]{ git_commit_free(commit); });
+        err = git_commit_lookup(&commit, repo, &oid);
+        if(err)
+            throw_git_error();
+
+        git_tree* tree = nullptr;
+        err = git_commit_tree(&tree, commit);
+        if(err)
+            throw_git_error();
+
+        return std::shared_ptr<git_tree>(tree, &git_tree_free);
+    }
+}
+
+void GitRepo::diff_trees(const std::string& from, const std::string& to, const on_blob_fn& on_blob) const
+{
+        const auto from_tree = get_tree(repository, from);
+        if(!from_tree)
+            throw_git_error();
+
+        const auto to_tree = get_tree(repository, to);
+        if(!to_tree)
+            throw_git_error();
+
+        git_diff* diff = nullptr;
+        const auto free_diff = defer([&]{ git_diff_free(diff); });
+        int err = git_diff_tree_to_tree(&diff, repository, &*from_tree, &*to_tree, NULL);
+        if(err)
+            throw_git_error();
+
+        using Payload = struct
+        {
+            git_repository* repo;
+            on_blob_fn      on_blob;
+        };
+        const auto file_cb = [](const git_diff_delta* delta, float /*progress*/, void* vpayload)
+        {
+            const auto payload = static_cast<Payload*>(vpayload);
+            const auto deleted = delta->status == GIT_DELTA_DELETED;
+            const auto& file = deleted ? delta->old_file : delta->new_file;
+
+            git_blob* blob = nullptr;
+            const auto free_blob = defer([&]{ git_blob_free(blob); });
+            const auto err = git_blob_lookup(&blob, payload->repo, &file.id);
+            if(err)
+                return 0;
+
+            const auto ptr = git_blob_rawcontent(blob);
+            const auto size = git_blob_rawsize(blob);
+            return payload->on_blob(file.path, !deleted, ptr, size);
+        };
+
+        Payload payload{repository, on_blob};
+        err = git_diff_foreach(diff, file_cb, nullptr, nullptr, nullptr, &payload);
+        if(err)
+            return;
 }
