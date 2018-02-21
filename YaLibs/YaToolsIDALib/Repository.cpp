@@ -258,6 +258,7 @@ namespace
         void toggle_repo_auto_sync() override;
         void sync_and_push_original_idb() override;
         void discard_and_pull_idb() override;
+        void diff_trees(const std::string& from, const std::string& to, const on_blob_fn& on_blob) const override;
 
         // Retrieve informations with IDA GUI
         void ask_to_checkout_modified_files();
@@ -845,6 +846,11 @@ std::string Repository::get_commit(const std::string& ref)
         IDA_LOG_WARNING("Failed to get commit from master, error: %s", error.what());
     }
     return commit;
+}
+
+void Repository::diff_trees(const std::string& from, const std::string& to, const on_blob_fn& on_blob) const
+{
+    return repo_.diff_trees(from, to, on_blob);
 }
 
 std::shared_ptr<IRepository> MakeRepository(const std::string& path)
