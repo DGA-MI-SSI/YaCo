@@ -102,8 +102,6 @@ namespace
     };
     using Bookmarks = std::vector<Bookmark>;
 
-    using Enums  = std::map<YaToolObjectId, enum_t>;
-
     struct Visitor
         : public IModelSink
     {
@@ -125,7 +123,6 @@ namespace
         std::vector<uint8_t>            buffer_;
         Pool<qstring>                   qpool_;
         Bookmarks                       bookmarks_;
-        Enums                           enums_;
         const bool                      had_auto_enabled_;
     };
 
@@ -147,14 +144,6 @@ Visitor::Visitor()
     {
         bookmarks_.push_back({ya::to_string(desc), ea});
     });
-
-    for(size_t i = 0, end = get_enum_qty(); i < end; ++i)
-    {
-        const auto eid = getn_enum(i);
-        ya::wrap(&get_enum_name, *qbuf, eid);
-        const auto id = hash::hash_enum(ya::to_string_ref(*qbuf));
-        enums_.emplace(id, eid);
-    }
 }
 
 Visitor::~Visitor()
@@ -2008,17 +1997,18 @@ namespace
             LOG(ERROR, "unable to delete struc '%s'", name.data());
     }
 
-    void remove_object(Visitor& visitor, const HObject& hobj)
+    void delete_enum(const HVersion& hver)
     {
-        const auto id = hobj.id();
-        const auto it_enum = visitor.enums_.find(id);
-        if(it_enum != visitor.enums_.end())
-        {
-            del_enum(it_enum->second);
-            visitor.enums_.erase(it_enum);
-            return;
-        }
+        const auto name = make_string(hver.username());
+        const auto eid = get_enum(name.data());
+        if(eid == BADADDR)
+            LOG(ERROR, "unable to deleted missing enum '%s'", name.data());
+        else
+            del_enum(eid);
+    }
 
+    void remove_object(const HObject& hobj)
+    {
         const auto type = hobj.type();
         hobj.walk_versions([&](const HVersion& hver)
         {
@@ -2031,6 +2021,10 @@ namespace
                 case OBJECT_TYPE_STRUCT:
                     delete_struc(hver);
                     break;
+
+                case OBJECT_TYPE_ENUM:
+                    delete_enum(hver);
+                    break;
             }
             return WALK_CONTINUE;
         });
@@ -2039,9 +2033,9 @@ namespace
 
 void Visitor::remove(const IModel& model)
 {
-    model.walk_objects([&](YaToolObjectId /*id*/, const HObject& hobj)
+    model.walk_objects([](YaToolObjectId /*id*/, const HObject& hobj)
     {
-        ::remove_object(*this, hobj);
+        ::remove_object(hobj);
         return WALK_CONTINUE;
     });
 }
