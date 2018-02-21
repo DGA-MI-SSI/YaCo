@@ -253,7 +253,7 @@ namespace
 
     void add_auto_comment(IRepository& repo, ea_t ea)
     {
-        return add_auto_comment(repo, ea, "modified");
+        return add_auto_comment(repo, ea, "updated");
     }
 
     YaToolObjectId get_struc_stack_id(Events& ev, ea_t struc_id, ea_t func_ea)
@@ -315,7 +315,6 @@ namespace
         ya::wrap(&::get_enum_member_name, *qbuf, cid);
         const auto id = hash::hash_enum_member(enum_id, ya::to_string_ref(*qbuf));
         ev.enum_members_.emplace(id, EnumMember{enum_id, eid, cid});
-        add_auto_comment(ev.repo_, cid, "updated");
     }
 
     void update_enum(Events& ev, enum_t enum_id)
