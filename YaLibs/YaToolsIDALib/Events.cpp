@@ -711,30 +711,28 @@ namespace
         });
     }
 
-    void load_xml_files_to(IModelSink& sink, const State& state)
+    void load_xml_files_to(IModelSink& sink, const IRepository& repo, const State& state)
     {
         const auto deleted = [&]
         {
-            std::unordered_set<YaToolObjectId> ids;
             const auto db = MakeMemoryModel();
-            auto& v = *db.visitor;
-            v.visit_start();
-            for(const auto& it : state.deleted)
+            db.visitor->visit_start();
+            const auto on_blob = [&](const char* /*path*/, bool added, const void* ptr, size_t size)
             {
-                auto path = fs::path(it);
-                path.replace_extension("");
-                const auto idstr = path.filename().generic_string();
-                const auto id = YaToolObjectId_From_String(idstr.data(), idstr.size());
-                path.remove_filename();
-                const auto typestr = path.filename();
-                const auto type = get_object_type(typestr.generic_string().data());
-                v.visit_start_reference_object(type);
-                v.visit_id(id);
-                v.visit_end_reference_object();
-                ids.emplace(id);
-            }
-            v.visit_end();
+                if(!added)
+                    MakeXmlMemoryModel(ptr, size)->accept(*db.visitor);
+                return 0;
+            };
+            repo.diff_trees(state.commit, "HEAD", on_blob);
+
+            db.visitor->visit_end();
             sink.remove(*db.model);
+            std::unordered_set<YaToolObjectId> ids;
+            db.model->walk_objects([&](YaToolObjectId id, const HObject&)
+            {
+                ids.emplace(id);
+                return WALK_CONTINUE;
+            });
             return ids;
         }();
 
@@ -788,7 +786,7 @@ void Events::update()
             const auto it = p.begin();
             return it == p.end() || *it != cache;
         }), state.updated.end());
-        load_xml_files_to(*MakeIdaSink(), state);
+        load_xml_files_to(*MakeIdaSink(), repo_, state);
     }
 
     // Let IDA apply modifications
