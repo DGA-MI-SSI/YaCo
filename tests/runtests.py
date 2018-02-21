@@ -200,7 +200,7 @@ class Fixture(unittest.TestCase):
         self.eas = {}
         return script, None
 
-    def check_diff(self, want, filter=None):
+    def check_diff(self, want_filename, want, filter=None):
         def check(name):
             data = None
             with open(name, "rb") as fh:
@@ -208,7 +208,7 @@ class Fixture(unittest.TestCase):
                 if filter:
                     data = filter(data)
             if data != want:
-                self.fail("".join(difflib.unified_diff(want.splitlines(1), data.splitlines(1), name)))
+                self.fail("\n" + "".join(difflib.unified_diff(want.splitlines(1), data.splitlines(1), want_filename, name)))
         return check
 
     def filter_enum(self, d):
@@ -220,13 +220,13 @@ class Fixture(unittest.TestCase):
         script = "ya.export_xml_enum('%s')" % name
         def callback(filename):
             with open(filename, "rb") as fh:
-                self.enums[name] = self.filter_enum(fh.read())
+                self.enums[name] = [filename, self.filter_enum(fh.read())]
         return script, callback
 
     def check_enum(self, name):
         script = "ya.export_xml_enum('%s')" % name
-        want = self.enums[name]
-        return script, self.check_diff(want, filter=self.filter_enum)
+        filename, want = self.enums[name]
+        return script, self.check_diff(filename, want, filter=self.filter_enum)
 
     def filter_struc(self, d):
         # struc ordinals are unstable & depend on insertion order
@@ -237,37 +237,37 @@ class Fixture(unittest.TestCase):
         script = "ya.export_xml_struc('%s')" % name
         def callback(filename):
             with open(filename, "rb") as fh:
-                self.strucs[name] = self.filter_struc(fh.read())
+                self.strucs[name] = [filename, self.filter_struc(fh.read())]
         return script, callback
 
     def save_strucs(self):
         script = "ya.export_xml_strucs()"
         def callback(filename):
             with open(filename, "rb") as fh:
-                self.strucs = self.filter_struc(fh.read())
+                self.strucs = [filename, self.filter_struc(fh.read())]
         return script, callback
 
     def check_struc(self, name):
         script = "ya.export_xml_struc('%s')" % name
-        want = self.strucs[name]
-        return script, self.check_diff(want, filter=self.filter_struc)
+        filename, want = self.strucs[name]
+        return script, self.check_diff(filename, want, filter=self.filter_struc)
 
     def check_strucs(self):
         script = "ya.export_xml_strucs()"
-        want = self.strucs
-        return script, self.check_diff(want, filter=self.filter_struc)
+        filename, want = self.strucs
+        return script, self.check_diff(filename, want, filter=self.filter_struc)
 
     def save_ea(self, ea):
         script = "ya.export_xml(0x%x, %s)" % (ea, ea_defmask)
         def callback(filename):
             with open(filename, "rb") as fh:
-                self.eas[ea] = fh.read()
+                self.eas[ea] = [filename, fh.read()]
         return script, callback
 
     def check_ea(self, ea):
         script = "ya.export_xml(0x%x, %s)" % (ea, ea_defmask)
-        want = self.eas[ea]
-        return script, self.check_diff(want)
+        filename, want = self.eas[ea]
+        return script, self.check_diff(filename, want)
 
     def set_master(self, repo, master):
         sysexec(repo, ["git", "remote", "add", "origin", master])

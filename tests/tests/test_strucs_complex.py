@@ -210,7 +210,7 @@ create_complex(sid0, sid1)
             self.save_strucs(),
         )
         a.check_git(["struc"] * 2 + ["strucmember"] * 16)
-        self.assertRegexpMatches(self.strucs, "complex_bot_struc")
+        self.assertRegexpMatches(self.strucs[1], "complex_bot_struc")
         ea = 0x6601EF30
         b.run(
             self.check_strucs(),
@@ -230,7 +230,7 @@ create_complex(frame.id, sid1)
         b.check_git(added=["binary", "segment", "segment_chunk", "function",
             "stackframe"] + ["stackframe_member"] * 12 + ["basic_block"] * 54 +
             ["struc"] + ["strucmember"] * 4)
-        self.assertRegexpMatches(self.eas[ea], "complex_bot_stack")
+        self.assertRegexpMatches(self.eas[ea][1], "complex_bot_stack")
         a.run(
             self.check_ea(ea),
         )

@@ -37,8 +37,8 @@ idaapi.set_struc_cmt(eid, "cmt_02", False)
             self.save_struc("name_b"),
         )
         b.check_git(moved=["struc"])
-        self.assertEqual(self.strucs["name_a"], "")
-        self.assertNotEqual(self.strucs["name_b"], "")
+        self.assertEqual(self.strucs["name_a"][1], "")
+        self.assertNotEqual(self.strucs["name_b"][1], "")
         a.run(
             self.check_struc("name_a"),
             self.check_struc("name_b"),
@@ -46,7 +46,7 @@ idaapi.set_struc_cmt(eid, "cmt_02", False)
             self.save_struc("name_b"),
         )
         a.check_git(deleted=["struc"])
-        self.assertEqual(self.strucs["name_b"], "")
+        self.assertEqual(self.strucs["name_b"][1], "")
 
     def test_struc_members(self):
         a, b = self.setup_repos()
@@ -68,8 +68,8 @@ idaapi.set_struc_cmt(eid, "cmt_02", False)
             self.save_struc("name_b"),
         )
         a.check_git(moved=["struc", "strucmember"])
-        self.assertEqual(self.strucs["name_a"], "")
-        self.assertNotEqual(self.strucs["name_b"], "")
+        self.assertEqual(self.strucs["name_a"][1], "")
+        self.assertNotEqual(self.strucs["name_b"][1], "")
         b.run(
             self.check_struc("name_a"),
             self.check_struc("name_b"),
@@ -165,7 +165,7 @@ for ea, n, offset in targets:
         a.check_git(added=["binary", "segment", "segment_chunk", "function",
             "stackframe", "stackframe_member", "stackframe_member", "basic_block"] +
             ["struc"] * 2 + ["strucmember"] * 112)
-        self.assertRegexpMatches(self.eas[ea], "path_idx")
+        self.assertRegexpMatches(self.eas[ea][1], "path_idx")
         b.run(
             self.check_ea(ea),
             self.check_strucs(),
@@ -176,7 +176,7 @@ for ea, n, offset in targets:
             self.save_ea(ea),
         )
         b.check_git(modified=["basic_block"])
-        self.assertNotRegexpMatches(self.eas[ea], "path_idx")
+        self.assertNotRegexpMatches(self.eas[ea][1], "path_idx")
         a.run(
             self.check_ea(ea),
         )

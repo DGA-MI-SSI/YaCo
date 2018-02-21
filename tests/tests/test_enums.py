@@ -101,7 +101,7 @@ class Fixture(runtests.Fixture):
             self.save_enum("name_b"),
         )
         b.check_git(moved=["enum"])
-        self.assertEqual(self.enums["name_a"], "")
+        self.assertEqual(self.enums["name_a"][1], "")
         a.run(
             self.check_enum("name_a"),
             self.check_enum("name_b"),
@@ -109,7 +109,7 @@ class Fixture(runtests.Fixture):
             self.save_enum("name_b"),
         )
         a.check_git(deleted=["enum"])
-        self.assertEqual(self.enums["name_b"], "")
+        self.assertEqual(self.enums["name_b"][1], "")
 
     def test_enum_members(self):
         a, b = self.setup_repos()
@@ -131,7 +131,7 @@ class Fixture(runtests.Fixture):
             self.save_enum("name_b"),
         )
         a.check_git(moved=["enum", "enum_member"])
-        self.assertEqual(self.enums["name_a"], "")
+        self.assertEqual(self.enums["name_a"][1], "")
         b.run(
             self.check_enum("name_a"),
             self.check_enum("name_b"),
@@ -155,11 +155,11 @@ class Fixture(runtests.Fixture):
             self.save_enum("enum_4"),
             self.save_ea(ea)
         )
-        self.assertNotEqual(self.enums["enum_0"], "")
-        self.assertNotEqual(self.enums["enum_1"], "")
-        self.assertNotEqual(self.enums["enum_2"], "")
-        self.assertNotEqual(self.enums["enum_3"], "")
-        self.assertNotEqual(self.enums["enum_4"], "")
+        self.assertNotEqual(self.enums["enum_0"][1], "")
+        self.assertNotEqual(self.enums["enum_1"][1], "")
+        self.assertNotEqual(self.enums["enum_2"][1], "")
+        self.assertNotEqual(self.enums["enum_3"][1], "")
+        self.assertNotEqual(self.enums["enum_4"][1], "")
         b.run(
             self.check_ea(ea),
             self.check_enum("enum_0"),
@@ -188,11 +188,11 @@ class Fixture(runtests.Fixture):
             self.save_ea(ea),
         )
         b.check_git(deleted=["enum"] * 5 + ["enum_member"] * 15)
-        self.assertMultiLineEqual(self.enums["enum_0"], "")
-        self.assertMultiLineEqual(self.enums["enum_1"], "")
-        self.assertMultiLineEqual(self.enums["enum_2"], "")
-        self.assertMultiLineEqual(self.enums["enum_3"], "")
-        self.assertMultiLineEqual(self.enums["enum_4"], "")
+        self.assertMultiLineEqual(self.enums["enum_0"][1], "")
+        self.assertMultiLineEqual(self.enums["enum_1"][1], "")
+        self.assertMultiLineEqual(self.enums["enum_2"][1], "")
+        self.assertMultiLineEqual(self.enums["enum_3"][1], "")
+        self.assertMultiLineEqual(self.enums["enum_4"][1], "")
         a.run(
             self.check_ea(ea),
             self.check_enum("enum_0"),
