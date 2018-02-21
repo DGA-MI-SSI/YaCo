@@ -103,7 +103,6 @@ namespace
     using Bookmarks = std::vector<Bookmark>;
 
     using Enums  = std::map<YaToolObjectId, enum_t>;
-    using Strucs = std::map<YaToolObjectId, tid_t>;
 
     struct Visitor
         : public IModelSink
@@ -127,7 +126,6 @@ namespace
         Pool<qstring>                   qpool_;
         Bookmarks                       bookmarks_;
         Enums                           enums_;
-        Strucs                          strucs_;
         const bool                      had_auto_enabled_;
     };
 
@@ -156,14 +154,6 @@ Visitor::Visitor()
         ya::wrap(&get_enum_name, *qbuf, eid);
         const auto id = hash::hash_enum(ya::to_string_ref(*qbuf));
         enums_.emplace(id, eid);
-    }
-
-    for(auto idx = get_first_struc_idx(); idx != BADADDR; idx = get_next_struc_idx(idx))
-    {
-        const auto sid = get_struc_by_idx(idx);
-        ya::wrap(&get_struc_name, *qbuf, sid);
-        const auto id = hash::hash_struc(ya::to_string_ref(*qbuf));
-        strucs_.emplace(id, sid);
     }
 }
 
@@ -2004,6 +1994,20 @@ void Visitor::update(const IModel& model)
 
 namespace
 {
+    void delete_struc(const HVersion& hver)
+    {
+        const auto name = make_string(hver.username());
+        const auto struc = get_struc_from_name(name.data());
+        if(!struc)
+        {
+            LOG(ERROR, "unable to deleted missing struc '%s'", name.data());
+            return;
+        }
+        const auto ok = del_struc(struc);
+        if(!ok)
+            LOG(ERROR, "unable to delete struc '%s'", name.data());
+    }
+
     void remove_object(Visitor& visitor, const HObject& hobj)
     {
         const auto id = hobj.id();
@@ -2015,13 +2019,21 @@ namespace
             return;
         }
 
-        const auto it_struc = visitor.strucs_.find(id);
-        if(it_struc != visitor.strucs_.end())
+        const auto type = hobj.type();
+        hobj.walk_versions([&](const HVersion& hver)
         {
-            del_struc(get_struc(it_struc->second));
-            visitor.strucs_.erase(it_struc);
-            return;
-        }
+            const auto type = hobj.type();
+            switch(type)
+            {
+                default:
+                    break;
+
+                case OBJECT_TYPE_STRUCT:
+                    delete_struc(hver);
+                    break;
+            }
+            return WALK_CONTINUE;
+        });
     }
 }
 
