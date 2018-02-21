@@ -144,11 +144,36 @@ idaapi.set_member_name(frame, 0, "somevar")
 
     def test_delete_function_only(self):
         a, b = self.setup_repos()
+
+        # we fix parent xref first so results are not polluted
+        # with parent xrefs changes
+        # touch parent xref
+        parent_ea = 0x66053110
+        b.run(
+            self.script("""
+ea = 0x66053110
+idc.set_name(ea, "nope")
+"""),
+            self.save_ea(parent_ea),
+        )
+        b.check_git(added=["binary", "segment", "segment_chunk", "data"])
+
+        # remove parent xref
         ea = 0x66005510
         a.run(
+            self.check_ea(parent_ea),
             self.script("""
 parent_ea = 0x66053110
 idc.del_items(parent_ea, idc.DELIT_EXPAND, 0x4)
+"""),
+            self.save_ea(parent_ea),
+        )
+        a.check_git(modified=["segment_chunk"], deleted=["data"])
+
+        # touch function
+        b.run(
+            self.check_ea(parent_ea),
+            self.script("""
 ea = 0x66005510
 frame = idaapi.get_frame(ea)
 offset = idc.get_first_member(frame.id)
@@ -156,9 +181,11 @@ idaapi.set_member_name(frame, offset, "zorg")
 """),
             self.save_ea(ea),
         )
-        a.check_git(added=["binary", "segment", "segment", "segment_chunk", "segment_chunk", "function",
+        b.check_git(added=["segment", "segment_chunk", "function",
             "stackframe", "stackframe_member", "basic_block"])
-        b.run(
+
+        # lower function to code
+        a.run(
             self.check_ea(ea),
             self.script("""
 ea = 0x66005510
@@ -166,7 +193,18 @@ idc.del_func(ea)
 """),
             self.save_ea(ea),
         )
-        b.check_git(added=["code"], deleted=["function", "stackframe", "stackframe_member", "basic_block"], modified=["segment_chunk"])
+        a.check_git(added=["code"], deleted=["function", "stackframe", "stackframe_member", "basic_block"], modified=["segment_chunk"])
+
+        # lower code to data
+        b.run(
+            self.check_ea(ea),
+            self.script("""
+ea = 0x66005510
+idc.del_items(ea, idc.DELIT_SIMPLE, 0xD)
+"""),
+            self.save_ea(ea),
+        )
+        b.check_git(added=["data"] * 8, deleted=["code"], modified=["segment_chunk"])
         a.run(
             self.check_ea(ea),
         )

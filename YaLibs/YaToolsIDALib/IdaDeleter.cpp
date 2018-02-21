@@ -73,7 +73,23 @@ namespace
         const auto ea = static_cast<ea_t>(hver.address());
         const auto ok = del_func(ea);
         if(!ok)
-            LOG(ERROR, "unable to delete func %16llx", static_cast<uint64_t>(ea));
+            LOG(ERROR, "unable to delete func 0x%16llx", static_cast<uint64_t>(ea));
+    }
+
+    void delete_data(const HVersion& hver)
+    {
+        const auto ea = static_cast<ea_t>(hver.address());
+        const auto ok = del_items(ea, DELIT_EXPAND);
+        if(!ok)
+            LOG(ERROR, "unable to delete data 0x%16llx", static_cast<uint64_t>(ea));
+    }
+
+    void delete_code(const HVersion& hver)
+    {
+        const auto ea = static_cast<ea_t>(hver.address());
+        const auto ok = del_items(ea, DELIT_EXPAND, static_cast<asize_t>(hver.size()));
+        if(!ok)
+            LOG(ERROR, "unable to delete code 0x%16llx", static_cast<uint64_t>(ea));
     }
 
     void delete_object(const HObject& hobj)
@@ -100,6 +116,14 @@ namespace
 
                 case OBJECT_TYPE_FUNCTION:
                     delete_function(hver);
+                    break;
+
+                case OBJECT_TYPE_DATA:
+                    delete_data(hver);
+                    break;
+
+                case OBJECT_TYPE_CODE:
+                    delete_code(hver);
                     break;
             }
             return WALK_CONTINUE;
