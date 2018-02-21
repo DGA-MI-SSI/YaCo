@@ -1325,18 +1325,6 @@ namespace
             return WALK_CONTINUE;
         });
 
-        const auto qbuf = visitor.qpool_.acquire();
-        ya::walk_enum_members(eid, [&](const_t cid, uval_t value, uchar serial, bmask_t bmask)
-        {
-            ya::wrap(&get_enum_member_name, *qbuf, cid);
-            const auto yaid = hash::hash_enum_member(id, ya::to_string_ref(*qbuf));
-            if(is_member(visitor, id, yaid))
-                return;
-
-            if(!del_enum_member(eid, value, serial, bmask))
-                LOG(ERROR, "make_enum: 0x%" PRIxEA ": unable to delete member %" PRIxEA " %" PRIxEA " %x %" PRIxEA "\n", ea, cid, value, serial, bmask);
-        });
-
         set_tid(visitor, id, eid, 0, OBJECT_TYPE_ENUM);
         set_enum_ghost(eid, false);
     }
@@ -2007,6 +1995,24 @@ namespace
             del_enum(eid);
     }
 
+    void delete_enum_member(const HVersion& hver)
+    {
+        const auto name = make_string(hver.username());
+        const auto cid = get_enum_member_by_name(name.data());
+        if(cid == BADADDR)
+        {
+            LOG(ERROR, "unable to deleted missing enum member '%s'", name.data());
+            return;
+        }
+        const auto eid = get_enum_member_enum(cid);
+        const auto value = get_enum_member_value(cid);
+        const auto serial = get_enum_member_serial(cid);
+        const auto bmask = get_enum_member_bmask(cid);
+        const auto ok = del_enum_member(eid, value, serial, bmask);
+        if(!ok)
+            LOG(ERROR, "unable to delete enum member '%s'", name.data());
+    }
+
     void remove_object(const HObject& hobj)
     {
         const auto type = hobj.type();
@@ -2024,6 +2030,10 @@ namespace
 
                 case OBJECT_TYPE_ENUM:
                     delete_enum(hver);
+                    break;
+
+                case OBJECT_TYPE_ENUM_MEMBER:
+                    delete_enum_member(hver);
                     break;
             }
             return WALK_CONTINUE;
