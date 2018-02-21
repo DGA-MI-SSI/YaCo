@@ -107,14 +107,16 @@ namespace
 
     struct XmlModelMemory : public IModelAccept
     {
-        XmlModelMemory(const std::string& data)
+        XmlModelMemory(const void* data, size_t szdata)
             : data_(data)
+            , szdata_(szdata)
         {
         }
 
         void accept(IModelVisitor& visitor) override;
 
-        const std::string data_;
+        const void* data_;
+        size_t      szdata_;
     };
 
     struct XmlModelPath : public IModelAccept
@@ -152,9 +154,9 @@ std::shared_ptr<IModelAccept> MakeXmlFilesModel(const std::vector<std::string>& 
     return std::make_shared<XmlModelFiles>(files);
 }
 
-std::shared_ptr<IModelAccept> MakeXmlMemoryModel(const std::string& data)
+std::shared_ptr<IModelAccept> MakeXmlMemoryModel(const void* data, size_t szdata)
 {
-    return std::make_shared<XmlModelMemory>(data);
+    return std::make_shared<XmlModelMemory>(data, szdata);
 }
 
 namespace
@@ -529,7 +531,7 @@ void XmlModelFiles::accept(IModelVisitor& visitor)
 
 void XmlModelMemory::accept(IModelVisitor& visitor)
 {
-    auto reader = std::shared_ptr<xmlTextReader>(xmlReaderForMemory(data_.data(), static_cast<int>(data_.size()), "", nullptr, 0), &xmlFreeTextReader);
+    auto reader = std::shared_ptr<xmlTextReader>(xmlReaderForMemory(static_cast<const char*>(data_), static_cast<int>(szdata_), "", nullptr, 0), &xmlFreeTextReader);
     accept_reader(reader.get(), visitor);
 }
 
