@@ -266,28 +266,6 @@ namespace
         return hash::hash_struc(ya::to_string_ref(*name));
     }
 
-    struct IdAndType
-    {
-        YaToolObjectId     id;
-        YaToolObjectType_e type;
-    };
-
-    IdAndType get_ea_type(ea_t ea)
-    {
-        const auto func = get_func(ea);
-        if(func)
-            return {hash::hash_function(ea), OBJECT_TYPE_FUNCTION};
-
-        const auto flags = get_flags(ea);
-        if(is_code(flags))
-            return {hash::hash_ea(ea), OBJECT_TYPE_CODE};
-
-        if(is_data(flags))
-            return {hash::hash_ea(ea), OBJECT_TYPE_DATA};
-
-        return {hash::hash_ea(ea), OBJECT_TYPE_UNKNOWN};
-    }
-
     bool add_ea(Events& ev, YaToolObjectId id, YaToolObjectType_e type, ea_t ea)
     {
         return ev.eas_.emplace(Ea{id, type, ea}).second;
@@ -295,11 +273,30 @@ namespace
 
     bool add_ea(Events& ev, ea_t ea)
     {
-        const auto ctx = get_ea_type(ea);
-        if(ctx.type == OBJECT_TYPE_UNKNOWN)
-            return false;
+        const auto func = get_func(ea);
+        if(func)
+        {
+            // we must be careful to compute func id with func start ea
+            // but ea may point to the middle of any basic block
+            const auto a = add_ea(ev, hash::hash_function(func->start_ea), OBJECT_TYPE_FUNCTION, func->start_ea);
+            const auto b = add_ea(ev, hash::hash_ea(ea), OBJECT_TYPE_BASIC_BLOCK, ea);
+            return a || b;
+        }
 
-        return add_ea(ev, ctx.id, ctx.type, ea);
+        const auto flags = get_flags(ea);
+        if(is_code(flags))
+        {
+            ea = get_code_head(ea);
+            return add_ea(ev, hash::hash_ea(ea), OBJECT_TYPE_CODE, ea);
+        }
+
+        if(is_data(flags))
+        {
+            ea = get_item_head(ea);
+            return add_ea(ev, hash::hash_ea(ea), OBJECT_TYPE_DATA, ea);
+        }
+
+        return false;
     }
 
     void update_struc_member(Events& ev, struc_t* struc, const qstring& name, member_t* m)
@@ -384,6 +381,11 @@ void Events::touch_ea(ea_t ea)
 
 void Events::touch_func(ea_t ea)
 {
+    const auto func = get_func(ea);
+    if(!func)
+        return;
+
+    ea = func->start_ea;
     const auto ok = add_ea(*this, hash::hash_function(ea), OBJECT_TYPE_FUNCTION, ea);
     if(ok)
         add_auto_comment(repo_, ea);
@@ -394,10 +396,6 @@ void Events::touch_func(ea_t ea)
         update_struc(*this, frame->id);
 
     // add basic blocks
-    const auto func = get_func(ea);
-    if(!func)
-        return;
-
     qflow_chart_t flow(nullptr, func, func->start_ea, func->end_ea, 0);
     for(const auto block : flow.blocks)
         add_ea(*this, hash::hash_ea(block.start_ea), OBJECT_TYPE_BASIC_BLOCK, block.start_ea);
@@ -405,6 +403,7 @@ void Events::touch_func(ea_t ea)
 
 void Events::touch_code(ea_t ea)
 {
+    ea = get_code_head(ea);
     const auto ok = add_ea(*this, hash::hash_ea(ea), OBJECT_TYPE_CODE, ea);
     if(ok)
         add_auto_comment(repo_, ea);
@@ -412,6 +411,7 @@ void Events::touch_code(ea_t ea)
 
 void Events::touch_data(ea_t ea)
 {
+    ea = get_item_head(ea);
     const auto ok = add_ea(*this, hash::hash_ea(ea), OBJECT_TYPE_DATA, ea);
     if(ok)
         add_auto_comment(repo_, ea);

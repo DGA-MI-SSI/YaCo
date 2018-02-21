@@ -1351,10 +1351,28 @@ namespace
         // FIXME return ea ?
         return BADADDR;
     }
+}
 
+    ea_t get_code_head(ea_t ea)
+    {
+        // ensure ea == instruction start
+        ea = get_item_head(ea);
+        const auto segm = getseg(ea);
+        if(!segm)
+            return BADADDR;
+
+        return get_code_start(ea, segm->start_ea);
+    }
+
+namespace
+{
     template<typename Ctx>
     void accept_code(Ctx& ctx, IModelVisitor& v, const Parent& parent, ea_t ea)
     {
+        ea = get_code_head(ea);
+        if(ea == BADADDR)
+            return;
+
         const auto id = hash::hash_ea(ea);
         if(ctx.skip_id(id, OBJECT_TYPE_CODE))
             return;

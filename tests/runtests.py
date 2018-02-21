@@ -146,8 +146,11 @@ with open("%s", "wb") as fh:
             _, path_a, path_b = line.split()
             _, otype_a, _ = re.split("[\\\/]", path_a)
             _, otype_b, _ = re.split("[\\\/]", path_b)
-            self.ctx.assertEqual(otype_a, otype_b)
-            got_moved.append(otype_a)
+            if otype_a == otype_b:
+                got_moved.append(otype_a)
+            else:
+                got_deleted.append(otype_a)
+                got_added.append(otype_b)
         for line in files:
             if not len(line):
                 continue

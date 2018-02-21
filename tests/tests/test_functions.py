@@ -142,15 +142,32 @@ idaapi.set_member_name(frame, 0, "somevar")
             self.check_ea(ea),
         )
 
-    @unittest.skip("not implemented yet")
-    def test_remove_function(self):
+    def test_delete_function_only(self):
         a, b = self.setup_repos()
-        ea = 0x6600100F
+        ea = 0x66005510
         a.run(
-            self.script(make_unknown),
-            self.save_ea(ea)
+            self.script("""
+parent_ea = 0x66053110
+idc.del_items(parent_ea, idc.DELIT_EXPAND, 0x4)
+ea = 0x66005510
+frame = idaapi.get_frame(ea)
+offset = idc.get_first_member(frame.id)
+idaapi.set_member_name(frame, offset, "zorg")
+"""),
+            self.save_ea(ea),
         )
+        a.check_git(added=["binary", "segment", "segment", "segment_chunk", "segment_chunk", "function",
+            "stackframe", "stackframe_member", "basic_block"])
         b.run(
+            self.check_ea(ea),
+            self.script("""
+ea = 0x66005510
+idc.del_func(ea)
+"""),
+            self.save_ea(ea),
+        )
+        b.check_git(added=["code"], deleted=["function", "stackframe", "stackframe_member", "basic_block"], modified=["segment_chunk"])
+        a.run(
             self.check_ea(ea),
         )
 

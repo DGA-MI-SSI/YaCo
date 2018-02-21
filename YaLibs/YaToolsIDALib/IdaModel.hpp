@@ -28,6 +28,10 @@ std::string get_type(ea_t ea);
 std::shared_ptr<IModelAccept> MakeIdaModel();
 std::vector<ea_t> get_all_items(ea_t start, ea_t end);
 
+#ifndef SWIG
+ea_t get_code_head(ea_t ea);
+#endif
+
 struct IModelIncremental
 {
     virtual ~IModelIncremental() {}

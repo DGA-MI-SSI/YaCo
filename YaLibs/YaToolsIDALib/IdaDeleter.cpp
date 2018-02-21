@@ -68,6 +68,14 @@ namespace
             LOG(ERROR, "unable to delete enum member '%s'", name.data());
     }
 
+    void delete_function(const HVersion& hver)
+    {
+        const auto ea = static_cast<ea_t>(hver.address());
+        const auto ok = del_func(ea);
+        if(!ok)
+            LOG(ERROR, "unable to delete func %16llx", static_cast<uint64_t>(ea));
+    }
+
     void delete_object(const HObject& hobj)
     {
         const auto type = hobj.type();
@@ -88,6 +96,10 @@ namespace
 
                 case OBJECT_TYPE_ENUM_MEMBER:
                     delete_enum_member(hver);
+                    break;
+
+                case OBJECT_TYPE_FUNCTION:
+                    delete_function(hver);
                     break;
             }
             return WALK_CONTINUE;
