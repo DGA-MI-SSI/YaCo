@@ -105,7 +105,7 @@ namespace
         if(!ok)
             return;
 
-        const auto subtid = static_cast<tid_t>(netnode(subtype.c_str()));
+        const auto subtid = node2ea(netnode(subtype.c_str()));
         if(subtid == BADADDR)
             return;
 

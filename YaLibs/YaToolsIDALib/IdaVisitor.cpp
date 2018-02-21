@@ -1804,14 +1804,9 @@ namespace
         set_tid(visitor, version.id(), member->id, 0, struc->props & SF_FRAME ? OBJECT_TYPE_STACKFRAME_MEMBER : OBJECT_TYPE_STRUCT_MEMBER);
     }
 
-    struc_t* get_struc_from_name(const char* name)
-    {
-        return get_struc(netnode(name));
-    }
-
     struc_t* try_get_struc(const HVersion& version, const char* name)
     {
-        auto struc = get_struc_from_name(name);
+        auto struc = get_struc(get_struc_id(name));
         if(struc)
             return struc;
 
