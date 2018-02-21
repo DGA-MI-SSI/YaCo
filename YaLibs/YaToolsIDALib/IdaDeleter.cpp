@@ -24,6 +24,18 @@
 
 #define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("ida_deleter", (FMT), ## __VA_ARGS__)
 
+#ifdef __EA64__
+#define PRIxEA "llx"
+#define PRIXEA "llX"
+#define PRIuEA "llu"
+#define EA_SIZE "16"
+#else
+#define PRIxEA "x"
+#define PRIXEA "X"
+#define PRIuEA "u"
+#define EA_SIZE "8"
+#endif
+
 namespace
 {
     void delete_struc(const HVersion& hver)
@@ -73,7 +85,7 @@ namespace
         const auto ea = static_cast<ea_t>(hver.address());
         const auto ok = del_func(ea);
         if(!ok)
-            LOG(ERROR, "unable to delete func 0x%16llx", static_cast<uint64_t>(ea));
+            LOG(ERROR, "unable to delete func 0x%0" EA_SIZE PRIXEA, ea);
     }
 
     void delete_data(const HVersion& hver)
@@ -81,7 +93,7 @@ namespace
         const auto ea = static_cast<ea_t>(hver.address());
         const auto ok = del_items(ea, DELIT_EXPAND);
         if(!ok)
-            LOG(ERROR, "unable to delete data 0x%16llx", static_cast<uint64_t>(ea));
+            LOG(ERROR, "unable to delete data 0x%0" EA_SIZE PRIXEA, ea);
     }
 
     void delete_code(const HVersion& hver)
@@ -89,7 +101,7 @@ namespace
         const auto ea = static_cast<ea_t>(hver.address());
         const auto ok = del_items(ea, DELIT_EXPAND, static_cast<asize_t>(hver.size()));
         if(!ok)
-            LOG(ERROR, "unable to delete code 0x%16llx", static_cast<uint64_t>(ea));
+            LOG(ERROR, "unable to delete code 0x%0" EA_SIZE PRIXEA, ea);
     }
 
     void delete_object(const HObject& hobj)
