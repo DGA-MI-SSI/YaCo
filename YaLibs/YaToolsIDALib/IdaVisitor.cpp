@@ -30,6 +30,7 @@
 #include "Plugins.hpp"
 #include "FlatBufferModel.hpp"
 #include "Utils.hpp"
+#include "IdaDeleter.hpp"
 
 #include <algorithm>
 #include <string>
@@ -1969,85 +1970,9 @@ void Visitor::update(const IModel& model)
     });
 }
 
-namespace
-{
-    void delete_struc(const HVersion& hver)
-    {
-        const auto name = make_string(hver.username());
-        const auto struc = get_struc_from_name(name.data());
-        if(!struc)
-        {
-            LOG(ERROR, "unable to deleted missing struc '%s'", name.data());
-            return;
-        }
-        const auto ok = del_struc(struc);
-        if(!ok)
-            LOG(ERROR, "unable to delete struc '%s'", name.data());
-    }
-
-    void delete_enum(const HVersion& hver)
-    {
-        const auto name = make_string(hver.username());
-        const auto eid = get_enum(name.data());
-        if(eid == BADADDR)
-            LOG(ERROR, "unable to deleted missing enum '%s'", name.data());
-        else
-            del_enum(eid);
-    }
-
-    void delete_enum_member(const HVersion& hver)
-    {
-        const auto name = make_string(hver.username());
-        const auto cid = get_enum_member_by_name(name.data());
-        if(cid == BADADDR)
-        {
-            LOG(ERROR, "unable to deleted missing enum member '%s'", name.data());
-            return;
-        }
-        const auto eid = get_enum_member_enum(cid);
-        const auto value = get_enum_member_value(cid);
-        const auto serial = get_enum_member_serial(cid);
-        const auto bmask = get_enum_member_bmask(cid);
-        const auto ok = del_enum_member(eid, value, serial, bmask);
-        if(!ok)
-            LOG(ERROR, "unable to delete enum member '%s'", name.data());
-    }
-
-    void remove_object(const HObject& hobj)
-    {
-        const auto type = hobj.type();
-        hobj.walk_versions([&](const HVersion& hver)
-        {
-            const auto type = hobj.type();
-            switch(type)
-            {
-                default:
-                    break;
-
-                case OBJECT_TYPE_STRUCT:
-                    delete_struc(hver);
-                    break;
-
-                case OBJECT_TYPE_ENUM:
-                    delete_enum(hver);
-                    break;
-
-                case OBJECT_TYPE_ENUM_MEMBER:
-                    delete_enum_member(hver);
-                    break;
-            }
-            return WALK_CONTINUE;
-        });
-    }
-}
-
 void Visitor::remove(const IModel& model)
 {
-    model.walk_objects([](YaToolObjectId /*id*/, const HObject& hobj)
-    {
-        ::remove_object(hobj);
-        return WALK_CONTINUE;
-    });
+    delete_from_model(model);
 }
 
 bool set_type_at(ea_t ea, const std::string& prototype)
