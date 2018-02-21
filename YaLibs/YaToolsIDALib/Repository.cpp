@@ -389,13 +389,13 @@ State Repository::update_cache()
 
     IDA_LOG_INFO("Updating cache...");
     // get master commit
-    const std::string master_commit = get_commit("master");
-    if (master_commit.empty())
+    state.commit = get_commit("master");
+    if (state.commit.empty())
     {
         IDA_LOG_INFO("Unable to update cache");
         return state;
     }
-    LOG(DEBUG, "Current master: %s", master_commit.c_str());
+    LOG(DEBUG, "Current master: %s", state.commit.c_str());
 
     // fetch remote
     fetch("origin");
@@ -412,9 +412,9 @@ State Repository::update_cache()
     }
 
     // get modified files from origin
-    const auto created = repo_.get_new_objects(master_commit);
-    const auto updated = repo_.get_modified_objects(master_commit);
-    const auto deleted = repo_.get_deleted_objects(master_commit);
+    const auto created = repo_.get_new_objects(state.commit);
+    const auto updated = repo_.get_modified_objects(state.commit);
+    const auto deleted = repo_.get_deleted_objects(state.commit);
 
     state.updated.insert(state.updated.end(), created.begin(), created.end());
     state.updated.insert(state.updated.end(), updated.begin(), updated.end());

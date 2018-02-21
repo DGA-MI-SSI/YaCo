@@ -24,6 +24,7 @@
 
 struct State
 {
+    std::string              commit;
     std::vector<std::string> deleted;
     std::vector<std::string> updated;
 };
