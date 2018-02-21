@@ -21,6 +21,8 @@
 #include "Helpers.h"
 #include "IdaUtils.hpp"
 
+#include <math.h>
+
 // Log macro used for events logging
 #define LOG_IDP_EVENT(format, ...) do{ if(LOG_IDP_EVENTS) IDA_LOG_INFO("idp: " format, ##__VA_ARGS__); }while(0)
 #define LOG_DBG_EVENT(format, ...) do{ if(LOG_DBG_EVENTS) IDA_LOG_INFO("dbg: " format, ##__VA_ARGS__); }while(0)
