@@ -44,16 +44,7 @@ struct IModelIncremental
     virtual void accept_ea              (IModelVisitor& v, ea_t ea) = 0;
 
     // delete methods
-    virtual void delete_enum        (IModelVisitor& v, YaToolObjectId id) = 0;
-    virtual void delete_enum_member (IModelVisitor& v, YaToolObjectId id) = 0;
-    virtual void delete_struc       (IModelVisitor& v, YaToolObjectId id) = 0;
-    virtual void delete_struc_member(IModelVisitor& v, YaToolObjectId id) = 0;
-    virtual void delete_stack       (IModelVisitor& v, YaToolObjectId id) = 0;
-    virtual void delete_stack_member(IModelVisitor& v, YaToolObjectId id) = 0;
-    virtual void delete_code        (IModelVisitor& v, YaToolObjectId id) = 0;
-    virtual void delete_data        (IModelVisitor& v, YaToolObjectId id) = 0;
-    virtual void delete_func        (IModelVisitor& v, YaToolObjectId id) = 0;
-    virtual void delete_block       (IModelVisitor& v, YaToolObjectId id) = 0;
+    virtual void delete_version         (IModelVisitor& v, YaToolObjectType_e type, YaToolObjectId id) = 0;
 };
 
 std::shared_ptr<IModelIncremental> MakeIncrementalIdaModel();

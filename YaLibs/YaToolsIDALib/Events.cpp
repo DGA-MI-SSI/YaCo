@@ -441,9 +441,9 @@ namespace
             if(try_accept_struc(p.first, p.second, *qbuf))
                 model.accept_struct(visitor, p.second.func_ea, p.second.id);
             else if(p.second.func_ea == BADADDR)
-                model.delete_struc(visitor, p.first);
+                model.delete_version(visitor, OBJECT_TYPE_STRUCT, p.first);
             else
-                model.delete_stack(visitor, p.first);
+                model.delete_version(visitor, OBJECT_TYPE_STACKFRAME, p.first);
         }
 
         for(const auto p : ev.struc_members_)
@@ -458,9 +458,9 @@ namespace
             if(is_valid_parent && is_valid_member)
                 model.accept_struct(visitor, p.second.struc.func_ea, p.second.struc.id);
             else if(p.second.struc.func_ea == BADADDR)
-                model.delete_struc_member(visitor, p.first);
+                model.delete_version(visitor, OBJECT_TYPE_STRUCT_MEMBER, p.first);
             else
-                model.delete_stack_member(visitor, p.first);
+                model.delete_version(visitor, OBJECT_TYPE_STACKFRAME_MEMBER, p.first);
         }
     }
 
@@ -474,7 +474,7 @@ namespace
             const auto id = hash::hash_enum(ya::to_string_ref(*qbuf));
             const auto idx = get_enum_idx(p.second);
             if(idx == BADADDR || id != p.first)
-                model.delete_enum(visitor, p.first);
+                model.delete_version(visitor, OBJECT_TYPE_ENUM, p.first);
             else
                 model.accept_enum(visitor, p.second);
         }
@@ -487,7 +487,7 @@ namespace
             const auto id = hash::hash_enum_member(parent_id, ya::to_string_ref(*qbuf));
             const auto parent = get_enum_member_enum(p.second.mid);
             if(parent == BADADDR || id != p.first || parent_id != p.second.parent_id)
-                model.delete_enum_member(visitor, p.first);
+                model.delete_version(visitor, OBJECT_TYPE_ENUM_MEMBER, p.first);
             else
                 model.accept_enum(visitor, p.second.eid);
         }
@@ -499,15 +499,15 @@ namespace
         const auto func = get_func(ea);
         if(got != id || !func)
         {
-            model.delete_func(visitor, id);
+            model.delete_version(visitor, OBJECT_TYPE_FUNCTION, id);
             model.accept_ea(visitor, ea);
             return;
         }
 
         const auto ea_id = hash::hash_ea(ea);
         model.accept_function(visitor, ea);
-        model.delete_code(visitor, ea_id);
-        model.delete_data(visitor, ea_id);
+        model.delete_version(visitor, OBJECT_TYPE_CODE, ea_id);
+        model.delete_version(visitor, OBJECT_TYPE_DATA, ea_id);
     }
 
     void save_code(IModelIncremental& model, IModelVisitor& visitor, YaToolObjectId id, ea_t ea)
@@ -517,14 +517,14 @@ namespace
         const auto is_code_not_func = is_code(flags) && !get_func(ea);
         if(got != id || !is_code_not_func)
         {
-            model.delete_code(visitor, id);
+            model.delete_version(visitor, OBJECT_TYPE_CODE, id);
             model.accept_ea(visitor, ea);
             return;
         }
 
         model.accept_ea(visitor, ea);
-        model.delete_func(visitor, hash::hash_function(ea));
-        model.delete_data(visitor, got);
+        model.delete_version(visitor, OBJECT_TYPE_FUNCTION, hash::hash_function(ea));
+        model.delete_version(visitor, OBJECT_TYPE_DATA, got);
     }
 
     void save_data(IModelIncremental& model, IModelVisitor& visitor, YaToolObjectId id, ea_t ea)
@@ -533,14 +533,14 @@ namespace
         const auto flags = get_flags(ea);
         if(got != id || !is_data(flags))
         {
-            model.delete_data(visitor, id);
+            model.delete_version(visitor, OBJECT_TYPE_DATA, id);
             model.accept_ea(visitor, ea);
             return;
         }
 
         model.accept_ea(visitor, ea);
-        model.delete_func(visitor, hash::hash_function(ea));
-        model.delete_code(visitor, got);
+        model.delete_version(visitor, OBJECT_TYPE_FUNCTION, hash::hash_function(ea));
+        model.delete_version(visitor, OBJECT_TYPE_CODE, got);
     }
 
     void save_block(IModelIncremental& model, IModelVisitor& visitor, YaToolObjectId id, ea_t ea)
@@ -549,7 +549,7 @@ namespace
         const auto func = get_func(ea);
         if(got != id || !func)
         {
-            model.delete_block(visitor, id);
+            model.delete_version(visitor, OBJECT_TYPE_BASIC_BLOCK, id);
             return;
         }
 

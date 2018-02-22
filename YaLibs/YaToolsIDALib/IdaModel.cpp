@@ -1874,23 +1874,14 @@ namespace
         ModelIncremental(int type_mask);
 
         // IModelIncremental accept methods
-        void accept_enum(IModelVisitor& v, ea_t enum_id) override;
-        void accept_struct(IModelVisitor& v, ea_t struc_id, ea_t func_ea) override;
+        void accept_enum    (IModelVisitor& v, ea_t enum_id) override;
+        void accept_struct  (IModelVisitor& v, ea_t struc_id, ea_t func_ea) override;
         void accept_function(IModelVisitor& v, ea_t ea) override;
-        void accept_ea(IModelVisitor& v, ea_t ea) override;
-        void accept_segment(IModelVisitor& v, ea_t ea) override;
+        void accept_ea      (IModelVisitor& v, ea_t ea) override;
+        void accept_segment (IModelVisitor& v, ea_t ea) override;
 
         // IModelIncremental delete methods
-        void delete_enum        (IModelVisitor& v, YaToolObjectId id) override;
-        void delete_enum_member (IModelVisitor& v, YaToolObjectId id) override;
-        void delete_struc       (IModelVisitor& v, YaToolObjectId id) override;
-        void delete_struc_member(IModelVisitor& v, YaToolObjectId id) override;
-        void delete_stack       (IModelVisitor& v, YaToolObjectId id) override;
-        void delete_stack_member(IModelVisitor& v, YaToolObjectId id) override;
-        void delete_data        (IModelVisitor& v, YaToolObjectId id) override;
-        void delete_code        (IModelVisitor& v, YaToolObjectId id) override;
-        void delete_func        (IModelVisitor& v, YaToolObjectId id) override;
-        void delete_block       (IModelVisitor& v, YaToolObjectId id) override;
+        void delete_version (IModelVisitor& v, YaToolObjectType_e type, YaToolObjectId id) override;
 
         // Ctx methods
         bool skip_id(YaToolObjectId, YaToolObjectType_e type);
@@ -2030,64 +2021,11 @@ void ModelIncremental::accept_segment(IModelVisitor& v, ea_t ea)
     ::accept_segment_chunks(ctx_, v, segment, seg);
 }
 
-namespace
+void ModelIncremental::delete_version(IModelVisitor& v, YaToolObjectType_e type, YaToolObjectId id)
 {
-    void delete_id(IModelVisitor& v, YaToolObjectType_e type, YaToolObjectId id)
-    {
-        v.visit_start_deleted_object(type);
-        v.visit_id(id);
-        v.visit_end_deleted_object();
-    }
-}
-
-void ModelIncremental::delete_struc(IModelVisitor& v, YaToolObjectId id)
-{
-     delete_id(v, OBJECT_TYPE_STRUCT, id);
-}
-
-void ModelIncremental::delete_func(IModelVisitor& v, YaToolObjectId id)
-{
-    delete_id(v, OBJECT_TYPE_FUNCTION, id);
-}
-
-void ModelIncremental::delete_stack(IModelVisitor& v, YaToolObjectId id)
-{
-    delete_id(v, OBJECT_TYPE_STACKFRAME, id);
-}
-
-void ModelIncremental::delete_enum(IModelVisitor& v, YaToolObjectId id)
-{
-    delete_id(v, OBJECT_TYPE_ENUM, id);
-}
-
-void ModelIncremental::delete_enum_member(IModelVisitor& v, YaToolObjectId id)
-{
-    delete_id(v, OBJECT_TYPE_ENUM_MEMBER, id);
-}
-
-void ModelIncremental::delete_struc_member(IModelVisitor& v, YaToolObjectId id)
-{
-    delete_id(v, OBJECT_TYPE_STRUCT_MEMBER, id);
-}
-
-void ModelIncremental::delete_stack_member(IModelVisitor& v, YaToolObjectId id)
-{
-    delete_id(v, OBJECT_TYPE_STACKFRAME_MEMBER, id);
-}
-
-void ModelIncremental::delete_code(IModelVisitor& v, YaToolObjectId id)
-{
-    delete_id(v, OBJECT_TYPE_CODE, id);
-}
-
-void ModelIncremental::delete_data(IModelVisitor& v, YaToolObjectId id)
-{
-    delete_id(v, OBJECT_TYPE_DATA, id);
-}
-
-void ModelIncremental::delete_block(IModelVisitor& v, YaToolObjectId id)
-{
-    delete_id(v, OBJECT_TYPE_BASIC_BLOCK, id);
+    v.visit_start_deleted_object(type);
+    v.visit_id(id);
+    v.visit_end_deleted_object();
 }
 
 void export_from_ida(const std::string& filename)
