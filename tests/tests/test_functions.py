@@ -41,6 +41,18 @@ frame = idaapi.get_frame(ea)
 idaapi.set_member_name(frame, 0x4,  "another_name")
 """
 
+create_function = """
+ea = 0x6602E530
+idc.MakeFunction(ea)
+"""
+
+create_and_rename_function = """
+ea = 0x6602E530
+idc.MakeFunction(ea)
+idaapi.set_name(ea, "new_function_E530")
+"""
+
+
 class Fixture(runtests.Fixture):
 
     def test_rename_function(self):
@@ -75,5 +87,27 @@ class Fixture(runtests.Fixture):
             self.save_ea(ea),
         )
         a.run(
+            self.check_ea(ea),
+        )
+
+    def test_create_function(self):
+        a, b = self.setup_repos()
+        ea = 0x6600EDF0
+        a.run(
+            self.script(create_function),
+            self.save_ea(ea)
+        )
+        b.run(
+            self.check_ea(ea),
+        )
+
+    def test_create_and_rename_function(self):
+        a, b = self.setup_repos()
+        ea = 0x6600EDF0
+        a.run(
+            self.script(create_and_rename_function),
+            self.save_ea(ea)
+        )
+        b.run(
             self.check_ea(ea),
         )
