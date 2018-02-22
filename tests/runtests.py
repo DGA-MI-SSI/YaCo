@@ -98,8 +98,10 @@ class Repo():
         err = cmd.run()
         self.ctx.assertEqual(err, None, "%s" % err)
 
-    def run(self, *args):
-        scripts = """
+    def run_with(self, sync, *args):
+        scripts = ""
+        if sync:
+            scripts += """
 idc.SaveBase("")
 """
         todo = []
@@ -118,6 +120,12 @@ with open("%s", "wb") as fh:
         self.run_script(scripts)
         for (check, name) in todo:
             check(name)
+
+    def run(self, *args):
+        return self.run_with(True, *args)
+
+    def run_no_sync(self, *args):
+        return self.run_with(False, *args)
 
     def check_git(self, added=None, modified=None, deleted=None, moved=None):
         if not added:
