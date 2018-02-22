@@ -196,25 +196,6 @@ ida_auto.plan_and_wait(ea, idc.find_func_end(ea))
             self.check_last_ea(),
         )
 
-    @unittest.skip("not implemented yet")
-    def test_transform_code_to_function(self):
-        a, b = self.setup_repos()
-        a.run(
-            self.script("""
-ea = 0x6600100F
-idc.del_items(ea, idc.DELIT_SIMPLE, 5)
-"""),
-            self.save_last_ea()
-        )
-        b.run(
-            self.check_last_ea(),
-            self.script("""
-idc.create_data(0x6600100F, FF_BYTE, 1, ida_idaapi.BADADDR)
-idc.make_array(0x6600100F, 5)"""),
-            self.save_last_ea()
-        )
-        a.run(self.check_last_ea())
-
     def test_create_function_then_undefined_func(self):
         a, b = self.setup_repos()
         a.run(
