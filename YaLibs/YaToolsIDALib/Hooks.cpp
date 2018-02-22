@@ -328,6 +328,7 @@ namespace
     using Enums         = std::map<YaToolObjectId, enum_t>;
     using EnumMembers   = std::map<YaToolObjectId, EnumMember>;
     using Segments      = std::set<ea_t>;
+    using Functions     = std::set<ea_t>;
 
     struct Hooks
         : public IHooks
@@ -358,8 +359,10 @@ namespace
         void add_ea(ea_t ea);
         void add_struct_member(ea_t struct_id, ea_t member_offset);
 
+        void cleanup_data_code(IModelIncremental& model, IModelVisitor& visitor);
         void save_structs(IModelIncremental& model, IModelVisitor& visitor);
         void save_enums(IModelIncremental& model, IModelVisitor& visitor);
+        void save_functions(IModelIncremental& model, IModelVisitor& visitor);
         void save();
         void save_and_update();
 
@@ -463,11 +466,13 @@ namespace
         Pool<qstring>    qpool_;
 
         Eas             eas_;
+        Eas             modified_type_eas_;
         Structs         strucs_;
         StructMembers   struc_members_;
         Enums           enums_;
         EnumMembers     enum_members_;
         Segments        segments_;
+        Functions       functions_;
 
         bool            enabled_;
     };
@@ -767,18 +772,21 @@ void Hooks::rename(ea_t ea, const std::string& name)
 void Hooks::delete_function(ea_t ea)
 {
     repo_.add_comment(to_hex(ea) + ": func deleted");
+    functions_.insert(ea);
     add_ea(ea);
 }
 
 void Hooks::make_code(ea_t ea)
 {
     repo_.add_comment(to_hex(ea) + ": code created");
+    modified_type_eas_.insert(ea);
     add_ea(ea);
 }
 
 void Hooks::make_data(ea_t ea)
 {
     repo_.add_comment(to_hex(ea) + ": data created");
+    modified_type_eas_.insert(ea);
     add_ea(ea);
 }
 
@@ -918,6 +926,16 @@ namespace
     }
 }
 
+void Hooks::save_functions(IModelIncremental& model, IModelVisitor& visitor)
+{
+    for(const auto f: functions_)
+    {
+        if(!get_func(f))
+            model.delete_func(visitor, hash::hash_function(f));
+    }
+    functions_.clear();
+}
+
 void Hooks::save_structs(IModelIncremental& model, IModelVisitor& visitor)
 {
     const auto qbuf = qpool_.acquire();
@@ -981,6 +999,30 @@ void Hooks::save_enums(IModelIncremental& model, IModelVisitor& visitor)
     }
 }
 
+void Hooks::cleanup_data_code(IModelIncremental& model, IModelVisitor& visitor)
+{
+    for(const auto ea: modified_type_eas_)
+    {
+        const auto id = hash::hash_ea(ea);
+        const auto flags = get_flags(ea);
+        if(is_data(flags))
+        {
+            model.delete_code(visitor, id);
+        }
+        else if(is_code(flags))
+        {
+            model.delete_data(visitor, id);
+        }
+        else
+        {
+            model.delete_code(visitor, id);
+            model.delete_data(visitor, id);
+
+        }
+    }
+    modified_type_eas_.clear();
+}
+
 void Hooks::save()
 {
     IDA_LOG_INFO("Saving cache...");
@@ -990,6 +1032,9 @@ void Hooks::save()
     db.visitor->visit_start();
     {
         const auto model = MakeIncrementalIdaModel();
+        if(0)
+            cleanup_data_code(*model, *db.visitor);
+        save_functions(*model, *db.visitor);
         save_structs(*model, *db.visitor);
         save_enums(*model, *db.visitor);
         for (const ea_t ea : eas_)
@@ -2172,6 +2217,8 @@ void Hooks::deleting_func(va_list args)
     LOG_IDB_EVENT("Function %s is about to be deleted (" EA_FMT " to " EA_FMT")", get_func_name(pfn->start_ea).c_str(), pfn->start_ea, pfn->end_ea);
 
     delete_function(pfn->start_ea);
+    const auto frame = get_frame(pfn);
+    update_struct(frame->id);
 }
 
 void Hooks::frame_deleted(va_list args)

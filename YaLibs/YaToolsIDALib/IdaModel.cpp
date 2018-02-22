@@ -1854,6 +1854,9 @@ namespace
         void delete_struc_member(IModelVisitor& v, YaToolObjectId id) override;
         void delete_stack       (IModelVisitor& v, YaToolObjectId id) override;
         void delete_stack_member(IModelVisitor& v, YaToolObjectId id) override;
+        void delete_data(IModelVisitor& v, YaToolObjectId id) override;
+        void delete_code(IModelVisitor& v, YaToolObjectId id) override;
+        void delete_func(IModelVisitor& v, YaToolObjectId id) override;
 
         // Ctx methods
         bool skip_id(YaToolObjectId, YaToolObjectType_e type);
@@ -2005,7 +2008,12 @@ namespace
 
 void ModelIncremental::delete_struc(IModelVisitor& v, YaToolObjectId id)
 {
-    delete_id(v, OBJECT_TYPE_STRUCT, id);
+     delete_id(v, OBJECT_TYPE_STRUCT, id);
+}
+
+void ModelIncremental::delete_func(IModelVisitor& v, YaToolObjectId id)
+{
+    delete_id(v, OBJECT_TYPE_FUNCTION, id);
 }
 
 void ModelIncremental::delete_stack(IModelVisitor& v, YaToolObjectId id)
@@ -2031,6 +2039,16 @@ void ModelIncremental::delete_struc_member(IModelVisitor& v, YaToolObjectId id)
 void ModelIncremental::delete_stack_member(IModelVisitor& v, YaToolObjectId id)
 {
     delete_id(v, OBJECT_TYPE_STACKFRAME_MEMBER, id);
+}
+
+void ModelIncremental::delete_code(IModelVisitor& v, YaToolObjectId id)
+{
+    delete_id(v, OBJECT_TYPE_CODE, id);
+}
+
+void ModelIncremental::delete_data(IModelVisitor& v, YaToolObjectId id)
+{
+    delete_id(v, OBJECT_TYPE_DATA, id);
 }
 
 void export_from_ida(const std::string& filename)

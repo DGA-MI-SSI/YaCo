@@ -46,6 +46,9 @@ struct IModelIncremental
     virtual void delete_struc_member(IModelVisitor& v, YaToolObjectId id) = 0;
     virtual void delete_stack       (IModelVisitor& v, YaToolObjectId id) = 0;
     virtual void delete_stack_member(IModelVisitor& v, YaToolObjectId id) = 0;
+    virtual void delete_code        (IModelVisitor& v, YaToolObjectId id) = 0;
+    virtual void delete_data        (IModelVisitor& v, YaToolObjectId id) = 0;
+    virtual void delete_func        (IModelVisitor& v, YaToolObjectId id) = 0;
 };
 
 std::shared_ptr<IModelIncremental> MakeIncrementalIdaModel();
