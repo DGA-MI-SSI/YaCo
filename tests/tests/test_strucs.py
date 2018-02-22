@@ -127,12 +127,12 @@ for k in range(0, 2):
 
     def test_apply_strucs(self):
         a, b = self.setup_repos()
-        ea = 0x66013D10
         targets = """
+ea = 0x66013D10
 targets = [
-    (0x66013D23, 1, 3),
-    (0x66013D26, 1, 7),
-    (0x66013D2C, 0, 13),
+    (ea+0x13, 1, 3),
+    (ea+0x16, 1, 7),
+    (ea+0x1C, 0, 13),
 ]
 """
         a.run(
@@ -160,25 +160,25 @@ for ea, n, offset in targets:
     custom_op_stroff(ea, n, path.cast(), 2)
 """),
             self.save_strucs(),
-            self.save_ea(ea),
+            self.save_last_ea(),
         )
         a.check_git(added=["binary", "segment", "segment_chunk", "function",
             "stackframe", "stackframe_member", "stackframe_member", "basic_block"] +
             ["struc"] * 2 + ["strucmember"] * 112)
-        self.assertRegexpMatches(self.eas[ea][1], "path_idx")
+        self.assertRegexpMatches(self.eas[self.last_ea][1], "path_idx")
         b.run(
-            self.check_ea(ea),
+            self.check_last_ea(),
             self.check_strucs(),
             self.script(targets + """
 for ea, n, offset in targets:
     idaapi.clr_op_type(ea, n)
 """),
-            self.save_ea(ea),
+            self.save_last_ea(),
         )
         b.check_git(modified=["basic_block"])
-        self.assertNotRegexpMatches(self.eas[ea][1], "path_idx")
+        self.assertNotRegexpMatches(self.eas[self.last_ea][1], "path_idx")
         a.run(
-            self.check_ea(ea),
+            self.check_last_ea(),
         )
 
     def test_default_struc_fields(self):

@@ -211,11 +211,11 @@ create_complex(sid0, sid1)
         )
         a.check_git(["struc"] * 2 + ["strucmember"] * 16)
         self.assertRegexpMatches(self.strucs[1], "complex_bot_struc")
-        ea = 0x6601EF30
         b.run(
             self.check_strucs(),
             self.script(constants + complex_constants + """
-frame = idaapi.get_frame(0x6601EF30)
+ea = 0x6601EF30
+frame = idaapi.get_frame(ea)
 offset = idc.get_first_member(frame.id)
 while offset != idaapi.BADADDR:
     mid = idc.get_member_id(frame.id, offset)
@@ -225,19 +225,18 @@ while offset != idaapi.BADADDR:
 sid1 = idaapi.add_struc(-1, "complex_bot_stack", False)
 create_complex(frame.id, sid1)
 """),
-            self.save_ea(ea),
+            self.save_last_ea(),
         )
         b.check_git(added=["binary", "segment", "segment_chunk", "function",
             "stackframe"] + ["stackframe_member"] * 12 + ["basic_block"] * 54 +
             ["struc"] + ["strucmember"] * 4)
-        self.assertRegexpMatches(self.eas[ea][1], "complex_bot_stack")
+        self.assertRegexpMatches(self.eas[self.last_ea][1], "complex_bot_stack")
         a.run(
-            self.check_ea(ea),
+            self.check_last_ea(),
         )
 
     def test_create_struc_in_stack_vars(self):
         a, b = self.setup_repos()
-        ea = 0x6601EF30
         a.run(
             self.script(constants + complex_constants + """
 def create_complex2(sid, complex_struc):
@@ -245,30 +244,32 @@ def create_complex2(sid, complex_struc):
         create_field(sid, offset, name, ftype, strid, count)
     return idaapi.get_struc_size(sid)
 
+ea = 0x6601EF30
 sid1 = idaapi.add_struc(-1, "complex_bot_stack", False)
 create_complex2(sid1, complex_struc3)
-frame = idaapi.get_frame(0x6601EF30)
+frame = idaapi.get_frame(ea)
 offset = idc.get_first_member(frame.id)
 mid = idc.get_member_id(frame.id, offset)
 idc.SetType(mid, "complex_bot_stack*")
 idaapi.set_member_name(frame, offset, "zorg")
 """),
-            self.save_ea(ea),
+            self.save_last_ea(),
             self.save_strucs(),
         )
         b.run(
-            self.check_ea(ea),
+            self.check_last_ea(),
             self.check_strucs(),
             self.script("""
-frame = idaapi.get_frame(0x6601EF30)
+ea = 0x6601EF30
+frame = idaapi.get_frame(ea)
 offset = idc.get_first_member(frame.id)
 idaapi.set_member_name(frame, offset, "new_name")
 """),
-            self.save_ea(ea),
+            self.save_last_ea(),
             self.save_strucs(),
         )
         b.check_git(modified=["stackframe_member"])
         a.run(
-            self.check_ea(ea),
+            self.check_last_ea(),
             self.check_strucs(),
         )

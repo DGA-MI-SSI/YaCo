@@ -18,15 +18,15 @@
 import runtests
 
 constants = """
-block_ea = 0x66045614
+ea = 0x66045614
 
 # flags, bits, bitfield, ea, operand, fields
 enums = [
-    (idaapi.hexflag(),  0, False, block_ea+0x00, 0, [0, 0x40, 16]),
-    (idaapi.charflag(), 0, False, block_ea+0x19, 1, [ord('a'), ord('z'), ord('$')]),
-    (idaapi.decflag(),  1, False, block_ea+0x02, 0, [0, 10, 16]),
-    (idaapi.octflag(),  0, False, block_ea+0x06, 1, [0, 8, 13, 16]),
-    (idaapi.binflag(),  0, True,  block_ea+0x04, 0, [1, 2]),
+    (idaapi.hexflag(),  0, False, ea+0x00, 0, [0, 0x40, 16]),
+    (idaapi.charflag(), 0, False, ea+0x19, 1, [ord('a'), ord('z'), ord('$')]),
+    (idaapi.decflag(),  1, False, ea+0x02, 0, [0, 10, 16]),
+    (idaapi.octflag(),  0, False, ea+0x06, 1, [0, 8, 13, 16]),
+    (idaapi.binflag(),  0, True,  ea+0x04, 0, [1, 2]),
 ]
 """
 
@@ -145,7 +145,6 @@ class Fixture(runtests.Fixture):
 
     def test_enum_types(self):
         a, b = self.setup_repos()
-        ea = 0x66045614
         a.run(
             self.script(constants + add_enums),
             self.save_enum("enum_0"),
@@ -153,7 +152,7 @@ class Fixture(runtests.Fixture):
             self.save_enum("enum_2"),
             self.save_enum("enum_3"),
             self.save_enum("enum_4"),
-            self.save_ea(ea)
+            self.save_last_ea()
         )
         self.assertNotEqual(self.enums["enum_0"][1], "")
         self.assertNotEqual(self.enums["enum_1"][1], "")
@@ -161,31 +160,31 @@ class Fixture(runtests.Fixture):
         self.assertNotEqual(self.enums["enum_3"][1], "")
         self.assertNotEqual(self.enums["enum_4"][1], "")
         b.run(
-            self.check_ea(ea),
+            self.check_last_ea(),
             self.check_enum("enum_0"),
             self.check_enum("enum_1"),
             self.check_enum("enum_2"),
             self.check_enum("enum_3"),
             self.check_enum("enum_4"),
             self.script(constants + unapply_enums),
-            self.save_ea(ea),
+            self.save_last_ea(),
         )
         b.check_git(modified=["basic_block"])
         a.run(
-            self.check_ea(ea),
+            self.check_last_ea(),
             self.script(constants + apply_enums),
-            self.save_ea(ea),
+            self.save_last_ea(),
         )
         a.check_git(modified=["basic_block"])
         b.run(
-            self.check_ea(ea),
+            self.check_last_ea(),
             self.script(constants + del_enums),
             self.save_enum("enum_0"),
             self.save_enum("enum_1"),
             self.save_enum("enum_2"),
             self.save_enum("enum_3"),
             self.save_enum("enum_4"),
-            self.save_ea(ea),
+            self.save_last_ea(),
         )
         b.check_git(deleted=["enum"] * 5 + ["enum_member"] * 15)
         self.assertMultiLineEqual(self.enums["enum_0"][1], "")
@@ -194,7 +193,7 @@ class Fixture(runtests.Fixture):
         self.assertMultiLineEqual(self.enums["enum_3"][1], "")
         self.assertMultiLineEqual(self.enums["enum_4"][1], "")
         a.run(
-            self.check_ea(ea),
+            self.check_last_ea(),
             self.check_enum("enum_0"),
             self.check_enum("enum_1"),
             self.check_enum("enum_2"),

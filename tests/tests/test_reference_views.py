@@ -33,21 +33,20 @@ class Fixture(runtests.Fixture):
 
     def test_reference_views(self):
         a, b = self.setup_repos()
-        ea = 0x66013B00
         a.run(
             self.script(set_reference_views),
-            self.save_ea(ea),
+            self.save_last_ea(),
         )
         a.check_git(added=["binary", "segment", "segment_chunk", "function",
             "stackframe", "stackframe_member", "stackframe_member", "basic_block",
             "reference_info", "reference_info"])
         b.run(
-            self.check_ea(ea),
+            self.check_last_ea(),
             self.script(reset_reference_views),
-            self.save_ea(ea),
+            self.save_last_ea(),
         )
         # FIXME deleted=["reference_info"] * 2
         b.check_git(modified=["basic_block"])
         a.run(
-            self.check_ea(ea),
+            self.check_last_ea(),
         )

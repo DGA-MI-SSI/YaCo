@@ -198,6 +198,12 @@ class Fixture(unittest.TestCase):
         self.enums = {}
         self.strucs = {}
         self.eas = {}
+        self.last_ea = None
+        for line in script.splitlines():
+            line = line.strip()
+            ea = re.sub(r"^ea = (0x[a-fA-F0-9]+)$", r"\1", line)
+            if ea != line:
+                self.last_ea = int(ea, 16)
         return script, None
 
     def check_diff(self, want_filename, want, filter=None):
@@ -263,6 +269,14 @@ class Fixture(unittest.TestCase):
             with open(filename, "rb") as fh:
                 self.eas[ea] = [filename, fh.read()]
         return script, callback
+
+    def save_last_ea(self):
+        self.assertIsNotNone(self.last_ea)
+        return self.save_ea(self.last_ea)
+
+    def check_last_ea(self):
+        self.assertIsNotNone(self.last_ea)
+        return self.check_ea(self.last_ea)
 
     def check_ea(self, ea):
         script = "ya.export_xml(0x%x, %s)" % (ea, ea_defmask)
