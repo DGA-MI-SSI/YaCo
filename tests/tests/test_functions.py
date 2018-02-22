@@ -49,6 +49,7 @@ idc.add_func(ea)
 create_and_rename_function = """
 ea = 0x6602E530
 idc.add_func(ea)
+ida_auto.plan_and_wait(ea, idc.find_func_end(ea))
 idaapi.set_name(ea, "new_function_E530")
 """
 
@@ -128,6 +129,38 @@ class Fixture(runtests.Fixture):
             self.check_ea(ea),
         )
 
+    def test_transform_code_to_function(self):
+        a, b = self.setup_repos()
+        ea = 0x6600100F
+        a.run(
+            self.script(make_unknown),
+            self.save_ea(ea)
+        )
+        b.run(
+            self.check_ea(ea),
+            self.script("""
+idc.create_data(0x6600100F, FF_BYTE, 1, ida_idaapi.BADADDR)
+idc.make_array(0x6600100F, 5)"""),
+            self.save_ea(ea)
+        )
+        a.run(self.check_ea(ea))
+
+    def test_create_function_then_undefined_func(self):
+        a, b = self.setup_repos()
+        ea = 0x6600EF30
+        a.run(
+            self.script("""
+ea = 0x6600EF30
+idc.add_func(ea)
+ida_auto.plan_and_wait(ea, idc.find_func_end(ea))
+idaapi.set_name(ea, "new_function_EF30")
+"""),
+            self.save_ea(ea)
+        )
+        b.run(
+            self.check_ea(ea)
+        )
+
     def test_transform_function_to_byte_array(self):
         a, b = self.setup_repos()
         ea = 0x6600100F
@@ -143,3 +176,45 @@ idc.make_array(0x6600100F, 5)"""),
             self.save_ea(ea)
         )
         a.run(self.check_ea(ea))
+
+    def test_create_function_from_code(self):
+        a, b = self.setup_repos()
+        ea = 0x6600EF30
+        a.run(
+            self.script("""
+ea = 0x6600EF30
+idc.add_func(ea)
+ida_auto.plan_and_wait(ea, idc.find_func_end(ea))
+# idaapi.set_name(ea, "new_function_EF30")
+"""),
+            self.save_ea(ea)
+        )
+        b.run(
+            self.check_ea(ea)
+        )
+
+    def test_create_function_then_undefined_func(self):
+        a, b = self.setup_repos()
+        ea = 0x6600EF30
+        a.run(
+            self.script("""
+ea = 0x6600EF30
+idc.add_func(ea)
+ida_auto.plan_and_wait(ea, idc.find_func_end(ea))
+idaapi.set_name(ea, "new_function_EF30")
+"""),
+            self.save_ea(ea)
+        )
+        b.run(
+            self.check_ea(ea),
+            self.script("""
+ea = 0x6600EF30
+idc.del_items(ea, idc.DELIT_EXPAND, 0x2c)
+idc.create_dword(ea)
+idc.make_array(ea, 11)
+"""),
+            self.save_ea(ea)
+        )
+        a.run(
+            self.check_ea(ea)
+        )

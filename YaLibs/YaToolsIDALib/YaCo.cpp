@@ -130,7 +130,7 @@ YaCo::YaCo()
     // hooks not hooked yet
     initial_load();
     auto_wait();
-    setflag(inf.s_genflags, INFFL_AUTO, false);
+//    inf.set_auto_enabled(false);
 
     action_descs_.push_back(YACO_ACTION_DESC("yaco_toggle_rebase_push",     "YaCo - Toggle YaCo auto rebase/push",   new_handler([&]{ ext_toggle_auto_rebase_push(this); })));
     action_descs_.push_back(YACO_ACTION_DESC("yaco_sync_and_push_idb",      "YaCo - Resync idb & force push",        new_handler([&]{ ext_sync_and_push_idb(this); })));
