@@ -343,7 +343,6 @@ idaapi.set_name(ea, "new_function_EF30_2")"""),
             self.check_ea(ea)
         )
 
-    @unittest.skip("not implemented yet")
     def test_rename_and_undefine_func(self):
         a, b = self.setup_repos()
         ea = 0x6600EF70
@@ -362,6 +361,8 @@ idc.del_items(ea, idc.DELIT_EXPAND, 0x2c)
 """),
             self.save_ea(ea)
         )
+        b.check_git(added=["data"] * 17, deleted=["function", "stackframe",
+            "stackframe_member", "stackframe_member", "basic_block"], modified=["segment_chunk"])
         a.run(
             self.check_ea(ea)
         )

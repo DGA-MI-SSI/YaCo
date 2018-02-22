@@ -104,6 +104,14 @@ namespace
             LOG(ERROR, "unable to delete code 0x%0" EA_SIZE PRIXEA, ea);
     }
 
+    void delete_block(const HVersion& hver)
+    {
+        const auto ea = static_cast<ea_t>(hver.address());
+        const auto ok = del_items(ea, DELIT_EXPAND, static_cast<asize_t>(hver.size()));
+        if(!ok)
+            LOG(ERROR, "unable to delete basic block 0x%0" EA_SIZE PRIXEA, ea);
+    }
+
     void delete_object(const HObject& hobj)
     {
         const auto type = hobj.type();
@@ -136,6 +144,10 @@ namespace
 
                 case OBJECT_TYPE_CODE:
                     delete_code(hver);
+                    break;
+
+                case OBJECT_TYPE_BASIC_BLOCK:
+                    delete_block(hver);
                     break;
             }
             return WALK_CONTINUE;

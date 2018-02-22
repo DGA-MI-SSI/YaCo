@@ -906,6 +906,10 @@ namespace
     {
         return try_set_type(visitor, ea, value, [&](const tinfo_t& tif)
         {
+            tinfo_t check;
+            get_tinfo(&check, ea);
+            if(check.equals_to(tif))
+                return true;
             return apply_tinfo(ea, tif, TINFO_DEFINITE);
         });
     }
