@@ -19,46 +19,6 @@
 import runtests
 import unittest
 
-set_function_name = """
-ea = 0x6602E530
-idaapi.set_name(ea, "funcname_01", idaapi.SN_PUBLIC)
-"""
-
-reset_function_name = """
-ea = 0x6602E530
-idaapi.set_name(ea, "")
-"""
-
-set_stackvar_names = """
-ea = 0x6602E530
-frame = idaapi.get_frame(ea)
-idaapi.set_member_name(frame, 0x4,  "local_b")
-idaapi.set_member_name(frame, 0x20, "arg_b")
-"""
-
-rename_stackvars_again = """
-ea = 0x6602E530
-frame = idaapi.get_frame(ea)
-idaapi.set_member_name(frame, 0x4,  "another_name")
-"""
-
-create_function = """
-ea = 0x6602E530
-idc.add_func(ea)
-"""
-
-create_and_rename_function = """
-ea = 0x6602E530
-idc.add_func(ea)
-ida_auto.plan_and_wait(ea, idc.find_func_end(ea))
-idaapi.set_name(ea, "new_function_E530")
-"""
-
-make_unknown = """
-ea = 0x6600100F
-idc.del_items(ea, idc.DELIT_SIMPLE, 5)
-"""
-
 
 class Fixture(runtests.Fixture):
 
@@ -83,12 +43,18 @@ idaapi.set_member_name(frame, 0, "somevar")
         a, b = self.setup_repos()
         ea = 0x6602E530
         a.run(
-            self.script(set_function_name),
+            self.script("""
+ea = 0x6602E530
+idaapi.set_name(ea, "funcname_01", idaapi.SN_PUBLIC)
+"""),
             self.save_ea(ea),
         )
         b.run(
             self.check_ea(ea),
-            self.script(reset_function_name),
+            self.script("""
+ea = 0x6602E530
+idaapi.set_name(ea, "")
+"""),
             self.save_ea(ea),
         )
         b.check_git(modified=["basic_block"])
@@ -100,7 +66,12 @@ idaapi.set_member_name(frame, 0, "somevar")
         a, b = self.setup_repos()
         ea = 0x6602E530
         a.run(
-            self.script(set_stackvar_names),
+            self.script("""
+ea = 0x6602E530
+frame = idaapi.get_frame(ea)
+idaapi.set_member_name(frame, 0x4,  "local_b")
+idaapi.set_member_name(frame, 0x20, "arg_b")
+"""),
             self.save_ea(ea),
         )
         b.run(
@@ -108,7 +79,11 @@ idaapi.set_member_name(frame, 0, "somevar")
             # now rename a single stack member from b
             # only one file will be modified under git
             # check whether the rename is still applied
-            self.script(rename_stackvars_again),
+            self.script("""
+ea = 0x6602E530
+frame = idaapi.get_frame(ea)
+idaapi.set_member_name(frame, 0x4,  "another_name")
+"""),
             self.save_ea(ea),
         )
         b.check_git(modified=["stackframe_member"])
@@ -120,7 +95,10 @@ idaapi.set_member_name(frame, 0, "somevar")
         a, b = self.setup_repos()
         ea = 0x6600EDF0
         a.run(
-            self.script(create_function),
+            self.script("""
+ea = 0x6600EDF0
+idc.add_func(ea)
+"""),
             self.save_ea(ea)
         )
         # FIXME a.check_git(SOMETHING)
@@ -130,9 +108,14 @@ idaapi.set_member_name(frame, 0, "somevar")
 
     def test_create_and_rename_function(self):
         a, b = self.setup_repos()
-        ea = 0x6600EDF0
+        ea = 0x6602E530
         a.run(
-            self.script(create_and_rename_function),
+            self.script("""
+ea = 0x6602E530
+idc.add_func(ea)
+ida_auto.plan_and_wait(ea, idc.find_func_end(ea))
+idaapi.set_name(ea, "new_function_E530")
+"""),
             self.save_ea(ea)
         )
         a.check_git(added=["binary", "segment", "segment_chunk", "segment_chunk"] +
@@ -214,7 +197,10 @@ idc.del_items(ea, idc.DELIT_SIMPLE, 0xD)
         a, b = self.setup_repos()
         ea = 0x6600100F
         a.run(
-            self.script(make_unknown),
+            self.script("""
+ea = 0x6600100F
+idc.del_items(ea, idc.DELIT_SIMPLE, 5)
+"""),
             self.save_ea(ea)
         )
         b.run(
@@ -248,7 +234,10 @@ idaapi.set_name(ea, "new_function_EF30")
         a, b = self.setup_repos()
         ea = 0x6600100F
         a.run(
-            self.script(make_unknown),
+            self.script("""
+ea = 0x6600100F
+idc.del_items(ea, idc.DELIT_SIMPLE, 5)
+"""),
             self.save_ea(ea)
         )
         b.run(
