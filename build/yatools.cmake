@@ -243,7 +243,7 @@ add_yatools_py(32)
 add_yatools_py(64)
 
 # testdata
-find_package(PythonInterp)
+find_package(PythonInterp 2.7 REQUIRED)
 function(make_testdata dst dir dll idaq)
     set(dst_ ${${dst}})
     set(output "${root_dir}/testdata/${dir}/database/database.yadb")
