@@ -17,33 +17,30 @@
 
 import runtests
 
-set_registers = """
-ea = 0x66013830
-func = idaapi.get_func(ea)
-idaapi.add_regvar(func, ea, ea+0x10, "ebp", "ebp_a", None)
-idaapi.add_regvar(func, ea+0x10, ea+0x20, "ebp", "ebp_b", None)
-"""
-
-reset_registers = """
-ea = 0x66013830
-func = idaapi.get_func(ea)
-idaapi.del_regvar(func, ea, ea+0x10, "ebp")
-idaapi.del_regvar(func, ea+0x10, ea+0x20, "ebp")
-"""
 
 class Fixture(runtests.Fixture):
 
     def test_register_views(self):
         a, b = self.setup_repos()
         a.run(
-            self.script(set_registers),
+            self.script("""
+ea = 0x66013830
+func = idaapi.get_func(ea)
+idaapi.add_regvar(func, ea, ea+0x10, "ebp", "ebp_a", None)
+idaapi.add_regvar(func, ea+0x10, ea+0x20, "ebp", "ebp_b", None)
+"""),
             self.save_last_ea(),
         )
         a.check_git(added=["binary", "segment", "segment_chunk", "function",
             "stackframe", "stackframe_member", "basic_block"])
         b.run(
             self.check_last_ea(),
-            self.script(reset_registers),
+            self.script("""
+ea = 0x66013830
+func = idaapi.get_func(ea)
+idaapi.del_regvar(func, ea, ea+0x10, "ebp")
+idaapi.del_regvar(func, ea+0x10, ea+0x20, "ebp")
+"""),
             self.save_last_ea(),
         )
         b.check_git(modified=["basic_block"])

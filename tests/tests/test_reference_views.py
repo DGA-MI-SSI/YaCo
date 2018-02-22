@@ -17,24 +17,17 @@
 
 import runtests
 
-set_reference_views = """
-ea = 0x66013B00
-idaapi.op_offset(ea+0xF,  0, idaapi.get_default_reftype(ea+0xF),  idaapi.BADADDR, 0xdeadbeef)
-idaapi.op_offset(ea+0x17, 1, idaapi.get_default_reftype(ea+0x17), idaapi.BADADDR, 0xbeefdead)
-"""
-
-reset_reference_views = """
-ea = 0x66013B00
-idaapi.op_offset(ea+0xF,  0, idaapi.get_default_reftype(ea+0xF))
-idaapi.op_offset(ea+0x17, 1, idaapi.get_default_reftype(ea+0x17))
-"""
 
 class Fixture(runtests.Fixture):
 
     def test_reference_views(self):
         a, b = self.setup_repos()
         a.run(
-            self.script(set_reference_views),
+            self.script("""
+ea = 0x66013B00
+idaapi.op_offset(ea+0xF,  0, idaapi.get_default_reftype(ea+0xF),  idaapi.BADADDR, 0xdeadbeef)
+idaapi.op_offset(ea+0x17, 1, idaapi.get_default_reftype(ea+0x17), idaapi.BADADDR, 0xbeefdead)
+"""),
             self.save_last_ea(),
         )
         a.check_git(added=["binary", "segment", "segment_chunk", "function",
@@ -42,7 +35,11 @@ class Fixture(runtests.Fixture):
             "reference_info", "reference_info"])
         b.run(
             self.check_last_ea(),
-            self.script(reset_reference_views),
+            self.script("""
+ea = 0x66013B00
+idaapi.op_offset(ea+0xF,  0, idaapi.get_default_reftype(ea+0xF))
+idaapi.op_offset(ea+0x17, 1, idaapi.get_default_reftype(ea+0x17))
+"""),
             self.save_last_ea(),
         )
         # FIXME deleted=["reference_info"] * 2

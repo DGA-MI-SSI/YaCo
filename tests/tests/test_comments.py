@@ -17,7 +17,13 @@
 
 import runtests
 
-set_function_comments = """
+
+class Fixture(runtests.Fixture):
+
+    def test_comments(self):
+        a, b = self.setup_repos()
+        a.run(
+            self.script( """
 ea = 0x66013850
 func = idaapi.get_func(ea)
 idaapi.set_func_cmt(func, "cmt 01", True)
@@ -30,9 +36,14 @@ idaapi.update_extra_cmt(ea+6, idaapi.E_PREV + 0, "cmt 07")
 idaapi.update_extra_cmt(ea+6, idaapi.E_PREV + 1, "cmt 08")
 idaapi.update_extra_cmt(ea+6, idaapi.E_NEXT + 0, "cmt 09")
 idaapi.update_extra_cmt(ea+6, idaapi.E_NEXT + 1, "cmt 0a")
-"""
-
-reset_function_comments = """
+"""),
+            self.save_last_ea(),
+        )
+        a.check_git(added=["binary", "segment", "segment_chunk", "function", "basic_block",
+            "stackframe", "stackframe_member", "stackframe_member"])
+        b.run(
+            self.check_last_ea(),
+            self.script("""
 ea = 0x66013850
 func = idaapi.get_func(ea)
 idaapi.set_func_cmt(func, "", True)
@@ -45,21 +56,7 @@ idaapi.update_extra_cmt(ea+6, idaapi.E_PREV + 0, "")
 idaapi.update_extra_cmt(ea+6, idaapi.E_PREV + 1, "")
 idaapi.update_extra_cmt(ea+6, idaapi.E_NEXT + 0, "")
 idaapi.update_extra_cmt(ea+6, idaapi.E_NEXT + 1, "")
-"""
-
-class Fixture(runtests.Fixture):
-
-    def test_comments(self):
-        a, b = self.setup_repos()
-        a.run(
-            self.script(set_function_comments),
-            self.save_last_ea(),
-        )
-        a.check_git(added=["binary", "segment", "segment_chunk", "function", "basic_block",
-            "stackframe", "stackframe_member", "stackframe_member"])
-        b.run(
-            self.check_last_ea(),
-            self.script(reset_function_comments),
+"""),
             self.save_last_ea(),
         )
         b.check_git(modified=["function", "basic_block"])

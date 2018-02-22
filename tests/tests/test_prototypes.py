@@ -21,7 +21,35 @@ import os
 import runtests
 import sys
 
-code = """
+
+class Fixture(runtests.Fixture):
+
+    def check_golden(self, repo_path, name):
+        expected_dir = os.path.abspath(os.path.dirname(inspect.getsourcefile(lambda:0)))
+        expected_path = os.path.join(expected_dir, name + ".golden")
+
+        # read actual values
+        got = None
+        with open(os.path.join(repo_path, name), "rb") as fh:
+            got = fh.read()
+
+        # enable to update golden file
+        if False:
+            with open(expected_path, "wb") as fh:
+                fh.write(got)
+
+        # read expected values
+        expected = None
+        with open(expected_path, "rb") as fh:
+            expected = fh.read()
+
+        if expected != got:
+            self.fail(''.join(difflib.unified_diff(expected.splitlines(1), got.splitlines(1), name + ".golden", name)))
+
+    def test_prototypes(self):
+        a, b = self.setup_repos()
+        a.run(
+            self.script("""
 import idautils
 import idc
 import sys
@@ -91,36 +119,7 @@ with open(read, "wb") as fr:
         # check struct members
         for mid in walk_struct_members():
             get_set_type("stru", mid, fr, ff, get_member, ya.set_struct_member_type_at)
-"""
-
-class Fixture(runtests.Fixture):
-
-    def check_golden(self, repo_path, name):
-        expected_dir = os.path.abspath(os.path.dirname(inspect.getsourcefile(lambda:0)))
-        expected_path = os.path.join(expected_dir, name + ".golden")
-
-        # read actual values
-        got = None
-        with open(os.path.join(repo_path, name), "rb") as fh:
-            got = fh.read()
-
-        # enable to update golden file
-        if False:
-            with open(expected_path, "wb") as fh:
-                fh.write(got)
-
-        # read expected values
-        expected = None
-        with open(expected_path, "rb") as fh:
-            expected = fh.read()
-
-        if expected != got:
-            self.fail(''.join(difflib.unified_diff(expected.splitlines(1), got.splitlines(1), name + ".golden", name)))
-
-    def test_prototypes(self):
-        a, b = self.setup_repos()
-        a.run(
-            self.script(code),
+"""),
         )
         read = "test_prototypes.read." + sys.platform + ".700"
         fail = "test_prototypes.fail." + sys.platform + ".700"

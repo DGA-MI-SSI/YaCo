@@ -17,35 +17,32 @@
 
 import runtests
 
-set_operands = """
-ea = 0x66013B90
-idaapi.op_dec(ea+0x1A, 0)
-idaapi.op_dec(ea+0x24, 1)
-idaapi.toggle_sign(ea+0x24, 1)
-idaapi.op_hex(ea+0x27, 1)
-idaapi.toggle_sign(ea+0x27, 1)
-"""
-
-reset_operands = """
-ea = 0x66013B90
-idaapi.clr_op_type(ea+0x1A, 0)
-idaapi.clr_op_type(ea+0x24, 1)
-idaapi.clr_op_type(ea+0x27, 1)
-"""
 
 class Fixture(runtests.Fixture):
 
     def test_operands(self):
         a, b = self.setup_repos()
         a.run(
-            self.script(set_operands),
+            self.script("""
+ea = 0x66013B90
+idaapi.op_dec(ea+0x1A, 0)
+idaapi.op_dec(ea+0x24, 1)
+idaapi.toggle_sign(ea+0x24, 1)
+idaapi.op_hex(ea+0x27, 1)
+idaapi.toggle_sign(ea+0x27, 1)
+"""),
             self.save_last_ea(),
         )
         a.check_git(added=["binary", "segment", "segment_chunk", "function",
             "stackframe", "stackframe_member", "stackframe_member", "basic_block"])
         b.run(
             self.check_last_ea(),
-            self.script(reset_operands),
+            self.script("""
+ea = 0x66013B90
+idaapi.clr_op_type(ea+0x1A, 0)
+idaapi.clr_op_type(ea+0x24, 1)
+idaapi.clr_op_type(ea+0x27, 1)
+"""),
             self.save_last_ea(),
         )
         b.check_git(modified=["basic_block"])
