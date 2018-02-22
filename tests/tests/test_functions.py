@@ -88,20 +88,6 @@ idaapi.set_member_name(frame, 0x4,  "another_name")
             self.check_last_ea(),
         )
 
-    def test_create_function(self):
-        a, b = self.setup_repos()
-        a.run(
-            self.script("""
-ea = 0x6600EDF0
-idc.add_func(ea)
-"""),
-            self.save_last_ea()
-        )
-        # FIXME a.check_git(SOMETHING)
-        b.run(
-            self.check_last_ea(),
-        )
-
     def test_create_and_rename_function(self):
         a, b = self.setup_repos()
         a.run(
@@ -120,7 +106,7 @@ idaapi.set_name(ea, "new_function_E530")
             self.check_last_ea(),
         )
 
-    def test_delete_function_only(self):
+    def test_function_to_code_to_undef_and_back_again(self):
         a, b = self.setup_repos()
 
         # we fix parent xref first so results are not polluted
@@ -181,6 +167,31 @@ idc.del_items(ea, idc.DELIT_SIMPLE, 0xD)
             self.save_last_ea(),
         )
         b.check_git(deleted=["code"], modified=["segment_chunk"])
+
+        # set code again
+        a.run(
+            self.check_last_ea(),
+            self.script("""
+ea = 0x66005510
+ida_auto.auto_make_code(ea)
+idc.Wait()
+"""),
+            self.save_last_ea(),
+        )
+        a.check_git(added=["code"], modified=["segment_chunk"])
+
+        # set function again
+        b.run(
+            self.check_last_ea(),
+            self.script("""
+ea = 0x66005510
+idc.add_func(ea)
+ida_auto.plan_and_wait(ea, idc.find_func_end(ea))
+"""),
+            self.save_last_ea()
+        )
+        # default stackframe_member is ignored
+        b.check_git(added=["function", "stackframe", "basic_block"], modified=["segment_chunk"], deleted=["code"])
         a.run(
             self.check_last_ea(),
         )

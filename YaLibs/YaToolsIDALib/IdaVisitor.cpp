@@ -933,34 +933,6 @@ namespace
         });
     }
 
-    void clear_function(const HVersion& version, ea_t ea)
-    {
-        version.walk_xrefs([&](offset_t offset, operand_t /*operand*/, YaToolObjectId /*id*/, const XrefAttributes* attrs)
-        {
-            bool has_size = false;
-            version.walk_xref_attributes(attrs, [&](const const_string_ref& key, const const_string_ref& /*val*/)
-            {
-                has_size = g_find == key;
-                return has_size ? WALK_STOP : WALK_CONTINUE;
-            });
-            if(!has_size)
-                return WALK_CONTINUE;
-
-            const auto xref_ea = static_cast<ea_t>(ea + offset);
-            const auto func = get_func(xref_ea);
-            if(!func)
-                return WALK_CONTINUE;
-            if(func->start_ea != ea)
-                return WALK_CONTINUE;
-
-            const auto ok = remove_func_tail(func, ea);
-            if(!ok)
-                LOG(ERROR, "clear_function: 0x%" PRIxEA " unable to remove func tail at %" PRIxEA "\n", ea, xref_ea);
-            // FIXME check if we need for i in xrange(ea, ea + size): idc.MakeUnkn(i)
-            return WALK_CONTINUE;
-        });
-    }
-
     bool set_function_flags(ea_t ea, YaToolFlag_T flags)
     {
         auto func = get_func(ea);
@@ -970,37 +942,23 @@ namespace
         return update_func(func);
     }
 
-    bool add_function(ea_t ea, const HVersion& version, func_t* func)
+    void add_function(ea_t ea, const HVersion& version, func_t* func)
     {
         const auto flags = get_flags(ea);
         if(is_func(flags) && func && func->start_ea == ea)
-            return true;
+            return;
 
         LOG(DEBUG, "make_function: 0x%" PRIxEA " flags 0x%08X current flags 0x%08x\n", ea, version.flags(), flags);
         if(func)
             LOG(DEBUG, "make_function: 0x%" PRIxEA " func [0x%" PRIxEA ", 0x%" PRIxEA "] size 0x%08" PRIX64 "\n", ea, func->start_ea, func->end_ea, version.size());
 
-        auto ok = add_func(ea, BADADDR);
-        if(ok)
-            return true;
-
-        if(!has_value(flags))
-        {
-            LOG(ERROR, "make_function: 0x%" PRIxEA " unable to add function, missing data\n", ea);
-            return false;
-        }
-
-        clear_function(version, ea);
-        return add_func(ea, BADADDR);
+        auto_make_proc(ea);
     }
 
     void make_function(const Visitor& visitor, const HVersion& version, ea_t ea)
     {
         const auto func = get_func(ea);
-        auto ok = add_function(ea, version, func);
-        if(!ok)
-            LOG(ERROR, "make_function: 0x%" PRIxEA " unable to add function\n", ea);
-
+        add_function(ea, version, func);
         const auto flags = version.flags();
         if(flags)
             if(!set_function_flags(ea, flags))
@@ -1012,7 +970,7 @@ namespace
         {
             const auto cmt = version.header_comment(repeat);
             const auto strcmt = make_string(cmt);
-            ok = set_func_cmt(func, strcmt.data(), repeat);
+            const auto ok = set_func_cmt(func, strcmt.data(), repeat);
             if(!ok)
                 LOG(ERROR, "make_function: 0x%" PRIxEA " unable to set %s comment to '%s'\n", ea, repeat ? "repeatable" : "non-repeatable", strcmt.data());
         }
