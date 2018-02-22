@@ -6,4 +6,4 @@ bin/
 gmon.out
 out/
 testdata/
-tmp/*
+tmp*
