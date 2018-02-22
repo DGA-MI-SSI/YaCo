@@ -1214,15 +1214,14 @@ namespace
 
     void set_data_type(const Visitor& visitor, const HVersion& version, ea_t ea)
     {
-        const auto size = static_cast<size_t>(version.size());
-        if(!size)
-        {
-            const auto ok = del_items(ea, DELIT_EXPAND);
-            if(!ok)
-                LOG(ERROR, "make_data: 0x%" PRIxEA " unable to set unknown\n", ea);
-            return;
-        }
+        const auto size = std::max(1ul, static_cast<size_t>(version.size()));
 
+        if(!is_unknown(get_flags(ea)))
+            if(!del_items(ea, DELIT_EXPAND))
+            {
+                LOG(ERROR, "make_data: 0x%" PRIxEA " unable to set unknown\n", ea);
+                return;
+            }
         const auto flags = version.flags();
         if(!flags)
         {
@@ -1262,6 +1261,8 @@ namespace
             return;
         }
 
+        if(!is_data(flags))
+          return;
         const auto type_flags = flags & (DT_TYPE | get_optype_flags0(~0u));
         const auto ok = create_data(ea, type_flags, static_cast<asize_t>(size), 0);
         if(!ok)

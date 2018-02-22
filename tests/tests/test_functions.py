@@ -43,13 +43,18 @@ idaapi.set_member_name(frame, 0x4,  "another_name")
 
 create_function = """
 ea = 0x6602E530
-idc.MakeFunction(ea)
+idc.add_func(ea)
 """
 
 create_and_rename_function = """
 ea = 0x6602E530
-idc.MakeFunction(ea)
+idc.add_func(ea)
 idaapi.set_name(ea, "new_function_E530")
+"""
+
+make_unknown = """
+ea = 0x6600100F
+idc.del_items(ea, idc.DELIT_SIMPLE, 5)
 """
 
 
@@ -111,3 +116,30 @@ class Fixture(runtests.Fixture):
         b.run(
             self.check_ea(ea),
         )
+
+    def test_remove_function(self):
+        a, b = self.setup_repos()
+        ea = 0x6600100F
+        a.run(
+            self.script(make_unknown),
+            self.save_ea(ea)
+        )
+        b.run(
+            self.check_ea(ea),
+        )
+
+    def test_transform_function_to_byte_array(self):
+        a, b = self.setup_repos()
+        ea = 0x6600100F
+        a.run(
+            self.script(make_unknown),
+            self.save_ea(ea)
+        )
+        b.run(
+            self.check_ea(ea),
+            self.script("""
+idc.create_data(0x6600100F, FF_BYTE, 1, ida_idaapi.BADADDR)
+idc.make_array(0x6600100F, 5)"""),
+            self.save_ea(ea)
+        )
+        a.run(self.check_ea(ea))
