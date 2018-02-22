@@ -218,3 +218,65 @@ idc.make_array(ea, 11)
         a.run(
             self.check_ea(ea)
         )
+
+    def test_create_data_then_function(self):
+        a, b = self.setup_repos()
+        ea = 0x6600EF30
+        # first delete code to create DWord array
+        a.run(
+            self.script("""
+ea = 0x6600EF30
+idc.del_items(ea, idc.DELIT_EXPAND, 0x2c)
+idc.create_dword(ea)
+idc.make_array(ea, 11)
+"""),
+            self.save_ea(ea)
+        )
+        # then delete array to create code
+        b.run(
+            self.check_ea(ea),
+        )
+        b.run(
+            self.script("""
+ea = 0x6600EF30
+idc.del_items(ea, idc.DELIT_EXPAND, 0x2c)
+idc.create_insn(ea)
+ida_auto.plan_and_wait(ea, ea+0x2c)
+"""),
+            self.save_ea(ea)
+        )
+        # finally create function
+        a.run(
+            self.check_ea(ea),
+            self.script("""
+ea = 0x6600EF30
+idc.add_func(ea)
+ida_auto.plan_and_wait(ea, idc.find_func_end(ea))
+idaapi.set_name(ea, "new_function_EF30_2")"""),
+            self.save_ea(ea)
+        )
+        b.run(
+            self.check_ea(ea)
+        )
+
+    def test_rename_and_undefine_func(self):
+        a, b = self.setup_repos()
+        ea = 0x6600EF70
+        a.run(
+            self.script("""
+ea = 0x6600EF70
+idaapi.set_name(ea, "new_function_EF30")
+"""),
+            self.save_ea(ea)
+        )
+        b.run(
+            self.check_ea(ea),
+            self.script("""
+ea = 0x6600EF70
+idc.del_items(ea, idc.DELIT_EXPAND, 0x2c)
+"""),
+            self.save_ea(ea)
+        )
+        a.run(
+            self.check_ea(ea)
+        )
