@@ -17,6 +17,7 @@
 
 
 import runtests
+import unittest
 
 set_function_name = """
 ea = 0x6602E530
@@ -118,6 +119,7 @@ class Fixture(runtests.Fixture):
             self.check_ea(ea),
         )
 
+    @unittest.skip("not implemented yet")
     def test_remove_function(self):
         a, b = self.setup_repos()
         ea = 0x6600100F
@@ -129,6 +131,7 @@ class Fixture(runtests.Fixture):
             self.check_ea(ea),
         )
 
+    @unittest.skip("not implemented yet")
     def test_transform_code_to_function(self):
         a, b = self.setup_repos()
         ea = 0x6600100F
@@ -219,6 +222,7 @@ idc.make_array(ea, 11)
             self.check_ea(ea)
         )
 
+    @unittest.skip("not implemented yet")
     def test_create_data_then_function(self):
         a, b = self.setup_repos()
         ea = 0x6600EF30
@@ -259,6 +263,7 @@ idaapi.set_name(ea, "new_function_EF30_2")"""),
             self.check_ea(ea)
         )
 
+    @unittest.skip("not implemented yet")
     def test_rename_and_undefine_func(self):
         a, b = self.setup_repos()
         ea = 0x6600EF70
