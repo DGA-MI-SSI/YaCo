@@ -1261,8 +1261,9 @@ namespace
             return;
         }
 
-        if(!is_data(flags))
+        if(is_unknown(flags))
           return;
+
         const auto type_flags = flags & (DT_TYPE | get_optype_flags0(~0u));
         const auto ok = create_data(ea, type_flags, static_cast<asize_t>(size), 0);
         if(!ok)
