@@ -953,6 +953,9 @@ namespace
             LOG(DEBUG, "make_function: 0x%" PRIxEA " func [0x%" PRIxEA ", 0x%" PRIxEA "] size 0x%08" PRIX64 "\n", ea, func->start_ea, func->end_ea, version.size());
 
         auto_make_proc(ea);
+        func = get_func(ea);
+        if(!func)
+            plan_and_wait(ea, static_cast<ea_t>(ea + version.size()));
     }
 
     void make_function(const Visitor& visitor, const HVersion& version, ea_t ea)

@@ -277,10 +277,10 @@ idc.make_array(ea, 11)
             self.check_last_ea()
         )
 
-    @unittest.skip("not implemented yet")
     def test_create_data_then_function(self):
         a, b = self.setup_repos()
-        # first delete code to create DWord array
+
+        # replace code with dword array
         a.run(
             self.script("""
 ea = 0x6600EF30
@@ -288,33 +288,38 @@ idc.del_items(ea, idc.DELIT_EXPAND, 0x2c)
 idc.create_dword(ea)
 idc.make_array(ea, 11)
 """),
-            self.save_last_ea()
+            self.save_last_ea(),
         )
-        # then delete array to create code
+        a.check_git(added=["binary", "segment", "segment_chunk", "data"])
+
+        # replace array with code
         b.run(
             self.check_last_ea(),
-        )
-        b.run(
             self.script("""
 ea = 0x6600EF30
 idc.del_items(ea, idc.DELIT_EXPAND, 0x2c)
-idc.create_insn(ea)
-ida_auto.plan_and_wait(ea, ea+0x2c)
+ida_auto.auto_make_code(ea)
+idc.Wait()
 """),
-            self.save_last_ea()
+            self.save_last_ea(),
         )
-        # finally create function
+        b.check_git(added=["code"], deleted=["data"])
+
+        # restore function
         a.run(
             self.check_last_ea(),
             self.script("""
 ea = 0x6600EF30
 idc.add_func(ea)
-ida_auto.plan_and_wait(ea, idc.find_func_end(ea))
-idaapi.set_name(ea, "new_function_EF30_2")"""),
-            self.save_last_ea()
+idaapi.set_name(ea, "new_function_EF30_2")
+idc.Wait()
+"""),
+            self.save_last_ea(),
         )
+        a.check_git(deleted=["code"], modified=["segment_chunk"],
+            added=["function", "stackframe", "stackframe_member"] * 2 + ["basic_block"] * 4)
         b.run(
-            self.check_last_ea()
+            self.check_last_ea(),
         )
 
     def test_rename_and_undefine_func(self):
