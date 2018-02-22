@@ -207,12 +207,10 @@ idaapi.set_name(ea, "new_function_EF30")
 """),
             self.save_last_ea()
         )
-        # FIXME a.check_git(SOMETHING)
         b.run(
             self.check_last_ea()
         )
 
-    @unittest.skip("not implemented yet")
     def test_transform_function_to_byte_array(self):
         a, b = self.setup_repos()
         a.run(
@@ -222,14 +220,22 @@ idc.del_items(ea, idc.DELIT_SIMPLE, 5)
 """),
             self.save_last_ea()
         )
+        a.check_git(added=["binary", "segment", "segment_chunk", "segment_chunk",
+            "function", "stackframe", "stackframe_member", "stackframe_member",
+            "basic_block", "data"])
         b.run(
             self.check_last_ea(),
             self.script("""
-idc.create_data(0x6600100F, FF_BYTE, 1, ida_idaapi.BADADDR)
-idc.make_array(0x6600100F, 5)"""),
+ea = 0x6600100F
+idc.create_data(ea, FF_BYTE, 1, ida_idaapi.BADADDR)
+idc.make_array(ea, 5)
+"""),
             self.save_last_ea()
         )
-        a.run(self.check_last_ea())
+        b.check_git(modified=["data"])
+        a.run(
+            self.check_last_ea(),
+        )
 
     def test_create_function_from_code(self):
         a, b = self.setup_repos()
