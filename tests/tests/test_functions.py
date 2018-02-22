@@ -195,7 +195,7 @@ idc.del_func(ea)
         )
         a.check_git(added=["code"], deleted=["function", "stackframe", "stackframe_member", "basic_block"], modified=["segment_chunk"])
 
-        # lower code to data
+        # lower code to undefined data
         b.run(
             self.check_ea(ea),
             self.script("""
@@ -204,7 +204,7 @@ idc.del_items(ea, idc.DELIT_SIMPLE, 0xD)
 """),
             self.save_ea(ea),
         )
-        b.check_git(added=["data"] * 8, deleted=["code"], modified=["segment_chunk"])
+        b.check_git(deleted=["code"], modified=["segment_chunk"])
         a.run(
             self.check_ea(ea),
         )
@@ -361,7 +361,7 @@ idc.del_items(ea, idc.DELIT_EXPAND, 0x2c)
 """),
             self.save_ea(ea)
         )
-        b.check_git(added=["data"] * 17, deleted=["function", "stackframe",
+        b.check_git(added=["data"], deleted=["function", "stackframe",
             "stackframe_member", "stackframe_member", "basic_block"], modified=["segment_chunk"])
         a.run(
             self.check_ea(ea)

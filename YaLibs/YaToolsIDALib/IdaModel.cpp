@@ -862,11 +862,19 @@ namespace
         });
     }
 
+    ea_t get_data_head(ea_t ea)
+    {
+        const auto eas = get_all_items(ea, ea + 1);
+        return eas.empty() ? BADADDR : eas.front();
+    }
+
     template<typename Ctx>
     void accept_data(Ctx& ctx, IModelVisitor& v, const Parent& parent, ea_t ea)
     {
         // ensure head of data
-        ea = get_item_head(ea);
+        ea = get_data_head(ea);
+        if(ea == BADADDR)
+            return;
 
         const auto id = hash::hash_ea(ea);
         if(ctx.skip_id(id, OBJECT_TYPE_DATA))
