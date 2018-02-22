@@ -865,6 +865,9 @@ namespace
     template<typename Ctx>
     void accept_data(Ctx& ctx, IModelVisitor& v, const Parent& parent, ea_t ea)
     {
+        // ensure head of data
+        ea = get_item_head(ea);
+
         const auto id = hash::hash_ea(ea);
         if(ctx.skip_id(id, OBJECT_TYPE_DATA))
             return;

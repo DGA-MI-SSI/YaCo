@@ -1217,7 +1217,7 @@ namespace
         const auto size = std::max(1ul, static_cast<size_t>(version.size()));
 
         if(!is_unknown(get_flags(ea)))
-            if(!del_items(ea, DELIT_EXPAND))
+            if(!del_items(ea, DELIT_EXPAND, size))
             {
                 LOG(ERROR, "make_data: 0x%" PRIxEA " unable to set unknown\n", ea);
                 return;
@@ -1264,7 +1264,7 @@ namespace
         if(is_unknown(flags))
           return;
 
-        const auto type_flags = flags & (DT_TYPE | get_optype_flags0(~0u));
+        const auto type_flags = static_cast<unsigned int>(flags & (DT_TYPE | MS_CLS));
         const auto ok = create_data(ea, type_flags, static_cast<asize_t>(size), 0);
         if(!ok)
             LOG(ERROR, "make_data: 0x%" PRIxEA " unable to set data type 0x%" PRIx64 " size %zd\n", ea, static_cast<uint64_t>(type_flags), size);
