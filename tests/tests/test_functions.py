@@ -97,7 +97,7 @@ idc.add_func(ea)
 ida_auto.plan_and_wait(ea, idc.find_func_end(ea))
 idaapi.set_name(ea, "new_function_E530")
 """),
-            self.save_last_ea()
+            self.save_last_ea(),
         )
         a.check_git(added=["binary", "segment", "segment_chunk", "segment_chunk"] +
             ["function", "stackframe"] * 3 + ["stackframe_member"] * 13 +
@@ -174,7 +174,7 @@ idc.del_items(ea, idc.DELIT_SIMPLE, 0xD)
             self.script("""
 ea = 0x66005510
 ida_auto.auto_make_code(ea)
-idc.Wait()
+ida_auto.auto_wait()
 """),
             self.save_last_ea(),
         )
@@ -188,7 +188,7 @@ ea = 0x66005510
 idc.add_func(ea)
 ida_auto.plan_and_wait(ea, idc.find_func_end(ea))
 """),
-            self.save_last_ea()
+            self.save_last_ea(),
         )
         # default stackframe_member is ignored
         b.check_git(added=["function", "stackframe", "basic_block"], modified=["segment_chunk"], deleted=["code"])
@@ -205,10 +205,10 @@ idc.add_func(ea)
 ida_auto.plan_and_wait(ea, idc.find_func_end(ea))
 idaapi.set_name(ea, "new_function_EF30")
 """),
-            self.save_last_ea()
+            self.save_last_ea(),
         )
         b.run(
-            self.check_last_ea()
+            self.check_last_ea(),
         )
 
     def test_transform_function_to_byte_array(self):
@@ -218,7 +218,7 @@ idaapi.set_name(ea, "new_function_EF30")
 ea = 0x6600100F
 idc.del_items(ea, idc.DELIT_SIMPLE, 5)
 """),
-            self.save_last_ea()
+            self.save_last_ea(),
         )
         a.check_git(added=["binary", "segment", "segment_chunk", "segment_chunk",
             "function", "stackframe", "stackframe_member", "stackframe_member",
@@ -230,7 +230,7 @@ ea = 0x6600100F
 idc.create_data(ea, FF_BYTE, 1, ida_idaapi.BADADDR)
 idc.make_array(ea, 5)
 """),
-            self.save_last_ea()
+            self.save_last_ea(),
         )
         b.check_git(modified=["data"])
         a.run(
@@ -244,12 +244,11 @@ idc.make_array(ea, 5)
 ea = 0x6600EF30
 idc.add_func(ea)
 ida_auto.plan_and_wait(ea, idc.find_func_end(ea))
-# idaapi.set_name(ea, "new_function_EF30")
 """),
-            self.save_last_ea()
+            self.save_last_ea(),
         )
         b.run(
-            self.check_last_ea()
+            self.check_last_ea(),
         )
 
     def test_create_function_then_undefined_func(self):
@@ -261,7 +260,7 @@ idc.add_func(ea)
 ida_auto.plan_and_wait(ea, idc.find_func_end(ea))
 idaapi.set_name(ea, "new_function_EF30")
 """),
-            self.save_last_ea()
+            self.save_last_ea(),
         )
         b.run(
             self.check_last_ea(),
@@ -271,10 +270,10 @@ idc.del_items(ea, idc.DELIT_EXPAND, 0x2c)
 idc.create_dword(ea)
 idc.make_array(ea, 11)
 """),
-            self.save_last_ea()
+            self.save_last_ea(),
         )
         a.run(
-            self.check_last_ea()
+            self.check_last_ea(),
         )
 
     def test_create_data_then_function(self):
@@ -299,7 +298,7 @@ idc.make_array(ea, 11)
 ea = 0x6600EF30
 idc.del_items(ea, idc.DELIT_EXPAND, 0x2c)
 ida_auto.auto_make_code(ea)
-idc.Wait()
+ida_auto.auto_wait()
 """),
             self.save_last_ea(),
         )
@@ -311,8 +310,8 @@ idc.Wait()
             self.script("""
 ea = 0x6600EF30
 idc.add_func(ea)
+ida_auto.plan_and_wait(ea, idc.find_func_end(ea))
 idaapi.set_name(ea, "new_function_EF30_2")
-idc.Wait()
 """),
             self.save_last_ea(),
         )
@@ -329,7 +328,7 @@ idc.Wait()
 ea = 0x6600EF70
 idaapi.set_name(ea, "new_function_EF30")
 """),
-            self.save_last_ea()
+            self.save_last_ea(),
         )
         b.run(
             self.check_last_ea(),
@@ -337,10 +336,10 @@ idaapi.set_name(ea, "new_function_EF30")
 ea = 0x6600EF70
 idc.del_items(ea, idc.DELIT_EXPAND, 0x2c)
 """),
-            self.save_last_ea()
+            self.save_last_ea(),
         )
         b.check_git(added=["data"], deleted=["function", "stackframe",
             "stackframe_member", "stackframe_member", "basic_block"], modified=["segment_chunk"])
         a.run(
-            self.check_last_ea()
+            self.check_last_ea(),
         )
