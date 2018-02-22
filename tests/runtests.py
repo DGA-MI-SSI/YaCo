@@ -1,3 +1,4 @@
+#!/bin/python
 #   Copyright (C) 2017 The YaCo Authors
 #
 #   This program is free software: you can redistribute it and/or modify
@@ -13,7 +14,6 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#!/bin/python
 
 import argparse
 import difflib
@@ -27,6 +27,7 @@ import sys
 import tempfile
 import unittest
 
+
 def get_ida_dir():
     try:
         return os.path.abspath(os.environ['IDA_DIR'])
@@ -34,12 +35,14 @@ def get_ida_dir():
         print("error: missing IDA_DIR environment variable")
         sys.exit(-1)
 
+
 def remove_dir(dirname):
     # really remove read-only files
     def del_rw(action, name, exc):
         os.chmod(name, stat.S_IWRITE)
         os.remove(name)
     shutil.rmtree(dirname, onerror=del_rw)
+
 
 def sysexec(cwd, *args):
     output = subprocess.check_output(*args, cwd=cwd, stderr=subprocess.STDOUT, shell=False)
@@ -69,6 +72,7 @@ ida_end = """
 idc.SaveBase("")
 idc.Exit(0)
 """
+
 
 class Repo():
 
@@ -113,6 +117,7 @@ with open("%s", "wb") as fh:
             check(name)
 
 ea_defmask = "(~0 & ~(1 << ya.OBJECT_TYPE_STRUCT) & ~(1 << ya.OBJECT_TYPE_ENUM)) & ~(1 << ya.OBJECT_TYPE_SEGMENT_CHUNK)"
+
 
 class Fixture(unittest.TestCase):
 
@@ -236,14 +241,17 @@ class Fixture(unittest.TestCase):
         shutil.copytree(a, b)
         return ra, rb
 
+
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--list", action="store_true", default=False, help="list test targets")
     parser.add_argument("-v", "--verbose", type=int, default=2, help="verbosity level")
     parser.add_argument("-f", "--filter", type=str, default="", help="filter tests")
-    cur_dir = os.path.abspath(os.path.join(inspect.getsourcefile(lambda:0), ".."))
-    parser.add_argument("-b", "--bindir", type=os.path.abspath, default=os.path.abspath(os.path.join(cur_dir, "..", "bin", "yaco_x64", "YaTools", "bin")), help="binary directory")
-    return parser.parse_args(), cur_dir
+    current_dir = os.path.abspath(os.path.join(__file__, ".."))
+    yatools_bin_dir = os.path.abspath(os.path.join(current_dir, "..", "bin", "yaco_x64", "YaTools", "bin"))
+    parser.add_argument("-b", "--bindir", type=os.path.abspath, default=yatools_bin_dir, help="binary directory")
+    return parser.parse_args(), current_dir
+
 
 def get_tests(args, cur_dir):
     tests = unittest.TestSuite()
