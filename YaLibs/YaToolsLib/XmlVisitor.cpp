@@ -341,6 +341,7 @@ void XmlVisitor::visit_end_deleted_object()
     {
         YALOG_ERROR(nullptr, "Warning : could not delete object : %s\n", exc.what());
     }
+    delete_file_ = false;
 }
 
 void MemExporter::visit_end_deleted_object()
