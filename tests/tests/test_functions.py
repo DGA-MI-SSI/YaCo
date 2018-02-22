@@ -164,6 +164,7 @@ idaapi.set_name(ea, "new_function_EF30")
             self.check_ea(ea)
         )
 
+    @unittest.skip("not implemented yet")
     def test_transform_function_to_byte_array(self):
         a, b = self.setup_repos()
         ea = 0x6600100F
