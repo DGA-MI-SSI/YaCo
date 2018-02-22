@@ -190,6 +190,91 @@ void Merger::mergeAttributes(const std::string& attribute_name, const const_stri
     }
 }
 
+namespace
+{
+    void merge_offsets(Merger& m, const Relation relation, IModelVisitor& v)
+    {
+        std::map<std::pair<offset_t, CommentType_e>, std::string> comments;
+        std::map<std::pair<offset_t, operand_t>, std::string> valueviews;
+
+        // FIXME register_views
+        // FIXME hidden_areas
+        switch(relation.type_)
+        {
+        case RELATION_TYPE_EXACT_MATCH:
+            relation.version2_.walk_comments([&](offset_t offset_new, CommentType_e type_new, const const_string_ref& comment_new)
+            {
+               comments[std::make_pair(offset_new, type_new)] = make_string(comment_new);
+               return WALK_CONTINUE;
+            });
+            relation.version2_.walk_value_views([&](offset_t offset, operand_t operand, const const_string_ref& value)
+            {
+                valueviews[std::make_pair(offset, operand)] = make_string(value);
+                return WALK_CONTINUE;
+            });
+            relation.version1_.walk_comments([&](offset_t offset_ref, CommentType_e type_ref, const const_string_ref& comment_ref)
+            {
+                const auto& search = comments.find(std::make_pair(offset_ref, type_ref));
+                if(search == comments.end())
+                {
+                    comments[std::make_pair(offset_ref, type_ref)] = make_string(comment_ref);
+                }
+                else
+                {
+                    m.mergeAttributes("comment", comment_ref, make_string_ref(search->second), [&](const const_string_ref& value)
+                    {
+                        comments[std::make_pair(offset_ref, type_ref)] = make_string(value);
+                    });
+                }
+                return WALK_CONTINUE;
+            });
+            relation.version1_.walk_value_views([&](offset_t offset_ref, operand_t operand, const const_string_ref& value)
+            {
+                const auto& search = valueviews.find(std::make_pair(offset_ref, operand));
+                if(search == valueviews.end())
+                {
+                    valueviews[std::make_pair(offset_ref, operand)] = make_string(value);
+                }
+                else
+                {
+                    m.mergeAttributes("value_view", value, make_string_ref(search->second), [&](const const_string_ref& value)
+                    {
+                        valueviews[std::make_pair(offset_ref, operand)] = make_string(value);
+                    });
+                }
+                return WALK_CONTINUE;
+            });
+            if(!comments.empty() || !valueviews.empty())
+            {
+                v.visit_start_offsets();
+                for(const auto& offset: comments)
+                    v.visit_offset_comments(offset.first.first, offset.first.second, make_string_ref(offset.second));
+                for(const auto& it: valueviews)
+                    v.visit_offset_valueview(it.first.first, it.first.second, make_string_ref(it.second));
+                v.visit_end_offsets();
+            }
+            break;
+
+        default:
+            if(relation.version2_.has_comments() || relation.version2_.has_value_views())
+            {
+                v.visit_start_offsets();
+                relation.version2_.walk_comments([&](offset_t offset, CommentType_e type, const const_string_ref& comment)
+                {
+                    v.visit_offset_comments(offset, type, comment);
+                    return WALK_CONTINUE;
+                });
+                relation.version2_.walk_value_views([&](offset_t offset, operand_t operand, const const_string_ref& value)
+                {
+                    v.visit_offset_valueview(offset, operand, value);
+                    return WALK_CONTINUE;
+                });
+                v.visit_end_offsets();
+            }
+            break;
+        }
+    }
+}
 
 MergeStatus_e Merger::mergeObjectVersions( IModelVisitor& visitor_db, std::set<YaToolObjectId>& newObjectIds,
                                                             const Relation& relation)
@@ -306,59 +391,7 @@ MergeStatus_e Merger::mergeObjectVersions( IModelVisitor& visitor_db, std::set<Y
     }
     /*********************************/
 
-
-    /********** merge offsets ****************************/
-     /* Merge comments */
-    //TODO export valueviews registerviews hiddenareas
-    std::map<std::pair<offset_t, CommentType_e>, std::string> offsets;
-    switch(relation.type_)
-    {
-    case RELATION_TYPE_EXACT_MATCH:
-        relation.version2_.walk_comments([&](offset_t offset_new, CommentType_e type_new, const const_string_ref& comment_new)
-        {
-           offsets[std::make_pair(offset_new, type_new)] = make_string(comment_new);
-           return WALK_CONTINUE;
-        });
-        relation.version1_.walk_comments([&](offset_t offset_ref, CommentType_e type_ref, const const_string_ref& comment_ref)
-        {
-            const auto& search = offsets.find(std::make_pair(offset_ref, type_ref));
-            if( search == offsets.end())
-            {
-                offsets[std::make_pair(offset_ref, type_ref)] = make_string(comment_ref);
-            }
-            else
-            {
-                mergeAttributes("comment", comment_ref, make_string_ref(search->second), [&](const const_string_ref& value)
-                {
-                    offsets[std::make_pair(offset_ref, type_ref)] = make_string(value);
-                });
-            }
-            return WALK_CONTINUE;
-        });
-        if(offsets.size() > 0)
-        {
-            visitor_db.visit_start_offsets();
-            for(const auto& offset: offsets)
-            {
-                visitor_db.visit_offset_comments(offset.first.first, offset.first.second, make_string_ref(offset.second));
-            }
-            visitor_db.visit_end_offsets();
-        }
-        break;
-    default:
-        if(relation.version2_.has_comments())
-        {
-            visitor_db.visit_start_offsets();
-            relation.version2_.walk_comments([&](offset_t offset, CommentType_e type, const const_string_ref& comment)
-            {
-                visitor_db.visit_offset_comments(offset, type, comment);
-                return WALK_CONTINUE;
-            });
-            visitor_db.visit_end_offsets();
-        }
-        break;
-    }
-    /******************************************************/
+    merge_offsets(*this, relation, visitor_db);
 
     /*********** xrefs ****************************/
     struct xref_value_s
