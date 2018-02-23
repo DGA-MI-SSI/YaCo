@@ -933,38 +933,44 @@ namespace
         });
     }
 
-    bool set_function_flags(ea_t ea, YaToolFlag_T flags)
+    bool set_function_flags(func_t* func, YaToolFlag_T flags)
     {
-        auto func = get_func(ea);
-        if(!func)
-            return false;
-        func->flags = static_cast<ushort>(flags);
+        const auto uflags = static_cast<ushort>(flags);
+        if(uflags == func->flags)
+            return true;
+
+        func->flags = uflags;
         return update_func(func);
     }
 
-    void add_function(ea_t ea, const HVersion& version, func_t* func)
+    func_t* add_function(ea_t ea, const HVersion& version)
     {
+        UNUSED(version);
+        auto func = get_func(ea);
         const auto flags = get_flags(ea);
         if(is_func(flags) && func && func->start_ea == ea)
-            return;
-
-        LOG(DEBUG, "make_function: 0x%" PRIxEA " flags 0x%08X current flags 0x%08x\n", ea, version.flags(), flags);
-        if(func)
-            LOG(DEBUG, "make_function: 0x%" PRIxEA " func [0x%" PRIxEA ", 0x%" PRIxEA "] size 0x%08" PRIX64 "\n", ea, func->start_ea, func->end_ea, version.size());
+            return func;
 
         auto_make_proc(ea);
         func = get_func(ea);
+        // we really really need sp-analysis on created functions
         if(!func)
             plan_and_wait(ea, static_cast<ea_t>(ea + version.size()));
+        return get_func(ea);
     }
 
     void make_function(const Visitor& visitor, const HVersion& version, ea_t ea)
     {
-        const auto func = get_func(ea);
-        add_function(ea, version, func);
+        const auto func = add_function(ea, version);
+        if(!func)
+        {
+            LOG(ERROR, "make_function: 0x%" PRIxEA " unable to add function\n", ea);
+            return;
+        }
+
         const auto flags = version.flags();
         if(flags)
-            if(!set_function_flags(ea, flags))
+            if(!set_function_flags(func, flags))
                 LOG(ERROR, "make_function: 0x%" PRIxEA " unable to set function flags 0x%08x\n", ea, flags);
 
         set_type(&visitor, ea, make_string(version.prototype()));
