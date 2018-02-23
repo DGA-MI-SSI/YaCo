@@ -1193,28 +1193,6 @@ void GitRepo::create_tag(const std::string& target, const std::string& tag_name,
 
 namespace
 {
-    template<typename T>
-    struct Defer
-    {
-        Defer(const T& defer)
-            : defer_(defer)
-        {
-        }
-
-        ~Defer()
-        {
-            defer_();
-        }
-
-        const T& defer_;
-    };
-
-    template<typename T>
-    Defer<T> defer(const T& defer)
-    {
-        return Defer<T>(defer);
-    }
-
     std::shared_ptr<git_tree> get_tree(git_repository* repo, const std::string& target)
     {
         git_oid oid;
@@ -1227,13 +1205,13 @@ namespace
             throw_git_error();
 
         git_commit* commit = nullptr;
-        const auto free_commit = defer([&]{ git_commit_free(commit); });
         err = git_commit_lookup(&commit, repo, &oid);
         if(err)
             throw_git_error();
 
         git_tree* tree = nullptr;
         err = git_commit_tree(&tree, commit);
+        git_commit_free(commit);
         if(err)
             throw_git_error();
 
@@ -1252,7 +1230,6 @@ void GitRepo::diff_trees(const std::string& from, const std::string& to, const o
             throw_git_error();
 
         git_diff* diff = nullptr;
-        const auto free_diff = defer([&]{ git_diff_free(diff); });
         int err = git_diff_tree_to_tree(&diff, repository, &*from_tree, &*to_tree, NULL);
         if(err)
             throw_git_error();
@@ -1269,18 +1246,18 @@ void GitRepo::diff_trees(const std::string& from, const std::string& to, const o
             const auto& file = deleted ? delta->old_file : delta->new_file;
 
             git_blob* blob = nullptr;
-            const auto free_blob = defer([&]{ git_blob_free(blob); });
             const auto err = git_blob_lookup(&blob, payload->repo, &file.id);
             if(err)
                 return 0;
 
             const auto ptr = git_blob_rawcontent(blob);
             const auto size = git_blob_rawsize(blob);
-            return payload->on_blob(file.path, !deleted, ptr, size);
+            const auto rpy = payload->on_blob(file.path, !deleted, ptr, size);
+            git_blob_free(blob);
+            return rpy;
         };
 
         Payload payload{repository, on_blob};
-        err = git_diff_foreach(diff, file_cb, nullptr, nullptr, nullptr, &payload);
-        if(err)
-            return;
+        git_diff_foreach(diff, file_cb, nullptr, nullptr, nullptr, &payload);
+        git_diff_free(diff);
 }
