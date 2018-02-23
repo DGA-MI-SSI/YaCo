@@ -276,11 +276,38 @@ idc.make_array(ea, 11)
             self.check_last_ea(),
         )
 
-    def test_create_data_then_function(self):
+    def test_code_to_data_to_func_and_back(self):
         a, b = self.setup_repos()
+
+        # reset parent xref
+        a.run(
+            self.script("""
+ea = 0x66002658
+idc.del_items(ea, idc.DELIT_EXPAND, 5)
+idc.create_byte(ea)
+idc.make_array(ea, 5)
+idaapi.set_name(0x6600EF30, "somename")
+"""),
+            self.save_last_ea(),
+        )
+        # 0x6600EF30 is func on win32 & code on linux
+        # skip git checks
+
+        # lower function to code
+        b.run(
+            self.check_last_ea(),
+            self.script("""
+ea = 0x6600EF30
+idc.del_func(ea)
+"""),
+            self.save_last_ea(),
+        )
+        # once again, cannot check git
+        # because ea is already code on linux
 
         # replace code with dword array
         a.run(
+            self.check_last_ea(),
             self.script("""
 ea = 0x6600EF30
 idc.del_items(ea, idc.DELIT_EXPAND, 0x2c)
@@ -289,7 +316,7 @@ idc.make_array(ea, 11)
 """),
             self.save_last_ea(),
         )
-        a.check_git(added=["binary", "segment", "segment_chunk", "data"])
+        a.check_git(added=["data"], deleted=["code"])
 
         # replace array with code
         b.run(
@@ -316,7 +343,7 @@ idaapi.set_name(ea, "new_function_EF30_2")
             self.save_last_ea(),
         )
         a.check_git(deleted=["code"], modified=["segment_chunk"],
-            added=["function", "stackframe", "stackframe_member"] * 2 + ["basic_block"] * 4)
+            added=["function", "stackframe"] + ["stackframe_member"] * 2 + ["basic_block"] * 3)
         b.run(
             self.check_last_ea(),
         )

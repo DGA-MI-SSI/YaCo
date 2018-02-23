@@ -1165,6 +1165,7 @@ namespace
     {
         del_func(ea);
         create_insn(ea);
+        plan_and_wait(ea, static_cast<ea_t>(ea + version.size()));
         make_name(visitor, version, ea);
         make_views(version, ea);
     }
