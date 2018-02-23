@@ -88,30 +88,10 @@ idaapi.set_member_name(frame, 0x4,  "another_name")
             self.check_last_ea(),
         )
 
-    def test_create_and_rename_function(self):
-        a, b = self.setup_repos()
-        a.run(
-            self.script("""
-ea = 0x6602E530
-idc.add_func(ea)
-ida_auto.plan_and_wait(ea, idc.find_func_end(ea))
-idaapi.set_name(ea, "new_function_E530")
-"""),
-            self.save_last_ea(),
-        )
-        a.check_git(added=["binary", "segment", "segment_chunk", "segment_chunk"] +
-            ["function", "stackframe"] * 3 + ["stackframe_member"] * 13 +
-            ["basic_block"] * 18)
-        b.run(
-            self.check_last_ea(),
-        )
-
-    def test_function_to_code_to_undef_and_back_again(self):
+    def test_func_to_code_to_undef_and_back(self):
         a, b = self.setup_repos()
 
-        # we fix parent xref first so results are not polluted
-        # with parent xrefs changes
-        # touch parent xref
+        # remove parent xref noise first
         b.run(
             self.script("""
 ea = 0x66053110
@@ -196,22 +176,7 @@ ida_auto.plan_and_wait(ea, idc.find_func_end(ea))
             self.check_last_ea(),
         )
 
-    def test_create_function_then_undefined_func(self):
-        a, b = self.setup_repos()
-        a.run(
-            self.script("""
-ea = 0x6600EF30
-idc.add_func(ea)
-ida_auto.plan_and_wait(ea, idc.find_func_end(ea))
-idaapi.set_name(ea, "new_function_EF30")
-"""),
-            self.save_last_ea(),
-        )
-        b.run(
-            self.check_last_ea(),
-        )
-
-    def test_transform_function_to_byte_array(self):
+    def test_func_to_data(self):
         a, b = self.setup_repos()
         a.run(
             self.script("""
@@ -237,48 +202,7 @@ idc.make_array(ea, 5)
             self.check_last_ea(),
         )
 
-    def test_create_function_from_code(self):
-        a, b = self.setup_repos()
-        a.run(
-            self.script("""
-ea = 0x6600EF30
-idc.add_func(ea)
-ida_auto.plan_and_wait(ea, idc.find_func_end(ea))
-"""),
-            self.save_last_ea(),
-        )
-        b.run(
-            self.check_last_ea(),
-        )
-
-    def test_create_function_then_undefined_func(self):
-        a, b = self.setup_repos()
-        a.run(
-            self.script("""
-ea = 0x6600EF30
-idc.add_func(ea)
-ida_auto.plan_and_wait(ea, idc.find_func_end(ea))
-idaapi.set_name(ea, "new_function_EF30")
-"""),
-            self.save_last_ea(),
-        )
-        b.run(
-            self.check_last_ea(),
-            self.script("""
-ea = 0x6600EF30
-idc.del_items(ea, idc.DELIT_EXPAND, 0x2c)
-idc.create_dword(ea)
-idc.make_array(ea, 11)
-"""),
-            self.save_last_ea(),
-        )
-        a.run(
-            self.check_last_ea(),
-        )
-
-    def test_code_to_data_to_func_and_back(self):
-        a, b = self.setup_repos()
-
+    def transform_func_6600EF30_into_code(self, a, b):
         # reset parent xref
         a.run(
             self.script("""
@@ -290,24 +214,63 @@ idaapi.set_name(0x6600EF30, "somename")
 """),
             self.save_last_ea(),
         )
-        # 0x6600EF30 is func on win32 & code on linux
-        # skip git checks
-
+        # skip git checks as ea has no parent xref on linux
         # lower function to code
         b.run(
             self.check_last_ea(),
             self.script("""
 ea = 0x6600EF30
 idc.del_func(ea)
+ida_auto.auto_make_code(ea)
+ida_auto.auto_wait()
 """),
             self.save_last_ea(),
         )
-        # once again, cannot check git
+        # once again, cannot do git checks
         # because ea is already code on linux
-
-        # replace code with dword array
         a.run(
             self.check_last_ea(),
+        )
+
+    def test_code_to_func_to_data(self):
+        a, b = self.setup_repos()
+        self.transform_func_6600EF30_into_code(a, b)
+
+        # code to func
+        a.run(
+            self.script("""
+ea = 0x6600EF30
+idc.add_func(ea)
+ida_auto.plan_and_wait(ea, idc.find_func_end(ea))
+idaapi.set_name(ea, "new_function_EF30")
+"""),
+            self.save_last_ea(),
+        )
+        func = ["function", "stackframe"] + ["stackframe_member"] * 2 + ["basic_block"] * 3
+        a.check_git(added=func, modified=["segment_chunk"], deleted=["code"])
+
+        # func to data
+        b.run(
+            self.check_last_ea(),
+            self.script("""
+ea = 0x6600EF30
+idc.del_items(ea, idc.DELIT_EXPAND, 0x2c)
+idc.create_dword(ea)
+idc.make_array(ea, 11)
+"""),
+            self.save_last_ea(),
+        )
+        b.check_git(added=["data"], modified=["segment_chunk"], deleted=func)
+        a.run(
+            self.check_last_ea(),
+        )
+
+    def test_code_to_data_to_code(self):
+        a, b = self.setup_repos()
+        self.transform_func_6600EF30_into_code(a, b)
+
+        # code to data
+        a.run(
             self.script("""
 ea = 0x6600EF30
 idc.del_items(ea, idc.DELIT_EXPAND, 0x2c)
@@ -318,7 +281,7 @@ idc.make_array(ea, 11)
         )
         a.check_git(added=["data"], deleted=["code"])
 
-        # replace array with code
+        # data to code
         b.run(
             self.check_last_ea(),
             self.script("""
@@ -331,19 +294,44 @@ ida_auto.auto_wait()
         )
         b.check_git(added=["code"], deleted=["data"])
 
-        # restore function
+    def test_data_to_func_to_code(self):
+        a, b = self.setup_repos()
+        self.transform_func_6600EF30_into_code(a, b)
+
+        # code to data
         a.run(
-            self.check_last_ea(),
             self.script("""
 ea = 0x6600EF30
-idc.add_func(ea)
-ida_auto.plan_and_wait(ea, idc.find_func_end(ea))
-idaapi.set_name(ea, "new_function_EF30_2")
+idc.del_items(ea, idc.DELIT_EXPAND, 0x2c)
+idc.create_dword(ea)
+idc.make_array(ea, 11)
 """),
             self.save_last_ea(),
         )
-        a.check_git(deleted=["code"], modified=["segment_chunk"],
-            added=["function", "stackframe"] + ["stackframe_member"] * 2 + ["basic_block"] * 3)
+        a.check_git(added=["data"], deleted=["code"])
+
+        # data to func
+        b.run(
+            self.script("""
+ea = 0x6600EF30
+idc.del_items(ea, idc.DELIT_EXPAND, 0x2c)
+idc.add_func(ea)
+ida_auto.plan_and_wait(ea, idc.find_func_end(ea))
+"""),
+            self.save_last_ea(),
+        )
+        func = ["function", "stackframe"] + ["stackframe_member"] * 2 + ["basic_block"] * 3
+        b.check_git(added=func, modified=["segment_chunk"], deleted=["data"])
+
+        # func to code
+        a.run(
+            self.script("""
+ea = 0x6600EF30
+idc.del_func(ea)
+"""),
+            self.save_last_ea(),
+        )
+        a.check_git(added=["code"], modified=["segment_chunk"], deleted=func)
         b.run(
             self.check_last_ea(),
         )
