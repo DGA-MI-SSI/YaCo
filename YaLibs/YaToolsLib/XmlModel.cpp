@@ -88,7 +88,8 @@ namespace
                 ++bit;
             const auto atype = ait != a.end() ? get_object_type(ait->string().data()) : OBJECT_TYPE_UNKNOWN;
             const auto btype = bit != b.end() ? get_object_type(bit->string().data()) : OBJECT_TYPE_UNKNOWN;
-            return indexed_types[atype] < indexed_types[btype];
+            // make sure file order is stable
+            return std::make_pair(indexed_types[atype], a) < std::make_pair(indexed_types[btype], b);
         });
         return files;
     }
