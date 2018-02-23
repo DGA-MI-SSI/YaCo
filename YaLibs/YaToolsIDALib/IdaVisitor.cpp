@@ -1103,6 +1103,14 @@ namespace
         const auto func = get_func(ea);
         if(!func)
             return;
+        if(!func->regvarqty)
+            return;
+
+        // func->regvars may be uninitialized, searching a dummy register
+        // force ida to load them so we can iterate all regvars
+        find_regvar(func, func->start_ea, "dummy");
+        if(!func->regvars)
+            return;
 
         const range_t range{ea, ea + static_cast<ea_t>(version.size())};
         for(int i = 0; i < func->regvarqty; ++i)
