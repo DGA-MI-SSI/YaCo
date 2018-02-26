@@ -24,9 +24,7 @@
 
 #include "HVersion.hpp"
 #include "HObject.hpp"
-#include "PathDebuggerVisitor.hpp"
 #include "ExporterValidatorVisitor.hpp"
-#include "DelegatingVisitor.hpp"
 #include "MemoryModel.hpp"
 #include "FlatBufferModel.hpp"
 #include "FlatBufferVisitor.hpp"
@@ -44,8 +42,6 @@ using namespace nonstd;
 #   include <experimental/optional>
 using namespace std::experimental;
 #endif
-
-#define USE_PATH_DEBUGGER false
 
 using namespace std;
 
@@ -162,28 +158,13 @@ public:
 };
 }
 
-TEST_F(TestYaToolDatabaseModel, model) {
+TEST_F(TestYaToolDatabaseModel, model)
+{
     /**
      * This test ensures that the model created with create_model is consistent and passes
      * validation through ExporterValidatorVisitor
      */
-    auto db = MakeMemoryModel();
-    auto validator = MakeExporterValidatorVisitor();
-    auto exporter = make_shared<DelegatingVisitor>();
-    exporter->add_delegate(db.visitor);
-
-    if(USE_PATH_DEBUGGER)
-    {
-        auto pathdebugger = MakePathDebuggerVisitor("SaveValidator", validator, PrintValues);
-
-        exporter->add_delegate(pathdebugger);
-        create_model(exporter);
-    }
-    else
-    {
-        exporter->add_delegate(validator);
-        create_model(exporter);
-    }
+    create_model(MakeExporterValidatorVisitor());
 }
 
 void ReferencedObjects_Impl(std::shared_ptr<IModel>db)
