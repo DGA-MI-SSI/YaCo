@@ -125,8 +125,8 @@ void create_model(std::shared_ptr<IModelVisitor> visitor)
 std::shared_ptr<IModel> create_memorySignatureDB()
 {
     auto db = MakeMemoryModel();
-    create_model(db.visitor);
-    return db.model;
+    create_model(db);
+    return db;
 }
 
 namespace
@@ -213,7 +213,7 @@ private:
 
 struct Ctx
 {
-    std::vector<ModelAndVisitor> models;
+    std::vector<std::shared_ptr<IModelAndVisitor>> models;
     std::vector<std::shared_ptr<MockSignatureDatabase1>> mocks;
 };
 
@@ -370,10 +370,10 @@ static HObject create_href(Ctx& ctx, Object& object)
 {
     ctx.models.push_back(MakeMemoryModel());
     auto& db = ctx.models.back();
-    db.visitor->visit_start();
-    object.accept(*db.visitor);
-    db.visitor->visit_end();
-    return db.model->get_object(object.id);
+    db->visit_start();
+    object.accept(*db);
+    db->visit_end();
+    return db->get_object(object.id);
 }
 
 void walkMatchingVersions_Impl(std::shared_ptr<IModel> db)
@@ -955,8 +955,8 @@ static void testObjectWithoutVersion(IModel& db)
 TEST_F(TestYaToolDatabaseModel, memoryModel_objectWithoutVersion)
 {
     const auto db = MakeMemoryModel();
-    create_model_objects_without_versions(*db.visitor);
-    testObjectWithoutVersion(*db.model);
+    create_model_objects_without_versions(*db);
+    testObjectWithoutVersion(*db);
 }
 
 TEST_F(TestYaToolDatabaseModel, FBModel_objectWithoutVersion)

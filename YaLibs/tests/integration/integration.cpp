@@ -171,8 +171,8 @@ namespace
         auto stdmodel = [&]
         {
             const auto db = MakeMemoryModel();
-            expected_model->accept(*db.visitor);
-            return walk_model(*db.model);
+            expected_model->accept(*db);
+            return walk_model(*db);
         }();
         expect_eq(stdmodel, expected);
 
@@ -183,14 +183,14 @@ namespace
             const auto xml = (dir.path / "database.xml").string();
             expected_model->accept(*MakeFileXmlVisitor({xml}));
             const auto db = MakeMemoryModel();
-            db.visitor->visit_start();
-            Listener listener(*db.visitor);
+            db->visit_start();
+            Listener listener(*db);
             listener.update(*create_fbmodel_with([&](const auto& visitor)
             {
                 MakeXmlFilesModel({xml})->accept(*visitor);
             }));
-            db.visitor->visit_end();
-            return walk_model(*db.model);
+            db->visit_end();
+            return walk_model(*db);
         }();
         expect_eq(xmlmodel, expected);
     }

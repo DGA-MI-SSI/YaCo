@@ -582,16 +582,16 @@ namespace
         IDA_LOG_INFO("Saving cache...");
         const auto time_start = std::chrono::system_clock::now();
 
-        ModelAndVisitor db = MakeMemoryModel();
-        db.visitor->visit_start();
+        const auto db = MakeMemoryModel();
+        db->visit_start();
         {
             const auto model = MakeIncrementalIdaModel();
-            save_structs(ev, *model, *db.visitor);
-            save_enums(ev, *model, *db.visitor);
-            save_eas(ev, *model, *db.visitor);
+            save_structs(ev, *model, *db);
+            save_enums(ev, *model, *db);
+            save_eas(ev, *model, *db);
         }
-        db.visitor->visit_end();
-        db.model->accept(*MakeXmlVisitor(get_cache_folder_path()));
+        db->visit_end();
+        db->accept(*MakeXmlVisitor(get_cache_folder_path()));
 
         const auto time_end = std::chrono::system_clock::now();
         const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(time_end - time_start);
@@ -715,19 +715,21 @@ namespace
         const auto deleted = [&]
         {
             const auto db = MakeMemoryModel();
-            db.visitor->visit_start();
+
+            db->visit_start();
             const auto on_blob = [&](const char* /*path*/, bool added, const void* ptr, size_t size)
             {
                 if(!added)
-                    MakeXmlMemoryModel(ptr, size)->accept(*db.visitor);
+                    MakeXmlMemoryModel(ptr, size)->accept(*db);
                 return 0;
             };
             repo.diff_trees(state.commit, "HEAD", on_blob);
+            db->visit_end();
 
-            db.visitor->visit_end();
-            sink.remove(*db.model);
+            sink.remove(*db);
+
             std::unordered_set<YaToolObjectId> ids;
-            db.model->walk_objects([&](YaToolObjectId id, const HObject&)
+            db->walk_objects([&](YaToolObjectId id, const HObject&)
             {
                 ids.emplace(id);
                 return WALK_CONTINUE;
@@ -746,9 +748,9 @@ namespace
         {
             // load all xml files into a new model which we will query
             const auto full = MakeMemoryModel();
-            MakeXmlAllModel(".")->accept(*full.visitor);
+            MakeXmlAllModel(".")->accept(*full);
 
-            DepCtx deps(*full.model);
+            DepCtx deps(*full);
 
             // as we recreate strucs, stacks & enums
             // if one member is deleted, we must reapply parent
@@ -756,9 +758,9 @@ namespace
 
             // load all modified objects
             const auto diff = MakeMemoryModel();
-            MakeXmlFilesModel(state.updated)->accept(*diff.visitor);
+            MakeXmlFilesModel(state.updated)->accept(*diff);
 
-            diff.model->walk_objects([&](auto id, const HObject& /*hobj*/)
+            diff->walk_objects([&](auto id, const HObject& /*hobj*/)
             {
                 // add this id & its dependencies
                 add_id_and_dependencies(deps, id, USE_DEPENDENCIES);
@@ -768,8 +770,8 @@ namespace
         }();
 
         const auto mem = MakeMemoryModel();
-        MakeXmlFilesModel(files)->accept(*mem.visitor);
-        sink.update(*mem.model);
+        MakeXmlFilesModel(files)->accept(*mem);
+        sink.update(*mem);
     }
 }
 

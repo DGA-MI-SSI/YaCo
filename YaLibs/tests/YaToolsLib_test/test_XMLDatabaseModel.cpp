@@ -739,9 +739,9 @@ TEST_F (TestXMLDatabaseModel, TestOneFileWithCommentsThroughMemory) {
     string output_path("output");
     auto visitor_2 = MakeXmlVisitor(output_path);
     auto visitor_model = MakeMemoryModel();
-    MakeXmlFilesModel(input_files)->accept(*visitor_model.visitor);
+    MakeXmlFilesModel(input_files)->accept(*visitor_model);
 
-    visitor_model.model->accept(*visitor_2);
+    visitor_model->accept(*visitor_2);
     ifstream output1;
     output1.open(filename.string());
 
@@ -865,9 +865,9 @@ TEST_F (TestXMLDatabaseModel, TestOneFileWithXrefsThroughMemory) {
     string output_path("output");
     auto visitor_2 = MakeXmlVisitor(output_path);
     auto visitor_model = MakeMemoryModel();
-    MakeXmlFilesModel(input_files)->accept(*visitor_model.visitor);
+    MakeXmlFilesModel(input_files)->accept(*visitor_model);
 
-    visitor_model.model->accept(*visitor_2);
+    visitor_model->accept(*visitor_2);
     ifstream output1;
     output1.open(filename.string());
 

@@ -2040,10 +2040,10 @@ void export_from_ida(const std::string& filename)
 std::string export_xml(ea_t ea, int type_mask)
 {
     const auto db = MakeMemoryModel();
-    db.visitor->visit_start();
-    ModelIncremental(type_mask).accept_ea(*db.visitor, ea);
-    db.visitor->visit_end();
-    return export_to_xml(*db.model);
+    db->visit_start();
+    ModelIncremental(type_mask).accept_ea(*db, ea);
+    db->visit_end();
+    return export_to_xml(*db);
 }
 
 std::string export_xml_enum(const std::string& name)
@@ -2053,10 +2053,10 @@ std::string export_xml_enum(const std::string& name)
         return std::string();
 
     const auto db = MakeMemoryModel();
-    db.visitor->visit_start();
-    ModelIncremental(~0).accept_enum(*db.visitor, eid);
-    db.visitor->visit_end();
-    return export_to_xml(*db.model);
+    db->visit_start();
+    ModelIncremental(~0).accept_enum(*db, eid);
+    db->visit_end();
+    return export_to_xml(*db);
 }
 
 std::string export_xml_struc(const std::string& name)
@@ -2066,10 +2066,10 @@ std::string export_xml_struc(const std::string& name)
         return std::string();
 
     const auto db = MakeMemoryModel();
-    db.visitor->visit_start();
-    ModelIncremental(~0).accept_struct(*db.visitor, BADADDR, sid);
-    db.visitor->visit_end();
-    return export_to_xml(*db.model);
+    db->visit_start();
+    ModelIncremental(~0).accept_struct(*db, BADADDR, sid);
+    db->visit_end();
+    return export_to_xml(*db);
 }
 
 namespace
@@ -2092,10 +2092,10 @@ namespace
 std::string export_xml_strucs()
 {
     const auto db = MakeMemoryModel();
-    db.visitor->visit_start();
+    db->visit_start();
     ModelIncremental inc(~0);
     for(const auto s : get_ordered_strucs())
-        inc.accept_struct(*db.visitor, BADADDR, s->id);
-    db.visitor->visit_end();
-    return export_to_xml(*db.model);
+        inc.accept_struct(*db, BADADDR, s->id);
+    db->visit_end();
+    return export_to_xml(*db);
 }

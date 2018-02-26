@@ -61,17 +61,17 @@ MergeStatus_e Merger::smartMerge(   const char* input_file1, const char* input_f
     auto file_vect2 = std::vector<std::string>();
     file_vect2.push_back(std::string(input_file2));
 
-    auto database1 = MakeMemoryModel();
-    auto database2 = MakeMemoryModel();
+    const auto db1 = MakeMemoryModel();
+    const auto db2 = MakeMemoryModel();
 
     // reload two databases with one object version in each database
-    MakeXmlFilesModel(file_vect1)->accept(*database1.visitor);
-    MakeXmlFilesModel(file_vect2)->accept(*database2.visitor);
+    MakeXmlFilesModel(file_vect1)->accept(*db1);
+    MakeXmlFilesModel(file_vect2)->accept(*db2);
 
     /* Check only one object version is present in each database */
     int count1 = 0;
     HObject db1_ref_object;
-    database1.model->walk_objects([&](const YaToolObjectId& id, const HObject& obj){
+    db1->walk_objects([&](const YaToolObjectId& id, const HObject& obj){
         UNUSED(id);
         UNUSED(obj);
         count1++;
@@ -80,7 +80,7 @@ MergeStatus_e Merger::smartMerge(   const char* input_file1, const char* input_f
     });
     int count2 = 0;
     HObject db2_ref_object;
-    database2.model->walk_objects([&](const YaToolObjectId& id, const HObject& obj){
+    db2->walk_objects([&](const YaToolObjectId& id, const HObject& obj){
         UNUSED(id);
         UNUSED(obj);
         count2++;
@@ -115,7 +115,7 @@ MergeStatus_e Merger::smartMerge(   const char* input_file1, const char* input_f
         throw("PythonResolveFileConflictCallback: callback: invalid number of object version in reference object");
     }
 
-    auto visitor1 = MakeMemoryModel();
+    auto output = MakeMemoryModel();
 
     /* Build relation */
     Relation relation;
@@ -127,16 +127,16 @@ MergeStatus_e Merger::smartMerge(   const char* input_file1, const char* input_f
     relation.flags_ = 0;
 
     /* Merge */
-    visitor1.visitor->visit_start();
+    output->visit_start();
     std::set<YaToolObjectId> newObjectIds;
-    MergeStatus_e retval = mergeObjectVersions(*(visitor1.visitor), newObjectIds, relation);
-	visitor1.visitor->visit_end();
+    MergeStatus_e retval = mergeObjectVersions(*output, newObjectIds, relation);
+	output->visit_end();
     
     if(retval != OBJECT_MERGE_STATUS_NOT_UPDATED)
     {
         const std::string output_path = std::string(output_file_result);
         auto xml_exporter = MakeFileXmlVisitor(output_path);
-        visitor1.model->accept(*xml_exporter);
+        output->accept(*xml_exporter);
     }
 
     return retval;

@@ -384,8 +384,7 @@ struct ViewSignatures
 };
 
 struct Model
-    : public IModelVisitor
-    , public IModel
+    : public IModelAndVisitor
 {
     Model();
 
@@ -459,10 +458,9 @@ Model::Model()
 {
 }
 
-ModelAndVisitor MakeMemoryModel()
+std::shared_ptr<IModelAndVisitor> MakeMemoryModel()
 {
-    const auto ptr = std::make_shared<Model>();
-    return {ptr, ptr};
+    return std::make_shared<Model>();
 }
 
 void Model::visit_start()

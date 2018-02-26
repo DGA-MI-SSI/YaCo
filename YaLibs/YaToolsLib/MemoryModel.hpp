@@ -16,15 +16,17 @@
 #pragma once
 
 #include "IModelVisitor.hpp"
+#include "IModel.hpp"
 #include <memory>
 
 struct IModel;
 class IModelVisitor;
 
-struct ModelAndVisitor
+struct IModelAndVisitor
+    : public IModel
+    , public IModelVisitor
 {
-    std::shared_ptr<IModel>         model;
-    std::shared_ptr<IModelVisitor>  visitor;
+    virtual ~IModelAndVisitor() {}
 };
 
-ModelAndVisitor MakeMemoryModel();
+std::shared_ptr<IModelAndVisitor> MakeMemoryModel();

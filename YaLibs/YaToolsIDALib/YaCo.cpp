@@ -207,8 +207,8 @@ void YaCo::initial_load()
     IDA_LOG_INFO("Loading...");
 
     const auto mem = MakeMemoryModel();
-    MakeXmlAllModel(".")->accept(*mem.visitor);
-    MakeIdaSink()->update(*mem.model);
+    MakeXmlAllModel(".")->accept(*mem);
+    MakeIdaSink()->update(*mem);
 
     const auto time_end = std::chrono::system_clock::now();
     const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(time_end - time_start);

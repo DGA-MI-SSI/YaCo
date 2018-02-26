@@ -31,10 +31,9 @@ void usage(char* name) {
 
 int main_func(const std::string& folder, const std::string&  output_path) {
 
-    auto db = MakeMemoryModel();
-    MakeXmlAllModel(folder)->accept(*db.visitor);
-    auto file_exporter = MakeFileXmlVisitor(output_path);
-    db.model->accept(*file_exporter);
+    const auto db = MakeMemoryModel();
+    MakeXmlAllModel(folder)->accept(*db);
+    db->accept(*MakeFileXmlVisitor(output_path));
     return 0;
 }
 
