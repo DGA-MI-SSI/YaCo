@@ -15,13 +15,10 @@
 
 #include "FlatBufferModel.hpp"
 
-#include "FlatBufferVisitor.hpp"
-#include "DelegatingVisitor.hpp"
 #include "HVersion.hpp"
+#include "IModelVisitor.hpp"
 #include "HObject.hpp"
-#include "Signature.hpp"
 #include "FileUtils.hpp"
-#include "Helpers.h"
 #include "Logger.h"
 #include "Yatools.h"
 #include "ModelIndex.hpp"
@@ -248,34 +245,6 @@ const_string_ref make_string_ref_from(const fb::String* value)
         return gEmptyRef;
     return const_string_ref{value->data(), value->size()};
 }
-
-struct VisitorWithoutVisitStartEnd : public DelegatingVisitor
-{
-    void visit_start() override {}
-    void visit_end() override {}
-};
-
-struct ExportedMmap : public Mmap_ABC
-{
-    ExportedMmap(const std::shared_ptr<IFlatBufferVisitor>& exporter)
-        : exporter_(exporter)
-        , buffer_  (exporter->GetBuffer())
-    {
-    }
-
-    const void* Get() const override
-    {
-        return buffer_.value;
-    }
-
-    size_t GetSize() const override
-    {
-        return buffer_.size;
-    }
-
-    std::shared_ptr<IFlatBufferVisitor>  exporter_;
-    ExportedBuffer                       buffer_;
-};
 }
 
 std::shared_ptr<IModel> MakeFlatBufferModel(const std::shared_ptr<Mmap_ABC>& mmap)
@@ -286,45 +255,6 @@ std::shared_ptr<IModel> MakeFlatBufferModel(const std::shared_ptr<Mmap_ABC>& mma
 std::shared_ptr<IModel> MakeFlatBufferModel(const std::string& filename)
 {
     return MakeFlatBufferModel(MmapFile(filename.data()));
-}
-
-std::shared_ptr<IFlatBufferVisitor> ExportToFlatBuffer(const std::vector<std::string>& filenames)
-{
-    // export all input filenames into our in-memory flatbuffer export
-    auto exporter = MakeFlatBufferVisitor();
-    VisitorWithoutVisitStartEnd visitor;
-    visitor.add_delegate(exporter);
-    exporter->visit_start();
-    for(const auto& filename : filenames)
-    {
-        LOG(INFO, "* importing %s\n", filename.data());
-        MakeFlatBufferModel(filename)->accept(visitor);
-    }
-    exporter->visit_end();
-    return exporter;
-}
-
-std::shared_ptr<IModel> MakeMultiFlatBufferModel(const std::vector<std::string>& filenames)
-{
-    if(filenames.size() == 1)
-        return MakeFlatBufferModel(filenames.front());
-    auto exporter = ExportToFlatBuffer(filenames);
-    return MakeFlatBufferModel(std::make_shared<ExportedMmap>(exporter));
-}
-
-bool merge_yadbs_to_yadb(const std::string& output, const std::vector<std::string>& inputs)
-{
-    auto exporter = ExportToFlatBuffer(inputs);
-
-    // export buffer to file
-    LOG(INFO, "* exporting %s\n", output.data());
-    const auto buf = exporter->GetBuffer();
-    FILE* fh = fopen(output.data(), "wb");
-    if(!fh)
-        return false;
-    const auto size = fwrite(buf.value, buf.size, 1, fh);
-    const auto err = fclose(fh);
-    return size == 1 && !err;
 }
 
 #ifndef NDEBUG

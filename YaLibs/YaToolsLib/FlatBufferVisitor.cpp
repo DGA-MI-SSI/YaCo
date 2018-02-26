@@ -18,8 +18,11 @@
 #include "IModelAccept.hpp"
 #include "IModelVisitor.hpp"
 #include "Signature.hpp"
+#include "FlatBufferModel.hpp"
+#include "IModel.hpp"
 #include "Logger.h"
 #include "Yatools.h"
+#include "FileUtils.hpp"
 
 #include <flatbuffers/flatbuffers.h>
 #include <yadb_generated.h>
@@ -123,9 +126,15 @@ struct Xref
     operand_t       operand;
 };
 
+enum VisitorMode
+{
+    STANDARD,
+    SKIP_START_END,
+};
+
 struct FlatBufferVisitor : public IFlatBufferVisitor
 {
-    FlatBufferVisitor();
+    FlatBufferVisitor(VisitorMode mode);
 
     // IModelVisitor
     void visit_start() override;
@@ -166,6 +175,7 @@ struct FlatBufferVisitor : public IFlatBufferVisitor
 
     ExportedBuffer GetBuffer() const override;
 
+    const bool            skip_start_end_;
     fb::FlatBufferBuilder fbbuilder_;
 
     std::vector<yadb::Object>                   objects_;
@@ -214,11 +224,12 @@ struct FlatBufferVisitor : public IFlatBufferVisitor
 
 std::shared_ptr<IFlatBufferVisitor> MakeFlatBufferVisitor()
 {
-    return std::make_shared<FlatBufferVisitor>();
+    return std::make_shared<FlatBufferVisitor>(STANDARD);
 }
 
-FlatBufferVisitor::FlatBufferVisitor()
-    : object_type_(OBJECT_TYPE_UNKNOWN)
+FlatBufferVisitor::FlatBufferVisitor(VisitorMode mode)
+    : skip_start_end_(mode == SKIP_START_END)
+    , object_type_(OBJECT_TYPE_UNKNOWN)
     , object_id_(0)
     , is_ready_(false)
 {
@@ -251,7 +262,7 @@ static T make_optional(optional<T>& value)
 }
 
 template<typename T>
-static fb::Offset<fb::Vector<const T*>> make_structs(fb::FlatBufferBuilder& fbb, std::vector<T>& value)
+static fb::Offset<fb::Vector<const T*>> make_strucs(fb::FlatBufferBuilder& fbb, std::vector<T>& value)
 {
     if(value.empty())
         return 0;
@@ -270,33 +281,48 @@ static fb::Offset<fb::Vector<T>> make_tables(fb::FlatBufferBuilder& fbb, std::ve
     return reply;
 }
 
+namespace
+{
+    void visit_start(FlatBufferVisitor& v)
+    {
+        // add an empty string first so index = 0 == an empty string
+        v.strings_.emplace_back(v.fbbuilder_.CreateSharedString("", 0));
+    }
+
+    void visit_end(FlatBufferVisitor& v)
+    {
+        yadb::FinishRootBuffer(v.fbbuilder_, yadb::CreateRoot(v.fbbuilder_,
+            make_strucs(v.fbbuilder_, v.objects_),
+            make_tables(v.fbbuilder_, v.binaries_),
+            make_tables(v.fbbuilder_, v.structs_),
+            make_tables(v.fbbuilder_, v.struct_members_),
+            make_tables(v.fbbuilder_, v.enums_),
+            make_tables(v.fbbuilder_, v.enum_members_),
+            make_tables(v.fbbuilder_, v.segments_),
+            make_tables(v.fbbuilder_, v.segment_chunks_),
+            make_tables(v.fbbuilder_, v.functions_),
+            make_tables(v.fbbuilder_, v.stackframes_),
+            make_tables(v.fbbuilder_, v.stackframe_members_),
+            make_tables(v.fbbuilder_, v.reference_infos_),
+            make_tables(v.fbbuilder_, v.codes_),
+            make_tables(v.fbbuilder_, v.datas_),
+            make_tables(v.fbbuilder_, v.basic_blocks_),
+            make_tables(v.fbbuilder_, v.strings_)
+        ));
+        v.is_ready_ = true;
+    }
+}
+
 void FlatBufferVisitor::visit_start()
 {
-    // add an empty string first so index = 0 == an empty string
-    strings_.emplace_back(fbbuilder_.CreateSharedString("", 0));
+    if(!skip_start_end_)
+        ::visit_start(*this);
 }
 
 void FlatBufferVisitor::visit_end()
 {
-    yadb::FinishRootBuffer(fbbuilder_, yadb::CreateRoot(fbbuilder_,
-        make_structs(fbbuilder_, objects_),
-        make_tables(fbbuilder_, binaries_),
-        make_tables(fbbuilder_, structs_),
-        make_tables(fbbuilder_, struct_members_),
-        make_tables(fbbuilder_, enums_),
-        make_tables(fbbuilder_, enum_members_),
-        make_tables(fbbuilder_, segments_),
-        make_tables(fbbuilder_, segment_chunks_),
-        make_tables(fbbuilder_, functions_),
-        make_tables(fbbuilder_, stackframes_),
-        make_tables(fbbuilder_, stackframe_members_),
-        make_tables(fbbuilder_, reference_infos_),
-        make_tables(fbbuilder_, codes_),
-        make_tables(fbbuilder_, datas_),
-        make_tables(fbbuilder_, basic_blocks_),
-        make_tables(fbbuilder_, strings_)
-    ));
-    is_ready_ = true;
+    if(!skip_start_end_)
+        ::visit_end(*this);
 }
 
 ExportedBuffer FlatBufferVisitor::GetBuffer() const
@@ -390,14 +416,14 @@ void FlatBufferVisitor::visit_end_object_version()
         make_string(*this, comment_repeatable_),
         make_string(*this, comment_nonrepeatable_),
         make_optional(string_type_),
-        make_structs(fbbuilder_, attributes_),
+        make_strucs(fbbuilder_, attributes_),
         make_tables(fbbuilder_, blobs_),
-        make_structs(fbbuilder_, comments_),
-        make_structs(fbbuilder_, value_views_),
-        make_structs(fbbuilder_, register_views_),
-        make_structs(fbbuilder_, hidden_areas_),
+        make_strucs(fbbuilder_, comments_),
+        make_strucs(fbbuilder_, value_views_),
+        make_strucs(fbbuilder_, register_views_),
+        make_strucs(fbbuilder_, hidden_areas_),
         make_tables(fbbuilder_, xrefs_),
-        make_structs(fbbuilder_, signatures_)
+        make_strucs(fbbuilder_, signatures_)
     ));
     username_.clear();
 }
@@ -516,7 +542,7 @@ void FlatBufferVisitor::visit_end_xref()
         xref_->offset,
         xref_->id,
         static_cast<uint8_t>(xref_->operand),
-        make_structs(fbbuilder_, attributes_)
+        make_strucs(fbbuilder_, attributes_)
     ));
     xref_ = nullopt;
 }
@@ -561,3 +587,64 @@ void FlatBufferVisitor::visit_blob(offset_t offset, const void* blob, size_t len
     ));
 }
 
+namespace
+{
+    struct ExportedMmap : public Mmap_ABC
+    {
+        ExportedMmap(const std::shared_ptr<IFlatBufferVisitor>& exporter)
+            : exporter_(exporter)
+            , buffer_  (exporter->GetBuffer())
+        {
+        }
+
+        const void* Get() const override
+        {
+            return buffer_.value;
+        }
+
+        size_t GetSize() const override
+        {
+            return buffer_.size;
+        }
+
+        std::shared_ptr<IFlatBufferVisitor>  exporter_;
+        ExportedBuffer                       buffer_;
+    };
+
+    std::shared_ptr<IFlatBufferVisitor> ExportToFlatBuffer(const std::vector<std::string>& filenames)
+    {
+        // export all input filenames into our in-memory flatbuffer export
+        const auto exporter = std::make_shared<FlatBufferVisitor>(SKIP_START_END);
+        visit_start(*exporter);
+        for(const auto& filename : filenames)
+        {
+            LOG(INFO, "* importing %s\n", filename.data());
+            MakeFlatBufferModel(filename)->accept(*exporter);
+        }
+        visit_end(*exporter);
+        return exporter;
+    }
+}
+
+std::shared_ptr<IModel> MakeMultiFlatBufferModel(const std::vector<std::string>& filenames)
+{
+    if(filenames.size() == 1)
+        return MakeFlatBufferModel(filenames.front());
+    const auto exporter = ExportToFlatBuffer(filenames);
+    return MakeFlatBufferModel(std::make_shared<ExportedMmap>(exporter));
+}
+
+bool merge_yadbs_to_yadb(const std::string& output, const std::vector<std::string>& inputs)
+{
+    const auto exporter = ExportToFlatBuffer(inputs);
+
+    // export buffer to file
+    LOG(INFO, "* exporting %s\n", output.data());
+    const auto buf = exporter->GetBuffer();
+    FILE* fh = fopen(output.data(), "wb");
+    if(!fh)
+        return false;
+    const auto size = fwrite(buf.value, buf.size, 1, fh);
+    const auto err = fclose(fh);
+    return size == 1 && !err;
+}
