@@ -37,5 +37,4 @@ struct IFlatBufferVisitor
 
 std::shared_ptr<IFlatBufferVisitor> MakeFlatBufferVisitor();
 
-bool merge_yadbs_to_yadb(const std::string& dest, const std::vector<std::string>& sources);
 bool merge_xmls_to_yadb(const std::string& dest, const std::vector<std::string>& sources);

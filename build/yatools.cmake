@@ -142,9 +142,6 @@ add_tool(yafb2xml YaToolsUtils/YaToolsFBToXML)
 # yacachemerger
 add_tool(yacachemerger YaToolsUtils/YaToolsCacheMerger)
 
-# yadbdbmerger
-add_tool(yadbdbmerger YaToolsUtils/YaToolsYADBDBMerger)
-
 # swig modules
 function(add_swig_mod target name)
     add_swig_module(${target} yatools/swig ${ARGN})

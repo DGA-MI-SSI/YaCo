@@ -635,21 +635,6 @@ std::shared_ptr<IModel> MakeMultiFlatBufferModel(const std::vector<std::string>&
     return MakeFlatBufferModel(std::make_shared<ExportedMmap>(exporter));
 }
 
-bool merge_yadbs_to_yadb(const std::string& output, const std::vector<std::string>& inputs)
-{
-    const auto exporter = ExportToFlatBuffer(inputs);
-
-    // export buffer to file
-    LOG(INFO, "* exporting %s\n", output.data());
-    const auto buf = exporter->GetBuffer();
-    FILE* fh = fopen(output.data(), "wb");
-    if(!fh)
-        return false;
-    const auto size = fwrite(buf.value, buf.size, 1, fh);
-    const auto err = fclose(fh);
-    return size == 1 && !err;
-}
-
 bool merge_xmls_to_yadb(const std::string& output, const std::vector<std::string>& inputs)
 {
     const auto exporter = MakeFlatBufferVisitor();
