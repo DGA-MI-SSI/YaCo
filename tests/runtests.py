@@ -63,11 +63,8 @@ if idc.__EA64__:
     import YaToolsPy64 as ya
 else:
     import YaToolsPy32 as ya
-import yaco_plugin
 
 idc.Wait()
-yaco_plugin.start()
-# start
 """
 
 ida_end = """
@@ -98,9 +95,15 @@ class Repo():
         err = cmd.run()
         self.ctx.assertEqual(err, None, "%s" % err)
 
-    def run_with(self, sync, *args):
+    def run_with(self, use_yaco, sync_first, *args):
         scripts = ""
-        if sync:
+        if use_yaco:
+            scripts += """
+# start
+import yaco_plugin
+yaco_plugin.start()
+"""
+        if sync_first:
             scripts += """
 idc.SaveBase("")
 """
@@ -117,15 +120,18 @@ with open("%s", "wb") as fh:
 """ % (re.sub("\\\\", "/", fname), script)
             todo.append((check, fname))
 
-        self.run_script(scripts)
+        self.run_script(scripts, init=not use_yaco)
         for (check, name) in todo:
             check(name)
 
     def run(self, *args):
-        return self.run_with(True, *args)
+        return self.run_with(True, True, *args)
 
     def run_no_sync(self, *args):
-        return self.run_with(False, *args)
+        return self.run_with(True, False, *args)
+
+    def run_bare(self, *args):
+        return self.run_with(False, False, *args)
 
     def check_git(self, added=None, modified=None, deleted=None, moved=None):
         if not added:
@@ -315,7 +321,10 @@ class Fixture(unittest.TestCase):
         sysexec(a, ["git", "clone", "--bare", ".", c])
         self.set_master(a, c)
         ra, rb = Repo(self, a), Repo(self, b)
-        ra.run_script("", init=True)
+        ra.run_script("""
+import yaco_plugin
+yaco_plugin.start()
+""", init=True)
         shutil.copytree(a, b)
         return ra, rb
 

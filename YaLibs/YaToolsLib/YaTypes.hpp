@@ -23,6 +23,8 @@
 #include <string>
 #include <vector>
 
+#include "YaEnums.hpp"
+
 class IModelVisitor;
 struct IModel;
 struct Signature;
@@ -44,60 +46,12 @@ typedef uint32_t YaToolFlag_T;
 
 #define UNKNOWN_ADDR    static_cast<offset_t>(~0)
 
-enum ContinueWalking_e
-{
-    WALK_CONTINUE,
-    WALK_STOP,
-};
-
-enum YaToolObjectType_e
-{
-    OBJECT_TYPE_UNKNOWN,
-    OBJECT_TYPE_BINARY,
-    OBJECT_TYPE_DATA,
-    OBJECT_TYPE_CODE,
-    OBJECT_TYPE_FUNCTION,
-    OBJECT_TYPE_STRUCT,
-    OBJECT_TYPE_ENUM,
-    OBJECT_TYPE_ENUM_MEMBER,
-    OBJECT_TYPE_BASIC_BLOCK,
-    OBJECT_TYPE_SEGMENT,
-    OBJECT_TYPE_SEGMENT_CHUNK,
-    OBJECT_TYPE_STRUCT_MEMBER,
-    OBJECT_TYPE_STACKFRAME,
-    OBJECT_TYPE_STACKFRAME_MEMBER,
-    OBJECT_TYPE_REFERENCE_INFO,
-    OBJECT_TYPE_COUNT,
-};
-
-enum SignatureMethod_e
-{
-    SIGNATURE_UNKNOWN,
-    SIGNATURE_FIRSTBYTE,
-    SIGNATURE_FULL,
-    SIGNATURE_INVARIANTS,
-    SIGNATURE_OPCODE_HASH,
-    SIGNATURE_INTRA_GRAPH_HASH,
-    SIGNATURE_STRING_HASH,
-    SIGNATURE_METHOD_COUNT,
-};
-
-enum SignatureAlgo_e
-{
-    SIGNATURE_ALGORITHM_UNKNOWN,
-    SIGNATURE_ALGORITHM_NONE,
-    SIGNATURE_ALGORITHM_CRC32,
-    SIGNATURE_ALGORITHM_MD5,
-    SIGNATURE_ALGORITHM_COUNT,
-};
-
 YaToolObjectType_e  get_object_type(const char* object_type);
 const char*         get_object_type_string(YaToolObjectType_e object_type);
 
 extern const YaToolObjectType_e  ordered_types[OBJECT_TYPE_COUNT];
 extern const std::vector<size_t> indexed_types;
 
-#ifndef SWIG
 namespace std
 {
     template<>
@@ -109,23 +63,6 @@ namespace std
         }
     };
 }
-#endif//SWIG
-
-/*
- * Type of comments
- * When exporting informations, the order should always be that of the
- * enum members (first, repeatable, non_repeatable, anterior, posterior, bookmark...)
- */
-enum CommentType_e
-{
-    COMMENT_UNKNOWN,
-    COMMENT_REPEATABLE,
-    COMMENT_NON_REPEATABLE,
-    COMMENT_ANTERIOR,
-    COMMENT_POSTERIOR,
-    COMMENT_BOOKMARK,
-    COMMENT_COUNT,
-};
 
 CommentType_e get_comment_type(const char* comment_type);
 
@@ -133,7 +70,6 @@ const char* get_comment_type_string(CommentType_e comment_type);
 
 YaToolObjectId YaToolObjectId_From_String(const char* input, size_t input_len);
 
-#ifndef SWIG
 /*
  * light string reference
  */
@@ -176,4 +112,3 @@ namespace std
         size_t operator()(const const_string_ref& v) const;
     };
 }
-#endif //SWIG

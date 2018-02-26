@@ -69,3 +69,6 @@ inline std::string ToString(const bool& Value)
 }
 
 #define TO_STRING(X) ToString(X).data()
+
+void StartYatools(const char* base);
+void StopYatools();

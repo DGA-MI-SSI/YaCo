@@ -57,11 +57,6 @@ extern "C"
 #define EA_SIZE "8"
 #endif
 
-std::string get_type(ea_t ea)
-{
-    return ya::get_type(ea);
-}
-
 void pool_item_clear(qstring& item)
 {
     item.qclear();

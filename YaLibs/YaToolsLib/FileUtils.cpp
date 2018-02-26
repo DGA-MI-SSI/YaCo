@@ -190,21 +190,6 @@ std::shared_ptr<Mmap_ABC> MmapFile(const char* pPath)
     return std::make_shared<Mmap>(pPath);
 }
 
-bool merge_xmls_to_yadb(const std::string& output, const std::vector<std::string>& inputs)
-{
-    const auto exporter = MakeFlatBufferVisitor();
-    MakeXmlFilesModel(inputs)->accept(*exporter);
-
-    // export buffer to file
-    const auto buf = exporter->GetBuffer();
-    FILE* fh = fopen(output.data(), "wb");
-    if(!fh)
-        return false;
-    const auto size = fwrite(buf.value, buf.size, 1, fh);
-    const auto err = fclose(fh);
-    return size == 1 && !err;
-}
-
 #ifdef WIN32
 #pragma comment(lib, "rpcrt4.lib")
 #include "rpc.h"

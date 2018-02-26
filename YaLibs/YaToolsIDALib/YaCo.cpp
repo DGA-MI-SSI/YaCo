@@ -26,7 +26,6 @@
 #include "IdaModel.hpp"
 #include "Utils.hpp"
 #include "MemoryModel.hpp"
-#include "Yatools_swig.h"
 #include "IModelSink.hpp"
 
 #include "git_version.h"

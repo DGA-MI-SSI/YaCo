@@ -48,7 +48,7 @@ class Fixture(runtests.Fixture):
 
     def test_prototypes(self):
         a, b = self.setup_repos()
-        a.run(
+        a.run_bare(
             self.script("""
 import idautils
 import idc
@@ -105,7 +105,6 @@ def get_set_type(name, ea, fr, ff, identify, setter):
     if check != fntype:
         ff.write("%s:%s:\\n    got  %s\\n    want %s\\n" % (name, identify(ea), fntype, check))
 
-yaco_plugin.yaco.disable()
 read = "test_prototypes.read." + sys.platform + ".700"
 fail = "test_prototypes.fail." + sys.platform + ".700"
 with open(read, "wb") as fr:

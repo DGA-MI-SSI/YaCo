@@ -19,12 +19,8 @@
 %include <std_shared_ptr.i>
 
 %{
-#include "YaCo.hpp"
-#include "IdaVisitor.hpp"
-#include "IdaModel.hpp"
-#include "YaGitLib.hpp"
-#include "Yatools_swig.h"
-#include "YaTypes.hpp"
+#include "YaSwig.hpp"
+#include "YaEnums.hpp"
 %}
 
 %shared_ptr(IYaCo)
@@ -110,9 +106,5 @@
     }
 }
 
-%include "YaCo.hpp"
-%include "IdaVisitor.hpp"
-%include "IdaModel.hpp"
-%include "YaGitLib.hpp"
-%include "Yatools_swig.h"
-%include "YaTypes.hpp"
+%include "YaSwig.hpp"
+%include "YaEnums.hpp"

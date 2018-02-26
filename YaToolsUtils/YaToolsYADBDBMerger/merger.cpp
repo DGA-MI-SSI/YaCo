@@ -14,7 +14,7 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <Yatools.h>
-#include <Yatools_swig.h>
+#include <FlatBufferVisitor.hpp>
 #include <Logger.h>
 
 #include <string.h>

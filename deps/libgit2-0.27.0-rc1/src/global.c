@@ -228,6 +228,7 @@ void git__free_tls_data(void)
 	TlsSetValue(_tls_index, NULL);
 }
 
+#if 0
 BOOL WINAPI DllMain(HINSTANCE hInstDll, DWORD fdwReason, LPVOID lpvReserved)
 {
 	GIT_UNUSED(hInstDll);
@@ -244,6 +245,7 @@ BOOL WINAPI DllMain(HINSTANCE hInstDll, DWORD fdwReason, LPVOID lpvReserved)
 	 */
 	return TRUE;
 }
+#endif
 
 #elif defined(GIT_THREADS) && defined(_POSIX_THREADS)
 

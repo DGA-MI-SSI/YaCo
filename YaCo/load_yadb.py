@@ -38,11 +38,9 @@ if idc.__EA64__:
 else:
     import YaToolsPy32 as ya
 
-name, _ = os.path.splitext(idc.GetIdbPath())
-ya.StartYatools(name)
-
 idc.Wait()
-ya.import_to_ida(args.filename)
+name, _ = os.path.splitext(idc.GetIdbPath())
+ya.import_to_ida(name, args.filename)
 if not args.quick:
     idc.Wait()
 

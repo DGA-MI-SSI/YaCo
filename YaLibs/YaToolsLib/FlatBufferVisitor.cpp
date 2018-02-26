@@ -23,6 +23,7 @@
 #include "Logger.h"
 #include "Yatools.h"
 #include "FileUtils.hpp"
+#include "XmlModel.hpp"
 
 #include <flatbuffers/flatbuffers.h>
 #include <yadb_generated.h>
@@ -640,6 +641,21 @@ bool merge_yadbs_to_yadb(const std::string& output, const std::vector<std::strin
 
     // export buffer to file
     LOG(INFO, "* exporting %s\n", output.data());
+    const auto buf = exporter->GetBuffer();
+    FILE* fh = fopen(output.data(), "wb");
+    if(!fh)
+        return false;
+    const auto size = fwrite(buf.value, buf.size, 1, fh);
+    const auto err = fclose(fh);
+    return size == 1 && !err;
+}
+
+bool merge_xmls_to_yadb(const std::string& output, const std::vector<std::string>& inputs)
+{
+    const auto exporter = MakeFlatBufferVisitor();
+    MakeXmlFilesModel(inputs)->accept(*exporter);
+
+    // export buffer to file
     const auto buf = exporter->GetBuffer();
     FILE* fh = fopen(output.data(), "wb");
     if(!fh)

@@ -49,7 +49,13 @@ class Fixture(runtests.Fixture):
     def test_export(self):
         a, b = self.setup_repos()
         a.run(
-            self.script("yaco_plugin.yaco.export_database()"),
+            self.script("""
+import idc
+import os
+name, _ = os.path.splitext(idc.get_idb_path())
+os.makedirs("database")
+ya.export_from_ida(name, "database/database.yadb")
+"""),
         )
         import yadb.Root
         data = None

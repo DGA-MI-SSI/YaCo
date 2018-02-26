@@ -34,11 +34,9 @@ if idc.__EA64__:
 else:
     import YaToolsPy32 as ya
 
-
 idc.Wait()
 
-name, _ = os.path.splitext(idc.GetIdbPath())
-ya.StartYatools(name)
+name, _ = os.path.splitext(idc.get_idb_path())
 os.makedirs("database")
-ya.export_from_ida("database/database.yadb")
+ya.export_from_ida(name, "database/database.yadb")
 idc.Exit(0)

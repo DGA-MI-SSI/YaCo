@@ -95,8 +95,3 @@ void StopYatools()
     LOG_Print(YATOOLS_GetLogger(YATOOLS_Get()), "yaco", static_cast<LOG_ELevel>(LOG_LEVEL_DEBUG), "~Yatools\n");
     YATOOLS_Exit(YATOOLS_Get());
 }
-
-void yaco_log(int level, const char* msg)
-{
-    LOG_Print(YATOOLS_GetLogger(YATOOLS_Get()), "yaco", static_cast<LOG_ELevel>(level), "%s", msg);
-}
