@@ -50,7 +50,7 @@ namespace
         return fs::path(get_path(PATH_TYPE_IDB));
     }
 
-    void remove_file_extention(fs::path& file_path)
+    void remove_file_extension(fs::path& file_path)
     {
         std::string filename = file_path.filename().string();
         const std::string extension = file_path.extension().string();
@@ -262,7 +262,7 @@ void YaCo::discard_and_pull_idb()
 std::shared_ptr<IYaCo> MakeYaCo()
 {
     auto idb_path = get_current_idb_path();
-    remove_file_extention(idb_path);
+    remove_file_extension(idb_path);
     StartYatools(idb_path.generic_string().data());
     return std::make_shared<YaCo>();
 }
