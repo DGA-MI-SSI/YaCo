@@ -193,6 +193,7 @@ YaCo::~YaCo()
     hooks_.reset();
     events_.reset();
     repo_.reset();
+    IDA_LOG_INFO("exit");
     StopYatools();
 }
 

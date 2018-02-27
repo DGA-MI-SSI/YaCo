@@ -15,15 +15,12 @@
 
 %include "std_vector.i"
 %include "stl.i"
-%include <stdint.i>
-%include <std_shared_ptr.i>
+%include "stdint.i"
 
 %{
 #include "YaSwig.hpp"
 #include "YaEnums.hpp"
 %}
-
-%shared_ptr(IYaCo)
 
 %exception
 {
@@ -86,16 +83,11 @@
 
 %typemap(out) ea_t
 {
-#ifdef __EA64__
     $result = PyLong_FromUnsignedLongLong($1);
     Py_XINCREF($result);
-#else
-    $result = PyLong_FromUnsignedLong($1);
-    Py_XINCREF($result);
-#endif
 }
 
-%typemap(out)  std::vector< ea_t,std::allocator< ea_t > >
+%typemap(out) std::vector<ea_t, std::allocator<ea_t>>
 {
     $result = PyList_New(0);
     for(const auto element : $1)

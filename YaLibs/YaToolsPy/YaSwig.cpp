@@ -24,9 +24,9 @@
 
 namespace yaswig
 {
-    std::shared_ptr<IYaCo> make_yaco()
+    Private make_yaco()
     {
-        return ::MakeYaCo();
+        return {::MakeYaCo()};
     }
 
     void export_from_ida(const std::string& idb_wo_ext, const std::string& dst)

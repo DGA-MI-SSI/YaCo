@@ -86,7 +86,6 @@ WARNING : YaCo is disabled !
         start()
 
     def term(self, *args, **kwargs):
-        print("yaco: exit")
         close()
 
 

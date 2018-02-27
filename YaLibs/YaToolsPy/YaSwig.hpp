@@ -25,7 +25,14 @@ struct IYaCo;
 
 namespace yaswig
 {
-    std::shared_ptr<IYaCo> make_yaco();
+    // swig need to see object definitions  in order to properly delete them
+    // if we return shared_ptr<IYaCo> directly, swig *must* see IYaCo definition
+    // use a trampoline struc instead and keep IYaCo out of swig tentacles
+    struct Private
+    {
+        std::shared_ptr<IYaCo> yaco;
+    };
+    Private make_yaco();
 
     void export_from_ida(const std::string& idb_wo_ext, const std::string& dst);
     void import_to_ida  (const std::string& idb_wo_ext, const std::string& src);
