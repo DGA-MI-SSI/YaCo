@@ -193,15 +193,16 @@ YaCo::~YaCo()
 void YaCo::initial_load()
 {
     const auto time_start = std::chrono::system_clock::now();
-    IDA_LOG_INFO("Loading...");
+    LOG(DEBUG, "Loading...");
 
     const auto mem = MakeMemoryModel();
     MakeXmlAllModel(".")->accept(*mem);
     MakeIdaSink()->update(*mem);
 
     const auto time_end = std::chrono::system_clock::now();
-    const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(time_end - time_start);
-    IDA_LOG_INFO("Cache loaded in %d seconds", static_cast<int>(elapsed.count()));
+    const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(time_end - time_start).count();
+    if(elapsed)
+        IDA_LOG_INFO("cache: imported in %d seconds", static_cast<int>(elapsed));
 }
 
 void YaCo::toggle_auto_rebase_push()

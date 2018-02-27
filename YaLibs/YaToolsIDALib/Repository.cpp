@@ -295,7 +295,7 @@ Repository::Repository(const std::string& path)
 
     if (repo_already_exists)
     {
-        IDA_LOG_INFO("Repo opened");
+        LOG(DEBUG, "Repo opened");
         return;
     }
     IDA_LOG_INFO("Repo created");
@@ -319,7 +319,7 @@ void Repository::add_comment(const std::string& msg)
 
 void Repository::check_valid_cache_startup()
 {
-    IDA_LOG_INFO("Validating cache...");
+    LOG(DEBUG, "Validating cache...");
 
     if (!remote_exist("origin"))
     {
@@ -345,7 +345,7 @@ void Repository::check_valid_cache_startup()
 
     if (std::regex_match(idb_prefix, std::regex(".*_local$")))
     {
-        IDA_LOG_INFO("Cache validated");
+        LOG(DEBUG, "Cache validated");
         return;
     }
 
@@ -387,7 +387,7 @@ std::string Repository::update_cache()
         return commit;
     }
 
-    IDA_LOG_INFO("Updating cache...");
+    LOG(DEBUG, "Updating cache...");
     // get master commit
     commit = get_commit("master");
     if (commit.empty())
@@ -402,7 +402,7 @@ std::string Repository::update_cache()
     LOG(DEBUG, "Fetched origin/master: %s", get_commit("origin/master").c_str());
 
     // rebase in master
-    IDA_LOG_INFO("Rebasing master on origin/master...");
+    LOG(DEBUG, "Rebasing master on origin/master...");
     if (!rebase("origin/master", "master"))
     {
         IDA_LOG_INFO("Unable to update cache");
@@ -411,23 +411,17 @@ std::string Repository::update_cache()
         return commit;
     }
 
-    // get modified files from origin
-    const auto created = repo_.get_new_objects(commit);
-    const auto updated = repo_.get_modified_objects(commit);
-    const auto deleted = repo_.get_deleted_objects(commit);
-
-    IDA_LOG_INFO("%zd updated %zd created %zd deleted", updated.size(), created.size(), deleted.size());
-    IDA_LOG_INFO("Master rebased");
+    LOG(DEBUG, "Master rebased");
 
     // push to origin
     for (int nb_try = 0; nb_try < GIT_PUSH_RETRIES; ++nb_try)
     {
-        IDA_LOG_INFO("Pushing master to origin...");
+        LOG(DEBUG, "Pushing master to origin...");
         if (!push("master", "master"))
             continue;
 
-        IDA_LOG_INFO("Master pushed to origin");
-        IDA_LOG_INFO("Cache updated");
+        LOG(DEBUG, "Master pushed to origin");
+        LOG(DEBUG, "Cache updated");
         return commit;
     }
 
@@ -441,7 +435,7 @@ std::string Repository::update_cache()
 
 bool Repository::commit_cache()
 {
-    IDA_LOG_INFO("Committing changes...");
+    LOG(DEBUG, "Committing changes...");
 
     const std::set<std::string> untracked_files = repo_.get_untracked_objects_in_path("cache/");
     const std::set<std::string> modified_files = repo_.get_modified_objects_in_path("cache/");
@@ -449,7 +443,7 @@ bool Repository::commit_cache()
 
     if (untracked_files.empty() && modified_files.empty() && deleted_files.empty())
     {
-        IDA_LOG_INFO("No changes to commit");
+        LOG(DEBUG, "No changes to commit");
         return true;
     }
 
@@ -462,7 +456,7 @@ bool Repository::commit_cache()
     for(const auto& f : deleted_files)
         if(!remove_file_for_index(f))
             IDA_LOG_ERROR("unable to remove %s for index", f.c_str());
-    IDA_LOG_INFO("%zd modified %zd added %zd deleted", modified_files.size(), untracked_files.size(), deleted_files.size());
+    IDA_LOG_INFO("commit: %zd added %zd updated %zd deleted", untracked_files.size(), modified_files.size(), deleted_files.size());
 
     // sort & dedup
     std::sort(comments_.begin(), comments_.end());
@@ -490,7 +484,7 @@ bool Repository::commit_cache()
         return false;
     }
 
-    IDA_LOG_INFO("Changes committed");
+    LOG(DEBUG, "Changes committed");
     return true;
 }
 

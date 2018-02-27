@@ -568,7 +568,7 @@ namespace
 
     void save(Events& ev)
     {
-        IDA_LOG_INFO("Saving cache...");
+        LOG(DEBUG, "Saving cache...");
         const auto time_start = std::chrono::system_clock::now();
 
         const auto db = MakeMemoryModel();
@@ -583,8 +583,9 @@ namespace
         db->accept(*MakeXmlVisitor(get_cache_folder_path()));
 
         const auto time_end = std::chrono::system_clock::now();
-        const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(time_end - time_start);
-        IDA_LOG_INFO("Cache saved in %d seconds", static_cast<int>(elapsed.count()));
+        const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(time_end - time_start).count();
+        if(elapsed)
+            IDA_LOG_INFO("cache: exported in %d seconds", static_cast<int>(elapsed));
     }
 }
 
@@ -736,6 +737,8 @@ namespace
         });
         deleted->visit_end();
         updated->visit_end();
+        if(updated->num_objects() || deleted->num_objects())
+            IDA_LOG_INFO("rebase: %zd updated %zd deleted", updated->num_objects(), deleted->num_objects());
 
         // apply changes on ida
         sink.remove(*deleted);
@@ -749,7 +752,6 @@ void Events::update()
     update_from_cache(*MakeIdaSink(), repo_);
 
     // Let IDA apply modifications
-    IDA_LOG_INFO("Running IDA auto-analysis...");
     const auto time_start = std::chrono::system_clock::now();
     const auto prev = inf.is_auto_enabled();
     inf.set_auto_enabled(true);
@@ -757,6 +759,7 @@ void Events::update()
     inf.set_auto_enabled(prev);
     refresh_idaview_anyway();
     const auto time_end = std::chrono::system_clock::now();
-    const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(time_end - time_start);
-    IDA_LOG_INFO("Auto-analysis done in %d seconds", static_cast<int>(elapsed.count()));
+    const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(time_end - time_start).count();
+    if(elapsed)
+        IDA_LOG_INFO("ida: analyzed in %d seconds", static_cast<int>(elapsed));
 }
