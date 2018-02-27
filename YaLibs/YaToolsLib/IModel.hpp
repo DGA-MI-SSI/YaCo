@@ -25,7 +25,7 @@
 #ifndef SWIG
 struct IObjects
 {
-    virtual ~IObjects() {}
+    virtual ~IObjects() = default;
 
     typedef std::function<ContinueWalking_e(const HVersion&)> OnVersionFn;
     typedef std::function<ContinueWalking_e(offset_t, operand_t, const HObject&)> OnXrefFromFn;
@@ -48,7 +48,7 @@ struct XrefAttributes;
 
 struct IVersions
 {
-    virtual ~IVersions() {}
+    virtual ~IVersions() = default;
 
     typedef std::function<ContinueWalking_e(const HSignature&)> OnSignatureFn;
     typedef std::function<ContinueWalking_e(offset_t, operand_t, const HObject&)> OnXrefFromFn;
@@ -90,7 +90,7 @@ struct IVersions
 
 struct ISignatures
 {
-    virtual ~ISignatures() {}
+    virtual ~ISignatures() = default;
 
     virtual Signature get(HSignature_id_t id) const = 0;
 };
@@ -99,7 +99,7 @@ struct ISignatures
 struct IModel
     : public IModelAccept
 {
-    virtual ~IModel() {}
+    ~IModel() override = default;
 
     // IModelAccept methods
     virtual void                accept(IModelVisitor& visitor) = 0;

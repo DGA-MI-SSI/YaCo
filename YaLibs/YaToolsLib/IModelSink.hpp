@@ -21,7 +21,7 @@ struct IModel;
 
 struct IModelSink
 {
-    virtual ~IModelSink() {}
+    virtual ~IModelSink() = default;
 
     virtual void remove(const IModel& model) = 0;
     virtual void update(const IModel& model) = 0;

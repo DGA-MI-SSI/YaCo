@@ -24,7 +24,7 @@ struct HVersion;
 
 struct IPluginModel
 {
-    virtual ~IPluginModel() {}
+    virtual ~IPluginModel() = default;
 
     virtual void accept_block   (IModelVisitor& v, ea_t ea) = 0;
     virtual void accept_function(IModelVisitor& v, ea_t ea) = 0;
@@ -34,7 +34,7 @@ std::shared_ptr<IPluginModel> MakeArmPluginModel();
 
 struct IPluginVisitor
 {
-    virtual ~IPluginVisitor() {}
+    virtual ~IPluginVisitor() = default;
 
     virtual void make_basic_block_enter (const HVersion& version, ea_t ea) = 0;
     virtual void make_basic_block_exit  (const HVersion& version, ea_t ea) = 0;

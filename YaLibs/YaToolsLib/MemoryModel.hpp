@@ -26,7 +26,7 @@ struct IModelAndVisitor
     : public IModel
     , public IModelVisitor
 {
-    virtual ~IModelAndVisitor() {}
+    ~IModelAndVisitor() override = default;
 };
 
 std::shared_ptr<IModelAndVisitor> MakeMemoryModel();

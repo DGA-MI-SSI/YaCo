@@ -30,7 +30,7 @@ struct ExportedBuffer
 struct IFlatBufferVisitor
     : public IModelVisitor
 {
-    ~IFlatBufferVisitor() override {}
+    ~IFlatBufferVisitor() override = default;
 
     virtual ExportedBuffer GetBuffer() const = 0;
 };
