@@ -29,6 +29,16 @@ namespace yaswig
         return {::MakeYaCo()};
     }
 
+    void Private::sync_and_push_idb()
+    {
+        yaco->sync_and_push_idb(IDA_NOT_INTERACTIVE);
+    }
+
+    void Private::discard_and_pull_idb()
+    {
+        yaco->discard_and_pull_idb(IDA_NOT_INTERACTIVE);
+    }
+
     void export_from_ida(const std::string& idb_wo_ext, const std::string& dst)
     {
         StartYatools(idb_wo_ext.data());

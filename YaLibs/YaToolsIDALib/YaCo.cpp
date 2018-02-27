@@ -94,12 +94,14 @@ namespace
          YaCo();
         ~YaCo();
 
+        // IYaCo methods
+        void sync_and_push_idb(IdaMode mode) override;
+        void discard_and_pull_idb(IdaMode mode) override;
+
         // internal
         void export_database();
         void initial_load();
         void toggle_auto_rebase_push();
-        void sync_and_push_idb();
-        void discard_and_pull_idb();
 
         // Variables
         std::shared_ptr<IRepository> repo_;
@@ -108,15 +110,8 @@ namespace
 
         std::vector<action_desc_t>   action_descs_;
     };
-
-    #define YACO_EXT_FUNC(name) void CONCAT(ext_, name)(YaCo* yaco) { yaco->name(); }
-    YACO_EXT_FUNC(toggle_auto_rebase_push);
-    YACO_EXT_FUNC(sync_and_push_idb);
-    YACO_EXT_FUNC(discard_and_pull_idb);
-    YACO_EXT_FUNC(export_database);
 }
 
-#define YACO_ACTION_DESC(name, label, handler) ACTION_DESC_LITERAL_OWNER(name, label, handler, nullptr, nullptr, nullptr, -1)
 
 YaCo::YaCo()
     : repo_(MakeRepository("."))
@@ -130,12 +125,13 @@ YaCo::YaCo()
     // hooks not hooked yet
     initial_load();
     auto_wait();
-//    inf.set_auto_enabled(false);
 
-    action_descs_.push_back(YACO_ACTION_DESC("yaco_toggle_rebase_push",     "YaCo - Toggle YaCo auto rebase/push",   new_handler([&]{ ext_toggle_auto_rebase_push(this); })));
-    action_descs_.push_back(YACO_ACTION_DESC("yaco_sync_and_push_idb",      "YaCo - Resync idb & force push",        new_handler([&]{ ext_sync_and_push_idb(this); })));
-    action_descs_.push_back(YACO_ACTION_DESC("yaco_discard_and_pull_idb",   "YaCo - Discard idb & force pull",       new_handler([&]{ ext_discard_and_pull_idb(this); })));
-    action_descs_.push_back(YACO_ACTION_DESC("yaco_export_database",        "YaCo - Export database",                new_handler([&]{ ext_export_database(this); })));
+    #define YACO_ACTION_DESC(name, label, handler) ACTION_DESC_LITERAL_OWNER(name, label, handler, nullptr, nullptr, nullptr, -1)
+    action_descs_.push_back(YACO_ACTION_DESC("yaco_toggle_rebase_push",     "YaCo - Toggle YaCo auto rebase/push",   new_handler([&]{ toggle_auto_rebase_push(); })));
+    action_descs_.push_back(YACO_ACTION_DESC("yaco_sync_and_push_idb",      "YaCo - Resync idb & force push",        new_handler([&]{ sync_and_push_idb(IDA_INTERACTIVE); })));
+    action_descs_.push_back(YACO_ACTION_DESC("yaco_discard_and_pull_idb",   "YaCo - Discard idb & force pull",       new_handler([&]{ discard_and_pull_idb(IDA_INTERACTIVE); })));
+    action_descs_.push_back(YACO_ACTION_DESC("yaco_export_database",        "YaCo - Export database",                new_handler([&]{ export_database(); })));
+    #undef YACO_ACTION_DESC
 
     for (const action_desc_t &action_desc : action_descs_)
     {
@@ -213,10 +209,10 @@ void YaCo::toggle_auto_rebase_push()
     repo_->toggle_repo_auto_sync();
 }
 
-void YaCo::sync_and_push_idb()
+void YaCo::sync_and_push_idb(IdaMode mode)
 {
     const int answer = ask_buttons(
-        "Yes", "No", "", ASKBTN_NO,
+        "Yes", "No", "", mode == IDA_INTERACTIVE ? ASKBTN_NO : ASKBTN_YES,
         "TITLE YaCo Force Push\n"
         "ICON QUESTION\n"
         "AUTOHIDE SESSION\n"
@@ -234,10 +230,10 @@ void YaCo::sync_and_push_idb()
     qexit(0);
 }
 
-void YaCo::discard_and_pull_idb()
+void YaCo::discard_and_pull_idb(IdaMode mode)
 {
     const int answer = ask_yn(
-        ASKBTN_NO,
+        mode == IDA_INTERACTIVE ? ASKBTN_NO : ASKBTN_YES,
         "All your local changes will be lost!\n"
         "Do you really want to proceed ?"
     );

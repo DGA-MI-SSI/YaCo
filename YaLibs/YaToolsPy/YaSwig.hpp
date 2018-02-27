@@ -31,6 +31,9 @@ namespace yaswig
     struct Private
     {
         std::shared_ptr<IYaCo> yaco;
+
+        void sync_and_push_idb();
+        void discard_and_pull_idb();
     };
     Private make_yaco();
 

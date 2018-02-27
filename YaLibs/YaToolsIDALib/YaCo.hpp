@@ -19,9 +19,18 @@
 
 #include <memory>
 
+enum IdaMode
+{
+    IDA_INTERACTIVE,
+    IDA_NOT_INTERACTIVE,
+};
+
 struct IYaCo
 {
     virtual ~IYaCo() = default;
+
+    virtual void sync_and_push_idb(IdaMode mode) = 0;
+    virtual void discard_and_pull_idb(IdaMode mode) = 0;
 };
 
 std::shared_ptr<IYaCo> MakeYaCo();
