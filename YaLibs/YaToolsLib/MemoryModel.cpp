@@ -439,15 +439,16 @@ struct Model
     void    walk_versions_without_collision (const OnSigAndVersionFn& fnWalk) const override;
     void    walk_matching_versions          (const HObject& object, size_t min_size, const OnVersionPairFn& fnWalk) const override;
 
-    ViewObjects                 view_objects_;
-    ViewVersions                view_versions_;
-    ViewSignatures              view_signatures_;
-    std::unique_ptr<Current>    current_;
-    std::vector<StdObject>      objects_;
-    std::vector<StdVersion>     versions_;
-    std::vector<StdSignature>   signatures_;
-    std::vector<StdObject>      deleted_;
-    ModelIndex                  index_;
+    ViewObjects                     view_objects_;
+    ViewVersions                    view_versions_;
+    ViewSignatures                  view_signatures_;
+    std::unique_ptr<Current>        current_;
+    std::vector<StdObject>          objects_;
+    std::vector<StdVersion>         versions_;
+    std::vector<StdSignature>       signatures_;
+    std::vector<StdObject>          deleted_;
+    std::vector<const StdObject*>   ordered_;
+    ModelIndex                      index_;
 };
 }
 
@@ -630,6 +631,15 @@ void Model::visit_end()
 {
     finish_index(*this);
     current_.reset();
+
+    // sort objects by type
+    ordered_.reserve(objects_.size());
+    for(const auto& it : objects_)
+        ordered_.emplace_back(&it);
+    std::sort(ordered_.begin(), ordered_.end(), [](const auto& a, const auto& b)
+    {
+        return std::make_pair(indexed_types[a->type], a->id) < std::make_pair(indexed_types[b->type], b->id);
+    });
 }
 
 void Model::visit_start_reference_object(YaToolObjectType_e type)
@@ -813,21 +823,21 @@ void Model::visit_flags(flags_t flags)
 void Model::accept(IModelVisitor& visitor)
 {
     visitor.visit_start();
-    for(const auto& object : objects_)
-        accept_object(*this, object, visitor);
     for(const auto it : deleted_)
     {
         visitor.visit_start_deleted_object(it.type);
         visitor.visit_id(it.id);
         visitor.visit_end_deleted_object();
     }
+    for(const auto& object : objects_)
+        accept_object(*this, object, visitor);
     visitor.visit_end();
 }
 
 void Model::walk_objects(const OnObjectAndIdFn& fnWalk) const
 {
-    for(const auto& it : objects_)
-        if(fnWalk(it.id, {&view_objects_, it.idx}) != WALK_CONTINUE)
+    for(const auto& it : ordered_)
+        if(fnWalk(it->id, {&view_objects_, it->idx}) != WALK_CONTINUE)
             return;
 }
 

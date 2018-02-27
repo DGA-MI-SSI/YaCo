@@ -618,32 +618,25 @@ namespace
 {
     struct DepCtx
     {
-        DepCtx(const IModel& model)
+        DepCtx(const IModel& model, IModelVisitor& visitor)
             : model(model)
-            , cache_prefix(fs::path(get_cache_folder_path()).filename())
-            , xml_suffix(".xml")
+            , visitor(visitor)
         {
         }
 
         const IModel&                       model;
-        const fs::path                      cache_prefix;
-        const std::string                   xml_suffix;
-        std::vector<std::string>            files;
+        IModelVisitor&                      visitor;
         std::unordered_set<YaToolObjectId>  seen;
     };
 
-    // will add id to file list if not already seen
-    bool try_add_id(DepCtx& ctx, YaToolObjectType_e type, YaToolObjectId id)
+    // will add id to model on first insertion
+    bool try_add_id(DepCtx& ctx, YaToolObjectId id, const HObject& hobj)
     {
         // remember which ids have been seen already
         const auto inserted = ctx.seen.emplace(id).second;
-        if(!inserted)
-            return false;
-
-        char hexname[17];
-        to_hex<NullTerminate>(hexname, id);
-        ctx.files.push_back((ctx.cache_prefix / get_object_type_string(type) / (hexname + ctx.xml_suffix)).generic_string());
-        return true;
+        if(inserted)
+            hobj.accept(ctx.visitor);
+        return inserted;
     }
 
     enum DepsMode
@@ -666,8 +659,7 @@ namespace
         if(!hobj.is_valid())
             return;
 
-        // add this id to file list
-        const auto ok = try_add_id(ctx, hobj.type(), id);
+        const auto ok = try_add_id(ctx, id, hobj);
         if(!ok)
             return;
 
@@ -687,9 +679,9 @@ namespace
         });
     }
 
-    void add_missing_parents_from_deletions(DepCtx& deps, const std::unordered_set<YaToolObjectId> deleted)
+    void add_missing_parents_from_deletions(DepCtx& deps, const IModel& deleted)
     {
-        if(deleted.empty())
+        if(!deleted.num_objects())
             return;
 
         deps.model.walk_objects([&](YaToolObjectId id, const HObject& hobj)
@@ -700,7 +692,7 @@ namespace
             {
                 hver.walk_xrefs([&](offset_t, operand_t, auto xref_id, auto)
                 {
-                    if(deleted.count(xref_id))
+                    if(deleted.has_object(xref_id))
                         add_id_and_dependencies(deps, id, USE_DEPENDENCIES);
                     return WALK_CONTINUE;
                 });
@@ -710,85 +702,62 @@ namespace
         });
     }
 
-    void load_xml_files_to(IModelSink& sink, const IRepository& repo, const State& state)
+    std::shared_ptr<IModel> get_all_updates(const IModel& updated, const IModel& deleted)
     {
-        const auto deleted = [&]
+        // two things we need to watch for:
+        // * applying a struc in a basic block, make sure the struc is reloaded
+        // * deleting a struc member, make sure parent struc is reloaded
+
+        // load all xml files into a model we can query
+        const auto full = MakeMemoryModel();
+        MakeXmlAllModel(".")->accept(*full);
+
+        // prepare final updated model
+        const auto all_updates = MakeMemoryModel();
+        DepCtx deps(*full, *all_updates);
+        all_updates->visit_start();
+
+        // add deleted parents
+        add_missing_parents_from_deletions(deps, deleted);
+
+        // load all modified objects
+        updated.walk_objects([&](auto id, const HObject& /*hobj*/)
         {
-            const auto db = MakeMemoryModel();
+            // add this id & its dependencies
+            add_id_and_dependencies(deps, id, USE_DEPENDENCIES);
+            return WALK_CONTINUE;
+        });
 
-            db->visit_start();
-            const auto on_blob = [&](const char* /*path*/, bool added, const void* ptr, size_t size)
-            {
-                if(!added)
-                    MakeXmlMemoryModel(ptr, size)->accept(*db);
-                return 0;
-            };
-            repo.diff_index(state.commit, on_blob);
-            db->visit_end();
+        all_updates->visit_end();
+        return all_updates;
+    }
 
-            sink.remove(*db);
-
-            std::unordered_set<YaToolObjectId> ids;
-            db->walk_objects([&](YaToolObjectId id, const HObject&)
-            {
-                ids.emplace(id);
-                return WALK_CONTINUE;
-            });
-            return ids;
-        }();
-
-        // state.updated contain only git modified files
-        // i.e: if you apply a stack member on a basic block
-        //      and the stack member is already in xml
-        //      modified only contains one file, the basic block with one xref added
-        // so we need to add all dependencies from this object
-        // we do it by loading the full xml model
-        // and add all parents recursively from all modified objects
-        const auto files = [&]
+    void update_from_cache(IModelSink& sink, IRepository& repo)
+    {
+        // load updated & deleted models
+        const auto commit = repo.update_cache();
+        const auto updated = MakeMemoryModel();
+        const auto deleted = MakeMemoryModel();
+        updated->visit_start();
+        deleted->visit_start();
+        repo.diff_index(commit, [&](const char* /*path*/, bool added, const void* ptr, size_t size)
         {
-            // load all xml files into a new model which we will query
-            const auto full = MakeMemoryModel();
-            MakeXmlAllModel(".")->accept(*full);
+            MakeXmlMemoryModel(ptr, size)->accept(added ? *updated : *deleted);
+            return 0;
+        });
+        deleted->visit_end();
+        updated->visit_end();
 
-            DepCtx deps(*full);
-
-            // as we recreate strucs, stacks & enums
-            // if one member is deleted, we must reapply parent
-            add_missing_parents_from_deletions(deps, deleted);
-
-            // load all modified objects
-            const auto diff = MakeMemoryModel();
-            MakeXmlFilesModel(state.updated)->accept(*diff);
-
-            diff->walk_objects([&](auto id, const HObject& /*hobj*/)
-            {
-                // add this id & its dependencies
-                add_id_and_dependencies(deps, id, USE_DEPENDENCIES);
-                return WALK_CONTINUE;
-            });
-            return deps.files;
-        }();
-
-        const auto mem = MakeMemoryModel();
-        MakeXmlFilesModel(files)->accept(*mem);
-        sink.update(*mem);
+        // apply changes on ida
+        sink.remove(*deleted);
+        sink.update(*get_all_updates(*updated, *deleted));
     }
 }
 
 void Events::update()
 {
     // update cache and export modifications to IDA
-    {
-        auto state = repo_.update_cache();
-        const auto cache = fs::path(get_cache_folder_path()).filename();
-        state.updated.erase(std::remove_if(state.updated.begin(), state.updated.end(), [&](const auto& item)
-        {
-            const auto p = fs::path(item);
-            const auto it = p.begin();
-            return it == p.end() || *it != cache;
-        }), state.updated.end());
-        load_xml_files_to(*MakeIdaSink(), repo_, state);
-    }
+    update_from_cache(*MakeIdaSink(), repo_);
 
     // Let IDA apply modifications
     IDA_LOG_INFO("Running IDA auto-analysis...");
