@@ -48,7 +48,7 @@ struct IRepository
     virtual void discard_and_pull_idb() = 0;
 
     typedef std::function<int(const char*, bool, const void*, size_t)> on_blob_fn;
-    virtual void diff_trees(const std::string& from, const std::string& to, const on_blob_fn& on_blob) const = 0;
+    virtual void diff_index(const std::string& from, const on_blob_fn& on_blob) const = 0;
 };
 
 std::shared_ptr<IRepository> MakeRepository(const std::string& path);

@@ -60,7 +60,7 @@ public:
     void add_all();
 
     typedef std::function<int(const char* path, bool added, const void* data, size_t szdata)> on_blob_fn;
-    void diff_trees(const std::string& from, const std::string& to, const on_blob_fn& on_blob) const;
+    void diff_index(const std::string& from, const on_blob_fn& on_blob) const;
 
     //void rebase();
     void rebase(const std::string& upstreal, const std::string& dst, ResolveFileConflictCallback& callback);

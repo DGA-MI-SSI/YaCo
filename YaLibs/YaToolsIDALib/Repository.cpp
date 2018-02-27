@@ -258,7 +258,7 @@ namespace
         void toggle_repo_auto_sync() override;
         void sync_and_push_original_idb() override;
         void discard_and_pull_idb() override;
-        void diff_trees(const std::string& from, const std::string& to, const on_blob_fn& on_blob) const override;
+        void diff_index(const std::string& from, const on_blob_fn& on_blob) const override;
 
         // Retrieve informations with IDA GUI
         void ask_to_checkout_modified_files();
@@ -848,9 +848,9 @@ std::string Repository::get_commit(const std::string& ref)
     return commit;
 }
 
-void Repository::diff_trees(const std::string& from, const std::string& to, const on_blob_fn& on_blob) const
+void Repository::diff_index(const std::string& from, const on_blob_fn& on_blob) const
 {
-    return repo_.diff_trees(from, to, on_blob);
+    return repo_.diff_index(from, on_blob);
 }
 
 std::shared_ptr<IRepository> MakeRepository(const std::string& path)

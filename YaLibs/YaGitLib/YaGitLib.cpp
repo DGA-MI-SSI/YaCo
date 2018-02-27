@@ -1219,18 +1219,14 @@ namespace
     }
 }
 
-void GitRepo::diff_trees(const std::string& from, const std::string& to, const on_blob_fn& on_blob) const
+void GitRepo::diff_index(const std::string& from, const on_blob_fn& on_blob) const
 {
         const auto from_tree = get_tree(repository, from);
         if(!from_tree)
             throw_git_error();
 
-        const auto to_tree = get_tree(repository, to);
-        if(!to_tree)
-            throw_git_error();
-
         git_diff* diff = nullptr;
-        int err = git_diff_tree_to_tree(&diff, repository, &*from_tree, &*to_tree, NULL);
+        int err = git_diff_tree_to_index(&diff, repository, &*from_tree, nullptr, nullptr);
         if(err)
             throw_git_error();
 

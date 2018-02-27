@@ -723,7 +723,7 @@ namespace
                     MakeXmlMemoryModel(ptr, size)->accept(*db);
                 return 0;
             };
-            repo.diff_trees(state.commit, "HEAD", on_blob);
+            repo.diff_index(state.commit, on_blob);
             db->visit_end();
 
             sink.remove(*db);
