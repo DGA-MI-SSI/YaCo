@@ -94,11 +94,8 @@ namespace
          YaCo();
         ~YaCo();
 
-        // IYaCo
-        void export_database() override;
-        void disable() override;
-
         // internal
+        void export_database();
         void initial_load();
         void toggle_auto_rebase_push();
         void sync_and_push_idb();
@@ -195,11 +192,6 @@ YaCo::~YaCo()
     repo_.reset();
     IDA_LOG_INFO("exit");
     StopYatools();
-}
-
-void YaCo::disable()
-{
-    hooks_->unhook();
 }
 
 void YaCo::initial_load()

@@ -22,8 +22,6 @@
 struct IYaCo
 {
     virtual ~IYaCo() = default;
-    virtual void export_database() = 0;
-    virtual void disable() = 0;
 };
 
 std::shared_ptr<IYaCo> MakeYaCo();
