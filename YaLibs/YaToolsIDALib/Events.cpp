@@ -244,16 +244,11 @@ namespace
         return to_hex(ea) + ": ";
     }
 
-    void add_auto_comment(IRepository& repo, ea_t ea, const std::string& msg)
+    void add_auto_comment(IRepository& repo, ea_t ea)
     {
         const auto prefix = make_comment_prefix(ea);
         if(!prefix.empty())
-            repo.add_comment(prefix + msg);
-    }
-
-    void add_auto_comment(IRepository& repo, ea_t ea)
-    {
-        return add_auto_comment(repo, ea, "updated");
+            repo.add_comment(prefix + "updated");
     }
 
     YaToolObjectId get_struc_stack_id(Events& ev, ea_t struc_id, ea_t func_ea)
@@ -266,37 +261,39 @@ namespace
         return hash::hash_struc(ya::to_string_ref(*name));
     }
 
-    bool add_ea(Events& ev, YaToolObjectId id, YaToolObjectType_e type, ea_t ea)
+    void add_ea(Events& ev, YaToolObjectId id, YaToolObjectType_e type, ea_t ea)
     {
-        return ev.eas_.emplace(Ea{id, type, ea}).second;
+        const bool inserted = ev.eas_.emplace(Ea{id, type, ea}).second;
+        if(inserted)
+            add_auto_comment(ev.repo_, ea);
     }
 
-    bool add_ea(Events& ev, ea_t ea)
+    void add_ea(Events& ev, ea_t ea)
     {
         const auto func = get_func(ea);
         if(func)
         {
             // we must be careful to compute func id with func start ea
             // but ea may point to the middle of any basic block
-            const auto a = add_ea(ev, hash::hash_function(func->start_ea), OBJECT_TYPE_FUNCTION, func->start_ea);
-            const auto b = add_ea(ev, hash::hash_ea(ea), OBJECT_TYPE_BASIC_BLOCK, ea);
-            return a || b;
+            add_ea(ev, hash::hash_function(func->start_ea), OBJECT_TYPE_FUNCTION, func->start_ea);
+            add_ea(ev, hash::hash_ea(ea), OBJECT_TYPE_BASIC_BLOCK, ea);
+            return;
         }
 
         const auto flags = get_flags(ea);
         if(is_code(flags))
         {
             ea = get_code_head(ea);
-            return add_ea(ev, hash::hash_ea(ea), OBJECT_TYPE_CODE, ea);
+            add_ea(ev, hash::hash_ea(ea), OBJECT_TYPE_CODE, ea);
+            return;
         }
 
         if(is_data(flags))
         {
             ea = get_item_head(ea);
-            return add_ea(ev, hash::hash_ea(ea), OBJECT_TYPE_DATA, ea);
+            add_ea(ev, hash::hash_ea(ea), OBJECT_TYPE_DATA, ea);
+            return;
         }
-
-        return false;
     }
 
     void update_struc_member(Events& ev, struc_t* struc, const qstring& name, member_t* m)
@@ -332,7 +329,7 @@ namespace
         {
             ::update_enum_member(ev, id, enum_id, cid);
         });
-        add_auto_comment(ev.repo_, enum_id, "updated");
+        add_auto_comment(ev.repo_, enum_id);
     }
 
     ea_t update_struc(Events& ev, tid_t struc_id)
@@ -373,9 +370,7 @@ void Events::touch_enum(enum_t enum_id)
 
 void Events::touch_ea(ea_t ea)
 {
-    const auto ok = add_ea(*this, ea);
-    if(ok)
-        add_auto_comment(repo_, ea);
+    add_ea(*this, ea);
 }
 
 void Events::touch_func(ea_t ea)
@@ -385,9 +380,7 @@ void Events::touch_func(ea_t ea)
         return;
 
     ea = func->start_ea;
-    const auto ok = add_ea(*this, hash::hash_function(ea), OBJECT_TYPE_FUNCTION, ea);
-    if(ok)
-        add_auto_comment(repo_, ea);
+    add_ea(*this, hash::hash_function(ea), OBJECT_TYPE_FUNCTION, ea);
 
     // add stack
     const auto frame = get_frame(ea);
@@ -403,17 +396,13 @@ void Events::touch_func(ea_t ea)
 void Events::touch_code(ea_t ea)
 {
     ea = get_code_head(ea);
-    const auto ok = add_ea(*this, hash::hash_ea(ea), OBJECT_TYPE_CODE, ea);
-    if(ok)
-        add_auto_comment(repo_, ea);
+    add_ea(*this, hash::hash_ea(ea), OBJECT_TYPE_CODE, ea);
 }
 
 void Events::touch_data(ea_t ea)
 {
     ea = get_item_head(ea);
-    const auto ok = add_ea(*this, hash::hash_ea(ea), OBJECT_TYPE_DATA, ea);
-    if(ok)
-        add_auto_comment(repo_, ea);
+    add_ea(*this, hash::hash_ea(ea), OBJECT_TYPE_DATA, ea);
 }
 
 namespace
