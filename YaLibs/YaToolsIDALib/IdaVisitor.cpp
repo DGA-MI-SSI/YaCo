@@ -1159,11 +1159,20 @@ namespace
         });
     }
 
+    void try_make_code(const HVersion& version, ea_t ea)
+    {
+        const auto flags = get_flags(ea);
+        if(is_code(flags))
+            return;
+
+        create_insn(ea);
+        plan_and_wait(ea, static_cast<ea_t>(ea + version.size()));
+    }
+
     void make_code(Visitor& visitor, const HVersion& version, ea_t ea)
     {
         del_func(ea);
-        create_insn(ea);
-        plan_and_wait(ea, static_cast<ea_t>(ea + version.size()));
+        try_make_code(version, ea);
         make_name(visitor, version, ea);
         make_views(version, ea);
     }
@@ -1458,6 +1467,7 @@ namespace
     void make_basic_block(Visitor& visitor, const HVersion& version, ea_t ea)
     {
         Paths paths;
+        try_make_code(version, ea);
         make_name(visitor, version, ea);
         make_views(version, ea);
         version.walk_xrefs([&](offset_t offset, operand_t operand, YaToolObjectId xref_id, const XrefAttributes* attrs)

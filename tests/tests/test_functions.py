@@ -358,3 +358,43 @@ idc.del_items(ea, idc.DELIT_EXPAND, 0x2c)
         a.run(
             self.check_last_ea(),
         )
+
+    def test_data_to_block(self):
+        a, b = self.setup_repos()
+        a.run(
+            self.script("""
+ea = 0x66023DA0
+frame = idaapi.get_frame(ea)
+idaapi.set_member_name(frame, 0x8,  "another_name")
+"""),
+            self.save_last_ea(),
+        )
+        a.check_git(added=["binary", "segment", "segment_chunk", "function", "stackframe"] +
+            ["stackframe_member"] * 18 + ["basic_block"] * 23)
+
+        b.run(
+            self.check_last_ea(),
+            self.script("""
+ea = 0x66024004
+idaapi.create_insn(ea)
+ida_auto.auto_wait()
+"""),
+            self.save_last_ea(),
+        )
+        b.check_git(modified=["function", "basic_block"], added=["basic_block"] * 2)
+
+        a.run(
+            self.check_last_ea(),
+            self.script("""
+ea = 0x66024004
+idc.del_items(ea, idc.DELIT_EXPAND, 0xE)
+ida_auto.auto_wait()
+"""),
+            self.save_last_ea(),
+        )
+        # FIXME data inside functions is a bit glitchy
+        a.check_git(added=["data"] * 2, deleted=["basic_block"] * 2, modified=["basic_block", "function", "segment_chunk"])
+
+        b.run(
+            self.check_last_ea(),
+        )
