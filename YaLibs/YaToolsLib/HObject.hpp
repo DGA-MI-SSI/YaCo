@@ -38,7 +38,6 @@ struct HObject
     HObject_id_t    id_;
 };
 
-#ifndef SWIG
 namespace std
 {
   template<>
@@ -50,4 +49,3 @@ namespace std
       }
   };
 }
-#endif //SWIG

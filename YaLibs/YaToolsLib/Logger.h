@@ -40,8 +40,6 @@ enum LOG_EOutput
     LOG_OUTPUT_LAST,
 };
 
-#ifndef SWIG
-
 struct LOG_Output
 {
     LOG_EOutput eOutput;
@@ -87,4 +85,3 @@ bool    LOG_Print   (LOG_Ctx* pCtx, const char* pModule, LOG_ELevel eLevel, cons
 #define LOG_INFO(   CTX, MOD, FMT, ...) LOG_((CTX), (MOD), INFO,     (FMT), ## __VA_ARGS__)
 #define LOG_DEBUG(  CTX, MOD, FMT, ...) LOG_((CTX), (MOD), DEBUG,    (FMT), ## __VA_ARGS__)
 
-#endif

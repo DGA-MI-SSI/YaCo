@@ -64,7 +64,6 @@ struct HVersion
     bool                is_different_from   (const HVersion& object_version_diff) const;
     bool                match               (const HVersion& version) const;
 
-#ifndef SWIG
     friend bool operator==(const HVersion& t1, const HVersion& t2)
     {
         return t1.id() == t2.id();
@@ -84,13 +83,11 @@ struct HVersion
     {
         return t1.id() > t2.id();
     }
-#endif //SWIG
 
     const IVersions*    model_;
     HVersion_id_t       id_;
 };
 
-#ifndef SWIG
 namespace std
 {
     template<>
@@ -102,4 +99,3 @@ namespace std
         }
     };
 }
-#endif //SWIG

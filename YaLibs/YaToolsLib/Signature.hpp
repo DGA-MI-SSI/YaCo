@@ -41,7 +41,6 @@ inline const_string_ref make_string_ref(const Signature& sign)
     return {sign.buffer, sign.size};
 }
 
-#ifndef SWIG
 inline bool operator==(const Signature& a, const Signature& b)
 {
     return !strcmp(a.buffer, b.buffer);
@@ -63,4 +62,3 @@ namespace std
         }
     };
 }
-#endif //SWIG

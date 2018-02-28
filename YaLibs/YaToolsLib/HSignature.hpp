@@ -27,7 +27,6 @@ struct HSignature
     Signature get() const;
 };
 
-#ifndef SWIG
 inline bool operator==(const HSignature& a, const HSignature& b)
 {
     return a.get() == b.get();
@@ -49,4 +48,3 @@ namespace std
         }
     };
 }
-#endif //SWIG

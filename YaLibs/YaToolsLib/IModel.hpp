@@ -22,7 +22,6 @@
 #include <functional>
 #include <memory>
 
-#ifndef SWIG
 struct IObjects
 {
     virtual ~IObjects() = default;
@@ -94,7 +93,6 @@ struct ISignatures
 
     virtual Signature get(HSignature_id_t id) const = 0;
 };
-#endif
 
 struct IModel
     : public IModelAccept
