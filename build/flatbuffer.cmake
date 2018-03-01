@@ -14,7 +14,7 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # flatbuffer directories
-get_filename_component(fb_dir "${ya_dir}/deps/flatbuffers-1.4.0" REALPATH)
+get_filename_component(fb_dir "${ya_dir}/deps/flatbuffers-1.8.0" REALPATH)
 
 # flatc
 get_files(files "${fb_dir}/src" "${fb_dir}/include" "${fb_dir}/grpc/src/compiler")
