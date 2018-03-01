@@ -15,7 +15,7 @@
 
 # yatools dependencies
 get_filename_component(farm_dir     "${ya_dir}/deps/farmhash-1.1"   REALPATH)
-get_filename_component(git_dir      "${ya_dir}/deps/libgit2-0.26.0" REALPATH)
+get_filename_component(git_dir      "${ya_dir}/deps/libgit2-0.27.0-rc1" REALPATH)
 get_filename_component(gtest_dir    "${ya_dir}/deps/gtest-1.7.0"    REALPATH)
 get_filename_component(ico_dir      "${ya_dir}/deps/libiconv-1.14"  REALPATH)
 get_filename_component(mbed_dir     "${ya_dir}/deps/mbedtls-2.4.2"  REALPATH)
@@ -238,7 +238,14 @@ endfunction()
 # git2
 find_package(Threads)
 get_files(files "${git_dir}/src" "${git_dir}/include" OPTIONS recurse)
-filter_out(files "precompiled[.]c")
+filter_out(files
+    "auth_negotiate[.]c"        # GSSAPI
+    "precompiled[.]c"           # empty precompiled header
+    "stransport[.]c"            # GIT_SECURE_TRANSPORT
+    "w32_crtdbg_stacktrace[.]c" # GIT_MSVC_CRTDBG
+    "w32_stack[.]c"             # GIT_MSVC_CRTDBG
+    "winhttp[.]c"               # GIT_WINHTTP
+)
 if(WIN32)
     filter_out(files
         "${re_sep}unix${re_sep}"
@@ -256,6 +263,7 @@ target_compile_definitions(git2 PRIVATE
     GIT_SSH
     GIT_THREADS
     GIT_USE_ICONV
+    LIBGIT2_NO_FEATURES_H
 )
 setup_git2_mtime(git2)
 target_link_libraries(git2 PUBLIC
