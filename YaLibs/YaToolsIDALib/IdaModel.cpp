@@ -876,8 +876,7 @@ namespace
             return;
 
         start_object(v, OBJECT_TYPE_DATA, id, parent.id, ea);
-        const auto size = get_item_end(ea) - ea;
-        v.visit_size(size);
+        v.visit_size(get_item_end(ea) - ea);
 
         const auto flags = get_flags(ea);
         accept_name(ctx, v, ea, flags, DataNamePolicy);
@@ -1081,19 +1080,6 @@ namespace
         }
     }
 
-    ea_t get_root_item(ea_t ea)
-    {
-        const auto prev = prev_head(ea, 0);
-        if(prev == BADADDR)
-            return ea;
-
-        const auto end = get_item_end(prev);
-        if(ea >= end)
-            return ea;
-
-        return prev;
-    }
-
     template<typename Ctx>
     void accept_from_xrefs(Ctx& ctx, ea_t ea, ea_t root)
     {
@@ -1107,7 +1093,7 @@ namespace
             //const auto dump = ya::dump_flags(xflags);
             if(!is_valid)
                 continue;
-            const auto xref = Xref{ea - root, hash_untyped_ea(get_root_item(xb.to)), DEFAULT_OPERAND, 0};
+            const auto xref = Xref{ea - root, hash_untyped_ea(ya::get_range_item(xb.to).start_ea), DEFAULT_OPERAND, 0};
             ctx.xrefs_.push_back(xref);
         }
     }
@@ -1312,67 +1298,11 @@ namespace
         ctx.refs_.clear();
     }
 
-    bool is_code_end(ea_t ea)
-    {
-        const auto flags = get_flags(ea);
-        if(!is_code(flags))
-            return true;
-        else if(is_data(flags))
-            return true;
-        else if(is_unknown(flags))
-            return true;
-        if(is_func(flags))
-            return true;
-        if(is_code(flags) && get_func(ea))
-            return true;
-        return false;
-    }
-
-    ea_t get_code_end(ea_t start, ea_t end)
-    {
-        auto ea = start;
-        while(ea < end && ea != BADADDR)
-            if(is_code_end(ea))
-                return ea;
-            else
-                ea = get_item_end(ea);
-        return ea;
-    }
-
-    ea_t get_code_start(ea_t start, ea_t ea_min)
-    {
-        auto ea = start;
-        while(ea != BADADDR && ea >= ea_min)
-        {
-            const auto ea_before = get_item_head(ea - 1);
-            if(ea_before == BADADDR)
-                break; // FIXME return ea ?
-            if(is_code_end(ea_before))
-                return ea;
-            ea = ea_before;
-        }
-        // FIXME return ea ?
-        return BADADDR;
-    }
-}
-
-    ea_t get_code_head(ea_t ea)
-    {
-        // ensure ea == instruction start
-        ea = get_item_head(ea);
-        const auto segm = getseg(ea);
-        if(!segm)
-            return BADADDR;
-
-        return get_code_start(ea, segm->start_ea);
-    }
-
-namespace
-{
     template<typename Ctx>
     void accept_code(Ctx& ctx, IModelVisitor& v, const Parent& parent, ea_t ea)
     {
-        ea = get_code_head(ea);
+        const auto item = ya::get_range_code(ea, 0, ~0U);
+        ea = item.start_ea;
         if(ea == BADADDR)
             return;
 
@@ -1381,15 +1311,12 @@ namespace
             return;
 
         start_object(v, OBJECT_TYPE_CODE, id, parent.id, ea);
-        const auto seg = getseg(ea);
-        const auto end = get_code_end(ea, seg ? seg->end_ea : BADADDR);
-        const auto size = end - ea;
-        v.visit_size(size);
+        v.visit_size(item.size());
         const auto flags = get_flags(ea);
         accept_name(ctx, v, ea, flags, BasicBlockNamePolicy);
 
         ya::Deps deps;
-        accept_offsets(ctx, v, &deps, ea, end);
+        accept_offsets(ctx, v, &deps, ea, item.end_ea);
         accept_xrefs(ctx, v);
 
         finish_object(v);
@@ -1505,7 +1432,7 @@ namespace
     {
         const auto flags = get_flags(ea);
         const auto func = get_func(ea);
-        if(func)
+        if(func && is_code(flags))
             accept_function(ctx, v, parent, func, ea);
         else if(is_code(flags))
             accept_code(ctx, v, parent, ea);
@@ -1518,90 +1445,47 @@ std::vector<ea_t> get_all_items(ea_t start, ea_t end)
 {
     std::vector<ea_t> items;
 
-    // first, find all function entry points
+    // add previous overlapped item
     auto ea = start;
-    while(ea != BADADDR && ea < end)
-    {
-        const auto flags = get_flags(ea);
-        if(is_code(flags) || is_func(flags))
-        {
-            const auto func = get_func(ea);
-            if(func)
-            {
-                const auto eaFunc = func->start_ea;
-                if(eaFunc >= start && eaFunc < end)
-                    items.push_back(eaFunc);
-            }
-        }
-        const auto func = get_next_func(ea);
-        ea = func ? func->start_ea : BADADDR;
-    }
+    const auto curr = ya::get_range_item(ea);
+    if(curr.contains(ea))
+        ea = curr.start_ea;
 
-    // try to add previous overlapped item
-    ea = start;
-    const auto previous_item = prev_head(ea, 0);
-    if(previous_item != BADADDR)
+    const auto allowed = range_t{start, end};
+    const auto add_ea = [&](ea_t x)
     {
-        const auto previous_item_size = get_item_end(ea) - ea;
-        if(previous_item_size > 0 && ea < previous_item + previous_item_size)
-            ea = previous_item;
-    }
+        if(allowed.contains(x))
+            items.emplace_back(x);
+    };
 
-    // iterate on every ea
+    // find all interesting items
     while(ea != BADADDR && ea < end)
     {
         const auto flags = get_flags(ea);
         if(is_data(flags))
         {
-            if(ea >= start && ea < end)
-                items.push_back(ea);
+            //if(has_any_name(flags) || has_xref(flags))
+                add_ea(ea);
             ea = next_not_tail(ea);
-            continue;
-        }
-
-        auto size = BADADDR;
-        const auto func = is_func(flags) || is_code(flags) ? get_func(ea) : nullptr;
-        if(func)
-        {
-            const auto chunk = get_fchunk(ea);
-            if(chunk)
-                size = chunk->end_ea - ea;
         }
         else if(is_code(flags))
         {
-            size = get_code_end(ea, end) - ea;
-            const auto chunk_start_ea = get_code_start(ea, start);
-            if(chunk_start_ea != BADADDR && chunk_start_ea >= start && ea < end)
-                items.push_back(ea);
+            const auto func = get_func(ea);
+            if(func)
+                add_ea(func->start_ea);
+            const auto code = ya::get_range_code(ea, start, end);
+            if(code.contains(ea))
+                add_ea(code.start_ea);
+            ea = code.end_ea;
         }
-        else if(has_any_name(flags) && has_xref(flags))
+        else if(has_any_name(flags) || has_xref(flags))
         {
-            if(ea >= start && ea < end)
-                items.push_back(ea);
-        }
-
-        if(size == 0 || size == 1)
-        {
-            if(!flags || has_value(flags))
-                ea = next_not_tail(ea);
-            else
-                ++ea;
-        }
-        else if(size == BADADDR)
-        {
+            add_ea(ea);
             ea = next_not_tail(ea);
         }
         else
         {
-            // TODO: check if we should use next_head or get_item_end
-            // next_head is FAR faster (we skip bytes that belong to no items) but may miss
-            // some elements
-            // end = idaapi.get_item_end(ea)
-            const auto tail_end = next_not_tail(ea);
-            if(ea + size < tail_end)
-                ea = tail_end;
-            else
-                ea += size;
+            ea = next_not_tail(ea);
         }
     }
 

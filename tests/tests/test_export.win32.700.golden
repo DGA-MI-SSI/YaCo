@@ -1,4 +1,4 @@
-objects: 35409
+objects: 35465
 
 bin: 1
 bin_66000000 Qt5Svgd.dll
@@ -16261,7 +16261,7 @@ ref: 0
 
 cod: 0
 
-dat: 7712
+dat: 7768
 dat_66001000
 dat_66003170
 dat_66005321
@@ -16801,19 +16801,31 @@ dat_66014771
 dat_660147a8
 dat_660147c1
 dat_66014be6
+dat_66015566
+dat_66015568 off_66015568
+dat_66015574 byte_66015574
 dat_66015584
 dat_66015666
 dat_660157eb
 dat_66015ac7
 dat_66015b7d
+dat_66015e21
+dat_66015e24 off_66015E24
 dat_660160b7
 dat_66016119
 dat_6601615e
 dat_66016181
 dat_66016332
 dat_660163c5
+dat_66017a2a
+dat_66017a2c off_66017A2C
+dat_66017a7c byte_66017A7C
 dat_66017ab6
 dat_66017b72
+dat_66018f6c off_66018F6C
+dat_66018f8c byte_66018F8C
+dat_66018fa0 off_66018FA0
+dat_66018fc8 byte_66018FC8
 dat_66018fde
 dat_6601901b
 dat_660195b3
@@ -16824,12 +16836,19 @@ dat_660199f4
 dat_66019c6a
 dat_66019d98
 dat_66019ee1
+dat_6601a2dd
+dat_6601a2e0 off_6601A2E0
+dat_6601a2f4 byte_6601A2F4
 dat_6601a344
 dat_6601a414
 dat_6601a625
+dat_6601a854 off_6601A854
 dat_6601a864
 dat_6601a92e
 dat_6601bfce
+dat_6601c8e6
+dat_6601c8e8 off_6601C8E8
+dat_6601c8fc byte_6601C8FC
 dat_6601c909
 dat_6601c9bf
 dat_6601caa5
@@ -16893,9 +16912,20 @@ dat_66022cb7
 dat_66023019
 dat_66023027
 dat_6602319a
+dat_660235e2
+dat_660235e4 off_660235E4
+dat_66023610 byte_66023610
 dat_66023626
+dat_66023ba1
+dat_66023ba4 off_66023BA4
+dat_66023bc8 byte_66023BC8
 dat_66023bdc
+dat_66023d70 off_66023D70
+dat_66023d84 byte_66023D84
 dat_66023d92
+dat_66023fed
+dat_66023ff0 off_66023FF0
+dat_66024004 byte_66024004
 dat_66024012
 dat_66027f98
 dat_66027fa8
@@ -17463,7 +17493,11 @@ dat_66038ab1
 dat_66038ad4
 dat_66038b79
 dat_66038bee
+dat_66038dae
+dat_66038db0 off_66038DB0
 dat_66038e04
+dat_6603901b
+dat_6603901c off_6603901C
 dat_6603904c
 dat_660390df
 dat_66039127
@@ -17603,6 +17637,8 @@ dat_6603cdc9
 dat_6603cded
 dat_6603ce3e
 dat_6603ce6b
+dat_6603d6e7
+dat_6603d6e8 off_6603D6E8
 dat_6603d6fc
 dat_6603d77d
 dat_6603d7a5
@@ -17736,6 +17772,8 @@ dat_66042af8
 dat_66042b1d
 dat_66042b9e
 dat_66042dab
+dat_66042faa
+dat_66042fac off_66042FAC
 dat_66042fcc
 dat_66043023
 dat_6604308f
@@ -17819,6 +17857,8 @@ dat_66045041
 dat_660450d4
 dat_66045157
 dat_66045239
+dat_660456dd
+dat_660456e0 off_660456E0
 dat_66045700
 dat_66045a6d
 dat_66045ad5
@@ -17863,6 +17903,7 @@ dat_660467c1
 dat_660467f8
 dat_66046822
 dat_6604684d
+dat_660469d8 off_660469D8
 dat_66046a0d
 dat_66046a86
 dat_66046c08
@@ -17934,8 +17975,13 @@ dat_66049720
 dat_66049767
 dat_660497f0
 dat_660498a7
+dat_66049d5f
+dat_66049d60 off_66049D60
+dat_66049d78 byte_66049D78
 dat_66049d8a
 dat_6604a13e
+dat_6604a88e
+dat_6604a890 off_6604A890
 dat_6604a8ac
 dat_6604aa79
 dat_6604aab6
@@ -20964,6 +21010,8 @@ dat_6606590c aStringTooLong
 dat_6606591c
 dat_66065920 aInvalidStringP
 dat_6606593c aInvalidNullPoi
+dat_6606596e ?value@?$integral_constant@_N$0A@@std@@2_NB
+dat_6606596f ?value@?$integral_constant@_N$00@std@@2_NB
 dat_66065970
 dat_66065974 ??_7type_info@@6B@
 dat_66065978 GS_ExceptionPointers _EXCEPTION_POINTERS /*%_EXCEPTION_POINTERS#D9443E4AA8E6A18C%*/
@@ -20978,6 +21026,11 @@ dat_66065ad9
 dat_66065adc __pRawDllMain int (__stdcall *const )(void *, unsigned int, void *)
 dat_66065ae0 aFDdVctoolsCrtC_1
 dat_66065b0b
+dat_66065b0c ?ProcessDetach@NativeDll@_CrtImplementationDetails_@@0IB
+dat_66065b10 ?ProcessAttach@NativeDll@_CrtImplementationDetails_@@0IB
+dat_66065b14 ?ThreadAttach@NativeDll@_CrtImplementationDetails_@@0IB
+dat_66065b18 ?ThreadDetach@NativeDll@_CrtImplementationDetails_@@0IB
+dat_66065b1c ?ProcessVerifier@NativeDll@_CrtImplementationDetails_@@0IB
 dat_66065b20 __load_config_used IMAGE_LOAD_CONFIG_DIRECTORY32_2 /*%IMAGE_LOAD_CONFIG_DIRECTORY32_2#8F39F6612E08301F%*/
 dat_66065d90 asc_66065D90
 dat_66065d94  GUID /*%GUID#FF55B3DC43340C92%*/
@@ -23184,7 +23237,10 @@ dat_66071dcc ?staticMetaObject@QGraphicsSvgItem@@2UQMetaObject@@B QMetaObject /*
 dat_66071de4
 dat_66071de8 ?staticMetaObject@QSvgWidget@@2UQMetaObject@@B QMetaObject /*%QMetaObject#01F38107ECBFB345%*/
 dat_66071e04 ___@@_PchSym_@00@UdlipUyfrowUjgFPdlipwriUdUhUjghetUhixUhetUOkxsUwvyftUjgFhetwPkxsOlyq@4EF261C5B7DA3A55 int
+dat_66071e08 _Tuple_alloc std::_Tuple_alloc_t /*%std::_Tuple_alloc_t#BFFCFDD566EA4600%*/
 dat_66071e09 ignore std::_Ignore /*%std::_Ignore#CB331F5DD88BBFF7%*/
+dat_66071e0a allocator_arg std::allocator_arg_t /*%std::allocator_arg_t#D0211977E9A499EF%*/
+dat_66071e0b piecewise_construct std::piecewise_construct_t /*%std::piecewise_construct_t#92DA45593B3272B4%*/
 dat_66071e0c ?_Generic_object@?$_Error_objects@H@std@@2V_Generic_error_category@2@A std::_Generic_error_category /*%std::_Generic_error_category#EF52F8F3A530A6F1%*/
 dat_66071e10 ?_Iostream_object@?$_Error_objects@H@std@@2V_Iostream_error_category@2@A std::_Iostream_error_category /*%std::_Iostream_error_category#56722B82FDEC6061%*/
 dat_66071e14 ?_System_object@?$_Error_objects@H@std@@2V_System_error_category@2@A std::_System_error_category /*%std::_System_error_category#8CCA1F0452BD14F5%*/

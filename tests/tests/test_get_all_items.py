@@ -33,6 +33,10 @@ class Fixture(runtests.Fixture):
     def test_get_all_items(self):
         a, _ = self.setup_repos()
         self.check_range(a, 0x66023FE9, 0x66024012, """
+0x66023fe9: block:9 loc_66023FE9
+0x66023fed: data:0
+0x66023ff0: data:1 off_66023FF0
+0x66024004: data:1 byte_66024004
 """)
         self.check_range(a, 0x66001000, 0x6600100F, """
 0x66001000: data:0
@@ -54,7 +58,10 @@ class Fixture(runtests.Fixture):
 """)
         self.check_range(a,  0x66071e04, 0x66071e0c, """
 0x66071e04: data:0 int ___@@_PchSym_@00@UdlipUyfrowUjgFPdlipwriUdUhUjghetUhixUhetUOkxsUwvyftUjgFhetwPkxsOlyq@4EF261C5B7DA3A55
+0x66071e08: unexplored:0 std::_Tuple_alloc_t _Tuple_alloc
 0x66071e09: unexplored:1 std::_Ignore ignore
+0x66071e0a: unexplored:0 std::allocator_arg_t allocator_arg
+0x66071e0b: unexplored:0 std::piecewise_construct_t piecewise_construct
 """)
 
     @unittest.skip("only use manually")

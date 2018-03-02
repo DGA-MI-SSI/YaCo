@@ -110,7 +110,7 @@ idc.del_items(ea, idc.DELIT_EXPAND, 0x4)
 """),
             self.save_last_ea(),
         )
-        a.check_git(modified=["segment_chunk"], deleted=["data"])
+        a.check_git(modified=["data"])
 
         # touch function
         b.run(
@@ -146,7 +146,7 @@ idc.del_items(ea, idc.DELIT_SIMPLE, 0xD)
 """),
             self.save_last_ea(),
         )
-        b.check_git(deleted=["code"], modified=["segment_chunk"])
+        b.check_git(added=["data"], deleted=["code"])
 
         # set code again
         a.run(
@@ -158,7 +158,7 @@ ida_auto.auto_wait()
 """),
             self.save_last_ea(),
         )
-        a.check_git(added=["code"], modified=["segment_chunk"])
+        a.check_git(added=["code"], deleted=["data"])
 
         # set function again
         b.run(

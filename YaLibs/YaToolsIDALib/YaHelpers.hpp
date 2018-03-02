@@ -19,6 +19,7 @@
 #include "BinHex.hpp"
 
 #include <vector>
+#include <algorithm>
 
 namespace ya
 {
@@ -184,5 +185,42 @@ namespace ya
         char buf[sizeof x * 2];
         const auto str = to_hex<flags>(buf, x);
         dst.append(str.value, str.size);
+    }
+
+    inline range_t get_range_item(ea_t ea)
+    {
+        return range_t{get_item_head(ea), get_item_end(ea)};
+    }
+
+    inline range_t get_range_code(ea_t ea, ea_t min, ea_t max)
+    {
+        const auto seg = getseg(ea);
+        if(!seg)
+            return range_t();
+
+        min = std::max(min, seg->start_ea);
+        max = std::min(max, seg->end_ea);
+
+        const auto item = get_range_item(ea);
+        auto start = item.start_ea;
+        const auto func = get_func(item.start_ea);
+        while(true)
+        {
+            const auto prev = get_range_item(start - 1);
+            if(!is_code(get_flags(prev.start_ea)) || get_func(prev.start_ea) != func)
+                break;
+            if(prev.start_ea < min)
+                break;
+            start = prev.start_ea;
+        }
+        auto end = item.end_ea;
+        while(end < max)
+        {
+            const auto next = get_range_item(end);
+            if(!is_code(get_flags(next.start_ea)) || get_func(next.start_ea) != func)
+                break;
+            end = next.end_ea;
+        }
+        return range_t{start, end};
     }
 }

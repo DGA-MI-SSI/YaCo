@@ -270,24 +270,18 @@ namespace
 
     void add_ea(Events& ev, ea_t ea)
     {
-        const auto func = get_func(ea);
-        if(func)
-        {
-            // we must be careful to compute func id with func start ea
-            // but ea may point to the middle of any basic block
-            add_ea(ev, hash::hash_function(func->start_ea), OBJECT_TYPE_FUNCTION, func->start_ea);
-            add_ea(ev, hash::hash_ea(ea), OBJECT_TYPE_BASIC_BLOCK, ea);
-            return;
-        }
-
         const auto flags = get_flags(ea);
         if(is_code(flags))
         {
-            ea = get_code_head(ea);
-            add_ea(ev, hash::hash_ea(ea), OBJECT_TYPE_CODE, ea);
+            // we must be careful to compute func id with func start ea
+            // but ea may point to the middle of any basic block
+            const auto func = get_func(ea);
+            if(func)
+                add_ea(ev, hash::hash_function(func->start_ea), OBJECT_TYPE_FUNCTION, func->start_ea);
+            ea = ya::get_range_item(ea).start_ea;
+            add_ea(ev, hash::hash_ea(ea), func ? OBJECT_TYPE_BASIC_BLOCK : OBJECT_TYPE_CODE, ea);
             return;
         }
-
         if(is_data(flags))
         {
             ea = get_item_head(ea);
@@ -395,7 +389,7 @@ void Events::touch_func(ea_t ea)
 
 void Events::touch_code(ea_t ea)
 {
-    ea = get_code_head(ea);
+    ea = ya::get_range_code(ea, 0, ~0U).start_ea;
     add_ea(*this, hash::hash_ea(ea), OBJECT_TYPE_CODE, ea);
 }
 

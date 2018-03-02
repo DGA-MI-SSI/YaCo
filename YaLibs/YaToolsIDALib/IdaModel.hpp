@@ -24,8 +24,8 @@
 class IModelAccept;
 
 std::shared_ptr<IModelAccept> MakeIdaModel();
+
 std::vector<ea_t> get_all_items(ea_t start, ea_t end);
-ea_t get_code_head(ea_t ea);
 
 struct IModelIncremental
 {
