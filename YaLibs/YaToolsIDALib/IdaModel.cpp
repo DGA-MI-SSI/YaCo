@@ -956,8 +956,10 @@ namespace
 
     YaToolObjectId hash_untyped_ea(ea_t ea)
     {
+        const auto flags = get_flags(ea);
         const auto func = get_func(ea);
-        if(func)
+        // data in function must *not* use hash_function
+        if(func && is_code(flags))
             return hash::hash_function(ea);
         return hash::hash_ea(ea);
     }
@@ -1358,21 +1360,19 @@ namespace
     template<typename Ctx>
     void accept_function_only(Ctx& ctx, IModelVisitor& v, const Parent& parent, func_t* func, YaToolObjectId id)
     {
-        const auto ea   = func->start_ea;
+        const auto ea = func->start_ea;
         if(ctx.skip_id(id, OBJECT_TYPE_FUNCTION))
             return;
 
-        asize_t size = 0;
         Crcs crcs = {};
         const auto flow = get_flow(func);
         for(const auto& block : flow.blocks)
-        {
-            size += block.size();
             get_crcs(ctx, "accept_functions", &crcs, ea, block);
-        }
 
         start_object(v, OBJECT_TYPE_FUNCTION, id, parent.id, ea);
-        v.visit_size(size);
+        // as we may have data inside functions, function size
+        // is not only the sum of basic block sizes
+        v.visit_size(func->size());
 
         ya::Deps deps;
         const auto tif = ya::get_tinfo(ea);
@@ -1408,13 +1408,14 @@ namespace
     }
 
     template<typename Ctx>
-    void accept_block_ea(Ctx& ctx, IModelVisitor& v, const Parent& parent, func_t* func, ea_t ea)
+    void accept_block_ea(Ctx& ctx, IModelVisitor& v, const Parent& parent, YaToolObjectId id, func_t* func, ea_t ea)
     {
         qflow_chart_t flow(nullptr, func, func->start_ea, func->end_ea, 0);
         for(const auto& block: flow.blocks)
             if(block.contains(ea))
-                return accept_block(ctx, v, parent, block);
+                return accept_block(ctx, v, {id, func->start_ea}, block);
         // basic block not found, assume data
+        // note that we MUST use function parent & not function directly
         accept_data(ctx, v, parent, ea);
     }
 
@@ -1424,7 +1425,7 @@ namespace
         const auto id = hash::hash_function(func->start_ea);
         accept_function_only(ctx, v, parent, func, id);
         if(Ctx::is_incremental)
-            accept_block_ea(ctx, v, {id, func->start_ea}, func, block_ea);
+            accept_block_ea(ctx, v, parent, id, func, block_ea);
     }
 
     template<typename Ctx>

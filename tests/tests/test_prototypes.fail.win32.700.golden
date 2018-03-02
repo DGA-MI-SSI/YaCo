@@ -1,8 +1,0 @@
-func:6604e920:
-    got  int (__cdecl *)() __cdecl sub(int (__cdecl *func)())
-    want int (__cdecl *)() __cdecl sub(int (__cdecl *)())
-func:6604eae0: _TEB *__cdecl sub()
-data:66071e08: std::_Tuple_alloc_t
-data:66071e09: std::_Ignore
-data:66071e0a: std::allocator_arg_t
-data:66071e0b: std::piecewise_construct_t

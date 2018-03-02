@@ -146,7 +146,7 @@ idc.del_items(ea, idc.DELIT_SIMPLE, 0xD)
 """),
             self.save_last_ea(),
         )
-        b.check_git(added=["data"], deleted=["code"])
+        b.check_git(modified=["segment_chunk"], deleted=["code"])
 
         # set code again
         a.run(
@@ -158,7 +158,7 @@ ida_auto.auto_wait()
 """),
             self.save_last_ea(),
         )
-        a.check_git(added=["code"], deleted=["data"])
+        a.check_git(modified=["segment_chunk"], added=["code"])
 
         # set function again
         b.run(
@@ -200,39 +200,8 @@ idc.make_array(ea, 5)
             self.check_last_ea(),
         )
 
-    def transform_func_6600EF30_into_code(self, a, b):
-        # reset parent xref
-        a.run(
-            self.script("""
-ea = 0x66002658
-idc.del_items(ea, idc.DELIT_EXPAND, 5)
-idc.create_byte(ea)
-idc.make_array(ea, 5)
-idaapi.set_name(0x6600EF30, "somename")
-"""),
-            self.save_last_ea(),
-        )
-        # skip git checks as ea has no parent xref on linux
-        # lower function to code
-        b.run(
-            self.check_last_ea(),
-            self.script("""
-ea = 0x6600EF30
-idc.del_func(ea)
-ida_auto.auto_make_code(ea)
-ida_auto.auto_wait()
-"""),
-            self.save_last_ea(),
-        )
-        # once again, cannot do git checks
-        # because ea is already code on linux
-        a.run(
-            self.check_last_ea(),
-        )
-
     def test_code_to_func_to_data(self):
         a, b = self.setup_repos()
-        self.transform_func_6600EF30_into_code(a, b)
 
         # code to func
         a.run(
@@ -245,7 +214,7 @@ idaapi.set_name(ea, "new_function_EF30")
             self.save_last_ea(),
         )
         func = ["function", "stackframe"] + ["stackframe_member"] * 2 + ["basic_block"] * 3
-        a.check_git(added=func, modified=["segment_chunk"], deleted=["code"])
+        a.check_git(added=["binary", "segment", "segment_chunk"] + func)
 
         # func to data
         b.run(
@@ -265,7 +234,6 @@ idc.make_array(ea, 11)
 
     def test_code_to_data_to_code(self):
         a, b = self.setup_repos()
-        self.transform_func_6600EF30_into_code(a, b)
 
         # code to data
         a.run(
@@ -277,7 +245,7 @@ idc.make_array(ea, 11)
 """),
             self.save_last_ea(),
         )
-        a.check_git(added=["data"], deleted=["code"])
+        a.check_git(added=["binary", "segment", "segment_chunk", "data"])
 
         # data to code
         b.run(
@@ -294,7 +262,6 @@ ida_auto.auto_wait()
 
     def test_data_to_func_to_code(self):
         a, b = self.setup_repos()
-        self.transform_func_6600EF30_into_code(a, b)
 
         # code to data
         a.run(
@@ -306,7 +273,7 @@ idc.make_array(ea, 11)
 """),
             self.save_last_ea(),
         )
-        a.check_git(added=["data"], deleted=["code"])
+        a.check_git(added=["binary", "segment", "segment_chunk", "data"])
 
         # data to func
         b.run(
@@ -359,6 +326,7 @@ idc.del_items(ea, idc.DELIT_EXPAND, 0x2c)
 
     def test_data_in_func_to_undef_and_back(self):
         a, b = self.setup_repos()
+        ea = 0x66038DB0
         a.run(
             self.script("""
 ea = 0x66038BF0
@@ -367,13 +335,13 @@ idaapi.set_member_name(frame, 0, "another_name")
 idc.set_func_end(ea, ea+0x1f0)
 ida_auto.plan_and_wait(ea, ea+0x1f0)
 """),
-            self.save_last_ea(),
+            self.save_ea(ea),
         )
         a.check_git(added=["binary", "segment", "segment_chunk", "function", "stackframe", "data"] +
             ["stackframe_member"] * 7 + ["basic_block"] * 17)
 
         b.run(
-            self.check_last_ea(),
+            self.check_ea(ea),
             self.script("""
 ea = 0x66038DB0
 idc.del_items(ea, idc.DELIT_EXPAND, 0x30)

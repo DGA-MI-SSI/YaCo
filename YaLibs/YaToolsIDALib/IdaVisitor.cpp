@@ -979,13 +979,17 @@ namespace
             if(!set_function_flags(func, flags))
                 LOG(ERROR, "make_function: 0x%" PRIxEA " unable to set function flags 0x%08x\n", ea, flags);
 
-        set_type(&visitor, ea, make_string(version.prototype()));
+        const auto end = static_cast<ea_t>(ea + version.size());
+        auto ok = end == func->end_ea || set_func_end(func->start_ea, end);
+        if(!ok)
+            LOG(ERROR, "make_function: 0x%" PRIxEA " unable to set function end 0x%" PRIxEA "\n", ea, end);
 
+        set_type(&visitor, ea, make_string(version.prototype()));
         for(const auto repeat : {false, true})
         {
             const auto cmt = version.header_comment(repeat);
             const auto strcmt = make_string(cmt);
-            const auto ok = set_func_cmt(func, strcmt.data(), repeat);
+            ok = set_func_cmt(func, strcmt.data(), repeat);
             if(!ok)
                 LOG(ERROR, "make_function: 0x%" PRIxEA " unable to set %s comment to '%s'\n", ea, repeat ? "repeatable" : "non-repeatable", strcmt.data());
         }

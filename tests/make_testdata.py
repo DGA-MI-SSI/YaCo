@@ -15,8 +15,10 @@
 
 #!/bin/python
 
+import argparse
 import logging
 import os
+import re
 import shutil
 import sys
 import tempfile
@@ -36,11 +38,19 @@ def get_binary_name(name):
 
 class Ctx:
     def __init__(self):
-        self.outdir = os.path.abspath(os.path.join(sys.argv[1], 'testdata'))
-        self.bindir = os.path.abspath(sys.argv[2])
-        self.src    = os.path.abspath(sys.argv[3])
-        self.yadir  = os.path.abspath(os.path.join(self.bindir, '..', 'YaCo'))
-        self.idaq   = sys.argv[4]
+        parser = argparse.ArgumentParser()
+        parser.add_argument("outdir", type=os.path.abspath, help="output directory")
+        parser.add_argument("bindir", type=os.path.abspath, help="binary directory")
+        parser.add_argument("srcdir", type=os.path.abspath, help="input binary")
+        parser.add_argument("ida", type=str, help="IDA binary name")
+        parser.add_argument("--no-pdb", action="store_true", default=False, help="do not analyze with pdb")
+        opts = parser.parse_args()
+        self.outdir = opts.outdir
+        self.bindir = opts.bindir
+        self.srcdir = opts.srcdir
+        self.yadir  = os.path.abspath(os.path.join(opts.bindir, '..', 'YaCo'))
+        self.idaq   = opts.ida
+        self.no_pdb = opts.no_pdb
 
 def try_rmtree(path):
     try:
@@ -52,19 +62,20 @@ def try_rmtree(path):
 def main():
     logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)s %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
     ctx = Ctx()
-    indir, dll = os.path.split(ctx.src)
-    logging.info('%s (%s)' % (os.path.join('testdata', os.path.basename(indir), dll), ctx.idaq))
-    dst = os.path.join(ctx.outdir, os.path.basename(indir))
-    try_rmtree(dst)
-    shutil.copytree(indir, dst)
+    try_rmtree(ctx.outdir)
+    indir, dll = os.path.split(ctx.srcdir)
+    shutil.copytree(indir, ctx.outdir)
+    if ctx.no_pdb:
+        pdb = re.sub("\.dll", ".pdb", dll)
+        os.remove(os.path.join(ctx.outdir, pdb))
     sys.path.append(ctx.yadir)
     import exec_ida
-    cmd = exec_ida.Exec(get_binary_name(ctx.idaq), os.path.join(dst, dll), '-A')
+    cmd = exec_ida.Exec(get_binary_name(ctx.idaq), os.path.join(ctx.outdir, dll), '-A')
     cmd.set_idle(True)
     cmd.with_script(os.path.join(ctx.yadir, 'export_all.py'), ctx.bindir)
     logging.debug(' '.join(cmd.get_args()))
     check_fail(cmd.run())
-    yadb = os.path.join(dst, "database", "database.yadb")
+    yadb = os.path.join(ctx.outdir, "database", "database.yadb")
     if not os.path.isfile(yadb):
         check_fail("missing %s" % yadb)
 

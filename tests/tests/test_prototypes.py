@@ -19,7 +19,6 @@ import difflib
 import inspect
 import os
 import runtests
-import sys
 
 
 class Fixture(runtests.Fixture):
@@ -52,7 +51,6 @@ class Fixture(runtests.Fixture):
             self.script("""
 import idautils
 import idc
-import sys
 
 _functions = sorted([k for k in idautils.Functions()])
 
@@ -105,8 +103,8 @@ def get_set_type(name, ea, fr, ff, identify, setter):
     if check != fntype:
         ff.write("%s:%s:\\n    got  %s\\n    want %s\\n" % (name, identify(ea), fntype, check))
 
-read = "test_prototypes.read." + sys.platform + ".700"
-fail = "test_prototypes.fail." + sys.platform + ".700"
+read = "test_prototypes.read.700"
+fail = "test_prototypes.fail.700"
 with open(read, "wb") as fr:
     with open(fail, "wb") as ff:
         # check functions
@@ -120,8 +118,8 @@ with open(read, "wb") as fr:
             get_set_type("stru", mid, fr, ff, get_member, ya.set_struct_member_type_at)
 """),
         )
-        read = "test_prototypes.read." + sys.platform + ".700"
-        fail = "test_prototypes.fail." + sys.platform + ".700"
+        read = "test_prototypes.read.700"
+        fail = "test_prototypes.fail.700"
         self.check_golden(a.path, fail)
         # do not check read values by default, as they change too much between ida versions
         if False:

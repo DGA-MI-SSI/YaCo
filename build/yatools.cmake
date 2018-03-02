@@ -241,20 +241,21 @@ add_yatools_py(64)
 
 # testdata
 find_package(PythonInterp 2.7 REQUIRED)
-function(make_testdata dst dir dll idaq)
-    set(dst_ ${${dst}})
-    set(output "${root_dir}/testdata/${dir}/database/database.yadb")
-    list(APPEND dst_ ${output})
-    add_test(NAME "make_${dir}_testdata"
+function(make_testdata target src idaq)
+    set(output "${root_dir}/testdata/${target}/database/database.yadb")
+    set(no_pdb "--no-pdb")
+    if("${target}" STREQUAL "${src}")
+        set(no_pdb "")
+    endif()
+    add_test(NAME "make_testdata_${target}"
         COMMAND ${PYTHON_EXECUTABLE} "${ya_dir}/tests/make_testdata.py"
-        "${root_dir}" "${deploy_dir}" "${dir}/${dll}" "${ida_dir}/${idaq}"
+        ${no_pdb} "${root_dir}/testdata/${target}" "${deploy_dir}" "${root_dir}/tests/${src}/Qt5Svgd.dll" "${ida_dir}/${idaq}"
         WORKING_DIRECTORY "${ya_dir}/tests"
     )
-    set(${dst} ${dst_} PARENT_SCOPE)
 endfunction()
-set(testdata_outputs)
-make_testdata(testdata_outputs "qt54_svg" "Qt5Svgd.dll" "ida64")
-make_testdata(testdata_outputs "qt57_svg" "Qt5Svgd.dll" "ida")
+make_testdata(qt54_svg        qt54_svg ida64)
+make_testdata(qt54_svg_no_pdb qt54_svg ida64)
+make_testdata(qt57_svg        qt54_svg ida)
 
 # integration_tests
 add_target(integration_tests yatools/tests "${ya_dir}/YaLibs/tests/integration" OPTIONS test static_runtime)
@@ -266,8 +267,8 @@ target_link_libraries(integration_tests PRIVATE
     gtest
     yatools
 )
-set_property(TEST integration_tests APPEND PROPERTY DEPENDS make_qt54_svg_testdata)
-set_property(TEST integration_tests APPEND PROPERTY DEPENDS make_qt57_svg_testdata)
+set_property(TEST integration_tests APPEND PROPERTY DEPENDS make_testdata_qt54_svg)
+set_property(TEST integration_tests APPEND PROPERTY DEPENDS make_testdata_qt57_svg)
 
 # unit_tests
 execute_process(COMMAND
@@ -284,5 +285,5 @@ foreach(test ${test_names})
         COMMAND "${PYTHON_EXECUTABLE}" "${ya_dir}/tests/runtests.py" -f${test} -b "${deploy_dir}"
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     )
-    set_property(TEST ${shortname} APPEND PROPERTY DEPENDS make_qt54_svg_testdata)
+    set_property(TEST ${shortname} APPEND PROPERTY DEPENDS make_testdata_qt54_svg_no_pdb)
 endforeach()

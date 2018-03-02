@@ -343,7 +343,7 @@ class Fixture(unittest.TestCase):
             pass
         work_dir = tempfile.mkdtemp(prefix='repo_', dir=self.out_dir)
         self.dirs.append(work_dir)
-        qt54 = os.path.join(self.tests_dir, "..", "testdata", "qt54_svg")
+        qt54 = os.path.join(self.tests_dir, "..", "testdata", "qt54_svg_no_pdb")
         a = os.path.abspath(os.path.join(work_dir, "a"))
         b = os.path.abspath(os.path.join(work_dir, "b"))
         c = os.path.abspath(os.path.join(work_dir, "c"))

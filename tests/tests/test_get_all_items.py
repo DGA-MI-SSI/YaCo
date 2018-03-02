@@ -18,7 +18,6 @@
 import inspect
 import os
 import runtests
-import sys
 import unittest
 
 
@@ -51,23 +50,14 @@ class Fixture(runtests.Fixture):
 """)
         self.check_range(a, 0x66066EE8, 0x66066EF4, """
 """)
-        expected = """
+        self.check_range(a,  0x66071e04, 0x66071e0c, """
 0x66071e09: unexplored:1
-"""
-        if sys.platform == "win32":
-            expected = """
-0x66071e04: data:0
-0x66071e08: unexplored:0
-0x66071e09: unexplored:1
-0x66071e0a: unexplored:0
-0x66071e0b: unexplored:0
-"""
-        self.check_range(a,  0x66071e04, 0x66071e0c, expected)
+""")
 
     @unittest.skip("only use manually")
     def test_full_all_items(self):
         full = None
-        golden_filename = "test_get_all_items." + sys.platform + ".700.golden"
+        golden_filename = "test_get_all_items.700.golden"
         expected_path = os.path.join(os.path.dirname(inspect.getsourcefile(lambda:0)), golden_filename)
         with open(expected_path, "rb") as fh:
             full = fh.read()
