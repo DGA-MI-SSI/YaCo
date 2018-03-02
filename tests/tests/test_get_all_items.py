@@ -33,31 +33,36 @@ class Fixture(runtests.Fixture):
     def test_get_all_items(self):
         a, _ = self.setup_repos()
         self.check_range(a, 0x66023FE9, 0x66024012, """
-0x66023fe9: block:9 loc_66023FE9
-0x66023ff0: data:1 jpt_66023E13
-0x66024004: data:1 byte_66024004
+0x66023fe9: block:9
+0x66023ff0: data:1
+0x66024004: data:1
 """)
         self.check_range(a, 0x66001000, 0x6600100F, """
-0x66001005: block:1 void __thiscall(QList<QString>::const_iterator *this) j_??0const_iterator@?$QList@VQString@@@@QAE@XZ
-0x6600100a: block:1 QPaintEnginePrivate *__thiscall(QScopedPointer<QPaintEnginePrivate,QScopedPointerDeleter<QPaintEnginePrivate> > *this) j_?data@?$QScopedPointer@VQPaintEnginePrivate@@U?$QScopedPointerDeleter@VQPaintEnginePrivate@@@@@@QBEPAVQPaintEnginePrivate@@XZ
+0x66001005: block:1
+0x6600100a: block:1
 """)
         self.check_range(a, 0x6600DA80, 0x6600DAEA, """
-0x6600da80: block:1 void *__thiscall(QSvgFillStyleProperty *this, unsigned int) ??_EQSvgFillStyleProperty@@UAEPAXI@Z
+0x6600da80: block:1
 """)
         self.check_range(a, 0x6605E140, 0x6605E198, """
-0x6605e140: data:0 aCWorkBuildQt5W_229
+0x6605e140: data:0
 """)
         self.check_range(a, 0x6605E1B6, 0x6605E1EB, """
 """)
         self.check_range(a, 0x66066EE8, 0x66066EF4, """
 """)
-        self.check_range(a,  0x66071e04, 0x66071e0c, """
-0x66071e04: data:0 int ___@@_PchSym_@00@UdlipUyfrowUjgFPdlipwriUdUhUjghetUhixUhetUOkxsUwvyftUjgFhetwPkxsOlyq@4EF261C5B7DA3A55
-0x66071e08: unexplored:0 std::_Tuple_alloc_t _Tuple_alloc
-0x66071e09: unexplored:1 std::_Ignore ignore
-0x66071e0a: unexplored:0 std::allocator_arg_t allocator_arg
-0x66071e0b: unexplored:0 std::piecewise_construct_t piecewise_construct
-""")
+        expected = """
+0x66071e09: unexplored:1
+"""
+        if sys.platform == "win32":
+            expected = """
+0x66071e04: data:0
+0x66071e08: unexplored:0
+0x66071e09: unexplored:1
+0x66071e0a: unexplored:0
+0x66071e0b: unexplored:0
+"""
+        self.check_range(a,  0x66071e04, 0x66071e0c, expected)
 
     @unittest.skip("only use manually")
     def test_full_all_items(self):

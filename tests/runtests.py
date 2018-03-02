@@ -83,7 +83,7 @@ def export_range(start, end):
         type = " " + type if type else ""
         name = idaapi.get_name(ea)
         name = " " + name if name else ""
-        data += "0x%x: %s:%d%s%s\\n" % (ea, dump_flags(ea), xrefs, type, name)
+        data += "0x%x: %s:%d\\n" % (ea, dump_flags(ea), xrefs)
     return data
 
 idc.Wait()
