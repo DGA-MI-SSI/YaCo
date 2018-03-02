@@ -7112,7 +7112,8 @@ stm_178 var_8
 stm_17c var_4
 stm_188 arg_0
 stm_18c arg_4
-stm_8  var_114 double
+stm_4  var_118 double
+stm_c  var_110 double
 stm_a8 var_74
 stm_bc var_60
 stm_c4 var_58
@@ -10564,7 +10565,6 @@ stm_50 arg_4
 stm_54 arg_8
 stm_8  arg_0
 stm_50 var_7C
-stm_5c var_70
 stm_68 var_64
 stm_98 var_34
 stm_a0 var_2C
@@ -11202,37 +11202,37 @@ cod_6604f564
 cod_6604f570
 
 dat: 3277
-dat_66015568 off_66015568
+dat_66015568 jpt_6601505A
 dat_66015574 byte_66015574
-dat_66015e24 off_66015E24
-dat_66017a2c off_66017A2C
+dat_66015e24 jpt_66015C24
+dat_66017a2c jpt_6601659D
 dat_66017a7c byte_66017A7C
-dat_66018f6c off_66018F6C
+dat_66018f6c jpt_66017E85
 dat_66018f8c byte_66018F8C
-dat_66018fa0 off_66018FA0
+dat_66018fa0 jpt_660186EB
 dat_66018fc8 byte_66018FC8
-dat_6601a2e0 off_6601A2E0
+dat_6601a2e0 jpt_66019F79
 dat_6601a2f4 byte_6601A2F4
-dat_6601a854 off_6601A854
-dat_6601c8e8 off_6601C8E8
+dat_6601a854 jpt_6601A7DE
+dat_6601c8e8 jpt_6601C23D
 dat_6601c8fc byte_6601C8FC
-dat_660235e4 off_660235E4
+dat_660235e4 jpt_66023216
 dat_66023610 byte_66023610
-dat_66023ba4 off_66023BA4
+dat_66023ba4 jpt_660236A6
 dat_66023bc8 byte_66023BC8
-dat_66023d70 off_66023D70
+dat_66023d70 jpt_66023C53
 dat_66023d84 byte_66023D84
-dat_66023ff0 off_66023FF0
+dat_66023ff0 jpt_66023E13
 dat_66024004 byte_66024004
-dat_66038db0 off_66038DB0
-dat_6603901c off_6603901C
-dat_6603d6e8 off_6603D6E8
-dat_66042fac off_66042FAC
-dat_660456e0 off_660456E0
-dat_660469d8 off_660469D8
-dat_66049d60 off_66049D60
+dat_66038db0 jpt_66038C16
+dat_6603901c jpt_66038E5C
+dat_6603d6e8 jpt_6603CFEC
+dat_66042fac jpt_66042DD9
+dat_660456e0 jpt_660453B0
+dat_660469d8 jpt_66046880
+dat_66049d60 jpt_66049912
 dat_66049d78 byte_66049D78
-dat_6604a890 off_6604A890
+dat_6604a890 jpt_6604A231
 dat_66053000 unk_66053000
 dat_66053240 unk_66053240
 dat_66053344 unk_66053344
@@ -13532,13 +13532,13 @@ dat_66071374 aAvqsvgrefcount
 dat_66071390 ??_R0?AVQSvgStyleProperty@@@8
 dat_66071398 aAvqsvgstylepro
 dat_660713b8 ??_R0?AVQSvgFillStyleProperty@@@8
-dat_660713c0 aAvqsvgfillstyl
+dat_660713c0 aAvqsvgfillstyl_0
 dat_660713e4 ??_R0?AVQSvgQualityStyle@@@8
 dat_660713ec aAvqsvgqualitys
 dat_6607140c ??_R0?AVQSvgOpacityStyle@@@8
 dat_66071414 aAvqsvgopacitys
 dat_66071434 ??_R0?AVQSvgFillStyle@@@8
-dat_6607143c aAvqsvgfillstyl_0
+dat_6607143c aAvqsvgfillstyl
 dat_66071458 ??_R0?AVQSvgViewportFillStyle@@@8
 dat_66071460 aAvqsvgviewport
 dat_66071484 ??_R0?AVQSvgFontStyle@@@8
@@ -13640,13 +13640,13 @@ dat_66071acc aAvqiodevice
 dat_66071ae0 ??_R0?AVQSvgGenerator@@@8
 dat_66071ae8 aAvqsvggenerato
 dat_66071b04 ??_R0?AVQSvgPaintEnginePrivate@@@8
-dat_66071b0c aAvqsvgpainteng
+dat_66071b0c aAvqsvgpainteng_0
 dat_66071b30 ??_R0?AVQPaintEnginePrivate@@@8
-dat_66071b38 aAvqpaintengine
+dat_66071b38 aAvqpaintengine_0
 dat_66071b58 ??_R0?AVQSvgPaintEngine@@@8
-dat_66071b60 aAvqsvgpainteng_0
+dat_66071b60 aAvqsvgpainteng
 dat_66071b7c ??_R0?AVQPaintEngine@@@8
-dat_66071b84 aAvqpaintengine_0
+dat_66071b84 aAvqpaintengine
 dat_66071b9c ??_R0?AVerror_category@std@@@8
 dat_66071ba4 aAverrorCategor
 dat_66071bc4 ??_R0?AV_Generic_error_category@std@@@8
@@ -18078,7 +18078,7 @@ bbk_66015114
 bbk_6601512a
 bbk_66015134
 bbk_6601513b
-bbk_6601513d
+bbk_6601513d def_6601505A
 bbk_6601517f
 bbk_66015195
 bbk_6601519f
@@ -18180,7 +18180,7 @@ bbk_66015d68
 bbk_66015d75
 bbk_66015d7a
 bbk_66015d9e
-bbk_66015e0a
+bbk_66015e0a def_66015C24
 bbk_66015e0f
 bbk_66015e1d
 bbk_66015e40 ?resolveGradients@QSvgHandler@@AAEXPAVQSvgNode@@@Z_0
@@ -18330,7 +18330,7 @@ bbk_660176da
 bbk_6601785c
 bbk_66017862
 bbk_6601787a
-bbk_660179ef
+bbk_660179ef def_6601659D
 bbk_66017a03
 bbk_66017a14
 bbk_66017a24
@@ -18416,7 +18416,7 @@ bbk_660185b2
 bbk_660185dc
 bbk_660185f1
 bbk_6601861b
-bbk_6601862e
+bbk_6601862e def_66017E85
 bbk_66018645
 bbk_6601864e
 bbk_66018657
@@ -18501,7 +18501,7 @@ bbk_66018ee4
 bbk_66018ee6
 bbk_66018f10
 bbk_66018f20
-bbk_66018f40
+bbk_66018f40 def_660186EB
 bbk_66018f57
 bbk_66018fe0
 bbk_66018ff0
@@ -18678,7 +18678,7 @@ bbk_6601a223
 bbk_6601a24e
 bbk_6601a250
 bbk_6601a27b
-bbk_6601a28d
+bbk_6601a28d def_66019F79
 bbk_6601a2cf
 bbk_6601a350
 bbk_6601a371
@@ -18726,7 +18726,7 @@ bbk_6601a81b
 bbk_6601a81d
 bbk_6601a834
 bbk_6601a836
-bbk_6601a84d
+bbk_6601a84d def_6601A7DE
 bbk_6601a850
 bbk_6601a870
 bbk_6601a8ae
@@ -18988,7 +18988,7 @@ bbk_6601c3e8
 bbk_6601c3ea
 bbk_6601c419
 bbk_6601c42e
-bbk_6601c430
+bbk_6601c430 def_6601C23D
 bbk_6601c462
 bbk_6601c477
 bbk_6601c491
@@ -19734,7 +19734,7 @@ bbk_66023575
 bbk_6602358a
 bbk_6602358c
 bbk_660235b6
-bbk_660235cb
+bbk_660235cb def_66023216
 bbk_660235de
 bbk_66023630
 bbk_66023649
@@ -19785,7 +19785,7 @@ bbk_66023b0c
 bbk_66023b36
 bbk_66023b4b
 bbk_66023b75
-bbk_66023b8a
+bbk_66023b8a def_660236A6
 bbk_66023b9d
 bbk_66023be0
 bbk_66023bf6
@@ -19802,7 +19802,7 @@ bbk_66023d06
 bbk_66023d1b
 bbk_66023d1d
 bbk_66023d44
-bbk_66023d59
+bbk_66023d59 def_66023C53
 bbk_66023d6c
 bbk_66023da0
 bbk_66023db6
@@ -19825,7 +19825,7 @@ bbk_66023f83
 bbk_66023f98
 bbk_66023f9a
 bbk_66023fc1
-bbk_66023fd6
+bbk_66023fd6 def_66023E13
 bbk_66023fe9
 bbk_66027f90 unknown_libname_13
 bbk_66027fa0 unknown_libname_14
@@ -22501,7 +22501,7 @@ bbk_66038d2c
 bbk_66038d3d
 bbk_66038d62
 bbk_66038d73
-bbk_66038d84
+bbk_66038d84 def_66038C16
 bbk_66038da8
 bbk_66038de0 ?applyStyle@QSvgNode@@QBEXPAVQPainter@@AAUQSvgExtraStates@@@Z_0
 bbk_66038e10 ?revertStyle@QSvgNode@@QBEXPAVQPainter@@AAUQSvgExtraStates@@@Z_0
@@ -22544,7 +22544,7 @@ bbk_66038fd8
 bbk_66038fe5
 bbk_66038fe7
 bbk_66038ff6
-bbk_66039003
+bbk_66039003 def_66038E5C
 bbk_66039013
 bbk_66039015
 bbk_66039050 ?styleProperty@QSvgNode@@QBEPAVQSvgFillStyleProperty@@ABVQString@@@Z_0
@@ -23102,7 +23102,7 @@ bbk_6603d294
 bbk_6603d2d8
 bbk_6603d504
 bbk_6603d5f5
-bbk_6603d6e1
+bbk_6603d6e1 def_6603CFEC
 bbk_6603d700 ??0QSvgAnimateColor@@QAE@HHH@Z_0
 bbk_6603d780 ?setArgs@QSvgAnimateColor@@QAEX_NABV?$QList@VQColor@@@@@Z_0
 bbk_6603d7b0 ?setFreeze@QSvgAnimateColor@@QAEX_N@Z_0
@@ -23733,7 +23733,7 @@ bbk_66042eb8
 bbk_66042ed6
 bbk_66042eff
 bbk_66042f37
-bbk_66042f68
+bbk_66042f68 def_66042DD9
 bbk_66042f6a
 bbk_66042f70
 bbk_66042f9d
@@ -24075,7 +24075,7 @@ bbk_66045403
 bbk_66045426
 bbk_66045449
 bbk_6604546c
-bbk_6604548f
+bbk_6604548f def_660453B0
 bbk_6604549c
 bbk_660454e7
 bbk_660454f0
@@ -24203,7 +24203,7 @@ bbk_66046938
 bbk_66046988
 bbk_6604698d
 bbk_66046999
-bbk_660469a5
+bbk_660469a5 def_66046880
 bbk_660469d2
 bbk_66046a00
 bbk_66046a10
@@ -24418,7 +24418,7 @@ bbk_660499d5
 bbk_66049adb
 bbk_66049be1
 bbk_66049ce4
-bbk_66049d59
+bbk_66049d59 def_66049912
 bbk_66049ec0
 bbk_66049efb
 bbk_66049f5d
@@ -24443,7 +24443,7 @@ bbk_6604a3e0
 bbk_6604a411
 bbk_6604a420
 bbk_6604a42c
-bbk_6604a683
+bbk_6604a683 def_6604A231
 bbk_6604a6ad
 bbk_6604a6cc
 bbk_6604a6e3
@@ -25114,7 +25114,7 @@ bbk_6604f13c __crtTerminateProcess
 bbk_6604f142 _lock
 bbk_6604f148 _unlock
 bbk_6604f15a __dllonexit
-bbk_6604f160 SEH_6604EFC0
+bbk_6604f160 SEH_6604F230
 bbk_6604f188 __CppXcptFilter
 bbk_6604f18e _amsg_exit
 bbk_6604f1b0 __FindPESection
