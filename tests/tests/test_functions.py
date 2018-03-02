@@ -185,9 +185,7 @@ idc.del_items(ea, idc.DELIT_SIMPLE, 5)
 """),
             self.save_last_ea(),
         )
-        a.check_git(added=["binary", "segment", "segment_chunk", "segment_chunk",
-            "function", "stackframe", "stackframe_member", "stackframe_member",
-            "basic_block", "data"])
+        a.check_git(added=["binary", "segment", "segment_chunk", "data"])
         b.run(
             self.check_last_ea(),
             self.script("""
@@ -370,8 +368,8 @@ idaapi.set_member_name(frame, 0x8,  "another_name")
 """),
             self.save_last_ea(),
         )
-        a.check_git(added=["binary", "segment", "segment_chunk", "function", "stackframe"] +
-            ["stackframe_member"] * 18 + ["basic_block"] * 23)
+        a.check_git(added=["binary", "segment", "segment_chunk", "function", "stackframe", "basic_block"] +
+            ["stackframe_member"] * 18)
 
         b.run(
             self.check_last_ea(),

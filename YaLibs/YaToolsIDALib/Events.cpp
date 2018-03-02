@@ -369,22 +369,10 @@ void Events::touch_ea(ea_t ea)
 
 void Events::touch_func(ea_t ea)
 {
-    const auto func = get_func(ea);
-    if(!func)
-        return;
-
-    ea = func->start_ea;
-    add_ea(*this, hash::hash_function(ea), OBJECT_TYPE_FUNCTION, ea);
-
-    // add stack
+    add_ea(*this, ea);
     const auto frame = get_frame(ea);
     if(frame)
         update_struc(*this, frame->id);
-
-    // add basic blocks
-    qflow_chart_t flow(nullptr, func, func->start_ea, func->end_ea, 0);
-    for(const auto block : flow.blocks)
-        add_ea(*this, hash::hash_ea(block.start_ea), OBJECT_TYPE_BASIC_BLOCK, block.start_ea);
 }
 
 void Events::touch_code(ea_t ea)

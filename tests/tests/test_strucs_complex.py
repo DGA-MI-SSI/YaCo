@@ -228,7 +228,7 @@ create_complex(frame.id, sid1)
             self.save_last_ea(),
         )
         b.check_git(added=["binary", "segment", "segment_chunk", "function",
-            "stackframe"] + ["stackframe_member"] * 12 + ["basic_block"] * 54 +
+            "stackframe", "basic_block"] + ["stackframe_member"] * 12 +
             ["struc"] + ["strucmember"] * 4)
         self.assertRegexpMatches(self.eas[self.last_ea][1], "complex_bot_stack")
         a.run(
