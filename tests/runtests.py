@@ -54,6 +54,7 @@ def sysexec(cwd, *args):
 
 ida_start = """
 import idaapi
+import idautils
 import idc
 import sys
 
@@ -63,6 +64,27 @@ if idc.__EA64__:
     import YaToolsPy64 as ya
 else:
     import YaToolsPy32 as ya
+
+def dump_flags(ea):
+    flags = idaapi.get_flags(ea)
+    if idc.is_code(flags):
+        return "block" if idaapi.get_func(ea) else "code"
+    if idc.is_data(flags):
+        return "data"
+    return "unexplored"
+
+def export_range(start, end):
+    data = ""
+    for ea in ya.get_all_items(start, end):
+        xrefs = 0
+        for x in idautils.XrefsTo(ea):
+            xrefs += 1
+        type = idc.get_type(ea)
+        type = " " + type if type else ""
+        name = idaapi.get_name(ea)
+        name = " " + name if name else ""
+        data += "0x%x: %s:%d%s%s\\n" % (ea, dump_flags(ea), xrefs, type, name)
+    return data
 
 idc.Wait()
 """
@@ -213,6 +235,7 @@ class Fixture(unittest.TestCase):
         self.strucs = {}
         self.eas = {}
         self.last_ea = None
+        self.item_range = None
         for line in script.splitlines():
             line = line.strip()
             ea = re.sub(r"^ea = (0x[a-fA-F0-9]+)$", r"\1", line)
@@ -296,6 +319,17 @@ class Fixture(unittest.TestCase):
         script = "ya.export_xml(0x%x, %s)" % (ea, ea_defmask)
         filename, want = self.eas[ea]
         return script, self.check_diff(filename, want)
+
+    def save_item_range(self, start, end):
+        script = "export_range(0x%x, 0x%x)" % (start, end)
+        def callback(filename):
+            self.item_range = filename
+        return script, callback
+
+    def check_item_range(self, got=""):
+        got = got.lstrip()
+        filename = self.item_range
+        return self.check_diff("", got)(filename)
 
     def set_master(self, repo, master):
         sysexec(repo, ["git", "remote", "add", "origin", master])
