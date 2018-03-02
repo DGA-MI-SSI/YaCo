@@ -105,13 +105,19 @@ namespace
     {
         switch (event)
         {
+#if IDP_INTERFACE_VERSION > 700
+            case processor_t::event_t::ev_analyze_prolog:                  return "ev_analyze_prolog";
+            case processor_t::event_t::ev_calc_spdelta:                    return "ev_calc_spdelta";
+            case processor_t::event_t::ev_calcrel:                         return "ev_calcrel";
+            case processor_t::event_t::ev_find_op_value:                   return "ev_find_op_value";
+            case processor_t::event_t::ev_find_reg_value:                  return "ev_find_reg_value";
+#endif
             case processor_t::event_t::ev_add_cref:                        return "ev_add_cref";
             case processor_t::event_t::ev_add_dref:                        return "ev_add_dref";
             case processor_t::event_t::ev_adjust_argloc:                   return "ev_adjust_argloc";
             case processor_t::event_t::ev_adjust_libfunc_ea:               return "ev_adjust_libfunc_ea";
             case processor_t::event_t::ev_adjust_refinfo:                  return "ev_adjust_refinfo";
             case processor_t::event_t::ev_ana_insn:                        return "ev_ana_insn";
-            case processor_t::event_t::ev_analyze_prolog:                  return "ev_analyze_prolog";
             case processor_t::event_t::ev_arg_addrs_ready:                 return "ev_arg_addrs_ready";
             case processor_t::event_t::ev_assemble:                        return "ev_assemble";
             case processor_t::event_t::ev_auto_queue_empty:                return "ev_auto_queue_empty";
@@ -120,11 +126,9 @@ namespace
             case processor_t::event_t::ev_calc_next_eas:                   return "ev_calc_next_eas";
             case processor_t::event_t::ev_calc_purged_bytes:               return "ev_calc_purged_bytes";
             case processor_t::event_t::ev_calc_retloc:                     return "ev_calc_retloc";
-            case processor_t::event_t::ev_calc_spdelta:                    return "ev_calc_spdelta";
             case processor_t::event_t::ev_calc_step_over:                  return "ev_calc_step_over";
             case processor_t::event_t::ev_calc_switch_cases:               return "ev_calc_switch_cases";
             case processor_t::event_t::ev_calc_varglocs:                   return "ev_calc_varglocs";
-            case processor_t::event_t::ev_calcrel:                         return "ev_calcrel";
             case processor_t::event_t::ev_can_have_type:                   return "ev_can_have_type";
             case processor_t::event_t::ev_clean_tbit:                      return "ev_clean_tbit";
             case processor_t::event_t::ev_cmp_operands:                    return "ev_cmp_operands";
@@ -143,8 +147,6 @@ namespace
             case processor_t::event_t::ev_endbinary:                       return "ev_endbinary";
             case processor_t::event_t::ev_equal_reglocs:                   return "ev_equal_reglocs";
             case processor_t::event_t::ev_extract_address:                 return "ev_extract_address";
-            case processor_t::event_t::ev_find_op_value:                   return "ev_find_op_value";
-            case processor_t::event_t::ev_find_reg_value:                  return "ev_find_reg_value";
             case processor_t::event_t::ev_func_bounds:                     return "ev_func_bounds";
             case processor_t::event_t::ev_gen_asm_or_lst:                  return "ev_gen_asm_or_lst";
             case processor_t::event_t::ev_gen_map_file:                    return "ev_gen_map_file";
