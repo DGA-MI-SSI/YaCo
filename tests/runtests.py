@@ -105,9 +105,9 @@ class Repo():
     def run_script(self, script, init=False):
         import exec_ida
         args = ["-Oyaco:disable_plugin", "-A"]
-        target = "Qt5Svgd.i64"
+        target = "Qt5Svgd.dll.i64"
         if not init:
-            target = "Qt5Svgd_local.i64"
+            target = "Qt5Svgd.dll_local.i64"
         cmd = exec_ida.Exec(os.path.join(self.ctx.ida_dir, "ida64"), os.path.join(self.path, target), *args)
         cmd.set_idle(True)
         fd, fname = tempfile.mkstemp(dir=self.path, prefix="exec_", suffix=".py")
@@ -348,7 +348,7 @@ class Fixture(unittest.TestCase):
         b = os.path.abspath(os.path.join(work_dir, "b"))
         c = os.path.abspath(os.path.join(work_dir, "c"))
         os.makedirs(a)
-        shutil.copy(os.path.join(qt54, "Qt5Svgd.i64"), a)
+        shutil.copy(os.path.join(qt54, "Qt5Svgd.dll.i64"), a)
         sysexec(a, ["git", "init"])
         sysexec(a, ["git", "add", "-A"])
         sysexec(a, ["git", "commit", "-m", "init"])

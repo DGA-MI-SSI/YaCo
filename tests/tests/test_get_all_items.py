@@ -34,7 +34,7 @@ class Fixture(runtests.Fixture):
         a, _ = self.setup_repos()
         self.check_range(a, 0x66023FE9, 0x66024012, """
 0x66023fe9: block:9 loc_66023FE9
-0x66023ff0: data:1 off_66023FF0
+0x66023ff0: data:1 jpt_66023E13
 0x66024004: data:1 byte_66024004
 """)
         self.check_range(a, 0x66001000, 0x6600100F, """
