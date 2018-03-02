@@ -103,10 +103,16 @@ namespace
     };
     using Bookmarks = std::vector<Bookmark>;
 
+    enum StackMode
+    {
+        USE_STACK,
+        SKIP_STACK,
+    };
+
     struct Visitor
         : public IModelSink
     {
-         Visitor();
+         Visitor(StackMode smode);
         ~Visitor();
 
         // IModelSink
@@ -125,14 +131,16 @@ namespace
         Pool<qstring>                   qpool_;
         Bookmarks                       bookmarks_;
         const bool                      had_auto_enabled_;
+        const bool                      use_stack_;
     };
 
     const char ARM_txt[] = "ARM";
 }
 
-Visitor::Visitor()
+Visitor::Visitor(StackMode smode)
     : qpool_(4)
     , had_auto_enabled_(inf.is_auto_enabled())
+    , use_stack_(smode == USE_STACK)
 {
     inf.set_auto_enabled(false);
 
@@ -1879,7 +1887,13 @@ namespace
                 break;
 
             case OBJECT_TYPE_STACKFRAME:
-                make_stackframe(visitor, version, ea);
+                if(visitor.use_stack_)
+                    make_stackframe(visitor, version, ea);
+                break;
+
+            case OBJECT_TYPE_STACKFRAME_MEMBER:
+                if(visitor.use_stack_)
+                    make_struct_member(visitor, "stackframe_member", version, ea);
                 break;
 
             case OBJECT_TYPE_ENUM:
@@ -1914,10 +1928,6 @@ namespace
 
             case OBJECT_TYPE_ENUM_MEMBER:
                 make_enum_member(visitor, version, ea);
-                break;
-
-            case OBJECT_TYPE_STACKFRAME_MEMBER:
-                make_struct_member(visitor, "stackframe_member", version, ea);
                 break;
 
             case OBJECT_TYPE_DATA:
@@ -1970,11 +1980,11 @@ bool set_struct_member_type_at(ea_t ea, const std::string& prototype)
 
 std::shared_ptr<IModelSink> MakeIdaSink()
 {
-    return std::make_shared<Visitor>();
+    return std::make_shared<Visitor>(USE_STACK);
 }
 
 void import_to_ida(const std::string& filename)
 {
-    Visitor visitor;
+    Visitor visitor(SKIP_STACK);
     visitor.update(*MakeFlatBufferModel(filename));
 }
