@@ -357,42 +357,42 @@ idc.del_items(ea, idc.DELIT_EXPAND, 0x2c)
             self.check_last_ea(),
         )
 
-    @unittest.skip("broken")
-    def test_data_to_block(self):
+    def test_data_in_func_to_undef_and_back(self):
         a, b = self.setup_repos()
         a.run(
             self.script("""
-ea = 0x66023DA0
+ea = 0x66038BF0
 frame = idaapi.get_frame(ea)
-idaapi.set_member_name(frame, 0x8,  "another_name")
+idaapi.set_member_name(frame, 0, "another_name")
+idc.set_func_end(ea, ea+0x1f0)
+ida_auto.plan_and_wait(ea, ea+0x1f0)
 """),
             self.save_last_ea(),
         )
-        a.check_git(added=["binary", "segment", "segment_chunk", "function", "stackframe", "basic_block"] +
-            ["stackframe_member"] * 18)
+        a.check_git(added=["binary", "segment", "segment_chunk", "function", "stackframe", "data"] +
+            ["stackframe_member"] * 7 + ["basic_block"] * 17)
 
         b.run(
             self.check_last_ea(),
             self.script("""
-ea = 0x66024004
+ea = 0x66038DB0
+idc.del_items(ea, idc.DELIT_EXPAND, 0x30)
+ida_auto.auto_wait()
+"""),
+            self.save_last_ea(),
+        )
+        b.check_git(modified=["data"])
+
+        a.run(
+            self.check_last_ea(),
+            self.script("""
+ea = 0x66038DB0
 idaapi.create_insn(ea)
 ida_auto.auto_wait()
 """),
             self.save_last_ea(),
         )
-        b.check_git(modified=["function", "basic_block"], added=["basic_block"] * 2)
-
-        a.run(
-            self.check_last_ea(),
-            self.script("""
-ea = 0x66024004
-idc.del_items(ea, idc.DELIT_EXPAND, 0xE)
-ida_auto.auto_wait()
-"""),
-            self.save_last_ea(),
-        )
-        # FIXME data inside functions is a bit glitchy
-        a.check_git(added=["data"] * 2, deleted=["basic_block"] * 2, modified=["basic_block", "function", "segment_chunk"])
+        a.check_git(added=["segment_chunk"], modified=["data"])
 
         b.run(
             self.check_last_ea(),
