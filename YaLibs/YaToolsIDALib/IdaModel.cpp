@@ -1454,21 +1454,17 @@ std::vector<ea_t> get_all_items(ea_t start, ea_t end)
     const auto allowed = range_t{start, end};
     const auto add_ea = [&](ea_t x)
     {
-        if(allowed.contains(x))
-            items.emplace_back(x);
+        const auto flags = get_flags(x);
+        if(is_code(flags) || has_any_name(flags) || has_xref(flags))
+            if(allowed.contains(x))
+                items.emplace_back(x);
     };
 
     // find all interesting items
     while(ea != BADADDR && ea < end)
     {
         const auto flags = get_flags(ea);
-        if(is_data(flags))
-        {
-            //if(has_any_name(flags) || has_xref(flags))
-                add_ea(ea);
-            ea = next_not_tail(ea);
-        }
-        else if(is_code(flags))
+        if(is_code(flags))
         {
             const auto func = get_func(ea);
             if(func)
@@ -1477,16 +1473,10 @@ std::vector<ea_t> get_all_items(ea_t start, ea_t end)
             if(code.contains(ea))
                 add_ea(code.start_ea);
             ea = code.end_ea;
+            continue;
         }
-        else if(has_any_name(flags) || has_xref(flags))
-        {
-            add_ea(ea);
-            ea = next_not_tail(ea);
-        }
-        else
-        {
-            ea = next_not_tail(ea);
-        }
+        add_ea(ea);
+        ea = next_not_tail(ea);
     }
 
     dedup(items);

@@ -34,12 +34,10 @@ class Fixture(runtests.Fixture):
         a, _ = self.setup_repos()
         self.check_range(a, 0x66023FE9, 0x66024012, """
 0x66023fe9: block:9 loc_66023FE9
-0x66023fed: data:0
 0x66023ff0: data:1 off_66023FF0
 0x66024004: data:1 byte_66024004
 """)
         self.check_range(a, 0x66001000, 0x6600100F, """
-0x66001000: data:0
 0x66001005: block:1 void __thiscall(QList<QString>::const_iterator *this) j_??0const_iterator@?$QList@VQString@@@@QAE@XZ
 0x6600100a: block:1 QPaintEnginePrivate *__thiscall(QScopedPointer<QPaintEnginePrivate,QScopedPointerDeleter<QPaintEnginePrivate> > *this) j_?data@?$QScopedPointer@VQPaintEnginePrivate@@U?$QScopedPointerDeleter@VQPaintEnginePrivate@@@@@@QBEPAVQPaintEnginePrivate@@XZ
 """)
@@ -48,13 +46,10 @@ class Fixture(runtests.Fixture):
 """)
         self.check_range(a, 0x6605E140, 0x6605E198, """
 0x6605e140: data:0 aCWorkBuildQt5W_229
-0x6605e196: data:0
 """)
         self.check_range(a, 0x6605E1B6, 0x6605E1EB, """
 """)
         self.check_range(a, 0x66066EE8, 0x66066EF4, """
-0x66066ee8: data:0
-0x66066eec: data:0
 """)
         self.check_range(a,  0x66071e04, 0x66071e0c, """
 0x66071e04: data:0 int ___@@_PchSym_@00@UdlipUyfrowUjgFPdlipwriUdUhUjghetUhixUhetUOkxsUwvyftUjgFhetwPkxsOlyq@4EF261C5B7DA3A55

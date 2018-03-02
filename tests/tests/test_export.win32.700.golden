@@ -1,4 +1,4 @@
-objects: 35465
+objects: 30954
 
 bin: 1
 bin_66000000 Qt5Svgd.dll
@@ -16261,1869 +16261,38 @@ ref: 0
 
 cod: 0
 
-dat: 7768
-dat_66001000
-dat_66003170
-dat_66005321
-dat_66005381
-dat_660053e1
-dat_6600541c
-dat_6600544c
-dat_6600547c
-dat_660054a2
-dat_660054c2
-dat_660054dd
-dat_660054ed
-dat_660054ff
-dat_6600551d
-dat_6600555b
-dat_66005593
-dat_660055e8
-dat_66005698
-dat_6600577d
-dat_660057bc
-dat_660059b2
-dat_66005ab6
-dat_66005b8d
-dat_66005bd9
-dat_66005c2a
-dat_66005c6c
-dat_66005d18
-dat_66005f5d
-dat_66005f98
-dat_660061a8
-dat_6600628d
-dat_660062c8
-dat_660064d1
-dat_660065ad
-dat_660065e8
-dat_6600672c
-dat_660067fd
-dat_66006854
-dat_66006c91
-dat_66006d49
-dat_66006dee
-dat_66006e97
-dat_66006edb
-dat_66007c4b
-dat_66007c64
-dat_66007cff
-dat_66007d53
-dat_66007e0e
-dat_66007ebc
-dat_66007eed
-dat_66007f7d
-dat_66008a28
-dat_66008a38
-dat_66008a48
-dat_66008a58
-dat_66008a91
-dat_66008aaa
-dat_66008af0
-dat_66008b2d
-dat_66008b71
-dat_66008bb1
-dat_66008bd5
-dat_66008bf5
-dat_66008c15
-dat_66008c53
-dat_66008c9f
-dat_66008cef
-dat_66008d3f
-dat_66008d68
-dat_66008dac
-dat_66008dfd
-dat_66008e92
-dat_66008ed9
-dat_66008f62
-dat_66008fa9
-dat_66009032
-dat_660090e2
-dat_66009126
-dat_6600915c
-dat_6600919a
-dat_660091dc
-dat_6600921c
-dat_6600925a
-dat_6600929c
-dat_660092da
-dat_6600931c
-dat_6600935a
-dat_6600939c
-dat_660093da
-dat_6600941c
-dat_6600945a
-dat_6600949c
-dat_660094da
-dat_6600951c
-dat_6600955a
-dat_6600959c
-dat_660095da
-dat_6600961c
-dat_6600965a
-dat_6600969c
-dat_660096da
-dat_660097dd
-dat_6600990d
-dat_66009968
-dat_66009988
-dat_660099a8
-dat_660099c8
-dat_660099e8
-dat_66009a29
-dat_66009a5a
-dat_66009a78
-dat_66009a9c
-dat_66009b71
-dat_66009cb3
-dat_66009d25
-dat_66009d51
-dat_66009d9e
-dat_66009dd5
-dat_66009e09
-dat_66009e5d
-dat_66009eb2
-dat_66009ff6
-dat_6600a065
-dat_6600a08f
-dat_6600a12a
-dat_6600a2b9
-dat_6600a35f
-dat_6600a3a5
-dat_6600a42f
-dat_6600a4b5
-dat_6600a512
-dat_6600a616
-dat_6600a695
-dat_6600a6ee
-dat_6600a73e
-dat_6600a78e
-dat_6600a7c5
-dat_6600a836
-dat_6600a875
-dat_6600a8a1
-dat_6600a90e
-dat_6600ab83
-dat_6600ad02
-dat_6600ade5
-dat_6600ae35
-dat_6600ae5f
-dat_6600af1f
-dat_6600af9b
-dat_6600b012
-dat_6600b07d
-dat_6600b0db
-dat_6600b108
-dat_6600b13d
-dat_6600b166
-dat_6600b19a
-dat_6600b1da
-dat_6600b21a
-dat_6600b25a
-dat_6600b283
-dat_6600b2ad
-dat_6600b2ea
-dat_6600b32a
-dat_6600b36a
-dat_6600b3aa
-dat_6600b3ea
-dat_6600b42a
-dat_6600b457
-dat_6600b496
-dat_6600b4ce
-dat_6600b4f3
-dat_6600b522
-dat_6600b543
-dat_6600b563
-dat_6600b583
-dat_6600b5c7
-dat_6600b5f3
-dat_6600b62a
-dat_6600b66b
-dat_6600b697
-dat_6600b6f5
-dat_6600b732
-dat_6600b753
-dat_6600b773
-dat_6600b7a2
-dat_6600b7d2
-dat_6600b802
-dat_6600b823
-dat_6600b843
-dat_6600b864
-dat_6600b89b
-dat_6600b8e7
-dat_6600b913
-dat_6600b94b
-dat_6600b973
-dat_6600b9ab
-dat_6600b9c8
-dat_6600ba40
-dat_6600ba9e
-dat_6600baee
-dat_6600bb3e
-dat_6600bb8e
-dat_6600bbde
-dat_6600bc2e
-dat_6600bc7e
-dat_6600bcce
-dat_6600bd1e
-dat_6600bd6e
-dat_6600bdbe
-dat_6600be0e
-dat_6600be5e
-dat_6600beae
-dat_6600befe
-dat_6600bf4e
-dat_6600bf9e
-dat_6600bfcc
-dat_6600c098
-dat_6600c1c9
-dat_6600c22c
-dat_6600c275
-dat_6600c2ac
-dat_6600c2f4
-dat_6600c349
-dat_6600c381
-dat_6600c4ad
-dat_6600c51c
-dat_6600c5b1
-dat_6600c740
-dat_6600c7df
-dat_6600c856
-dat_6600c8cc
-dat_6600c929
-dat_6600ca1d
-dat_6600ca9c
-dat_6600cae5
-dat_6600cb35
-dat_6600cb85
-dat_6600cbbc
-dat_6600cc2d
-dat_6600cc6c
-dat_6600ccd5
-dat_6600cf3b
-dat_6600d0b2
-dat_6600d10c
-dat_6600d1c7
-dat_6600d232
-dat_6600d2a9
-dat_6600d302
-dat_6600d382
-dat_6600d402
-dat_6600d482
-dat_6600d4b0
-dat_6600d4fa
-dat_6600d54a
-dat_6600d575
-dat_6600d59b
-dat_6600d5f0
-dat_6600d66a
-dat_6600d6fd
-dat_6600d78d
-dat_6600d81d
-dat_6600d8ad
-dat_6600d93a
-dat_6600d9cd
-dat_6600da5a
-dat_6600daea
-dat_6600db7a
-dat_6600dc0a
-dat_6600dc9a
-dat_6600dd2d
-dat_6600ddbd
-dat_6600de4d
-dat_6600deda
-dat_6600df6d
-dat_6600dffd
-dat_6600e08d
-dat_6600e11a
-dat_6600e1ad
-dat_6600e23a
-dat_6600e2ca
-dat_6600e35a
-dat_6600e3ea
-dat_6600e47d
-dat_6600e50d
-dat_6600e59d
-dat_6600e62a
-dat_6600e665
-dat_6600e69c
-dat_6600e6dc
-dat_6600e71c
-dat_6600e75c
-dat_6600e79d
-dat_6600e7dd
-dat_6600e81c
-dat_6600e85c
-dat_6600e89c
-dat_6600e8dc
-dat_6600e91c
-dat_6600e95c
-dat_6600e99c
-dat_6600e9dc
-dat_6600ea1c
-dat_6600ea5c
-dat_6600ea9c
-dat_6600eadc
-dat_6600eb1c
-dat_6600eb5c
-dat_6600eb9c
-dat_6600ebdc
-dat_6600ec1c
-dat_6600ec5c
-dat_6600ec9c
-dat_6600ecdc
-dat_6600ed1c
-dat_6600ed5c
-dat_6600ed9c
-dat_6600eddc
-dat_6600ee1c
-dat_6600ee5c
-dat_6600ee9c
-dat_6600eedc
-dat_6600ef1c
-dat_6600ef5c
-dat_6600ef9d
-dat_6600efe0
-dat_6600f00e
-dat_6600f040
-dat_6600f06f
-dat_6600f091
-dat_6600f0ca
-dat_6600f0fa
-dat_6600f11a
-dat_6600f13a
-dat_6600f15a
-dat_6600f1f5
-dat_6600f314
-dat_6600f482
-dat_6600f60a
-dat_6600f79e
-dat_6600f803
-dat_6600f823
-dat_6600f843
-dat_6600f863
-dat_6600f885
-dat_6600f8a5
-dat_6600f8c5
-dat_6600f8e5
-dat_6600f905
-dat_6600f925
-dat_6600f94f
-dat_6600f982
-dat_6600f9a5
-dat_6600f9c1
-dat_6600f9d8
-dat_6600fa68
-dat_6600fb14
-dat_6600fb54
-dat_6600fb74
-dat_6600fb94
-dat_6600fbb4
-dat_6600fbd4
-dat_6600fbf4
-dat_6600fc1f
-dat_6600fc4f
-dat_6600fc7f
-dat_6600fcce
-dat_6600fd1e
-dat_6600fd6e
-dat_6600fdbe
-dat_6600fde6
-dat_6600fe06
-dat_6600fe26
-dat_6600fe46
-dat_6600fe66
-dat_6600fe86
-dat_6600ff08
-dat_6600ffa9
-dat_6601004a
-dat_6601008a
-dat_660100a7
-dat_66010104
-dat_66010154
-dat_66010194
-dat_660101c4
-dat_6601020b
-dat_6601025b
-dat_660102ab
-dat_660102fb
-dat_66010337
-dat_66010364
-dat_6601040d
-dat_660104dd
-dat_660105ad
-dat_66010637
-dat_660106d7
-dat_6601071c
-dat_66010845
-dat_660108a1
-dat_660108f5
-dat_6601096b
-dat_660109ba
-dat_660109ee
-dat_66010a1e
-dat_66010a50
-dat_66010a7e
-dat_66010aae
-dat_66010ade
-dat_66010b0f
-dat_66010b3f
-dat_66010b6f
-dat_66010b91
-dat_66010bb1
-dat_66010c11
-dat_66010c4b
-dat_66010c97
-dat_66010ce7
-dat_66010d37
-dat_66010d87
-dat_66010dd7
-dat_66010e27
-dat_66010e53
-dat_66010e80
-dat_66010eb0
-dat_66010ed1
-dat_66010f11
-dat_66010f51
-dat_66010f91
-dat_66010fb4
-dat_66010feb
-dat_6601102b
-dat_6601106b
-dat_66011094
-dat_660110b4
-dat_660110ec
-dat_66011137
-dat_6601117d
-dat_660111a4
-dat_660111c1
-dat_66011233
-dat_660112a4
-dat_66011314
-dat_66011384
-dat_660113b7
-dat_660113e0
-dat_66011489
-dat_66011646
-dat_66011846
-dat_66011a24
-dat_66011c23
-dat_66011d0d
-dat_66011d87
-dat_66011e1d
-dat_66011e9d
-dat_66011f38
-dat_66011f71
-dat_66011f99
-dat_66011fb9
-dat_66011fd1
-dat_66011ff1
-dat_66012011
-dat_66012031
-dat_66012051
-dat_66012080
-dat_660120a3
-dat_660120b5
-dat_660120d1
-dat_66012702
-dat_66012ec1
-dat_66013682
-dat_66013827
-dat_6601384a
-dat_66013882
-dat_660138b8
-dat_660138f9
-dat_6601393c
-dat_6601396d
-dat_6601399d
-dat_660139d5
-dat_66013a05
-dat_66013a26
-dat_66013a5c
-dat_66013a9f
-dat_66013ae8
-dat_66013b2c
-dat_66013b75
-dat_66013bcf
-dat_66013c0c
-dat_66013c45
-dat_66013c75
-dat_66013cac
-dat_66013cf9
-dat_66013d35
-dat_66013d59
-dat_66013d79
-dat_66013df5
-dat_66013e2b
-dat_66013e3b
-dat_66013e4b
-dat_66013e5b
-dat_66013e6b
-dat_66013e83
-dat_66013ea3
-dat_66013ed0
-dat_66013f00
-dat_66013f21
-dat_66013f41
-dat_66013f61
-dat_66013f8d
-dat_66013fbd
-dat_66013fed
-dat_6601401d
-dat_6601404d
-dat_6601407d
-dat_660140b9
-dat_6601410f
-dat_66014133
-dat_66014154
-dat_66014170
-dat_66014199
-dat_660141b9
-dat_660141d9
-dat_660141f4
-dat_66014217
-dat_66014240
-dat_6601430b
-dat_660143cb
-dat_6601445d
-dat_66014541
-dat_66014576
-dat_66014591
-dat_660145d4
-dat_66014644
-dat_660146bd
-dat_66014712
-dat_66014736
-dat_66014751
-dat_66014771
-dat_660147a8
-dat_660147c1
-dat_66014be6
-dat_66015566
+dat: 3257
 dat_66015568 off_66015568
 dat_66015574 byte_66015574
-dat_66015584
-dat_66015666
-dat_660157eb
-dat_66015ac7
-dat_66015b7d
-dat_66015e21
 dat_66015e24 off_66015E24
-dat_660160b7
-dat_66016119
-dat_6601615e
-dat_66016181
-dat_66016332
-dat_660163c5
-dat_66017a2a
 dat_66017a2c off_66017A2C
 dat_66017a7c byte_66017A7C
-dat_66017ab6
-dat_66017b72
 dat_66018f6c off_66018F6C
 dat_66018f8c byte_66018F8C
 dat_66018fa0 off_66018FA0
 dat_66018fc8 byte_66018FC8
-dat_66018fde
-dat_6601901b
-dat_660195b3
-dat_6601961b
-dat_66019684
-dat_66019861
-dat_660199f4
-dat_66019c6a
-dat_66019d98
-dat_66019ee1
-dat_6601a2dd
 dat_6601a2e0 off_6601A2E0
 dat_6601a2f4 byte_6601A2F4
-dat_6601a344
-dat_6601a414
-dat_6601a625
 dat_6601a854 off_6601A854
-dat_6601a864
-dat_6601a92e
-dat_6601bfce
-dat_6601c8e6
 dat_6601c8e8 off_6601C8E8
 dat_6601c8fc byte_6601C8FC
-dat_6601c909
-dat_6601c9bf
-dat_6601caa5
-dat_6601ce5f
-dat_6601d422
-dat_6601d4eb
-dat_6601d7f4
-dat_6601d861
-dat_6601d8bb
-dat_6601dc88
-dat_6601dd76
-dat_6601e2bf
-dat_6601e709
-dat_6601e788
-dat_6601e797
-dat_6601e7a7
-dat_6601eeb7
-dat_6601ef2c
-dat_6601fa4e
-dat_6601fa57
-dat_6601fa67
-dat_6601fc0b
-dat_6601fc51
-dat_6601fc67
-dat_6601fc77
-dat_6601fe71
-dat_66020051
-dat_66020217
-dat_66020352
-dat_66020367
-dat_66020377
-dat_66020387
-dat_660203d1
-dat_66020423
-dat_66020437
-dat_66020447
-dat_66020914
-dat_66020af7
-dat_66020f3b
-dat_66021206
-dat_66021217
-dat_66021263
-dat_66021277
-dat_66021322
-dat_66021486
-dat_660215e6
-dat_660215f7
-dat_6602190f
-dat_66021d39
-dat_66021d47
-dat_66021d57
-dat_66021e96
-dat_6602232f
-dat_660223ce
-dat_66022a01
-dat_66022a35
-dat_66022b5b
-dat_66022c64
-dat_66022cad
-dat_66022cb7
-dat_66023019
-dat_66023027
-dat_6602319a
-dat_660235e2
 dat_660235e4 off_660235E4
 dat_66023610 byte_66023610
-dat_66023626
-dat_66023ba1
 dat_66023ba4 off_66023BA4
 dat_66023bc8 byte_66023BC8
-dat_66023bdc
 dat_66023d70 off_66023D70
 dat_66023d84 byte_66023D84
-dat_66023d92
-dat_66023fed
 dat_66023ff0 off_66023FF0
 dat_66024004 byte_66024004
-dat_66024012
-dat_66027f98
-dat_66027fa8
-dat_66027fb8
-dat_66027fc8
-dat_66027fd8
-dat_66028002
-dat_6602803d
-dat_66028065
-dat_66028085
-dat_660280a5
-dat_660280c5
-dat_660280e5
-dat_6602812f
-dat_6602817f
-dat_660281cf
-dat_6602821f
-dat_6602826f
-dat_66028298
-dat_660282b9
-dat_660282d8
-dat_660282fd
-dat_66028328
-dat_6602836c
-dat_660283bc
-dat_660283e9
-dat_6602842c
-dat_6602847c
-dat_660284cc
-dat_66028520
-dat_66028570
-dat_660285c0
-dat_66028652
-dat_66028699
-dat_66028722
-dat_66028769
-dat_66028789
-dat_660287ac
-dat_660287d6
-dat_66028811
-dat_66028849
-dat_6602887c
-dat_660288a6
-dat_660288cc
-dat_660288f6
-dat_6602891c
-dat_66028946
-dat_6602896c
-dat_66028996
-dat_660289bc
-dat_660289e6
-dat_66028a1c
-dat_66028a5c
-dat_66028a9c
-dat_66028ac7
-dat_66028bc7
-dat_66028cfd
-dat_66028d58
-dat_66028d84
-dat_66028da8
-dat_66028e9d
-dat_66028ef8
-dat_66028fed
-dat_66029048
-dat_6602913d
-dat_6602926d
-dat_660292c8
-dat_660293bd
-dat_66029418
-dat_6602950d
-dat_66029568
-dat_66029588
-dat_6602967d
-dat_660297ad
-dat_66029808
-dat_660298fd
-dat_66029958
-dat_66029a4d
-dat_66029aa8
-dat_66029b9d
-dat_66029bf8
-dat_66029c2f
-dat_66029c6e
-dat_66029caf
-dat_66029cd8
-dat_66029d21
-dat_66029d64
-dat_66029d86
-dat_66029dc0
-dat_66029df3
-dat_66029e25
-dat_66029e55
-dat_66029f66
-dat_6602a01c
-dat_6602a06a
-dat_6602a0d6
-dat_6602a21c
-dat_6602a2aa
-dat_6602a34e
-dat_6602a3e1
-dat_6602a42d
-dat_6602a463
-dat_6602a488
-dat_6602a4a7
-dat_6602a4c8
-dat_6602a4fd
-dat_6602a527
-dat_6602a552
-dat_6602a582
-dat_6602a5b2
-dat_6602a5ea
-dat_6602a62a
-dat_6602a653
-dat_6602a673
-dat_6602a693
-dat_6602a6b3
-dat_6602a6d3
-dat_6602a6f3
-dat_6602a71d
-dat_6602a74d
-dat_6602a77d
-dat_6602a7f3
-dat_6602a83a
-dat_6602a87a
-dat_6602a8ba
-dat_6602a8fa
-dat_6602a93a
-dat_6602a97a
-dat_6602a9ba
-dat_6602a9fa
-dat_6602aa3a
-dat_6602aa7a
-dat_6602aaba
-dat_6602aafa
-dat_6602ab3a
-dat_6602ab6f
-dat_6602ab9e
-dat_6602abcf
-dat_6602abf3
-dat_6602ada5
-dat_6602ae30
-dat_6602ae53
-dat_6602ae73
-dat_6602ae9d
-dat_6602aee1
-dat_6602af0e
-dat_6602af6a
-dat_6602af97
-dat_6602b010
-dat_6602b0a0
-dat_6602b130
-dat_6602b1c0
-dat_6602b21e
-dat_6602b26e
-dat_6602b29c
-dat_6602b2e8
-dat_6602b32c
-dat_6602b36c
-dat_6602b3be
-dat_6602b40e
-dat_6602b45e
-dat_6602b4ae
-dat_6602b4f0
-dat_6602b51c
-dat_6602b54c
-dat_6602b5c3
-dat_6602b62e
-dat_6602b773
-dat_6602b84e
-dat_6602b89c
-dat_6602b8ca
-dat_6602b909
-dat_6602b939
-dat_6602b979
-dat_6602b9c7
-dat_6602ba0e
-dat_6602ba4e
-dat_6602bab6
-dat_6602bb32
-dat_6602bbb2
-dat_6602bbe0
-dat_6602bc00
-dat_6602bc20
-dat_6602bc45
-dat_6602bc65
-dat_6602bc8b
-dat_6602bcbb
-dat_6602bd09
-dat_6602bd59
-dat_6602bd9e
-dat_6602bdd6
-dat_6602bf65
-dat_6602c03d
-dat_6602c0cd
-dat_6602c15d
-dat_6602c1ed
-dat_6602c27d
-dat_6602c2cc
-dat_6602c30c
-dat_6602c34c
-dat_6602c38c
-dat_6602c3cd
-dat_6602c40c
-dat_6602c44c
-dat_6602c48c
-dat_6602c4cc
-dat_6602c50c
-dat_6602c54c
-dat_6602c58c
-dat_6602c5cc
-dat_6602c60c
-dat_6602c64c
-dat_6602c68d
-dat_6602c6cd
-dat_6602c70c
-dat_6602c74c
-dat_6602c78c
-dat_6602c7ca
-dat_6602c80a
-dat_6602c84a
-dat_6602c88a
-dat_6602c8ba
-dat_6602c8da
-dat_6602c8fa
-dat_6602c91a
-dat_6602c93a
-dat_6602c95a
-dat_6602c97a
-dat_6602c99a
-dat_6602c9ba
-dat_6602c9da
-dat_6602c9fa
-dat_6602ca1a
-dat_6602ca3a
-dat_6602ca5a
-dat_6602ca7a
-dat_6602ca94
-dat_6602cb94
-dat_6602cccf
-dat_6602cdb4
-dat_6602cf02
-dat_6602d07e
-dat_6602d1f2
-dat_6602d37a
-dat_6602d50a
-dat_6602d6a9
-dat_6602d827
-dat_6602d997
-dat_6602da49
-dat_6602dad6
-dat_6602db56
-dat_6602dbd6
-dat_6602dc56
-dat_6602dcd8
-dat_6602de66
-dat_6602ded3
-dat_6602df0a
-dat_6602df35
-dat_6602df55
-dat_6602df75
-dat_6602df95
-dat_6602dfb5
-dat_6602dfd5
-dat_6602dff5
-dat_6602e015
-dat_6602e035
-dat_6602e055
-dat_6602e075
-dat_6602e095
-dat_6602e0b5
-dat_6602e0d5
-dat_6602e0f5
-dat_6602e115
-dat_6602e13f
-dat_6602e168
-dat_6602e188
-dat_6602e198
-dat_6602e1a8
-dat_6602e1b8
-dat_6602e1c8
-dat_6602e1f2
-dat_6602e211
-dat_6602e242
-dat_6602e2d4
-dat_6602e384
-dat_6602e443
-dat_6602e4ff
-dat_6602e5be
-dat_6602e67e
-dat_6602e73e
-dat_6602e7ff
-dat_6602e8c3
-dat_6602e97f
-dat_6602ea39
-dat_6602eae9
-dat_6602eb24
-dat_6602eb41
-dat_6602eb63
-dat_6602eb83
-dat_6602eba3
-dat_6602ebc3
-dat_6602ebe3
-dat_6602ec0a
-dat_6602ec24
-dat_6602ec44
-dat_6602ec64
-dat_6602ec84
-dat_6602eca4
-dat_6602ecc4
-dat_6602ece4
-dat_6602ed04
-dat_6602ed24
-dat_6602ed44
-dat_6602ed64
-dat_6602ed84
-dat_6602eda4
-dat_6602edc4
-dat_6602ede4
-dat_6602ee04
-dat_6602ee2f
-dat_6602ee5f
-dat_6602ee8f
-dat_6602eebf
-dat_6602eeef
-dat_6602ef17
-dat_6602ef3f
-dat_6602ef6f
-dat_6602efbe
-dat_6602f00e
-dat_6602f036
-dat_6602f056
-dat_6602f076
-dat_6602f096
-dat_6602f0b6
-dat_6602f0d6
-dat_6602f0f6
-dat_6602f116
-dat_6602f136
-dat_6602f156
-dat_6602f176
-dat_6602f196
-dat_6602f1b6
-dat_6602f1d6
-dat_6602f1f6
-dat_6602f278
-dat_6602f31e
-dat_6602f3b8
-dat_6602f45e
-dat_6602f4fe
-dat_6602f599
-dat_6602f63e
-dat_6602f6da
-dat_6602f77d
-dat_6602f81d
-dat_6602f860
-dat_6602f88a
-dat_6602f8aa
-dat_6602f8ca
-dat_6602f8ea
-dat_6602f914
-dat_6602f944
-dat_6602f979
-dat_6602f9cb
-dat_6602fa1b
-dat_6602fa6b
-dat_6602fabb
-dat_6602fb0b
-dat_6602fb5b
-dat_6602fbab
-dat_6602fbfb
-dat_6602fc4b
-dat_6602fc89
-dat_6602fcc9
-dat_6602fd09
-dat_6602fd47
-dat_6602fd77
-dat_6602fda7
-dat_6602fdd7
-dat_6602fe04
-dat_6602fead
-dat_6602ff7d
-dat_6603004d
-dat_6603011d
-dat_660301ed
-dat_660302bd
-dat_6603038d
-dat_6603045d
-dat_660304e7
-dat_66030557
-dat_660305c7
-dat_66030637
-dat_660306d7
-dat_6603071c
-dat_66030845
-dat_660309a5
-dat_66030a4b
-dat_66030acb
-dat_66030b4b
-dat_66030bcb
-dat_66030c16
-dat_66030c4a
-dat_66030c7e
-dat_66030cae
-dat_66030cde
-dat_66030d0e
-dat_66030d3e
-dat_66030d6e
-dat_66030d9e
-dat_66030dce
-dat_66030dfe
-dat_66030e2e
-dat_66030e60
-dat_66030e8e
-dat_66030ec0
-dat_66030eee
-dat_66030f1e
-dat_66030f4f
-dat_66030f80
-dat_66030fe1
-dat_6603101b
-dat_6603104b
-dat_6603107b
-dat_660310ab
-dat_660310f7
-dat_66031147
-dat_66031197
-dat_660311e7
-dat_66031237
-dat_66031287
-dat_660312d7
-dat_66031327
-dat_66031377
-dat_660313c7
-dat_66031417
-dat_66031467
-dat_660314b7
-dat_66031507
-dat_66031557
-dat_6603157d
-dat_6603162c
-dat_66031681
-dat_660316a4
-dat_660316e1
-dat_66031721
-dat_66031761
-dat_660317a1
-dat_660317e1
-dat_66031821
-dat_66031861
-dat_660318a1
-dat_660318e1
-dat_66031921
-dat_6603195b
-dat_6603199b
-dat_660319db
-dat_66031a1b
-dat_66031a5b
-dat_66031a9b
-dat_66031adb
-dat_66031b18
-dat_66031b84
-dat_66031bb7
-dat_66031c40
-dat_66031cd1
-dat_66031d46
-dat_66031d9f
-dat_66031e11
-dat_66031ecb
-dat_66031f96
-dat_6603212a
-dat_660322fa
-dat_660323b3
-dat_66032423
-dat_6603246c
-dat_660324d2
-dat_6603252f
-dat_66032594
-dat_66032628
-dat_660326c8
-dat_66032796
-dat_66032838
-dat_660328d8
-dat_6603290d
-dat_66032983
-dat_660329b9
-dat_660329d9
-dat_660329f9
-dat_66032a19
-dat_66032a39
-dat_66032a67
-dat_66032a9c
-dat_66032aca
-dat_66032afe
-dat_66032b2a
-dat_66032b4a
-dat_66032b6a
-dat_66032b99
-dat_66032df8
-dat_660334b2
-dat_66033c66
-dat_66034412
-dat_66034bbe
-dat_6603536e
-dat_66035b39
-dat_6603630b
-dat_66036abe
-dat_6603725f
-dat_660379ff
-dat_66037bb1
-dat_66037c60
-dat_66037d30
-dat_66037e2c
-dat_66037f2c
-dat_6603802c
-dat_6603812c
-dat_6603822c
-dat_6603826b
-dat_6603827b
-dat_6603828b
-dat_6603829b
-dat_660382ab
-dat_660382bb
-dat_660382cb
-dat_660382db
-dat_660382eb
-dat_660382fb
-dat_6603830b
-dat_6603831b
-dat_6603832b
-dat_6603833b
-dat_66038353
-dat_66038373
-dat_66038393
-dat_660383b3
-dat_660383d3
-dat_660383f3
-dat_66038413
-dat_6603848a
-dat_660384c0
-dat_660384ed
-dat_6603851d
-dat_6603854d
-dat_6603857d
-dat_660385ad
-dat_660385dd
-dat_66038614
-dat_66038644
-dat_660386b6
-dat_66038736
-dat_660387b2
-dat_66038836
-dat_660388b6
-dat_660388e9
-dat_66038909
-dat_66038929
-dat_66038949
-dat_66038969
-dat_66038989
-dat_660389a9
-dat_660389c9
-dat_660389e9
-dat_66038a09
-dat_66038a6d
-dat_66038ab1
-dat_66038ad4
-dat_66038b79
-dat_66038bee
-dat_66038dae
 dat_66038db0 off_66038DB0
-dat_66038e04
-dat_6603901b
 dat_6603901c off_6603901C
-dat_6603904c
-dat_660390df
-dat_66039127
-dat_66039189
-dat_660391ec
-dat_66039397
-dat_660393bc
-dat_660393d1
-dat_660393fc
-dat_66039411
-dat_6603943c
-dat_66039451
-dat_6603947c
-dat_66039491
-dat_660394bc
-dat_660394d1
-dat_66039526
-dat_66039546
-dat_66039561
-dat_6603958d
-dat_660395ad
-dat_66039674
-dat_6603998a
-dat_660399b8
-dat_660399f8
-dat_66039a48
-dat_66039a98
-dat_66039ae8
-dat_66039b38
-dat_66039b88
-dat_66039bd8
-dat_66039c28
-dat_66039c78
-dat_66039cc8
-dat_66039d18
-dat_66039d92
-dat_66039dc0
-dat_66039de0
-dat_66039e00
-dat_66039e20
-dat_66039e40
-dat_66039e60
-dat_66039e80
-dat_66039ea0
-dat_66039ec0
-dat_66039ee0
-dat_66039f00
-dat_66039f20
-dat_66039f45
-dat_6603a044
-dat_6603a0ba
-dat_6603a0f4
-dat_6603a187
-dat_6603a1cc
-dat_6603a2f5
-dat_6603a39c
-dat_6603a3d4
-dat_6603a479
-dat_6603a4f7
-dat_6603a539
-dat_6603a59f
-dat_6603a5f8
-dat_6603a63b
-dat_6603a694
-dat_6603a754
-dat_6603a7d9
-dat_6603a805
-dat_6603a8bb
-dat_6603a8f5
-dat_6603a90d
-dat_6603a96b
-dat_6603abe7
-dat_6603ace2
-dat_6603ada7
-dat_6603adb7
-dat_6603aff1
-dat_6603b05a
-dat_6603b0b4
-dat_6603b0e9
-dat_6603b109
-dat_6603b128
-dat_6603b143
-dat_6603b17d
-dat_6603b1be
-dat_6603b1e5
-dat_6603b20b
-dat_6603b30f
-dat_6603b372
-dat_6603b3a2
-dat_6603b3d2
-dat_6603b4f5
-dat_6603b562
-dat_6603b584
-dat_6603b621
-dat_6603b677
-dat_6603b6ef
-dat_6603b70c
-dat_6603b752
-dat_6603b7a2
-dat_6603b7d1
-dat_6603b7ed
-dat_6603b7fd
-dat_6603b80d
-dat_6603b84e
-dat_6603b88d
-dat_6603b8b6
-dat_6603b98d
-dat_6603ba61
-dat_6603bad1
-dat_6603bb15
-dat_6603bb49
-dat_6603bb75
-dat_6603bbbf
-dat_6603bbfd
-dat_6603bc33
-dat_6603bc5d
-dat_6603bd83
-dat_6603bea3
-dat_6603c086
-dat_6603c0d1
-dat_6603c197
-dat_6603c74b
-dat_6603c79f
-dat_6603c88e
-dat_6603c8d9
-dat_6603c939
-dat_6603c976
-dat_6603caaa
-dat_6603cacd
-dat_6603cbbc
-dat_6603cbfd
-dat_6603cc35
-dat_6603cc5f
-dat_6603cd1b
-dat_6603cda7
-dat_6603cdc9
-dat_6603cded
-dat_6603ce3e
-dat_6603ce6b
-dat_6603d6e7
 dat_6603d6e8 off_6603D6E8
-dat_6603d6fc
-dat_6603d77d
-dat_6603d7a5
-dat_6603d7c6
-dat_6603d7ea
-dat_6603db5d
-dat_6603db9a
-dat_6603dbda
-dat_6603dc0c
-dat_6603dc2d
-dat_6603dccc
-dat_6603e2c2
-dat_6603edf9
-dat_6603ee2e
-dat_6603ee58
-dat_6603ee7d
-dat_6603eead
-dat_6603eedd
-dat_6603ef0d
-dat_6603ef3d
-dat_6603ef6d
-dat_6603ef9d
-dat_6603efcd
-dat_6603effd
-dat_6603f02d
-dat_6603f05d
-dat_6603f0a1
-dat_6603f0cc
-dat_6603f10e
-dat_6603f191
-dat_6603f1c0
-dat_6603f1e0
-dat_6603f200
-dat_6603f220
-dat_6603f240
-dat_6603f260
-dat_6603f280
-dat_6603f2a0
-dat_6603f2c0
-dat_6603f2e0
-dat_6603f305
-dat_6603f32b
-dat_6603f35b
-dat_6603f4b6
-dat_6603f532
-dat_6603f562
-dat_6603f584
-dat_6603f5b4
-dat_6603f647
-dat_6603f68c
-dat_6603f6cc
-dat_6603f709
-dat_6603f757
-dat_6603f7a5
-dat_6603f7cd
-dat_6603f80a
-dat_6603f885
-dat_6603fb44
-dat_6603fc69
-dat_6603fc88
-dat_6603fcb0
-dat_6603fcf9
-dat_6603fd8e
-dat_6603fea9
-dat_6603ff9c
-dat_6603ffdc
-dat_6603fffe
-dat_6604005b
-dat_660400c8
-dat_6604016a
-dat_660404e9
-dat_660405ae
-dat_660405f6
-dat_6604060d
-dat_6604063c
-dat_6604066c
-dat_66040694
-dat_660406b9
-dat_660406e5
-dat_660408b6
-dat_66040b7e
-dat_66040c75
-dat_66040cb9
-dat_66040cf7
-dat_66040d4f
-dat_66040d8a
-dat_66040db9
-dat_66040ddf
-dat_66040e1d
-dat_66040e5a
-dat_66040e7a
-dat_66040e94
-dat_66040eb9
-dat_66040f3e
-dat_66040fe4
-dat_66041009
-dat_660413ca
-dat_660416e3
-dat_66041c89
-dat_66041ca9
-dat_66041cda
-dat_66041d07
-dat_66041d3a
-dat_66041d67
-dat_66041d88
-dat_66041da8
-dat_66041dc8
-dat_66041dfd
-dat_66041e3d
-dat_66041e8e
-dat_66041ede
-dat_66041fc9
-dat_66042020
-dat_66042040
-dat_66042060
-dat_660420ee
-dat_6604218e
-dat_6604222e
-dat_66042347
-dat_66042487
-dat_660425c7
-dat_660426b8
-dat_6604279c
-dat_6604287c
-dat_660428f8
-dat_66042958
-dat_660429b8
-dat_66042a13
-dat_66042a88
-dat_66042af8
-dat_66042b1d
-dat_66042b9e
-dat_66042dab
-dat_66042faa
 dat_66042fac off_66042FAC
-dat_66042fcc
-dat_66043023
-dat_6604308f
-dat_660430ef
-dat_6604314f
-dat_6604316d
-dat_6604319e
-dat_660431e5
-dat_66043241
-dat_6604329f
-dat_660432df
-dat_66043312
-dat_66043352
-dat_6604337e
-dat_660433d6
-dat_66043403
-dat_66043439
-dat_66043463
-dat_660434cf
-dat_6604350c
-dat_66043569
-dat_6604359e
-dat_660435ce
-dat_660435fe
-dat_66043632
-dat_66043676
-dat_660436ba
-dat_660436e1
-dat_660436fd
-dat_66043866
-dat_660439d6
-dat_66043b48
-dat_66043fa3
-dat_6604400e
-dat_66044074
-dat_660440fa
-dat_66044135
-dat_6604416c
-dat_660441ac
-dat_660441ed
-dat_6604421a
-dat_6604423a
-dat_66044250
-dat_66044283
-dat_660442b3
-dat_660442cd
-dat_660443e8
-dat_6604450c
-dat_66044537
-dat_66044561
-dat_660445cb
-dat_660445fc
-dat_6604462c
-dat_6604468a
-dat_66044799
-dat_660447c5
-dat_660447e4
-dat_6604485a
-dat_6604487c
-dat_66044895
-dat_660448cc
-dat_6604490c
-dat_66044943
-dat_6604496a
-dat_6604498a
-dat_660449b3
-dat_660449e3
-dat_66044a7a
-dat_66044abb
-dat_66044acd
-dat_66044b82
-dat_66044d7d
-dat_66044db3
-dat_66044e35
-dat_66044ecf
-dat_66044f5f
-dat_66044f79
-dat_66044fcb
-dat_66044fff
-dat_66045041
-dat_660450d4
-dat_66045157
-dat_66045239
-dat_660456dd
 dat_660456e0 off_660456E0
-dat_66045700
-dat_66045a6d
-dat_66045ad5
-dat_66045b04
-dat_66045b33
-dat_66045bb7
-dat_66045bf0
-dat_66045c44
-dat_66045c8e
-dat_66045d0a
-dat_66045d2c
-dat_66045d45
-dat_66045d7c
-dat_66045dbc
-dat_66045dfa
-dat_66045e26
-dat_66045e46
-dat_66045e60
-dat_66045f49
-dat_66045fb4
-dat_66045ff3
-dat_66046023
-dat_66046153
-dat_660461db
-dat_660461ed
-dat_66046291
-dat_66046342
-dat_6604637b
-dat_660463a8
-dat_660463db
-dat_66046408
-dat_6604643b
-dat_660464a3
-dat_660464e7
-dat_6604651b
-dat_66046545
-dat_660465b3
-dat_660465ed
-dat_660466f2
-dat_66046722
-dat_660467c1
-dat_660467f8
-dat_66046822
-dat_6604684d
 dat_660469d8 off_660469D8
-dat_66046a0d
-dat_66046a86
-dat_66046c08
-dat_66046d2c
-dat_66046d4d
-dat_6604727f
-dat_660473f4
-dat_6604770d
-dat_66047a11
-dat_66047a65
-dat_66047c21
-dat_66047dae
-dat_66047f14
-dat_6604869d
-dat_660486cd
-dat_66048722
-dat_66048782
-dat_660487b8
-dat_660487da
-dat_6604883f
-dat_66048a65
-dat_66048b8b
-dat_66048bd3
-dat_66048bf3
-dat_66048c21
-dat_66048c47
-dat_66048c64
-dat_66048cfb
-dat_66048db8
-dat_66048e1e
-dat_66048e3f
-dat_66048e60
-dat_66048e9e
-dat_66048ecd
-dat_66048f4a
-dat_66048f9d
-dat_66048fdc
-dat_6604901c
-dat_6604905c
-dat_6604909c
-dat_660490dd
-dat_66049107
-dat_66049127
-dat_66049162
-dat_66049185
-dat_660491a5
-dat_660491ce
-dat_660491fe
-dat_6604922a
-dat_6604924a
-dat_6604926a
-dat_6604928a
-dat_660492a0
-dat_660492c0
-dat_660492e4
-dat_66049304
-dat_66049337
-dat_66049367
-dat_66049387
-dat_660493a7
-dat_66049453
-dat_660495a5
-dat_66049609
-dat_6604961b
-dat_6604962d
-dat_66049640
-dat_660496ea
-dat_66049720
-dat_66049767
-dat_660497f0
-dat_660498a7
-dat_66049d5f
 dat_66049d60 off_66049D60
 dat_66049d78 byte_66049D78
-dat_66049d8a
-dat_6604a13e
-dat_6604a88e
 dat_6604a890 off_6604A890
-dat_6604a8ac
-dat_6604aa79
-dat_6604aab6
-dat_6604afe9
-dat_6604b1c9
-dat_6604b47d
-dat_6604b7ff
-dat_6604b8e6
-dat_6604b916
-dat_6604b97d
-dat_6604b9fd
-dat_6604ba8c
-dat_6604bb19
-dat_6604bb6c
-dat_6604bb99
-dat_6604bbbd
-dat_6604bbe0
-dat_6604bc1d
-dat_6604bc3d
-dat_6604bcbe
-dat_6604bd4b
-dat_6604bdaa
-dat_6604be4b
-dat_6604bea1
-dat_6604bee1
-dat_6604bef8
-dat_6604bf2a
-dat_6604bf88
-dat_6604bfbe
-dat_6604c01e
-dat_6604c05d
-dat_6604c07d
-dat_6604c091
-dat_6604c0a8
-dat_6604c0b8
-dat_6604c0e0
-dat_6604c11b
-dat_6604c146
-dat_6604c15e
-dat_6604c17e
-dat_6604c1cb
-dat_6604c201
-dat_6604c22f
-dat_6604c24e
-dat_6604c27f
-dat_6604c2af
-dat_6604c2d7
-dat_6604c301
-dat_6604c323
-dat_6604c343
-dat_6604c363
-dat_6604c384
-dat_6604c3ba
-dat_6604c429
-dat_6604c46c
-dat_6604c4ac
-dat_6604c4ec
-dat_6604c52c
-dat_6604c585
-dat_6604c6d3
-dat_6604c754
-dat_6604c788
-dat_6604c837
-dat_6604c89b
-dat_6604c8e6
-dat_6604c936
-dat_6604c9f2
-dat_6604ca36
-dat_6604ca56
-dat_6604ca79
-dat_6604ca9b
-dat_6604cacb
-dat_6604cb8c
-dat_6604cbfc
-dat_6604cca9
-dat_6604ccdf
-dat_6604cd01
-dat_6604cd21
-dat_6604cd60
-dat_6604cd8d
-dat_6604cdb9
-dat_6604ce0c
-dat_6604ce40
-dat_6604ce97
-dat_6604cedf
-dat_6604cf1f
-dat_6604cfb7
-dat_6604cfea
-dat_6604d01d
-dat_6604d047
-dat_6604d05e
-dat_6604d07d
-dat_6604d0be
-dat_6604d113
-dat_6604d16a
-dat_6604d1c3
-dat_6604d211
-dat_6604d230
-dat_6604d250
-dat_6604d270
-dat_6604d291
-dat_6604d2aa
-dat_6604d2c0
-dat_6604d2e0
-dat_6604d318
-dat_6604e3fc
-dat_6604e419
-dat_6604e49a
-dat_6604e4e6
-dat_6604e5f3
-dat_6604e60c
-dat_6604e6e2
-dat_6604e815
-dat_6604e84c
-dat_6604e85f
-dat_6604e86c
-dat_6604e919
-dat_6604ea18
-dat_6604ea4b
-dat_6604ea58
-dat_6604ead7
-dat_6604eaeb
-dat_6604edc4
-dat_6604edf6
-dat_6604f06c
-dat_6604f09c
-dat_6604f187
-dat_6604f1a6
-dat_6604f223
-dat_6604f35b
-dat_6604f3bd
-dat_6604f49d
-dat_6604f4c5
-dat_6604f4f5
-dat_6604f525
-dat_6604f532
-dat_6604f59a
-dat_66051a4f
-dat_66051a6f
-dat_66051a8f
-dat_66052a9b
-dat_66052c00
 dat_66053000 ___xc_a void (__cdecl *[1])()
 dat_66053104 QSvgRenderer::staticMetaObject$initializer$ void (__cdecl *)()
 dat_66053108 QGraphicsSvgItem::staticMetaObject$initializer$ void (__cdecl *)()
@@ -18142,671 +16311,298 @@ dat_66053344 ___xi_a void (__cdecl *[1])()
 dat_66053448 pcinit int (__cdecl *)()
 dat_6605354c pinit int (__cdecl *)()
 dat_66053650 ___xi_z void (__cdecl *[1])()
-dat_66053760
-dat_66053764
-dat_66053768
-dat_6605376a
-dat_6605376c
-dat_66053770
-dat_66053774
-dat_66053778
-dat_6605377c
-dat_66053780
-dat_66053784
-dat_66053786
-dat_66053788
-dat_6605378c
-dat_66053790
-dat_66053794
 dat_66053798 aCWorkBuildQt5W_138
-dat_660537ee
 dat_660537f0 aAsize0AsizeAal_9
-dat_6605380e
 dat_66053810 aCWorkBuildQt5W_139
-dat_66053866
 dat_66053868 aCWorkBuildQt5W_140
-dat_660538be
 dat_660538c0 aXRefIssharable_9
 dat_66053900 aCWorkBuildQt5W_141
-dat_66053956
 dat_66053958 aXRefIsstatic_9
-dat_6605396b
 dat_6605396c aIntDAllocAallo_9
 dat_66053984 aDData_9
-dat_6605398e
 dat_66053990 aCWorkBuildQt5W_142
-dat_660539e6
 dat_660539e8 aCWorkBuildQt5W_143
-dat_66053a3e
 dat_66053a40 aIsdetached_10
-dat_66053a4d
 dat_66053a50 aCWorkBuildQt5W_144
-dat_66053aa6
 dat_66053aa8 aXD_9
-dat_66053aaf
 dat_66053ab0 aCWorkBuildQt5W_145
-dat_66053b06
 dat_66053b08 aCWorkBuildQt5W_146
-dat_66053b5e
 dat_66053b60 aUintDSizeDAllo_9
-dat_66053b7a
 dat_66053b7c aAallocDDataSha_9
-dat_66053bb7
 dat_66053bb8 aCWorkBuildQt5W_147
-dat_66053c0e
 dat_66053c10 aDDataUnsharabl_9
-dat_66053c2d
 dat_66053c30 aCWorkBuildQt5W_148
-dat_66053c86
 dat_66053c88 aCWorkBuildQt5W_149
-dat_66053cde
 dat_66053ce0 aDAllocUintAall_9
-dat_66053cf9
 dat_66053cfc aDSizeAsize_9
-dat_66053d0d
 dat_66053d10 aCWorkBuildQt5W_150
-dat_66053d66
 dat_66053d68 aCWorkBuildQt5W_164
-dat_66053dbe
 dat_66053dc0 aAsize0AsizeAal_11
-dat_66053dde
 dat_66053de0 aCWorkBuildQt5W_165
-dat_66053e36
 dat_66053e38 aCWorkBuildQt5W_166
-dat_66053e8e
 dat_66053e90 aXRefIssharable_11
 dat_66053ed0 aVoidThiscallQs_11
-dat_66053f1f
 dat_66053f20 aCWorkBuildQt5W_167
-dat_66053f76
 dat_66053f78 aQsvggraphicsCp
-dat_66053f89
 dat_66053f8c aXRefIsstatic_11
-dat_66053f9f
 dat_66053fa0 aAnimationNoImp
-dat_66053fbb
 dat_66053fbc aIntDAllocAallo_11
 dat_66053fd4 aDData_11
-dat_66053fde
 dat_66053fe0 aCWorkBuildQt5W_168
-dat_66054036
 dat_66054038 aCWorkBuildQt5W_169
-dat_6605408e
 dat_66054090 aIsdetached_12
-dat_6605409d
 dat_660540a0 aCWorkBuildQt5W_170
-dat_660540f6
 dat_660540f8 aXD_11
-dat_660540ff
 dat_66054100 aCWorkBuildQt5W_171
-dat_66054156
 dat_66054158 aCWorkBuildQt5W_172
-dat_660541ae
 dat_660541b0 aUintDSizeDAllo_11
-dat_660541ca
 dat_660541cc aAallocDDataSha_11
-dat_66054207
 dat_66054208 aCWorkBuildQt5W_173
-dat_6605425e
 dat_66054260 aDDataUnsharabl_11
-dat_6605427d
 dat_66054280 aCWorkBuildQt5W_174
-dat_660542d6
 dat_660542d8 aCWorkBuildQt5W_175
-dat_6605432e
 dat_66054330 aDAllocUintAall_11
-dat_66054349
 dat_6605434c aDSizeAsize_11
-dat_6605435d
 dat_66054360 aCWorkBuildQt5W_176
-dat_660543b6
 dat_660543b8 aCWorkBuildQt5W_151
-dat_6605440e
 dat_66054410 aAsize0AsizeAal_10
-dat_6605442e
 dat_66054430 aCWorkBuildQt5W_152
-dat_66054486
 dat_66054488 aCWorkBuildQt5W_153
-dat_660544de
 dat_660544e0 aXRefIssharable_10
 dat_66054520 aCWorkBuildQt5W_154
-dat_66054576
 dat_66054578 aXRefIsstatic_10
-dat_6605458b
 dat_6605458c aIntDAllocAallo_10
 dat_660545a4 aDData_10
-dat_660545ae
 dat_660545b0 aCWorkBuildQt5W_155
-dat_66054606
 dat_66054608 aCWorkBuildQt5W_156
-dat_6605465e
 dat_66054660 aIsdetached_11
-dat_6605466d
 dat_66054670 aCWorkBuildQt5W_157
-dat_660546c6
 dat_660546c8 aXD_10
-dat_660546cf
 dat_660546d0 aCWorkBuildQt5W_158
-dat_66054726
 dat_66054728 aCWorkBuildQt5W_159
-dat_6605477e
 dat_66054780 aUintDSizeDAllo_10
-dat_6605479a
 dat_6605479c aAallocDDataSha_10
-dat_660547d7
 dat_660547d8 aCWorkBuildQt5W_160
-dat_6605482e
 dat_66054830 aDDataUnsharabl_10
-dat_6605484d
 dat_66054850 aCWorkBuildQt5W_161
-dat_660548a6
 dat_660548a8 aCWorkBuildQt5W_162
-dat_660548fe
 dat_66054900 aDAllocUintAall_10
-dat_66054919
 dat_6605491c aDSizeAsize_10
-dat_6605492d
 dat_66054930 aCWorkBuildQt5W_163
-dat_66054986
 dat_66054988 ?LINEBREAK@QSvgText@@0QAVQSvgTspan@@A QSvgTspan *const
 dat_6605498c aQsvggraphicsCp_0
-dat_6605499d
 dat_660549a0 aFormatrangesBa
 dat_66054d60 ?LIGHTER@QSvgFontStyle@@2HB
 dat_66054d64 ?BOLDER@QSvgFontStyle@@2HB
 dat_66054d68 aCWorkBuildQt5W_2
 dat_66054dd0 aIsempty
-dat_66054ddb
 dat_66054de0 aCWorkBuildQt5W_1
 dat_66054e44 aIndexOutOfRang
-dat_66054e5c
 dat_66054e60 ??_7QSvgRefCounted@@6B@
-dat_66054e64
-dat_66054e68
 dat_66054e6c ??_7QSvgStyleProperty@@6B@
-dat_66054e70
-dat_66054e74
-dat_66054e78
-dat_66054e7c
-dat_66054e80
 dat_66054e84 ??_7QSvgFillStyleProperty@@6B@
-dat_66054e88
-dat_66054e8c
-dat_66054e90
-dat_66054e94
-dat_66054e9c
 dat_66054ea0 ??_7QSvgQualityStyle@@6B@
-dat_66054ea4
-dat_66054ea8
-dat_66054eac
-dat_66054eb4
 dat_66054eb8 ??_7QSvgOpacityStyle@@6B@
-dat_66054ebc
-dat_66054ec0
-dat_66054ec4
-dat_66054ecc
 dat_66054ed0 ??_7QSvgFillStyle@@6B@
-dat_66054ed4
-dat_66054ed8
-dat_66054edc
-dat_66054ee4
 dat_66054ee8 ??_7QSvgViewportFillStyle@@6B@
-dat_66054eec
-dat_66054ef0
-dat_66054ef4
-dat_66054efc
 dat_66054f00 ??_7QSvgFontStyle@@6B@
-dat_66054f04
-dat_66054f08
-dat_66054f0c
-dat_66054f14
 dat_66054f18 ??_7QSvgStrokeStyle@@6B@
-dat_66054f1c
-dat_66054f20
-dat_66054f24
 dat_66054f2c aCWorkBuildQt5W_177
 dat_66054f74 aMStrokedasharr
-dat_66054f8a
-dat_66054f90
 dat_66054f94 ??_7QSvgSolidColorStyle@@6B@
-dat_66054f98
-dat_66054f9c
-dat_66054fa0
-dat_66054fa4
-dat_66054fac
 dat_66054fb0 ??_7QSvgGradientStyle@@6B@
-dat_66054fb4
-dat_66054fb8
-dat_66054fbc
-dat_66054fc0
-dat_66054fc4
-dat_66054fc8
 dat_66054fcc ??_7QSvgTransformStyle@@6B@
-dat_66054fd0
-dat_66054fd4
-dat_66054fd8
-dat_66054fdc
-dat_66054fe0
 dat_66054fe4 ??_7QSvgAnimateTransform@@6B@
-dat_66054fe8
-dat_66054fec
-dat_66054ff0
-dat_66054ff4
-dat_66054ff8
 dat_66054ffc ??_7QSvgAnimateColor@@6B@
-dat_66055000
-dat_66055004
-dat_66055008
-dat_6605500c
-dat_66055010
 dat_66055014 ??_7QSvgCompOpStyle@@6B@
-dat_66055018
-dat_6605501c
-dat_66055020
-dat_66055024
-dat_66055028
 dat_6605502c ??_7QSvgNode@@6B@
-dat_66055030
-dat_66055034
-dat_66055038
-dat_6605503c
-dat_66055044
 dat_66055048 ??_7QSvgAnimation@@6B@
-dat_6605504c
-dat_66055050
-dat_66055054
-dat_66055058
-dat_6605505c
-dat_66055060
 dat_66055064 ??_7QSvgArc@@6B@
-dat_66055068
-dat_6605506c
-dat_66055070
-dat_66055074
-dat_6605507c
 dat_66055080 ??_7QSvgEllipse@@6B@
-dat_66055084
-dat_66055088
-dat_6605508c
-dat_66055090
-dat_66055094
-dat_66055098
 dat_6605509c ??_7QSvgCircle@@6B@
-dat_660550a0
-dat_660550a4
-dat_660550a8
-dat_660550ac
-dat_660550b4
 dat_660550b8 ??_7QSvgImage@@6B@
-dat_660550bc
-dat_660550c0
-dat_660550c4
-dat_660550c8
-dat_660550cc
-dat_660550d0
 dat_660550d4 ??_7QSvgLine@@6B@
-dat_660550d8
-dat_660550dc
-dat_660550e0
-dat_660550e4
-dat_660550ec
 dat_660550f0 ??_7QSvgPath@@6B@
-dat_660550f4
-dat_660550f8
-dat_660550fc
-dat_66055100
-dat_66055104
-dat_66055108
 dat_6605510c ??_7QSvgPolygon@@6B@
-dat_66055110
-dat_66055114
-dat_66055118
-dat_6605511c
-dat_66055124
 dat_66055128 ??_7QSvgPolyline@@6B@
-dat_6605512c
-dat_66055130
-dat_66055134
-dat_66055138
-dat_6605513c
-dat_66055140
 dat_66055144 ??_7QSvgRect@@6B@
-dat_66055148
-dat_6605514c
-dat_66055150
-dat_66055154
-dat_6605515c
 dat_66055160 ??_7QSvgText@@6B@
-dat_66055164
-dat_66055168
-dat_6605516c
-dat_66055170
-dat_66055174
-dat_66055178
 dat_6605517c ??_7QSvgTspan@@6B@
-dat_66055180
-dat_66055184
-dat_66055188
-dat_6605518c
 dat_66055194 aTspansShouldBe
-dat_660551c5
 dat_660551d0 aCWorkBuildQt5W_137
 dat_6605521c aTspansShouldBe_0
-dat_6605525c
 dat_66055260 ??_7QSvgUse@@6B@
-dat_66055264
-dat_66055268
-dat_6605526c
-dat_66055270
-dat_66055274
-dat_66055278
 dat_6605527c ??_7QSvgFont@@6B@
 dat_66055284 aIsdetached
-dat_66055291
 dat_66055294 aQvectorTOperat
-dat_660552ab
 dat_660552b0 __real@0000000000000000
-dat_660552b8
 dat_660552c0 __real@3d719799812dea11
-dat_660552c8
 dat_660552d0 __real@3fe0000000000000
-dat_660552d8
 dat_660552e0 __real@3ff0000000000000
-dat_660552e8
 dat_660552f0 __real@3ff199999999999a
-dat_660552f8
 dat_66055300 __real@4000000000000000
-dat_66055308
 dat_66055310 __real@4059000000000000
-dat_66055318
 dat_66055320 __xmm@80000000000000008000000000000000
 dat_66055338 aIrcle char[]
 dat_6605533e byte_6605533E char
 dat_6605533f byte_6605533F char
 dat_66055340 aRx char[]
-dat_66055343
 dat_66055344 aLlipse char[]
-dat_6605534b
 dat_6605534c aRy char[]
-dat_6605534f
 dat_66055350 aMage char[]
-dat_66055355
 dat_66055358 aIne char[]
 dat_6605535c aAth char[]
 dat_66055360 aOlygon char[]
-dat_66055367
 dat_66055368 aOlyline char[]
 dat_66055370 aHorizAdvX_0 char[]
 dat_6605537c aEct char[]
 dat_66055380 aExt char[]
 dat_66055384 aSe char[]
-dat_66055387
 dat_66055388 aCWorkBuildQt5W_31
-dat_660553de
 dat_660553e0 aExtarea char[]
 dat_660553e8 aAsize0AsizeAal_1
-dat_66055406
 dat_66055408 aSpan char[]
-dat_6605540d
 dat_66055410 aCWorkBuildQt5W_32
-dat_66055466
 dat_66055468 aCWorkBuildQt5W_33
-dat_660554be
 dat_660554c0 aXRefIssharable_1
 dat_66055500 aIdeo char[]
-dat_66055505
 dat_66055508 aCWorkBuildQt5W_34
-dat_6605555e
 dat_66055560 aXRefIsstatic_1
-dat_66055573
 dat_66055574 aFontFamily_2 char[]
 dat_66055580 aUnitsPerEm char[]
-dat_6605558d
 dat_66055590 aNimate char[]
-dat_66055597
 dat_66055598 aCWorkBuildQt5W_35
-dat_660555ee
 dat_660555f0 aNimatecolor char[]
 dat_660555fc aIntDAllocAallo_1
 dat_66055614 aDData_1
-dat_6605561e
 dat_66055620 aCWorkBuildQt5W_36
-dat_66055676
 dat_66055678 aIsdetached_2
-dat_66055685
 dat_66055688 aCWorkBuildQt5W_37
-dat_660556de
 dat_660556e0 aNimatemotion char[]
-dat_660556ed
 dat_660556f0 aXD_1
-dat_660556f7
 dat_660556f8 aNimatetransfor char[]
 dat_66055708 aUdio char[]
-dat_6605570d
 dat_66055710 aName char[]
-dat_66055715
 dat_66055718 aCWorkBuildQt5W_38
-dat_6605576e
 dat_66055770 aEsc char[]
 dat_66055774 aUintDSizeDAllo_1
-dat_6605578e
 dat_66055790 aCWorkBuildQt5W_39
-dat_660557e6
 dat_660557e8 aCWorkBuildQt5W_40
-dat_6605583e
 dat_66055840 aDDataUnsharabl_1
-dat_6605585d
 dat_66055860 aIscard char[]
-dat_66055867
 dat_66055868 aCWorkBuildQt5W_41
-dat_660558be
 dat_660558c0 aAallocDDataSha_1
-dat_660558fb
 dat_660558fc aDAllocUintAall_1
-dat_66055915
 dat_66055918 aCWorkBuildQt5W_42
-dat_6605596e
 dat_66055970 aCWorkBuildQt5W_43
-dat_660559c6
 dat_660559c8 aOreignobject char[]
-dat_660559d5
 dat_660559d8 aDSizeAsize_1
-dat_660559e9
 dat_660559ec aAndler char[]
-dat_660559f3
 dat_660559f4 aKern char[]
-dat_660559f9
 dat_660559fc aEtadata char[]
 dat_66055a04 aPath char[]
-dat_66055a09
 dat_66055a0c aRefetch char[]
 dat_66055a14 aCript char[]
-dat_66055a1a
 dat_66055a1c aEt char[]
-dat_66055a1f
 dat_66055a20 Q_PI const long double
 dat_66055a28 aTyle char[]
-dat_66055a2d
 dat_66055a30 aBreak char[]
-dat_66055a36
 dat_66055a38 aInherit
 dat_66055a40 aItle char[]
-dat_66055a45
 dat_66055a48 asc_66055A48 char[]
-dat_66055a4a
 dat_66055a4c aY_4 char[]
-dat_66055a4e
 dat_66055a50 aOnt char[]
 dat_66055a54 aWidth_3 char[]
-dat_66055a5a
 dat_66055a5c aIneargradient char[]
-dat_66055a6a
 dat_66055a6c aHeight_0 char[]
-dat_66055a73
 dat_66055a74 aAdialgradient char[]
-dat_66055a82
 dat_66055a84 aXlinkHref char[]
-dat_66055a8f
 dat_66055a90 aOlidcolor char[]
-dat_66055a9a
 dat_66055a9c aData char[]
-dat_66055aa1
 dat_66055aa4 aBase64 char[]
 dat_66055aac aOntFace char[]
-dat_66055ab5
 dat_66055ab8 aCWorkBuildQt5W_70
-dat_66055b0e
 dat_66055b10 aAsize0AsizeAal_4
-dat_66055b2e
 dat_66055b30 aClassQsvgnodeC
-dat_66055ba1
 dat_66055ba4 aQsvghandlerCpp_12
 dat_66055bb4 aId_1 char[]
-dat_66055bb7
 dat_66055bb8 aQsvghandlerCre
 dat_66055bf8 aCWorkBuildQt5W_71
-dat_66055c4e
 dat_66055c50 aCWorkBuildQt5W_72
-dat_66055ca6
 dat_66055ca8 aOntFaceName char[]
-dat_66055cb6
 dat_66055cb8 aXRefIssharable_4
 dat_66055cf8 aCWorkBuildQt5W_73
-dat_66055d4e
 dat_66055d50 aXRefIsstatic_4
-dat_66055d63
 dat_66055d64 aOntFaceSrc char[]
-dat_66055d71
 dat_66055d74 aQsvghandlerCpp_13
 dat_66055d84 aCouldnTCreateI
 dat_66055da0 aClassQsvgnodeC_0
-dat_66055e11
 dat_66055e14 aXmlId_0 char[]
-dat_66055e1b
 dat_66055e1c aUrl_0 char[]
-dat_66055e21
 dat_66055e24 aOntFaceUri char[]
-dat_66055e31
 dat_66055e34 aLyph char[]
-dat_66055e39
 dat_66055e3c aIssingGlyph char[]
-dat_66055e49
 dat_66055e4c aTop char[]
 dat_66055e50 aX1_1 char[]
-dat_66055e53
 dat_66055e54 aIntDAllocAallo_4
 dat_66055e6c aY1_1 char[]
-dat_66055e6f
 dat_66055e70 aCWorkBuildQt5W_74
-dat_66055ec6
 dat_66055ec8 aCWorkBuildQt5W_75
-dat_66055f1e
 dat_66055f20 aCWorkBuildQt5W_109
-dat_66055f76
 dat_66055f78 aIsdetached_5
-dat_66055f85
 dat_66055f88 aAsize0AsizeAal_7
-dat_66055fa6
 dat_66055fa8 aCWorkBuildQt5W_76
-dat_66055ffe
 dat_66056000 aNone_6 char[]
-dat_66056005
 dat_66056008 aXD_4
-dat_6605600f
 dat_66056010 aX2_0 char[]
-dat_66056013
 dat_66056014 aY2_1 char[]
-dat_66056017
 dat_66056018 aCWorkBuildQt5W_110
-dat_6605606e
 dat_66056070 aCWorkBuildQt5W_111
-dat_660560c6
 dat_660560c8 aCWorkBuildQt5W_77
-dat_6605611e
 dat_66056120 aXRefIssharable_7
 dat_66056160 aDData_4
-dat_6605616a
 dat_6605616c aXRefIsstatic_7
-dat_6605617f
 dat_66056180 aCWorkBuildQt5W_112
-dat_660561d6
 dat_660561d8 aCWorkBuildQt5W_78
-dat_6605622e
 dat_66056230 aUintDSizeDAllo_4
-dat_6605624a
 dat_6605624c aAallocDDataSha_4
-dat_66056287
 dat_66056288 aCWorkBuildQt5W_79
-dat_660562de
 dat_660562e0 aDDataUnsharabl_4
-dat_660562fd
 dat_66056300 aCWorkBuildQt5W_80
-dat_66056356
 dat_66056358 aCWorkBuildQt5W_81
-dat_660563ae
 dat_660563b0 aDAllocUintAall_4
-dat_660563c9
 dat_660563cc aDSizeAsize_4
-dat_660563dd
 dat_660563e0 aCWorkBuildQt5W_82
-dat_66056436
 dat_66056438 aXlinkHref_0 char[]
-dat_66056443
 dat_66056444 aGradienttransf char[]
-dat_66056456
 dat_66056458 aCWorkBuildQt5W_113
-dat_660564ae
 dat_660564b0 aSpreadmethod char[]
-dat_660564bd
 dat_660564c0 aIntDAllocAallo_7
 dat_660564d8 aCWorkBuildQt5W_114
-dat_6605652e
 dat_66056530 aIsdetached_8
-dat_6605653d
 dat_66056540 aCWorkBuildQt5W_115
-dat_66056596
 dat_66056598 aXD_7
-dat_6605659f
 dat_660565a0 aSvg_2 char[]
 dat_660565a4 aGradientunits_0 char[]
-dat_660565b2
 dat_660565b4 aColor_1 char[]
-dat_660565ba
 dat_660565bc aColorOpacity_1 char[]
-dat_660565ca
 dat_660565cc aDData_7
-dat_660565d6
 dat_660565d8 aCWorkBuildQt5W_116
-dat_6605662e
 dat_66056630 aCWorkBuildQt5W_117
-dat_66056686
 dat_66056688 aUintDSizeDAllo_7
-dat_660566a2
 dat_660566a4 aAallocDDataSha_7
-dat_660566df
 dat_660566e0 aCWorkBuildQt5W_118
-dat_66056736
 dat_66056738 aDDataUnsharabl_7
-dat_66056755
 dat_66056758 aCWorkBuildQt5W_119
-dat_660567ae
 dat_660567b0 aCWorkBuildQt5W_120
-dat_66056806
 dat_66056808 s char[]
-dat_66056812
 dat_66056814 aDAllocUintAall_7
-dat_6605682d
 dat_66056830 aCWorkBuildQt5W_121
-dat_66056886
 dat_66056888 aDSizeAsize_7
-dat_66056899
 dat_6605689c aPreserve char[]
-dat_660568a5
 dat_660568a8 aCWorkBuildQt5W_178
-dat_66056901
 dat_66056904 aQregisternorma
 dat_66056920 aQregisternorma_0
-dat_6605698f
 dat_66056990 aDefault char[]
 dat_66056998 aPad char[]
 dat_6605699c aReflect char[]
@@ -18814,1001 +16610,539 @@ dat_660569a4 aSvg_1 char[]
 dat_660569a8 aBoolThiscallQs_2
 dat_66056a0c aQsvghandlerCpp
 dat_66056a1c aObjectbounding_0 char[]
-dat_66056a2e
 dat_66056a30 a1IsAnInvalidVa
-dat_66056a8d
 dat_66056a90 aRepeat char[]
-dat_66056a97
 dat_66056a98 aQsvghandlerCpp_0
 dat_66056aa8 aNode
-dat_66056aad
 dat_66056ab0 aQsvghandlerCpp_1
 dat_66056ac0 aNodeTypeQsvgno
-dat_66056ade
 dat_66056ae0 aX1_0 char[]
-dat_66056ae3
 dat_66056ae4 aY1_0 char[]
-dat_66056ae7
 dat_66056ae8 aCWorkBuildQt5W_44
-dat_66056b3e
 dat_66056b40 aAsize0AsizeAal_2
-dat_66056b5e
 dat_66056b60 aX2_1 char[]
-dat_66056b63
 dat_66056b64 aQsvghandlerCpp_2
 dat_66056b74 aRgb char[]
-dat_66056b79
 dat_66056b7c aMNodesIsempty
-dat_66056b8f
 dat_66056b90 aY2_0 char[]
-dat_66056b93
 dat_66056b94 aXRefIsstatic_2
-dat_66056ba7
 dat_66056ba8 aCWorkBuildQt5W_45
-dat_66056bfe
 dat_66056c00 aCWorkBuildQt5W_46
-dat_66056c56
 dat_66056c58 aXRefIssharable_2
 dat_66056c98 aCWorkBuildQt5W_47
-dat_66056cee
 dat_66056cf0 aBoolThiscallQs_3
 dat_66056d54 aQsvghandlerCpp_3
 dat_66056d64 aTextOrTextarea
 dat_66056da0 aCurrentcolor char[]
-dat_66056dad
 dat_66056db0 aCWorkBuildQt5W_122
-dat_66056e06
 dat_66056e08 aClass char[]
-dat_66056e0e
 dat_66056e10 aAsize0AsizeAal_8
-dat_66056e2e
 dat_66056e30 aBoolThiscallQs_4
 dat_66056e94 aQsvghandlerCpp_4
 dat_66056ea4 aRequiredfeatur_0 char[]
-dat_66056eb5
 dat_66056eb8 aCouldNotAddChi
-dat_66056f07
 dat_66056f08 aRequiredextens_0 char[]
-dat_66056f1b
 dat_66056f1c aXRefIsstatic_8
-dat_66056f2f
 dat_66056f30 aCWorkBuildQt5W_123
-dat_66056f86
 dat_66056f88 aCWorkBuildQt5W_124
-dat_66056fde
 dat_66056fe0 aXRefIssharable_8
 dat_66057020 aCWorkBuildQt5W_125
-dat_66057076
 dat_66057078 aCWorkBuildQt5W_135
-dat_660570ce
 dat_660570d0 aRequiredformat_0 char[]
 dat_660570e0 aCapacityAsize
 dat_660570f4 aQsvghandlerCpp_5
 dat_66057104 aMNodesIsempty_0
-dat_66057117
 dat_66057118 aRequiredfonts char[]
-dat_66057126
 dat_66057128 aBoolThiscallQs_5
 dat_6605718c aQsvghandlerCpp_6
 dat_6605719c aProblemParsing
-dat_660571af
 dat_660571b0 aSystemlanguage char[]
-dat_660571bf
 dat_660571c0 aD_1 char[]
-dat_660571c2
 dat_660571c4 aQsvghandlerCpp_7
 dat_660571d4 aPx char[]
-dat_660571d7
 dat_660571d8 aBoolThiscallQs_6
 dat_6605723c aCouldNotParseN
-dat_66057255
 dat_66057258 aCWorkBuildQt5W_126
-dat_660572ae
 dat_660572b0 aIntDAllocAallo_8
 dat_660572c8 aCWorkBuildQt5W_127
-dat_6605731e
 dat_66057320 aPc char[]
-dat_66057323
 dat_66057324 aIsdetached_9
-dat_66057331
 dat_66057334 aXD_8
-dat_6605733b
 dat_6605733c aPt char[]
-dat_6605733f
 dat_66057340 aCWorkBuildQt5W_128
-dat_66057396
 dat_66057398 aBoolThiscallQs_7
 dat_660573fc aQsvghandlerCpp_8
 dat_6605740c aProblemParsing_0
-dat_6605741f
 dat_66057420 aPoints_0 char[]
-dat_66057427
 dat_66057428 aMm char[]
-dat_6605742b
 dat_6605742c aCm char[]
-dat_6605742f
 dat_66057430 aCWorkBuildQt5W_129
-dat_66057486
 dat_66057488 aDData_8
-dat_66057492
 dat_66057494 aUintDSizeDAllo_8
-dat_660574ae
 dat_660574b0 aCWorkBuildQt5W_130
-dat_66057506
 dat_66057508 aIn char[]
-dat_6605750b
 dat_6605750c aAallocDDataSha_8
-dat_66057547
 dat_66057548 aCWorkBuildQt5W_131
-dat_6605759e
 dat_660575a0 aDDataUnsharabl_8
-dat_660575bd
 dat_660575c0 aCWorkBuildQt5W_132
-dat_66057616
 dat_66057618 aCWorkBuildQt5W_133
-dat_6605766e
 dat_66057670 aDAllocUintAall_8
-dat_66057689
 dat_6605768c aClear char[]
-dat_66057692
 dat_66057694 aDSizeAsize_8
-dat_660576a5
 dat_660576a8 aCWorkBuildQt5W_134
-dat_660576fe
 dat_66057700 aStyle char[]
-dat_66057706
 dat_66057708 aSrc char[]
 dat_6605770c aDst char[]
 dat_66057710 aPoints_1 char[]
-dat_66057717
 dat_66057718 aSrcOver char[]
-dat_66057721
 dat_66057724 aUnicode char[]
 dat_6605772c aDstOver char[]
-dat_66057735
 dat_66057738 aHorizAdvX char[]
 dat_66057744 aSrcIn char[]
-dat_6605774b
 dat_6605774c aD_2 char[]
-dat_6605774e
 dat_66057750 aCWorkBuildQt5W_48
-dat_660577a6
 dat_660577a8 aIntDAllocAallo_2
 dat_660577c0 aCWorkBuildQt5W_49
-dat_66057816
 dat_66057818 aIsdetached_3
-dat_66057825
 dat_66057828 aDstIn char[]
-dat_6605782f
 dat_66057830 aCWorkBuildQt5W_50
-dat_66057886
 dat_66057888 aXD_2
-dat_6605788f
 dat_66057890 aSrcOut char[]
 dat_66057898 aDstOut char[]
 dat_660578a0 aCWorkBuildQt5W_136
-dat_660578f6
 dat_660578f8 aCapacityAsize_0
 dat_6605790c aSrcAtop char[]
-dat_66057915
 dat_66057918 aCWorkBuildQt5W_51
-dat_6605796e
 dat_66057970 aDData_2
-dat_6605797a
 dat_6605797c aUintDSizeDAllo_2
-dat_66057996
 dat_66057998 aCWorkBuildQt5W_52
-dat_660579ee
 dat_660579f0 aCWorkBuildQt5W_53
-dat_66057a46
 dat_66057a48 aDstAtop char[]
-dat_66057a51
 dat_66057a54 aDDataUnsharabl_2
-dat_66057a71
 dat_66057a74 aAallocDDataSha_2
-dat_66057aaf
 dat_66057ab0 aCWorkBuildQt5W_54
-dat_66057b06
 dat_66057b08 aCx_2 char[]
-dat_66057b0b
 dat_66057b0c aXor char[]
 dat_66057b10 aCWorkBuildQt5W_55
-dat_66057b66
 dat_66057b68 aDAllocUintAall_2
-dat_66057b81
 dat_66057b84 aDSizeAsize_2
-dat_66057b95
 dat_66057b98 aCWorkBuildQt5W_56
-dat_66057bee
 dat_66057bf0 aCy_2 char[]
-dat_66057bf3
 dat_66057bf4 aPlus char[]
-dat_66057bf9
 dat_66057bfc aMultiply char[]
-dat_66057c05
 dat_66057c08 aR char[]
-dat_66057c0a
 dat_66057c0c aScreen char[]
-dat_66057c13
 dat_66057c14 aFx_0 char[]
-dat_66057c17
 dat_66057c18 aOverlay char[]
 dat_66057c20 aFy_0 char[]
-dat_66057c23
 dat_66057c24 aDarken char[]
-dat_66057c2b
 dat_66057c2c aLighten char[]
 dat_66057c34 aColorDodge char[]
 dat_66057c40 aCWorkBuildQt5W_96
-dat_66057c96
 dat_66057c98 aAsize0AsizeAal_6
-dat_66057cb6
 dat_66057cb8 aCWorkBuildQt5W_179
-dat_66057d11
 dat_66057d14 aColorBurn char[]
-dat_66057d1f
 dat_66057d20 aQregisternorma_1
-dat_66057d8f
 dat_66057d90 aEvenodd_0 char[]
 dat_66057d98 aQregisternorma_2
 dat_66057db4 aHardLight char[]
-dat_66057dbf
 dat_66057dc0 aNonzero_0 char[]
 dat_66057dc8 aCWorkBuildQt5W_97
-dat_66057e1e
 dat_66057e20 aCWorkBuildQt5W_98
-dat_66057e76
 dat_66057e78 aXRefIssharable_6
 dat_66057eb8 aSoftLight char[]
-dat_66057ec3
 dat_66057ec4 aXRefIsstatic_6
-dat_66057ed7
 dat_66057ed8 aCWorkBuildQt5W_99
-dat_66057f2e
 dat_66057f30 aDifference char[]
-dat_66057f3b
 dat_66057f3c asc_66057F3C char[]
-dat_66057f3e
 dat_66057f40 aExclusion char[]
-dat_66057f4a
 dat_66057f4c aUrl_2 char[]
 dat_66057f50 aEnumQpainterCo
-dat_66057fa5
 dat_66057fa8 aY_1 char[]
-dat_66057faa
 dat_66057fac aQsvghandlerCpp_11
 dat_66057fbc aOperation
 dat_66057fc8 aCWorkBuildQt5W_18
-dat_6605801e
 dat_66058020 aIsNotImplement
 dat_66058034 aAsize0AsizeAal_0
-dat_66058052
 dat_66058054 aWidth_4 char[]
-dat_6605805a
 dat_6605805c aStyle_0 char[]
-dat_66058062
 dat_66058064 aHeight_1 char[]
-dat_6605806b
 dat_6605806c aNone_2 char[]
-dat_66058071
 dat_66058074 aIntDAllocAallo_6
 dat_6605808c aRx_0 char[]
-dat_6605808f
 dat_66058090 aCWorkBuildQt5W_100
-dat_660580e6
 dat_660580e8 aCWorkBuildQt5W_19
-dat_6605813e
 dat_66058140 aCWorkBuildQt5W_101
-dat_66058196
 dat_66058198 aCWorkBuildQt5W_20
-dat_660581ee
 dat_660581f0 aIsdetached_7
-dat_660581fd
 dat_66058200 aXRefIssharable_0
 dat_66058240 aCWorkBuildQt5W_102
-dat_66058296
 dat_66058298 aCWorkBuildQt5W_21
-dat_660582ee
 dat_660582f0 aXD_6
-dat_660582f7
 dat_660582f8 aXRefIsstatic_0
-dat_6605830b
 dat_6605830c aRy_0 char[]
-dat_6605830f
 dat_66058310 aInline char[]
-dat_66058317
 dat_66058318 aBlock char[]
-dat_6605831e
 dat_66058320 aCWorkBuildQt5W_103
-dat_66058376
 dat_66058378 aDData_6
-dat_66058382
 dat_66058384 aListItem char[]
-dat_6605838e
 dat_66058390 aCWorkBuildQt5W_104
-dat_660583e6
 dat_660583e8 aUintDSizeDAllo_6
-dat_66058402
 dat_66058404 aColor char[]
-dat_6605840a
 dat_6605840c aRunIn char[]
-dat_66058413
 dat_66058414 aAallocDDataSha_6
-dat_6605844f
 dat_66058450 aCWorkBuildQt5W_105
-dat_660584a6
 dat_660584a8 aDDataUnsharabl_6
-dat_660584c5
 dat_660584c8 aCWorkBuildQt5W_106
-dat_6605851e
 dat_66058520 aColorOpacity char[]
-dat_6605852e
 dat_66058530 aCWorkBuildQt5W_107
-dat_66058586
 dat_66058588 aDAllocUintAall_6
-dat_660585a1
 dat_660585a4 aCompact char[]
 dat_660585ac aDSizeAsize_6
-dat_660585bd
 dat_660585c0 aCWorkBuildQt5W_108
-dat_66058616
 dat_66058618 aCompOp char[]
 dat_66058620 aMarker char[]
-dat_66058627
 dat_66058628 aCWorkBuildQt5W_22
-dat_6605867e
 dat_66058680 aDisplay char[]
 dat_66058688 aIntDAllocAallo_0
 dat_660586a0 aCWorkBuildQt5W_23
-dat_660586f6
 dat_660586f8 aIsdetached_1
-dat_66058705
 dat_66058708 aVoidThiscallQs_9
 dat_66058748 aTable char[]
-dat_6605874e
 dat_66058750 aCWorkBuildQt5W_24
-dat_660587a6
 dat_660587a8 aQsvghandlerCpp_9
 dat_660587b8 aAtrix
-dat_660587be
 dat_660587c0 aFill_0 char[]
-dat_660587c5
 dat_660587c8 aXD_0
-dat_660587cf
 dat_660587d0 aCouldNotResolv_0
 dat_660587f0 aInlineTable char[]
-dat_660587fd
 dat_66058800 aFillRule_0 char[]
-dat_6605880a
 dat_6605880c aTableRow char[]
-dat_66058816
 dat_66058818 aFillOpacity_1 char[]
-dat_66058825
 dat_66058828 aTableHeaderGro char[]
-dat_6605883b
 dat_6605883c aFontFamily_0 char[]
 dat_66058848 aCWorkBuildQt5W_25
-dat_6605889e
 dat_660588a0 aDData_0
-dat_660588aa
 dat_660588ac aSolidColor char[]
 dat_660588b8 aCWorkBuildQt5W_26
-dat_6605890e
 dat_66058910 aVoidThiscallQs_10
 dat_66058950 aUintDSizeDAllo_0
-dat_6605896a
 dat_6605896c aQsvghandlerCpp_10
 dat_6605897c aTableFooterGro char[]
-dat_6605898f
 dat_66058990 aRanslate
-dat_66058999
 dat_6605899c aCouldNotResolv_1
 dat_660589bc aFontSize_0 char[]
-dat_660589c6
 dat_660589c8 aCWorkBuildQt5W_27
-dat_66058a1e
 dat_66058a20 aDDataUnsharabl_0
-dat_66058a3d
 dat_66058a40 aCWorkBuildQt5W_28
-dat_66058a96
 dat_66058a98 aSolidOpacity char[]
-dat_66058aa6
 dat_66058aa8 aAallocDDataSha_0
-dat_66058ae3
 dat_66058ae4 aTableRow_0 char[]
-dat_66058aee
 dat_66058af0 aCWorkBuildQt5W_29
-dat_66058b46
 dat_66058b48 aFontStyle_0 char[]
-dat_66058b53
 dat_66058b54 aDAllocUintAall_0
-dat_66058b6d
 dat_66058b70 aCWorkBuildQt5W_30
-dat_66058bc6
 dat_66058bc8 aOpacity_4 char[]
 dat_66058bd0 aDSizeAsize_0
-dat_66058be1
 dat_66058be4 aTableColumnGro char[]
-dat_66058bf7
 dat_66058bf8 aFontWeight_0 char[]
 dat_66058c04 aTableColumn char[]
-dat_66058c11
 dat_66058c14 aFontVariant char[]
-dat_66058c21
 dat_66058c24 aOtate
-dat_66058c2a
 dat_66058c2c aTableCell char[]
-dat_66058c37
 dat_66058c38 aOpacity_0 char[]
 dat_66058c40 aTableCaption char[]
-dat_66058c4e
 dat_66058c50 aOffset char[]
-dat_66058c57
 dat_66058c58 aNone_7 char[]
-dat_66058c5d
 dat_66058c60 aTroke char[]
-dat_66058c66
 dat_66058c68 aClass_0 char[]
-dat_66058c6e
 dat_66058c70 aAle
 dat_66058c74 aDasharray char[]
-dat_66058c7f
 dat_66058c80 aDashoffset char[]
 dat_66058c8c aLinecap char[]
-dat_66058c95
 dat_66058c98 aCWorkBuildQt5W_5
-dat_66058cee
 dat_66058cf0 aLinejoin char[]
-dat_66058cfa
 dat_66058cfc aAsize0AsizeAal
-dat_66058d1a
 dat_66058d1c aUrl_1 char[]
-dat_66058d21
 dat_66058d24 aMiterlimit char[]
 dat_66058d30 aOpacity_1 char[]
-dat_66058d39
 dat_66058d3c aWidth_1 char[]
-dat_66058d43
 dat_66058d44 aXRefIsstatic
-dat_66058d57
 dat_66058d58 aCWorkBuildQt5W_6
-dat_66058dae
 dat_66058db0 aCWorkBuildQt5W_7
-dat_66058e06
 dat_66058e08 aXRefIssharable
 dat_66058e48 aCWorkBuildQt5W_8
-dat_66058e9e
 dat_66058ea0 aStopColor_0 char[]
-dat_66058eab
 dat_66058eac a000000
 dat_66058eb4 aStopOpacity_0 char[]
-dat_66058ec1
 dat_66058ec4 aTextAnchor char[]
 dat_66058ed0 aTransform char[]
-dat_66058eda
 dat_66058edc aType_0 char[]
-dat_66058ee1
 dat_66058ee4 aXmlStylesheet char[]
-dat_66058ef3
 dat_66058ef4 aVectorEffect char[]
-dat_66058f02
 dat_66058f04 aFrom char[]
-dat_66058f09
 dat_66058f0c aType char[]
-dat_66058f1a
 dat_66058f1c aVisibility char[]
-dat_66058f27
 dat_66058f28 aTo char[]
-dat_66058f2b
 dat_66058f2c aIntDAllocAallo
 dat_66058f44 aTextCss char[]
-dat_66058f4d
 dat_66058f50 aCWorkBuildQt5W_9
-dat_66058fa6
 dat_66058fa8 aCWorkBuildQt5W_10
-dat_66058ffe
 dat_66059000 aValues char[]
-dat_66059007
 dat_66059008 aIsdetached_0
-dat_66059015
 dat_66059018 aCWorkBuildQt5W_11
-dat_6605906e
 dat_66059070 aXD
-dat_66059077
 dat_66059078 aBegin char[]
-dat_6605907e
 dat_66059080 aHref char[]
-dat_6605908e
 dat_66059090 aDur char[]
 dat_66059094 aColor_0 char[]
-dat_6605909a
 dat_6605909c aDData
-dat_660590a6
 dat_660590a8 aCWorkBuildQt5W_12
-dat_660590fe
 dat_66059100 aAttributename char[]
-dat_6605910e
 dat_66059110 aCWorkBuildQt5W_13
-dat_66059166
 dat_66059168 aUintDSizeDAllo
-dat_66059182
 dat_66059184 aColorOpacity_0 char[]
-dat_66059192
 dat_66059194 aRepeatcount char[]
 dat_660591a0 aCWorkBuildQt5W_14
-dat_660591f6
 dat_660591f8 aDDataUnsharabl
-dat_66059215
 dat_66059218 aCWorkBuildQt5W_15
-dat_6605926e
 dat_66059270 aAallocDDataSha
-dat_660592ab
 dat_660592ac aCompOp_0 char[]
 dat_660592b4 aDAllocUintAall
-dat_660592cd
 dat_660592d0 aCWorkBuildQt5W_16
-dat_66059326
 dat_66059328 aCWorkBuildQt5W_17
-dat_6605937e
 dat_66059380 aDSizeAsize
-dat_66059391
 dat_66059394 aFill_2 char[]
-dat_66059399
 dat_6605939c aDisplay_0 char[]
 dat_660593a4 aFill_1 char[]
-dat_660593a9
 dat_660593ac aQregisternorma_3
 dat_660593c8 aCWorkBuildQt5W_180
-dat_66059421
 dat_66059424 aFillRule_1 char[]
-dat_6605942e
 dat_66059430 aQregisternorma_4
-dat_6605949f
 dat_660594a0 aFillOpacity_2 char[]
-dat_660594ad
 dat_660594b0 aFontFamily_1 char[]
 dat_660594bc aUrl char[]
 dat_660594c0 aFontSize_1 char[]
-dat_660594ca
 dat_660594cc aMs char[]
-dat_660594cf
 dat_660594d0 aFontStyle_1 char[]
-dat_660594db
 dat_660594dc aS char[]
-dat_660594de
 dat_660594e0 aFontWeight_1 char[]
 dat_660594ec aMs_0 char[]
-dat_660594ef
 dat_660594f0 aFontVariant_0 char[]
-dat_660594fd
 dat_66059500 aType_2 char[]
-dat_66059505
 dat_66059508 aNone_3 char[]
-dat_6605950d
 dat_66059510 aS_0 char[]
-dat_66059512
 dat_66059514 aId_2 char[]
-dat_66059517
 dat_66059518 aTextCss_0 char[]
-dat_66059521
 dat_66059524 aOpacity_2 char[]
 dat_6605952c aOffset_0 char[]
-dat_66059533
 dat_66059534 aFill_3 char[]
-dat_66059539
 dat_6605953c aFreeze char[]
-dat_66059543
 dat_66059544 aNone_4 char[]
-dat_66059549
 dat_6605954c aTroke_0 char[]
-dat_66059552
 dat_66059554 aBaseprofile char[]
 dat_66059560 aIndefinite char[]
-dat_6605956b
 dat_6605956c aDasharray_0 char[]
-dat_66059577
 dat_66059578 aWidth_5 char[]
-dat_6605957e
 dat_66059580 aDashoffset_0 char[]
 dat_6605958c aLinecap_0 char[]
-dat_66059595
 dat_66059598 aHeight_2 char[]
-dat_6605959f
 dat_660595a0 aLinejoin_0 char[]
-dat_660595aa
 dat_660595ac aViewbox_0 char[]
 dat_660595b4 aMiterlimit_0 char[]
 dat_660595c0 aMiter char[]
-dat_660595c6
 dat_660595c8 aOpacity_3 char[]
-dat_660595d1
 dat_660595d4 aRound char[]
-dat_660595da
 dat_660595dc aWidth_2 char[]
-dat_660595e3
 dat_660595e4 aType_1 char[]
-dat_660595e9
 dat_660595ec aBevel char[]
-dat_660595f2
 dat_660595f4 aStopColor_1 char[]
-dat_660595ff
 dat_66059600 aButt char[]
-dat_66059605
 dat_66059608 aStopOpacity_1 char[]
-dat_66059615
 dat_66059618 aValues_0 char[]
-dat_6605961f
 dat_66059620 aRound_0 char[]
-dat_66059626
 dat_66059628 aTextAnchor_0 char[]
 dat_66059634 aBegin_0 char[]
-dat_6605963a
 dat_6605963c aSquare char[]
-dat_66059643
 dat_66059644 aTransform_0 char[]
-dat_6605964e
 dat_66059650 aDur_0 char[]
 dat_66059654 aVectorEffect_0 char[]
-dat_66059662
 dat_66059664 aNonScalingStro_1 char[]
-dat_66059677
 dat_66059678 aAttributename_0 char[]
-dat_66059686
 dat_66059688 aVisibility_0 char[]
-dat_66059693
 dat_66059694 aNone_5 char[]
-dat_66059699
 dat_6605969c aXmlId_1 char[]
-dat_660596a3
 dat_660596a4 aRepeatcount_0 char[]
 dat_660596b0 aSvg_3
 dat_660596b4 aG_4
-dat_660596b6
 dat_660596b8 aFill_4 char[]
-dat_660596bd
 dat_660596c0 aDefs_1
-dat_660596c5
 dat_660596c8 aSwitch
-dat_660596cf
 dat_660596d0 aAnimation
-dat_660596da
 dat_660596dc aArc
 dat_660596e0 aCircle
-dat_660596e7
 dat_660596e8 aFrom_0 char[]
-dat_660596ed
 dat_660596f0 aEllipse
 dat_660596f8 aImage_0
-dat_660596fe
 dat_66059700 aLine
-dat_66059705
 dat_66059708 aPath_0
-dat_6605970d
 dat_66059710 aPolygon
 dat_66059718 aTo_0 char[3]
-dat_6605971b
 dat_6605971c aPolyline
-dat_66059725
 dat_66059728 aRect
-dat_6605972d
 dat_66059730 aText_0
-dat_66059735
 dat_66059738 aTextarea
-dat_66059741
 dat_66059744 aUse
 dat_66059748 aBy char[3]
-dat_6605974b
 dat_6605974c aVideo
-dat_66059752
 dat_66059754 aAdditive char[]
-dat_6605975d
 dat_66059760 aSum char[]
 dat_66059764 asc_66059764 char[]
-dat_66059766
 dat_66059768 aY_2 char[]
-dat_6605976a
 dat_6605976c aXxSmall char[]
-dat_66059775
 dat_66059778 aCWorkBuildQt5W_83
-dat_660597ce
 dat_660597d0 aAsize0AsizeAal_5
-dat_660597ee
 dat_660597f0 aXSmall char[]
 dat_660597f8 aXLarge char[]
 dat_66059800 aXxLarge char[]
-dat_66059809
 dat_6605980c aWidth_6 char[]
-dat_66059812
 dat_66059814 aMs_2 char[]
-dat_66059817
 dat_66059818 aCWorkBuildQt5W_84
-dat_6605986e
 dat_66059870 aCWorkBuildQt5W_85
-dat_660598c6
 dat_660598c8 aXRefIssharable_5
 dat_66059908 aSmall char[]
-dat_6605990e
 dat_66059910 aCWorkBuildQt5W_86
-dat_66059966
 dat_66059968 aXRefIsstatic_5
-dat_6605997b
 dat_6605997c aHeight_3 char[]
-dat_66059983
 dat_66059984 aS_3 char[]
-dat_66059986
 dat_66059988 aMedium char[]
-dat_6605998f
 dat_66059990 aLarge char[]
-dat_66059996
 dat_66059998 aMs_1 char[]
-dat_6605999b
 dat_6605999c aS_1 char[]
-dat_6605999e
 dat_660599a0 aNormal_0 char[]
-dat_660599a7
 dat_660599a8 aTranslate char[]
-dat_660599b2
 dat_660599b4 aItalic_0 char[]
-dat_660599bb
 dat_660599bc aScale char[]
-dat_660599c2
 dat_660599c4 aOblique char[]
 dat_660599cc aXlinkHref_1 char[]
-dat_660599d7
 dat_660599d8 aCWorkBuildQt5W_57
-dat_66059a2e
 dat_66059a30 aAsize0AsizeAal_3
-dat_66059a4e
 dat_66059a50 aCWorkBuildQt5W_87
-dat_66059aa6
 dat_66059aa8 aRotate char[]
-dat_66059aaf
 dat_66059ab0 aIntDAllocAallo_5
 dat_66059ac8 aCWorkBuildQt5W_88
-dat_66059b1e
 dat_66059b20 aIsdetached_6
-dat_66059b2d
 dat_66059b30 aCWorkBuildQt5W_89
-dat_66059b86
 dat_66059b88 aSkewx char[]
-dat_66059b8e
 dat_66059b90 aXD_5
-dat_66059b97
 dat_66059b98 aNormal_1 char[]
-dat_66059b9f
 dat_66059ba0 asc_66059BA0 char[]
-dat_66059ba2
 dat_66059ba4 aSkewy char[]
-dat_66059baa
 dat_66059bac aBold char[]
-dat_66059bb1
 dat_66059bb4 aY_3 char[]
-dat_66059bb6
 dat_66059bb8 aCWorkBuildQt5W_58
-dat_66059c0e
 dat_66059c10 aCWorkBuildQt5W_59
-dat_66059c66
 dat_66059c68 aCWorkBuildQt5W_181
-dat_66059cbe
 dat_66059cc0 aXRefIssharable_3
 dat_66059d00 aAsize0AsizeAal_12
-dat_66059d1e
 dat_66059d20 aCWorkBuildQt5W_60
-dat_66059d76
 dat_66059d78 aBolder char[]
-dat_66059d7f
 dat_66059d80 aXRefIsstatic_3
-dat_66059d93
 dat_66059d94 aDData_5
-dat_66059d9e
 dat_66059da0 aCWorkBuildQt5W_90
-dat_66059df6
 dat_66059df8 aFreeze_0 char[]
-dat_66059dff
 dat_66059e00 aCWorkBuildQt5W_91
-dat_66059e56
 dat_66059e58 aHref_0 char[]
-dat_66059e5d
 dat_66059e60 aLighter char[]
 dat_66059e68 aUintDSizeDAllo_5
-dat_66059e82
 dat_66059e84 aIndefinite_0 char[]
-dat_66059e8f
 dat_66059e90 aCWorkBuildQt5W_92
-dat_66059ee6
 dat_66059ee8 aDDataUnsharabl_5
-dat_66059f05
 dat_66059f08 aCWorkBuildQt5W_93
-dat_66059f5e
 dat_66059f60 aAallocDDataSha_5
-dat_66059f9b
 dat_66059f9c aNormal_2 char[]
-dat_66059fa3
 dat_66059fa4 aDAllocUintAall_5
-dat_66059fbd
 dat_66059fc0 aCWorkBuildQt5W_182
-dat_6605a016
 dat_6605a018 aCWorkBuildQt5W_94
-dat_6605a06e
 dat_6605a070 aCWorkBuildQt5W_183
-dat_6605a0c6
 dat_6605a0c8 aXRefIssharable_12
 dat_6605a108 aCWorkBuildQt5W_95
-dat_6605a15e
 dat_6605a160 aCWorkBuildQt5W_184
-dat_6605a1b6
 dat_6605a1b8 aDSizeAsize_5
-dat_6605a1c9
 dat_6605a1cc aSmallCaps char[]
-dat_6605a1d7
 dat_6605a1d8 aXRefIsstatic_12
-dat_6605a1eb
 dat_6605a1ec aStart char[]
-dat_6605a1f2
 dat_6605a1f4 aMiddle char[]
-dat_6605a1fb
 dat_6605a1fc aIntDAllocAallo_3
 dat_6605a214 aEnd char[]
 dat_6605a218 aCWorkBuildQt5W_61
-dat_6605a26e
 dat_6605a270 aCWorkBuildQt5W_62
-dat_6605a2c6
 dat_6605a2c8 aIsdetached_4
-dat_6605a2d5
 dat_6605a2d8 aCWorkBuildQt5W_63
-dat_6605a32e
 dat_6605a330 aXD_3
-dat_6605a337
 dat_6605a338 aClassQsvgnodeC_1
-dat_6605a3a7
 dat_6605a3a8 aQsvghandlerCpp_14
 dat_6605a3b8 aLinkSHasnTBeen
-dat_6605a3d6
 dat_6605a3d8 aCx_0 char[]
-dat_6605a3db
 dat_6605a3dc aCy_0 char[]
-dat_6605a3df
 dat_6605a3e0 aCWorkBuildQt5W_185
-dat_6605a436
 dat_6605a438 aCWorkBuildQt5W_64
-dat_6605a48e
 dat_6605a490 aIntDAllocAallo_12
 dat_6605a4a8 aDData_3
-dat_6605a4b2
 dat_6605a4b4 aR_1 char[]
-dat_6605a4b6
 dat_6605a4b8 aCWorkBuildQt5W_186
-dat_6605a50e
 dat_6605a510 aCWorkBuildQt5W_65
-dat_6605a566
 dat_6605a568 aIsdetached_13
-dat_6605a575
 dat_6605a578 aUintDSizeDAllo_3
-dat_6605a592
 dat_6605a594 aXD_12
-dat_6605a59b
 dat_6605a59c aAallocDDataSha_3
-dat_6605a5d7
 dat_6605a5d8 aCWorkBuildQt5W_187
-dat_6605a62e
 dat_6605a630 aCWorkBuildQt5W_66
-dat_6605a686
 dat_6605a688 aDDataUnsharabl_3
-dat_6605a6a5
 dat_6605a6a8 aCWorkBuildQt5W_67
-dat_6605a6fe
 dat_6605a700 aCWorkBuildQt5W_68
-dat_6605a756
 dat_6605a758 aDAllocUintAall_3
-dat_6605a771
 dat_6605a774 aDSizeAsize_3
-dat_6605a785
 dat_6605a788 aCWorkBuildQt5W_69
-dat_6605a7de
 dat_6605a7e0 aCWorkBuildQt5W_188
-dat_6605a836
 dat_6605a838 aDData_12
-dat_6605a842
 dat_6605a844 aHidden char[]
-dat_6605a84b
 dat_6605a84c aUintDSizeDAllo_12
-dat_6605a866
 dat_6605a868 aCWorkBuildQt5W_189
-dat_6605a8be
 dat_6605a8c0 aEfs char[4]
 dat_6605a8c4 aCollapse char[]
-dat_6605a8cd
 dat_6605a8d0 aCWorkBuildQt5W_190
-dat_6605a926
 dat_6605a928 aDDataUnsharabl_12
-dat_6605a945
 dat_6605a948 aCWorkBuildQt5W_191
-dat_6605a99e
 dat_6605a9a0 aAallocDDataSha_12
-dat_6605a9db
 dat_6605a9dc aDAllocUintAall_12
-dat_6605a9f5
 dat_6605a9f8 aCWorkBuildQt5W_192
-dat_6605aa4e
 dat_6605aa50 aCWorkBuildQt5W_193
-dat_6605aaa6
 dat_6605aaa8 aDSizeAsize_12
-dat_6605aab9
 dat_6605aabc aVg char[3]
-dat_6605aabf
 dat_6605aac0 aWitch char[]
-dat_6605aac6
 dat_6605aac8 aCx_1 char[]
-dat_6605aacb
 dat_6605aacc aNimation char[]
-dat_6605aad5
 dat_6605aad8 aCy_1 char[]
 dat_6605bc64 aQlistTAt
-dat_6605bc71
-dat_6605bc74
 dat_6605bc78 ??_7QSvgStructureNode@@6B@
-dat_6605bc7c
-dat_6605bc80
-dat_6605bc84
-dat_6605bc88
-dat_6605bc8c
-dat_6605bc90
 dat_6605bc94 ??_7QSvgG@@6B@
-dat_6605bc98
-dat_6605bc9c
-dat_6605bca0
-dat_6605bca4
-dat_6605bcac
 dat_6605bcb0 ??_7QSvgDefs@@6B@
-dat_6605bcb4
-dat_6605bcb8
-dat_6605bcbc
-dat_6605bcc0
-dat_6605bcc4
-dat_6605bcc8
 dat_6605bccc ??_7QSvgSwitch@@6B@
-dat_6605bcd0
-dat_6605bcd4
-dat_6605bcd8
-dat_6605bcdc
-dat_6605bce4
 dat_6605bce8 ??_7QSvgTinyDocument@@6B@
-dat_6605bcec
-dat_6605bcf0
-dat_6605bcf4
-dat_6605bcf8
-dat_6605bcfc
-dat_6605bd00
 dat_6605bd04 ??_7QSvgStyleSelector@@6B@
-dat_6605bd08
-dat_6605bd0c
-dat_6605bd10
-dat_6605bd14
-dat_6605bd18
-dat_6605bd1c
-dat_6605bd20
-dat_6605bd24
-dat_6605bd28
-dat_6605bd2c
 dat_6605bd3c aId_0 char[]
-dat_6605bd3f
 dat_6605bd40 aXmlId_2 char[]
-dat_6605bd47
 dat_6605bd48 aClass_1 char[]
-dat_6605bd4e
 dat_6605bd50 sizeTable const long double[7]
 dat_6605bd98 aCWorkBuildQt5W_3
 dat_6605be08 aIdx0IdxS
-dat_6605be1c
 dat_6605be20 aQvectorTAt
 dat_6605be38 aCWorkBuildQt5W_4
-dat_6605be8d
 dat_6605bea0 aThisIsempty
-dat_6605beb1
 dat_6605beb4 aSizeMustBeGrea
 dat_6605bee8 aQvarlengtharra
 dat_6605bf14 aAallocAsize
-dat_6605bf24
 dat_6605bf28 __real@3e80000000000000
 dat_6605bf38 __real@3f50624dd2f1a9fc
 dat_6605bf48 __real@3f91df46a2529d39
@@ -19825,57 +17159,32 @@ dat_6605bfe8 __real@4066800000000000
 dat_6605bff8 __real@408f400000000000
 dat_6605c008 __real@bff0000000000000
 dat_6605c018 aVoidThiscallQs_8
-dat_6605c077
 dat_6605c078 aQsvgnodeCpp
-dat_6605c085
 dat_6605c088 aQsvgnodeTrying
-dat_6605c0b5
 dat_6605c0b8 aCWorkBuildQt5W_194
-dat_6605c10e
 dat_6605c110 aAsize0AsizeAal_13
-dat_6605c12e
 dat_6605c130 aCWorkBuildQt5W_195
-dat_6605c186
 dat_6605c188 aCWorkBuildQt5W_196
-dat_6605c1de
 dat_6605c1e0 aXRefIssharable_13
 dat_6605c220 aCWorkBuildQt5W_197
-dat_6605c276
 dat_6605c278 aXRefIsstatic_13
-dat_6605c28b
 dat_6605c290 aCWorkBuildQt5W_198
-dat_6605c2e6
 dat_6605c2e8 aIntDAllocAallo_13
 dat_6605c300 aCWorkBuildQt5W_199
-dat_6605c356
 dat_6605c358 aIsdetached_14
-dat_6605c365
 dat_6605c368 aCWorkBuildQt5W_200
-dat_6605c3be
 dat_6605c3c0 aXD_13
-dat_6605c3c7
 dat_6605c3c8 aCWorkBuildQt5W_201
-dat_6605c41e
 dat_6605c420 aDData_13
-dat_6605c42a
 dat_6605c430 aCWorkBuildQt5W_202
-dat_6605c486
 dat_6605c488 aUintDSizeDAllo_13
-dat_6605c4a2
 dat_6605c4a8 aCWorkBuildQt5W_203
-dat_6605c4fe
 dat_6605c500 aDDataUnsharabl_13
-dat_6605c51d
 dat_6605c520 aCWorkBuildQt5W_204
-dat_6605c576
 dat_6605c578 aAallocDDataSha_13
-dat_6605c5b3
 dat_6605c5b8 aCWorkBuildQt5W_205
-dat_6605c60e
 dat_6605c610 aDAllocUintAall_13
-dat_6605c629
 dat_6605c62c aDSizeAsize_13
-dat_6605c63d
 dat_6605c640 aCWorkBuildQt5W_206
 dat_6605c7e8 unk_6605C7E8
 dat_6605c7e9 unk_6605C7E9
@@ -19969,1063 +17278,479 @@ dat_6605cc78 aHttpWwwW3OrgGr_18
 dat_6605cdc0 asso_values const char[256]
 dat_6605cdc1 aYyyyyyyyyyyyyy
 dat_6605d634 aQsvgstyleCpp_2
-dat_6605d642
 dat_6605d644 aArgsCount3
-dat_6605d656
 dat_6605d658 aCWorkBuildQt5W_207
-dat_6605d6ae
 dat_6605d6b0 aIntDAllocAallo_14
 dat_6605d6c8 aCWorkBuildQt5W_208
-dat_6605d71e
 dat_6605d720 aIsdetached_15
-dat_6605d72d
 dat_6605d730 aCWorkBuildQt5W_209
-dat_6605d786
 dat_6605d788 aXD_14
-dat_6605d78f
 dat_6605d790 aCWorkBuildQt5W_210
-dat_6605d7e6
 dat_6605d7e8 aDData_14
-dat_6605d7f2
 dat_6605d7f8 aCWorkBuildQt5W_211
-dat_6605d84e
 dat_6605d850 aUintDSizeDAllo_14
-dat_6605d86a
 dat_6605d870 aCWorkBuildQt5W_212
-dat_6605d8c6
 dat_6605d8c8 aDDataUnsharabl_14
-dat_6605d8e5
 dat_6605d8e8 aCWorkBuildQt5W_213
-dat_6605d93e
 dat_6605d940 aAallocDDataSha_14
-dat_6605d97b
 dat_6605d980 aCWorkBuildQt5W_214
-dat_6605d9d6
 dat_6605d9d8 aDAllocUintAall_14
-dat_6605d9f1
 dat_6605d9f4 aDSizeAsize_14
-dat_6605da05
 dat_6605da08 aCWorkBuildQt5W_215
-dat_6605da5e
 dat_6605da60 aVoidThiscallQs_7
-dat_6605da96
 dat_6605da98 aQsvgstyleCpp_1
-dat_6605daa6
 dat_6605daa8 aCouldNotResolv
 dat_6605dac8 aCWorkBuildQt5W_216
-dat_6605db1e
 dat_6605db20 aAsize0AsizeAal_14
-dat_6605db3e
 dat_6605db40 aCWorkBuildQt5W_217
-dat_6605db96
 dat_6605db98 aCWorkBuildQt5W_218
-dat_6605dbee
 dat_6605dbf0 aXRefIssharable_14
 dat_6605dc30 aCWorkBuildQt5W_219
-dat_6605dc86
 dat_6605dc88 aXRefIsstatic_14
-dat_6605dc9b
 dat_6605dca0 aCWorkBuildQt5W_220
-dat_6605dcf6
 dat_6605dcf8 aIntDAllocAallo_15
 dat_6605dd10 aCWorkBuildQt5W_221
-dat_6605dd66
 dat_6605dd68 aIsdetached_16
-dat_6605dd75
 dat_6605dd78 aCWorkBuildQt5W_222
-dat_6605ddce
 dat_6605ddd0 aXD_15
-dat_6605ddd7
 dat_6605ddd8 aCWorkBuildQt5W_223
-dat_6605de2e
 dat_6605de30 aDData_15
-dat_6605de3a
 dat_6605de40 aCWorkBuildQt5W_224
-dat_6605de96
 dat_6605de98 aUintDSizeDAllo_15
-dat_6605deb2
 dat_6605deb8 aCWorkBuildQt5W_225
-dat_6605df0e
 dat_6605df10 aDDataUnsharabl_15
-dat_6605df2d
 dat_6605df30 aCWorkBuildQt5W_226
-dat_6605df86
 dat_6605df88 aAallocDDataSha_15
-dat_6605dfc3
 dat_6605dfc8 aCWorkBuildQt5W_227
-dat_6605e01e
 dat_6605e020 aDAllocUintAall_15
-dat_6605e039
 dat_6605e03c aDSizeAsize_15
-dat_6605e04d
 dat_6605e050 aCWorkBuildQt5W_228
-dat_6605e0a6
 dat_6605e0a8 aThisShouldNotB
-dat_6605e0c3
 dat_6605e0c4 aQsvgstyleCpp
-dat_6605e0d2
 dat_6605e0d4 aThisShouldNotB_0
-dat_6605e0f2
 dat_6605e0f4 aThisShouldNotB_1
-dat_6605e10f
 dat_6605e110 aQsvgstyleCpp_0
-dat_6605e11e
 dat_6605e120 aThisShouldNotB_2
-dat_6605e13e
 dat_6605e140 aCWorkBuildQt5W_229
-dat_6605e196
 dat_6605e198 aAsize0AsizeAal_15
 dat_6605e578 deg2rad const long double
 dat_6605e584 aQlistTOperator
-dat_6605e599
 dat_6605e5a0 aCWorkBuildQt5W_0
 dat_6605e604 aNodeENodeNext
 dat_6605e628 aClassQsvgtinyd
-dat_6605e676
 dat_6605e678 aQsvgtinydocume
-dat_6605e68d
 dat_6605e690 aCannotOpenFile
-dat_6605e6b3
 dat_6605e6b4 aSvgz char[]
-dat_6605e6ba
 dat_6605e6bc aSvgGz char[]
 dat_6605e6c4 unk_6605E6C4
 dat_6605e6c8 aClassQsvgtinyd_0
-dat_6605e716
 dat_6605e718 aQsvgtinydocume_0
-dat_6605e72d
 dat_6605e730 aCannotReadFile
-dat_6605e75d
 dat_6605e760 aVoidThiscallQs_6
 dat_6605e7c4 aQsvgtinydocume_1
-dat_6605e7d9
 dat_6605e7dc aCouldnTFindNod
-dat_6605e807
 dat_6605e808 aCWorkBuildQt5W_230
-dat_6605e861
 dat_6605e864 aQregisternorma_5
 dat_6605e880 aQregisternorma_6
-dat_6605e8ef
 dat_6605e8f0 aCWorkBuildQt5W_231
-dat_6605e949
 dat_6605e94c aQregisternorma_7
 dat_6605e968 aQregisternorma_8
-dat_6605e9d7
 dat_6605e9d8 aClassQmatrixTh
-dat_6605ea31
 dat_6605ea34 aQsvgtinydocume_2
-dat_6605ea49
 dat_6605ea4c aCouldnTFindNod_0
-dat_6605ea77
 dat_6605ea78 aCWorkBuildQt5W_232
-dat_6605ead1
 dat_6605ead4 aQregisternorma_9
 dat_6605eaf0 aQregisternorma_10
-dat_6605eb5f
 dat_6605eb60 aCWorkBuildQt5W_233
-dat_6605ebb6
 dat_6605ebb8 aAsize0AsizeAal_16
-dat_6605ebd6
 dat_6605ebd8 aCWorkBuildQt5W_234
-dat_6605ec2e
 dat_6605ec30 aCWorkBuildQt5W_235
-dat_6605ec86
 dat_6605ec88 aXRefIssharable_15
 dat_6605ecc8 aCWorkBuildQt5W_236
-dat_6605ed1e
 dat_6605ed20 aXRefIsstatic_15
-dat_6605ed33
 dat_6605ed34 aIntDAllocAallo_16
 dat_6605ed4c aDData_16
-dat_6605ed56
 dat_6605ed58 aCWorkBuildQt5W_237
-dat_6605edae
 dat_6605edb0 aCWorkBuildQt5W_238
-dat_6605ee06
 dat_6605ee08 aIsdetached_17
-dat_6605ee15
 dat_6605ee18 aCWorkBuildQt5W_239
-dat_6605ee6e
 dat_6605ee70 aXD_16
-dat_6605ee77
 dat_6605ee78 aCWorkBuildQt5W_240
-dat_6605eece
 dat_6605eed0 aCWorkBuildQt5W_241
-dat_6605ef26
 dat_6605ef28 aUintDSizeDAllo_16
-dat_6605ef42
 dat_6605ef44 aAallocDDataSha_16
-dat_6605ef7f
 dat_6605ef80 aCWorkBuildQt5W_242
-dat_6605efd6
 dat_6605efd8 aDDataUnsharabl_16
-dat_6605eff5
 dat_6605eff8 aCWorkBuildQt5W_243
-dat_6605f04e
 dat_6605f050 aCWorkBuildQt5W_244
-dat_6605f0a6
 dat_6605f0a8 aDAllocUintAall_16
-dat_6605f0c1
 dat_6605f0c4 aDSizeAsize_16
-dat_6605f0d5
 dat_6605f0d8 aCWorkBuildQt5W_245
-dat_6605f12e
 dat_6605f130 aCWorkBuildQt5W_246
-dat_6605f186
 dat_6605f188 aAsize0AsizeAal_17
-dat_6605f1a6
 dat_6605f1a8 aCWorkBuildQt5W_247
-dat_6605f1fe
 dat_6605f200 aCWorkBuildQt5W_248
-dat_6605f256
 dat_6605f258 aXRefIssharable_16
 dat_6605f298 aCWorkBuildQt5W_249
-dat_6605f2ee
 dat_6605f2f0 aXRefIsstatic_16
-dat_6605f303
 dat_6605f304 aIntDAllocAallo_17
 dat_6605f31c aDeviceIsopenDe
-dat_6605f345
 dat_6605f348 aCWorkBuildQt5W_250
-dat_6605f39e
 dat_6605f3a0 aCWorkBuildQt5W_251
-dat_6605f3f6
 dat_6605f3f8 aIsdetached_18
-dat_6605f405
 dat_6605f408 aQsvgtinydocume_3
-dat_6605f41d
 dat_6605f420 aCWorkBuildQt5W_252
-dat_6605f476
 dat_6605f478 aXD_17
-dat_6605f47f
 dat_6605f480 a125
-dat_6605f486
 dat_6605f488 aClassQbytearra
-dat_6605f4cb
 dat_6605f4cc aDData_17
-dat_6605f4d6
 dat_6605f4d8 aCWorkBuildQt5W_253
-dat_6605f52e
 dat_6605f530 aQsvgtinydocume_4
-dat_6605f545
 dat_6605f548 aUnknownError_0
-dat_6605f556
 dat_6605f558 aCWorkBuildQt5W_254
-dat_6605f5ae
 dat_6605f5b0 aCannotInitiali
 dat_6605f5d4 aUintDSizeDAllo_17
-dat_6605f5ee
 dat_6605f5f0 aCWorkBuildQt5W_255
-dat_6605f646
 dat_6605f648 aDDataUnsharabl_17
-dat_6605f665
 dat_6605f668 aCWorkBuildQt5W_256
-dat_6605f6be
 dat_6605f6c0 aAallocDDataSha_17
-dat_6605f6fb
 dat_6605f6fc aDAllocUintAall_17
-dat_6605f715
 dat_6605f718 aCWorkBuildQt5W_257
-dat_6605f76e
 dat_6605f770 aCWorkBuildQt5W_258
-dat_6605f7c6
 dat_6605f7c8 aDSizeAsize_17
-dat_6605f7d9
 dat_6605f7dc aUnknownError_1
-dat_6605f7ea
 dat_6605f7ec aErrorWhileInfl
 dat_6605f810 aClassQbytearra_0
-dat_6605f853
 dat_6605f854 aQsvgtinydocume_5
 dat_6605fc10 __real@426d1a94a2000000
-dat_6605fc18
 dat_6605fc20 qt_meta_stringdata_QSvgRenderer qt_meta_stringdata_QSvgRenderer_t /*%qt_meta_stringdata_QSvgRenderer_t#86CF97F547D01632%*/
 dat_6605fda0 qt_meta_data_QSvgRenderer const unsigned int[94]
 dat_6605ff18 a2repaintneeded_2
 dat_6605ff29 aQsvgrendererCp_0
-dat_6605ff3e
 dat_6605ff40 a2timeout
 dat_6605ff4b aQsvgrendererCp_1
 dat_6605ff60 a2repaintneeded_3
 dat_6605ff71 aQsvgrendererCp_2
-dat_6605ff86
 dat_6605ff88 a2timeout_0
 dat_6605ff93 aQsvgrendererCp_3
 dat_6605ffa8 a2repaintneeded_4
 dat_6605ffb9 aQsvgrendererCp_4
-dat_6605ffce
 dat_6605ffd0 a2timeout_1
 dat_6605ffdb aQsvgrendererCp_5
 dat_6605fff0 aVoidThiscallQs_5
-dat_66060026
 dat_66060028 aQsvgrendererCp
-dat_66060039
 dat_6606003c aQsvgrendererSe
-dat_6606015c
 dat_66060160 ??_SQTimer@@6B@
-dat_66060164
-dat_66060168
-dat_6606016c
-dat_66060170
-dat_66060174
-dat_66060178
-dat_6606017c
-dat_66060180
-dat_66060184
-dat_66060188
 dat_66060198 aCWorkBuildQt5W
 dat_66060208 aD_0
-dat_6606020a
-dat_6606020c
 dat_66060210 ??_7QSvgRenderer@@6B@
-dat_66060214
-dat_66060218
-dat_6606021c
-dat_66060220
-dat_66060224
-dat_66060228
-dat_6606022c
-dat_66060230
-dat_66060234
-dat_66060238
-dat_66060248
 dat_6606024c ??_7QSvgRendererPrivate@@6B@
 dat_66060254 a1update
 dat_6606025e aQsvgwidgetCpp9
 dat_66060270 a2repaintneeded_0
 dat_66060281 aQsvgwidgetCpp8
-dat_66060293
 dat_66060294 a1update_0
 dat_6606029e aQsvgwidgetCpp1
-dat_660602b1
 dat_660602b4 a2repaintneeded_1
 dat_660602c5 aQsvgwidgetCpp1_0
-dat_660602f4
 dat_660602f8 ??_7QSvgWidget@@6BQObject@@@
-dat_660602fc
-dat_66060300
-dat_66060304
-dat_66060308
-dat_6606030c
-dat_66060310
-dat_66060314
-dat_66060318
-dat_6606031c
-dat_66060320
-dat_66060324
-dat_66060328
-dat_6606032c
-dat_66060330
-dat_66060334
-dat_66060338
-dat_6606033c
-dat_66060340
-dat_66060344
-dat_66060348
-dat_6606034c
-dat_66060350
-dat_66060354
-dat_66060358
-dat_6606035c
-dat_66060360
-dat_66060364
-dat_66060368
-dat_6606036c
-dat_66060370
-dat_66060374
-dat_66060378
-dat_6606037c
-dat_66060380
-dat_66060384
-dat_66060388
-dat_6606038c
-dat_66060390
-dat_66060394
-dat_66060398
-dat_6606039c
-dat_660603a0
-dat_660603a4
-dat_660603a8
-dat_660603d0
 dat_660603d4 ??_7QSvgWidget@@6BQPaintDevice@@@
-dat_660603d8
-dat_660603dc
-dat_660603e0
-dat_660603e4
-dat_660603e8
-dat_660603ec
-dat_660603f8
 dat_660603fc ??_7QSvgWidgetPrivate@@6B@
-dat_66060400
-dat_66060404
-dat_66060408
-dat_6606040c
-dat_66060410
-dat_66060414
-dat_66060418
-dat_6606041c
-dat_66060420
-dat_66060424
-dat_66060428
 dat_66060438 qt_meta_stringdata_QGraphicsSvgItem qt_meta_stringdata_QGraphicsSvgItem_t /*%qt_meta_stringdata_QGraphicsSvgItem_t#29E6C0E5348B27AA%*/
 dat_660604c4 aXRefIsstatic_17
-dat_660604d7
 dat_660604d8 qt_meta_data_QGraphicsSvgItem const unsigned int[27]
 dat_66060544 Str2 char[]
-dat_66060564
 dat_66060568 aCWorkBuildQt5W_259
-dat_660605be
 dat_660605c0 aAsize0AsizeAal_18
-dat_660605de
 dat_660605e0 aCWorkBuildQt5W_260
-dat_66060636
 dat_66060638 aCWorkBuildQt5W_261
-dat_6606068e
 dat_66060690 aXRefIssharable_17
 dat_660606d0 aCWorkBuildQt5W_262
-dat_66060726
 dat_66060728 aCWorkBuildQt5W_263
-dat_6606077e
 dat_66060780 aIntDAllocAallo_18
 dat_66060798 aCWorkBuildQt5W_264
-dat_660607ee
 dat_660607f0 aIsdetached_19
-dat_660607fd
 dat_66060800 aCWorkBuildQt5W_265
-dat_66060856
 dat_66060858 aXD_18
-dat_6606085f
 dat_66060860 aCWorkBuildQt5W_266
-dat_660608b6
 dat_660608b8 aDData_18
-dat_660608c2
 dat_660608c8 aCWorkBuildQt5W_267
-dat_6606091e
 dat_66060920 aUintDSizeDAllo_18
-dat_6606093a
 dat_66060940 aCWorkBuildQt5W_268
-dat_66060996
 dat_66060998 aDDataUnsharabl_18
-dat_660609b5
 dat_660609b8 aCWorkBuildQt5W_269
-dat_66060a0e
 dat_66060a10 aAallocDDataSha_18
-dat_66060a4b
 dat_66060a50 aCWorkBuildQt5W_270
-dat_66060aa6
 dat_66060aa8 aDAllocUintAall_18
-dat_66060ac1
 dat_66060ac4 aDSizeAsize_18
-dat_66060ad5
 dat_66060ad8 aCWorkBuildQt5W_271
-dat_66060b2e
 dat_66060b30 aCWorkBuildQt5W_272
-dat_66060b86
 dat_66060b88 aTheSpecifiedIt
 dat_66060bbc aQvectorInsert
-dat_66060d50
 dat_66060d54 ??_7QGraphicsSvgItem@@6BQObject@@@
-dat_66060d58
-dat_66060d5c
-dat_66060d60
-dat_66060d64
-dat_66060d68
-dat_66060d6c
-dat_66060d70
-dat_66060d74
-dat_66060d78
-dat_66060d7c
-dat_66060d8c
 dat_66060d90 ??_7QGraphicsSvgItem@@6BQGraphicsItem@@@
-dat_66060d94
-dat_66060d98
-dat_66060d9c
-dat_66060da0
-dat_66060da4
-dat_66060da8
-dat_66060dac
-dat_66060db0
-dat_66060db4
-dat_66060db8
-dat_66060dbc
-dat_66060dc0
-dat_66060dc4
-dat_66060dc8
-dat_66060dcc
-dat_66060dd0
-dat_66060dd4
-dat_66060dd8
-dat_66060ddc
-dat_66060de0
-dat_66060de4
-dat_66060de8
-dat_66060dec
-dat_66060df0
-dat_66060df4
-dat_66060df8
-dat_66060dfc
-dat_66060e00
-dat_66060e04
-dat_66060e08
-dat_66060e0c
-dat_66060e10
-dat_66060e14
-dat_66060e18
-dat_66060e1c
-dat_66060e20
-dat_66060e40
 dat_66060e44 ??_7QGraphicsSvgItemPrivate@@6B@
-dat_66060e48
-dat_66060e4c
-dat_66060e50
-dat_66060e54
-dat_66060e58
-dat_66060e5c
-dat_66060e60
-dat_66060e64
-dat_66060e68
-dat_66060e6c
-dat_66060e70
-dat_66060e74
-dat_66060e78
-dat_66060e7c
-dat_66060e80
 dat_66060e94 a1QRepaintitem
 dat_66060ea6 aQgraphicssvgit
 dat_66060ec8 a2repaintneeded
 dat_66060ed9 aQgraphicssvgit_0
-dat_66060ef1
 dat_66060f00 aCWorkBuildQt5W_273
-dat_66060f56
 dat_66060f58 aAsize0AsizeAal_19
-dat_66060f76
 dat_66060f78 aCWorkBuildQt5W_274
-dat_66060fce
 dat_66060fd0 aCWorkBuildQt5W_275
-dat_66061026
 dat_66061028 aXRefIssharable_18
 dat_66061068 aCWorkBuildQt5W_276
-dat_660610be
 dat_660610c0 aXRefIsstatic_18
-dat_660610d3
 dat_660610d4 aIntDAllocAallo_19
 dat_660610ec aDData_19
-dat_660610f6
 dat_660610f8 aCWorkBuildQt5W_277
-dat_6606114e
 dat_66061150 aCWorkBuildQt5W_278
-dat_660611a6
 dat_660611a8 aIsdetached_20
-dat_660611b5
 dat_660611b8 aCWorkBuildQt5W_279
-dat_6606120e
 dat_66061210 aXD_19
-dat_66061217
 dat_66061218 aCWorkBuildQt5W_280
-dat_6606126e
 dat_66061270 aCWorkBuildQt5W_281
-dat_660612c6
 dat_660612c8 aUintDSizeDAllo_19
-dat_660612e2
 dat_660612e4 aAallocDDataSha_19
-dat_6606131f
 dat_66061320 aCWorkBuildQt5W_282
-dat_66061376
 dat_66061378 aDDataUnsharabl_19
-dat_66061395
 dat_66061398 aCWorkBuildQt5W_283
-dat_660613ee
 dat_660613f0 aCWorkBuildQt5W_284
-dat_66061446
 dat_66061448 aDAllocUintAall_19
-dat_66061461
 dat_66061464 aDSizeAsize_19
-dat_66061475
 dat_66061478 aCWorkBuildQt5W_285
-dat_660614ce
 dat_660614d0 aCWorkBuildQt5W_286
-dat_66061529
 dat_6606152c aQregisternorma_11
 dat_66061548 aQregisternorma_12
-dat_660615b7
 dat_660615b8 aCWorkBuildQt5W_287
 dat_6606162c aFieldFragmentS
-dat_6606164d
 dat_66061650 aCWorkBuildQt5W_288
 dat_660616c4 aAssumptionInQA
 dat_660616fc aQAssume
-dat_66061707
 dat_66061708 aCWorkBuildQt5W_289
 dat_6606177c aFieldFragmentS_0
-dat_6606179d
 dat_660617a0 aQsvggeneratorC_4
-dat_660617b2
 dat_660617b4 aColorString
-dat_660617c1
 dat_660617c4 aQsvggeneratorC_5
-dat_660617d6
 dat_660617d8 aOpacityString
-dat_660617e7
 dat_660617e8 a123
 dat_660617f0 aVoidThiscallQs
 dat_6606182c aQsvggeneratorC
-dat_6606183e
 dat_66061840 aQsvggeneratorS
-dat_66061887
 dat_66061888 aVoidThiscallQs_0
 dat_660618c8 aQsvggeneratorC_0
-dat_660618da
 dat_660618dc aQregisternorma_13
 dat_660618f8 aQsvggeneratorS_0
-dat_66061945
 dat_66061948 aCWorkBuildQt5W_290
-dat_660619a1
 dat_660619a4 aQsvggeneratorC_1
-dat_660619b6
 dat_660619b8 aQregisternorma_14
-dat_66061a27
 dat_66061a28 aVoidThiscallQs_1
-dat_66061a6a
 dat_66061a6c aQsvggeneratorC_2
-dat_66061a7e
 dat_66061a80 aQsvggeneratorS_1
 dat_66061ad0 aVoidThiscallQs_2
-dat_66061b12
 dat_66061b14 aQsvggeneratorC_3
-dat_66061b26
 dat_66061b28 aQsvggeneratorS_2
 dat_66061b80 aIntThiscallQsv
-dat_66061bd1
 dat_66061bd4 aQsvggeneratorM
-dat_66061c02
 dat_66061c04 aBoolThiscallQs
-dat_66061c41
 dat_66061c44 aQsvggeneratorC_7
-dat_66061c56
 dat_66061c58 aQsvgpaintengin
-dat_66061c83
 dat_66061c84 aBoolThiscallQs_0
-dat_66061cc1
 dat_66061cc4 aQsvggeneratorC_8
-dat_66061cd6
 dat_66061cd8 aQsvgpaintengin_0
-dat_66061d15
 dat_66061d18 aBoolThiscallQs_1
-dat_66061d55
 dat_66061d58 aQsvggeneratorC_9
-dat_66061d6a
 dat_66061d6c f QTextStream /*%QTextStream#3A6C1156E372BCF4%*/ *__cdecl sub(QTextStream /*%QTextStream#3A6C1156E372BCF4%*/ *)
-dat_66061da3
 dat_66061da4 aWidth QTextStream /*%QTextStream#3A6C1156E372BCF4%*/ *__cdecl sub(QTextStream /*%QTextStream#3A6C1156E372BCF4%*/ *)
-dat_66061dad
 dat_66061db0 aQsvgpaintengin_1
-dat_66061dfb
 dat_66061dfc aSvg
-dat_66061e01
 dat_66061e04 aMmHeight
-dat_66061e11
 dat_66061e14 aMm_0
 dat_66061e18 aViewbox
-dat_66061e23
 dat_66061e24 aTitle_0
 dat_66061e2c aTitle
-dat_66061e35
 dat_66061e38 aXmlnsHttpWwwW3 QTextStream /*%QTextStream#3A6C1156E372BCF4%*/ *__cdecl sub(QTextStream /*%QTextStream#3A6C1156E372BCF4%*/ *)
-dat_66061eaa
 dat_66061eac aDesc_0
-dat_66061eb3
 dat_66061eb4 aDesc
 dat_66061ebc aDefs
 dat_66061ec4 aG
 dat_66061ec8 aDefs_0
-dat_66061ed1
 dat_66061ed4 aUtf8
-dat_66061eda
 dat_66061edc aG_0
-dat_66061ee1
 dat_66061ee4 aG_1 QTextStream /*%QTextStream#3A6C1156E372BCF4%*/ *__cdecl sub(QTextStream /*%QTextStream#3A6C1156E372BCF4%*/ *)
-dat_66061ee9
 dat_66061eec aSvg_0
-dat_66061ef3
 dat_66061ef4 aImage
 dat_66061efc asc_66061EFC
 dat_66061f00 aY_0
-dat_66061f06
 dat_66061f08 aWidth_0
-dat_66061f12
 dat_66061f14 aHeight
-dat_66061f1f
 dat_66061f20 aPreserveaspect_0
-dat_66061f3e
 dat_66061f40 aPng
 dat_66061f44 aXlinkHrefDataI
-dat_66061f67
 dat_66061f68 asc_66061F68
-dat_66061f6e
 dat_66061f70 aG_2
-dat_66061f77
 dat_66061f78 aG_3
 dat_66061f7c aTransformMatri
-dat_66061f8f
 dat_66061f90 asc_66061F90
-dat_66061f93
 dat_66061f94 aOpacity
-dat_66061f9e
 dat_66061fa0 aCWorkBuildQt5W_291
-dat_66061ff9
 dat_66061ffc aQregisternorma_15
 dat_66062018 aQregisternorma_16
-dat_66062087
 dat_66062088 asc_66062088
-dat_6606208b
 dat_6606208c aPathVectorEffe
-dat_660620a2
 dat_660620a4 aNonScalingStro
-dat_660620b7
 dat_660620b8 aNone
-dat_660620bd
 dat_660620c0 aFillRule
-dat_660620ce
 dat_660620d0 aEvenodd
 dat_660620d8 aNonzero
 dat_660620e0 aD
-dat_660620e6
 dat_660620e8 aCWorkBuildQt5W_292
-dat_6606213e
 dat_66062140 aQsvggeneratorC_6
-dat_66062152
 dat_66062154 aAsize0AsizeAal_20
-dat_66062172
 dat_66062174 aPatternString
-dat_66062183
 dat_66062184 aXRefIsstatic_19
-dat_66062197
 dat_66062198 aCWorkBuildQt5W_293
-dat_660621ee
 dat_660621f0 aCWorkBuildQt5W_294
-dat_66062246
 dat_66062248 aXRefIssharable_19
 dat_66062288 aCWorkBuildQt5W_295
-dat_660622de
 dat_660622e0 asc_660622E0 QTextStream /*%QTextStream#3A6C1156E372BCF4%*/ *__cdecl sub(QTextStream /*%QTextStream#3A6C1156E372BCF4%*/ *)
 dat_660622e4 aQsvggeneratorC_10
-dat_660622f6
 dat_660622f8 aPointcount2
 dat_66062308 aPolylineFillNo
-dat_6606232e
 dat_66062330 aCWorkBuildQt5W_296
-dat_66062386
 dat_66062388 aNonScalingStro_0
-dat_6606239b
 dat_6606239c aIntDAllocAallo_20
 dat_660623b4 aNone_0
-dat_660623b9
 dat_660623bc a1
 dat_660623c0 aCWorkBuildQt5W_297
-dat_66062416
 dat_66062418 aPoints
-dat_66062423
 dat_66062424 aIsdetached_21
-dat_66062431
 dat_66062434 aXD_20
-dat_6606243b
 dat_6606243c aIpos0
-dat_66062446
 dat_66062448 aCWorkBuildQt5W_298
-dat_6606249e
 dat_660624a0 asc_660624A0
-dat_660624a5
 dat_660624a8 aCWorkBuildQt5W_299
-dat_6606251f
 dat_66062520 aCWorkBuildQt5W_300
-dat_66062576
 dat_66062578 aDData_20
-dat_66062582
 dat_66062584 aIposGradientSt
-dat_660625a3
 dat_660625a4 aUintDSizeDAllo_20
-dat_660625be
 dat_660625c0 aCWorkBuildQt5W_301
-dat_66062637
 dat_66062638 aCWorkBuildQt5W_302
-dat_6606268e
 dat_66062690 aCWorkBuildQt5W_303
-dat_660626e6
 dat_660626e8 aDDataUnsharabl_20
-dat_66062705
 dat_66062708 aCWorkBuildQt5W_304
-dat_6606275e
 dat_66062760 aTextFill
-dat_6606276d
 dat_66062770 aAallocDDataSha_20
-dat_660627ab
 dat_660627ac aFillOpacity
-dat_660627bd
 dat_660627c0 aCWorkBuildQt5W_305
-dat_66062816
 dat_66062818 aStrokeNoneXmlS
-dat_66062841
 dat_66062844 aDAllocUintAall_20
-dat_6606285d
 dat_66062860 aY
-dat_66062866
 dat_66062868 aCWorkBuildQt5W_306
-dat_660628be
 dat_660628c0 asc_660628C0 QTextStream /*%QTextStream#3A6C1156E372BCF4%*/ *__cdecl sub(QTextStream /*%QTextStream#3A6C1156E372BCF4%*/ *)
-dat_660628c3
 dat_660628c4 aDSizeAsize_20
-dat_660628d5
 dat_660628d8 asc_660628D8
-dat_660628db
 dat_660628dc aText
-dat_66062e14
 dat_66062e18 ??_SQTextStream@@6B@
-dat_66062e1c
-dat_66062e20
 dat_66062e24 ??_SQFile@@6B@
-dat_66062e28
-dat_66062e2c
-dat_66062e30
-dat_66062e34
-dat_66062e38
-dat_66062e3c
-dat_66062e40
-dat_66062e44
-dat_66062e48
-dat_66062e4c
-dat_66062e50
-dat_66062e54
-dat_66062e58
-dat_66062e5c
-dat_66062e60
-dat_66062e64
-dat_66062e68
-dat_66062e6c
-dat_66062e70
-dat_66062e74
-dat_66062e78
-dat_66062e7c
-dat_66062e80
-dat_66062e84
-dat_66062e88
-dat_66062e8c
-dat_66062e90
-dat_66062e94
-dat_66062e98
-dat_66062e9c
-dat_66062ebc
 dat_66062ec0 ??_7QSvgGenerator@@6B@
-dat_66062ec4
-dat_66062ec8
-dat_66062ecc
-dat_66062ed0
-dat_66062ed4
-dat_66062ed8
-dat_66062ee4
 dat_66062ee8 ??_7QSvgPaintEnginePrivate@@6B@
-dat_66062eec
 dat_66062ef4 aQtSvgDocument char[]
-dat_66062f04
 dat_66062f08 aGeneratedWithQ char[]
-dat_66062f1a
 dat_66062f20 aSerif char[]
-dat_66062f26
 dat_66062f28 a10pt char[]
-dat_66062f2d
 dat_66062f30 aNormal char[]
-dat_66062f37
 dat_66062f38 aGradient1
-dat_66062f43
-dat_66062f48
 dat_66062f4c ??_7QSvgPaintEngine@@6B@
-dat_66062f50
-dat_66062f54
-dat_66062f58
-dat_66062f5c
-dat_66062f60
-dat_66062f64
-dat_66062f68
-dat_66062f6c
-dat_66062f70
-dat_66062f74
-dat_66062f78
-dat_66062f7c
-dat_66062f80
-dat_66062f84
-dat_66062f88
-dat_66062f8c
-dat_66062f90
-dat_66062f94
-dat_66062f98
-dat_66062f9c
 dat_66062fb4 aQsvggeneratorC_11
 dat_66062fcc aIsactive
 dat_66062fdc aLineargradient char[]
-dat_66062fed
 dat_66062ff0 aX1 char[]
-dat_66062ff5
 dat_66062ff8 asc_66062FF8 char[]
-dat_66062ffb
 dat_66062ffc aY1 char[]
-dat_66063001
 dat_66063004 aX2 char[]
-dat_66063009
 dat_6606300c aY2 char[]
-dat_66063011
 dat_66063014 aId char[]
-dat_66063019
 dat_6606301c asc_6606301C char[]
 dat_66063020 aLineargradient_0 char[]
-dat_66063032
 dat_66063038 aRadialgradient char[]
-dat_66063049
 dat_6606304c aCx char[]
-dat_66063051
 dat_66063054 aCy char[]
-dat_66063059
 dat_6606305c aR_0 char[]
 dat_66063060 aFx char[]
-dat_66063065
 dat_66063068 aFy char[]
-dat_6606306d
 dat_66063070 aXmlId char[]
-dat_66063079
 dat_6606307c aRadialgradient_0 char[]
 dat_66063098 aVoidThiscallQs_4
 dat_660630fc aSvgSDonTSuppor
 dat_6606312c a123_0
-dat_66063134
 dat_66063138 aStopOffset char[]
-dat_6606314b
 dat_66063150 aStopColor char[]
-dat_6606315d
 dat_66063160 aStopOpacity char[]
 dat_66063174 asc_66063174 char[]
-dat_6606317a
 dat_6606317c aGradientunits char[]
-dat_6606318c
 dat_66063190 aObjectbounding char[]
-dat_660631a2
 dat_660631a8 aUserspaceonuse char[]
 dat_660631bc aFillNone char[]
-dat_660631c9
 dat_660631cc aStrokeBlack char[]
-dat_660631dc
 dat_660631e0 aStrokeWidth1 char[]
-dat_660631f2
 dat_660631f8 aFillRuleEvenod char[]
 dat_66063214 aStrokeLinecapS char[]
 dat_66063234 aStrokeLinejoin char[]
 dat_66063254 asc_66063254 char[]
-dat_66063257
 dat_66063258 aStrokeNone char[]
 dat_6606326c aNone_1 char[]
-dat_66063271
 dat_66063274 aStroke char[]
-dat_6606327d
 dat_66063280 aStrokeOpacity char[]
-dat_66063291
 dat_66063294 aStrokeDasharra char[]
 dat_660632ac aStrokeDashoffs char[]
 dat_660632c4 aVoidThiscallQs_3
-dat_66063303
 dat_66063310 aUnsupportedPen
 dat_6606332c aStrokeWidth
-dat_6606333b
 dat_66063340 aStrokeLinecapB
 dat_6606335c aStrokeLinecapR
-dat_66063374
 dat_66063378 aUnhandledCapSt
-dat_6606338c
 dat_66063390 aStrokeLinejoin_0
 dat_660633c4 aStrokeLinejoin_1
 dat_660633e4 aUnhandledJoinS
-dat_660633f9
 dat_66063400 aFill
-dat_66063407
 dat_66063408 aFillOpacity_0
-dat_66063419
 dat_6606341c aUrl1
-dat_66063425
 dat_66063428 aFillUrl char[]
-dat_66063434
 dat_66063438 asc_66063438 char[]
 dat_6606343c aItalic char[]
-dat_66063443
 dat_66063444 aFontFamily
-dat_66063452
 dat_66063454 aFontSize
-dat_66063462
 dat_66063464 aFontWeight
-dat_66063474
 dat_66063478 aFontStyle
-dat_66063487
 dat_66063490 __real@3f947ae147ae147b
-dat_66063498
 dat_660634a0 __real@4039666666666666
-dat_660634a8
 dat_660634b0 __real@4052000000000000
-dat_660634b8
 dat_660634c0 qt_meta_stringdata_QSvgWidget qt_meta_stringdata_QSvgWidget_t /*%qt_meta_stringdata_QSvgWidget_t#326F51B5439BF749%*/
 dat_66063530 qt_meta_data_QSvgWidget const unsigned int[31]
-dat_66065794
 dat_66065798 ??_7error_category@std@@6B@
-dat_6606579c
-dat_660657a0
-dat_660657a4
-dat_660657a8
-dat_660657ac
-dat_660657b8
 dat_660657bc ??_7_Generic_error_category@std@@6B@
-dat_660657c0
-dat_660657c4
-dat_660657c8
-dat_660657cc
-dat_660657d0
 dat_660657dc aGeneric
-dat_660657e4
 dat_660657e8 aUnknownError
-dat_660657f6
-dat_660657f8
 dat_660657fc ??_7_Iostream_error_category@std@@6B@
-dat_66065800
-dat_66065804
-dat_66065808
-dat_6606580c
-dat_66065810
 dat_6606581c aIostream
-dat_66065825
 dat_66065828 _Ptr char[]
-dat_66065844
 dat_66065848 ??_7_System_error_category@std@@6B@
-dat_6606584c
-dat_66065850
-dat_66065854
-dat_66065858
-dat_6606585c
 dat_66065868 aSystem
-dat_6606586f
 dat_66065870 _File wchar_t
 dat_6606590c aStringTooLong
-dat_6606591c
 dat_66065920 aInvalidStringP
 dat_6606593c aInvalidNullPoi
 dat_6606596e ?value@?$integral_constant@_N$0A@@std@@2_NB
 dat_6606596f ?value@?$integral_constant@_N$00@std@@2_NB
-dat_66065970
 dat_66065974 ??_7type_info@@6B@
 dat_66065978 GS_ExceptionPointers _EXCEPTION_POINTERS /*%_EXCEPTION_POINTERS#D9443E4AA8E6A18C%*/
 dat_66065980 aOnexitbeginNul
-dat_66065a42
 dat_66065a44 aS_2
-dat_66065a4a
 dat_66065a50 aFDdVctoolsCrtC
-dat_66065aaa
 dat_66065aac aFDdVctoolsCrtC_0
-dat_66065ad9
 dat_66065adc __pRawDllMain int (__stdcall *const )(void *, unsigned int, void *)
 dat_66065ae0 aFDdVctoolsCrtC_1
-dat_66065b0b
 dat_66065b0c ?ProcessDetach@NativeDll@_CrtImplementationDetails_@@0IB
 dat_66065b10 ?ProcessAttach@NativeDll@_CrtImplementationDetails_@@0IB
 dat_66065b14 ?ThreadAttach@NativeDll@_CrtImplementationDetails_@@0IB
@@ -21033,1302 +17758,265 @@ dat_66065b18 ?ThreadDetach@NativeDll@_CrtImplementationDetails_@@0IB
 dat_66065b1c ?ProcessVerifier@NativeDll@_CrtImplementationDetails_@@0IB
 dat_66065b20 __load_config_used IMAGE_LOAD_CONFIG_DIRECTORY32_2 /*%IMAGE_LOAD_CONFIG_DIRECTORY32_2#8F39F6612E08301F%*/
 dat_66065d90 asc_66065D90
-dat_66065d94  GUID /*%GUID#FF55B3DC43340C92%*/
-dat_66065da4
-dat_66065da8
 dat_66065ddc unk_66065DDC
 dat_66065f04 ??_R4QSvgNode@@6B@
-dat_66065f08
-dat_66065f0c
-dat_66065f10
-dat_66065f14
 dat_66065f1c ??_R3QSvgNode@@8
-dat_66065f20
-dat_66065f24
-dat_66065f28
-dat_66065f2c
 dat_66065f30 ??_R2QSvgNode@@8
-dat_66065f34
 dat_66065f38 ??_R1A@?0A@EA@QSvgNode@@8
-dat_66065f3c
-dat_66065f40
-dat_66065f44
-dat_66065f48
-dat_66065f4c
-dat_66065f50
 dat_66065f5c ??_R4QSvgFont@@6B@
-dat_66065f60
-dat_66065f64
-dat_66065f68
-dat_66065f6c
 dat_66065f74 ??_R3QSvgFont@@8
-dat_66065f78
-dat_66065f7c
-dat_66065f80
-dat_66065f84
 dat_66065f88 ??_R2QSvgFont@@8
-dat_66065f8c
 dat_66065f94 ??_R1A@?0A@EA@QSvgFont@@8
-dat_66065f98
-dat_66065f9c
-dat_66065fa0
-dat_66065fa4
-dat_66065fa8
-dat_66065fac
 dat_66065fb8 ??_R1A@?0A@EA@QSvgRefCounted@@8
-dat_66065fbc
-dat_66065fc0
-dat_66065fc4
-dat_66065fc8
-dat_66065fcc
-dat_66065fd0
 dat_66065fdc ??_R3QSvgRefCounted@@8
-dat_66065fe0
-dat_66065fe4
-dat_66065fe8
-dat_66065fec
 dat_66065ff0 ??_R2QSvgRefCounted@@8
-dat_66065ff4
 dat_66065ff8 ??_R4QSvgRefCounted@@6B@
-dat_66065ffc
-dat_66066000
-dat_66066004
-dat_66066008
-dat_6606600c
 dat_66066010 ??_R4QSvgStyleProperty@@6B@
-dat_66066014
-dat_66066018
-dat_6606601c
-dat_66066020
-dat_66066024
 dat_66066028 ??_R3QSvgStyleProperty@@8
-dat_6606602c
-dat_66066030
-dat_66066034
 dat_6606603c ??_R2QSvgStyleProperty@@8
-dat_66066040
-dat_66066044
 dat_66066048 ??_R1A@?0A@EA@QSvgStyleProperty@@8
-dat_6606604c
-dat_66066050
-dat_66066054
-dat_66066058
-dat_6606605c
-dat_66066060
 dat_6606606c ??_R4QSvgFillStyleProperty@@6B@
-dat_66066070
-dat_66066074
-dat_66066078
-dat_6606607c
 dat_66066084 ??_R3QSvgFillStyleProperty@@8
-dat_66066088
-dat_6606608c
-dat_66066090
-dat_66066094
 dat_66066098 ??_R2QSvgFillStyleProperty@@8
-dat_6606609c
-dat_660660a0
-dat_660660a4
 dat_660660a8 ??_R1A@?0A@EA@QSvgFillStyleProperty@@8
-dat_660660ac
-dat_660660b0
-dat_660660b4
-dat_660660b8
-dat_660660bc
-dat_660660c0
 dat_660660cc ??_R4QSvgQualityStyle@@6B@
-dat_660660d0
-dat_660660d4
-dat_660660d8
-dat_660660dc
 dat_660660e4 ??_R3QSvgQualityStyle@@8
-dat_660660e8
-dat_660660ec
-dat_660660f0
-dat_660660f4
 dat_660660f8 ??_R2QSvgQualityStyle@@8
-dat_660660fc
-dat_66066100
-dat_66066104
 dat_66066108 ??_R1A@?0A@EA@QSvgQualityStyle@@8
-dat_6606610c
-dat_66066110
-dat_66066114
-dat_66066118
-dat_6606611c
-dat_66066120
 dat_6606612c ??_R4QSvgOpacityStyle@@6B@
-dat_66066130
-dat_66066134
-dat_66066138
-dat_6606613c
 dat_66066144 ??_R3QSvgOpacityStyle@@8
-dat_66066148
-dat_6606614c
-dat_66066150
-dat_66066154
 dat_66066158 ??_R2QSvgOpacityStyle@@8
-dat_6606615c
-dat_66066160
-dat_66066164
 dat_66066168 ??_R1A@?0A@EA@QSvgOpacityStyle@@8
-dat_6606616c
-dat_66066170
-dat_66066174
-dat_66066178
-dat_6606617c
-dat_66066180
 dat_6606618c ??_R4QSvgFillStyle@@6B@
-dat_66066190
-dat_66066194
-dat_66066198
-dat_6606619c
 dat_660661a4 ??_R3QSvgFillStyle@@8
-dat_660661a8
-dat_660661ac
-dat_660661b0
-dat_660661b4
 dat_660661b8 ??_R2QSvgFillStyle@@8
-dat_660661bc
-dat_660661c0
-dat_660661c4
 dat_660661c8 ??_R1A@?0A@EA@QSvgFillStyle@@8
-dat_660661cc
-dat_660661d0
-dat_660661d4
-dat_660661d8
-dat_660661dc
-dat_660661e0
 dat_660661ec ??_R4QSvgViewportFillStyle@@6B@
-dat_660661f0
-dat_660661f4
-dat_660661f8
-dat_660661fc
 dat_66066204 ??_R3QSvgViewportFillStyle@@8
-dat_66066208
-dat_6606620c
-dat_66066210
-dat_66066214
 dat_66066218 ??_R2QSvgViewportFillStyle@@8
-dat_6606621c
-dat_66066220
-dat_66066224
 dat_66066228 ??_R1A@?0A@EA@QSvgViewportFillStyle@@8
-dat_6606622c
-dat_66066230
-dat_66066234
-dat_66066238
-dat_6606623c
-dat_66066240
 dat_6606624c ??_R4QSvgFontStyle@@6B@
-dat_66066250
-dat_66066254
-dat_66066258
-dat_6606625c
 dat_66066264 ??_R3QSvgFontStyle@@8
-dat_66066268
-dat_6606626c
-dat_66066270
-dat_66066274
 dat_66066278 ??_R2QSvgFontStyle@@8
-dat_6606627c
-dat_66066280
-dat_66066284
 dat_66066288 ??_R1A@?0A@EA@QSvgFontStyle@@8
-dat_6606628c
-dat_66066290
-dat_66066294
-dat_66066298
-dat_6606629c
-dat_660662a0
 dat_660662ac ??_R4QSvgStrokeStyle@@6B@
-dat_660662b0
-dat_660662b4
-dat_660662b8
-dat_660662bc
 dat_660662c4 ??_R3QSvgStrokeStyle@@8
-dat_660662c8
-dat_660662cc
-dat_660662d0
-dat_660662d4
 dat_660662d8 ??_R2QSvgStrokeStyle@@8
-dat_660662dc
-dat_660662e0
-dat_660662e4
 dat_660662e8 ??_R1A@?0A@EA@QSvgStrokeStyle@@8
-dat_660662ec
-dat_660662f0
-dat_660662f4
-dat_660662f8
-dat_660662fc
-dat_66066300
 dat_6606630c ??_R4QSvgSolidColorStyle@@6B@
-dat_66066310
-dat_66066314
-dat_66066318
-dat_6606631c
 dat_66066324 ??_R3QSvgSolidColorStyle@@8
-dat_66066328
-dat_6606632c
-dat_66066330
-dat_66066334
 dat_66066338 ??_R2QSvgSolidColorStyle@@8
-dat_6606633c
-dat_66066340
-dat_66066344
 dat_6606634c ??_R1A@?0A@EA@QSvgSolidColorStyle@@8
-dat_66066350
-dat_66066354
-dat_66066358
-dat_6606635c
-dat_66066360
-dat_66066364
-dat_66066368
 dat_66066370 ??_R4QSvgGradientStyle@@6B@
-dat_66066374
-dat_66066378
-dat_6606637c
-dat_66066380
-dat_66066384
 dat_66066388 ??_R3QSvgGradientStyle@@8
-dat_6606638c
-dat_66066390
-dat_66066394
 dat_6606639c ??_R2QSvgGradientStyle@@8
-dat_660663a0
-dat_660663a4
-dat_660663a8
-dat_660663ac
 dat_660663b0 ??_R1A@?0A@EA@QSvgGradientStyle@@8
-dat_660663b4
-dat_660663b8
-dat_660663bc
-dat_660663c0
-dat_660663c4
-dat_660663c8
 dat_660663d4 ??_R4QSvgTransformStyle@@6B@
-dat_660663d8
-dat_660663dc
-dat_660663e0
-dat_660663e4
 dat_660663ec ??_R3QSvgTransformStyle@@8
-dat_660663f0
-dat_660663f4
-dat_660663f8
-dat_660663fc
 dat_66066400 ??_R2QSvgTransformStyle@@8
-dat_66066404
-dat_66066408
-dat_6606640c
 dat_66066410 ??_R1A@?0A@EA@QSvgTransformStyle@@8
-dat_66066414
-dat_66066418
-dat_6606641c
-dat_66066420
-dat_66066424
-dat_66066428
 dat_66066434 ??_R4QSvgAnimateTransform@@6B@
-dat_66066438
-dat_6606643c
-dat_66066440
-dat_66066444
 dat_6606644c ??_R3QSvgAnimateTransform@@8
-dat_66066450
-dat_66066454
-dat_66066458
-dat_6606645c
 dat_66066460 ??_R2QSvgAnimateTransform@@8
-dat_66066464
-dat_66066468
-dat_6606646c
 dat_66066470 ??_R1A@?0A@EA@QSvgAnimateTransform@@8
-dat_66066474
-dat_66066478
-dat_6606647c
-dat_66066480
-dat_66066484
-dat_66066488
 dat_66066494 ??_R4QSvgAnimateColor@@6B@
-dat_66066498
-dat_6606649c
-dat_660664a0
-dat_660664a4
 dat_660664ac ??_R3QSvgAnimateColor@@8
-dat_660664b0
-dat_660664b4
-dat_660664b8
-dat_660664bc
 dat_660664c0 ??_R2QSvgAnimateColor@@8
-dat_660664c4
-dat_660664c8
-dat_660664cc
 dat_660664d0 ??_R1A@?0A@EA@QSvgAnimateColor@@8
-dat_660664d4
-dat_660664d8
-dat_660664dc
-dat_660664e0
-dat_660664e4
-dat_660664e8
 dat_660664f4 ??_R4QSvgCompOpStyle@@6B@
-dat_660664f8
-dat_660664fc
-dat_66066500
-dat_66066504
 dat_6606650c ??_R3QSvgCompOpStyle@@8
-dat_66066510
-dat_66066514
-dat_66066518
-dat_6606651c
 dat_66066520 ??_R2QSvgCompOpStyle@@8
-dat_66066524
-dat_66066528
-dat_6606652c
 dat_66066530 ??_R1A@?0A@EA@QSvgCompOpStyle@@8
-dat_66066534
-dat_66066538
-dat_6606653c
-dat_66066540
-dat_66066544
-dat_66066548
 dat_66066554 ??_R4QSvgAnimation@@6B@
-dat_66066558
-dat_6606655c
-dat_66066560
-dat_66066564
 dat_6606656c ??_R3QSvgAnimation@@8
-dat_66066570
-dat_66066574
-dat_66066578
-dat_6606657c
 dat_66066580 ??_R2QSvgAnimation@@8
-dat_66066584
 dat_6606658c ??_R1A@?0A@EA@QSvgAnimation@@8
-dat_66066590
-dat_66066594
-dat_66066598
-dat_6606659c
-dat_660665a0
-dat_660665a4
-dat_660665a8
 dat_660665b0 ??_R4QSvgArc@@6B@
-dat_660665b4
-dat_660665b8
-dat_660665bc
-dat_660665c0
-dat_660665c4
 dat_660665c8 ??_R3QSvgArc@@8
-dat_660665cc
-dat_660665d0
-dat_660665d4
 dat_660665dc ??_R2QSvgArc@@8
-dat_660665e0
-dat_660665e4
 dat_660665e8 ??_R1A@?0A@EA@QSvgArc@@8
-dat_660665ec
-dat_660665f0
-dat_660665f4
-dat_660665f8
-dat_660665fc
-dat_66066600
 dat_6606660c ??_R4QSvgEllipse@@6B@
-dat_66066610
-dat_66066614
-dat_66066618
-dat_6606661c
 dat_66066624 ??_R3QSvgEllipse@@8
-dat_66066628
-dat_6606662c
-dat_66066630
-dat_66066634
 dat_66066638 ??_R2QSvgEllipse@@8
-dat_6606663c
 dat_66066644 ??_R1A@?0A@EA@QSvgEllipse@@8
-dat_66066648
-dat_6606664c
-dat_66066650
-dat_66066654
-dat_66066658
-dat_6606665c
 dat_66066668 ??_R4QSvgCircle@@6B@
-dat_6606666c
-dat_66066670
-dat_66066674
-dat_66066678
-dat_6606667c
 dat_66066680 ??_R3QSvgCircle@@8
-dat_66066684
-dat_66066688
-dat_6606668c
 dat_66066694 ??_R2QSvgCircle@@8
-dat_66066698
-dat_6606669c
 dat_660666a4 ??_R1A@?0A@EA@QSvgCircle@@8
-dat_660666a8
-dat_660666ac
-dat_660666b0
-dat_660666b4
-dat_660666b8
-dat_660666bc
 dat_660666c8 ??_R4QSvgImage@@6B@
-dat_660666cc
-dat_660666d0
-dat_660666d4
-dat_660666d8
-dat_660666dc
 dat_660666e0 ??_R3QSvgImage@@8
-dat_660666e4
-dat_660666e8
-dat_660666ec
 dat_660666f4 ??_R2QSvgImage@@8
-dat_660666f8
-dat_660666fc
 dat_66066700 ??_R1A@?0A@EA@QSvgImage@@8
-dat_66066704
-dat_66066708
-dat_6606670c
-dat_66066710
-dat_66066714
-dat_66066718
 dat_66066724 ??_R4QSvgLine@@6B@
-dat_66066728
-dat_6606672c
-dat_66066730
-dat_66066734
 dat_6606673c ??_R3QSvgLine@@8
-dat_66066740
-dat_66066744
-dat_66066748
-dat_6606674c
 dat_66066750 ??_R2QSvgLine@@8
-dat_66066754
 dat_6606675c ??_R1A@?0A@EA@QSvgLine@@8
-dat_66066760
-dat_66066764
-dat_66066768
-dat_6606676c
-dat_66066770
-dat_66066774
-dat_66066778
 dat_66066780 ??_R4QSvgPath@@6B@
-dat_66066784
-dat_66066788
-dat_6606678c
-dat_66066790
-dat_66066794
 dat_66066798 ??_R3QSvgPath@@8
-dat_6606679c
-dat_660667a0
-dat_660667a4
 dat_660667ac ??_R2QSvgPath@@8
-dat_660667b0
-dat_660667b4
 dat_660667b8 ??_R1A@?0A@EA@QSvgPath@@8
-dat_660667bc
-dat_660667c0
-dat_660667c4
-dat_660667c8
-dat_660667cc
-dat_660667d0
 dat_660667dc ??_R4QSvgPolygon@@6B@
-dat_660667e0
-dat_660667e4
-dat_660667e8
-dat_660667ec
 dat_660667f4 ??_R3QSvgPolygon@@8
-dat_660667f8
-dat_660667fc
-dat_66066800
-dat_66066804
 dat_66066808 ??_R2QSvgPolygon@@8
-dat_6606680c
 dat_66066814 ??_R1A@?0A@EA@QSvgPolygon@@8
-dat_66066818
-dat_6606681c
-dat_66066820
-dat_66066824
-dat_66066828
-dat_6606682c
 dat_66066838 ??_R4QSvgPolyline@@6B@
-dat_6606683c
-dat_66066840
-dat_66066844
-dat_66066848
-dat_6606684c
 dat_66066850 ??_R3QSvgPolyline@@8
-dat_66066854
-dat_66066858
-dat_6606685c
 dat_66066864 ??_R2QSvgPolyline@@8
-dat_66066868
-dat_6606686c
 dat_66066870 ??_R1A@?0A@EA@QSvgPolyline@@8
-dat_66066874
-dat_66066878
-dat_6606687c
-dat_66066880
-dat_66066884
-dat_66066888
 dat_66066894 ??_R4QSvgRect@@6B@
-dat_66066898
-dat_6606689c
-dat_660668a0
-dat_660668a4
 dat_660668ac ??_R3QSvgRect@@8
-dat_660668b0
-dat_660668b4
-dat_660668b8
-dat_660668bc
 dat_660668c0 ??_R2QSvgRect@@8
-dat_660668c4
 dat_660668cc ??_R1A@?0A@EA@QSvgRect@@8
-dat_660668d0
-dat_660668d4
-dat_660668d8
-dat_660668dc
-dat_660668e0
-dat_660668e4
-dat_660668e8
 dat_660668f0 ??_R4QSvgTspan@@6B@
-dat_660668f4
-dat_660668f8
-dat_660668fc
-dat_66066900
-dat_66066904
 dat_66066908 ??_R3QSvgTspan@@8
-dat_6606690c
-dat_66066910
-dat_66066914
 dat_6606691c ??_R2QSvgTspan@@8
-dat_66066920
-dat_66066924
 dat_66066928 ??_R1A@?0A@EA@QSvgTspan@@8
-dat_6606692c
-dat_66066930
-dat_66066934
-dat_66066938
-dat_6606693c
-dat_66066940
 dat_6606694c ??_R4QSvgText@@6B@
-dat_66066950
-dat_66066954
-dat_66066958
-dat_6606695c
 dat_66066964 ??_R3QSvgText@@8
-dat_66066968
-dat_6606696c
-dat_66066970
-dat_66066974
 dat_66066978 ??_R2QSvgText@@8
-dat_6606697c
 dat_66066984 ??_R1A@?0A@EA@QSvgText@@8
-dat_66066988
-dat_6606698c
-dat_66066990
-dat_66066994
-dat_66066998
-dat_6606699c
 dat_660669a8 ??_R4QSvgUse@@6B@
-dat_660669ac
-dat_660669b0
-dat_660669b4
-dat_660669b8
-dat_660669bc
 dat_660669c0 ??_R3QSvgUse@@8
-dat_660669c4
-dat_660669c8
-dat_660669cc
 dat_660669d4 ??_R2QSvgUse@@8
-dat_660669d8
-dat_660669dc
 dat_660669e0 ??_R1A@?0A@EA@QSvgUse@@8
-dat_660669e4
-dat_660669e8
-dat_660669ec
-dat_660669f0
-dat_660669f4
-dat_660669f8
 dat_66066a04 ??_R4QSvgTinyDocument@@6B@
-dat_66066a08
-dat_66066a0c
-dat_66066a10
-dat_66066a14
 dat_66066a1c ??_R3QSvgTinyDocument@@8
-dat_66066a20
-dat_66066a24
-dat_66066a28
-dat_66066a2c
 dat_66066a30 ??_R2QSvgTinyDocument@@8
-dat_66066a34
-dat_66066a38
-dat_66066a3c
 dat_66066a40 ??_R1A@?0A@EA@QSvgTinyDocument@@8
-dat_66066a44
-dat_66066a48
-dat_66066a4c
-dat_66066a50
-dat_66066a54
-dat_66066a58
 dat_66066a64 ??_R1A@?0A@EA@QSvgStructureNode@@8
-dat_66066a68
-dat_66066a6c
-dat_66066a70
-dat_66066a74
-dat_66066a78
-dat_66066a7c
 dat_66066a88 ??_R3QSvgStructureNode@@8
-dat_66066a8c
-dat_66066a90
-dat_66066a94
 dat_66066a9c ??_R2QSvgStructureNode@@8
-dat_66066aa0
-dat_66066aa4
 dat_66066aa8 ??_R4QSvgStyleSelector@@6B@
-dat_66066aac
-dat_66066ab0
-dat_66066ab4
-dat_66066ab8
-dat_66066abc
 dat_66066ac0 ??_R3QSvgStyleSelector@@8
-dat_66066ac4
-dat_66066ac8
-dat_66066acc
 dat_66066ad4 ??_R2QSvgStyleSelector@@8
-dat_66066ad8
-dat_66066adc
 dat_66066ae0 ??_R1A@?0A@EA@QSvgStyleSelector@@8
-dat_66066ae4
-dat_66066ae8
-dat_66066aec
-dat_66066af0
-dat_66066af4
-dat_66066af8
 dat_66066b04 ??_R1A@?0A@EA@StyleSelector@QCss@@8
-dat_66066b08
-dat_66066b0c
-dat_66066b10
-dat_66066b14
-dat_66066b18
-dat_66066b1c
 dat_66066b28 ??_R3StyleSelector@QCss@@8
-dat_66066b2c
-dat_66066b30
-dat_66066b34
 dat_66066b3c ??_R2StyleSelector@QCss@@8
 dat_66066b44 ??_R4QSvgDefs@@6B@
-dat_66066b48
-dat_66066b4c
-dat_66066b50
-dat_66066b54
 dat_66066b5c ??_R3QSvgDefs@@8
-dat_66066b60
-dat_66066b64
-dat_66066b68
-dat_66066b6c
 dat_66066b70 ??_R2QSvgDefs@@8
-dat_66066b74
-dat_66066b78
-dat_66066b7c
 dat_66066b80 ??_R1A@?0A@EA@QSvgDefs@@8
-dat_66066b84
-dat_66066b88
-dat_66066b8c
-dat_66066b90
-dat_66066b94
-dat_66066b98
 dat_66066ba4 ??_R4QSvgStructureNode@@6B@
-dat_66066ba8
-dat_66066bac
-dat_66066bb0
-dat_66066bb4
 dat_66066bbc ??_R4QSvgG@@6B@
-dat_66066bc0
-dat_66066bc4
-dat_66066bc8
-dat_66066bcc
 dat_66066bd4 ??_R3QSvgG@@8
-dat_66066bd8
-dat_66066bdc
-dat_66066be0
-dat_66066be4
 dat_66066be8 ??_R2QSvgG@@8
-dat_66066bec
-dat_66066bf0
-dat_66066bf4
 dat_66066bf8 ??_R1A@?0A@EA@QSvgG@@8
-dat_66066bfc
-dat_66066c00
-dat_66066c04
-dat_66066c08
-dat_66066c0c
-dat_66066c10
 dat_66066c1c ??_R4QSvgSwitch@@6B@
-dat_66066c20
-dat_66066c24
-dat_66066c28
-dat_66066c2c
 dat_66066c34 ??_R3QSvgSwitch@@8
-dat_66066c38
-dat_66066c3c
-dat_66066c40
-dat_66066c44
 dat_66066c48 ??_R2QSvgSwitch@@8
-dat_66066c4c
-dat_66066c50
-dat_66066c54
 dat_66066c58 ??_R1A@?0A@EA@QSvgSwitch@@8
-dat_66066c5c
-dat_66066c60
-dat_66066c64
-dat_66066c68
-dat_66066c6c
-dat_66066c70
 dat_66066c7c ??_R1A@?0A@EA@QObject@@8
-dat_66066c80
-dat_66066c84
-dat_66066c88
-dat_66066c8c
-dat_66066c90
-dat_66066c94
-dat_66066c98
 dat_66066ca0 ??_R3QObject@@8
-dat_66066ca4
-dat_66066ca8
-dat_66066cac
 dat_66066cb4 ??_R2QObject@@8
 dat_66066cbc ??_R4QTimer@@6B@
-dat_66066cc0
-dat_66066cc4
-dat_66066cc8
-dat_66066ccc
 dat_66066cd4 ??_R3QTimer@@8
-dat_66066cd8
-dat_66066cdc
-dat_66066ce0
-dat_66066ce4
 dat_66066ce8 ??_R2QTimer@@8
-dat_66066cec
 dat_66066cf4 ??_R1A@?0A@EA@QTimer@@8
-dat_66066cf8
-dat_66066cfc
-dat_66066d00
-dat_66066d04
-dat_66066d08
-dat_66066d0c
 dat_66066d18 ??_R4QSvgRendererPrivate@@6B@
-dat_66066d1c
-dat_66066d20
-dat_66066d24
-dat_66066d28
-dat_66066d2c
 dat_66066d30 ??_R3QSvgRendererPrivate@@8
-dat_66066d34
-dat_66066d38
-dat_66066d3c
 dat_66066d44 ??_R2QSvgRendererPrivate@@8
-dat_66066d48
-dat_66066d4c
 dat_66066d54 ??_R1A@?0A@EA@QSvgRendererPrivate@@8
-dat_66066d58
-dat_66066d5c
-dat_66066d60
-dat_66066d64
-dat_66066d68
-dat_66066d6c
 dat_66066d78 ??_R1A@?0A@EA@QObjectPrivate@@8
-dat_66066d7c
-dat_66066d80
-dat_66066d84
-dat_66066d88
-dat_66066d8c
-dat_66066d90
 dat_66066d9c ??_R3QObjectPrivate@@8
-dat_66066da0
-dat_66066da4
-dat_66066da8
-dat_66066dac
 dat_66066db0 ??_R2QObjectPrivate@@8
-dat_66066db4
 dat_66066dbc ??_R1A@?0A@EA@QObjectData@@8
-dat_66066dc0
-dat_66066dc4
-dat_66066dc8
-dat_66066dcc
-dat_66066dd0
-dat_66066dd4
-dat_66066dd8
 dat_66066de0 ??_R3QObjectData@@8
-dat_66066de4
-dat_66066de8
-dat_66066dec
 dat_66066df4 ??_R2QObjectData@@8
 dat_66066dfc ??_R4QSvgRenderer@@6B@
-dat_66066e00
-dat_66066e04
-dat_66066e08
-dat_66066e0c
 dat_66066e14 ??_R3QSvgRenderer@@8
-dat_66066e18
-dat_66066e1c
-dat_66066e20
-dat_66066e24
 dat_66066e28 ??_R2QSvgRenderer@@8
-dat_66066e2c
 dat_66066e34 ??_R1A@?0A@EA@QSvgRenderer@@8
-dat_66066e38
-dat_66066e3c
-dat_66066e40
-dat_66066e44
-dat_66066e48
-dat_66066e4c
 dat_66066e58 ??_R4QSvgWidgetPrivate@@6B@
-dat_66066e5c
-dat_66066e60
-dat_66066e64
-dat_66066e68
-dat_66066e6c
 dat_66066e70 ??_R3QSvgWidgetPrivate@@8
-dat_66066e74
-dat_66066e78
-dat_66066e7c
 dat_66066e84 ??_R2QSvgWidgetPrivate@@8
-dat_66066e88
-dat_66066e8c
-dat_66066e90
-dat_66066e94
 dat_66066e98 ??_R1A@?0A@EA@QSvgWidgetPrivate@@8
-dat_66066e9c
-dat_66066ea0
-dat_66066ea4
-dat_66066ea8
-dat_66066eac
-dat_66066eb0
 dat_66066ebc ??_R1A@?0A@EA@QWidgetPrivate@@8
-dat_66066ec0
-dat_66066ec4
-dat_66066ec8
-dat_66066ecc
-dat_66066ed0
-dat_66066ed4
-dat_66066ed8
 dat_66066ee0 ??_R3QWidgetPrivate@@8
-dat_66066ee4
-dat_66066ee8
-dat_66066eec
 dat_66066ef4 ??_R2QWidgetPrivate@@8
-dat_66066ef8
-dat_66066efc
 dat_66066f04 ??_R4QSvgWidget@@6BQObject@@@
-dat_66066f08
-dat_66066f0c
-dat_66066f10
-dat_66066f14
 dat_66066f1c ??_R3QSvgWidget@@8
-dat_66066f20
-dat_66066f24
-dat_66066f28
-dat_66066f2c
 dat_66066f30 ??_R2QSvgWidget@@8
-dat_66066f34
-dat_66066f38
-dat_66066f3c
 dat_66066f44 ??_R1A@?0A@EA@QSvgWidget@@8
-dat_66066f48
-dat_66066f4c
-dat_66066f50
-dat_66066f54
-dat_66066f58
-dat_66066f5c
 dat_66066f68 ??_R1A@?0A@EA@QWidget@@8
-dat_66066f6c
-dat_66066f70
-dat_66066f74
-dat_66066f78
-dat_66066f7c
-dat_66066f80
 dat_66066f8c ??_R3QWidget@@8
-dat_66066f90
-dat_66066f94
-dat_66066f98
-dat_66066f9c
 dat_66066fa0 ??_R2QWidget@@8
-dat_66066fa4
-dat_66066fa8
-dat_66066fac
 dat_66066fb0 ??_R17?0A@EA@QPaintDevice@@8
-dat_66066fb4
-dat_66066fb8
-dat_66066fbc
-dat_66066fc0
-dat_66066fc4
-dat_66066fc8
 dat_66066fd4 ??_R3QPaintDevice@@8
-dat_66066fd8
-dat_66066fdc
-dat_66066fe0
-dat_66066fe4
 dat_66066fe8 ??_R2QPaintDevice@@8
-dat_66066fec
 dat_66066ff0 ??_R1A@?0A@EA@QPaintDevice@@8
-dat_66066ff4
-dat_66066ff8
-dat_66066ffc
-dat_66067000
-dat_66067004
-dat_66067008
 dat_66067014 ??_R4QSvgWidget@@6BQPaintDevice@@@
-dat_66067018
-dat_6606701c
-dat_66067020
-dat_66067024
 dat_6606702c ??_R4QGraphicsSvgItemPrivate@@6B@
-dat_66067030
-dat_66067034
-dat_66067038
-dat_6606703c
 dat_66067044 ??_R3QGraphicsSvgItemPrivate@@8
-dat_66067048
-dat_6606704c
-dat_66067050
-dat_66067054
 dat_66067058 ??_R2QGraphicsSvgItemPrivate@@8
-dat_6606705c
 dat_66067064 ??_R1A@?0A@EA@QGraphicsSvgItemPrivate@@8
-dat_66067068
-dat_6606706c
-dat_66067070
-dat_66067074
-dat_66067078
-dat_6606707c
 dat_66067088 ??_R1A@?0A@EA@QGraphicsItemPrivate@@8
-dat_6606708c
-dat_66067090
-dat_66067094
-dat_66067098
-dat_6606709c
-dat_660670a0
 dat_660670ac ??_R3QGraphicsItemPrivate@@8
-dat_660670b0
-dat_660670b4
-dat_660670b8
-dat_660670bc
 dat_660670c0 ??_R2QGraphicsItemPrivate@@8
-dat_660670c4
 dat_660670c8 ??_R4QGraphicsSvgItem@@6BQObject@@@
-dat_660670cc
-dat_660670d0
-dat_660670d4
-dat_660670d8
-dat_660670dc
 dat_660670e0 ??_R3QGraphicsSvgItem@@8
-dat_660670e4
-dat_660670e8
-dat_660670ec
 dat_660670f4 ??_R2QGraphicsSvgItem@@8
-dat_660670f8
-dat_660670fc
-dat_66067100
-dat_66067104
 dat_66067108 ??_R1A@?0A@EA@QGraphicsSvgItem@@8
-dat_6606710c
-dat_66067110
-dat_66067114
-dat_66067118
-dat_6606711c
-dat_66067120
 dat_6606712c ??_R1A@?0A@EA@QGraphicsObject@@8
-dat_66067130
-dat_66067134
-dat_66067138
-dat_6606713c
-dat_66067140
-dat_66067144
-dat_66067148
 dat_66067150 ??_R3QGraphicsObject@@8
-dat_66067154
-dat_66067158
-dat_6606715c
 dat_66067164 ??_R2QGraphicsObject@@8
-dat_66067168
-dat_6606716c
 dat_66067174 ??_R17?0A@EA@QGraphicsItem@@8
-dat_66067178
-dat_6606717c
-dat_66067180
-dat_66067184
-dat_66067188
-dat_6606718c
 dat_66067198 ??_R3QGraphicsItem@@8
-dat_6606719c
-dat_660671a0
-dat_660671a4
 dat_660671ac ??_R2QGraphicsItem@@8
 dat_660671b4 ??_R1A@?0A@EA@QGraphicsItem@@8
-dat_660671b8
-dat_660671bc
-dat_660671c0
-dat_660671c4
-dat_660671c8
-dat_660671cc
 dat_660671d8 ??_R4QGraphicsSvgItem@@6BQGraphicsItem@@@
-dat_660671dc
-dat_660671e0
-dat_660671e4
-dat_660671e8
-dat_660671ec
 dat_660671f0 ??_R4QTextStream@@6B@
-dat_660671f4
-dat_660671f8
-dat_660671fc
-dat_66067200
-dat_66067204
 dat_66067208 ??_R3QTextStream@@8
-dat_6606720c
-dat_66067210
-dat_66067214
 dat_6606721c ??_R2QTextStream@@8
 dat_66067224 ??_R1A@?0A@EA@QTextStream@@8
-dat_66067228
-dat_6606722c
-dat_66067230
-dat_66067234
-dat_66067238
-dat_6606723c
 dat_66067248 ??_R4QFile@@6B@
-dat_6606724c
-dat_66067250
-dat_66067254
-dat_66067258
-dat_6606725c
 dat_66067260 ??_R3QFile@@8
-dat_66067264
-dat_66067268
-dat_6606726c
 dat_66067274 ??_R2QFile@@8
-dat_66067278
-dat_6606727c
-dat_66067280
-dat_66067284
 dat_66067288 ??_R1A@?0A@EA@QFile@@8
-dat_6606728c
-dat_66067290
-dat_66067294
-dat_66067298
-dat_6606729c
-dat_660672a0
 dat_660672ac ??_R1A@?0A@EA@QFileDevice@@8
-dat_660672b0
-dat_660672b4
-dat_660672b8
-dat_660672bc
-dat_660672c0
-dat_660672c4
-dat_660672c8
 dat_660672d0 ??_R3QFileDevice@@8
-dat_660672d4
-dat_660672d8
-dat_660672dc
 dat_660672e4 ??_R2QFileDevice@@8
-dat_660672e8
-dat_660672ec
 dat_660672f4 ??_R1A@?0A@EA@QIODevice@@8
-dat_660672f8
-dat_660672fc
-dat_66067300
-dat_66067304
-dat_66067308
-dat_6606730c
 dat_66067318 ??_R3QIODevice@@8
-dat_6606731c
-dat_66067320
-dat_66067324
 dat_6606732c ??_R2QIODevice@@8
-dat_66067330
-dat_66067334
 dat_66067338 ??_R4QSvgGenerator@@6B@
-dat_6606733c
-dat_66067340
-dat_66067344
-dat_66067348
-dat_6606734c
 dat_66067350 ??_R3QSvgGenerator@@8
-dat_66067354
-dat_66067358
-dat_6606735c
 dat_66067364 ??_R2QSvgGenerator@@8
-dat_66067368
-dat_6606736c
 dat_66067370 ??_R1A@?0A@EA@QSvgGenerator@@8
-dat_66067374
-dat_66067378
-dat_6606737c
-dat_66067380
-dat_66067384
-dat_66067388
 dat_66067394 ??_R4QSvgPaintEnginePrivate@@6B@
-dat_66067398
-dat_6606739c
-dat_660673a0
-dat_660673a4
 dat_660673ac ??_R3QSvgPaintEnginePrivate@@8
-dat_660673b0
-dat_660673b4
-dat_660673b8
-dat_660673bc
 dat_660673c0 ??_R2QSvgPaintEnginePrivate@@8
-dat_660673c4
 dat_660673cc ??_R1A@?0A@EA@QSvgPaintEnginePrivate@@8
-dat_660673d0
-dat_660673d4
-dat_660673d8
-dat_660673dc
-dat_660673e0
-dat_660673e4
-dat_660673e8
 dat_660673f0 ??_R1A@?0A@EA@QPaintEnginePrivate@@8
-dat_660673f4
-dat_660673f8
-dat_660673fc
-dat_66067400
-dat_66067404
-dat_66067408
 dat_66067414 ??_R3QPaintEnginePrivate@@8
-dat_66067418
-dat_6606741c
-dat_66067420
-dat_66067424
 dat_66067428 ??_R2QPaintEnginePrivate@@8
-dat_6606742c
 dat_66067430 ??_R4QSvgPaintEngine@@6B@
-dat_66067434
-dat_66067438
-dat_6606743c
-dat_66067440
-dat_66067444
 dat_66067448 ??_R3QSvgPaintEngine@@8
-dat_6606744c
-dat_66067450
-dat_66067454
 dat_6606745c ??_R2QSvgPaintEngine@@8
-dat_66067460
-dat_66067464
 dat_66067468 ??_R1A@?0A@EA@QSvgPaintEngine@@8
-dat_6606746c
-dat_66067470
-dat_66067474
-dat_66067478
-dat_6606747c
-dat_66067480
 dat_6606748c ??_R1A@?0A@EA@QPaintEngine@@8
-dat_66067490
-dat_66067494
-dat_66067498
-dat_6606749c
-dat_660674a0
-dat_660674a4
-dat_660674a8
 dat_660674b0 ??_R3QPaintEngine@@8
-dat_660674b4
-dat_660674b8
-dat_660674bc
 dat_660674c4 ??_R2QPaintEngine@@8
 dat_660674cc ??_R4error_category@std@@6B@
-dat_660674d0
-dat_660674d4
-dat_660674d8
-dat_660674dc
 dat_660674e4 ??_R3error_category@std@@8
-dat_660674e8
-dat_660674ec
-dat_660674f0
-dat_660674f4
 dat_660674f8 ??_R2error_category@std@@8
-dat_660674fc
 dat_66067500 ??_R1A@?0A@EA@error_category@std@@8
-dat_66067504
-dat_66067508
-dat_6606750c
-dat_66067510
-dat_66067514
-dat_66067518
 dat_66067524 ??_R4_Generic_error_category@std@@6B@
-dat_66067528
-dat_6606752c
-dat_66067530
-dat_66067534
 dat_6606753c ??_R3_Generic_error_category@std@@8
-dat_66067540
-dat_66067544
-dat_66067548
-dat_6606754c
 dat_66067550 ??_R2_Generic_error_category@std@@8
-dat_66067554
 dat_6606755c ??_R1A@?0A@EA@_Generic_error_category@std@@8
-dat_66067560
-dat_66067564
-dat_66067568
-dat_6606756c
-dat_66067570
-dat_66067574
-dat_66067578
 dat_66067580 ??_R4_Iostream_error_category@std@@6B@
-dat_66067584
-dat_66067588
-dat_6606758c
-dat_66067590
-dat_66067594
 dat_66067598 ??_R3_Iostream_error_category@std@@8
-dat_6606759c
-dat_660675a0
-dat_660675a4
 dat_660675ac ??_R2_Iostream_error_category@std@@8
-dat_660675b0
-dat_660675b4
 dat_660675bc ??_R1A@?0A@EA@_Iostream_error_category@std@@8
-dat_660675c0
-dat_660675c4
-dat_660675c8
-dat_660675cc
-dat_660675d0
-dat_660675d4
-dat_660675d8
 dat_660675e0 ??_R4_System_error_category@std@@6B@
-dat_660675e4
-dat_660675e8
-dat_660675ec
-dat_660675f0
-dat_660675f4
 dat_660675f8 ??_R3_System_error_category@std@@8
-dat_660675fc
-dat_66067600
-dat_66067604
 dat_6606760c ??_R2_System_error_category@std@@8
-dat_66067610
-dat_66067614
 dat_6606761c ??_R1A@?0A@EA@_System_error_category@std@@8
-dat_66067620
-dat_66067624
-dat_66067628
-dat_6606762c
-dat_66067630
-dat_66067634
-dat_66067638
 dat_66067640 ??_R4type_info@@6B@
-dat_66067644
-dat_66067648
-dat_6606764c
-dat_66067650
 dat_66067654 ??_R3type_info@@8
-dat_66067658
-dat_6606765c
-dat_66067660
 dat_66067664 ??_R2type_info@@8
 dat_6606766c ??_R1A@?0A@EA@type_info@@8
-dat_66067670
-dat_66067674
-dat_66067678
-dat_6606767c
-dat_66067680
-dat_66067684
 dat_66067840 ___safe_se_handler_table void *[]
 dat_66067944 ___rtc_iaa void (__cdecl *const [1])()
 dat_66067948 unk_66067948
@@ -22337,24 +18025,10 @@ dat_66067b4c ___rtc_taa void (__cdecl *const [1])()
 dat_66067b50 unk_66067B50
 dat_66067c50 ___rtc_tzz void (__cdecl *const [1])()
 dat_66067d58 stru_66067D58 _EH4_SCOPETABLE /*%_EH4_SCOPETABLE#DD6D6B4709311AF3%*/
-dat_66067d74
 dat_66067d78 stru_66067D78 _EH4_SCOPETABLE /*%_EH4_SCOPETABLE#DD6D6B4709311AF3%*/
 dat_66067da0 stru_66067DA0 _EH4_SCOPETABLE /*%_EH4_SCOPETABLE#DD6D6B4709311AF3%*/
-dat_66067dbc
 dat_66067dc0 stru_66067DC0 _EH4_SCOPETABLE /*%_EH4_SCOPETABLE#DD6D6B4709311AF3%*/
-dat_66067ddc
 dat_66067de0 stru_66067DE0 _EH4_SCOPETABLE /*%_EH4_SCOPETABLE#DD6D6B4709311AF3%*/
-dat_66067f20
-dat_66067f24
-dat_66067f28
-dat_66067f2a
-dat_66067f2c
-dat_66067f30
-dat_66067f34
-dat_66067f38
-dat_66067f3c
-dat_66067f40
-dat_66067f44
 dat_66067f48 off_66067F48
 dat_660687dc off_660687DC
 dat_66069070 word_66069070
@@ -22909,332 +18583,148 @@ dat_6606f085 aWidthQsvgtinyd
 dat_6606f0a5 aWidthpercentQs
 dat_6606f0cd aXmlclassQsvgno
 dat_66071000 qt_inherit_text const char *
-dat_66071004
 dat_66071008 QSvgStyleSelector_nodeString const char *[18]
-dat_66071050
 dat_66071060 magic unsigned __int16
-dat_66071062
 dat_66071068 wordlist const char *[89]
-dat_6607106c
-dat_66071070
-dat_66071074
-dat_66071078
-dat_6607107c
-dat_66071080
-dat_66071084
-dat_66071088
-dat_6607108c
-dat_66071090
-dat_66071094
-dat_66071098
-dat_6607109c
-dat_660710a0
-dat_660710a4
-dat_660710a8
-dat_660710ac
-dat_660710b0
-dat_660710b4
-dat_660710b8
-dat_660710bc
-dat_660710c0
-dat_660710c4
-dat_660710c8
-dat_660710cc
-dat_660710d0
-dat_660710d4
-dat_660710d8
-dat_660710dc
-dat_660710e0
-dat_660710e4
-dat_660710e8
-dat_660710ec
-dat_660710f0
-dat_660710f4
-dat_660710f8
-dat_660710fc
-dat_66071100
-dat_66071104
-dat_66071108
-dat_6607110c
-dat_66071110
-dat_66071114
-dat_66071118
-dat_6607111c
-dat_66071120
-dat_66071124
-dat_66071128
-dat_6607112c
-dat_66071130
-dat_66071134
-dat_66071138
-dat_6607113c
-dat_66071140
-dat_66071144
-dat_66071148
-dat_6607114c
-dat_66071150
-dat_66071154
-dat_66071158
-dat_6607115c
-dat_66071160
-dat_66071164
-dat_66071168
-dat_6607116c
-dat_66071170
-dat_66071174
-dat_66071178
-dat_6607117c
-dat_66071180
-dat_66071184
-dat_66071188
-dat_6607118c
-dat_66071190
-dat_66071194
-dat_66071198
-dat_6607119c
-dat_660711a0
-dat_660711a4
-dat_660711a8
-dat_660711ac
-dat_660711b0
-dat_660711b4
-dat_660711b8
-dat_660711bc
-dat_660711c0
-dat_660711c4
-dat_660711c8
 dat_66071220 ___security_cookie unsigned int
 dat_66071224 ___security_cookie_complement unsigned int
 dat_66071228 ___native_dllmain_reason volatile unsigned int
 dat_66071334 ??_R0?AVQSvgNode@@@8
-dat_66071338
 dat_6607133c aAvqsvgnode
-dat_6607134b
 dat_66071350 ??_R0?AVQSvgFont@@@8
-dat_66071354
 dat_66071358 aAvqsvgfont
 dat_6607136c ??_R0?AVQSvgRefCounted@@@8
-dat_66071370
 dat_66071374 aAvqsvgrefcount
-dat_66071389
 dat_66071390 ??_R0?AVQSvgStyleProperty@@@8
-dat_66071394
 dat_66071398 aAvqsvgstylepro
 dat_660713b8 ??_R0?AVQSvgFillStyleProperty@@@8
-dat_660713bc
 dat_660713c0 aAvqsvgfillstyl
 dat_660713e4 ??_R0?AVQSvgQualityStyle@@@8
-dat_660713e8
 dat_660713ec aAvqsvgqualitys
 dat_6607140c ??_R0?AVQSvgOpacityStyle@@@8
-dat_66071410
 dat_66071414 aAvqsvgopacitys
 dat_66071434 ??_R0?AVQSvgFillStyle@@@8
-dat_66071438
 dat_6607143c aAvqsvgfillstyl_0
 dat_66071458 ??_R0?AVQSvgViewportFillStyle@@@8
-dat_6607145c
 dat_66071460 aAvqsvgviewport
 dat_66071484 ??_R0?AVQSvgFontStyle@@@8
-dat_66071488
 dat_6607148c aAvqsvgfontstyl
 dat_660714a8 ??_R0?AVQSvgStrokeStyle@@@8
-dat_660714ac
 dat_660714b0 aAvqsvgstrokest
 dat_660714cc ??_R0?AVQSvgSolidColorStyle@@@8
-dat_660714d0
 dat_660714d4 aAvqsvgsolidcol
 dat_660714f4 ??_R0?AVQSvgGradientStyle@@@8
-dat_660714f8
 dat_660714fc aAvqsvggradient
 dat_6607151c ??_R0?AVQSvgTransformStyle@@@8
-dat_66071520
 dat_66071524 aAvqsvgtransfor
 dat_66071544 ??_R0?AVQSvgAnimateTransform@@@8
-dat_66071548
 dat_6607154c aAvqsvganimatet
-dat_66071567
 dat_66071570 ??_R0?AVQSvgAnimateColor@@@8
-dat_66071574
 dat_66071578 aAvqsvganimatec
 dat_66071598 ??_R0?AVQSvgCompOpStyle@@@8
-dat_6607159c
 dat_660715a0 aAvqsvgcompopst
 dat_660715bc ??_R0?AVQSvgAnimation@@@8
-dat_660715c0
 dat_660715c4 aAvqsvganimatio
-dat_660715d8
 dat_660715e0 ??_R0?AVQSvgArc@@@8
-dat_660715e4
 dat_660715e8 aAvqsvgarc
 dat_660715fc ??_R0?AVQSvgEllipse@@@8
-dat_66071600
 dat_66071604 aAvqsvgellipse
 dat_6607161c ??_R0?AVQSvgCircle@@@8
-dat_66071620
 dat_66071624 aAvqsvgcircle
 dat_6607163c ??_R0?AVQSvgImage@@@8
-dat_66071640
 dat_66071644 aAvqsvgimage
-dat_66071654
 dat_66071658 ??_R0?AVQSvgLine@@@8
-dat_6607165c
 dat_66071660 aAvqsvgline
 dat_66071674 ??_R0?AVQSvgPath@@@8
-dat_66071678
 dat_6607167c aAvqsvgpath
-dat_6607168b
 dat_66071690 ??_R0?AVQSvgPolygon@@@8
-dat_66071694
 dat_66071698 aAvqsvgpolygon
-dat_660716aa
 dat_660716b0 ??_R0?AVQSvgPolyline@@@8
-dat_660716b4
 dat_660716b8 aAvqsvgpolyline
-dat_660716cb
 dat_660716d0 ??_R0?AVQSvgRect@@@8
-dat_660716d4
 dat_660716d8 aAvqsvgrect
 dat_660716ec ??_R0?AVQSvgTspan@@@8
-dat_660716f0
 dat_660716f4 aAvqsvgtspan
-dat_66071704
 dat_66071708 ??_R0?AVQSvgText@@@8
-dat_6607170c
 dat_66071710 aAvqsvgtext
 dat_66071724 ??_R0?AVQSvgUse@@@8
-dat_66071728
 dat_6607172c aAvqsvguse
-dat_6607173a
 dat_66071740 ??_R0?AVQSvgTinyDocument@@@8
-dat_66071744
 dat_66071748 aAvqsvgtinydocu
 dat_66071768 ??_R0?AVQSvgStructureNode@@@8
-dat_6607176c
 dat_66071770 aAvqsvgstructur
-dat_66071788
 dat_66071790 ??_R0?AVQSvgStyleSelector@@@8
-dat_66071794
 dat_66071798 aAvqsvgstylesel
 dat_660717b8 ??_R0?AVStyleSelector@QCss@@@8
-dat_660717bc
 dat_660717c0 aAvstyleselecto
-dat_660717d9
 dat_660717e0 ??_R0?AVQSvgDefs@@@8
-dat_660717e4
 dat_660717e8 aAvqsvgdefs
 dat_660717fc ??_R0?AVQSvgG@@@8
-dat_66071800
 dat_66071804 aAvqsvgg
 dat_66071814 ??_R0?AVQSvgSwitch@@@8
-dat_66071818
 dat_6607181c aAvqsvgswitch
 dat_66071834 ??_R0?AVQObject@@@8
-dat_66071838
 dat_6607183c aAvqobject
-dat_6607184a
 dat_66071850 ??_R0?AVQTimer@@@8
-dat_66071854
 dat_66071858 aAvqtimer
 dat_6607186c ??_R0?AVQSvgRendererPrivate@@@8
-dat_66071870
 dat_66071874 aAvqsvgrenderer_0
 dat_66071894 ??_R0?AVQObjectPrivate@@@8
-dat_66071898
 dat_6607189c aAvqobjectpriva
-dat_660718b1
 dat_660718b8 ??_R0?AVQObjectData@@@8
-dat_660718bc
 dat_660718c0 aAvqobjectdata
-dat_660718d2
 dat_660718d8 ??_R0?AVQSvgRenderer@@@8
-dat_660718dc
 dat_660718e0 aAvqsvgrenderer
-dat_660718f3
 dat_660718f8 ??_R0?AVQSvgWidgetPrivate@@@8
-dat_660718fc
 dat_66071900 aAvqsvgwidgetpr
-dat_66071918
 dat_66071920 ??_R0?AVQWidgetPrivate@@@8
-dat_66071924
 dat_66071928 aAvqwidgetpriva
 dat_66071944 ??_R0?AVQSvgWidget@@@8
-dat_66071948
 dat_6607194c aAvqsvgwidget
 dat_66071964 ??_R0?AVQWidget@@@8
-dat_66071968
 dat_6607196c aAvqwidget
-dat_6607197a
 dat_66071980 ??_R0?AVQPaintDevice@@@8
-dat_66071984
 dat_66071988 aAvqpaintdevice
-dat_6607199b
 dat_660719a0 ??_R0?AVQGraphicsSvgItemPrivate@@@8
-dat_660719a4
 dat_660719a8 aAvqgraphicssvg_0
-dat_660719c6
 dat_660719d0 ??_R0?AVQGraphicsItemPrivate@@@8
-dat_660719d4
 dat_660719d8 aAvqgraphicsite_0
 dat_660719fc ??_R0?AVQGraphicsSvgItem@@@8
-dat_66071a00
 dat_66071a04 aAvqgraphicssvg
 dat_66071a24 ??_R0?AVQGraphicsObject@@@8
-dat_66071a28
 dat_66071a2c aAvqgraphicsobj
-dat_66071a42
 dat_66071a48 ??_R0?AVQGraphicsItem@@@8
-dat_66071a4c
 dat_66071a50 aAvqgraphicsite
 dat_66071a6c ??_R0?AVQTextStream@@@8
-dat_66071a70
 dat_66071a74 aAvqtextstream
 dat_66071a8c ??_R0?AVQFile@@@8
-dat_66071a90
 dat_66071a94 aAvqfile
 dat_66071aa4 ??_R0?AVQFileDevice@@@8
-dat_66071aa8
 dat_66071aac aAvqfiledevice
 dat_66071ac4 ??_R0?AVQIODevice@@@8
-dat_66071ac8
 dat_66071acc aAvqiodevice
-dat_66071adc
 dat_66071ae0 ??_R0?AVQSvgGenerator@@@8
-dat_66071ae4
 dat_66071ae8 aAvqsvggenerato
 dat_66071b04 ??_R0?AVQSvgPaintEnginePrivate@@@8
-dat_66071b08
 dat_66071b0c aAvqsvgpainteng
-dat_66071b29
 dat_66071b30 ??_R0?AVQPaintEnginePrivate@@@8
-dat_66071b34
 dat_66071b38 aAvqpaintengine
-dat_66071b52
 dat_66071b58 ??_R0?AVQSvgPaintEngine@@@8
-dat_66071b5c
 dat_66071b60 aAvqsvgpainteng_0
 dat_66071b7c ??_R0?AVQPaintEngine@@@8
-dat_66071b80
 dat_66071b84 aAvqpaintengine_0
 dat_66071b9c ??_R0?AVerror_category@std@@@8
-dat_66071ba0
 dat_66071ba4 aAverrorCategor
 dat_66071bc4 ??_R0?AV_Generic_error_category@std@@@8
-dat_66071bc8
 dat_66071bcc aAvGenericError
 dat_66071bf8 ??_R0?AV_Iostream_error_category@std@@@8
-dat_66071bfc
 dat_66071c00 aAvIostreamErro
 dat_66071c2c ??_R0?AV_System_error_category@std@@@8
-dat_66071c30
 dat_66071c34 aAvSystemErrorC
-dat_66071c55
 dat_66071c60 ??_R0?AVtype_info@@@8
-dat_66071c64
 dat_66071c68 aAvtypeInfo
 dat_66071db0 ?staticMetaObject@QSvgRenderer@@2UQMetaObject@@B QMetaObject /*%QMetaObject#01F38107ECBFB345%*/
 dat_66071dcc ?staticMetaObject@QGraphicsSvgItem@@2UQMetaObject@@B QMetaObject /*%QMetaObject#01F38107ECBFB345%*/
-dat_66071de4
 dat_66071de8 ?staticMetaObject@QSvgWidget@@2UQMetaObject@@B QMetaObject /*%QMetaObject#01F38107ECBFB345%*/
 dat_66071e04 ___@@_PchSym_@00@UdlipUyfrowUjgFPdlipwriUdUhUjghetUhixUhetUOkxsUwvyftUjgFhetwPkxsOlyq@4EF261C5B7DA3A55 int
 dat_66071e08 _Tuple_alloc std::_Tuple_alloc_t /*%std::_Tuple_alloc_t#BFFCFDD566EA4600%*/
@@ -23256,7 +18746,6 @@ dat_6607215c ___native_startup_state __enative_startup_state /*%__enative_startu
 dat_66072160 ___dyn_tls_init_callback void (__stdcall *const )(void *, unsigned int, void *)
 dat_6607216c ___onexitend PVOID
 dat_6607217c ___onexitbegin PVOID
-dat_66072180
 dat_66073000 __imp__DisableThreadLibraryCalls@4 BOOL __stdcall sub(HMODULE hLibModule)
 dat_66073004 __imp__GetSystemTimeAsFileTime@4 void __stdcall sub(LPFILETIME /*%_FILETIME#CCA50A8A595D82C4%*/ lpSystemTimeAsFileTime)
 dat_66073008 __imp__GetCurrentThreadId@0 DWORD __stdcall sub()
