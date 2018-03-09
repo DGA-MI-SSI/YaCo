@@ -1468,10 +1468,10 @@ std::vector<ea_t> get_all_items(ea_t start, ea_t end)
         if(is_code(flags))
         {
             const auto func = get_func(ea);
+            const auto code = ya::get_range_code(ea, start, end);
             if(func)
                 add_ea(func->start_ea);
-            const auto code = ya::get_range_code(ea, start, end);
-            if(code.contains(ea))
+            else if(code.contains(ea))
                 add_ea(code.start_ea);
             ea = code.end_ea;
             continue;

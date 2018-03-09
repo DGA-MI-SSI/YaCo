@@ -25,11 +25,10 @@ def iterate(get, size):
     for i in range(0, size):
         yield get(i)
 
-golden_filename = "test_export.700.golden"
 
 class Fixture(runtests.Fixture):
 
-    def check_golden(self, got):
+    def check_golden(self, golden_filename, got):
         expected_path = os.path.join(os.path.dirname(inspect.getsourcefile(lambda:0)), golden_filename)
 
         # enable to update golden file
@@ -45,20 +44,19 @@ class Fixture(runtests.Fixture):
         if expected != got:
             self.fail(''.join(difflib.unified_diff(expected.splitlines(1), got.splitlines(1), golden_filename, "got")))
 
-    def test_export(self):
-        a, b = self.setup_repos()
+    def export_with(self, a, golden_filename):
         a.run_bare(
             self.script("""
 import idc
 import os
 name, _ = os.path.splitext(idc.get_idb_path())
 os.makedirs("database")
-ya.export_from_ida(name, "database/database.yadb")
+ya.export_from_ida(name, "dat.yadb")
 """),
         )
         import yadb.Root
         data = None
-        with open(os.path.join(a.path, "database", "database.yadb"), 'rb') as fh:
+        with open(os.path.join(a.path, "dat.yadb"), 'rb') as fh:
             data = bytearray(fh.read())
         root = yadb.Root.Root.GetRootAsRoot(data, 0)
         def tostr(index):
@@ -97,4 +95,12 @@ ya.export_from_ida(name, "database/database.yadb")
             for (key, prefix, ea, name, prototype) in values:
                 line = "%s_%-2x %s %s" % (prefix, ea, name, prototype)
                 got.write(line.rstrip() + "\n")
-        self.check_golden(got.getvalue())
+        self.check_golden(golden_filename, got.getvalue())
+
+    def test_export_qt54(self):
+        a, _ = self.setup_repos()
+        return self.export_with(a, "test_export.700.golden")
+
+    def test_export_cmder(self):
+        a, _ = self.setup_cmder()
+        return self.export_with(a, "test_export_cmder.700.golden")

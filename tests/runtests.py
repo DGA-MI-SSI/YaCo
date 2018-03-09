@@ -98,16 +98,17 @@ idc.Exit(0)
 
 class Repo():
 
-    def __init__(self, ctx, path):
+    def __init__(self, ctx, path, target):
         self.ctx = ctx
         self.path = path
+        self.target = target
 
     def run_script(self, script, init=False):
         import exec_ida
         args = ["-Oyaco:disable_plugin", "-A"]
-        target = "Qt5Svgd.dll.i64"
+        target = self.target + ".i64"
         if not init:
-            target = "Qt5Svgd.dll_local.i64"
+            target = self.target + "_local.i64"
         cmd = exec_ida.Exec(os.path.join(self.ctx.ida_dir, "ida64"), os.path.join(self.path, target), *args)
         cmd.set_idle(True)
         fd, fname = tempfile.mkstemp(dir=self.path, prefix="exec_", suffix=".py")
@@ -336,31 +337,37 @@ class Fixture(unittest.TestCase):
         sysexec(repo, ["git", "fetch", "origin"])
 
     # set two linked repos
-    def setup_repos(self):
+    def setup_repos_with(self, indir, target):
         try:
             os.makedirs(self.out_dir)
         except:
             pass
         work_dir = tempfile.mkdtemp(prefix='repo_', dir=self.out_dir)
         self.dirs.append(work_dir)
-        qt54 = os.path.join(self.tests_dir, "..", "testdata", "qt54_svg_no_pdb")
+        indir = os.path.join(self.tests_dir, "..", "testdata", indir)
         a = os.path.abspath(os.path.join(work_dir, "a"))
         b = os.path.abspath(os.path.join(work_dir, "b"))
         c = os.path.abspath(os.path.join(work_dir, "c"))
         os.makedirs(a)
-        shutil.copy(os.path.join(qt54, "Qt5Svgd.dll.i64"), a)
+        shutil.copy(os.path.join(indir, target + ".i64"), a)
         sysexec(a, ["git", "init"])
         sysexec(a, ["git", "add", "-A"])
         sysexec(a, ["git", "commit", "-m", "init"])
         sysexec(a, ["git", "clone", "--bare", ".", c])
         self.set_master(a, c)
-        ra, rb = Repo(self, a), Repo(self, b)
+        ra, rb = Repo(self, a, target), Repo(self, b, target)
         ra.run_script("""
 import yaco_plugin
 yaco_plugin.start()
 """, init=True)
         shutil.copytree(a, b)
         return ra, rb
+
+    def setup_repos(self):
+        return self.setup_repos_with("qt54_svg_no_pdb", "Qt5Svgd.dll")
+
+    def setup_cmder(self):
+        return self.setup_repos_with("cmder", "Cmder.exe")
 
 
 def get_args():
