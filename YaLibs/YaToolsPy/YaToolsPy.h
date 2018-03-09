@@ -15,7 +15,6 @@
 
 %include "std_vector.i"
 %include "stl.i"
-%include "stdint.i"
 
 %{
 #include "YaSwig.hpp"
@@ -54,13 +53,6 @@
  	}
  }
 
-%template () std::vector<ea_t>;
-
-%typemap(typecheck) ea_t
-{
-    $1 = PyLong_Check($input) || PyInt_Check($input);
-}
-
 %typemap(in) ea_t
 {
     if (PyLong_Check($input))
@@ -71,21 +63,7 @@
         SWIG_exception_fail(SWIG_ValueError, "invalid ea_t value");
 }
 
-%typemap(directorin) ea_t
-{
-    if (PyLong_Check($input))
-        $1 = static_cast<ea_t>(PyLong_AsUnsignedLongLongMask($input));
-    else if(PyInt_Check($input))
-        $1 = static_cast<ea_t>(PyInt_AsUnsignedLongMask($input));
-    else
-        SWIG_exception_fail(SWIG_ValueError, "invalid ea_t value");
-}
-
-%typemap(out) ea_t
-{
-    $result = PyLong_FromUnsignedLongLong($1);
-    Py_XINCREF($result);
-}
+%template () std::vector<ea_t>;
 
 %typemap(out) std::vector<ea_t, std::allocator<ea_t>>
 {
