@@ -19,6 +19,8 @@
 
 #include "Helpers.h"
 
+#include <memory>
+
 // forward declarations
 struct LOG_Ctx;
 
@@ -49,5 +51,5 @@ YATOOLS_Ctx* YATOOLS_Get();
 #define YALOG_DEBUG(MOD, FMT, ...)   LOG_DEBUG  (YATOOLS_GetLogger(YATOOLS_Get()), (MOD), (FMT), ## __VA_ARGS__)
 
 
-void StartYatools(const char* base);
-void StopYatools();
+struct Yatools;
+std::shared_ptr<Yatools> MakeYatools(const char* base);

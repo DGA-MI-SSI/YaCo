@@ -41,13 +41,13 @@ namespace yaswig
 
     void export_from_ida(const std::string& idb_wo_ext, const std::string& dst)
     {
-        StartYatools(idb_wo_ext.data());
+        const auto yatools = MakeYatools(idb_wo_ext.data());
         ::export_from_ida(dst);
     }
 
     void import_to_ida(const std::string& idb_wo_ext, const std::string& src)
     {
-        StartYatools(idb_wo_ext.data());
+        const auto yatools = MakeYatools(idb_wo_ext.data());
         ::import_to_ida(src);
     }
 

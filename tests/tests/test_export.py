@@ -47,7 +47,7 @@ class Fixture(runtests.Fixture):
 
     def test_export(self):
         a, b = self.setup_repos()
-        a.run(
+        a.run_bare(
             self.script("""
 import idc
 import os

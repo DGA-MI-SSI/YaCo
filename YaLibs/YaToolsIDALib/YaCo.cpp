@@ -91,7 +91,7 @@ namespace
     struct YaCo
         : public IYaCo
     {
-         YaCo();
+         YaCo(const std::shared_ptr<Yatools>& yatools);
         ~YaCo();
 
         // IYaCo methods
@@ -104,6 +104,7 @@ namespace
         void toggle_auto_rebase_push();
 
         // Variables
+        std::shared_ptr<Yatools>     yatools_;
         std::shared_ptr<IRepository> repo_;
         std::shared_ptr<IEvents>     events_;
         std::shared_ptr<IHooks>      hooks_;
@@ -113,8 +114,9 @@ namespace
 }
 
 
-YaCo::YaCo()
-    : repo_(MakeRepository("."))
+YaCo::YaCo(const std::shared_ptr<Yatools>& yatools)
+    : yatools_(yatools)
+    , repo_(MakeRepository("."))
     , events_(MakeEvents(*repo_))
     , hooks_(MakeHooks(*events_))
 {
@@ -187,7 +189,6 @@ YaCo::~YaCo()
     events_.reset();
     repo_.reset();
     IDA_LOG_INFO("exit");
-    StopYatools();
 }
 
 void YaCo::initial_load()
@@ -253,6 +254,5 @@ std::shared_ptr<IYaCo> MakeYaCo()
 {
     auto idb_path = get_current_idb_path();
     remove_file_extension(idb_path);
-    StartYatools(idb_path.generic_string().data());
-    return std::make_shared<YaCo>();
+    return std::make_shared<YaCo>(MakeYatools(idb_path.generic_string().data()));
 }

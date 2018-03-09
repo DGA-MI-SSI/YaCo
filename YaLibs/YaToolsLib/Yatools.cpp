@@ -74,7 +74,18 @@ LOG_Ctx* YATOOLS_GetLogger(YATOOLS_Ctx* pvCtx)
     return &pCtx->Logger;
 }
 
-void StartYatools(const char* base)
+struct Yatools
+{
+     Yatools(const char* base);
+    ~Yatools();
+};
+
+std::shared_ptr<Yatools> MakeYatools(const char* base)
+{
+    return std::make_shared<Yatools>(base);
+}
+
+Yatools::Yatools(const char* base)
 {
     auto pCtx = YATOOLS_Get();
     YATOOLS_Init(pCtx);
@@ -91,7 +102,7 @@ void StartYatools(const char* base)
     LOG_Print(YATOOLS_GetLogger(YATOOLS_Get()), "yaco", static_cast<LOG_ELevel>(LOG_LEVEL_DEBUG), "Yatools Created\n");
 }
 
-void StopYatools()
+Yatools::~Yatools()
 {
     LOG_Print(YATOOLS_GetLogger(YATOOLS_Get()), "yaco", static_cast<LOG_ELevel>(LOG_LEVEL_DEBUG), "~Yatools\n");
     YATOOLS_Exit(YATOOLS_Get());
