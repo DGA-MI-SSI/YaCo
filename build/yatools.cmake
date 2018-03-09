@@ -109,17 +109,15 @@ setup_yatools(yagit)
 target_include_directories(yagit PUBLIC "${ya_dir}/YaLibs/YaGitLib")
 target_link_libraries(yagit PUBLIC git2 ssh2)
 
-# yagit tests
-add_custom_command(OUTPUT cleanup.rule
+# yagit_tests
+add_test(NAME yagit_tests_init
     COMMAND ${CMAKE_COMMAND} -E remove_directory "${CMAKE_CURRENT_BINARY_DIR}/temp_folder_unittest"
-    COMMENT "cleaning up temp directory"
 )
-set_source_files_properties(cleanup.rule PROPERTIES SYMBOLIC true)
-source_group(cmake FILES cleanup.rule)
 get_files(files "${ya_dir}/YaLibs/tests/YaGitLib_test")
-make_target(yagit_tests yatools/tests ${files} cleanup.rule OPTIONS test static_runtime)
+make_target(yagit_tests yatools/tests ${files} OPTIONS test static_runtime)
 setup_yatools(yagit_tests)
 target_include_directories(yagit_tests PRIVATE "${ya_dir}/YaLibs/tests")
+set_property(TEST yagit_tests APPEND PROPERTY DEPENDS yagit_tests_init)
 target_link_libraries(yagit_tests PRIVATE
     gtest
     yagit
