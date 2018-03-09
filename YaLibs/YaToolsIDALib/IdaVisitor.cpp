@@ -35,6 +35,7 @@
 #include <algorithm>
 #include <string>
 #include <iostream>
+#include <sstream>
 #include <functional>
 #include <set>
 #include <chrono>

@@ -33,7 +33,6 @@ struct Signature
     SignatureMethod_e   method;
 };
 
-std::string ToString(const Signature& sign);
 Signature MakeSignature(SignatureAlgo_e algo, SignatureMethod_e method, const const_string_ref& value);
 
 inline const_string_ref make_string_ref(const Signature& sign)

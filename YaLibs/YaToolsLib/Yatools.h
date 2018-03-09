@@ -19,10 +19,6 @@
 
 #include "Helpers.h"
 
-#include <string>
-#include <sstream>
-
-
 // forward declarations
 struct LOG_Ctx;
 
@@ -52,23 +48,6 @@ YATOOLS_Ctx* YATOOLS_Get();
 #define YALOG_INFO(MOD, FMT, ...)    LOG_INFO   (YATOOLS_GetLogger(YATOOLS_Get()), (MOD), (FMT), ## __VA_ARGS__)
 #define YALOG_DEBUG(MOD, FMT, ...)   LOG_DEBUG  (YATOOLS_GetLogger(YATOOLS_Get()), (MOD), (FMT), ## __VA_ARGS__)
 
-
-// helper for objects using operator<<
-template<typename T>
-inline std::string ToString(const T& Value)
-{
-    std::stringstream Stream;
-    Stream << Value;
-    return Stream.str();
-}
-
-template<>
-inline std::string ToString(const bool& Value)
-{
-    return Value ? "true" : "false";
-}
-
-#define TO_STRING(X) ToString(X).data()
 
 void StartYatools(const char* base);
 void StopYatools();

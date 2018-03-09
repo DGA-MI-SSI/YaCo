@@ -18,6 +18,7 @@
 #include "Logger.h"
 
 #include <string.h>
+#include <string>
 #include <memory>
 
 static const uint32_t Magic = 0x65DB5952;

@@ -85,13 +85,6 @@ SignatureMethod_e get_signature_method(const char* value)
     return SIGNATURE_UNKNOWN;
 }
 
-std::string ToString(const Signature& sign)
-{
-    std::stringstream ss;
-    ss << "sig: " << sign.buffer << " hash: " << std::hex << sign.hash;
-    return ss.str();
-}
-
 Signature MakeSignature(SignatureAlgo_e algo, SignatureMethod_e method, const const_string_ref& value)
 {
     Signature sign{{}, value.size, util::Hash(value.value, value.size), algo, method};
