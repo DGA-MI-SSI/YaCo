@@ -238,7 +238,7 @@ add_yatools_py(64)
 
 # testdata
 find_package(PythonInterp 2.7 REQUIRED)
-function(make_testdata target src idaq)
+function(make_testdata target bin src idaq)
     set(output "${root_dir}/testdata/${target}/database/database.yadb")
     set(no_pdb "--no-pdb")
     if("${target}" STREQUAL "${src}")
@@ -246,13 +246,14 @@ function(make_testdata target src idaq)
     endif()
     add_test(NAME "make_testdata_${target}"
         COMMAND ${PYTHON_EXECUTABLE} "${ya_dir}/tests/make_testdata.py"
-        ${no_pdb} "${root_dir}/testdata/${target}" "${deploy_dir}" "${root_dir}/tests/${src}/Qt5Svgd.dll" "${ida_dir}/${idaq}"
+        ${no_pdb} "${root_dir}/testdata/${target}" "${deploy_dir}" "${root_dir}/tests/${src}/${bin}" "${ida_dir}/${idaq}"
         WORKING_DIRECTORY "${ya_dir}/tests"
     )
 endfunction()
-make_testdata(qt54_svg        qt54_svg ida64)
-make_testdata(qt54_svg_no_pdb qt54_svg ida64)
-make_testdata(qt57_svg        qt54_svg ida)
+make_testdata(qt54_svg        Qt5Svgd.dll qt54_svg ida64)
+make_testdata(qt54_svg_no_pdb Qt5Svgd.dll qt54_svg ida64)
+make_testdata(qt57_svg        Qt5Svgd.dll qt54_svg ida)
+make_testdata(cmder           Cmder.exe   cmder    ida64)
 
 # integration_tests
 add_target(integration_tests yatools/tests "${ya_dir}/YaLibs/tests/integration" OPTIONS test static_runtime)
@@ -283,4 +284,5 @@ foreach(test ${test_names})
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     )
     set_property(TEST ${shortname} APPEND PROPERTY DEPENDS make_testdata_qt54_svg_no_pdb)
+    set_property(TEST ${shortname} APPEND PROPERTY DEPENDS make_testdata_cmder)
 endforeach()
