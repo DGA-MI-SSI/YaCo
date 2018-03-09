@@ -357,6 +357,29 @@ function(setup_target target)
     endif()
 endfunction()
 
+# auto-generate external cmake file containing all inputs
+function(autogen_files target)
+    set(files ${ARGN})
+    list(REMOVE_DUPLICATES files)
+    list(SORT files)
+    set(data "# generated with cmake\nset(_${target}_files\n")
+    foreach(it ${files})
+        file(RELATIVE_PATH it ${CMAKE_CURRENT_SOURCE_DIR} ${it})
+        set(data "${data}    \"${it}\"\n")
+    endforeach()
+    set(data "${data})")
+    set(filename "${CMAKE_CURRENT_SOURCE_DIR}/files/${target}.files.cmake")
+    set(got)
+    if(EXISTS "${filename}")
+        file(READ "${filename}" got)
+    endif()
+    if(NOT "${data}" STREQUAL "${got}")
+        file(WRITE "${filename}" ${data})
+    endif()
+    include(${filename})
+    set(_${target}_files ${_${target}_files} PARENT_SCOPE)
+endfunction()
+
 # make_target <target> <group> <files...> [INCLUDES <includes...>] [OPTIONS <options...>]
 # add a new target and apply options
 # targets are static libraries by default
@@ -413,6 +436,10 @@ function(make_target target group)
     if(has_git_version)
         setup_git(${target} files includes)
     endif()
+
+    # include auto-generated file list
+    autogen_files(${target} ${files})
+    set(files ${_${target}_files})
 
     # add the target
     if(is_executable OR is_test)
