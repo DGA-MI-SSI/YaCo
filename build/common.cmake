@@ -452,35 +452,49 @@ function(add_target target group)
     make_target(${target} ${group} ${files} OPTIONS ${options})
 endfunction()
 
-function(add_swig_module target group)
-    split_args(args2 "INCLUDES" includes ${ARGN})
-    split_args(files "DEPS" deps ${args2})
-    foreach(it ${files})
+function(split_swig_files itarget deps)
+    set(itarget_)
+    set(deps_)
+    foreach(it ${ARGN})
         if(${it} MATCHES "[.]i$")
-            set_property(SOURCE ${it} PROPERTY CPLUSPLUS ON)
-            get_filename_component(outname ${it} NAME_WE)
-            set(outpy  "${CMAKE_CURRENT_BINARY_DIR}/${outname}.py")
-            set(outcpp "${CMAKE_CURRENT_BINARY_DIR}/${outname}PYTHON_wrap.cxx")
-            source_group(autogen FILES ${outpy} ${outcpp})
-            # foreach input file create a custom command
-            # which depend on every dependency and work-around
-            # broken dependency handling from swig_add_module
-            add_custom_command(
-                OUTPUT  ${it}
-                COMMAND ${CMAKE_COMMAND} -E touch ${it}
-                DEPENDS ${deps}
-                COMMENT "Swig required on ${outname}.i"
-            )
+            list(APPEND itarget_ ${it})
+        else()
+            list(APPEND deps_ ${it})
         endif()
     endforeach()
+    set(${itarget} ${itarget_} PARENT_SCOPE)
+    set(${deps} ${deps_} PARENT_SCOPE)
+endfunction()
+
+function(add_swig_module target group)
+    split_args(right_args "INCLUDES" includes ${ARGN})
+    split_args(files "DEPS" deps ${right_args})
+    split_swig_files(itarget others ${files})
+    get_filename_component(outname ${itarget} NAME_WE)
+    set(outi   "${CMAKE_CURRENT_BINARY_DIR}/${outname}.i")
+    set(outpy  "${CMAKE_CURRENT_BINARY_DIR}/${outname}.py")
+    set(outcpp "${CMAKE_CURRENT_BINARY_DIR}/${outname}PYTHON_wrap.cxx")
+    set_property(SOURCE ${outi} PROPERTY CPLUSPLUS ON)
+    source_group(autogen FILES ${outpy} ${outcpp} ${outi})
+    # foreach input file create a custom command
+    # which depend on every dependency and work-around
+    # broken dependency handling from swig_add_module
+    # we also create a dummy copy of input file &
+    # ensure make clean doesn't clean original file
+    add_custom_command(
+        OUTPUT  "${outi}"
+        COMMAND ${CMAKE_COMMAND} -E copy "${itarget}" "${outi}"
+        DEPENDS ${itarget} ${deps}
+        COMMENT "${outname}.i"
+    )
     get_directory_property(backup_includes INCLUDE_DIRECTORIES)
     list(APPEND includes "${SWIG_DIR}/python" "${SWIG_DIR}")
     set_directory_properties(PROPERTIES INCLUDE_DIRECTORIES "${includes}")
     message("-- Configuring ${group}/_${target}")
     if(${CMAKE_VERSION} VERSION_LESS "3.8.0")
-        swig_add_module(${target} python ${files})
+        swig_add_module(${target} python ${outi} ${others})
     else()
-        swig_add_library(${target} LANGUAGE python SOURCES ${files})
+        swig_add_library(${target} LANGUAGE python SOURCES ${outi} ${others})
     endif()
     set_directory_properties(PROPERTIES INCLUDE_DIRECTORIES "${backup_includes}")
     set_target_properties(_${target} PROPERTIES FOLDER ${group})

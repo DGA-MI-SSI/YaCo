@@ -161,7 +161,6 @@ function(add_swig_mod target name)
     endif()
     set_target_output_name(_${target} _${name} _${name})
     set_target_output_directory(_${target} "")
-    set_target_properties(_${target} PROPERTIES INSTALL_RPATH "$ORIGIN/")
     deploy_to_bin(_${target} "${CMAKE_CURRENT_BINARY_DIR}/${name}.py" "")
 endfunction()
 
