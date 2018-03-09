@@ -105,7 +105,7 @@ namespace
     {
         switch (event)
         {
-#if IDP_INTERFACE_VERSION > 700
+#if IDA_SDK_VERSION > 700
             case processor_t::event_t::ev_analyze_prolog:                  return "ev_analyze_prolog";
             case processor_t::event_t::ev_calc_spdelta:                    return "ev_calc_spdelta";
             case processor_t::event_t::ev_calcrel:                         return "ev_calcrel";
