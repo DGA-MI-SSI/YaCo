@@ -14,14 +14,14 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # yatools dependencies
-get_filename_component(farm_dir     "${ya_dir}/deps/farmhash-1.1"   REALPATH)
-get_filename_component(git_dir      "${ya_dir}/deps/libgit2-0.27.0-rc1" REALPATH)
-get_filename_component(gtest_dir    "${ya_dir}/deps/gtest-1.7.0"    REALPATH)
-get_filename_component(ico_dir      "${ya_dir}/deps/libiconv-1.14"  REALPATH)
-get_filename_component(mbed_dir     "${ya_dir}/deps/mbedtls-2.4.2"  REALPATH)
-get_filename_component(ssh2_dir     "${ya_dir}/deps/libssh2-1.8.0"  REALPATH)
-get_filename_component(swig_dir     "${ya_dir}/deps/swig-3.0.7"     REALPATH)
-get_filename_component(xml_dir      "${ya_dir}/deps/libxml2-2.7.8"  REALPATH)
+get_filename_component(farm_dir     "${ya_dir}/deps/farmhash-1.1"       ABSOLUTE)
+get_filename_component(git_dir      "${ya_dir}/deps/libgit2-0.27.0-rc1" ABSOLUTE)
+get_filename_component(gtest_dir    "${ya_dir}/deps/gtest-1.7.0"        ABSOLUTE)
+get_filename_component(ico_dir      "${ya_dir}/deps/libiconv-1.14"      ABSOLUTE)
+get_filename_component(mbed_dir     "${ya_dir}/deps/mbedtls-2.4.2"      ABSOLUTE)
+get_filename_component(ssh2_dir     "${ya_dir}/deps/libssh2-1.8.0"      ABSOLUTE)
+get_filename_component(swig_dir     "${ya_dir}/deps/swig-3.0.7"         ABSOLUTE)
+get_filename_component(xml_dir      "${ya_dir}/deps/libxml2-2.7.8"      ABSOLUTE)
 
 if(WIN32)
     # force add winsock2 & crypt32
@@ -35,7 +35,7 @@ if(WIN32)
 endif()
 
 # charset
-get_filename_component(ch_dir  "${ico_dir}/libcharset" REALPATH)
+get_filename_component(ch_dir  "${ico_dir}/libcharset" ABSOLUTE)
 get_files(files ${ch_dir}/lib ${ch_dir}/include)
 autoconfigure(files includes libcharset "${ch_dir}/config.h.in"
     "\n#define HAVE_WORKING_O_NOFOLLOW 0"
@@ -295,7 +295,7 @@ endif()
 
 # swig
 # annoying autoconfigure stuff
-get_filename_component(tmp_dir "${CMAKE_CURRENT_BINARY_DIR}/swig_" REALPATH)
+get_filename_component(tmp_dir "${CMAKE_CURRENT_BINARY_DIR}/swig_" ABSOLUTE)
 configure_file("${swig_dir}/Source/Include/swigwarn.h" "${tmp_dir}/swigwarn.h")
 file(WRITE "${tmp_dir}/swigconfig.h.in" "
 #include <stdbool.h>

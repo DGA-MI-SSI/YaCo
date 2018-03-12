@@ -9,9 +9,9 @@ if(NOT "${ARCH}" STREQUAL "x64")
     message(FATAL_ERROR "unsupported arch ${ARCH}")
 endif()
 
-get_filename_component(root_dir     ${CMAKE_CURRENT_SOURCE_DIR}/..  REALPATH)
-get_filename_component(bin_d_dir    ${root_dir}/bin/yaco_d_${ARCH}  REALPATH)
-get_filename_component(bin_dir      ${root_dir}/bin/yaco_${ARCH}    REALPATH)
+get_filename_component(root_dir     ${CMAKE_CURRENT_SOURCE_DIR}/..  ABSOLUTE)
+get_filename_component(bin_d_dir    ${root_dir}/bin/yaco_d_${ARCH}  ABSOLUTE)
+get_filename_component(bin_dir      ${root_dir}/bin/yaco_${ARCH}    ABSOLUTE)
 
 set(ya_dir ${root_dir})
 include(yatools.cmake)
