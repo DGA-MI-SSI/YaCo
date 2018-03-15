@@ -22,6 +22,7 @@ import sys
 prog = idc.ARGV[0] if len(idc.ARGV) else None
 parser = argparse.ArgumentParser(prog=prog, description='Export IDA database')
 parser.add_argument('bin_dir', type=os.path.abspath, help='YaCo bin directory')
+parser.add_argument("--output", type=os.path.abspath, default="database/database.yadb", help="output filename")
 args = parser.parse_args(idc.ARGV[1:])
 
 root_dir = os.path.abspath(os.path.join(args.bin_dir, '..'))
@@ -37,6 +38,9 @@ else:
 idc.Wait()
 
 name, _ = os.path.splitext(idc.get_idb_path())
-os.makedirs("database")
-ya.export_from_ida(name, "database/database.yadb")
+try:
+    os.makedirs(os.path.dirname(args.output))
+except:
+    pass
+ya.export_from_ida(name, args.output)
 idc.Exit(0)
