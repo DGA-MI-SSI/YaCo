@@ -76,18 +76,28 @@ namespace
         "basic_block",
     };
 
+    YaToolObjectId id_from_string(const const_string_ref& txt)
+    {
+        YaToolObjectId id = 0;
+        const auto n = hexbin(&id, sizeof id, txt.value, txt.size);
+        return n == sizeof id ? swap(id) : 0;
+    }
+
+    YaToolObjectType_e get_object_type_from_path(const filesystem::path& path)
+    {
+        auto it = path.begin();
+        if(it == path.end())
+            return OBJECT_TYPE_UNKNOWN;
+        ++it;
+        return it != path.end() ? get_object_type(it->string().data()) : OBJECT_TYPE_UNKNOWN;
+    }
+
     std::vector<std::string> sort_files(std::vector<std::string> files)
     {
         std::sort(files.begin(), files.end(), [](const filesystem::path& a, const filesystem::path& b)
         {
-            auto ait = a.begin();
-            auto bit = b.begin();
-            if(ait != a.end())
-                ++ait;
-            if(bit != b.end())
-                ++bit;
-            const auto atype = ait != a.end() ? get_object_type(ait->string().data()) : OBJECT_TYPE_UNKNOWN;
-            const auto btype = bit != b.end() ? get_object_type(bit->string().data()) : OBJECT_TYPE_UNKNOWN;
+            const auto atype = get_object_type_from_path(a);
+            const auto btype = get_object_type_from_path(b);
             // make sure file order is stable
             return std::make_pair(indexed_types[atype], a) < std::make_pair(indexed_types[btype], b);
         });
@@ -280,7 +290,7 @@ namespace
         if(!userdefinedname.empty())
             visitor.visit_name(make_string_ref(userdefinedname), userdefinedname_flags);
         if(!parent_id.empty())
-            visitor.visit_parent_id(YaToolObjectId_From_String(parent_id.data(), parent_id.size()));
+            visitor.visit_parent_id(id_from_string(make_string_ref(parent_id)));
         if(!address.empty())
             visitor.visit_address(strtoull(address.data(), nullptr, 16));
         if(!name.empty())
@@ -394,7 +404,7 @@ namespace
                         std::unordered_map<std::string, std::string> attributes;
 
                         const auto id_char = xml_get_content(xref->children);
-                        YaToolObjectId object_id = YaToolObjectId_From_String(id_char.data(), id_char.size());
+                        const auto object_id = id_from_string(make_string_ref(id_char));
 
                         for (xmlAttr* attr = xref->properties; attr != nullptr; attr = attr->next)
                         {
@@ -471,7 +481,7 @@ namespace
                     const auto node_content = xml_get_content(id_child->children);
                     if(!node_content.empty())
                     {
-                        visitor.visit_id(YaToolObjectId_From_String(node_content.data(), node_content.size()));
+                        visitor.visit_id(id_from_string(make_string_ref(node_content)));
                     }
                 }
             }
