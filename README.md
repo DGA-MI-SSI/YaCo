@@ -102,6 +102,7 @@ Currently, **YaCo** only support SSH authentication. To keep the plugin user-fri
   * Frederic Grelot
   * Jeremy Bouetard
   * Martin Tourneboeuf
+  * Maxime Pinard
   * Valerian Comiti
 
 ## License
