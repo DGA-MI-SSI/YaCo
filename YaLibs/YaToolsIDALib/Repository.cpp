@@ -23,6 +23,7 @@
 #include "YaGitLib.hpp"
 #include "Yatools.h"
 #include "Utils.hpp"
+#include "YaHelpers.hpp"
 
 #define MODULE_NAME "repo"
 #include "IdaUtils.hpp"
@@ -458,9 +459,7 @@ bool Repository::commit_cache()
             IDA_LOG_ERROR("unable to remove %s for index", f.c_str());
     IDA_LOG_INFO("commit: %zd added %zd updated %zd deleted", untracked_files.size(), modified_files.size(), deleted_files.size());
 
-    // sort & dedup
-    std::sort(comments_.begin(), comments_.end());
-    comments_.erase(std::unique(comments_.begin(), comments_.end()), comments_.end());
+    ya::dedup(comments_);
 
     std::string commit_msg;
     for(const auto& it : comments_)

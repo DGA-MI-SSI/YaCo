@@ -88,6 +88,6 @@ namespace yaswig
 
     std::vector<ea_t> get_all_items(ea_t start, ea_t end)
     {
-        return ::get_all_items(start, end);
+        return ya::get_all_items(start, end);
     }
 }

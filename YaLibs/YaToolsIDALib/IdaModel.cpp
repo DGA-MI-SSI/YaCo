@@ -881,7 +881,7 @@ namespace
 
     ea_t get_data_head(ea_t ea)
     {
-        const auto eas = get_all_items(ea, ea + 1);
+        const auto eas = ya::get_all_items(ea, ea + 1);
         return eas.empty() ? BADADDR : eas.front();
     }
 
@@ -1284,19 +1284,11 @@ namespace
         v.visit_end_offsets();
     }
 
-    template<typename T>
-    void dedup(T& d)
-    {
-        // sort & remove duplicates
-        std::sort(d.begin(), d.end());
-        d.erase(std::unique(d.begin(), d.end()), d.end());
-    }
-
     template<typename Ctx>
     void accept_xrefs(Ctx& ctx, IModelVisitor& v)
     {
         char hexabuf[2 + sizeof(uint32_t) * 2];
-        dedup(ctx.xrefs_);
+        ya::dedup(ctx.xrefs_);
         v.visit_start_xrefs();
         for(const auto& it : ctx.xrefs_)
         {
@@ -1312,7 +1304,7 @@ namespace
     template<typename Ctx>
     void accept_reference_infos(Ctx& ctx, IModelVisitor& v)
     {
-        dedup(ctx.refs_);
+        ya::dedup(ctx.refs_);
         for(const auto& r : ctx.refs_)
         {
             start_object(v, OBJECT_TYPE_REFERENCE_INFO, r.id, 0, r.base);
@@ -1464,48 +1456,6 @@ namespace
     }
 }
 
-std::vector<ea_t> get_all_items(ea_t start, ea_t end)
-{
-    std::vector<ea_t> items;
-
-    // add previous overlapped item
-    auto ea = start;
-    const auto curr = ya::get_range_item(ea);
-    if(curr.contains(ea))
-        ea = curr.start_ea;
-
-    const auto allowed = range_t{start, end};
-    const auto add_ea = [&](ea_t x)
-    {
-        const auto flags = get_flags(x);
-        if(is_code(flags) || has_any_name(flags) || has_xref(flags))
-            if(allowed.contains(x))
-                items.emplace_back(x);
-    };
-
-    // find all interesting items
-    while(ea != BADADDR && ea < end)
-    {
-        const auto flags = get_flags(ea);
-        if(is_code(flags))
-        {
-            const auto func = get_func(ea);
-            const auto code = ya::get_range_code(ea, start, end);
-            if(func)
-                add_ea(func->start_ea);
-            else if(code.contains(ea))
-                add_ea(code.start_ea);
-            ea = code.end_ea;
-            continue;
-        }
-        add_ea(ea);
-        ea = next_not_tail(ea);
-    }
-
-    dedup(items);
-    return items;
-}
-
 namespace
 {
     template<typename Ctx>
@@ -1520,7 +1470,7 @@ namespace
         v.visit_size(end - ea);
 
         v.visit_start_xrefs();
-        const auto eas = get_all_items(ea, end);
+        const auto eas = ya::get_all_items(ea, end);
         for(const auto item_ea : eas)
         {
             const auto item_id = hash_untyped_ea(item_ea);
