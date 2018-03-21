@@ -185,9 +185,9 @@ namespace
             const auto db = MakeMemoryModel();
             db->visit_start();
             Listener listener(*db);
-            listener.update(*create_fbmodel_with([&](const auto& visitor)
+            listener.update(*create_fbmodel_with([&](auto& visitor)
             {
-                MakeXmlFilesModel({xml})->accept(*visitor);
+                MakeXmlFilesModel({xml})->accept(visitor);
             }));
             db->visit_end();
             return walk_model(*db);

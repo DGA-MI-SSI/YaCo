@@ -59,73 +59,72 @@ struct Xref
     YaToolObjectId  id;
 };
 
-void create_object(std::shared_ptr<IModelVisitor> visitor, YaToolObjectId id,
+void create_object(IModelVisitor& v, YaToolObjectId id,
                    const std::vector<const char*>& crcVals,
                    const std::vector<std::vector<Xref>>& xrefs)
 {
-    visitor->visit_start_reference_object(OBJECT_TYPE_DATA);
-    visitor->visit_id(id);
+    v.visit_start_reference_object(OBJECT_TYPE_DATA);
+    v.visit_id(id);
 
     uint32_t i;
     for(i=0; i<crcVals.size(); i++)
     {
         auto crcVal = crcVals[i];
-        visitor->visit_start_object_version();
-        visitor->visit_size(0x20);
-        visitor->visit_start_signatures();
-        visitor->visit_signature(SIGNATURE_OPCODE_HASH, SIGNATURE_ALGORITHM_CRC32, make_string_ref(crcVal));
-        visitor->visit_end_signatures();
-        visitor->visit_start_xrefs();
-        visitor->visit_end_xrefs();
+        v.visit_start_object_version();
+        v.visit_size(0x20);
+        v.visit_start_signatures();
+        v.visit_signature(SIGNATURE_OPCODE_HASH, SIGNATURE_ALGORITHM_CRC32, make_string_ref(crcVal));
+        v.visit_end_signatures();
+        v.visit_start_xrefs();
+        v.visit_end_xrefs();
 
-        visitor->visit_start_xrefs();
+        v.visit_start_xrefs();
         if(i < xrefs.size())
             for(const auto& xref : xrefs[i])
             {
-                visitor->visit_start_xref(xref.offset, xref.id, xref.operand);
-                visitor->visit_end_xref();
+                v.visit_start_xref(xref.offset, xref.id, xref.operand);
+                v.visit_end_xref();
             }
-        visitor->visit_end_xrefs();
+        v.visit_end_xrefs();
 
-        visitor->visit_end_object_version();
+        v.visit_end_object_version();
     }
-    visitor->visit_end_reference_object();
+    v.visit_end_reference_object();
 }
 
-void create_model(std::shared_ptr<IModelVisitor> visitor)
+void create_model(IModelVisitor& v)
 {
+    v.visit_start();
+    v.visit_start_reference_object(OBJECT_TYPE_CODE);
+    v.visit_id(0xAAAAAAAA);
+    v.visit_start_object_version();
+    v.visit_size(0x10);
+    v.visit_start_signatures();
+    v.visit_signature(SIGNATURE_OPCODE_HASH, SIGNATURE_ALGORITHM_CRC32, make_string_ref("BADBADBA"));
+    v.visit_signature(SIGNATURE_FIRSTBYTE,   SIGNATURE_ALGORITHM_CRC32, make_string_ref("BADBAD00"));
+    v.visit_end_signatures();
+    v.visit_start_xrefs();
+    v.visit_start_xref(0x10, 0xBBBBBBBB, 0);  v.visit_end_xref();
+    v.visit_start_xref(0x20, 0xBBBBBBBB, 0);  v.visit_end_xref();
+    v.visit_start_xref(0x20, 0xBBBBBBBB, 1);  v.visit_end_xref();
+    v.visit_start_xref(0x30, 0xCCCCCCCC, 1);  v.visit_end_xref();
+    v.visit_start_xref(0x30, 0xBBBBBBBB, 0);  v.visit_end_xref();
+    v.visit_start_xref(0x30, 0xDDDDDDDD, 0);  v.visit_end_xref();
+    v.visit_end_xrefs();
 
-    visitor->visit_start();
-    visitor->visit_start_reference_object(OBJECT_TYPE_CODE);
-    visitor->visit_id(0xAAAAAAAA);
-    visitor->visit_start_object_version();
-    visitor->visit_size(0x10);
-    visitor->visit_start_signatures();
-    visitor->visit_signature(SIGNATURE_OPCODE_HASH, SIGNATURE_ALGORITHM_CRC32, make_string_ref("BADBADBA"));
-    visitor->visit_signature(SIGNATURE_FIRSTBYTE,   SIGNATURE_ALGORITHM_CRC32, make_string_ref("BADBAD00"));
-    visitor->visit_end_signatures();
-    visitor->visit_start_xrefs();
-    visitor->visit_start_xref(0x10, 0xBBBBBBBB, 0);  visitor->visit_end_xref();
-    visitor->visit_start_xref(0x20, 0xBBBBBBBB, 0);  visitor->visit_end_xref();
-    visitor->visit_start_xref(0x20, 0xBBBBBBBB, 1);  visitor->visit_end_xref();
-    visitor->visit_start_xref(0x30, 0xCCCCCCCC, 1);  visitor->visit_end_xref();
-    visitor->visit_start_xref(0x30, 0xBBBBBBBB, 0);  visitor->visit_end_xref();
-    visitor->visit_start_xref(0x30, 0xDDDDDDDD, 0);  visitor->visit_end_xref();
-    visitor->visit_end_xrefs();
+    v.visit_end_object_version();
+    v.visit_end_reference_object();
 
-    visitor->visit_end_object_version();
-    visitor->visit_end_reference_object();
-
-    create_object(visitor, 0xBBBBBBBB, {"11111111"}, {{{0x10, 0, 0xDDDDDDDD}}});
-    create_object(visitor, 0xDDDDDDDD, {"22222222", "44444444"}, {{{0x20, 1, 0xCCCCCCCC}, {0x20, 2, 0xBBBBBBBB}}});
-    create_object(visitor, 0xCCCCCCCC, {"22222222", "33333333"}, {});
-    visitor->visit_end();
+    create_object(v, 0xBBBBBBBB, {"11111111"}, {{{0x10, 0, 0xDDDDDDDD}}});
+    create_object(v, 0xDDDDDDDD, {"22222222", "44444444"}, {{{0x20, 1, 0xCCCCCCCC}, {0x20, 2, 0xBBBBBBBB}}});
+    create_object(v, 0xCCCCCCCC, {"22222222", "33333333"}, {});
+    v.visit_end();
 }
 
 std::shared_ptr<IModel> create_memorySignatureDB()
 {
     auto db = MakeMemoryModel();
-    create_model(db);
+    create_model(*db);
     return db;
 }
 
@@ -133,10 +132,7 @@ namespace
 {
 std::shared_ptr<IModel> create_FBSignatureDB()
 {
-    return create_fbmodel_with([&](std::shared_ptr<IModelVisitor> visitor)
-    {
-        create_model(visitor);
-    });
+    return create_fbmodel_with(&create_model);
 }
 
 class MockDatabase : public IModel
@@ -164,7 +160,7 @@ TEST_F(TestYaToolDatabaseModel, model)
      * This test ensures that the model created with create_model is consistent and passes
      * validation through ExporterValidatorVisitor
      */
-    create_model(MakeExporterValidatorVisitor());
+    create_model(*MakeExporterValidatorVisitor());
 }
 
 void ReferencedObjects_Impl(std::shared_ptr<IModel>db)
@@ -961,19 +957,13 @@ TEST_F(TestYaToolDatabaseModel, memoryModel_objectWithoutVersion)
 
 TEST_F(TestYaToolDatabaseModel, FBModel_objectWithoutVersion)
 {
-    const auto model = create_fbmodel_with([&](std::shared_ptr<IModelVisitor> visitor)
-    {
-        create_model_objects_without_versions(*visitor);
-    });
+    const auto model = create_fbmodel_with(&create_model_objects_without_versions);
     testObjectWithoutVersion(*model);
 }
 
 TEST_F(TestYaToolDatabaseModel, test_model_get_object_with_invalid_id)
 {
-    const auto model = create_fbmodel_with([&](std::shared_ptr<IModelVisitor> visitor)
-    {
-        create_model(visitor);
-    });
+    const auto model = create_fbmodel_with(&create_model);
     const auto hobj1 = model->get_object(~0u);
     EXPECT_EQ(hobj1.is_valid(), false);
     const auto hobj2 = model->get_object(0);

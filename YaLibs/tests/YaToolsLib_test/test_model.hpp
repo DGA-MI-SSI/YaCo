@@ -45,7 +45,7 @@ std::shared_ptr<IModel> create_fbmodel_with(const T& operand)
     const auto get_mmap = [&]
     {
         auto exporter = MakeFlatBufferVisitor();
-        operand(exporter);
+        operand(*exporter);
         const auto buf = exporter->GetBuffer();
         return std::make_shared<Buffer>(buf.value, buf.size);
     };
