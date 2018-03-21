@@ -841,7 +841,14 @@ std::string Repository::get_commit(const std::string& ref)
 
 void Repository::diff_index(const std::string& from, const on_blob_fn& on_blob) const
 {
-    return repo_.diff_index(from, on_blob);
+    try
+    {
+        repo_.diff_index(from, on_blob);
+    }
+    catch (const std::runtime_error& error)
+    {
+        IDA_LOG_WARNING("unable to diff index: %s", error.what());
+    }
 }
 
 std::shared_ptr<IRepository> MakeRepository(const std::string& path)

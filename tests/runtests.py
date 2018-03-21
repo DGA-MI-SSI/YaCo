@@ -91,8 +91,8 @@ idc.Wait()
 
 ida_end = """
 # end
-idc.SaveBase("")
-idc.Exit(0)
+idc.save_database("")
+idc.qexit(0)
 """
 
 
@@ -103,12 +103,9 @@ class Repo():
         self.path = path
         self.target = target
 
-    def run_script(self, script, init=False):
+    def run_script(self, script, target):
         import exec_ida
         args = ["-Oyaco:disable_plugin", "-A"]
-        target = self.target + ".i64"
-        if not init:
-            target = self.target + "_local.i64"
         cmd = exec_ida.Exec(os.path.join(self.ctx.ida_dir, "ida64"), os.path.join(self.path, target), *args)
         cmd.set_idle(True)
         fd, fname = tempfile.mkstemp(dir=self.path, prefix="exec_", suffix=".py")
@@ -128,7 +125,8 @@ yaco_plugin.start()
 """
         if sync_first:
             scripts += """
-idc.SaveBase("")
+# sync first
+idc.save_database("")
 """
         todo = []
         for (script, check) in args:
@@ -143,7 +141,8 @@ with open("%s", "wb") as fh:
 """ % (re.sub("\\\\", "/", fname), script)
             todo.append((check, fname))
 
-        self.run_script(scripts, init=not use_yaco)
+        target = self.target + ("_local.i64" if use_yaco else ".i64")
+        self.run_script(scripts, target)
         for (check, name) in todo:
             check(name)
 
@@ -359,7 +358,7 @@ class Fixture(unittest.TestCase):
         ra.run_script("""
 import yaco_plugin
 yaco_plugin.start()
-""", init=True)
+""", target + ".i64")
         shutil.copytree(a, b)
         return ra, rb
 
