@@ -350,20 +350,42 @@ namespace
         bool    guess;
     };
 
+    MemberType fixup_member_type(member_t* member, const MemberType& type)
+    {
+        const auto member_size = get_member_size(member);
+        const auto type_size = type.tif.get_size();
+        if(member_size == type_size)
+            return type;
+
+        if(!type_size)
+            return type;
+
+        if(member_size % type_size)
+            return type;
+
+        tinfo_t tif;
+        // workaround IDA bug where member type is an array but tinfo contain a single type only
+        const auto ok = tif.create_array(type.tif, static_cast<uint32_t>(member_size / type_size));
+        if(!ok)
+            return type;
+
+        return {tif, true};
+    }
+
     MemberType get_member_type(member_t* member, opinfo_t* pop)
     {
         tinfo_t tif;
         auto ok = get_member_tinfo(&tif, member);
         if(ok)
-            return {tif, false};
+            return fixup_member_type(member, {tif, false});
 
-        tif = ya::get_tinfo(member->flag, pop);
+        tif = ya::get_tinfo_from_op(member->flag, pop);
         if(!tif.empty())
-            return {tif, true};
+            return fixup_member_type(member, {tif, true});
 
         const auto guess = guess_tinfo(&tif, member->id);
         if(guess == GUESS_FUNC_OK)
-            return {tif, true};
+            return fixup_member_type(member, {tif, true});
 
         return {tinfo_t(), true};
     }

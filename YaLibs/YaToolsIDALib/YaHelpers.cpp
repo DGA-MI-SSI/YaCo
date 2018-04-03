@@ -402,7 +402,7 @@ std::string ya::dump_flags(flags_t flags)
     return reply;
 }
 
-tinfo_t ya::get_tinfo(flags_t flags, const opinfo_t* op)
+tinfo_t ya::get_tinfo_from_op(flags_t flags, const opinfo_t* op)
 {
     tinfo_t empty;
     if(!op)
@@ -433,7 +433,7 @@ tinfo_t ya::get_tinfo(ea_t ea)
     opinfo_t op;
     const auto flags = get_flags(ea);
     const auto has_op = get_opinfo(&op, ea, 0, flags);
-    return get_tinfo(flags, has_op ? &op : nullptr);
+    return get_tinfo_from_op(flags, has_op ? &op : nullptr);
 }
 
 std::string ya::get_type(ea_t ea)

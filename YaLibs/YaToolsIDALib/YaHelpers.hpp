@@ -37,7 +37,7 @@ namespace ya
     };
 
     void                print_type(qstring& dst, TypeToStringMode_e mode, Deps* deps, const tinfo_t& tif, const const_string_ref& name);
-    tinfo_t             get_tinfo(flags_t flags, const opinfo_t* op);
+    tinfo_t             get_tinfo_from_op(flags_t flags, const opinfo_t* op);
     tinfo_t             get_tinfo(ea_t ea);
     std::string         get_type(ea_t ea);
     std::string         dump_flags(flags_t flags);

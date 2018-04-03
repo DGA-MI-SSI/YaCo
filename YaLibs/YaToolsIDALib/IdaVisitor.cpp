@@ -934,7 +934,7 @@ namespace
             auto tif = original_tif;
             // applying int32_t[] to a member of 8 bytes create int32_t[][]
             // so we remove array before applying it & let ida add it itself
-            if(tif.is_array() && static_cast<asize_t>(tif.get_size()) != get_member_size(m))
+            if(tif.get_array_nelems() == 0 && static_cast<asize_t>(tif.get_size()) != get_member_size(m))
                 tif.remove_ptr_or_array();
             const auto err = set_member_tinfo(s, m, 0, tif, 0);
             static_assert(SMT_FAILED == 0, "smt_code_t has been modified");

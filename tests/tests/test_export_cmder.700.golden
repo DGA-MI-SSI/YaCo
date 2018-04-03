@@ -1172,7 +1172,7 @@ stk_412470 $ F412470
 stk_4125b0 $ F4125B0
 
 stm: 1520
-stm_8  Buffer WCHAR
+stm_8  Buffer WCHAR[2]
 stm_c  Text WCHAR
 stm_80c var_4
 stm_818 arg_0 int
@@ -1471,7 +1471,7 @@ stm_18 var_34 struct _s_TryBlockMapEntry *
 stm_1c var_30
 stm_20 var_2C
 stm_24 var_28 unsigned int
-stm_28 var_24
+stm_28 var_24 unsigned __int8[4]
 stm_2c var_20
 stm_30 var_1C
 stm_34 var_18 struct _s_ESTypeList *
@@ -1666,7 +1666,7 @@ stm_10 arg_0
 stm_8  arg_0
 stm_c  arg_4
 stm_c  var_8
-stm_10 DstCh wchar_t
+stm_10 DstCh wchar_t[2]
 stm_8  var_8
 stm_c  var_4
 stm_18 arg_0 void *
@@ -1895,7 +1895,7 @@ stm_4  var_1C
 stm_8  Locale struct localeinfo_struct /*%localeinfo_struct#C887B7B31EC5CED4%*/
 stm_14 var_C
 stm_18 DestStr WCHAR
-stm_1c MultiByteStr CHAR
+stm_1c MultiByteStr CHAR[2]
 stm_28 C int
 stm_2c dwMapFlags DWORD
 stm_30 arg_8 struct __crt_locale_pointers *
@@ -2064,7 +2064,7 @@ stm_64 arg_10
 stm_10 arg_8 char *const
 stm_14 arg_C int
 stm_8  var_8
-stm_c  var_4
+stm_c  var_4 bool[4]
 stm_18 arg_0 double *
 stm_1c arg_4 char *
 stm_20 arg_8 unsigned int
@@ -2097,7 +2097,7 @@ stm_18 var_1C
 stm_1c var_18
 stm_20 var_14
 stm_24 var_10
-stm_28 var_C wchar_t
+stm_28 var_C wchar_t[2]
 stm_2c var_8
 stm_30 var_4
 stm_3c arg_0
@@ -2244,7 +2244,7 @@ stm_4  var_24
 stm_8  var_20
 stm_c  var_1C struct localeinfo_struct /*%localeinfo_struct#C887B7B31EC5CED4%*/
 stm_18 MultiByteStr CHAR
-stm_1c CharType WORD
+stm_1c CharType WORD[2]
 stm_20 var_8
 stm_24 var_4
 stm_30 C int
