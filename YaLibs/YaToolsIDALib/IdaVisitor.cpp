@@ -1598,7 +1598,7 @@ namespace
             }
 
             // reset known fields
-            const auto field_size = offset == last_offset && offset == size ? 0 : 1;
+            const auto field_size = offset == last_offset && offset == size ? 0 : get_member_size(&m);
             const auto id = hash::hash_member(vid, offset);
             const auto key = get_tid(visitor, id);
             // skip fields which have already been exported

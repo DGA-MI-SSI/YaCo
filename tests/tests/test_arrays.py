@@ -57,3 +57,36 @@ idc.add_struc_member(sc, "fb", sa_size, idaapi.FF_STRU | idaapi.FF_DATA, sb, sb_
         b.run(
             self.check_strucs(),
         )
+
+    def test_struc_array_hole(self):
+        a, b = self.setup_repos()
+        a.run(
+            self.script("""
+sa = idaapi.add_struc(-1, "sa", False)
+sb = idaapi.add_struc(-1, "sb", False)
+sc = idaapi.add_struc(-1, "sc", False)
+idc.add_struc_member(sa, "fa", 0, idaapi.FF_DATA, -1, 4)
+idc.add_struc_member(sb, "fb", 0, idaapi.FF_DATA, -1, 5)
+sa_size = idaapi.get_struc_size(sa) * 3
+sb_size = idaapi.get_struc_size(sb) * 5
+idc.add_struc_member(sc, "fa", 0, idaapi.FF_STRU | idaapi.FF_DATA, sa, sa_size, -1)
+idc.add_struc_member(sc, "fb", sa_size, idaapi.FF_STRU | idaapi.FF_DATA, sb, sb_size, -1)
+"""),
+            self.save_strucs(),
+        )
+        a.check_git(added=["struc"] * 3 + ["strucmember"] * 4)
+        b.run(
+            self.check_strucs(),
+            self.script("""
+sc = idc.get_struc_id("sc")
+idaapi.del_struc_member(idaapi.get_struc(sc), 0)
+sa = idc.get_struc_id("sa")
+sa_size = idaapi.get_struc_size(sa) * 2
+idc.add_struc_member(sc, "fa", 0, idaapi.FF_STRU | idaapi.FF_DATA, sa, sa_size, -1)
+"""),
+            self.save_strucs(),
+        )
+        b.check_git(modified=["struc"] * 3 + ["strucmember"])
+        a.run(
+            self.check_strucs(),
+        )
