@@ -1,4 +1,4 @@
-# YaCo [v1.8.1](https://github.com/DGA-MI-SSI/YaCo/releases/tag/v1.8.1)
+# YaCo [v1.8.2](https://github.com/DGA-MI-SSI/YaCo/releases/tag/v1.8.2)
 
 **YaCo** is an [**Hex-Rays IDA**](https://www.hex-rays.com/products/ida/) plugin.
 When enabled, multiple users can work simultaneously on the same binary.
@@ -19,11 +19,11 @@ During large malware analysis, we had to use a team of reversers and manual sync
 
 ### Debian stretch/x64
 
-**YaCo** like **IDA** 7.0 is 64-bit only.
+**YaCo** like **IDA** 7.1 is 64-bit only.
 
 Install dependencies
 ```
-sudo apt install build-essential git cmake libpython-2.7
+sudo apt install build-essential git cmake libpython2.7 libpython2.7-dev
 ```
 
 Set IDA_DIR & IDASDK_DIR environment variables
@@ -38,17 +38,19 @@ Clone, configure & build **YaCo**
 ~/YaCo/build (master) $ ./configure.sh
 ~/YaCo/build (master) $ pushd ../out/x64_Release
 ~/YaCo/out/x64_Release (master) $ make -j4
+~/YaCo/out/x64_Release (master) $ make test -j4
 ~/YaCo/out/x64_Release (master) $ pushd $IDA_DIR/plugin
 $IDA_DIR/plugin $ ~/YaCo/build/deploy.sh
 ```
 
 ### Windows
 
-CMake must be installed and in the PATH
-Only visual studio 2015 & 2017 are currently supported
+CMake & Python 2.7 64-bit must be installed and in the PATH
+Only visual studio 2017 is currently supported
 
 Configure and build **YaCo**
 ```
+# export directories without quotes
 set IDA_DIR=C:\Program Files\IDA Pro 7.0
 set IDASDK_DIR=C:\idasdk70
 build> configure_2017.cmd
