@@ -1,8 +1,9 @@
-# YaCo [downloads](https://github.com/DGA-MI-SSI/YaCo/releases)
+# YaCo - Collaborative Reverse-Engineering for IDA
 
-**YaCo** is an [**Hex-Rays IDA**](https://www.hex-rays.com/products/ida/) plugin.
-When enabled, multiple users can work simultaneously on the same binary.
-Any modification done by any user is synchronized through **git** version control.
+## [Latest Releases](https://github.com/DGA-MI-SSI/YaCo/releases)
+
+**YaCo** is a [**Hex-Rays IDA**](https://www.hex-rays.com/products/ida/) plugin enabling collaborative reverse-engineering on IDA databases for multiple users. Incremental database changes are stored & synchronized through **git** distributed version control system.
+Both offline & online work is supported.
 
 ## Motivation
 **IDA** does not allow multiple users to work on the same binary.
@@ -10,10 +11,10 @@ During large malware analysis, we had to use a team of reversers and manual sync
 
 **YaCo** goals are:
 
-  * to support all **IDA** events (renaming, structure mapping, ...)
-  * to be fast (users do not want to wait when working)
-  * to prevent conflicts between user modifications
-  * to be easy to setup and easy to use
+  * Support all **IDA** events
+  * Be fast, users must not wait for synchronisation events
+  * Prevent conflicts between users
+  * Be user-friendly & easy to install
 
 ## Installation
 
