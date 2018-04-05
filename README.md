@@ -1,4 +1,4 @@
-# YaCo [v1.8.1](https://github.com/DGA-MI-SSI/YaCo/releases/tag/v1.8.1)
+# YaCo [downloads](https://github.com/DGA-MI-SSI/YaCo/releases)
 
 **YaCo** is an [**Hex-Rays IDA**](https://www.hex-rays.com/products/ida/) plugin.
 When enabled, multiple users can work simultaneously on the same binary.
