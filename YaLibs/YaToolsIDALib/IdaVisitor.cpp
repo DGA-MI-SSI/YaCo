@@ -1519,13 +1519,13 @@ namespace
             set_path(path, ea);
     }
 
-    void set_struct_member(qstring& buffer, const char* where, struc_t* struc, ea_t ea, asize_t size, func_t* func, const opinfo_t* pop)
+    void set_struct_member(qstring& buffer, const char* where, struc_t* struc, ea_t ea, asize_t size, func_t* func)
     {
         const auto defname = ya::get_default_name(buffer, ea, func);
         auto ok = set_member_name(struc, ea, defname.value);
         if(!ok)
             LOG(ERROR, "%s: 0x%" PRIxEA ":%" PRIxEA " unable to set member name %s\n", where, struc->id, ea, ""/*defname.value*/);
-        ok = set_member_type(struc, ea, FF_BYTE, pop, size);
+        ok = set_member_type(struc, ea, FF_BYTE, nullptr, size);
         if(!ok)
             LOG(ERROR, "%s: 0x%" PRIxEA ":%" PRIxEA " unable to set member type to 0x%" PRIxEA " bytes\n", where, struc->id, ea, size);
     }
@@ -1597,9 +1597,10 @@ namespace
                 continue;
             }
 
-            // reset known fields
-            const auto field_size = offset == last_offset && offset == size ? 0 : get_member_size(&m);
-            set_struct_member(member_name, where, struc, offset, field_size, func, nullptr);
+            // reset known fields but take special care of last field so that struc size is not modified
+            auto field_size = static_cast<int>(offset == last_offset ? get_member_size(&m) : 1);
+            field_size = std::min(field_size, std::max(0, static_cast<int>(size) - static_cast<int>(offset)));
+            set_struct_member(member_name, where, struc, offset, field_size, func);
             for(const auto repeat : {false, true})
             {
                 const auto ok = set_member_cmt(&m, g_empty.value, repeat);

@@ -202,3 +202,29 @@ idaapi.set_member_name(idaapi.get_struc(idaapi.get_struc_id('t0')), 0, 'field_0'
         a.run(
             self.check_strucs(),
         )
+
+    def test_shrink_strucs_with_default_fields(self):
+        a, b = self.setup_repos()
+
+        a.run(
+            self.script("""
+sid = idaapi.add_struc(-1, "sa", False)
+idc.add_struc_member(sid, "field_0", 0, idaapi.FF_DWORD | idaapi.FF_DATA, -1, 4)
+idc.add_struc_member(sid, "field_4", 4, idaapi.FF_DWORD | idaapi.FF_DATA, -1, 4)
+"""),
+            self.save_strucs(),
+        )
+        a.check_git(added=["struc", "strucmember", "strucmember"])
+        b.run(
+            self.check_strucs(),
+            self.script("""
+sid = idc.get_struc_id("sa")
+idc.set_member_type(sid, 0, idaapi.FF_BYTE | idaapi.FF_DATA, -1, 1)
+idc.set_member_type(sid, 4, idaapi.FF_BYTE | idaapi.FF_DATA, -1, 1)
+"""),
+            self.save_strucs(),
+        )
+        b.check_git(modified=["struc"], deleted=["strucmember"] * 2)
+        a.run(
+            self.check_strucs(),
+        )
