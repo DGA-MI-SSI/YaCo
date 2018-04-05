@@ -1599,12 +1599,6 @@ namespace
 
             // reset known fields
             const auto field_size = offset == last_offset && offset == size ? 0 : get_member_size(&m);
-            const auto id = hash::hash_member(vid, offset);
-            const auto key = get_tid(visitor, id);
-            // skip fields which have already been exported
-            if(key.tid != BADADDR)
-                continue;
-
             set_struct_member(member_name, where, struc, offset, field_size, func, nullptr);
             for(const auto repeat : {false, true})
             {
