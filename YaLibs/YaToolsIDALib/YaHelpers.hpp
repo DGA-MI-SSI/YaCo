@@ -72,21 +72,6 @@ namespace ya
             walk_enum_members_with_bmask(eid, fmask, operand);
     }
 
-    // call void(area_t area) on every function chunks
-    template<typename T>
-    bool walk_function_chunks(ea_t ea, const T& operand)
-    {
-        const auto func = get_func(ea);
-        if(!func)
-            return false;
-
-        func_tail_iterator_t fti{func, ea};
-        for(auto ok = fti.first(); ok; ok = fti.next())
-            operand(fti.chunk());
-
-        return true;
-    }
-
     // call void(int i, ea_t locea, const lochist_entry_t& loc, const qstring& desc) on every bookmarks
     template<typename T>
     void walk_bookmarks(const T& operand)
@@ -177,14 +162,6 @@ namespace ya
             if(!it.value.empty())
                 operand(make_string_ref(it.value), COMMENT_BOOKMARK);
         }
-    }
-
-    template<uint32_t flags = 0, typename T>
-    void append_uint64(T& dst, uint64_t x)
-    {
-        char buf[sizeof x * 2];
-        const auto str = to_hex<flags>(buf, x);
-        dst.append(str.value, str.size);
     }
 
     template<typename T>

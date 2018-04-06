@@ -440,12 +440,13 @@ namespace
         return is_trivial_member_type(mtype);
     }
 
-    template<typename T>
-    const_string_ref to_hex_ref(qstring* qbuf, T value)
+    const_string_ref to_hex_ref(qstring& qbuf, uint64_t value)
     {
-        *qbuf = "0x";
-        ya::append_uint64(*qbuf, value);
-        return ya::to_string_ref(*qbuf);
+        char buf[2 + sizeof value * 2];
+        const auto str = to_hex<HexaPrefix>(buf, value);
+        qbuf.qclear();
+        qbuf.append(str.value, str.size);
+        return ya::to_string_ref(qbuf);
     }
 
     template<typename Ctx>
@@ -489,7 +490,7 @@ namespace
 
         if(has_op && is_enum0(flags))
         {
-            const auto seref = op.ec.serial ? to_hex_ref(&*qbuf, op.ec.serial) : g_empty;
+            const auto seref = op.ec.serial ? to_hex_ref(*qbuf, op.ec.serial) : g_empty;
             if(seref.size)
                 v.visit_xref_attribute(g_serial, seref);
         }
@@ -1007,7 +1008,7 @@ namespace
             // & make sure offset is sign-extended to 64-bits
             const int64_t iea = sizeof ea == 4 ? int64_t(int32_t(offset)) : offset;
             v.visit_start_xref(iea, bid, DEFAULT_OPERAND);
-            v.visit_xref_attribute(g_size, to_hex_ref(&*qbuf, block.size()));
+            v.visit_xref_attribute(g_size, to_hex_ref(*qbuf, block.size()));
             v.visit_end_xref();
         }
         v.visit_end_xrefs();
