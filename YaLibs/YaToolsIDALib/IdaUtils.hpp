@@ -57,5 +57,3 @@
     IDA_LOG_ERROR(FMT, ## __VA_ARGS__); \
     error(FMT, ## __VA_ARGS__); \
 } while(0)
-
-std::string ea_to_hex(ea_t ea);
