@@ -87,9 +87,6 @@ namespace
         dst += '>';
     }
 
-    const qstring comment_prefix = "/*%";
-    const qstring comment_suffix = "%*/";
-
     void simple_tif_to_string(qstring& dst, ya::TypeToStringMode_e mode, ya::Deps* deps, const tinfo_t& tif, const const_string_ref& name)
     {
         to_string(dst, tif, name.value, nullptr);
@@ -114,37 +111,7 @@ namespace
             hash::hash_enum(ya::to_string_ref(subtype));
         if(deps)
             deps->push_back({subid, subtid});
-
-        subtype.insert(0, comment_prefix);
-        subtype += '#';
-        ya::append_uint64(subtype, subid);
-        subtype += comment_suffix;
-
-        auto comment_size = subtype.length();
-        const auto has_name = name.value && *name.value;
-        if(has_name)
-        {
-            subtype += ' ';
-            comment_size += 1;
-            subtype.append(name.value, name.size);
-        }
-
-        to_string(dst, tif, subtype.c_str(), nullptr);
-
-        // move back pointers after dependency comment
-        const auto pos = dst.find(subtype);
-        if(pos == qstring::npos)
-            return;
-
-        bool first = !has_name;
-        while(pos > 1 && dst[pos - 1] == '*')
-        {
-            dst.remove(pos - 1, 1);
-            dst.insert(pos - 1 + comment_size, first ? " *" : "*");
-            first = false;
-        }
     }
-
 
     #define DECLARE_REF(name, value)\
     const char name ## _txt[] = value;\
@@ -234,20 +201,11 @@ namespace ya
     }
 }
 
-namespace
-{
-    void cleanup_deps(ya::Deps& deps)
-    {
-        std::sort(deps.begin(), deps.end());
-        deps.erase(std::unique(deps.begin(), deps.end()), deps.end());
-    }
-}
-
 void ya::print_type(qstring& dst, TypeToStringMode_e mode, Deps* deps, const tinfo_t& tif, const const_string_ref& name)
 {
     tif_to_string(dst, mode, deps, tif, name);
     if(deps)
-        cleanup_deps(*deps);
+        ya::dedup(*deps);
 }
 
 namespace

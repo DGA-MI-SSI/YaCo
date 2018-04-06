@@ -95,7 +95,7 @@ fun_66001140  _DWORD __thiscall sub(QSvgLine *this, struct QSvgNode *, const str
 fun_66001145  _DWORD __thiscall sub(Concurrency::cancellation_token_source *this)
 fun_6600114a
 fun_6600114f
-fun_66001154  void __thiscall sub(QSvgNode *this, enum DisplayMode /*%DisplayMode#2FA281BD8C6037C4%*/)
+fun_66001154  void __thiscall sub(QSvgNode *this, enum DisplayMode)
 fun_66001159  _DWORD __thiscall sub(QSvgAnimateTransform *this, int, int, int)
 fun_6600115e  bool __thiscall sub(QSvgTinyDocument *this)
 fun_66001163
@@ -661,7 +661,7 @@ fun_66001cb7
 fun_66001cc6  struct QString __thiscall sub()
 fun_66001ccb
 fun_66001cd0  _DWORD __thiscall sub(QSvgViewportFillStyle *this, const struct QSvgViewportFillStyle *)
-fun_66001cd5  enum DisplayMode /*%DisplayMode#2FA281BD8C6037C4%*/__thiscall sub(QSvgNode *this)
+fun_66001cd5  enum DisplayMode __thiscall sub(QSvgNode *this)
 fun_66001cda
 fun_66001cdf
 fun_66001ce4  void __thiscall sub(QSvgAnimateColor *this, double)
@@ -2891,8 +2891,8 @@ fun_66039480  const struct QStringList *__thiscall sub(QSvgNode *__hidden this)
 fun_660394a0  void __thiscall sub(QSvgNode *this, const struct QStringList *)
 fun_660394c0  const struct QStringList *__thiscall sub(QSvgNode *__hidden this)
 fun_660394e0  void __thiscall sub(QSvgNode *this, bool)
-fun_66039530  void __thiscall sub(QSvgNode *this, enum DisplayMode /*%DisplayMode#2FA281BD8C6037C4%*/)
-fun_66039550  enum DisplayMode /*%DisplayMode#2FA281BD8C6037C4%*/__thiscall sub(QSvgNode *__hidden this)
+fun_66039530  void __thiscall sub(QSvgNode *this, enum DisplayMode)
+fun_66039550  enum DisplayMode __thiscall sub(QSvgNode *__hidden this)
 fun_66039570  void __thiscall sub(QSvgNode *this, const struct QString *)
 fun_66039590  void __thiscall sub(QSvgNode *this, const struct QString *)
 fun_660395b0  double __cdecl sub(struct QPainter *)
@@ -9270,7 +9270,7 @@ stm_0  var_4
 stm_0  var_4
 stm_c  arg_0
 stm_0  var_4
-stm_c  arg_0 enum DisplayMode /*%DisplayMode#2FA281BD8C6037C4%*/
+stm_c  arg_0 enum DisplayMode
 stm_0  var_4
 stm_0  var_4
 stm_c  arg_0 const struct QString *
@@ -11007,7 +11007,7 @@ stm_0  Ptr PVOID
 stm_10 var_24
 stm_14 var_20 PVOID
 stm_18 Ptr PVOID
-stm_1c ms_exc CPPEH_RECORD /*%CPPEH_RECORD#45C42EF61A386281%*/
+stm_1c ms_exc CPPEH_RECORD
 stm_3c Func _onexit_t
 stm_0  var_4
 stm_c  arg_0 _onexit_t
@@ -11033,12 +11033,12 @@ stm_c  fdwReason DWORD
 stm_10 lpReserved LPVOID
 stm_10 var_20
 stm_14 var_1C
-stm_18 ms_exc CPPEH_RECORD /*%CPPEH_RECORD#45C42EF61A386281%*/
+stm_18 ms_exc CPPEH_RECORD
 stm_38 hinstDLL HINSTANCE
 stm_3c fdwReason DWORD
 stm_40 lpvReserved LPVOID
 stm_10 var_1C
-stm_14 ms_exc CPPEH_RECORD /*%CPPEH_RECORD#45C42EF61A386281%*/
+stm_14 ms_exc CPPEH_RECORD
 stm_34 arg_0 void *
 stm_38 arg_4 unsigned int
 stm_3c arg_8 int
@@ -11046,7 +11046,7 @@ stm_40 arg_C void (__thiscall *)(void *)
 stm_0  var_8
 stm_4  var_4
 stm_10 arg_0
-stm_10 ms_exc CPPEH_RECORD /*%CPPEH_RECORD#45C42EF61A386281%*/
+stm_10 ms_exc CPPEH_RECORD
 stm_30 arg_0 void *
 stm_34 arg_4 unsigned int
 stm_38 arg_8 int
@@ -11070,14 +11070,14 @@ stm_28 var_28
 stm_2c var_24
 stm_30 var_20
 stm_34 var_1C
-stm_38 ms_exc CPPEH_RECORD /*%CPPEH_RECORD#45C42EF61A386281%*/
+stm_38 ms_exc CPPEH_RECORD
 stm_58 arg_0
 stm_0  var_C
 stm_4  var_8
 stm_8  var_4
 stm_14 arg_0
-stm_0  PerformanceCount LARGE_INTEGER /*%LARGE_INTEGER#6F2DECE5B9963D4B%*/
-stm_8  SystemTimeAsFileTime struct _FILETIME /*%_FILETIME#CCA50A8A595D82C4%*/
+stm_0  PerformanceCount LARGE_INTEGER
+stm_8  SystemTimeAsFileTime struct _FILETIME
 stm_10 var_4
 stm_8  hinstDLL HINSTANCE
 stm_c  fdwReason DWORD
@@ -12958,11 +12958,11 @@ dat_66067948 unk_66067948
 dat_66067a48 unk_66067A48
 dat_66067b50 unk_66067B50
 dat_66067c50 unk_66067C50
-dat_66067d58 stru_66067D58 _EH4_SCOPETABLE /*%_EH4_SCOPETABLE#DD6D6B4709311AF3%*/
-dat_66067d78 stru_66067D78 _EH4_SCOPETABLE /*%_EH4_SCOPETABLE#DD6D6B4709311AF3%*/
-dat_66067da0 stru_66067DA0 _EH4_SCOPETABLE /*%_EH4_SCOPETABLE#DD6D6B4709311AF3%*/
-dat_66067dc0 stru_66067DC0 _EH4_SCOPETABLE /*%_EH4_SCOPETABLE#DD6D6B4709311AF3%*/
-dat_66067de0 stru_66067DE0 _EH4_SCOPETABLE /*%_EH4_SCOPETABLE#DD6D6B4709311AF3%*/
+dat_66067d58 stru_66067D58 _EH4_SCOPETABLE
+dat_66067d78 stru_66067D78 _EH4_SCOPETABLE
+dat_66067da0 stru_66067DA0 _EH4_SCOPETABLE
+dat_66067dc0 stru_66067DC0 _EH4_SCOPETABLE
+dat_66067de0 stru_66067DE0 _EH4_SCOPETABLE
 dat_66067f48 off_66067F48
 dat_660687dc off_660687DC
 dat_66069070 word_66069070
@@ -13713,10 +13713,10 @@ dat_66072160 dword_66072160
 dat_6607216c dword_6607216C PVOID
 dat_6607217c Ptr PVOID
 dat_66073000 DisableThreadLibraryCalls BOOL __stdcall sub(HMODULE hLibModule)
-dat_66073004 GetSystemTimeAsFileTime void __stdcall sub(LPFILETIME /*%_FILETIME#CCA50A8A595D82C4%*/ lpSystemTimeAsFileTime)
+dat_66073004 GetSystemTimeAsFileTime void __stdcall sub(LPFILETIME lpSystemTimeAsFileTime)
 dat_66073008 GetCurrentThreadId DWORD __stdcall sub()
 dat_6607300c GetCurrentProcessId DWORD __stdcall sub()
-dat_66073010 QueryPerformanceCounter BOOL __stdcall sub(LARGE_INTEGER /*%LARGE_INTEGER#6F2DECE5B9963D4B%*/ *lpPerformanceCount)
+dat_66073010 QueryPerformanceCounter BOOL __stdcall sub(LARGE_INTEGER *lpPerformanceCount)
 dat_66073014 DecodePointer PVOID __stdcall sub(PVOID Ptr)
 dat_66073018 EncodePointer PVOID __stdcall sub(PVOID Ptr)
 dat_6607301c __imp_IsProcessorFeaturePresent BOOL __stdcall sub(DWORD ProcessorFeature)

@@ -57,7 +57,7 @@ fun_4011cd  int __cdecl sub(wchar_t *, int, int, int, int, int, int, int, int, i
 fun_40162d
 fun_401702
 fun_4018f0
-fun_40197e  int __stdcall sub(HINSTANCE /*%HINSTANCE__#DD664C352E9B6326%*/ hInstance, HINSTANCE /*%HINSTANCE__#DD664C352E9B6326%*/ hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
+fun_40197e  int __stdcall sub(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 fun_401bad
 fun_401bb2  int __stdcall sub(wchar_t *)
 fun_401bd7
@@ -91,7 +91,7 @@ fun_40219f
 fun_4021b1  int __cdecl sub()
 fun_402322
 fun_40232c  int __thiscall sub(LPVOID lpMem, char)
-fun_40234f  int __cdecl sub(struct _EXCEPTION_POINTERS /*%_EXCEPTION_POINTERS#D9443E4AA8E6A18C%*/ *ExceptionInfo)
+fun_40234f  int __cdecl sub(struct _EXCEPTION_POINTERS *ExceptionInfo)
 fun_402377
 fun_402472  int __stdcall sub(struct std::exception *)
 fun_40248d
@@ -124,7 +124,7 @@ fun_40286f
 fun_40298b
 fun_4029be
 fun_402a02
-fun_402a0e  LONG __stdcall sub(struct _EXCEPTION_POINTERS /*%_EXCEPTION_POINTERS#D9443E4AA8E6A18C%*/ *ExceptionInfo)
+fun_402a0e  LONG __stdcall sub(struct _EXCEPTION_POINTERS *ExceptionInfo)
 fun_402a4f
 fun_402a57
 fun_402a82  void __cdecl sub()
@@ -170,7 +170,7 @@ fun_4042a7
 fun_4042bf  void *__cdecl sub(struct EHExceptionRecord *, struct EHRegistrationNode *, struct _CONTEXT *, const struct _s_FuncInfo *, void *, int, unsigned int)
 fun_40447b  void __cdecl sub(const struct _s_ESTypeList *)
 fun_4044b5  void __cdecl sub(PEXCEPTION_RECORD ExceptionRecord, struct EHRegistrationNode *, struct _CONTEXT *, void *, const struct _s_FuncInfo *, const struct _s_HandlerType *, const struct _s_CatchableType *, const struct _s_TryBlockMapEntry *, int, PVOID TargetFrame, unsigned __int8)
-fun_40452e  int __cdecl sub(struct _EXCEPTION_POINTERS /*%_EXCEPTION_POINTERS#D9443E4AA8E6A18C%*/ *)
+fun_40452e  int __cdecl sub(struct _EXCEPTION_POINTERS *)
 fun_404578  void __cdecl sub(PEXCEPTION_RECORD ExceptionRecord, struct EHRegistrationNode *, struct _CONTEXT *, void *, const struct _s_FuncInfo *, char, int, PVOID TargetFrame)
 fun_4048d9  void __cdecl sub(PEXCEPTION_RECORD ExceptionRecord, struct EHRegistrationNode *, struct _CONTEXT *, void *, const struct _s_FuncInfo *, int, int, PVOID TargetFrame)
 fun_4049f4  unsigned __int8 __cdecl sub(struct EHExceptionRecord *, const struct _s_ESTypeList *)
@@ -199,7 +199,7 @@ fun_40528f
 fun_4052c9  int __cdecl sub(DWORD dwTlsIndex)
 fun_405303  int __cdecl sub(DWORD dwTlsIndex)
 fun_40533d  int __cdecl sub(DWORD dwTlsIndex, LPVOID lpTlsValue)
-fun_40537a  int __cdecl sub(LPCRITICAL_SECTION /*%_RTL_CRITICAL_SECTION#C4BE179809706C6A%*/ lpCriticalSection, DWORD dwSpinCount, int)
+fun_40537a  int __cdecl sub(LPCRITICAL_SECTION lpCriticalSection, DWORD dwSpinCount, int)
 fun_4053c0
 fun_4053fa
 fun_40542c
@@ -266,7 +266,7 @@ fun_406ad9
 fun_406b64  int __stdcall sub(void *, int, int, int)
 fun_406bfe  int __cdecl sub(int, int, int, int, int, struct __crt_locale_pointers *, int)
 fun_406c22  int __cdecl sub(const wchar_t *, const wchar_t *)
-fun_406cb7  int __cdecl sub(const wchar_t *Str1, const wchar_t *Str2, _locale_t /*%localeinfo_struct#C887B7B31EC5CED4%*/ Locale)
+fun_406cb7  int __cdecl sub(const wchar_t *Str1, const wchar_t *Str2, _locale_t Locale)
 fun_406d97  errno_t __cdecl sub(wchar_t *Dst, rsize_t SizeInWords, const wchar_t *Src)
 fun_406dfb  size_t __cdecl sub(const wchar_t *)
 fun_406e16
@@ -343,7 +343,7 @@ fun_4082dd
 fun_408310  int __cdecl sub(struct __crt_locale_pointers *, int, int, int, char)
 fun_4089f5
 fun_408a21
-fun_408a4b  int __cdecl sub(int C, int Type, _locale_t /*%localeinfo_struct#C887B7B31EC5CED4%*/ Locale)
+fun_408a4b  int __cdecl sub(int C, int Type, _locale_t Locale)
 fun_408abf
 fun_408ad6
 fun_408b07
@@ -353,18 +353,18 @@ fun_408c35
 fun_408c8b  int __stdcall sub(DWORD dwTlsIndex)
 fun_408ce1  int __stdcall sub(DWORD dwTlsIndex)
 fun_408d37  int __stdcall sub(DWORD dwTlsIndex, LPVOID lpTlsValue)
-fun_408d90  int __stdcall sub(LPCRITICAL_SECTION /*%_RTL_CRITICAL_SECTION#C4BE179809706C6A%*/ lpCriticalSection, DWORD dwSpinCount, int)
+fun_408d90  int __stdcall sub(LPCRITICAL_SECTION lpCriticalSection, DWORD dwSpinCount, int)
 fun_408df2  int __stdcall sub(wchar_t *, DWORD dwMapFlags, LPCWSTR lpSrcStr, int cchSrc, LPWSTR lpDestStr, int cchDest, int, int, int)
 fun_408e7a  int __stdcall sub(wchar_t *, int)
 fun_408ed6
 fun_408efc
 fun_408f83
 fun_408f85
-fun_408fb9  int __cdecl sub(int C, _locale_t /*%localeinfo_struct#C887B7B31EC5CED4%*/ Locale)
+fun_408fb9  int __cdecl sub(int C, _locale_t Locale)
 fun_408ff1  int __cdecl sub(int)
 fun_40901e  int __cdecl sub(int C, DWORD dwMapFlags, struct __crt_locale_pointers *)
-fun_409168  bool __cdecl sub(int C, _locale_t /*%localeinfo_struct#C887B7B31EC5CED4%*/ Locale)
-fun_409185  int __cdecl sub(int C, _locale_t /*%localeinfo_struct#C887B7B31EC5CED4%*/ Locale)
+fun_409168  bool __cdecl sub(int C, _locale_t Locale)
+fun_409185  int __cdecl sub(int C, _locale_t Locale)
 fun_40919f  int __cdecl sub(int)
 fun_4091cf
 fun_409212
@@ -372,7 +372,7 @@ fun_409235  unsigned int *__cdecl sub()
 fun_409248  int *__cdecl sub()
 fun_40925b
 fun_409276  int __cdecl sub(const wchar_t *, wchar_t **, int)
-fun_4092a2  int __cdecl sub(wchar_t *DstCh, const char *SrcCh, size_t SrcSizeInBytes, _locale_t /*%localeinfo_struct#C887B7B31EC5CED4%*/ Locale)
+fun_4092a2  int __cdecl sub(wchar_t *DstCh, const char *SrcCh, size_t SrcSizeInBytes, _locale_t Locale)
 fun_40939c  int __cdecl sub(wchar_t *, const char *, size_t)
 fun_4093b6  size_t __cdecl sub(const wchar_t *Src, size_t MaxCount)
 fun_40956d
@@ -412,7 +412,7 @@ fun_40a5ff  int __cdecl sub()
 fun_40a614  void __cdecl sub()
 fun_40a6ca  void __cdecl sub()
 fun_40a780
-fun_40a802  wint_t __cdecl sub(wint_t C, _locale_t /*%localeinfo_struct#C887B7B31EC5CED4%*/ Locale)
+fun_40a802  wint_t __cdecl sub(wint_t C, _locale_t Locale)
 fun_40a8cb  int __cdecl sub(const void *, const void *)
 fun_40a8e3
 fun_40aab0  int __cdecl sub(wchar_t *, wchar_t *Src, rsize_t MaxCount, int)
@@ -437,7 +437,7 @@ fun_40b594
 fun_40b597  const wchar_t *__cdecl sub(const wchar_t *const)
 fun_40b5ce
 fun_40b61e
-fun_40b698  int __cdecl sub(LPCRITICAL_SECTION /*%_RTL_CRITICAL_SECTION#C4BE179809706C6A%*/ lpCriticalSection)
+fun_40b698  int __cdecl sub(LPCRITICAL_SECTION lpCriticalSection)
 fun_40b6cd
 fun_40b765
 fun_40b788
@@ -477,10 +477,10 @@ fun_40c5c3  unsigned int __cdecl sub()
 fun_40c6a1  unsigned int __cdecl sub(unsigned int, unsigned int)
 fun_40c9a3
 fun_40ca3c  int __cdecl sub(wint_t, wctype_t)
-fun_40ca9b  int __cdecl sub(int C, int Type, _locale_t /*%localeinfo_struct#C887B7B31EC5CED4%*/ Locale)
+fun_40ca9b  int __cdecl sub(int C, int Type, _locale_t Locale)
 fun_40cb6d  int __cdecl sub(const wchar_t *)
 fun_40cc29  int __cdecl sub(wchar_t *)
-fun_40cc55  int __cdecl sub(int C, _locale_t /*%localeinfo_struct#C887B7B31EC5CED4%*/ Locale)
+fun_40cc55  int __cdecl sub(int C, _locale_t Locale)
 fun_40cc8e  int __cdecl sub(struct __crt_locale_pointers *, const wchar_t *, DWORD dwMapFlags, LPCSTR lpMultiByteStr, int cbMultiByte, LPWSTR lpDestStr, int cchDest, UINT CodePage, int)
 fun_40ceab  int __cdecl sub(struct __crt_locale_pointers *, wchar_t *, DWORD dwMapFlags, LPCSTR lpMultiByteStr, int cbMultiByte, LPWSTR lpDestStr, int cchDest, UINT CodePage, int)
 fun_40cef6  int __cdecl sub(void *, int, int, int)
@@ -524,8 +524,8 @@ fun_40f8f2
 fun_40f9e0
 fun_40fb0d  int __cdecl sub(int, const void *, unsigned int)
 fun_40fbf8  int __cdecl sub(int, LPCVOID lpBuffer, int)
-fun_40fe04  int __cdecl sub(int, LARGE_INTEGER /*%LARGE_INTEGER#6F2DECE5B9963D4B%*/ liDistanceToMove, DWORD dwMoveMethod)
-fun_40fe82  int __cdecl sub(int, LARGE_INTEGER /*%LARGE_INTEGER#6F2DECE5B9963D4B%*/ liDistanceToMove, DWORD dwMoveMethod)
+fun_40fe04  int __cdecl sub(int, LARGE_INTEGER liDistanceToMove, DWORD dwMoveMethod)
+fun_40fe82  int __cdecl sub(int, LARGE_INTEGER liDistanceToMove, DWORD dwMoveMethod)
 fun_40fe9d  int __cdecl sub(FILE *File)
 fun_40ff13  int __cdecl sub(FILE *)
 fun_40ff93
@@ -1181,9 +1181,9 @@ stm_44 var_1C
 stm_48 pNumArgs int
 stm_5c var_4
 stm_6c arg_4
-stm_10 StartupInfo struct _STARTUPINFOW /*%_STARTUPINFOW#EC9B93005128B2B4%*/
-stm_54 SystemInfo struct _SYSTEM_INFO /*%_SYSTEM_INFO#0821E0E222DCA252%*/
-stm_78 ProcessInformation struct _PROCESS_INFORMATION /*%_PROCESS_INFORMATION#EF2C1BBAD9962C15%*/
+stm_10 StartupInfo struct _STARTUPINFOW
+stm_54 SystemInfo struct _SYSTEM_INFO
+stm_78 ProcessInformation struct _PROCESS_INFORMATION
 stm_88 CommandLine WCHAR
 stm_698 Buffer WCHAR
 stm_8a0 Dst wchar_t
@@ -1227,8 +1227,8 @@ stm_14 var_34 wchar_t *
 stm_28 var_20
 stm_2c var_1C int
 stm_44 var_4
-stm_50 hInstance HINSTANCE /*%HINSTANCE__#DD664C352E9B6326%*/
-stm_54 hPrevInstance HINSTANCE /*%HINSTANCE__#DD664C352E9B6326%*/
+stm_50 hInstance HINSTANCE
+stm_54 hPrevInstance HINSTANCE
 stm_58 lpCmdLine LPSTR
 stm_5c nShowCmd int
 stm_c  arg_0 wchar_t *
@@ -1264,9 +1264,9 @@ stm_8  arg_0 size_t
 stm_8  lpMem LPVOID
 stm_10 var_24
 stm_14 var_20 int
-stm_1c ms_exc CPPEH_RECORD /*%CPPEH_RECORD#45C42EF61A386281%*/
+stm_1c ms_exc CPPEH_RECORD
 stm_c  arg_0
-stm_8  ExceptionInfo struct _EXCEPTION_POINTERS /*%_EXCEPTION_POINTERS#D9443E4AA8E6A18C%*/ *
+stm_8  ExceptionInfo struct _EXCEPTION_POINTERS *
 stm_0  var_324
 stm_31c var_8
 stm_324 var_s0
@@ -1281,15 +1281,15 @@ stm_0  var_C
 stm_4  var_8
 stm_8  var_4
 stm_14 arg_0
-stm_10 ms_exc CPPEH_RECORD /*%CPPEH_RECORD#45C42EF61A386281%*/
+stm_10 ms_exc CPPEH_RECORD
 stm_30 arg_0
 stm_8  arg_0
 stm_8  arg_0
 stm_c  arg_4
 stm_8  arg_0 _onexit_t
 stm_8  arg_0 _onexit_t
-stm_0  PerformanceCount LARGE_INTEGER /*%LARGE_INTEGER#6F2DECE5B9963D4B%*/
-stm_8  SystemTimeAsFileTime struct _FILETIME /*%_FILETIME#CCA50A8A595D82C4%*/
+stm_0  PerformanceCount LARGE_INTEGER
+stm_8  SystemTimeAsFileTime struct _FILETIME
 stm_10 var_4
 stm_0  var_32C size_t
 stm_8  var_324
@@ -1312,10 +1312,10 @@ stm_d0 var_25C
 stm_2d4 var_58
 stm_2d8 var_54
 stm_2e0 var_4C
-stm_324 ExceptionInfo struct _EXCEPTION_POINTERS /*%_EXCEPTION_POINTERS#D9443E4AA8E6A18C%*/
+stm_324 ExceptionInfo struct _EXCEPTION_POINTERS
 stm_334 arg_0
-stm_0  StartupInfo struct _STARTUPINFOW /*%_STARTUPINFOW#EC9B93005128B2B4%*/
-stm_8  ExceptionInfo struct _EXCEPTION_POINTERS /*%_EXCEPTION_POINTERS#D9443E4AA8E6A18C%*/ *
+stm_0  StartupInfo struct _STARTUPINFOW
+stm_8  ExceptionInfo struct _EXCEPTION_POINTERS *
 stm_8  arg_4
 stm_4  var_24
 stm_8  var_20
@@ -1392,7 +1392,7 @@ stm_14 arg_8 size_t
 stm_c  arg_0 void *
 stm_10 arg_4 const void *
 stm_14 arg_8 size_t
-stm_10 ms_exc CPPEH_RECORD /*%CPPEH_RECORD#45C42EF61A386281%*/
+stm_10 ms_exc CPPEH_RECORD
 stm_30 arg_0
 stm_34 arg_4
 stm_8  arg_0 void *const
@@ -1445,7 +1445,7 @@ stm_30 var_28
 stm_34 var_24
 stm_38 var_20
 stm_3c var_1C
-stm_40 ms_exc CPPEH_RECORD /*%CPPEH_RECORD#45C42EF61A386281%*/
+stm_40 ms_exc CPPEH_RECORD
 stm_60 arg_0 struct EHExceptionRecord *
 stm_64 arg_4 struct EHRegistrationNode *
 stm_68 arg_8 struct _CONTEXT *
@@ -1466,7 +1466,7 @@ stm_2c arg_18 const struct _s_CatchableType *
 stm_30 arg_1C const struct _s_TryBlockMapEntry *
 stm_34 arg_20 int
 stm_38 TargetFrame PVOID
-stm_8  arg_0 struct _EXCEPTION_POINTERS /*%_EXCEPTION_POINTERS#D9443E4AA8E6A18C%*/ *
+stm_8  arg_0 struct _EXCEPTION_POINTERS *
 stm_18 var_34 struct _s_TryBlockMapEntry *
 stm_1c var_30
 stm_20 var_2C
@@ -1513,21 +1513,21 @@ stm_8  arg_0 void *const
 stm_c  arg_4 void *const
 stm_10 arg_8 void *const
 stm_14 arg_C int
-stm_10 ms_exc CPPEH_RECORD /*%CPPEH_RECORD#45C42EF61A386281%*/
+stm_10 ms_exc CPPEH_RECORD
 stm_30 arg_0 int
 stm_34 arg_4 void *
 stm_38 arg_8 int
 stm_3c arg_C int
 stm_10 var_20
 stm_14 var_1C
-stm_18 ms_exc CPPEH_RECORD /*%CPPEH_RECORD#45C42EF61A386281%*/
+stm_18 ms_exc CPPEH_RECORD
 stm_38 arg_0 int
 stm_3c arg_4 void *
 stm_40 arg_8 int
 stm_44 arg_C int
 stm_10 var_20
 stm_14 var_1C
-stm_18 ms_exc CPPEH_RECORD /*%CPPEH_RECORD#45C42EF61A386281%*/
+stm_18 ms_exc CPPEH_RECORD
 stm_38 arg_0
 stm_40 arg_8
 stm_44 arg_C
@@ -1566,7 +1566,7 @@ stm_c  dwTlsIndex DWORD
 stm_c  dwTlsIndex DWORD
 stm_c  dwTlsIndex DWORD
 stm_10 lpTlsValue LPVOID
-stm_c  lpCriticalSection LPCRITICAL_SECTION /*%_RTL_CRITICAL_SECTION#C4BE179809706C6A%*/
+stm_c  lpCriticalSection LPCRITICAL_SECTION
 stm_10 dwSpinCount DWORD
 stm_14 arg_8 int
 stm_8  arg_0
@@ -1581,12 +1581,12 @@ stm_24 arg_0
 stm_28 arg_4
 stm_10 arg_0
 stm_8  arg_0 unsigned int
-stm_14 ms_exc CPPEH_RECORD /*%CPPEH_RECORD#45C42EF61A386281%*/
+stm_14 ms_exc CPPEH_RECORD
 stm_34 uExitCode UINT
 stm_38 arg_4
 stm_3c arg_8
 stm_8  uExitCode UINT
-stm_0  phModule HMODULE /*%HINSTANCE__#DD664C352E9B6326%*/
+stm_0  phModule HMODULE
 stm_4  var_4
 stm_10 arg_0 unsigned int
 stm_8  arg_0
@@ -1683,15 +1683,15 @@ stm_20 arg_18 int
 stm_8  Str1 wchar_t *
 stm_c  Str2 wchar_t *
 stm_8  var_10
-stm_c  var_C struct localeinfo_struct /*%localeinfo_struct#C887B7B31EC5CED4%*/
+stm_c  var_C struct localeinfo_struct
 stm_20 Str1 const wchar_t *
 stm_24 Str2 const wchar_t *
-stm_28 Locale _locale_t /*%localeinfo_struct#C887B7B31EC5CED4%*/
+stm_28 Locale _locale_t
 stm_c  Dst wchar_t *
 stm_10 SizeInWords rsize_t
 stm_14 Src const wchar_t *
 stm_8  arg_0 const wchar_t *
-stm_4  ExceptionInfo struct _EXCEPTION_POINTERS /*%_EXCEPTION_POINTERS#D9443E4AA8E6A18C%*/
+stm_4  ExceptionInfo struct _EXCEPTION_POINTERS
 stm_c  var_320
 stm_10 var_31C
 stm_18 var_314
@@ -1735,7 +1735,7 @@ stm_8  arg_0
 stm_4  var_4
 stm_10 arg_0
 stm_10 var_1C
-stm_14 ms_exc CPPEH_RECORD /*%CPPEH_RECORD#45C42EF61A386281%*/
+stm_14 ms_exc CPPEH_RECORD
 stm_4  var_8
 stm_8  var_4
 stm_14 arg_0
@@ -1777,17 +1777,17 @@ stm_8  var_4
 stm_14 arg_0
 stm_18 arg_4
 stm_8  Mode int
-stm_10 ms_exc CPPEH_RECORD /*%CPPEH_RECORD#45C42EF61A386281%*/
+stm_10 ms_exc CPPEH_RECORD
 stm_c  arg_0
 stm_8  arg_0
 stm_4  lpMem LPVOID
 stm_10 var_1C
-stm_14 ms_exc CPPEH_RECORD /*%CPPEH_RECORD#45C42EF61A386281%*/
+stm_14 ms_exc CPPEH_RECORD
 stm_34 arg_0
 stm_38 arg_4
 stm_3c arg_8
 stm_10 var_1C
-stm_14 ms_exc CPPEH_RECORD /*%CPPEH_RECORD#45C42EF61A386281%*/
+stm_14 ms_exc CPPEH_RECORD
 stm_34 arg_0
 stm_38 arg_4
 stm_3c arg_8
@@ -1821,7 +1821,7 @@ stm_0  var_4
 stm_c  CurrentState unsigned int *
 stm_10 NewValue unsigned int
 stm_14 Mask unsigned int
-stm_14 ms_exc CPPEH_RECORD /*%CPPEH_RECORD#45C42EF61A386281%*/
+stm_14 ms_exc CPPEH_RECORD
 stm_c  Dst char *
 stm_10 SizeInBytes rsize_t
 stm_14 Src const char *
@@ -1849,7 +1849,7 @@ stm_c  arg_4
 stm_10 arg_8
 stm_8  C int
 stm_c  Type int
-stm_10 Locale _locale_t /*%localeinfo_struct#C887B7B31EC5CED4%*/
+stm_10 Locale _locale_t
 stm_8  arg_0
 stm_8  arg_0
 stm_14 arg_0
@@ -1867,7 +1867,7 @@ stm_4  var_4
 stm_10 dwTlsIndex DWORD
 stm_14 lpTlsValue LPVOID
 stm_4  var_4
-stm_10 lpCriticalSection LPCRITICAL_SECTION /*%_RTL_CRITICAL_SECTION#C4BE179809706C6A%*/
+stm_10 lpCriticalSection LPCRITICAL_SECTION
 stm_14 dwSpinCount DWORD
 stm_18 arg_8 int
 stm_4  var_4
@@ -1887,12 +1887,12 @@ stm_0  var_8
 stm_4  var_4
 stm_8  arg_0
 stm_0  var_10
-stm_4  var_C struct localeinfo_struct /*%localeinfo_struct#C887B7B31EC5CED4%*/
+stm_4  var_C struct localeinfo_struct
 stm_18 C int
-stm_1c Locale _locale_t /*%localeinfo_struct#C887B7B31EC5CED4%*/
+stm_1c Locale _locale_t
 stm_8  C int
 stm_4  var_1C
-stm_8  Locale struct localeinfo_struct /*%localeinfo_struct#C887B7B31EC5CED4%*/
+stm_8  Locale struct localeinfo_struct
 stm_14 var_C
 stm_18 DestStr WCHAR
 stm_1c MultiByteStr CHAR[2]
@@ -1900,9 +1900,9 @@ stm_28 C int
 stm_2c dwMapFlags DWORD
 stm_30 arg_8 struct __crt_locale_pointers *
 stm_8  C int
-stm_c  Locale _locale_t /*%localeinfo_struct#C887B7B31EC5CED4%*/
+stm_c  Locale _locale_t
 stm_8  C int
-stm_c  Locale _locale_t /*%localeinfo_struct#C887B7B31EC5CED4%*/
+stm_c  Locale _locale_t
 stm_8  C int
 stm_8  arg_0
 stm_c  arg_0
@@ -1913,30 +1913,30 @@ stm_8  arg_0 const wchar_t *
 stm_c  arg_4 wchar_t **
 stm_10 arg_8 int
 stm_8  var_10
-stm_c  var_C struct localeinfo_struct /*%localeinfo_struct#C887B7B31EC5CED4%*/
+stm_c  var_C struct localeinfo_struct
 stm_20 lpWideCharStr LPWSTR
 stm_24 lpMultiByteStr LPCSTR
 stm_28 SrcSizeInBytes size_t
-stm_2c Locale _locale_t /*%localeinfo_struct#C887B7B31EC5CED4%*/
+stm_2c Locale _locale_t
 stm_8  DstCh wchar_t *
 stm_c  SrcCh char *
 stm_10 SrcSizeInBytes size_t
 stm_8  var_4
 stm_14 Src const wchar_t *
 stm_18 MaxCount size_t
-stm_10 ms_exc CPPEH_RECORD /*%CPPEH_RECORD#45C42EF61A386281%*/
+stm_10 ms_exc CPPEH_RECORD
 stm_30 arg_0
 stm_34 arg_4
 stm_38 arg_8
-stm_10 ms_exc CPPEH_RECORD /*%CPPEH_RECORD#45C42EF61A386281%*/
+stm_10 ms_exc CPPEH_RECORD
 stm_30 arg_0
 stm_34 arg_4
 stm_38 arg_8
-stm_10 ms_exc CPPEH_RECORD /*%CPPEH_RECORD#45C42EF61A386281%*/
+stm_10 ms_exc CPPEH_RECORD
 stm_30 arg_0
 stm_34 arg_4
 stm_38 arg_8
-stm_10 ms_exc CPPEH_RECORD /*%CPPEH_RECORD#45C42EF61A386281%*/
+stm_10 ms_exc CPPEH_RECORD
 stm_30 arg_0
 stm_34 arg_4
 stm_38 arg_8
@@ -2077,15 +2077,15 @@ stm_3c arg_24 struct __crt_locale_pointers *
 stm_8  arg_0 FILE *
 stm_8  arg_0
 stm_8  arg_0
-stm_0  StartupInfo struct _STARTUPINFOW /*%_STARTUPINFOW#EC9B93005128B2B4%*/
+stm_0  StartupInfo struct _STARTUPINFOW
 stm_44 var_4
-stm_14 ms_exc CPPEH_RECORD /*%CPPEH_RECORD#45C42EF61A386281%*/
+stm_14 ms_exc CPPEH_RECORD
 stm_0  var_18
 stm_4  var_14
 stm_10 var_8
 stm_14 DestStr WCHAR
 stm_20 C wint_t
-stm_24 Locale _locale_t /*%localeinfo_struct#C887B7B31EC5CED4%*/
+stm_24 Locale _locale_t
 stm_8  arg_0 const void *
 stm_c  arg_4 const void *
 stm_4  var_30
@@ -2119,7 +2119,7 @@ stm_274 lpFileName LPCWSTR
 stm_278 arg_4 int
 stm_27c arg_8 int
 stm_10 lpMem LPVOID
-stm_10 ms_exc CPPEH_RECORD /*%CPPEH_RECORD#45C42EF61A386281%*/
+stm_10 ms_exc CPPEH_RECORD
 stm_30 arg_0
 stm_34 arg_4
 stm_38 arg_8
@@ -2134,7 +2134,7 @@ stm_18 arg_0 int
 stm_14 arg_0 struct __crt_multibyte_data *
 stm_c  var_720
 stm_10 var_71C
-stm_14 CPInfo struct _cpinfo /*%_cpinfo#264D2EA74B99B8A6%*/
+stm_14 CPInfo struct _cpinfo
 stm_28 CharType WORD
 stm_428 var_304 WCHAR
 stm_528 DestStr WCHAR
@@ -2146,19 +2146,19 @@ stm_8  var_4
 stm_14 arg_0 int
 stm_18 arg_4
 stm_10 var_1C
-stm_14 ms_exc CPPEH_RECORD /*%CPPEH_RECORD#45C42EF61A386281%*/
+stm_14 ms_exc CPPEH_RECORD
 stm_8  var_20
 stm_c  var_1C
-stm_10 CPInfo struct _cpinfo /*%_cpinfo#264D2EA74B99B8A6%*/
+stm_10 CPInfo struct _cpinfo
 stm_24 var_4
 stm_30 arg_0 int
 stm_34 arg_4 struct __crt_multibyte_data *
 stm_c  arg_0 const wchar_t *const
 stm_8  var_8
-stm_c  lpCriticalSection LPCRITICAL_SECTION /*%_RTL_CRITICAL_SECTION#C4BE179809706C6A%*/
+stm_c  lpCriticalSection LPCRITICAL_SECTION
 stm_14 var_20
 stm_18 var_1C
-stm_1c ms_exc CPPEH_RECORD /*%CPPEH_RECORD#45C42EF61A386281%*/
+stm_1c ms_exc CPPEH_RECORD
 stm_3c arg_0
 stm_8  arg_0
 stm_8  arg_0
@@ -2192,7 +2192,7 @@ stm_c  lpMem LPVOID
 stm_8  arg_0
 stm_8  arg_0
 stm_10 var_1C
-stm_14 ms_exc CPPEH_RECORD /*%CPPEH_RECORD#45C42EF61A386281%*/
+stm_14 ms_exc CPPEH_RECORD
 stm_10 arg_0
 stm_14 arg_4
 stm_8  lpMem void *
@@ -2205,7 +2205,7 @@ stm_4  var_4
 stm_10 arg_0
 stm_14 arg_4
 stm_10 var_1C
-stm_14 ms_exc CPPEH_RECORD /*%CPPEH_RECORD#45C42EF61A386281%*/
+stm_14 ms_exc CPPEH_RECORD
 stm_34 arg_0
 stm_3c arg_8
 stm_0  var_C
@@ -2223,7 +2223,7 @@ stm_1c var_30
 stm_20 var_2C
 stm_24 var_28
 stm_28 var_24
-stm_34 ms_exc CPPEH_RECORD /*%CPPEH_RECORD#45C42EF61A386281%*/
+stm_34 ms_exc CPPEH_RECORD
 stm_54 arg_0 int
 stm_8  arg_0
 stm_0  var_C
@@ -2242,14 +2242,14 @@ stm_10 arg_0 wint_t
 stm_14 arg_4 wctype_t
 stm_4  var_24
 stm_8  var_20
-stm_c  var_1C struct localeinfo_struct /*%localeinfo_struct#C887B7B31EC5CED4%*/
+stm_c  var_1C struct localeinfo_struct
 stm_18 MultiByteStr CHAR
 stm_1c CharType WORD[2]
 stm_20 var_8
 stm_24 var_4
 stm_30 C int
 stm_34 Type int
-stm_38 Locale _locale_t /*%localeinfo_struct#C887B7B31EC5CED4%*/
+stm_38 Locale _locale_t
 stm_c  var_10
 stm_10 var_C
 stm_14 var_8
@@ -2259,7 +2259,7 @@ stm_8  arg_0 wchar_t *
 stm_0  var_10
 stm_4  var_C
 stm_18 C int
-stm_1c Locale _locale_t /*%localeinfo_struct#C887B7B31EC5CED4%*/
+stm_1c Locale _locale_t
 stm_c  cchWideChar int
 stm_10 var_4
 stm_1c arg_0 struct __crt_locale_pointers *
@@ -2345,7 +2345,7 @@ stm_14 arg_8 void *
 stm_18 MaxCount size_t
 stm_10 var_20
 stm_14 var_1C
-stm_18 ms_exc CPPEH_RECORD /*%CPPEH_RECORD#45C42EF61A386281%*/
+stm_18 ms_exc CPPEH_RECORD
 stm_c  arg_0 FILE *
 stm_c  File FILE *
 stm_10 var_2C
@@ -2353,7 +2353,7 @@ stm_14 var_28
 stm_18 var_24
 stm_1c var_20
 stm_20 var_1C
-stm_24 ms_exc CPPEH_RECORD /*%CPPEH_RECORD#45C42EF61A386281%*/
+stm_24 ms_exc CPPEH_RECORD
 stm_44 arg_0
 stm_10 arg_0
 stm_8  arg_0 int
@@ -2394,7 +2394,7 @@ stm_30 arg_4 const char *
 stm_8  lpMem LPCVOID
 stm_c  lpMem LPVOID
 stm_10 dwBytes SIZE_T
-stm_10 ms_exc CPPEH_RECORD /*%CPPEH_RECORD#45C42EF61A386281%*/
+stm_10 ms_exc CPPEH_RECORD
 stm_30 arg_0
 stm_0  var_4
 stm_0  var_8
@@ -2479,7 +2479,7 @@ stm_1434 arg_8
 stm_1438 arg_C
 stm_14 var_20
 stm_18 var_1C
-stm_1c ms_exc CPPEH_RECORD /*%CPPEH_RECORD#45C42EF61A386281%*/
+stm_1c ms_exc CPPEH_RECORD
 stm_3c arg_0 int
 stm_40 lpBuffer LPCVOID
 stm_44 arg_8 unsigned int
@@ -2498,20 +2498,20 @@ stm_34 var_4
 stm_40 arg_0 int
 stm_44 lpBuffer LPCVOID
 stm_48 arg_8 int
-stm_8  NewFilePointer LARGE_INTEGER /*%LARGE_INTEGER#6F2DECE5B9963D4B%*/
+stm_8  NewFilePointer LARGE_INTEGER
 stm_18 arg_0 int
-stm_1c liDistanceToMove LARGE_INTEGER /*%LARGE_INTEGER#6F2DECE5B9963D4B%*/
+stm_1c liDistanceToMove LARGE_INTEGER
 stm_24 dwMoveMethod DWORD
 stm_8  arg_0 int
-stm_c  liDistanceToMove LARGE_INTEGER /*%LARGE_INTEGER#6F2DECE5B9963D4B%*/
+stm_c  liDistanceToMove LARGE_INTEGER
 stm_14 dwMoveMethod DWORD
 stm_c  File FILE *
 stm_10 var_20
 stm_14 var_1C
-stm_18 ms_exc CPPEH_RECORD /*%CPPEH_RECORD#45C42EF61A386281%*/
+stm_18 ms_exc CPPEH_RECORD
 stm_38 File FILE *
 stm_10 var_1C
-stm_14 ms_exc CPPEH_RECORD /*%CPPEH_RECORD#45C42EF61A386281%*/
+stm_14 ms_exc CPPEH_RECORD
 stm_34 arg_0
 stm_38 arg_4
 stm_3c arg_8
@@ -2589,7 +2589,7 @@ stm_2c arg_0 double
 stm_0  NumberOfCharsWritten DWORD
 stm_c  Buffer __int16
 stm_10 var_1C
-stm_14 ms_exc CPPEH_RECORD /*%CPPEH_RECORD#45C42EF61A386281%*/
+stm_14 ms_exc CPPEH_RECORD
 stm_34 arg_0
 stm_38 arg_4
 stm_3c arg_8
@@ -2668,7 +2668,7 @@ stm_10 arg_0 double
 stm_4  ProcessorFeature DWORD
 stm_14 arg_0
 stm_18 arg_4
-stm_10 ms_exc CPPEH_RECORD /*%CPPEH_RECORD#45C42EF61A386281%*/
+stm_10 ms_exc CPPEH_RECORD
 stm_30 arg_0
 stm_8  arg_0
 stm_8  arg_0
@@ -2739,55 +2739,55 @@ dat_413010 RegCloseKey LSTATUS __stdcall sub(HKEY hKey)
 dat_413018 FormatMessageW DWORD __stdcall sub(DWORD dwFlags, LPCVOID lpSource, DWORD dwMessageId, DWORD dwLanguageId, LPWSTR lpBuffer, DWORD nSize, va_list *Arguments)
 dat_41301c GetLastError DWORD __stdcall sub()
 dat_413020 CloseHandle BOOL __stdcall sub(HANDLE hObject)
-dat_413024 GetNativeSystemInfo void __stdcall sub(LPSYSTEM_INFO /*%_SYSTEM_INFO#0821E0E222DCA252%*/ lpSystemInfo)
+dat_413024 GetNativeSystemInfo void __stdcall sub(LPSYSTEM_INFO lpSystemInfo)
 dat_413028 LocalFree HLOCAL __stdcall sub(HLOCAL hMem)
 dat_41302c CreateFileW HANDLE __stdcall sub(LPCWSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile)
 dat_413030 CopyFileW BOOL __stdcall sub(LPCWSTR lpExistingFileName, LPCWSTR lpNewFileName, BOOL bFailIfExists)
 dat_413034 DecodePointer PVOID __stdcall sub(PVOID Ptr)
 dat_413038 FlushFileBuffers BOOL __stdcall sub(HANDLE hFile)
-dat_41303c SetFilePointerEx BOOL __stdcall sub(HANDLE hFile, LARGE_INTEGER /*%LARGE_INTEGER#6F2DECE5B9963D4B%*/ liDistanceToMove, PLARGE_INTEGER /*%LARGE_INTEGER#6F2DECE5B9963D4B%*/ lpNewFilePointer, DWORD dwMoveMethod)
+dat_41303c SetFilePointerEx BOOL __stdcall sub(HANDLE hFile, LARGE_INTEGER liDistanceToMove, PLARGE_INTEGER lpNewFilePointer, DWORD dwMoveMethod)
 dat_413040 GetConsoleMode BOOL __stdcall sub(HANDLE hConsoleHandle, LPDWORD lpMode)
 dat_413044 GetEnvironmentVariableW DWORD __stdcall sub(LPCWSTR lpName, LPWSTR lpBuffer, DWORD nSize)
 dat_413048 SetEnvironmentVariableW BOOL __stdcall sub(LPCWSTR lpName, LPCWSTR lpValue)
-dat_41304c GetModuleFileNameW DWORD __stdcall sub(HMODULE /*%HINSTANCE__#DD664C352E9B6326%*/ hModule, LPWSTR lpFilename, DWORD nSize)
+dat_41304c GetModuleFileNameW DWORD __stdcall sub(HMODULE hModule, LPWSTR lpFilename, DWORD nSize)
 dat_413050 ExpandEnvironmentStringsW DWORD __stdcall sub(LPCWSTR lpSrc, LPWSTR lpDst, DWORD nSize)
-dat_413054 CreateProcessW BOOL __stdcall sub(LPCWSTR lpApplicationName, LPWSTR lpCommandLine, LPSECURITY_ATTRIBUTES lpProcessAttributes, LPSECURITY_ATTRIBUTES lpThreadAttributes, BOOL bInheritHandles, DWORD dwCreationFlags, LPVOID lpEnvironment, LPCWSTR lpCurrentDirectory, LPSTARTUPINFOW /*%_STARTUPINFOW#EC9B93005128B2B4%*/ lpStartupInfo, LPPROCESS_INFORMATION /*%_PROCESS_INFORMATION#EF2C1BBAD9962C15%*/ lpProcessInformation)
+dat_413054 CreateProcessW BOOL __stdcall sub(LPCWSTR lpApplicationName, LPWSTR lpCommandLine, LPSECURITY_ATTRIBUTES lpProcessAttributes, LPSECURITY_ATTRIBUTES lpThreadAttributes, BOOL bInheritHandles, DWORD dwCreationFlags, LPVOID lpEnvironment, LPCWSTR lpCurrentDirectory, LPSTARTUPINFOW lpStartupInfo, LPPROCESS_INFORMATION lpProcessInformation)
 dat_413058 GetCommandLineW LPWSTR __stdcall sub()
 dat_41305c GetConsoleCP UINT __stdcall sub()
 dat_413060 HeapReAlloc LPVOID __stdcall sub(HANDLE hHeap, DWORD dwFlags, LPVOID lpMem, SIZE_T dwBytes)
 dat_413064 HeapSize SIZE_T __stdcall sub(HANDLE hHeap, DWORD dwFlags, LPCVOID lpMem)
 dat_413068 GetProcessHeap HANDLE __stdcall sub()
 dat_41306c GetStringTypeW BOOL __stdcall sub(DWORD dwInfoType, LPCWSTR lpSrcStr, int cchSrc, LPWORD lpCharType)
-dat_413070 UnhandledExceptionFilter LONG __stdcall sub(struct _EXCEPTION_POINTERS /*%_EXCEPTION_POINTERS#D9443E4AA8E6A18C%*/ *ExceptionInfo)
+dat_413070 UnhandledExceptionFilter LONG __stdcall sub(struct _EXCEPTION_POINTERS *ExceptionInfo)
 dat_413074 SetUnhandledExceptionFilter LPTOP_LEVEL_EXCEPTION_FILTER __stdcall sub(LPTOP_LEVEL_EXCEPTION_FILTER lpTopLevelExceptionFilter)
 dat_413078 GetCurrentProcess HANDLE __stdcall sub()
 dat_41307c TerminateProcess BOOL __stdcall sub(HANDLE hProcess, UINT uExitCode)
 dat_413080 __imp_IsProcessorFeaturePresent BOOL __stdcall sub(DWORD ProcessorFeature)
-dat_413084 QueryPerformanceCounter BOOL __stdcall sub(LARGE_INTEGER /*%LARGE_INTEGER#6F2DECE5B9963D4B%*/ *lpPerformanceCount)
+dat_413084 QueryPerformanceCounter BOOL __stdcall sub(LARGE_INTEGER *lpPerformanceCount)
 dat_413088 GetCurrentProcessId DWORD __stdcall sub()
 dat_41308c GetCurrentThreadId DWORD __stdcall sub()
-dat_413090 GetSystemTimeAsFileTime void __stdcall sub(LPFILETIME /*%_FILETIME#CCA50A8A595D82C4%*/ lpSystemTimeAsFileTime)
-dat_413094 InitializeSListHead void __stdcall sub(PSLIST_HEADER /*%_SLIST_HEADER#8AFBE817ED98AF06%*/ ListHead)
+dat_413090 GetSystemTimeAsFileTime void __stdcall sub(LPFILETIME lpSystemTimeAsFileTime)
+dat_413094 InitializeSListHead void __stdcall sub(PSLIST_HEADER ListHead)
 dat_413098 IsDebuggerPresent BOOL __stdcall sub()
-dat_41309c GetStartupInfoW void __stdcall sub(LPSTARTUPINFOW /*%_STARTUPINFOW#EC9B93005128B2B4%*/ lpStartupInfo)
-dat_4130a0 GetModuleHandleW HMODULE /*%HINSTANCE__#DD664C352E9B6326%*/__stdcall sub(LPCWSTR lpModuleName)
+dat_41309c GetStartupInfoW void __stdcall sub(LPSTARTUPINFOW lpStartupInfo)
+dat_4130a0 GetModuleHandleW HMODULE __stdcall sub(LPCWSTR lpModuleName)
 dat_4130a4 RtlUnwind void __stdcall sub(PVOID TargetFrame, PVOID TargetIp, PEXCEPTION_RECORD ExceptionRecord, PVOID ReturnValue)
 dat_4130a8 RaiseException void __stdcall sub(DWORD dwExceptionCode, DWORD dwExceptionFlags, DWORD nNumberOfArguments, const ULONG_PTR *lpArguments)
 dat_4130ac SetLastError void __stdcall sub(DWORD dwErrCode)
 dat_4130b0 EncodePointer PVOID __stdcall sub(PVOID Ptr)
-dat_4130b4 EnterCriticalSection void __stdcall sub(LPCRITICAL_SECTION /*%_RTL_CRITICAL_SECTION#C4BE179809706C6A%*/ lpCriticalSection)
-dat_4130b8 LeaveCriticalSection void __stdcall sub(LPCRITICAL_SECTION /*%_RTL_CRITICAL_SECTION#C4BE179809706C6A%*/ lpCriticalSection)
-dat_4130bc DeleteCriticalSection void __stdcall sub(LPCRITICAL_SECTION /*%_RTL_CRITICAL_SECTION#C4BE179809706C6A%*/ lpCriticalSection)
-dat_4130c0 InitializeCriticalSectionAndSpinCount BOOL __stdcall sub(LPCRITICAL_SECTION /*%_RTL_CRITICAL_SECTION#C4BE179809706C6A%*/ lpCriticalSection, DWORD dwSpinCount)
+dat_4130b4 EnterCriticalSection void __stdcall sub(LPCRITICAL_SECTION lpCriticalSection)
+dat_4130b8 LeaveCriticalSection void __stdcall sub(LPCRITICAL_SECTION lpCriticalSection)
+dat_4130bc DeleteCriticalSection void __stdcall sub(LPCRITICAL_SECTION lpCriticalSection)
+dat_4130c0 InitializeCriticalSectionAndSpinCount BOOL __stdcall sub(LPCRITICAL_SECTION lpCriticalSection, DWORD dwSpinCount)
 dat_4130c4 TlsAlloc DWORD __stdcall sub()
 dat_4130c8 TlsGetValue LPVOID __stdcall sub(DWORD dwTlsIndex)
 dat_4130cc TlsSetValue BOOL __stdcall sub(DWORD dwTlsIndex, LPVOID lpTlsValue)
 dat_4130d0 TlsFree BOOL __stdcall sub(DWORD dwTlsIndex)
-dat_4130d4 FreeLibrary BOOL __stdcall sub(HMODULE /*%HINSTANCE__#DD664C352E9B6326%*/ hLibModule)
-dat_4130d8 GetProcAddress FARPROC __stdcall sub(HMODULE /*%HINSTANCE__#DD664C352E9B6326%*/ hModule, LPCSTR lpProcName)
-dat_4130dc LoadLibraryExW HMODULE /*%HINSTANCE__#DD664C352E9B6326%*/__stdcall sub(LPCWSTR lpLibFileName, HANDLE hFile, DWORD dwFlags)
+dat_4130d4 FreeLibrary BOOL __stdcall sub(HMODULE hLibModule)
+dat_4130d8 GetProcAddress FARPROC __stdcall sub(HMODULE hModule, LPCSTR lpProcName)
+dat_4130dc LoadLibraryExW HMODULE __stdcall sub(LPCWSTR lpLibFileName, HANDLE hFile, DWORD dwFlags)
 dat_4130e0 ExitProcess void __stdcall sub(UINT uExitCode)
-dat_4130e4 GetModuleHandleExW BOOL __stdcall sub(DWORD dwFlags, LPCWSTR lpModuleName, HMODULE /*%HINSTANCE__#DD664C352E9B6326%*/ *phModule)
+dat_4130e4 GetModuleHandleExW BOOL __stdcall sub(DWORD dwFlags, LPCWSTR lpModuleName, HMODULE *phModule)
 dat_4130e8 GetStdHandle HANDLE __stdcall sub(DWORD nStdHandle)
 dat_4130ec WriteFile BOOL __stdcall sub(HANDLE hFile, LPCVOID lpBuffer, DWORD nNumberOfBytesToWrite, LPDWORD lpNumberOfBytesWritten, LPOVERLAPPED lpOverlapped)
 dat_4130f0 MultiByteToWideChar int __stdcall sub(UINT CodePage, DWORD dwFlags, LPCSTR lpMultiByteStr, int cbMultiByte, LPWSTR lpWideCharStr, int cchWideChar)
@@ -2802,7 +2802,7 @@ dat_413110 FindFirstFileExW HANDLE __stdcall sub(LPCWSTR lpFileName, FINDEX_INFO
 dat_413114 FindNextFileW BOOL __stdcall sub(HANDLE hFindFile, LPWIN32_FIND_DATAW lpFindFileData)
 dat_413118 IsValidCodePage BOOL __stdcall sub(UINT CodePage)
 dat_41311c GetOEMCP UINT __stdcall sub()
-dat_413120 GetCPInfo BOOL __stdcall sub(UINT CodePage, LPCPINFO /*%_cpinfo#264D2EA74B99B8A6%*/ lpCPInfo)
+dat_413120 GetCPInfo BOOL __stdcall sub(UINT CodePage, LPCPINFO lpCPInfo)
 dat_413124 GetCommandLineA LPSTR __stdcall sub()
 dat_413128 GetEnvironmentStringsW LPWCH __stdcall sub()
 dat_41312c FreeEnvironmentStringsW BOOL __stdcall sub(LPWCH)
@@ -2830,7 +2830,7 @@ dat_4131dc aBadAllocation
 dat_4131f0 ??_7logic_error@std@@6B@
 dat_4131fc ??_7length_error@std@@6B@
 dat_413208 ??_7type_info@@6B@
-dat_41320c ExceptionInfo struct _EXCEPTION_POINTERS /*%_EXCEPTION_POINTERS#D9443E4AA8E6A18C%*/
+dat_41320c ExceptionInfo struct _EXCEPTION_POINTERS
 dat_413218 ??_7bad_array_new_length@std@@6B@
 dat_413220 aBadArrayNewLen
 dat_413238 off_413238
@@ -3655,16 +3655,16 @@ dat_4193e4 unk_4193E4
 dat_4193f8 aGctl
 dat_4196c0 unk_4196C0
 dat_4196c8 unk_4196C8
-dat_4196d0 stru_4196D0 UnwindMapEntry /*%UnwindMapEntry#23EEB8AA342E4D8D%*/
-dat_4196f0 stru_4196F0 FuncInfo /*%FuncInfo#B06AF4783BB56A62%*/
-dat_419714 stru_419714 UnwindMapEntry /*%UnwindMapEntry#23EEB8AA342E4D8D%*/
-dat_419724 stru_419724 FuncInfo /*%FuncInfo#B06AF4783BB56A62%*/
-dat_419748 stru_419748 UnwindMapEntry /*%UnwindMapEntry#23EEB8AA342E4D8D%*/
-dat_419750 stru_419750 FuncInfo /*%FuncInfo#B06AF4783BB56A62%*/
-dat_419774 stru_419774 UnwindMapEntry /*%UnwindMapEntry#23EEB8AA342E4D8D%*/
-dat_41977c stru_41977C FuncInfo /*%FuncInfo#B06AF4783BB56A62%*/
-dat_4197a0 stru_4197A0 UnwindMapEntry /*%UnwindMapEntry#23EEB8AA342E4D8D%*/
-dat_4197a8 stru_4197A8 FuncInfo /*%FuncInfo#B06AF4783BB56A62%*/
+dat_4196d0 stru_4196D0 UnwindMapEntry
+dat_4196f0 stru_4196F0 FuncInfo
+dat_419714 stru_419714 UnwindMapEntry
+dat_419724 stru_419724 FuncInfo
+dat_419748 stru_419748 UnwindMapEntry
+dat_419750 stru_419750 FuncInfo
+dat_419774 stru_419774 UnwindMapEntry
+dat_41977c stru_41977C FuncInfo
+dat_4197a0 stru_4197A0 UnwindMapEntry
+dat_4197a8 stru_4197A8 FuncInfo
 dat_4197cc __TI2?AVbad_alloc@std@@
 dat_4197dc __CTA2?AVbad_alloc@std@@
 dat_4197e8 __CT??_R0?AVbad_alloc@std@@@8_401F2F
@@ -3673,48 +3673,48 @@ dat_419820 __CT??_R0?AVlogic_error@std@@@8_402001
 dat_41983c __TI3?AVlength_error@std@@
 dat_41984c __CTA3?AVlength_error@std@@
 dat_41985c __CT??_R0?AVlength_error@std@@@8_401FC5
-dat_419878 stru_419878 _EH4_SCOPETABLE /*%_EH4_SCOPETABLE#DD6D6B4709311AF3%*/
+dat_419878 stru_419878 _EH4_SCOPETABLE
 dat_419894 __TI3?AVbad_array_new_length@std@@
 dat_4198a4 __CTA3?AVbad_array_new_length@std@@
 dat_4198b4 __CT??_R0?AVbad_array_new_length@std@@@8_402472
-dat_4198d0 stru_4198D0 _EH4_SCOPETABLE /*%_EH4_SCOPETABLE#DD6D6B4709311AF3%*/
-dat_4198f0 stru_4198F0 _EH4_SCOPETABLE /*%_EH4_SCOPETABLE#DD6D6B4709311AF3%*/
-dat_419910 stru_419910 _EH4_SCOPETABLE /*%_EH4_SCOPETABLE#DD6D6B4709311AF3%*/
-dat_419930 stru_419930 _EH4_SCOPETABLE /*%_EH4_SCOPETABLE#DD6D6B4709311AF3%*/
-dat_419958 stru_419958 _EH4_SCOPETABLE /*%_EH4_SCOPETABLE#DD6D6B4709311AF3%*/
-dat_419980 stru_419980 HandlerType /*%HandlerType#4F52BB5731D92563%*/
-dat_419990 stru_419990 UnwindMapEntry /*%UnwindMapEntry#23EEB8AA342E4D8D%*/
-dat_4199a0 stru_4199A0 TryBlockMapEntry /*%TryBlockMapEntry#FEC28B885C110399%*/
-dat_4199b4 stru_4199B4 FuncInfo /*%FuncInfo#B06AF4783BB56A62%*/
-dat_4199d8 stru_4199D8 _EH4_SCOPETABLE /*%_EH4_SCOPETABLE#DD6D6B4709311AF3%*/
+dat_4198d0 stru_4198D0 _EH4_SCOPETABLE
+dat_4198f0 stru_4198F0 _EH4_SCOPETABLE
+dat_419910 stru_419910 _EH4_SCOPETABLE
+dat_419930 stru_419930 _EH4_SCOPETABLE
+dat_419958 stru_419958 _EH4_SCOPETABLE
+dat_419980 stru_419980 HandlerType
+dat_419990 stru_419990 UnwindMapEntry
+dat_4199a0 stru_4199A0 TryBlockMapEntry
+dat_4199b4 stru_4199B4 FuncInfo
+dat_4199d8 stru_4199D8 _EH4_SCOPETABLE
 dat_4199f4 __TI2?AVbad_exception@std@@
 dat_419a04 __CTA2?AVbad_exception@std@@
 dat_419a10 __CT??_R0?AVbad_exception@std@@@8_40428C
-dat_419a30 stru_419A30 _EH4_SCOPETABLE /*%_EH4_SCOPETABLE#DD6D6B4709311AF3%*/
-dat_419a58 stru_419A58 _EH4_SCOPETABLE /*%_EH4_SCOPETABLE#DD6D6B4709311AF3%*/
-dat_419a78 stru_419A78 _EH4_SCOPETABLE /*%_EH4_SCOPETABLE#DD6D6B4709311AF3%*/
-dat_419a98 stru_419A98 _EH4_SCOPETABLE /*%_EH4_SCOPETABLE#DD6D6B4709311AF3%*/
-dat_419ab8 stru_419AB8 _EH4_SCOPETABLE /*%_EH4_SCOPETABLE#DD6D6B4709311AF3%*/
-dat_419ad8 stru_419AD8 _EH4_SCOPETABLE /*%_EH4_SCOPETABLE#DD6D6B4709311AF3%*/
-dat_419af8 stru_419AF8 _EH4_SCOPETABLE /*%_EH4_SCOPETABLE#DD6D6B4709311AF3%*/
-dat_419b18 stru_419B18 _EH4_SCOPETABLE /*%_EH4_SCOPETABLE#DD6D6B4709311AF3%*/
-dat_419b38 stru_419B38 _EH4_SCOPETABLE /*%_EH4_SCOPETABLE#DD6D6B4709311AF3%*/
-dat_419b58 stru_419B58 _EH4_SCOPETABLE /*%_EH4_SCOPETABLE#DD6D6B4709311AF3%*/
-dat_419b78 stru_419B78 _EH4_SCOPETABLE /*%_EH4_SCOPETABLE#DD6D6B4709311AF3%*/
-dat_419b98 stru_419B98 _EH4_SCOPETABLE /*%_EH4_SCOPETABLE#DD6D6B4709311AF3%*/
-dat_419bb8 stru_419BB8 _EH4_SCOPETABLE /*%_EH4_SCOPETABLE#DD6D6B4709311AF3%*/
-dat_419bd8 stru_419BD8 _EH4_SCOPETABLE /*%_EH4_SCOPETABLE#DD6D6B4709311AF3%*/
-dat_419bf8 stru_419BF8 _EH4_SCOPETABLE /*%_EH4_SCOPETABLE#DD6D6B4709311AF3%*/
-dat_419c18 stru_419C18 _EH4_SCOPETABLE /*%_EH4_SCOPETABLE#DD6D6B4709311AF3%*/
-dat_419c38 stru_419C38 _EH4_SCOPETABLE /*%_EH4_SCOPETABLE#DD6D6B4709311AF3%*/
-dat_419c58 stru_419C58 _EH4_SCOPETABLE /*%_EH4_SCOPETABLE#DD6D6B4709311AF3%*/
-dat_419c78 stru_419C78 _EH4_SCOPETABLE /*%_EH4_SCOPETABLE#DD6D6B4709311AF3%*/
-dat_419ca0 stru_419CA0 _EH4_SCOPETABLE /*%_EH4_SCOPETABLE#DD6D6B4709311AF3%*/
-dat_419cc0 stru_419CC0 _EH4_SCOPETABLE /*%_EH4_SCOPETABLE#DD6D6B4709311AF3%*/
-dat_419ce0 stru_419CE0 _EH4_SCOPETABLE /*%_EH4_SCOPETABLE#DD6D6B4709311AF3%*/
-dat_419d00 stru_419D00 _EH4_SCOPETABLE /*%_EH4_SCOPETABLE#DD6D6B4709311AF3%*/
-dat_419d20 stru_419D20 _EH4_SCOPETABLE /*%_EH4_SCOPETABLE#DD6D6B4709311AF3%*/
-dat_419d40 stru_419D40 _EH4_SCOPETABLE /*%_EH4_SCOPETABLE#DD6D6B4709311AF3%*/
+dat_419a30 stru_419A30 _EH4_SCOPETABLE
+dat_419a58 stru_419A58 _EH4_SCOPETABLE
+dat_419a78 stru_419A78 _EH4_SCOPETABLE
+dat_419a98 stru_419A98 _EH4_SCOPETABLE
+dat_419ab8 stru_419AB8 _EH4_SCOPETABLE
+dat_419ad8 stru_419AD8 _EH4_SCOPETABLE
+dat_419af8 stru_419AF8 _EH4_SCOPETABLE
+dat_419b18 stru_419B18 _EH4_SCOPETABLE
+dat_419b38 stru_419B38 _EH4_SCOPETABLE
+dat_419b58 stru_419B58 _EH4_SCOPETABLE
+dat_419b78 stru_419B78 _EH4_SCOPETABLE
+dat_419b98 stru_419B98 _EH4_SCOPETABLE
+dat_419bb8 stru_419BB8 _EH4_SCOPETABLE
+dat_419bd8 stru_419BD8 _EH4_SCOPETABLE
+dat_419bf8 stru_419BF8 _EH4_SCOPETABLE
+dat_419c18 stru_419C18 _EH4_SCOPETABLE
+dat_419c38 stru_419C38 _EH4_SCOPETABLE
+dat_419c58 stru_419C58 _EH4_SCOPETABLE
+dat_419c78 stru_419C78 _EH4_SCOPETABLE
+dat_419ca0 stru_419CA0 _EH4_SCOPETABLE
+dat_419cc0 stru_419CC0 _EH4_SCOPETABLE
+dat_419ce0 stru_419CE0 _EH4_SCOPETABLE
+dat_419d00 stru_419D00 _EH4_SCOPETABLE
+dat_419d20 stru_419D20 _EH4_SCOPETABLE
+dat_419d40 stru_419D40 _EH4_SCOPETABLE
 dat_419d5c __IMPORT_DESCRIPTOR_KERNEL32
 dat_419d70 __IMPORT_DESCRIPTOR_USER32
 dat_419d84 __IMPORT_DESCRIPTOR_ADVAPI32
@@ -3903,7 +3903,7 @@ dat_41bb6c dword_41BB6C
 dat_41bb78 unk_41BB78
 dat_41bb84 byte_41BB84
 dat_41bb85 byte_41BB85
-dat_41bb88 ListHead union _SLIST_HEADER /*%_SLIST_HEADER#8AFBE817ED98AF06%*/
+dat_41bb88 ListHead union _SLIST_HEADER
 dat_41bb90 unk_41BB90
 dat_41bb98 dword_41BB98
 dat_41bb9c dword_41BB9C
@@ -3911,7 +3911,7 @@ dat_41bba0 dword_41BBA0
 dat_41bba4 dword_41BBA4
 dat_41bba8 unk_41BBA8
 dat_41bbb8 unk_41BBB8
-dat_41bbd0 CriticalSection struct _RTL_CRITICAL_SECTION /*%_RTL_CRITICAL_SECTION#C4BE179809706C6A%*/
+dat_41bbd0 CriticalSection struct _RTL_CRITICAL_SECTION
 dat_41bbe8 dword_41BBE8
 dat_41bbec unk_41BBEC
 dat_41bbf8 unk_41BBF8

@@ -322,18 +322,8 @@ namespace
     MAKE_TO_TYPE_FUNCTION(to_int,     int,              "%d");
     MAKE_TO_TYPE_FUNCTION(to_sel,     sel_t,            "%" PRIuEA);
     MAKE_TO_TYPE_FUNCTION(to_bgcolor, bgcolor_t,        "%u");
-    MAKE_TO_TYPE_FUNCTION(to_yaid,    YaToolObjectId,   "%" PRIx64);
     MAKE_TO_TYPE_FUNCTION(to_path,    uint32_t,         "0x%08X");
     MAKE_TO_TYPE_FUNCTION(to_xmlea,   ea_t,             "0x%0" EA_SIZE PRIXEA);
-
-    template<typename T>
-    int find_int(const T& data, const char* key)
-    {
-        const auto it = data.find(key);
-        if(it == data.end())
-            return 0;
-        return to_int(it->second.data());
-    }
 
     segment_t* check_segment(ea_t ea, ea_t end)
     {
@@ -640,56 +630,11 @@ namespace
     }
 
     const std::regex r_trailing_identifier{"\\s*<?[a-zA-Z_0-9]+>?\\s*$"}; // match c/c++ identifiers
-    const std::regex r_type_id{"/\\*%(.+?)#([A-F0-9]{16})%\\*/"};         // match yaco ids /*%name:ID%*/
     const std::regex r_trailing_comma{"\\s*;\\s*$"};                      // match trailing ;
     const std::regex r_trailing_whitespace{"\\s+$"};                      // match trailing whitespace
     const std::regex r_leading_whitespace{"^\\s+"};                       // match leading whitespace
     const std::regex r_trailing_const_pointer{"\\*\\s*const\\s*$"};       // match trailing * const
     const std::regex r_trailing_pointer{"\\*\\s*$"};                      // match trailing *
-
-    void replace_inline(std::string& value, const std::string& pattern, const std::string& replace)
-    {
-        size_t pos = 0;
-        while(true)
-        {
-            pos = value.find(pattern, pos);
-            if(pos == std::string::npos)
-                break;
-
-            value.replace(pos, pattern.size(), replace);
-            pos += replace.size();
-        }
-    }
-
-    std::string patch_prototype(const Visitor& visitor, const std::string& src, ea_t ea)
-    {
-        // remove/patch struct ids
-        auto dst = src;
-        qstring buffer;
-        for(std::sregex_iterator it = {src.begin(), src.end(), r_type_id}, end; it != end; ++it)
-        {
-            const auto id = it->str(2);
-            const auto name = it->str(1);
-            // always remove special struct comment
-            replace_inline(dst, "/*%" + name + "#" + id + "%*/", "");
-            const auto k = visitor.tids_.find(to_yaid(id.data()));
-            if(k == visitor.tids_.end())
-            {
-                LOG(WARNING, "make_prototype: 0x%" PRIxEA " unknown struct %s id %s\n", ea, name.data(), id.data());
-                continue;
-            }
-            if(k->second.type != OBJECT_TYPE_STRUCT)
-                continue;
-            const auto tid = static_cast<tid_t>(k->second.tid);
-            ya::wrap(&get_struc_name, buffer, tid);
-            // replace struct name with new name
-            replace_inline(dst, name, buffer.c_str());
-        }
-
-        // remove trailing whitespace
-        dst = std::regex_replace(dst, r_trailing_whitespace, "");
-        return dst;
-    }
 
     tinfo_t make_simple_type(type_t type)
     {
@@ -892,28 +837,27 @@ namespace
     }
 
     template<typename T>
-    bool try_set_type(const Visitor* visitor, ea_t ea, const std::string& value, const T& operand)
+    bool try_set_type(ea_t ea, const std::string& value, const T& operand)
     {
         if(value.empty())
             return false;
 
-        const auto patched = visitor ? patch_prototype(*visitor, value, ea) : value;
-        const auto tif = try_find_type(ea, patched.data());
+        const auto tif = try_find_type(ea, value.data());
         if(tif.empty())
         {
-            LOG(ERROR, "set_type: 0x%" PRIxEA " unknown type %s\n", ea, patched.data());
+            LOG(ERROR, "set_type: 0x%" PRIxEA " unknown type %s\n", ea, value.data());
             return false;
         }
 
         const auto ok = operand(tif);
         if(!ok)
-            LOG(ERROR, "set_type: 0x%" PRIxEA " unable to set type %s\n", ea, patched.data());
+            LOG(ERROR, "set_type: 0x%" PRIxEA " unable to set type %s\n", ea, value.data());
         return ok;
     }
 
-    bool set_type(const Visitor* visitor, ea_t ea, const std::string& value)
+    bool set_type(ea_t ea, const std::string& value)
     {
-        return try_set_type(visitor, ea, value, [&](const tinfo_t& tif)
+        return try_set_type(ea, value, [&](const tinfo_t& tif)
         {
             tinfo_t check;
             get_tinfo(&check, ea);
@@ -923,9 +867,9 @@ namespace
         });
     }
 
-    bool set_struct_member_type(const Visitor* visitor, ea_t ea, const std::string& value)
+    bool set_struct_member_type(ea_t ea, const std::string& value)
     {
-        return try_set_type(visitor, ea, value, [&](const tinfo_t& original_tif)
+        return try_set_type(ea, value, [&](const tinfo_t& original_tif)
         {
             struc_t* s = nullptr;
             auto* m = get_member_by_id(ea, &s);
@@ -966,7 +910,7 @@ namespace
         return get_func(ea);
     }
 
-    void make_function(const Visitor& visitor, const HVersion& version, ea_t ea)
+    void make_function(const HVersion& version, ea_t ea)
     {
         const auto func = add_function(ea, version);
         if(!func)
@@ -985,7 +929,7 @@ namespace
         if(!ok)
             LOG(ERROR, "make_function: 0x%" PRIxEA " unable to set function end 0x%" PRIxEA "\n", ea, end);
 
-        set_type(&visitor, ea, make_string(version.prototype()));
+        set_type(ea, make_string(version.prototype()));
         for(const auto repeat : {false, true})
         {
             const auto cmt = version.header_comment(repeat);
@@ -1252,7 +1196,7 @@ namespace
     {
         set_data_type(visitor, version, ea);
         make_name(visitor, version, ea);
-        set_type(&visitor, ea, make_string(version.prototype()));
+        set_type(ea, make_string(version.prototype()));
     }
 
     bool is_member(const Visitor& visitor, YaToolObjectId parent, YaToolObjectId id)
@@ -1793,7 +1737,7 @@ namespace
         if(prototype.size && !is_struct_applied)
         {
             const auto strtype = make_string(prototype);
-            ok = set_struct_member_type(&visitor, member->id, strtype);
+            ok = set_struct_member_type(member->id, strtype);
             if(!ok)
                 LOG(ERROR, "make_%s: %s.%s: unable to set prototype '%s'\n", where, sname->c_str(), name.data(), strtype.data());
         }
@@ -1908,7 +1852,7 @@ namespace
             case OBJECT_TYPE_FUNCTION:
                 if(visitor.plugin_)
                     visitor.plugin_->make_function_enter(version, ea);
-                make_function(visitor, version, ea);
+                make_function(version, ea);
                 if(visitor.plugin_)
                     visitor.plugin_->make_function_exit(version, ea);
                 break;
@@ -1970,12 +1914,12 @@ void Visitor::remove(const IModel& model)
 
 bool set_type_at(ea_t ea, const std::string& prototype)
 {
-    return set_type(nullptr, ea, prototype);
+    return set_type(ea, prototype);
 }
 
 bool set_struct_member_type_at(ea_t ea, const std::string& prototype)
 {
-    return set_struct_member_type(nullptr, ea, prototype);
+    return set_struct_member_type(ea, prototype);
 }
 
 std::shared_ptr<IModelSink> MakeIdaSink()
