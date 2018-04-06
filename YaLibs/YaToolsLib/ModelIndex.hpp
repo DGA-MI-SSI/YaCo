@@ -15,6 +15,8 @@
 
 #pragma once
 
+#include "Helpers.h"
+
 #include <algorithm>
 #include <vector>
 #include <unordered_map>

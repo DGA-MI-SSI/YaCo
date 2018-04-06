@@ -19,8 +19,7 @@
 #include "IModelAccept.hpp"
 #include "IModelVisitor.hpp"
 #include "YaTypes.hpp"
-#include "Logger.h"
-#include "Yatools.h"
+#include "Yatools.hpp"
 #include "BinHex.hpp"
 
 #include <algorithm>

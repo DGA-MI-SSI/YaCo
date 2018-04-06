@@ -17,16 +17,13 @@
 #include "Repository.hpp"
 
 #include "IModelAccept.hpp"
-#include "Logger.h"
 #include "Merger.hpp"
 #include "ResolveFileConflictCallback.hpp"
 #include "YaGitLib.hpp"
-#include "Yatools.h"
+#include "Yatools.hpp"
 #include "Utils.hpp"
 #include "YaHelpers.hpp"
-
-#define MODULE_NAME "repo"
-#include "IdaUtils.hpp"
+#include "Helpers.h"
 
 #include <ctime>
 #include <libxml/xmlreader.h>
@@ -39,6 +36,8 @@
 #else
 #   include <experimental/filesystem>
 #endif
+
+#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("repo", (FMT), ## __VA_ARGS__)
 
 namespace fs = std::experimental::filesystem;
 
@@ -120,23 +119,23 @@ namespace
         fs::copy_file(file_path, backup_file_path, ec);
         if (ec)
         {
-            IDA_LOG_WARNING("Failed to create backup for %s, error: %s", file_path.c_str(), ec.message().c_str());
+            LOG(WARNING, "Failed to create backup for %s, error: %s\n", file_path.c_str(), ec.message().c_str());
             return false;
         }
 
-        IDA_LOG_INFO("Created backup %s", backup_file_path.c_str());
+        LOG(INFO, "Created backup %s\n", backup_file_path.c_str());
         return true;
     }
 
     bool backup_current_idb()
     {
-        IDA_LOG_INFO("Backup of current IDB");
+        LOG(INFO, "Backup of current IDB\n");
         return backup_file(get_current_idb_path());
     }
 
     bool backup_original_idb()
     {
-        IDA_LOG_INFO("Backup of original IDB");
+        LOG(INFO, "Backup of original IDB\n");
         return backup_file(get_original_idb_path());
     }
 
@@ -159,12 +158,12 @@ namespace
         fs::copy_file(original_idb_path, current_idb_path, fs::copy_options::overwrite_existing, ec);
         if (ec)
         {
-            IDA_LOG_GUI_WARNING("Failed to copy original idb to current idb, error: %s", ec.message().c_str());
+            LOG(WARNING, "Failed to copy original idb to current idb, error: %s\n", ec.message().c_str());
             return false;
         }
 
         remove_ida_temporary_files(current_idb_path);
-        IDA_LOG_INFO("Copied original IDB to current IDB");
+        LOG(INFO, "Copied original IDB to current IDB\n");
         return true;
     }
 
@@ -176,12 +175,12 @@ namespace
         fs::copy_file(current_idb_path, original_idb_path, fs::copy_options::overwrite_existing, ec);
         if (ec)
         {
-            IDA_LOG_GUI_WARNING("Failed to copy current idb to original idb, error: %s", ec.message().c_str());
+            LOG(WARNING, "Failed to copy current idb to original idb, error: %s\n", ec.message().c_str());
             return false;
         }
 
         remove_ida_temporary_files(current_idb_path);
-        IDA_LOG_INFO("Copied current IDB to original IDB");
+        LOG(INFO, "Copied current IDB to original IDB\n");
         return true;
     }
 }
@@ -229,16 +228,16 @@ bool IDAInteractiveFileConflictResolver::callback(const std::string& input_file1
     {
         if (!is_valid_xml_file(output_file_result))
         {
-            IDA_LOG_GUI_ERROR("Merger generated invalid xml file");
+            LOG(ERROR, "Merger generated invalid xml file\n");
             return false;
         }
         return true;
     }
 
-    warning("Auto merge failed, please edit manually %s then continue", output_file_result.c_str());
+    warning("Auto merge failed, please edit manually %s then continue\n", output_file_result.c_str());
     if (!is_valid_xml_file(output_file_result))
     {
-        IDA_LOG_GUI_ERROR("%s is an invalid xml file", output_file_result.c_str());
+        LOG(ERROR, "%s is an invalid xml file\n", output_file_result.c_str());
         return false;
     }
     return true;
@@ -292,25 +291,25 @@ Repository::Repository(const std::string& path)
 
     init();
     if (!ensure_git_globals())
-        IDA_LOG_ERROR("Unable to ensure git globals");
+        LOG(ERROR, "Unable to ensure git globals\n");
 
     if (repo_already_exists)
     {
-        LOG(DEBUG, "Repo opened");
+        LOG(DEBUG, "Repo opened\n");
         return;
     }
-    IDA_LOG_INFO("Repo created");
+    LOG(INFO, "Repo created\n");
 
     // add current IDB to repo, and create an initial commit
-    if (add_file_to_index(get_current_idb_name()) && commit("Initial commit"))
-        IDA_LOG_INFO("IDB Committed");
+    if (add_file_to_index(get_current_idb_name()) && commit("Initial commit\n"))
+        LOG(INFO, "IDB Committed\n");
     else
-        IDA_LOG_ERROR("Unable to commit IDB");
+        LOG(ERROR, "Unable to commit IDB\n");
 
     ask_for_remote();
 
     if (!push("master", "master"))
-        IDA_LOG_ERROR("Unable to push");
+        LOG(ERROR, "Unable to push\n");
 }
 
 void Repository::add_comment(const std::string& msg)
@@ -320,24 +319,24 @@ void Repository::add_comment(const std::string& msg)
 
 void Repository::check_valid_cache_startup()
 {
-    LOG(DEBUG, "Validating cache...");
+    LOG(DEBUG, "Validating cache...\n");
 
     if (!remote_exist("origin"))
     {
-        IDA_LOG_INFO("origin remote not defined: ignoring origin and master sync check");
+        LOG(INFO, "origin remote not defined: ignoring origin and master sync check\n");
     }
     else
     {
         const std::string master_commit = get_commit("master");
         const std::string origin_master_commit = get_commit("origin/master");
         if (master_commit.empty() || origin_master_commit.empty() || master_commit != origin_master_commit)
-            IDA_LOG_WARNING("Master and origin/master does not point to same commit, please update your master");
+            LOG(WARNING, "Master and origin/master does not point to same commit, please update your master\n");
     }
 
     std::error_code ec;
     fs::create_directory("cache", ec);
     if (ec)
-        IDA_LOG_WARNING("Cache directory creation failed, error: %s", ec.message().c_str());
+        LOG(WARNING, "Cache directory creation failed, error: %s\n", ec.message().c_str());
 
     const fs::path current_idb_path = get_current_idb_path();
     const std::string idb_extension = current_idb_path.extension().string();
@@ -346,25 +345,25 @@ void Repository::check_valid_cache_startup()
 
     if (std::regex_match(idb_prefix, std::regex(".*_local$")))
     {
-        LOG(DEBUG, "Cache validated");
+        LOG(DEBUG, "Cache validated\n");
         return;
     }
 
-    IDA_LOG_INFO("Current IDB filename is missing _local suffix");
+    LOG(INFO, "Current IDB filename is missing _local suffix\n");
     const std::string local_idb_path = idb_prefix + "_local" + idb_extension;
     bool local_idb_exist = fs::exists(local_idb_path, ec);
     if (!local_idb_exist)
     {
-        IDA_LOG_INFO("Creating required local idb");
+        LOG(INFO, "Creating required local idb\n");
         fs::copy_file(current_idb_path, local_idb_path, ec);
         if (ec)
         {
-            IDA_LOG_ERROR("Unable to create local idb file, error: %s", ec.message().c_str());
+            LOG(ERROR, "Unable to create local idb file, error: %s\n", ec.message().c_str());
             return;
         }
     }
 
-    IDA_LOG_INFO("IDA need to restart with local IDB");
+    LOG(INFO, "IDA need to restart with local IDB\n");
     std::string msg = "To use YaCo you must name your IDB with _local suffix. YaCo will create one for you.\nRestart IDA and open ";
     msg += fs::path(local_idb_path).filename().generic_string();
     msg += '.';
@@ -384,59 +383,59 @@ std::string Repository::update_cache()
 
     if (!repo_auto_sync_)
     {
-        IDA_LOG_INFO("Repo auto sync disabled, ignoring cache update");
+        LOG(INFO, "Repo auto sync disabled, ignoring cache update\n");
         return commit;
     }
 
-    LOG(DEBUG, "Updating cache...");
+    LOG(DEBUG, "Updating cache...\n");
     // get master commit
     commit = get_commit("master");
     if (commit.empty())
     {
-        IDA_LOG_INFO("Unable to update cache");
+        LOG(INFO, "Unable to update cache\n");
         return commit;
     }
-    LOG(DEBUG, "Current master: %s", commit.c_str());
+    LOG(DEBUG, "Current master: %s\n", commit.c_str());
 
     // fetch remote
     fetch("origin");
-    LOG(DEBUG, "Fetched origin/master: %s", get_commit("origin/master").c_str());
+    LOG(DEBUG, "Fetched origin/master: %s\n", get_commit("origin/master").c_str());
 
     // rebase in master
-    LOG(DEBUG, "Rebasing master on origin/master...");
+    LOG(DEBUG, "Rebasing master on origin/master...\n");
     if (!rebase("origin/master", "master"))
     {
-        IDA_LOG_INFO("Unable to update cache");
+        LOG(INFO, "Unable to update cache\n");
         // disable auto sync (when closing database)
         warning("You have errors during rebase. You have to resolve it manually.\nSee git_rebase.log for details.\nThen run save on IDA to complete rebase and update master");
         return commit;
     }
 
-    LOG(DEBUG, "Master rebased");
+    LOG(DEBUG, "Master rebased\n");
 
     // push to origin
     for (int nb_try = 0; nb_try < GIT_PUSH_RETRIES; ++nb_try)
     {
-        LOG(DEBUG, "Pushing master to origin...");
+        LOG(DEBUG, "Pushing master to origin...\n");
         if (!push("master", "master"))
             continue;
 
-        LOG(DEBUG, "Master pushed to origin");
-        LOG(DEBUG, "Cache updated");
+        LOG(DEBUG, "Master pushed to origin\n");
+        LOG(DEBUG, "Cache updated\n");
         return commit;
     }
 
-    IDA_LOG_WARNING("Errors occured during push to origin, they need to be resolved manually.");
+    LOG(WARNING, "Errors occured during push to origin, they need to be resolved manually\n");
     repo_auto_sync_ = false;
-    IDA_LOG_INFO("Auto rebase/push disabled");
+    LOG(INFO, "Auto rebase/push disabled\n");
 
-    warning("You have errors during push to origin. You have to resolve it manually.");
+    warning("You have errors during push to origin. You have to resolve it manually\n");
     return commit;
 }
 
 bool Repository::commit_cache()
 {
-    LOG(DEBUG, "Committing changes...");
+    LOG(DEBUG, "Committing changes...\n");
 
     const std::set<std::string> untracked_files = repo_.get_untracked_objects_in_path("cache/");
     const std::set<std::string> modified_files = repo_.get_modified_objects_in_path("cache/");
@@ -444,20 +443,20 @@ bool Repository::commit_cache()
 
     if (untracked_files.empty() && modified_files.empty() && deleted_files.empty())
     {
-        LOG(DEBUG, "No changes to commit");
+        LOG(DEBUG, "No changes to commit\n");
         return true;
     }
 
     for(const auto& f : untracked_files)
         if(!add_file_to_index(f))
-            IDA_LOG_ERROR("unable to add %s to index", f.c_str());
+            LOG(ERROR, "unable to add %s to index\n", f.c_str());
     for(const auto& f : modified_files)
         if(!add_file_to_index(f))
-            IDA_LOG_ERROR("unable to add %s to index", f.c_str());
+            LOG(ERROR, "unable to add %s to index\n", f.c_str());
     for(const auto& f : deleted_files)
         if(!remove_file_for_index(f))
-            IDA_LOG_ERROR("unable to remove %s for index", f.c_str());
-    IDA_LOG_INFO("commit: %zd added %zd updated %zd deleted", untracked_files.size(), modified_files.size(), deleted_files.size());
+            LOG(ERROR, "unable to remove %s for index\n", f.c_str());
+    LOG(INFO, "commit: %zd added %zd updated %zd deleted\n", untracked_files.size(), modified_files.size(), deleted_files.size());
 
     ya::dedup(comments_);
 
@@ -479,11 +478,11 @@ bool Repository::commit_cache()
 
     if (!commit(commit_msg))
     {
-        IDA_LOG_ERROR("Unable to commit");
+        LOG(ERROR, "Unable to commit\n");
         return false;
     }
 
-    LOG(DEBUG, "Changes committed");
+    LOG(DEBUG, "Changes committed\n");
     return true;
 }
 
@@ -491,9 +490,9 @@ void Repository::toggle_repo_auto_sync()
 {
     repo_auto_sync_ = !repo_auto_sync_;
     if (repo_auto_sync_)
-        IDA_LOG_INFO("Auto rebase/push enabled");
+        LOG(INFO, "Auto rebase/push enabled\n");
     else
-        IDA_LOG_INFO("Auto rebase/push disabled");
+        LOG(INFO, "Auto rebase/push disabled\n");
 }
 
 void Repository::sync_and_push_original_idb()
@@ -503,7 +502,7 @@ void Repository::sync_and_push_original_idb()
     // sync original idb to current idb
     if (!copy_current_idb_to_original_file())
     {
-        IDA_LOG_ERROR("Unable to sync original idb to current idb");
+        LOG(ERROR, "Unable to sync original idb to current idb\n");
         return;
     }
 
@@ -518,27 +517,27 @@ void Repository::sync_and_push_original_idb()
         // git remove xml
         if (!remove_file_for_index(file_path.path().generic_string()))
         {
-            IDA_LOG_ERROR("Unable to remove %s for index", file_path.path().generic_string().c_str());
+            LOG(ERROR, "Unable to remove %s for index\n", file_path.path().generic_string().c_str());
             return;
         }
 
         // filesystem remove xml
         fs::remove(file_path.path(), ec);
         if (ec)
-            IDA_LOG_ERROR("Unable to remove %s from filesystem, error: %s", file_path.path().generic_string().c_str(), ec.message().c_str());
+            LOG(ERROR, "Unable to remove %s from filesystem, error: %s\n", file_path.path().generic_string().c_str(), ec.message().c_str());
     }
 
     // git add original idb file
     if (!add_file_to_index(get_original_idb_name()))
     {
-        IDA_LOG_ERROR("Unable to add original idb file to index");
+        LOG(ERROR, "Unable to add original idb file to index\n");
         return;
     }
 
     // git commit
     if (!commit("YaCo force push"))
     {
-        IDA_LOG_ERROR("Unable to commit");
+        LOG(ERROR, "Unable to commit\n");
         return;
     }
 
@@ -547,7 +546,7 @@ void Repository::sync_and_push_original_idb()
 
     // git push
     if (!push("master", "master"))
-        IDA_LOG_ERROR("Unable to push");
+        LOG(ERROR, "Unable to push\n");
 }
 
 void Repository::discard_and_pull_idb()
@@ -561,18 +560,18 @@ void Repository::discard_and_pull_idb()
     // get synced original idb
     if (!fetch("origin"))
     {
-        IDA_LOG_ERROR("Unable to fetch origin");
+        LOG(ERROR, "Unable to fetch origin\n");
         return;
     }
     if (!rebase("origin/master", "master"))
     {
-        IDA_LOG_ERROR("Unable to rebase master from origin/master");
+        LOG(ERROR, "Unable to rebase master from origin/master\n");
         return;
     }
 
     // sync current idb to original idb
     if (!copy_original_idb_to_current_file())
-        IDA_LOG_ERROR("Unable to sync current idb to original idb");
+        LOG(ERROR, "Unable to sync current idb to original idb\n");
 }
 
 void Repository::ask_to_checkout_modified_files()
@@ -625,7 +624,7 @@ void Repository::ask_for_remote()
     }
     catch (const std::runtime_error& err)
     {
-        IDA_LOG_GUI_ERROR("An error occured during remote creation, error: %s", err.what());
+        LOG(ERROR, "An error occured during remote creation, error: %s\n", err.what());
         return;
     }
 
@@ -642,7 +641,7 @@ void Repository::ask_for_remote()
 
     if (!fs::create_directories(path))
     {
-        IDA_LOG_GUI_WARNING("Directory %s creation failed.", url.c_str());
+        LOG(WARNING, "Directory %s creation failed\n", url.c_str());
         return;
     }
 
@@ -653,7 +652,7 @@ void Repository::ask_for_remote()
     }
     catch (const std::runtime_error& _error)
     {
-        IDA_LOG_GUI_ERROR("Unable to init remote repo, error: %s", _error.what());
+        LOG(ERROR, "Unable to init remote repo, error: %s\n", _error.what());
     }
 }
 
@@ -666,7 +665,7 @@ bool Repository::ask_and_set_git_config_entry(const std::string& config_entry, c
     }
     catch (const std::runtime_error& error)
     {
-        IDA_LOG_WARNING("Failed get git %s, error: %s", config_entry.c_str(), error.what());
+        LOG(WARNING, "Failed get git %s, error: %s\n", config_entry.c_str(), error.what());
         return false;
     }
 
@@ -684,7 +683,7 @@ bool Repository::ask_and_set_git_config_entry(const std::string& config_entry, c
     }
     catch (const std::runtime_error& error)
     {
-        IDA_LOG_WARNING("Failed to set git %s, error: %s", config_entry.c_str(), error.what());
+        LOG(WARNING, "Failed to set git %s, error: %s\n", config_entry.c_str(), error.what());
         return false;
     }
     return true;
@@ -694,13 +693,13 @@ bool Repository::ensure_git_globals()
 {
     if (!ask_and_set_git_config_entry("user.name", "username"))
     {
-        IDA_LOG_GUI_WARNING("Problem during git user.name configuration");
+        LOG(WARNING, "Problem during git user.name configuration\n");
         return false;
     }
 
     if (!ask_and_set_git_config_entry("user.email", "username@localdomain"))
     {
-        IDA_LOG_GUI_WARNING("Problem during git user.email configuration");
+        LOG(WARNING, "Problem during git user.email configuration\n");
         return false;
     }
 
@@ -715,7 +714,7 @@ bool Repository::init()
     }
     catch (const std::runtime_error& error)
     {
-        IDA_LOG_WARNING("Failed to init repository, error: %s", error.what());
+        LOG(WARNING, "Failed to init repository, error: %s\n", error.what());
         return false;
     }
     return true;
@@ -729,7 +728,7 @@ bool Repository::fetch(const std::string& remote)
     }
     catch (const std::runtime_error& error)
     {
-        IDA_LOG_WARNING("Failed to fetch %s, error: %s", remote.c_str(), error.what());
+        LOG(WARNING, "Failed to fetch %s, error: %s\n", remote.c_str(), error.what());
         return false;
     }
     return true;
@@ -745,7 +744,7 @@ bool Repository::rebase(const std::string& upstream, const std::string& destinat
     }
     catch (const std::runtime_error& error)
     {
-        IDA_LOG_WARNING("Failed to rebase %s from %s, error: %s", destination.c_str(), upstream.c_str(), error.what());
+        LOG(WARNING, "Failed to rebase %s from %s, error: %s\n", destination.c_str(), upstream.c_str(), error.what());
         return false;
     }
 }
@@ -758,7 +757,7 @@ bool Repository::add_file_to_index(const std::string& path)
     }
     catch (const std::runtime_error& error)
     {
-        IDA_LOG_WARNING("Failed to add %s to index, error: %s", path.c_str(), error.what());
+        LOG(WARNING, "Failed to add %s to index, error: %s\n", path.c_str(), error.what());
         return false;
     }
     return true;
@@ -772,7 +771,7 @@ bool Repository::remove_file_for_index(const std::string& path)
     }
     catch (const std::runtime_error& error)
     {
-        IDA_LOG_WARNING("Failed to remove %s for index, error: %s", path.c_str(), error.what());
+        LOG(WARNING, "Failed to remove %s for index, error: %s\n", path.c_str(), error.what());
         return false;
     }
     return true;
@@ -786,7 +785,7 @@ bool Repository::commit(const std::string& message)
     }
     catch (const std::runtime_error& error)
     {
-        IDA_LOG_WARNING("Failed to commit, error: %s", error.what());
+        LOG(WARNING, "Failed to commit, error: %s\n", error.what());
         return false;
     }
     return true;
@@ -803,7 +802,7 @@ bool Repository::push(const std::string& src_branch, const std::string& dst_bran
     }
     catch (const std::runtime_error& error)
     {
-        IDA_LOG_WARNING("Failed to push to remote, error: %s", error.what());
+        LOG(WARNING, "Failed to push to remote, error: %s\n", error.what());
         return false;
     }
     return true;
@@ -818,7 +817,7 @@ bool Repository::remote_exist(const std::string& remote)
     }
     catch (const std::runtime_error& error)
     {
-        IDA_LOG_WARNING("Failed to get repo remotes, error: %s", error.what());
+        LOG(WARNING, "Failed to get repo remotes, error: %s\n", error.what());
         return false;
     }
     return remotes.find(remote) != remotes.end();
@@ -833,7 +832,7 @@ std::string Repository::get_commit(const std::string& ref)
     }
     catch (const std::runtime_error& error)
     {
-        IDA_LOG_WARNING("Failed to get commit from master, error: %s", error.what());
+        LOG(WARNING, "Failed to get commit from master, error: %s\n", error.what());
     }
     return commit;
 }
@@ -846,7 +845,7 @@ void Repository::diff_index(const std::string& from, const on_blob_fn& on_blob) 
     }
     catch (const std::runtime_error& error)
     {
-        IDA_LOG_WARNING("unable to diff index: %s", error.what());
+        LOG(WARNING, "unable to diff index: %s\n", error.what());
     }
 }
 

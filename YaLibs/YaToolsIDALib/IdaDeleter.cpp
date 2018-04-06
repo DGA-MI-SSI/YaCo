@@ -18,23 +18,12 @@
 
 #include "IdaDeleter.hpp"
 #include "HVersion.hpp"
-#include "Logger.h"
-#include "Yatools.h"
+#include "Yatools.hpp"
+#include "Helpers.h"
 #include "HObject.hpp"
+#include "YaHelpers.hpp"
 
 #define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("ida_deleter", (FMT), ## __VA_ARGS__)
-
-#ifdef __EA64__
-#define PRIxEA "llx"
-#define PRIXEA "llX"
-#define PRIuEA "llu"
-#define EA_SIZE "16"
-#else
-#define PRIxEA "x"
-#define PRIXEA "X"
-#define PRIuEA "u"
-#define EA_SIZE "8"
-#endif
 
 namespace
 {
@@ -44,12 +33,12 @@ namespace
         const auto struc = get_struc(get_struc_id(name.data()));
         if(!struc)
         {
-            LOG(ERROR, "unable to deleted missing struc '%s'", name.data());
+            LOG(ERROR, "unable to delete missing struc '%s'\n", name.data());
             return;
         }
         const auto ok = del_struc(struc);
         if(!ok)
-            LOG(ERROR, "unable to delete struc '%s'", name.data());
+            LOG(ERROR, "unable to delete struc '%s'\n", name.data());
     }
 
     void delete_enum(const HVersion& hver)
@@ -57,7 +46,7 @@ namespace
         const auto name = make_string(hver.username());
         const auto eid = get_enum(name.data());
         if(eid == BADADDR)
-            LOG(ERROR, "unable to deleted missing enum '%s'", name.data());
+            LOG(ERROR, "unable to delete missing enum '%s'\n", name.data());
         else
             del_enum(eid);
     }
@@ -68,7 +57,7 @@ namespace
         const auto cid = get_enum_member_by_name(name.data());
         if(cid == BADADDR)
         {
-            LOG(ERROR, "unable to deleted missing enum member '%s'", name.data());
+            LOG(ERROR, "unable to delete missing enum member '%s'\n", name.data());
             return;
         }
         const auto eid = get_enum_member_enum(cid);
@@ -77,7 +66,7 @@ namespace
         const auto bmask = get_enum_member_bmask(cid);
         const auto ok = del_enum_member(eid, value, serial, bmask);
         if(!ok)
-            LOG(ERROR, "unable to delete enum member '%s'", name.data());
+            LOG(ERROR, "unable to delete enum member '%s'\n", name.data());
     }
 
     void delete_function(const HVersion& hver)
@@ -85,7 +74,7 @@ namespace
         const auto ea = static_cast<ea_t>(hver.address());
         const auto ok = del_func(ea);
         if(!ok)
-            LOG(ERROR, "unable to delete func 0x%0" EA_SIZE PRIXEA, ea);
+            LOG(ERROR, "unable to delete func 0x%0" EA_SIZE PRIXEA "\n", ea);
     }
 
     void delete_data(const HVersion& hver)
@@ -93,7 +82,7 @@ namespace
         const auto ea = static_cast<ea_t>(hver.address());
         const auto ok = del_items(ea, DELIT_EXPAND);
         if(!ok)
-            LOG(ERROR, "unable to delete data 0x%0" EA_SIZE PRIXEA, ea);
+            LOG(ERROR, "unable to delete data 0x%0" EA_SIZE PRIXEA "\n", ea);
     }
 
     void delete_code(const HVersion& hver)
@@ -101,7 +90,7 @@ namespace
         const auto ea = static_cast<ea_t>(hver.address());
         const auto ok = del_items(ea, DELIT_EXPAND, static_cast<asize_t>(hver.size()));
         if(!ok)
-            LOG(ERROR, "unable to delete code 0x%0" EA_SIZE PRIXEA, ea);
+            LOG(ERROR, "unable to delete code 0x%0" EA_SIZE PRIXEA "\n", ea);
     }
 
     void delete_block(const HVersion& hver)
@@ -109,7 +98,7 @@ namespace
         const auto ea = static_cast<ea_t>(hver.address());
         const auto ok = del_items(ea, DELIT_EXPAND, static_cast<asize_t>(hver.size()));
         if(!ok)
-            LOG(ERROR, "unable to delete basic block 0x%0" EA_SIZE PRIXEA, ea);
+            LOG(ERROR, "unable to delete basic block 0x%0" EA_SIZE PRIXEA "\n", ea);
     }
 
     void delete_object(const HObject& hobj)

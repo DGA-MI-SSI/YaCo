@@ -16,7 +16,6 @@
 #include "Ida.h"
 #include "Events.hpp"
 
-#define  MODULE_NAME "events"
 #include "YaTypes.hpp"
 #include "Pool.hpp"
 #include "Hash.hpp"
@@ -26,10 +25,10 @@
 #include "Helpers.h"
 #include "HVersion.hpp"
 #include "IdaModel.hpp"
-#include "IdaUtils.hpp"
 #include "XmlModel.hpp"
 #include "MemoryModel.hpp"
 #include "IModel.hpp"
+#include "Yatools.hpp"
 #include "XmlVisitor.hpp"
 #include "Utils.hpp"
 #include "IdaVisitor.hpp"
@@ -45,6 +44,8 @@
 #else
 #   include <experimental/filesystem>
 #endif
+
+#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("events", (FMT), ## __VA_ARGS__)
 
 namespace fs = std::experimental::filesystem;
 
@@ -550,7 +551,7 @@ namespace
 
     void save(Events& ev)
     {
-        LOG(DEBUG, "Saving cache...");
+        LOG(DEBUG, "Saving cache...\n");
         const auto time_start = std::chrono::system_clock::now();
 
         const auto db = MakeMemoryModel();
@@ -567,7 +568,7 @@ namespace
         const auto time_end = std::chrono::system_clock::now();
         const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(time_end - time_start).count();
         if(elapsed)
-            IDA_LOG_INFO("cache: exported in %d seconds", static_cast<int>(elapsed));
+            LOG(INFO, "cache: exported in %d seconds\n", static_cast<int>(elapsed));
     }
 }
 
@@ -576,7 +577,7 @@ void Events::save()
     ::save(*this);
     if(!repo_.commit_cache())
     {
-        IDA_LOG_WARNING("An error occurred during YaCo commit");
+        LOG(WARNING, "An error occurred during YaCo commit\n");
         warning("An error occured during YaCo commit: please relaunch IDA");
     }
     eas_.clear();
@@ -720,7 +721,7 @@ namespace
         deleted->visit_end();
         updated->visit_end();
         if(updated->num_objects() || deleted->num_objects())
-            IDA_LOG_INFO("rebase: %zd updated %zd deleted", updated->num_objects(), deleted->num_objects());
+            LOG(INFO, "rebase: %zd updated %zd deleted\n", updated->num_objects(), deleted->num_objects());
 
         // apply changes on ida
         sink.remove(*deleted);
@@ -743,5 +744,5 @@ void Events::update()
     const auto time_end = std::chrono::system_clock::now();
     const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(time_end - time_start).count();
     if(elapsed)
-        IDA_LOG_INFO("ida: analyzed in %d seconds", static_cast<int>(elapsed));
+        LOG(INFO, "ida: analyzed in %d seconds\n", static_cast<int>(elapsed));
 }

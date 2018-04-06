@@ -19,18 +19,10 @@
 
 #include "IModelVisitor.hpp"
 #include "HVersion.hpp"
-#include "Logger.h"
+#include "YaHelpers.hpp"
 
 #include <functional>
 #include <memory>
-
-#ifdef __EA64__
-#define EA_PREFIX "ll"
-#else
-#define EA_PREFIX ""
-#endif
-#define EA_FMT  "%" EA_PREFIX "x"
-#define SEL_FMT "%" EA_PREFIX "d"
 
 #define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("arm", (FMT), ## __VA_ARGS__)
 
@@ -59,7 +51,7 @@ namespace
     {
         char buf[100];
         const auto thumb_flag = get_sreg(ea, thumb_segment_register);
-        const auto n = snprintf(buf, sizeof buf, SEL_FMT, thumb_flag);
+        const auto n = snprintf(buf, sizeof buf, "%" PRIdEA, thumb_flag);
         if(n > 0)
             v.visit_attribute(g_thumb_mode_flag, {buf, static_cast<size_t>(n)});
     }
@@ -129,7 +121,7 @@ namespace
             return;
 
         sel_t thumb_flag = 0;
-        const auto n = sscanf(strthumb_flag.data(), SEL_FMT, &thumb_flag);
+        const auto n = sscanf(strthumb_flag.data(), "%" PRIdEA, &thumb_flag);
         if(n != 1)
             return;
 

@@ -17,8 +17,8 @@
 #include "ExporterValidatorVisitor.hpp"
 
 #include "IModelVisitor.hpp"
-#include "Yatools.h"
-#include "Logger.h"
+#include "Yatools.hpp"
+#include "Helpers.h"
 
 #include <memory>
 

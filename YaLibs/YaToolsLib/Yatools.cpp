@@ -13,97 +13,59 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "Yatools.h"
-
-#include "Logger.h"
-
-#include <string.h>
-#include <string>
-#include <memory>
-
-static const uint32_t Magic = 0x65DB5952;
+#include "Yatools.hpp"
 
 namespace
 {
-    // use a global variable for now...
-    YATOOLS_Ctx gCtx;
+    globals::Yatools g_yatools;
 }
 
-struct YATOOLS_PrivateCtx
+globals::Yatools::Yatools()
+    : logger(logger::MakeLogger())
 {
-    LOG_Ctx     Logger;
-    uint32_t    uMagic;
-};
-
-static YATOOLS_PrivateCtx* GetCtx(YATOOLS_Ctx* pvCtx)
-{
-    YATOOLS_PrivateCtx* pCtx = reinterpret_cast<YATOOLS_PrivateCtx*>(pvCtx);
-    return pCtx && pCtx->uMagic == Magic ? pCtx : nullptr;
 }
 
-YATOOLS_Ctx* YATOOLS_Get()
+globals::Yatools& globals::Get()
 {
-    return &gCtx;
+    return g_yatools;
 }
 
-bool YATOOLS_Init(YATOOLS_Ctx* pvCtx)
+bool globals::InitIdbLogger(logger::ILogger& logger, const char* basename)
 {
-    YATOOLS_PrivateCtx* pCtx = reinterpret_cast<YATOOLS_PrivateCtx*>(pvCtx);
+    const std::string strname = basename;
+    const auto make_file_delegate = [](const std::string& filename, const char* mode) -> logger::delegate_fn_t
+    {
+        const auto hfile = fopen(filename.data(), mode);
+        if(!hfile)
+            return logger::delegate_fn_t{};
 
-    static_assert(alignof(YATOOLS_PrivateCtx) == alignof(YATOOLS_Ctx), "invalid yaco context aligment");
-    static_assert(sizeof(*pCtx) == sizeof(*pvCtx), "invalid yaco context size");
+        // capture file handle by copy into the delegate
+        const auto smart = std::shared_ptr<FILE>(hfile, &fclose);
+        return [=](const char* message)
+        {
+            fprintf(smart.get(), "%s", message);
+            fflush(smart.get());
+        };
+    };
+    const auto current = make_file_delegate(strname + ".log", "wb");
+    if(!current)
+        return false;
 
-    memset(pCtx, 0, sizeof *pCtx);
-    pCtx->uMagic = Magic;
+    const auto all = make_file_delegate(strname + ".all.log", "ab");
+    if(!all)
+        return false;
+
+    logger.Delegate(current);
+    logger.Delegate(all);
     return true;
 }
 
-void YATOOLS_Exit(YATOOLS_Ctx* pvCtx)
+bool globals::InitFileLogger(logger::ILogger& logger, FILE* handle)
 {
-    YATOOLS_PrivateCtx* pCtx = GetCtx(pvCtx);
-    if(!pCtx)
-        return;
-    LOG_Exit(&pCtx->Logger);
-}
-
-LOG_Ctx* YATOOLS_GetLogger(YATOOLS_Ctx* pvCtx)
-{
-    YATOOLS_PrivateCtx* pCtx = GetCtx(pvCtx);
-    if(!pCtx)
-        return nullptr;
-    return &pCtx->Logger;
-}
-
-struct Yatools
-{
-     Yatools(const char* base);
-    ~Yatools();
-};
-
-std::shared_ptr<Yatools> MakeYatools(const char* base)
-{
-    return std::make_shared<Yatools>(base);
-}
-
-Yatools::Yatools(const char* base)
-{
-    auto pCtx = YATOOLS_Get();
-    YATOOLS_Init(pCtx);
-
-    const auto strbase = std::string(base);
-    const auto session = strbase + ".log";
-    const auto all     = strbase + ".all.log";
-
-    LOG_Cfg Cfg;
-    memset(&Cfg, 0, sizeof Cfg);
-    Cfg.Outputs[0] = {LOG_OUTPUT_FILENAME_TRUNCATE, nullptr, session.data()};
-    Cfg.Outputs[1] = {LOG_OUTPUT_FILENAME_APPEND,   nullptr, all.data()};
-    LOG_Init(YATOOLS_GetLogger(pCtx), &Cfg);
-    LOG_Print(YATOOLS_GetLogger(YATOOLS_Get()), "yaco", static_cast<LOG_ELevel>(LOG_LEVEL_DEBUG), "Yatools Created\n");
-}
-
-Yatools::~Yatools()
-{
-    LOG_Print(YATOOLS_GetLogger(YATOOLS_Get()), "yaco", static_cast<LOG_ELevel>(LOG_LEVEL_DEBUG), "~Yatools\n");
-    YATOOLS_Exit(YATOOLS_Get());
+    logger.Delegate([=](const char* message)
+    {
+        fprintf(handle, "%s", message);
+        fflush(handle);
+    });
+    return true;
 }

@@ -26,8 +26,7 @@
 #include "FlatBufferModel.hpp"
 #include "FlatBufferVisitor.hpp"
 #include "../YaToolsLib_test/test_model.hpp"
-#include "Yatools.h"
-#include "Logger.h"
+#include "Yatools.hpp"
 
 #include <functional>
 
@@ -49,27 +48,6 @@ namespace fs = std::experimental::filesystem;
 
 namespace
 {
-    // initialize global logger instance
-    static const auto yaok = []
-    {
-        auto pCtx = YATOOLS_Get();
-        if(!YATOOLS_Init(pCtx))
-            return false;
-        auto pLogger = YATOOLS_GetLogger(pCtx);
-        LOG_Cfg Cfg;
-        memset(&Cfg, 0, sizeof Cfg);
-        Cfg.Outputs[0] = {LOG_OUTPUT_FILE_HANDLE, stderr, nullptr};
-        return LOG_Init(pLogger, &Cfg);
-    }();
-
-    class TestConfiguration : public testing::Test
-    {
-        virtual void SetUp()
-        {
-            EXPECT_TRUE(yaok);
-        }
-    };
-
     typedef std::multiset<std::tuple<std::string, std::string, std::string, std::string>> StringModel;
 
     StringModel walk_model(IModel& db)
@@ -197,6 +175,13 @@ namespace
 
     const char qt54svg[] = "../../testdata/qt54_svg/database/database.yadb";
     const char qt57svg[] = "../../testdata/qt57_svg/database/database.yadb";
+}
+
+int main(int argc, char* argv[])
+{
+    globals::InitFileLogger(*globals::Get().logger, stdout);
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }
 
 TEST(IntegrationTest, yadb_model_conversions_qt54)      { CheckModelConversions(qt54svg); }

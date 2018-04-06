@@ -19,8 +19,7 @@
 #include "IModelVisitor.hpp"
 #include "HObject.hpp"
 #include "FileUtils.hpp"
-#include "Logger.h"
-#include "Yatools.h"
+#include "Yatools.hpp"
 #include "ModelIndex.hpp"
 
 #ifdef DEBUG

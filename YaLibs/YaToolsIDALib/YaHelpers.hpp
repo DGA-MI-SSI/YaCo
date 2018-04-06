@@ -21,6 +21,20 @@
 #include <vector>
 #include <algorithm>
 
+#ifdef __EA64__
+#define PRIxEA  "llx"
+#define PRIXEA  "llX"
+#define PRIuEA  "llu"
+#define PRIdEA  "lld"
+#define EA_SIZE "16"
+#else
+#define PRIxEA  "x"
+#define PRIXEA  "X"
+#define PRIuEA  "u"
+#define PRIdEA  "d"
+#define EA_SIZE "8"
+#endif
+
 namespace ya
 {
     struct Dependency

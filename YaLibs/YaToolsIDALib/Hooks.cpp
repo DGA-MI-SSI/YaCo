@@ -16,17 +16,19 @@
 #include "Ida.h"
 #include "Hooks.hpp"
 
-#define MODULE_NAME "hooks"
 #include "Events.hpp"
 #include "Helpers.h"
-#include "IdaUtils.hpp"
+#include "Yatools.hpp"
+#include "YaHelpers.hpp"
 
 #include <math.h>
 
+#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("hooks", (FMT), ## __VA_ARGS__)
+
 // Log macro used for events logging
-#define LOG_IDP_EVENT(format, ...) do{ if(LOG_IDP_EVENTS) IDA_LOG_INFO("idp: " format, ##__VA_ARGS__); }while(0)
-#define LOG_DBG_EVENT(format, ...) do{ if(LOG_DBG_EVENTS) IDA_LOG_INFO("dbg: " format, ##__VA_ARGS__); }while(0)
-#define LOG_IDB_EVENT(format, ...) do{ if(LOG_IDB_EVENTS) IDA_LOG_INFO("idb: " format, ##__VA_ARGS__); }while(0)
+#define LOG_IDP_EVENT(format, ...) do { if(LOG_IDP_EVENTS) LOG(INFO, "idp: " format, ## __VA_ARGS__); } while(0)
+#define LOG_DBG_EVENT(format, ...) do { if(LOG_DBG_EVENTS) LOG(INFO, "dbg: " format, ## __VA_ARGS__); } while(0)
+#define LOG_IDB_EVENT(format, ...) do { if(LOG_IDB_EVENTS) LOG(INFO, "idb: " format, ## __VA_ARGS__); } while(0)
 
 namespace
 {
@@ -344,7 +346,7 @@ namespace
     void determined_main(Hooks& /*hooks*/, va_list args)
     {
         const auto main = va_arg(args, ea_t);
-        LOG_IDB_EVENT("The main() function has been determined (address of the main() function: " EA_FMT ")", main);
+        LOG_IDB_EVENT("The main() function has been determined (address of the main() function: %" PRIxEA ")", main);
     }
 
     void local_types_changed(Hooks& /*hooks*/, va_list args)
@@ -416,7 +418,7 @@ namespace
     void flow_chart_created(Hooks& /*hooks*/, va_list args)
     {
         qflow_chart_t* fc = va_arg(args, qflow_chart_t*);
-        LOG_IDB_EVENT("Gui has retrieved a function flow chart (from " EA_FMT " to " EA_FMT ", name: %s, function: %s)", fc->bounds.start_ea, fc->bounds.end_ea, fc->title.c_str(), get_func_name(fc->pfn->start_ea).c_str());
+        LOG_IDB_EVENT("Gui has retrieved a function flow chart (from %" PRIxEA " to %" PRIxEA ", name: %s, function: %s)", fc->bounds.start_ea, fc->bounds.end_ea, fc->title.c_str(), get_func_name(fc->pfn->start_ea).c_str());
     }
 
     void compiler_changed(Hooks& /*hooks*/, va_list args)
@@ -428,42 +430,42 @@ namespace
     void changing_ti(Hooks& hooks, va_list args)
     {
         const auto ea = va_arg(args, ea_t);
-        LOG_IDB_EVENT("An item typestring (c/c++ prototype) is to be changed (ea: " EA_FMT ")", ea);
+        LOG_IDB_EVENT("An item typestring (c/c++ prototype) is to be changed (ea: %" PRIxEA ")", ea);
         hooks.events_.touch_ea(ea);
     }
 
     void ti_changed(Hooks& hooks, va_list args)
     {
         const auto ea = va_arg(args, ea_t);
-        LOG_IDB_EVENT("An item typestring (c/c++ prototype) has been changed (ea: " EA_FMT ")", ea);
+        LOG_IDB_EVENT("An item typestring (c/c++ prototype) has been changed (ea: %" PRIxEA ")", ea);
         hooks.events_.touch_ea(ea);
     }
 
     void changing_op_ti(Hooks& hooks, va_list args)
     {
         const auto ea = va_arg(args, ea_t);
-        LOG_IDB_EVENT("An operand typestring (c/c++ prototype) is to be changed (ea: " EA_FMT ")", ea);
+        LOG_IDB_EVENT("An operand typestring (c/c++ prototype) is to be changed (ea: %" PRIxEA ")", ea);
         hooks.events_.touch_ea(ea);
     }
 
     void op_ti_changed(Hooks& hooks, va_list args)
     {
         const auto ea = va_arg(args, ea_t);
-        LOG_IDB_EVENT("An operand typestring (c/c++ prototype) has been changed (ea: " EA_FMT ")", ea);
+        LOG_IDB_EVENT("An operand typestring (c/c++ prototype) has been changed (ea: %" PRIxEA ")", ea);
         hooks.events_.touch_ea(ea);
     }
 
     void changing_op_type(Hooks& hooks, va_list args)
     {
         const auto ea = va_arg(args, ea_t);
-        LOG_IDB_EVENT("An operand type at " EA_FMT " is to be changed", ea);
+        LOG_IDB_EVENT("An operand type at %" PRIxEA " is to be changed", ea);
         hooks.events_.touch_ea(ea);
     }
 
     void op_type_changed(Hooks& hooks, va_list args)
     {
         const auto ea = va_arg(args, ea_t);
-        LOG_IDB_EVENT("An operand type at " EA_FMT " has been set or deleted", ea);
+        LOG_IDB_EVENT("An operand type at %" PRIxEA " has been set or deleted", ea);
         hooks.events_.touch_ea(ea);
     }
 
@@ -684,16 +686,16 @@ namespace
         if(func_ea != BADADDR)
         {
             if(delta > 0)
-                LOG_IDB_EVENT("Stackframe of function %s is to be expanded of 0x%" EA_PREFIX "X bytes at offset 0x%" EA_PREFIX "X", get_func_name(func_ea).c_str(), delta, offset);
+                LOG_IDB_EVENT("Stackframe of function %s is to be expanded of 0x%" PRIXEA " bytes at offset 0x%" PRIXEA, get_func_name(func_ea).c_str(), delta, offset);
             else
-                LOG_IDB_EVENT("Stackframe of function %s is to be shrunk of 0x%" EA_PREFIX "X bytes at offset 0x%" EA_PREFIX "X", get_func_name(func_ea).c_str(), ~delta + 1, offset);
+                LOG_IDB_EVENT("Stackframe of function %s is to be shrunk of 0x%" PRIXEA " bytes at offset 0x%" PRIXEA, get_func_name(func_ea).c_str(), ~delta + 1, offset);
         }
         else
         {
             if(delta > 0)
-                LOG_IDB_EVENT("Structure type %s is to be expanded of 0x%" EA_PREFIX "X bytes at offset 0x%" EA_PREFIX "X", get_struc_name(sptr->id).c_str(), delta, offset);
+                LOG_IDB_EVENT("Structure type %s is to be expanded of 0x%" PRIXEA " bytes at offset 0x%" PRIXEA, get_struc_name(sptr->id).c_str(), delta, offset);
             else
-                LOG_IDB_EVENT("Structure type %s is to be shrunk of 0x%" EA_PREFIX "X bytes at offset 0x%" EA_PREFIX "X", get_struc_name(sptr->id).c_str(), ~delta + 1, offset);
+                LOG_IDB_EVENT("Structure type %s is to be shrunk of 0x%" PRIXEA " bytes at offset 0x%" PRIXEA, get_struc_name(sptr->id).c_str(), ~delta + 1, offset);
         }
     }
 
@@ -773,9 +775,9 @@ namespace
         UNUSED(member_id);
         const auto func_ea = get_func_by_frame(sptr->id);
         if(func_ea != BADADDR)
-            LOG_IDB_EVENT("Stackframe of function %s member at offset 0x%" EA_PREFIX "X has been deleted", get_func_name(func_ea).c_str(), offset);
+            LOG_IDB_EVENT("Stackframe of function %s member at offset 0x%" PRIXEA " has been deleted", get_func_name(func_ea).c_str(), offset);
         else
-            LOG_IDB_EVENT("Structure type %s member at offset 0x%" EA_PREFIX "X has been deleted", get_struc_name(sptr->id).c_str(), offset);
+            LOG_IDB_EVENT("Structure type %s member at offset 0x%" PRIXEA " has been deleted", get_struc_name(sptr->id).c_str(), offset);
     }
 
     void struc_member_deleted(Hooks& hooks, va_list args)
@@ -934,7 +936,7 @@ namespace
     void segm_added(Hooks& hooks, va_list args)
     {
         const auto s = va_arg(args, segment_t*);
-        LOG_IDB_EVENT("Segment %s has been created from " EA_FMT " to " EA_FMT, get_segm_name(s).c_str(), s->start_ea, s->end_ea);
+        LOG_IDB_EVENT("Segment %s has been created from %" PRIxEA " to %" PRIxEA, get_segm_name(s).c_str(), s->start_ea, s->end_ea);
         hooks.events_.touch_ea(s->start_ea);
     }
 
@@ -943,7 +945,7 @@ namespace
         if(!LOG_IDB_EVENTS)
             return;
         const auto* s = getseg(start_ea);
-        LOG_IDB_EVENT("Segment %s (from " EA_FMT " to " EA_FMT ") is to be deleted", get_segm_name(s).c_str(), s->start_ea, s->end_ea);
+        LOG_IDB_EVENT("Segment %s (from %" PRIxEA " to %" PRIxEA ") is to be deleted", get_segm_name(s).c_str(), s->start_ea, s->end_ea);
     }
 
     void deleting_segm(Hooks& hooks, va_list args)
@@ -957,7 +959,7 @@ namespace
     {
         const auto start_ea = va_arg(args, ea_t);
         const auto end_ea   = va_arg(args, ea_t);
-        LOG_IDB_EVENT("A segment (from " EA_FMT " to " EA_FMT ") has been deleted", start_ea, end_ea);
+        LOG_IDB_EVENT("A segment (from %" PRIxEA " to %" PRIxEA ") has been deleted", start_ea, end_ea);
         hooks.events_.touch_ea(start_ea);
     }
 
@@ -967,14 +969,14 @@ namespace
         const auto new_start    = va_arg(args, ea_t);
         const auto segmod_flags = va_arg(args, int);
         UNUSED(segmod_flags);
-        LOG_IDB_EVENT("Segment %s start address is to be changed from " EA_FMT " to " EA_FMT, get_segm_name(s).c_str(), s->start_ea, new_start);
+        LOG_IDB_EVENT("Segment %s start address is to be changed from %" PRIxEA " to %" PRIxEA, get_segm_name(s).c_str(), s->start_ea, new_start);
     }
 
     void segm_start_changed(Hooks& hooks, va_list args)
     {
         const auto s        = va_arg(args, segment_t*);
         const auto oldstart = va_arg(args, ea_t);
-        LOG_IDB_EVENT("Segment %s start address has been changed from " EA_FMT " to " EA_FMT, get_segm_name(s).c_str(), oldstart, s->start_ea);
+        LOG_IDB_EVENT("Segment %s start address has been changed from %" PRIxEA " to %" PRIxEA, get_segm_name(s).c_str(), oldstart, s->start_ea);
         hooks.events_.touch_ea(s->start_ea);
     }
 
@@ -984,7 +986,7 @@ namespace
         const auto new_end      = va_arg(args, ea_t);
         const auto segmod_flags = va_arg(args, int);
         UNUSED(segmod_flags);
-        LOG_IDB_EVENT("Segment %s end address is to be changed from " EA_FMT " to " EA_FMT, get_segm_name(s).c_str(), s->end_ea, new_end);
+        LOG_IDB_EVENT("Segment %s end address is to be changed from %" PRIxEA " to %" PRIxEA, get_segm_name(s).c_str(), s->end_ea, new_end);
         hooks.events_.touch_ea(s->start_ea);
     }
 
@@ -992,7 +994,7 @@ namespace
     {
         const auto s      = va_arg(args, segment_t*);
         const auto oldend = va_arg(args, ea_t);
-        LOG_IDB_EVENT("Segment %s end address has been changed from " EA_FMT " to " EA_FMT, get_segm_name(s).c_str(), oldend, s->end_ea);
+        LOG_IDB_EVENT("Segment %s end address has been changed from %" PRIxEA " to %" PRIxEA, get_segm_name(s).c_str(), oldend, s->end_ea);
         hooks.events_.touch_ea(s->start_ea);
     }
 
@@ -1044,7 +1046,7 @@ namespace
 
         const segment_t* s = getseg(to);
         const char changed_netmap_txt[][18] = { "", " (changed netmap)" };
-        LOG_IDB_EVENT("Segment %s has been moved from " EA_FMT "-" EA_FMT " to " EA_FMT "-" EA_FMT "%s", get_segm_name(s).c_str(), from, from + size, to, to + size, changed_netmap_txt[changed_netmap]);
+        LOG_IDB_EVENT("Segment %s has been moved from %" PRIxEA "-%" PRIxEA " to %" PRIxEA "-%" PRIxEA "%s", get_segm_name(s).c_str(), from, from + size, to, to + size, changed_netmap_txt[changed_netmap]);
     }
 
     void segm_moved(Hooks& hooks, va_list args)
@@ -1067,7 +1069,7 @@ namespace
     void func_added(Hooks& hooks, va_list args)
     {
         const auto pfn = va_arg(args, func_t*);
-        LOG_IDB_EVENT("Function %s has been created from " EA_FMT " to " EA_FMT, get_func_name(pfn->start_ea).c_str(), pfn->start_ea, pfn->end_ea);
+        LOG_IDB_EVENT("Function %s has been created from %" PRIxEA " to %" PRIxEA, get_func_name(pfn->start_ea).c_str(), pfn->start_ea, pfn->end_ea);
         hooks.events_.touch_func(pfn->start_ea);
     }
 
@@ -1082,7 +1084,7 @@ namespace
     {
         const auto pfn       = va_arg(args, func_t*);
         const auto new_start = va_arg(args, ea_t);
-        LOG_IDB_EVENT("Function %s chunk start address will be changed from " EA_FMT " to " EA_FMT, get_func_name(pfn->start_ea).c_str(), pfn->start_ea, new_start);
+        LOG_IDB_EVENT("Function %s chunk start address will be changed from %" PRIxEA " to %" PRIxEA, get_func_name(pfn->start_ea).c_str(), pfn->start_ea, new_start);
         hooks.events_.touch_func(pfn->start_ea);
     }
 
@@ -1090,14 +1092,14 @@ namespace
     {
         const auto pfn     = va_arg(args, func_t*);
         const auto new_end = va_arg(args, ea_t);
-        LOG_IDB_EVENT("Function %s chunk end address will be changed from " EA_FMT " to " EA_FMT, get_func_name(pfn->start_ea).c_str(), pfn->end_ea, new_end);
+        LOG_IDB_EVENT("Function %s chunk end address will be changed from %" PRIxEA " to %" PRIxEA, get_func_name(pfn->start_ea).c_str(), pfn->end_ea, new_end);
         hooks.events_.touch_func(pfn->start_ea);
     }
 
     void deleting_func(Hooks& hooks, va_list args)
     {
         const auto pfn = va_arg(args, func_t*);
-        LOG_IDB_EVENT("Function %s is about to be deleted (" EA_FMT " to " EA_FMT")", get_func_name(pfn->start_ea).c_str(), pfn->start_ea, pfn->end_ea);
+        LOG_IDB_EVENT("Function %s is about to be deleted (%" PRIxEA " to %" PRIxEA")", get_func_name(pfn->start_ea).c_str(), pfn->start_ea, pfn->end_ea);
         hooks.events_.touch_func(pfn->start_ea);
     }
 
@@ -1119,7 +1121,7 @@ namespace
     {
         const auto pfn  = va_arg(args, func_t*);
         const auto tail = va_arg(args, func_t*);
-        LOG_IDB_EVENT("Function %s tail chunk from " EA_FMT " to " EA_FMT " has been appended", get_func_name(pfn->start_ea).c_str(), tail->start_ea, tail->end_ea);
+        LOG_IDB_EVENT("Function %s tail chunk from %" PRIxEA " to %" PRIxEA " has been appended", get_func_name(pfn->start_ea).c_str(), tail->start_ea, tail->end_ea);
         hooks.events_.touch_func(pfn->start_ea);
     }
 
@@ -1127,7 +1129,7 @@ namespace
     {
         const auto pfn  = va_arg(args, func_t*);
         const auto tail = va_arg(args, const range_t*);
-        LOG_IDB_EVENT("Function %s tail chunk from " EA_FMT " to " EA_FMT " is to be removed", get_func_name(pfn->start_ea).c_str(), tail->start_ea, tail->end_ea);
+        LOG_IDB_EVENT("Function %s tail chunk from %" PRIxEA " to %" PRIxEA " is to be removed", get_func_name(pfn->start_ea).c_str(), tail->start_ea, tail->end_ea);
         hooks.events_.touch_func(pfn->start_ea);
     }
 
@@ -1135,7 +1137,7 @@ namespace
     {
         const auto pfn     = va_arg(args, func_t*);
         const auto tail_ea = va_arg(args, ea_t);
-        LOG_IDB_EVENT("Function %s tail chunk at " EA_FMT " has been removed", get_func_name(pfn->start_ea).c_str(), tail_ea);
+        LOG_IDB_EVENT("Function %s tail chunk at %" PRIxEA " has been removed", get_func_name(pfn->start_ea).c_str(), tail_ea);
         hooks.events_.touch_func(pfn->start_ea);
     }
 
@@ -1144,7 +1146,7 @@ namespace
         const auto pfn        = va_arg(args, func_t*);
         const auto owner_func = va_arg(args, ea_t);
         const auto old_owner  = va_arg(args, ea_t);
-        LOG_IDB_EVENT("Tail chunk from " EA_FMT " to " EA_FMT " owner function changed from %s to %s", pfn->start_ea, pfn->end_ea, get_func_name(old_owner).c_str(), get_func_name(owner_func).c_str());
+        LOG_IDB_EVENT("Tail chunk from %" PRIxEA " to %" PRIxEA " owner function changed from %s to %s", pfn->start_ea, pfn->end_ea, get_func_name(old_owner).c_str(), get_func_name(owner_func).c_str());
         hooks.events_.touch_func(owner_func);
         hooks.events_.touch_func(old_owner);
     }
@@ -1180,7 +1182,7 @@ namespace
     void deleting_tryblks(Hooks& /*hooks*/, va_list args)
     {
         const auto range = va_arg(args, const range_t*);
-        LOG_IDB_EVENT("About to delete try block information in range " EA_FMT "-" EA_FMT, range->start_ea, range->end_ea);
+        LOG_IDB_EVENT("About to delete try block information in range %" PRIxEA "-%" PRIxEA, range->start_ea, range->end_ea);
     }
 
     void log_sgr_changed(ea_t start_ea, ea_t end_ea, int regnum, sel_t value, sel_t old_value, uchar tag)
@@ -1208,7 +1210,7 @@ namespace
     void make_code(Hooks& hooks, va_list args)
     {
         const auto insn = va_arg(args, const insn_t*);
-        LOG_IDB_EVENT("An instruction is being created at " EA_FMT, insn->ea);
+        LOG_IDB_EVENT("An instruction is being created at %" PRIxEA, insn->ea);
         hooks.events_.touch_code(insn->ea);
     }
 
@@ -1221,7 +1223,7 @@ namespace
         UNUSED(flags);
         UNUSED(tid);
         UNUSED(len);
-        LOG_IDB_EVENT("A data item is being created at " EA_FMT, ea);
+        LOG_IDB_EVENT("A data item is being created at %" PRIxEA, ea);
         hooks.events_.touch_data(ea);
     }
 
@@ -1231,7 +1233,7 @@ namespace
         const auto ea2 = va_arg(args, ea_t);
         const auto will_disable_range = static_cast<bool>(va_arg(args, int));
         UNUSED(will_disable_range);
-        LOG_IDB_EVENT("Instructions/data have been destroyed in " EA_FMT "-" EA_FMT, ea1, ea2);
+        LOG_IDB_EVENT("Instructions/data have been destroyed in %" PRIxEA "-%" PRIxEA, ea1, ea2);
     }
 
     void renamed(Hooks& hooks, va_list args)
@@ -1240,7 +1242,7 @@ namespace
         const auto new_name   = va_arg(args, const char*);
         const auto local_name = static_cast<bool>(va_arg(args, int));
         UNUSED(local_name);
-        LOG_IDB_EVENT("Byte at " EA_FMT " renamed to %s", ea, new_name);
+        LOG_IDB_EVENT("Byte at %" PRIxEA " renamed to %s", ea, new_name);
         hooks.events_.touch_ea(ea);
     }
 
@@ -1248,7 +1250,7 @@ namespace
     {
         const auto ea        = va_arg(args, ea_t);
         const auto old_value = va_arg(args, uint32);
-        LOG_IDB_EVENT("Byte at " EA_FMT " has been changed from 0x%02X to 0x%02X", ea, old_value, get_byte(ea));
+        LOG_IDB_EVENT("Byte at %" PRIxEA " has been changed from 0x%02X to 0x%02X", ea, old_value, get_byte(ea));
         hooks.events_.touch_ea(ea);
     }
 
@@ -1257,7 +1259,7 @@ namespace
         const auto ea             = va_arg(args, ea_t);
         const auto repeatable_cmt = static_cast<bool>(va_arg(args, int));
         const auto newcmt         = va_arg(args, const char*);
-        LOG_IDB_EVENT("Item at " EA_FMT " %scomment is to be changed from \"%s\" to \"%s\"", ea, REPEATABLE_STR[repeatable_cmt], get_cmt(ea, repeatable_cmt).c_str(), newcmt);
+        LOG_IDB_EVENT("Item at %" PRIxEA " %scomment is to be changed from \"%s\" to \"%s\"", ea, REPEATABLE_STR[repeatable_cmt], get_cmt(ea, repeatable_cmt).c_str(), newcmt);
         hooks.events_.touch_ea(ea);
     }
 
@@ -1265,7 +1267,7 @@ namespace
     {
         const auto ea             = va_arg(args, ea_t);
         const auto repeatable_cmt = static_cast<bool>(va_arg(args, int));
-        LOG_IDB_EVENT("Item at " EA_FMT " %scomment has been changed to \"%s\"", ea, REPEATABLE_STR[repeatable_cmt], get_cmt(ea, repeatable_cmt).c_str());
+        LOG_IDB_EVENT("Item at %" PRIxEA " %scomment has been changed to \"%s\"", ea, REPEATABLE_STR[repeatable_cmt], get_cmt(ea, repeatable_cmt).c_str());
         hooks.events_.touch_ea(ea);
     }
 
@@ -1275,7 +1277,7 @@ namespace
         const auto a          = va_arg(args, const range_t*);
         const auto cmt        = va_arg(args, const char*);
         const auto repeatable = static_cast<bool>(va_arg(args, int));
-        LOG_IDB_EVENT("%s range from " EA_FMT " to " EA_FMT " %scomment is to be changed to \"%s\"", range_kind_to_str(kind), a->start_ea, a->end_ea, REPEATABLE_STR[repeatable], cmt);
+        LOG_IDB_EVENT("%s range from %" PRIxEA " to %" PRIxEA " %scomment is to be changed to \"%s\"", range_kind_to_str(kind), a->start_ea, a->end_ea, REPEATABLE_STR[repeatable], cmt);
         hooks.events_.touch_ea(a->start_ea);
     }
 
@@ -1285,7 +1287,7 @@ namespace
         const auto a          = va_arg(args, const range_t*);
         const auto cmt        = va_arg(args, const char*);
         const auto repeatable = static_cast<bool>(va_arg(args, int));
-        LOG_IDB_EVENT("%s range from " EA_FMT " to " EA_FMT " %scomment has been changed to \"%s\"", range_kind_to_str(kind), a->start_ea, a->end_ea, REPEATABLE_STR[repeatable], cmt);
+        LOG_IDB_EVENT("%s range from %" PRIxEA " to %" PRIxEA " %scomment has been changed to \"%s\"", range_kind_to_str(kind), a->start_ea, a->end_ea, REPEATABLE_STR[repeatable], cmt);
         hooks.events_.touch_ea(a->start_ea);
     }
 
@@ -1295,7 +1297,7 @@ namespace
         const auto line_idx = va_arg(args, int);
         const auto cmt      = va_arg(args, const char*);
         UNUSED(line_idx);
-        LOG_IDB_EVENT("Extra comment at " EA_FMT " has been changed to \"%s\"", ea, cmt);
+        LOG_IDB_EVENT("Extra comment at %" PRIxEA " has been changed to \"%s\"", ea, cmt);
         hooks.events_.touch_ea(ea);
     }
 

@@ -20,10 +20,10 @@
 #include "Signature.hpp"
 #include "FlatBufferModel.hpp"
 #include "IModel.hpp"
-#include "Logger.h"
-#include "Yatools.h"
+#include "Yatools.hpp"
 #include "FileUtils.hpp"
 #include "XmlModel.hpp"
+#include "Helpers.h"
 
 #include <flatbuffers/flatbuffers.h>
 #include <yadb_generated.h>

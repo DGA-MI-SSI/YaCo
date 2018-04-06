@@ -13,58 +13,55 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#include <XmlModel.hpp>
+#include <MemoryModel.hpp>
+#include <XmlVisitor.hpp>
+
 #include <iostream>
-#include <vector>
-
-#include "XmlModel.hpp"
-#include "XmlVisitor.hpp"
-#include "MemoryModel.hpp"
-#include "IModelAccept.hpp"
-#include "IModel.hpp"
-using namespace std;
 
 
-void usage(char* name) {
-    cerr << "Usage: " << endl;
-    cerr << name << " INPUT_FOLDER OUTPUT_FILE" << endl;
+void usage(char* name)
+{
+    std::cerr << "Usage: " << std::endl;
+    std::cerr << name << " INPUT_FOLDER OUTPUT_FILE" << std::endl;
 }
 
-int main_func(const std::string& folder, const std::string&  output_path) {
-
+int main_func(const std::string& folder, const std::string&  output_path)
+{
     const auto db = MakeMemoryModel();
     MakeXmlAllModel(folder)->accept(*db);
     db->accept(*MakeFileXmlVisitor(output_path));
     return 0;
 }
 
-int main(int argc, char** argv){
-    string input_path;
-    string output_path;
-
-    if(argc < 3) {
+int main(int argc, char** argv)
+{
+    if(argc < 3)
+    {
         usage(argv[0]);
         return -1;
     }
-
-    input_path = string(argv[1]);
-    output_path = string(argv[2]);
-
-    try {
-        return main_func(input_path, output_path);
+    try
+    {
+        return main_func(argv[1], argv[2]);
     }
-    catch(string& exc) {
-        cerr << "error: " << exc << endl;
+    catch(std::string& exc)
+    {
+        std::cerr << "error: " << exc << std::endl;
         return -1;
     }
-    catch(const char* message){
-        cerr << "error: " << message << endl;
+    catch(const char* message)
+    {
+        std::cerr << "error: " << message << std::endl;
         return -1;
     }
-    catch(exception& exc) {
-        cerr << "error: " << exc.what() << endl;
+    catch(std::exception& exc)
+    {
+        std::cerr << "error: " << exc.what() << std::endl;
     }
-    catch(...) {
-        cerr << "error !!!" << endl;
+    catch(...)
+    {
+        std::cerr << "error !!!" << std::endl;
     }
 }
 

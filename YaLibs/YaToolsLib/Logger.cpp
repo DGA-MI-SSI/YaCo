@@ -13,206 +13,136 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "Logger.h"
+#include "Logger.hpp"
 
-#include <stdint.h>
-#include <memory.h>
+#include "Helpers.h"
+
 #include <stdarg.h>
 #include <time.h>
-#include <string.h>
 
 #if defined(_MSC_VER) && defined(_DEBUG)
 #include <windows.h>
-#include <vector>
 #endif
 
-static const uint32_t Magic = 0x2EB4BA7F;
-
-struct LOG_PrivCtx
+namespace
 {
-    const char* ModulesIn[16];
-    const char* ModulesOut[16];
-    FILE*       hFiles[16];
-    FILE*       hOwners[16];
-    uint32_t    uMagic;
-};
-
-static LOG_PrivCtx* GetCtx(LOG_Ctx* pvCtx)
-{
-    LOG_PrivCtx* pCtx = reinterpret_cast<LOG_PrivCtx*>(pvCtx);
-    return pCtx && pCtx->uMagic == Magic ? pCtx : nullptr;
-}
-
-static bool InitOutput(LOG_PrivCtx* pCtx, size_t i, const LOG_Output* pOutput)
-{
-    switch(pOutput->eOutput)
+    struct Logger
+        : public logger::ILogger
     {
-        case LOG_OUTPUT_LAST:
-            return false;
+        Logger();
 
-        case LOG_OUTPUT_NONE:
-            return true;
+        // ILogger methods
+        void FilterOut  (const char* module) override;
+        void FilterIn   (const char* module) override;
+        void Delegate   (const logger::delegate_fn_t& delegate) override;
+        void Print      (const char* module, logger::ELevel eLevel, const char* pFmt, ...) override;
 
-        case LOG_OUTPUT_FILE_HANDLE:
-            pCtx->hFiles[i] = pOutput->hFile;
-            return true;
-
-        case LOG_OUTPUT_FILENAME_APPEND:
-            pCtx->hOwners[i] = fopen(pOutput->pFilename, "ab");
-            return !!pCtx->hOwners[i];
-
-        case LOG_OUTPUT_FILENAME_TRUNCATE:
-            pCtx->hOwners[i] = fopen(pOutput->pFilename, "wb");
-            return !!pCtx->hOwners[i];
-    }
-
-    return false;
+        std::vector<std::string>            modin;
+        std::vector<std::string>            modout;
+        std::vector<logger::delegate_fn_t>  delegates;
+        std::vector<char>                   buffmt;
+        std::vector<char>                   bufline;
+    };
 }
 
-bool LOG_Init(LOG_Ctx* pvCtx, const LOG_Cfg* pCfg)
+std::shared_ptr<logger::ILogger> logger::MakeLogger()
 {
-    LOG_PrivCtx*    pCtx    = reinterpret_cast<LOG_PrivCtx*>(pvCtx);
-    bool            ok      = true;
-    
-    static_assert(alignof(LOG_Ctx) == alignof(LOG_PrivCtx), "invalid logger context alignment");
-    static_assert(sizeof(*pvCtx) == sizeof(*pCtx), "invalid logger context size");
-    static_assert(COUNT_OF(pCtx->hFiles)  == COUNT_OF(pCfg->Outputs), "invalid logger files size");
-    static_assert(COUNT_OF(pCtx->hOwners) == COUNT_OF(pCfg->Outputs), "invalid logger owners size");
-    static_assert(sizeof(pCtx->ModulesIn) == sizeof(pCfg->ModulesIn), "invalid logger module in list size");
-    static_assert(sizeof(pCtx->ModulesOut) == sizeof(pCfg->ModulesOut), "invalid logger module out list size");
-    
-    memset(pCtx, 0, sizeof *pCtx);
-    pCtx->uMagic = Magic;
+    return std::make_shared<Logger>();
+}
 
-    // try to initialize every outputs
-    for(size_t i = 0 ; i < COUNT_OF(pCfg->Outputs); ++i)
-        ok &= InitOutput(pCtx, i, &pCfg->Outputs[i]);
+Logger::Logger()
+    : buffmt(4096)
+    , bufline(4096)
+{
+}
 
-    // finish initialization or release open file handles
-    for(size_t i = 0; i < COUNT_OF(pCfg->Outputs); ++i)
+void Logger::FilterOut(const char* module)
+{
+    modin.push_back(module);
+}
+
+void Logger::FilterIn(const char* module)
+{
+    modout.push_back(module);
+}
+
+void Logger::Delegate(const logger::delegate_fn_t& delegate)
+{
+    delegates.push_back(delegate);
+}
+
+namespace
+{
+    const char LogLevels[][10] =
     {
-        if(!pCtx->hOwners[i])
-            continue;
-        if(ok)
-            pCtx->hFiles[i] = pCtx->hOwners[i];
-        else
-            fclose(pCtx->hOwners[i]);
+        "error ",
+        "warning ",
+        "",
+        "debug",
+    };
+    static_assert(COUNT_OF(LogLevels) == logger::LOG_LEVEL_LAST, "missing log levels");
+
+    bool accept_module(const Logger& logger, const char* module)
+    {
+        for(const auto& in : logger.modin)
+            if(in == module)
+                return true;
+
+        for(const auto& out : logger.modout)
+            if(out == module)
+                return false;
+
+        return logger.modin.empty();
     }
-
-    memcpy(pCtx->ModulesIn,  pCfg->ModulesIn,  sizeof pCtx->ModulesIn);
-    memcpy(pCtx->ModulesOut, pCfg->ModulesOut, sizeof pCtx->ModulesOut);
-    return ok;
 }
 
-bool LOG_Exit(LOG_Ctx* pvCtx)
+void Logger::Print(const char* pModule, logger::ELevel eLevel, const char* pFmt, ...)
 {
-    LOG_PrivCtx* pCtx = GetCtx(pvCtx);
-    if(!pCtx)
-        return false;
-    for(size_t i = 0; i < COUNT_OF(pCtx->hOwners); ++i)
-        if(pCtx->hOwners[i])
-            fclose(pCtx->hOwners[i]);
-    return true;
-}
+    if(eLevel > logger::eMaxLevel)
+        return;
 
-static const char LogLevels[][10] =
-{
-    "error ",
-    "warning ",
-    "",
-    "debug",
-};
-static_assert(COUNT_OF(LogLevels) == LOG_LEVEL_LAST, "missing log levels");
+    if(eLevel < 0 || eLevel >= logger::LOG_LEVEL_LAST)
+        return;
 
-static bool AcceptModule(LOG_PrivCtx* pCtx, const char* pModule)
-{
-    // filter in
-    for(size_t i = 0; i < COUNT_OF(pCtx->ModulesIn); ++i)
-        if(!pCtx->ModulesIn[i])
-            break;
-        else if(!strcmp(pCtx->ModulesIn[i], pModule))
-            return true;
+    if(pModule && !accept_module(*this, pModule))
+        return;
 
-    // filter out
-    for(size_t i = 0; i < COUNT_OF(pCtx->ModulesOut); ++i)
-        if(!pCtx->ModulesOut[i])
-            break;
-        else if(!strcmp(pCtx->ModulesOut[i], pModule))
-            return false;
-
-    return !pCtx->ModulesIn[0];
-}
-
-bool LOG_Print(LOG_Ctx* pvCtx, const char* pModule, LOG_ELevel eLevel, const char* pFmt, ...)
-{
-    LOG_PrivCtx*    pCtx    = GetCtx(pvCtx);
-    tm*             pNow    = nullptr;
-    size_t          szChars = 0;
-    int             nChars  = 0;
-    bool            ok      = true;
-    char            Fmt[1024];
-    char            TxtTime[64];
-    time_t          Now;
-
-    if(eLevel > LOG_eMaxLevel)
-        return true;
-
-    if(!pCtx)
-        return false;
-
-    if(eLevel < 0 || eLevel >= LOG_LEVEL_LAST)
-        return false;
-
-    if(pModule && !AcceptModule(pCtx, pModule))
-        return true;
-
+    time_t Now;
     time(&Now);
     if(Now == -1)
-        return false;
+        return;
 
-    pNow = localtime(&Now);
+    const auto pNow = localtime(&Now);
     if(!pNow)
-        return false;
+        return;
 
-    szChars = strftime(TxtTime, sizeof TxtTime, "%Y-%m-%d %H:%M:%S", pNow);
-    if(!szChars)
-        return false;
+    char TxtTime[64];
+    const auto sz = strftime(TxtTime, sizeof TxtTime, "%Y-%m-%d %H:%M:%S", pNow);
+    if(!sz)
+        return;
 
-    nChars = snprintf(Fmt, sizeof Fmt - 1,
+    auto n = snprintf(&buffmt[0], buffmt.size() - 1,
                       "%s%s%s: %s%s",
                       TxtTime,
                       pModule ? " " : "",
                       pModule ? pModule : "",
                       LogLevels[eLevel], pFmt);
-    Fmt[sizeof Fmt - 1] = 0;
-    if(nChars < 0)
-        return false;
-
-#if defined(_MSC_VER) && defined(_DEBUG)
-    {
-        va_list args;
-        va_start(args, pFmt);
-        const auto size = _vscprintf(Fmt, args);
-        va_end(args);
-
-        std::vector<char> buffer(size + 1);
-        va_start(args, pFmt);
-        vsnprintf(&buffer[0], buffer.size(), Fmt, args);
-        va_end(pFmt);
-
-        OutputDebugString(&buffer[0]);
-    }
-#endif
+    if(n < 0)
+        return;
 
     // try hard to do one print only to destination
-    for(size_t i = 0; i < COUNT_OF(pCtx->hFiles); ++i)
-        if(pCtx->hFiles[i])
-        {
-            va_list args;
-            va_start(args, pFmt);
-            ok &= -1 != vfprintf(pCtx->hFiles[i], Fmt, args);
-            va_end(args);
-            fflush(pCtx->hFiles[i]);
-        }
-    return ok;
+    buffmt[n] = 0;
+    va_list args;
+    va_start(args, pFmt);
+    n = vsnprintf(&bufline[0], bufline.size() - 1, &buffmt[0], args);
+    va_end(args);
+    if(n < 0)
+        return;
+
+    bufline[n] = 0;
+#if defined(_MSC_VER) && defined(_DEBUG)
+    OutputDebugString(&bufline[0]);
+#endif
+    for(const auto& d : delegates)
+        d(&bufline[0]);
 }

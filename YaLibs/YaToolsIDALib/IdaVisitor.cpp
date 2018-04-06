@@ -23,10 +23,10 @@
 #include "HVersion.hpp"
 #include "HObject.hpp"
 #include "IModel.hpp"
-#include "Logger.h"
-#include "Yatools.h"
+#include "Yatools.hpp"
 #include "YaHelpers.hpp"
 #include "Pool.hpp"
+#include "Helpers.h"
 #include "Plugins.hpp"
 #include "FlatBufferModel.hpp"
 #include "Utils.hpp"
@@ -51,18 +51,6 @@ using namespace std::experimental;
 #endif
 
 #define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("ida_exporter", (FMT), ## __VA_ARGS__)
-
-#ifdef __EA64__
-#define PRIxEA "llx"
-#define PRIXEA "llX"
-#define PRIuEA "llu"
-#define EA_SIZE "16"
-#else
-#define PRIxEA "x"
-#define PRIXEA "X"
-#define PRIuEA "u"
-#define EA_SIZE "8"
-#endif
 
 namespace
 {

@@ -17,7 +17,7 @@
 #include "YaSwig.hpp"
 
 #include <YaCo.hpp>
-#include <Yatools.h>
+#include <Yatools.hpp>
 #include <IdaModel.hpp>
 #include <IdaVisitor.hpp>
 #include <YaHelpers.hpp>
@@ -41,13 +41,13 @@ namespace yaswig
 
     void export_from_ida(const std::string& idb_wo_ext, const std::string& dst)
     {
-        const auto yatools = MakeYatools(idb_wo_ext.data());
+        globals::InitIdbLogger(*globals::Get().logger, idb_wo_ext.data());
         ::export_from_ida(dst);
     }
 
     void import_to_ida(const std::string& idb_wo_ext, const std::string& src)
     {
-        const auto yatools = MakeYatools(idb_wo_ext.data());
+        globals::InitIdbLogger(*globals::Get().logger, idb_wo_ext.data());
         ::import_to_ida(src);
     }
 

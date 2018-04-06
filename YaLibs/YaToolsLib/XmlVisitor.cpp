@@ -16,8 +16,7 @@
 #include "XmlVisitor.hpp"
 
 #include "IModelAccept.hpp"
-#include "Logger.h"
-#include "Yatools.h"
+#include "Yatools.hpp"
 #include "Signature.hpp"
 #include "IModelVisitor.hpp"
 #include "BinHex.hpp"

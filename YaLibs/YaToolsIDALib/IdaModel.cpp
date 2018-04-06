@@ -28,9 +28,8 @@
 #include "MemoryModel.hpp"
 #include "XmlVisitor.hpp"
 #include "IModel.hpp"
-
-#include <Logger.h>
-#include <Yatools.h>
+#include "Helpers.h"
+#include "Yatools.hpp"
 
 #include <algorithm>
 #include <unordered_set>
@@ -44,18 +43,6 @@ extern "C"
 }
 
 #define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("ida_model", (FMT), ## __VA_ARGS__)
-
-#ifdef __EA64__
-#define PRIxEA "llx"
-#define PRIXEA "llX"
-#define PRIuEA "llu"
-#define EA_SIZE "16"
-#else
-#define PRIxEA "x"
-#define PRIXEA "X"
-#define PRIuEA "u"
-#define EA_SIZE "8"
-#endif
 
 void pool_item_clear(qstring& item)
 {

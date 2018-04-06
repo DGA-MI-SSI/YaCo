@@ -13,12 +13,15 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#include <Yatools.hpp>
 #include <FlatBufferVisitor.hpp>
 
 using namespace std;
 
 int main(int argc, char** argv)
 {
+    globals::InitFileLogger(*globals::Get().logger, stdout);
+
     std::vector<std::string> files;
     for(int i = 2; i < argc; i++)
         files.push_back(argv[i]);

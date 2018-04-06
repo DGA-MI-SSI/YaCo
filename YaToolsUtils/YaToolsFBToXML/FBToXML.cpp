@@ -18,8 +18,7 @@
 #include "IModel.hpp"
 #include "XmlVisitor.hpp"
 #include "FlatBufferModel.hpp"
-#include "Yatools.h"
-#include "Logger.h"
+#include "Yatools.hpp"
 
 #include <string>
 #include <chrono>
@@ -38,14 +37,7 @@ void print_usage(char* name)
 
 int main(int argc, char** argv)
 {
-    // configure logging
-    auto pCtx = YATOOLS_Get();
-    YATOOLS_Init(pCtx);
-    LOG_Cfg Cfg;
-    memset(&Cfg, 0, sizeof Cfg);
-    Cfg.Outputs[0] = {LOG_OUTPUT_FILE_HANDLE, stderr, nullptr};
-    auto pLogger = YATOOLS_GetLogger(pCtx);
-    LOG_Init(pLogger, &Cfg);
+    globals::InitFileLogger(*globals::Get().logger, stdout);
 
     if(argc < 3)
     {

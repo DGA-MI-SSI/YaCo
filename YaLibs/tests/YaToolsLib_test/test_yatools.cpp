@@ -18,36 +18,13 @@
 
 #include "gtest/gtest.h"
 
-#include "Logger.h"
-#include "Yatools.h"
+#include "Yatools.hpp"
 #include "YaTypes.hpp"
 #include "BinHex.hpp"
 #include "Utils.hpp"
 
 namespace
 {
-    // initialize global logger instance
-    static const auto yaok = []
-    {
-        auto pCtx = YATOOLS_Get();
-        if(!YATOOLS_Init(pCtx))
-            return false;
-        auto pLogger = YATOOLS_GetLogger(pCtx);
-        LOG_Cfg Cfg;
-        memset(&Cfg, 0, sizeof Cfg);
-        Cfg.Outputs[0] = {LOG_OUTPUT_FILE_HANDLE, stderr, nullptr};
-        return LOG_Init(pLogger, &Cfg);
-    }();
-
-    class Fixture : public testing::Test
-    {
-    protected:
-        void SetUp() override
-        {
-            EXPECT_TRUE(yaok);
-        }
-    };
-
     size_t hex_to_buffer(const char* hex_string, size_t byte_count, void* binary_string)
     {
         hexbin(binary_string, byte_count, hex_string, strlen(hex_string));
@@ -62,7 +39,14 @@ namespace
     }
 }
 
-TEST_F(Fixture, hex_to_buffer_deadbeef)
+int main(int argc, char* argv[])
+{
+    globals::InitFileLogger(*globals::Get().logger, stdout);
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
+}
+
+TEST(yatools, hex_to_buffer_deadbeef)
 {
     char input[] = "deadbeef";
     unsigned char output[] = "\x00\x00\x00\x00";
