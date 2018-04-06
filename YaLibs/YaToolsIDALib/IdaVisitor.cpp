@@ -1469,7 +1469,7 @@ namespace
         auto ok = set_member_name(struc, ea, defname.value);
         if(!ok)
             LOG(ERROR, "%s: 0x%" PRIxEA ":%" PRIxEA " unable to set member name %s\n", where, struc->id, ea, ""/*defname.value*/);
-        ok = set_member_type(struc, ea, FF_BYTE, nullptr, size);
+        ok = set_member_type(struc, ea, byte_flag(), nullptr, size);
         if(!ok)
             LOG(ERROR, "%s: 0x%" PRIxEA ":%" PRIxEA " unable to set member type to 0x%" PRIxEA " bytes\n", where, struc->id, ea, size);
     }
@@ -1503,7 +1503,7 @@ namespace
             auto member = get_member(struc, aoff);
             if(member && member->soff < offset)
             {
-                set_member_type(struc, member->soff, FF_BYTE, nullptr, 1);
+                set_member_type(struc, member->soff, byte_flag(), nullptr, 1);
                 member = get_member(struc, aoff);
             }
             if(member && get_member_name(&member_name, member->id) > 0)
@@ -1512,7 +1512,7 @@ namespace
             new_fields.insert(offset);
             const auto defname = ya::get_default_name(member_name, aoff, func);
             const auto field_size = offset == last_offset && offset == size ? 0 : 1;
-            const auto err = add_struc_member(struc, defname.value, aoff, FF_BYTE, nullptr, field_size);
+            const auto err = add_struc_member(struc, defname.value, aoff, byte_flag(), nullptr, field_size);
             if(err != STRUC_ERROR_MEMBER_OK)
                 LOG(ERROR, "clear_%s: 0x%" PRIxEA ":%" PRIx64 " unable to add member %s size %d\n", where, struct_id, offset, defname.value, field_size);
         }
@@ -1695,7 +1695,7 @@ namespace
         {
             const auto offset = it + 1;
             const auto defname = ya::get_default_name(*qbuf, offset, func);
-            const auto err = add_struc_member(struc, defname.value, BADADDR, FF_BYTE | FF_DATA, nullptr, 1);
+            const auto err = add_struc_member(struc, defname.value, BADADDR, byte_flag(), nullptr, 1);
             if(err != STRUC_ERROR_MEMBER_OK)
                 LOG(ERROR, "make_%s: %s:%" PRIxEA ": unable to add member %s %" PRIxEA " (error %d)\n", where, sname->c_str(), ea, defname.value, offset, err);
         }
