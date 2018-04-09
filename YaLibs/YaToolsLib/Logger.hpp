@@ -36,7 +36,7 @@ enum ELevel
 
 const ELevel eMaxLevel = LOG_LEVEL_INFO;
 
-using delegate_fn_t = std::function<void(const char* message)>;
+using delegate_fn_t = std::function<void(size_t time_prefix, const char* message)>;
 
 struct ILogger
 {

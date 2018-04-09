@@ -41,7 +41,7 @@ bool globals::InitIdbLogger(logger::ILogger& logger, const char* basename)
 
         // capture file handle by copy into the delegate
         const auto smart = std::shared_ptr<FILE>(hfile, &fclose);
-        return [=](const char* message)
+        return [=](size_t /*prefix*/, const char* message)
         {
             fprintf(smart.get(), "%s", message);
             fflush(smart.get());
@@ -62,7 +62,7 @@ bool globals::InitIdbLogger(logger::ILogger& logger, const char* basename)
 
 bool globals::InitFileLogger(logger::ILogger& logger, FILE* handle)
 {
-    logger.Delegate([=](const char* message)
+    logger.Delegate([=](size_t /*prefix*/, const char* message)
     {
         fprintf(handle, "%s", message);
         fflush(handle);

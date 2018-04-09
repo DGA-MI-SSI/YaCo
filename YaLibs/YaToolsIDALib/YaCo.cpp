@@ -255,9 +255,9 @@ std::shared_ptr<IYaCo> MakeYaCo()
     remove_file_extension(idb_path);
     auto& logger = *globals::Get().logger;
     globals::InitIdbLogger(logger, idb_path.generic_string().data());
-    logger.Delegate([](const char* message)
+    logger.Delegate([](size_t prefix, const char* message)
     {
-        msg("%s", message);
+        msg("%s", &message[prefix + 1]);
     });
     return std::make_shared<YaCo>();
 }

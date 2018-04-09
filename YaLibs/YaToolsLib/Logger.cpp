@@ -144,5 +144,5 @@ void Logger::Print(const char* pModule, logger::ELevel eLevel, const char* pFmt,
     OutputDebugString(&bufline[0]);
 #endif
     for(const auto& d : delegates)
-        d(&bufline[0]);
+        d(sz, &bufline[0]);
 }
