@@ -37,7 +37,8 @@ endif()
 include(${ya_dir}/build/yadeps.cmake)
 
 # IDA works with Python 2.7, which is mandatory to build swig tools
-find_package(PythonLibs 2.7 REQUIRED)
+find_package(PythonInterp 2.7 REQUIRED)
+find_package(PythonLibs   2.7 REQUIRED)
 
 # yatools helpers
 function(setup_yatools target)
@@ -237,7 +238,6 @@ add_yatools_py(32)
 add_yatools_py(64)
 
 # testdata
-find_package(PythonInterp 2.7 REQUIRED)
 function(make_testdata target bin src idaq)
     set(output "${root_dir}/testdata/${target}/database/database.yadb")
     set(no_pdb "--no-pdb")
