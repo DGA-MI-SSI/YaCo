@@ -219,10 +219,14 @@ function(setup_git target files_ includes_)
     # generate compile-time git version configuration
     file(WRITE ${root}/git_version.cmake "
         execute_process(COMMAND
-        ${GIT_EXECUTABLE} describe --dirty --tags --long
-        WORKING_DIRECTORY \"${root_dir}\"
-        OUTPUT_VARIABLE GIT_VERSION
-        OUTPUT_STRIP_TRAILING_WHITESPACE)
+            ${GIT_EXECUTABLE} describe --dirty --tags --long
+            WORKING_DIRECTORY \"${root_dir}\"
+            OUTPUT_VARIABLE GIT_VERSION
+            RESULT_VARIABLE retcode
+            OUTPUT_STRIP_TRAILING_WHITESPACE)
+        if(NOT \"$\{retcode}\" STREQUAL \"0\")
+            message(FATAL_ERROR \"${GIT_EXECUTABLE} describe --dirty --tags --long: returned $\{retcode}\")
+        endif()
         configure_file(\"\${SRC}\" \"\${DST}\" @ONLY)
     ")
 
