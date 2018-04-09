@@ -30,6 +30,8 @@
 
 namespace
 {
+const offset_t UNKNOWN_ADDR = ~static_cast<offset_t>(0);
+
 enum VisitorState_e
 {
     VISIT_STARTED = 0,
