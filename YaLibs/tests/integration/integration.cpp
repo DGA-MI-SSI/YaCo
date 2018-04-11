@@ -16,7 +16,6 @@
 #include "gtest/gtest.h"
 
 #include "HVersion.hpp"
-#include "HObject.hpp"
 #include "XmlVisitor.hpp"
 #include "MemoryModel.hpp"
 #include "XmlModel.hpp"
@@ -54,45 +53,40 @@ namespace
     {
         StringModel values;
 
-        db.walk_objects([&](const YaToolObjectId& id, const HObject& href)
+        db.walk_objects([&](const YaToolObjectId& id, const HVersion& hver)
         {
-            EXPECT_EQ(id, href.id());
-            values.insert(std::make_tuple("object", str(href), "", ""));
-            href.walk_versions([&](const HVersion& hver)
+            EXPECT_EQ(id, hver.id());
+            values.insert(std::make_tuple("version", str(hver), str(hver.address()), ""));
+            hver.walk_signatures([&](const HSignature& hsig)
             {
-                values.insert(std::make_tuple("version", str(hver), str(hver.address()), str(hver.parent_id())));
-                hver.walk_signatures([&](const HSignature& hsig)
+                values.insert(std::make_tuple("signature", str(hver), str(hsig), ""));
+                return WALK_CONTINUE;
+            });
+            hver.walk_xrefs_from([&](offset_t offset, operand_t operand, const HVersion& from)
+            {
+                const auto v = std::to_string(offset) + "_" + std::to_string(operand) + "_" + str(from);
+                values.insert(std::make_tuple("xref", str(hver), v, ""));
+                return WALK_CONTINUE;
+            });
+            hver.walk_xrefs_to([&](const HVersion& to)
+            {
+                values.insert(std::make_tuple("xref_to", str(hver), str(to), ""));
+                return WALK_CONTINUE;
+            });
+            hver.walk_xrefs([&](offset_t offset, operand_t operand, YaToolObjectId id, const XrefAttributes* hattr)
+            {
+                const auto v = std::to_string(offset) + "_" + std::to_string(operand) + "_" + str(id);
+                values.insert(std::make_tuple("ref", str(hver), v, ""));
+                hver.walk_xref_attributes(hattr, [&](const const_string_ref& key, const const_string_ref& value)
                 {
-                    values.insert(std::make_tuple("signature", str(href), str(hver), str(hsig)));
+                    values.insert(std::make_tuple("ref", str(hver) + "_" + v, make_string(key), make_string(value)));
                     return WALK_CONTINUE;
                 });
-                hver.walk_xrefs_from([&](offset_t offset, operand_t operand, const HObject& obj)
-                {
-                    const auto v = std::to_string(offset) + "_" + std::to_string(operand) + "_" + str(obj);
-                    values.insert(std::make_tuple("xref", str(href), str(hver), v));
-                    return WALK_CONTINUE;
-                });
-                hver.walk_xrefs_to([&](const HObject& from)
-                {
-                    values.insert(std::make_tuple("xref_to", str(href), str(hver), str(from)));
-                    return WALK_CONTINUE;
-                });
-                hver.walk_xrefs([&](offset_t offset, operand_t operand, YaToolObjectId id, const XrefAttributes* hattr)
-                {
-                    const auto v = std::to_string(offset) + "_" + std::to_string(operand) + "_" + str(id);
-                    values.insert(std::make_tuple("ref", str(href), str(hver), v));
-                    hver.walk_xref_attributes(hattr, [&](const const_string_ref& key, const const_string_ref& value)
-                    {
-                        values.insert(std::make_tuple("ref", str(hver) + "_" + v, make_string(key), make_string(value)));
-                        return WALK_CONTINUE;
-                    });
-                    return WALK_CONTINUE;
-                });
-                hver.walk_attributes([&](const const_string_ref& key, const const_string_ref& val)
-                {
-                    values.insert(std::make_tuple("attr", str(hver), make_string(key), make_string(val)));
-                    return WALK_CONTINUE;
-                });
+                return WALK_CONTINUE;
+            });
+            hver.walk_attributes([&](const const_string_ref& key, const const_string_ref& val)
+            {
+                values.insert(std::make_tuple("attr", str(hver), make_string(key), make_string(val)));
                 return WALK_CONTINUE;
             });
             return WALK_CONTINUE;
@@ -110,9 +104,9 @@ namespace
 
         void update(const IModel& model) override
         {
-            model.walk_objects([&](auto, const HObject& hobj)
+            model.walk_objects([&](auto, const HVersion& hver)
             {
-                hobj.accept(visitor);
+                hver.accept(visitor);
                 return WALK_CONTINUE;
             });
         }

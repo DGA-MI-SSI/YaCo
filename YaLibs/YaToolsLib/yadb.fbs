@@ -29,24 +29,6 @@ enum CommentType : byte {
     Bookmark,
 }
 
-enum ObjectType : byte {
-    Unknown = 0,
-    Binary,
-    Data,
-    Code,
-    Function,
-    Struct,
-    Enum,
-    EnumMember,
-    BasicBlock,
-    Segment,
-    SegmentChunk,
-    StructMember,
-    StackFrame,
-    StackFrameMember,
-    ReferenceInfo,
-}
-
 struct Comment {
     offset: ulong;
     value:  uint;
@@ -121,13 +103,7 @@ table Version {
     signatures:                     [Signature];
 }
 
-struct Object {
-    id:     ulong;
-    type:   ObjectType;
-}
-
 table Root {
-    objects:            [Object];
     binaries:           [Version];
     structs:            [Version];
     struct_members:     [Version];

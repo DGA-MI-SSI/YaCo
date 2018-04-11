@@ -92,8 +92,6 @@ TEST_F (TestXMLDatabaseModel, TestFiles) {
     EXPECT_NO_THROW(call_queue->pop());
     EXPECT_STREQ(call_queue->front().c_str(), "visit_id()");
     EXPECT_NO_THROW(call_queue->pop());
-    EXPECT_STREQ(call_queue->front().c_str(), "visit_start_object_version()");
-    EXPECT_NO_THROW(call_queue->pop());
     EXPECT_STREQ(call_queue->front().c_str(), "visit_size()");
     EXPECT_NO_THROW(call_queue->pop());
     EXPECT_STREQ(call_queue->front().c_str(), "visit_start_signatures()");
@@ -109,8 +107,6 @@ TEST_F (TestXMLDatabaseModel, TestFiles) {
     EXPECT_STREQ(call_queue->front().c_str(), "visit_start_xrefs()");
     EXPECT_NO_THROW(call_queue->pop());
     EXPECT_STREQ(call_queue->front().c_str(), "visit_end_xrefs()");
-    EXPECT_NO_THROW(call_queue->pop());
-    EXPECT_STREQ(call_queue->front().c_str(), "visit_end_object_version()");
     EXPECT_NO_THROW(call_queue->pop());
     EXPECT_STREQ(call_queue->front().c_str(), "visit_end_reference_object()");
     EXPECT_NO_THROW(call_queue->pop());
@@ -195,8 +191,6 @@ TEST_F (TestXMLDatabaseModel, TestOneDoubleFile) {
     EXPECT_NO_THROW(call_queue->pop());
     EXPECT_STREQ(call_queue->front().c_str(), "visit_id()");
     EXPECT_NO_THROW(call_queue->pop());
-    EXPECT_STREQ(call_queue->front().c_str(), "visit_start_object_version()");
-    EXPECT_NO_THROW(call_queue->pop());
     EXPECT_STREQ(call_queue->front().c_str(), "visit_size()");
     EXPECT_NO_THROW(call_queue->pop());
     EXPECT_STREQ(call_queue->front().c_str(), "visit_start_signatures()");
@@ -212,8 +206,6 @@ TEST_F (TestXMLDatabaseModel, TestOneDoubleFile) {
     EXPECT_STREQ(call_queue->front().c_str(), "visit_start_xrefs()");
     EXPECT_NO_THROW(call_queue->pop());
     EXPECT_STREQ(call_queue->front().c_str(), "visit_end_xrefs()");
-    EXPECT_NO_THROW(call_queue->pop());
-    EXPECT_STREQ(call_queue->front().c_str(), "visit_end_object_version()");
     EXPECT_NO_THROW(call_queue->pop());
     EXPECT_STREQ(call_queue->front().c_str(), "visit_end_reference_object()");
     EXPECT_NO_THROW(call_queue->pop());
@@ -222,8 +214,6 @@ TEST_F (TestXMLDatabaseModel, TestOneDoubleFile) {
     EXPECT_NO_THROW(call_queue->pop());
     EXPECT_STREQ(call_queue->front().c_str(), "visit_id()");
     EXPECT_NO_THROW(call_queue->pop());
-    EXPECT_STREQ(call_queue->front().c_str(), "visit_start_object_version()");
-    EXPECT_NO_THROW(call_queue->pop());
     EXPECT_STREQ(call_queue->front().c_str(), "visit_size()");
     EXPECT_NO_THROW(call_queue->pop());
     EXPECT_STREQ(call_queue->front().c_str(), "visit_start_signatures()");
@@ -239,8 +229,6 @@ TEST_F (TestXMLDatabaseModel, TestOneDoubleFile) {
     EXPECT_STREQ(call_queue->front().c_str(), "visit_start_xrefs()");
     EXPECT_NO_THROW(call_queue->pop());
     EXPECT_STREQ(call_queue->front().c_str(), "visit_end_xrefs()");
-    EXPECT_NO_THROW(call_queue->pop());
-    EXPECT_STREQ(call_queue->front().c_str(), "visit_end_object_version()");
     EXPECT_NO_THROW(call_queue->pop());
     EXPECT_STREQ(call_queue->front().c_str(), "visit_end_reference_object()");
     EXPECT_NO_THROW(call_queue->pop());
@@ -759,14 +747,14 @@ TEST_F (TestXMLDatabaseModel, TestOneFileWithCommentsThroughMemory) {
 TEST_F(TestXMLDatabaseModel, test_xml_escape) {
     path filename("4223456789ABCDEF.xml");
     auto visitor = MakeFileXmlVisitor(filename.string());
-    EXPECT_NO_THROW(visitor->visit_start());
-    EXPECT_NO_THROW(visitor->visit_start_reference_object(OBJECT_TYPE_BASIC_BLOCK));
-    EXPECT_NO_THROW(visitor->visit_offset_comments(12, COMMENT_REPEATABLE, make_string_ref("pl<op")));
-    EXPECT_NO_THROW(visitor->visit_offset_comments(12, COMMENT_REPEATABLE, make_string_ref("plop\xe2")));
-    EXPECT_NO_THROW(visitor->visit_offset_comments(12, COMMENT_REPEATABLE, make_string_ref("plo>pÔ")));
-    EXPECT_NO_THROW(visitor->visit_end_reference_object());
-    EXPECT_NO_THROW(visitor->visit_end());
-
+    visitor->visit_start();
+    visitor->visit_start_reference_object(OBJECT_TYPE_BASIC_BLOCK);
+    visitor->visit_id(0x0123456701234567);
+    visitor->visit_offset_comments(12, COMMENT_REPEATABLE, make_string_ref("pl<op"));
+    visitor->visit_offset_comments(12, COMMENT_REPEATABLE, make_string_ref("plop\xe2"));
+    visitor->visit_offset_comments(12, COMMENT_REPEATABLE, make_string_ref("plo>pÔ"));
+    visitor->visit_end_reference_object();
+    visitor->visit_end();
 }
 
 

@@ -96,9 +96,4 @@ std::string str(const HVersion& hver)
 {
     return get_object_type_string(hver.type()) + std::string("_") + str(hver.id());
 }
-
-std::string str(const HObject& href)
-{
-    return get_object_type_string(href.type()) + std::string("_") + str(href.id());
-}
 }

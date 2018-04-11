@@ -52,30 +52,6 @@ namespace fb = flatbuffers;
 
 namespace
 {
-static yadb::ObjectType get_object_type(YaToolObjectType_e value)
-{
-    switch(value)
-    {
-        case OBJECT_TYPE_COUNT:
-        case OBJECT_TYPE_UNKNOWN:           return yadb::ObjectType_Unknown;
-        case OBJECT_TYPE_BINARY:            return yadb::ObjectType_Binary;
-        case OBJECT_TYPE_DATA:              return yadb::ObjectType_Data;
-        case OBJECT_TYPE_CODE:              return yadb::ObjectType_Code;
-        case OBJECT_TYPE_FUNCTION:          return yadb::ObjectType_Function;
-        case OBJECT_TYPE_STRUCT:            return yadb::ObjectType_Struct;
-        case OBJECT_TYPE_ENUM:              return yadb::ObjectType_Enum;
-        case OBJECT_TYPE_ENUM_MEMBER:       return yadb::ObjectType_EnumMember;
-        case OBJECT_TYPE_BASIC_BLOCK:       return yadb::ObjectType_BasicBlock;
-        case OBJECT_TYPE_SEGMENT:           return yadb::ObjectType_Segment;
-        case OBJECT_TYPE_SEGMENT_CHUNK:     return yadb::ObjectType_SegmentChunk;
-        case OBJECT_TYPE_STRUCT_MEMBER:     return yadb::ObjectType_StructMember;
-        case OBJECT_TYPE_STACKFRAME:        return yadb::ObjectType_StackFrame;
-        case OBJECT_TYPE_STACKFRAME_MEMBER: return yadb::ObjectType_StackFrameMember;
-        case OBJECT_TYPE_REFERENCE_INFO:    return yadb::ObjectType_ReferenceInfo;
-    }
-    return yadb::ObjectType_Unknown;
-}
-
 static yadb::CommentType get_comment_type(CommentType_e value)
 {
     switch(value)
@@ -145,10 +121,8 @@ struct FlatBufferVisitor : public IFlatBufferVisitor
     void visit_end_deleted_object() override;
     void visit_end_reference_object() override;
     void visit_id(YaToolObjectId object_id) override;
-    void visit_start_object_version() override;
     void visit_parent_id(YaToolObjectId object_id) override;
     void visit_address(offset_t address) override;
-    void visit_end_object_version() override;
     void visit_name(const const_string_ref& name, int flags) override;
     void visit_size(offset_t size) override;
     void visit_start_signatures() override;
@@ -179,8 +153,6 @@ struct FlatBufferVisitor : public IFlatBufferVisitor
     const bool            skip_start_end_;
     fb::FlatBufferBuilder fbbuilder_;
 
-    std::vector<yadb::Object>                   objects_;
-    std::vector<fb::Offset<yadb::Version>>      versions_;
     std::vector<fb::Offset<yadb::Version>>      binaries_;
     std::vector<fb::Offset<yadb::Version>>      structs_;
     std::vector<fb::Offset<yadb::Version>>      struct_members_;
@@ -293,7 +265,6 @@ namespace
     void visit_end(FlatBufferVisitor& v)
     {
         yadb::FinishRootBuffer(v.fbbuilder_, yadb::CreateRoot(v.fbbuilder_,
-            make_strucs(v.fbbuilder_, v.objects_),
             make_tables(v.fbbuilder_, v.binaries_),
             make_tables(v.fbbuilder_, v.structs_),
             make_tables(v.fbbuilder_, v.struct_members_),
@@ -375,38 +346,7 @@ void FlatBufferVisitor::visit_end_reference_object()
         return;
     }
 
-    dstvec->insert(dstvec->end(), versions_.begin(), versions_.end());
-    versions_.clear();
-    objects_.emplace_back(object_id_, get_object_type(object_type_));
-}
-
-void FlatBufferVisitor::visit_end_deleted_object()
-{
-    versions_.clear();
-}
-
-void FlatBufferVisitor::visit_id(YaToolObjectId id)
-{
-    object_id_ = id;
-}
-
-void FlatBufferVisitor::visit_parent_id(YaToolObjectId id)
-{
-    parent_id_ = id;
-}
-
-void FlatBufferVisitor::visit_address(offset_t address)
-{
-    address_ = address;
-}
-
-void FlatBufferVisitor::visit_start_object_version()
-{
-}
-
-void FlatBufferVisitor::visit_end_object_version()
-{
-    versions_.push_back(yadb::CreateVersion(fbbuilder_,
+    dstvec->push_back(yadb::CreateVersion(fbbuilder_,
         object_id_,
         make_optional(parent_id_),
         make_optional(address_),
@@ -427,6 +367,25 @@ void FlatBufferVisitor::visit_end_object_version()
         make_strucs(fbbuilder_, signatures_)
     ));
     username_.clear();
+}
+
+void FlatBufferVisitor::visit_end_deleted_object()
+{
+}
+
+void FlatBufferVisitor::visit_id(YaToolObjectId id)
+{
+    object_id_ = id;
+}
+
+void FlatBufferVisitor::visit_parent_id(YaToolObjectId id)
+{
+    parent_id_ = id;
+}
+
+void FlatBufferVisitor::visit_address(offset_t address)
+{
+    address_ = address;
 }
 
 void FlatBufferVisitor::visit_name(const const_string_ref& name, int flags)

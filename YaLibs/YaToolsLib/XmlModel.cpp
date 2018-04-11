@@ -211,7 +211,6 @@ namespace
         uint32_t    userdefinedname_flags = 0;
         std::map<offset_t, std::string> blobs;
 
-        visitor.visit_start_object_version();
         for (xmlNodePtr child = node->children; child != nullptr; child = child->next)
         {
             if (xmlStrcasecmp(child->name, BAD_CAST "parent_id") == 0)
@@ -458,7 +457,6 @@ namespace
             const auto sizeout = hexbin(&buffer[0], sizein, it.second.data(), it.second.size());
             visitor.visit_blob(offset, &buffer[0], sizeout);
         }
-        visitor.visit_end_object_version();
     }
 
     void accept_object(const std::string& object_type, xmlNodePtr node, IModelVisitor& visitor)

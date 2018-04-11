@@ -20,7 +20,6 @@
 #include "HVersion.hpp"
 #include "Yatools.hpp"
 #include "Helpers.h"
-#include "HObject.hpp"
 #include "YaHelpers.hpp"
 
 #define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("ida_deleter", (FMT), ## __VA_ARGS__)
@@ -101,54 +100,49 @@ namespace
             LOG(ERROR, "unable to delete basic block 0x%0" EA_SIZE PRIXEA "\n", ea);
     }
 
-    void delete_object(const HObject& hobj)
+    void delete_object(const HVersion& hver)
     {
-        const auto type = hobj.type();
-        hobj.walk_versions([&](const HVersion& hver)
+        switch(hver.type())
         {
-            switch(type)
-            {
-                default:
-                    break;
+            default:
+                break;
 
-                case OBJECT_TYPE_STRUCT:
-                    delete_struc(hver);
-                    break;
+            case OBJECT_TYPE_STRUCT:
+                delete_struc(hver);
+                break;
 
-                case OBJECT_TYPE_ENUM:
-                    delete_enum(hver);
-                    break;
+            case OBJECT_TYPE_ENUM:
+                delete_enum(hver);
+                break;
 
-                case OBJECT_TYPE_ENUM_MEMBER:
-                    delete_enum_member(hver);
-                    break;
+            case OBJECT_TYPE_ENUM_MEMBER:
+                delete_enum_member(hver);
+                break;
 
-                case OBJECT_TYPE_FUNCTION:
-                    delete_function(hver);
-                    break;
+            case OBJECT_TYPE_FUNCTION:
+                delete_function(hver);
+                break;
 
-                case OBJECT_TYPE_DATA:
-                    delete_data(hver);
-                    break;
+            case OBJECT_TYPE_DATA:
+                delete_data(hver);
+                break;
 
-                case OBJECT_TYPE_CODE:
-                    delete_code(hver);
-                    break;
+            case OBJECT_TYPE_CODE:
+                delete_code(hver);
+                break;
 
-                case OBJECT_TYPE_BASIC_BLOCK:
-                    delete_block(hver);
-                    break;
-            }
-            return WALK_CONTINUE;
-        });
+            case OBJECT_TYPE_BASIC_BLOCK:
+                delete_block(hver);
+                break;
+        }
     }
 }
 
 void delete_from_model(const IModel& model)
 {
-    model.walk_objects([](YaToolObjectId /*id*/, const HObject& hobj)
+    model.walk_objects([](YaToolObjectId /*id*/, const HVersion& hver)
     {
-        ::delete_object(hobj);
+        ::delete_object(hver);
         return WALK_CONTINUE;
     });
 }

@@ -44,7 +44,7 @@ struct HVersion
     void                walk_signatures         (const IVersions::OnSignatureFn& fnWalk) const;
     bool                has_signatures          () const;
     void                walk_xrefs_from         (const IVersions::OnXrefFromFn& fnWalk) const;
-    void                walk_xrefs_to           (const IVersions::OnObjectFn& fnWalk) const;
+    void                walk_xrefs_to           (const IVersions::OnVersionFn& fnWalk) const;
     void                walk_blobs              (const IVersions::OnBlobFn& fnWalk) const;
     bool                has_blobs               () const;
     void                walk_comments           (const IVersions::OnCommentFn& fnWalk) const;

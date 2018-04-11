@@ -21,7 +21,6 @@
 #include "Hash.hpp"
 #include "IModelSink.hpp"
 #include "HVersion.hpp"
-#include "HObject.hpp"
 #include "IModel.hpp"
 #include "Yatools.hpp"
 #include "YaHelpers.hpp"
@@ -1884,13 +1883,9 @@ namespace
 
 void Visitor::update(const IModel& model)
 {
-    model.walk_objects([&](YaToolObjectId /*id*/, const HObject& hobj)
+    model.walk_objects([&](YaToolObjectId /*id*/, const HVersion& hver)
     {
-        hobj.walk_versions([&](const HVersion& hver)
-        {
-            update_version(*this, hver);
-            return WALK_CONTINUE;
-        });
+        update_version(*this, hver);
         return WALK_CONTINUE;
     });
 }

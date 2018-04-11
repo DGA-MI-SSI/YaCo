@@ -16,7 +16,6 @@
 #include "Merger.hpp"
 
 #include "HVersion.hpp"
-#include "HObject.hpp"
 #include "IModelVisitor.hpp"
 #include "MemoryModel.hpp"
 #include "XmlModel.hpp"
@@ -51,93 +50,50 @@ static bool is_unset(const const_string_ref& attribute)
         || begins_with(attribute, "offset_"));
 }
 
-MergeStatus_e Merger::smartMerge(   const char* input_file1, const char* input_file2,
-                                const char* output_file_result)
+MergeStatus_e Merger::smartMerge(const char* input_file1, const char* input_file2,
+                                 const char* output_file_result)
 {
 
     /* Load XML files */
-    auto file_vect1 = std::vector<std::string>();
-    file_vect1.push_back(std::string(input_file1));
-    auto file_vect2 = std::vector<std::string>();
-    file_vect2.push_back(std::string(input_file2));
-
     const auto db1 = MakeMemoryModel();
     const auto db2 = MakeMemoryModel();
 
     // reload two databases with one object version in each database
-    MakeXmlFilesModel(file_vect1)->accept(*db1);
-    MakeXmlFilesModel(file_vect2)->accept(*db2);
+    MakeXmlFilesModel({input_file1})->accept(*db1);
+    MakeXmlFilesModel({input_file2})->accept(*db2);
 
-    /* Check only one object version is present in each database */
-    int count1 = 0;
-    HObject db1_ref_object;
-    db1->walk_objects([&](const YaToolObjectId& id, const HObject& obj){
-        UNUSED(id);
-        UNUSED(obj);
-        count1++;
-        db1_ref_object = obj;
-        return WALK_CONTINUE;
-    });
-    int count2 = 0;
-    HObject db2_ref_object;
-    db2->walk_objects([&](const YaToolObjectId& id, const HObject& obj){
-        UNUSED(id);
-        UNUSED(obj);
-        count2++;
-        db2_ref_object = obj;
-        return WALK_CONTINUE;
-    });
+    if(db1->num_objects() != 1 || db2->num_objects() != 1)
+        throw std::runtime_error("invalid number of referenced object in databases");
 
-    if (count1 != 1 || count2 != 1)
+    const auto get_obj = [](IModel& model)
     {
-        throw("PythonResolveFileConflictCallback: callback: invalid number of referenced object in databases");
-    }
-
-    count1 = 0;
-    count2 = 0;
-    HVersion db1_obj_version;
-    HVersion db2_obj_version;
-    db1_ref_object.walk_versions([&](const HVersion& ver)
-    {
-        count1++;
-        db1_obj_version = ver;
-        return WALK_CONTINUE;
-    });
-    db2_ref_object.walk_versions([&](const HVersion& ver)
-    {
-        count2++;
-        db2_obj_version = ver;
-        return WALK_CONTINUE;
-    });
-
-    if (count1 != 1 || count2 != 1)
-    {
-        throw("PythonResolveFileConflictCallback: callback: invalid number of object version in reference object");
-    }
-
-    auto output = MakeMemoryModel();
+        HVersion reply;
+        model.walk_objects([&](YaToolObjectId /*id*/, const HVersion& hver)
+        {
+            reply = hver;
+            return WALK_STOP;
+        });
+        return reply;
+    };
 
     /* Build relation */
     Relation relation;
-    relation.version1_ = db1_obj_version;
-    relation.version2_ = db2_obj_version;
+    relation.version1_ = get_obj(*db1);
+    relation.version2_ = get_obj(*db2);
     relation.type_ = RELATION_TYPE_EXACT_MATCH;
     relation.confidence_ = RELATION_CONFIDENCE_MAX;
     relation.direction_ = RELATION_DIRECTION_BOTH;
     relation.flags_ = 0;
 
     /* Merge */
+    const auto output = MakeMemoryModel();
     output->visit_start();
     std::set<YaToolObjectId> newObjectIds;
-    MergeStatus_e retval = mergeObjectVersions(*output, newObjectIds, relation);
+    const auto retval = mergeObjectVersions(*output, newObjectIds, relation);
 	output->visit_end();
     
     if(retval != OBJECT_MERGE_STATUS_NOT_UPDATED)
-    {
-        const std::string output_path = std::string(output_file_result);
-        auto xml_exporter = MakeFileXmlVisitor(output_path);
-        output->accept(*xml_exporter);
-    }
+        output->accept(*MakeFileXmlVisitor(output_file_result));
 
     return retval;
 }
@@ -283,8 +239,6 @@ MergeStatus_e Merger::mergeObjectVersions( IModelVisitor& visitor_db, std::set<Y
 
     /* Visit id */
     visitor_db.visit_id(relation.version2_.id());
-
-    visitor_db.visit_start_object_version();
 
     /* Visit size */
     visitor_db.visit_size(relation.version2_.size());
@@ -511,8 +465,6 @@ MergeStatus_e Merger::mergeObjectVersions( IModelVisitor& visitor_db, std::set<Y
     });//TODO export blobs
     /**********************************************/
 
-
-     visitor_db.visit_end_object_version();
 
      visitor_db.visit_end_reference_object();
 

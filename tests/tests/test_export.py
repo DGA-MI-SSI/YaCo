@@ -82,7 +82,10 @@ ya.export_from_ida(name, "dat.yadb")
             ("bbk", root.BasicBlocks,       root.BasicBlocksLength(),       lambda x: x.Address()),
         ]
         got = StringIO.StringIO()
-        got.write("objects: %d\n" % root.ObjectsLength())
+        num_versions = 0
+        for (prefix, getter, size, getkey) in versions:
+            num_versions += size
+        got.write("objects: %d\n" % num_versions)
         for (prefix, getter, size, getkey) in versions:
             got.write("\n%s: %d\n" % (prefix, size))
             values = []

@@ -33,8 +33,8 @@ namespace
 {
 struct XrefTo
 {
-    HObject_id_t from;
-    HObject_id_t to;
+    HVersion_id_t from;
+    HVersion_id_t to;
 };
 STATIC_ASSERT_POD(XrefTo);
 
@@ -48,7 +48,7 @@ STATIC_ASSERT_POD(Sig);
 struct ObjectId
 {
     YaToolObjectId  id;
-    HObject_id_t    idx;
+    HVersion_id_t   idx;
 };
 STATIC_ASSERT_POD(ObjectId);
 
@@ -60,9 +60,9 @@ struct ModelIndex
     std::vector<ObjectId>   object_ids_;
 };
 
-inline void reserve(ModelIndex& mi, size_t num_objects, size_t num_versions)
+inline void reserve(ModelIndex& mi, size_t num_versions)
 {
-    mi.object_ids_.reserve(num_objects);
+    mi.object_ids_.reserve(num_versions);
     mi.sigs_.reserve(num_versions);
     mi.unique_sigs_.reserve(num_versions);
     mi.xrefs_to_.reserve(num_versions); // FIXME
@@ -78,7 +78,7 @@ bool operator<(const ObjectId& a, YaToolObjectId b)
     return a.id < b;
 }
 
-void add_object(ModelIndex& mi, YaToolObjectId id, HObject_id_t idx)
+void add_object(ModelIndex& mi, YaToolObjectId id, HVersion_id_t idx)
 {
     mi.object_ids_.push_back({id, idx});
 }
@@ -88,7 +88,7 @@ void finish_objects(ModelIndex& mi)
     std::sort(mi.object_ids_.begin(), mi.object_ids_.end());
 }
 
-optional<HObject_id_t> find_object_id(const ModelIndex& mi, YaToolObjectId id)
+optional<HVersion_id_t> find_object_id(const ModelIndex& mi, YaToolObjectId id)
 {
     const auto& d = mi.object_ids_;
     const auto it = std::lower_bound(d.begin(), d.end(), id);
@@ -107,7 +107,7 @@ bool operator==(const XrefTo& a, const XrefTo& b)
     return std::make_pair(a.to, a.from) == std::make_pair(b.to, b.from);
 }
 
-void add_xref_to(ModelIndex& mi, HObject_id_t from, YaToolObjectId to)
+void add_xref_to(ModelIndex& mi, HVersion_id_t from, YaToolObjectId to)
 {
     if(const auto id = find_object_id(mi, to))
         mi.xrefs_to_.push_back({from, *id});
@@ -124,7 +124,7 @@ void finish_xrefs(ModelIndex& mi, const T& operand)
 }
 
 template<typename T>
-void walk_xrefs(const ModelIndex& mi, HObject_id_t object_idx, uint32_t xref_idx, const T& operand)
+void walk_xrefs(const ModelIndex& mi, HVersion_id_t object_idx, uint32_t xref_idx, const T& operand)
 {
     const auto end = mi.xrefs_to_.size();
     for(auto i = xref_idx; i < end; ++i)

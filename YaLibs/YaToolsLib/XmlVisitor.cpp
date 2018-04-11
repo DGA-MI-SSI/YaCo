@@ -53,10 +53,8 @@ class XmlVisitor_common : public IModelVisitor
 public:
     XmlVisitor_common();
 
-    void visit_start_object_version() override;
     void visit_parent_id(YaToolObjectId object_id) override;
     void visit_address(offset_t address) override;
-    void visit_end_object_version() override;
     void visit_name(const const_string_ref& name, int flags) override;
     void visit_size(offset_t size) override;
     void visit_start_signatures() override;
@@ -348,7 +346,8 @@ void XmlVisitor::visit_end_reference_object()
 {
     int rc = 0;
 
-    end_element(*writer_, "object_type");
+    end_element(*writer_, "version");
+    end_element(*writer_, get_object_type_string(object_type_));
     end_element(*writer_, "sigfile");
 
     rc = xmlTextWriterEndDocument(writer_.get());
@@ -364,7 +363,8 @@ void XmlVisitor::visit_end_reference_object()
 
 void MemExporter::visit_end_reference_object()
 {
-    end_element(*writer_, "object_type");
+    end_element(*writer_, "version");
+    end_element(*writer_, get_object_type_string(object_type_));
 
     writer_.reset();
     doc_.reset();
@@ -387,6 +387,7 @@ void XmlVisitor::visit_id(YaToolObjectId object_id)
         return;
 
     add_element(*writer_, "id", buf);
+    start_element(*writer_, "version");
 }
 
 void MemExporter::visit_id(YaToolObjectId object_id)
@@ -397,10 +398,6 @@ void MemExporter::visit_id(YaToolObjectId object_id)
     char buf[sizeof object_id * 2 + 1];
     to_hex<NullTerminate>(buf, object_id);
     add_element(*writer_, "id", buf);
-}
-
-void XmlVisitor_common::visit_start_object_version()
-{
     start_element(*writer_, "version");
 }
 
@@ -422,11 +419,6 @@ void XmlVisitor_common::visit_address(offset_t address)
     char buf[sizeof address * 2 + 1];
     const auto str = to_hex<RemovePadding | NullTerminate>(buf, address);
     add_element(*writer_, "address", str.value);
-}
-
-void XmlVisitor_common::visit_end_object_version()
-{
-    end_element(*writer_, "version");
 }
 
 void XmlVisitor_common::visit_name(const const_string_ref& name, int flags)

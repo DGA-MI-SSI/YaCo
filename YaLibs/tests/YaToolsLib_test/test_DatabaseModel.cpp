@@ -23,7 +23,6 @@
 #include "Helpers.h"
 
 #include "HVersion.hpp"
-#include "HObject.hpp"
 #include "ExporterValidatorVisitor.hpp"
 #include "MemoryModel.hpp"
 #include "FlatBufferModel.hpp"
@@ -60,35 +59,27 @@ struct Xref
 };
 
 void create_object(IModelVisitor& v, YaToolObjectId id,
-                   const std::vector<const char*>& crcVals,
-                   const std::vector<std::vector<Xref>>& xrefs)
+                   const char* crc,
+                   const std::vector<Xref>& xrefs)
 {
     v.visit_start_reference_object(OBJECT_TYPE_DATA);
     v.visit_id(id);
 
-    uint32_t i;
-    for(i=0; i<crcVals.size(); i++)
+    v.visit_size(0x20);
+    v.visit_start_signatures();
+    v.visit_signature(SIGNATURE_OPCODE_HASH, SIGNATURE_ALGORITHM_CRC32, make_string_ref(crc));
+    v.visit_end_signatures();
+    v.visit_start_xrefs();
+    v.visit_end_xrefs();
+
+    v.visit_start_xrefs();
+    for(const auto& xref : xrefs)
     {
-        auto crcVal = crcVals[i];
-        v.visit_start_object_version();
-        v.visit_size(0x20);
-        v.visit_start_signatures();
-        v.visit_signature(SIGNATURE_OPCODE_HASH, SIGNATURE_ALGORITHM_CRC32, make_string_ref(crcVal));
-        v.visit_end_signatures();
-        v.visit_start_xrefs();
-        v.visit_end_xrefs();
-
-        v.visit_start_xrefs();
-        if(i < xrefs.size())
-            for(const auto& xref : xrefs[i])
-            {
-                v.visit_start_xref(xref.offset, xref.id, xref.operand);
-                v.visit_end_xref();
-            }
-        v.visit_end_xrefs();
-
-        v.visit_end_object_version();
+        v.visit_start_xref(xref.offset, xref.id, xref.operand);
+        v.visit_end_xref();
     }
+    v.visit_end_xrefs();
+
     v.visit_end_reference_object();
 }
 
@@ -97,7 +88,6 @@ void create_model(IModelVisitor& v)
     v.visit_start();
     v.visit_start_reference_object(OBJECT_TYPE_CODE);
     v.visit_id(0xAAAAAAAA);
-    v.visit_start_object_version();
     v.visit_size(0x10);
     v.visit_start_signatures();
     v.visit_signature(SIGNATURE_OPCODE_HASH, SIGNATURE_ALGORITHM_CRC32, make_string_ref("BADBADBA"));
@@ -112,12 +102,11 @@ void create_model(IModelVisitor& v)
     v.visit_start_xref(0x30, 0xDDDDDDDD, 0);  v.visit_end_xref();
     v.visit_end_xrefs();
 
-    v.visit_end_object_version();
     v.visit_end_reference_object();
 
-    create_object(v, 0xBBBBBBBB, {"11111111"}, {{{0x10, 0, 0xDDDDDDDD}}});
-    create_object(v, 0xDDDDDDDD, {"22222222", "44444444"}, {{{0x20, 1, 0xCCCCCCCC}, {0x20, 2, 0xBBBBBBBB}}});
-    create_object(v, 0xCCCCCCCC, {"22222222", "33333333"}, {});
+    create_object(v, 0xBBBBBBBB, "11111111", {{{0x10, 0, 0xDDDDDDDD}}});
+    create_object(v, 0xDDDDDDDD, "22222222", {{{0x20, 1, 0xCCCCCCCC}, {0x20, 2, 0xBBBBBBBB}}});
+    create_object(v, 0xCCCCCCCC, "22222222", {});
     v.visit_end();
 }
 
@@ -142,15 +131,14 @@ public:
     virtual ~MockDatabase(){}
 
     void        accept(IModelVisitor&) override {};
-    void        walk_objects(const OnObjectAndIdFn&) const override {};
+    void        walk_objects(const OnVersionAndIdFn&) const override {};
     size_t      num_objects() const override { return 0; };
-    void        walk_objects_with_signature(const HSignature&, const OnObjectFn&) const override {};
     size_t      num_objects_with_signature(const HSignature&) const override { return 0; };
     void        walk_versions_with_signature(const HSignature&, const OnVersionFn&) const override {};
-    HObject     get_object(YaToolObjectId) const override { return HObject{nullptr, 0}; };
+    HVersion    get_object(YaToolObjectId) const override { return HVersion{nullptr, 0}; };
     bool        has_object(YaToolObjectId) const override { return false; };
     void        walk_versions_without_collision(const OnSigAndVersionFn&) const override {};
-    void        walk_matching_versions(const HObject&, size_t, const OnVersionPairFn&) const override {};
+    void        walk_matching_versions(const HVersion&, size_t, const OnVersionPairFn&) const override {};
 };
 }
 
@@ -166,7 +154,7 @@ TEST_F(TestYaToolDatabaseModel, model)
 void ReferencedObjects_Impl(std::shared_ptr<IModel>db)
 {
     std::multiset<std::pair<std::string, std::string>> values;
-    db->walk_objects([&](const YaToolObjectId& id, const HObject& href)
+    db->walk_objects([&](const YaToolObjectId& id, const HVersion& href)
     {
         values.insert(std::make_pair(str(id), str(href)));
         return WALK_CONTINUE;
@@ -228,7 +216,7 @@ void ReferencedObjectsBySignature_Impl(std::shared_ptr<IModel>db)
     const auto sigH = create_signature(ctx, 0x22222222);
 
     std::multiset<std::string> values;
-    db->walk_objects_with_signature(sigH, [&](const HObject& href)
+    db->walk_versions_with_signature(sigH, [&](const HVersion& href)
     {
         values.insert(str(href));
         return WALK_CONTINUE;
@@ -237,7 +225,7 @@ void ReferencedObjectsBySignature_Impl(std::shared_ptr<IModel>db)
     expect_eq(values, {"data_00000000CCCCCCCC", "data_00000000DDDDDDDD"});
 
     const auto sigH2 = create_signature(ctx, 0x11111111);
-    db->walk_objects_with_signature(sigH2, [&](const HObject& href)
+    db->walk_versions_with_signature(sigH2, [&](const HVersion& href)
     {
         values.insert(str(href));
         return WALK_CONTINUE;
@@ -245,17 +233,8 @@ void ReferencedObjectsBySignature_Impl(std::shared_ptr<IModel>db)
     EXPECT_EQ(values.size(), db->num_objects_with_signature(sigH2));
     expect_eq(values, {"data_00000000BBBBBBBB"});
 
-    const auto sigH3 = create_signature(ctx, 0x33333333);
-    db->walk_objects_with_signature(sigH3, [&](const HObject& href)
-    {
-        values.insert(str(href));
-        return WALK_CONTINUE;
-    });
-    EXPECT_EQ(values.size(), db->num_objects_with_signature(sigH3));
-    expect_eq(values, {"data_00000000CCCCCCCC"});
-
     const auto sigH4 = create_signature(ctx, 0x55555555);
-    db->walk_objects_with_signature(sigH4, [&](const HObject& href)
+    db->walk_versions_with_signature(sigH4, [&](const HVersion& href)
     {
         values.insert(str(href));
         return WALK_CONTINUE;
@@ -264,7 +243,7 @@ void ReferencedObjectsBySignature_Impl(std::shared_ptr<IModel>db)
     expect_eq(values, {});
 
     const auto sigH5 = create_signature(ctx, 0xBADBADBA);
-    db->walk_objects_with_signature(sigH5, [&](const HObject& href)
+    db->walk_versions_with_signature(sigH5, [&](const HVersion& href)
     {
         values.insert(str(href));
         return WALK_CONTINUE;
@@ -297,8 +276,8 @@ namespace
 
     struct Object
     {
-        YaToolObjectId  id;
-        std::vector<std::shared_ptr<Version>> versions;
+        YaToolObjectId           id;
+        std::shared_ptr<Version> version_;
 
         Object(YaToolObjectId id);
 
@@ -328,113 +307,25 @@ void Version::add_signature(const Signature& sig)
 
 void Version::accept(IModelVisitor& visitor)
 {
-    visitor.visit_start_object_version();
+    visitor.visit_start_reference_object(OBJECT_TYPE_DATA);
+    visitor.visit_id(id);
     if(size)
         visitor.visit_size(size);
     visitor.visit_start_signatures();
     for(const auto& sig : sigs)
         visitor.visit_signature(sig.method, sig.algo, make_string_ref(sig));
     visitor.visit_end_signatures();
-    visitor.visit_end_object_version();
-}
-
-Object::Object(YaToolObjectId id)
-    : id(id)
-{
-}
-
-static std::shared_ptr<Object> create_object(YaToolObjectId id)
-{
-    return std::make_shared<Object>(id);
-}
-
-void Object::putVersion(const std::shared_ptr<Version>& version)
-{
-    versions.push_back(version);
-}
-
-void Object::accept(IModelVisitor& visitor)
-{
-    visitor.visit_start_reference_object(OBJECT_TYPE_DATA);
-    visitor.visit_id(id);
-    for(const auto& version : versions)
-        version->accept(visitor);
     visitor.visit_end_reference_object();
 }
 
-static HObject create_href(Ctx& ctx, Object& object)
+static HVersion create_href(Ctx& ctx, Version& version)
 {
     ctx.models.push_back(MakeMemoryModel());
     auto& db = ctx.models.back();
     db->visit_start();
-    object.accept(*db);
+    version.accept(*db);
     db->visit_end();
-    return db->get_object(object.id);
-}
-
-void walkMatchingVersions_Impl(std::shared_ptr<IModel> db)
-{
-    const auto ov1 = create_version(0xAAAAAAAA, 0x11111111, 0x20);
-    const auto ov2 = create_version(0xAAAA0000, 0x11110001, 0x8);
-
-    const auto ro = create_object(0xAAAA0000);
-    ro->putVersion(ov1);
-    ro->putVersion(ov2);
-
-    Ctx ctx;
-    const auto roH = create_href(ctx, *ro);
-    EXPECT_TRUE(roH.is_valid());
-
-    std::multiset<std::pair<std::string, std::string>> values;
-    db->walk_matching_versions(roH, 0x10, [&](const HVersion& v1, const HVersion& v2)
-    {
-        values.insert(std::make_pair(str(v1), str(v2)));
-        return WALK_CONTINUE;
-    });
-    expect_eq(values, {{"data_00000000BBBBBBBB", "data_00000000AAAA0000"}});
-
-    const auto ov3 = create_version(0xAAAA0000, 0x11111111, 0x30);
-    ro->putVersion(ov3);
-    const auto roH2 = create_href(ctx, *ro);
-    EXPECT_TRUE(roH2.is_valid());
-
-    db->walk_matching_versions(roH2, 0x10, [&](const HVersion& v1, const HVersion& v2)
-    {
-        values.insert(std::make_pair(str(v1), str(v2)));
-        return WALK_CONTINUE;
-    });
-    expect_eq(values, {{"data_00000000BBBBBBBB", "data_00000000AAAA0000"}});
-
-    const auto ov4 = create_version(0xAAAA0000, 0x22222222, 0x20);
-    ro->putVersion(ov4);
-    const auto roH3 = create_href(ctx, *ro);
-    EXPECT_TRUE(roH3.is_valid());
-
-    db->walk_matching_versions(roH3, 0x10, [&](const HVersion& v1, const HVersion& v2)
-    {
-        values.insert(std::make_pair(str(v1), str(v2)));
-        return WALK_CONTINUE;
-    });
-    expect_eq(values, {
-        {"data_00000000BBBBBBBB", "data_00000000AAAA0000"},
-        {"data_00000000CCCCCCCC", "data_00000000AAAA0000"},
-        {"data_00000000DDDDDDDD", "data_00000000AAAA0000"},
-    });
-
-    db->walk_matching_versions(roH3, 0x40, [&](const HVersion& v1, const HVersion& v2)
-    {
-        values.insert(std::make_pair(str(v1), str(v2)));
-        return WALK_CONTINUE;
-    });
-    expect_eq(values, {{"data_00000000BBBBBBBB", "data_00000000AAAA0000"}});
-}
-
-TEST_F(TestYaToolDatabaseModel, memoryModel_walkMatchingVersions) {
-    walkMatchingVersions_Impl(create_memorySignatureDB());
-}
-
-TEST_F(TestYaToolDatabaseModel, FBModel_walkMatchingVersions) {
-    walkMatchingVersions_Impl(create_FBSignatureDB());
+    return db->get_object(version.id);
 }
 
 void walkNoSignatureCollision_Impl(std::shared_ptr<IModel>db)
@@ -447,21 +338,9 @@ void walkNoSignatureCollision_Impl(std::shared_ptr<IModel>db)
     });
     expect_eq(values, {
         {"11111111", "data_00000000BBBBBBBB"},
-        {"33333333", "data_00000000CCCCCCCC"},
-        {"44444444", "data_00000000DDDDDDDD"},
         {"BADBAD00", "code_00000000AAAAAAAA"},
         {"BADBADBA", "code_00000000AAAAAAAA"},
     });
-
-    /*
-    int count = 0;
-    db->walkNoSignatureCollisionReferencedObjects([&](const HSignature& sig, const HVersion& ov){
-        EXPECT_TRUE(sig.toString() == "0x11111111" || sig.toString() == "0xBADBADBA");
-        count ++;
-        return WALK_CONTINUE;
-    });
-    EXPECT_EQ(2, count);
-    */
 }
 
 TEST_F(TestYaToolDatabaseModel, memoryModel_walkNoSignatureCollision) {
@@ -476,10 +355,10 @@ enum FirstOnly_e {FirstOnly, Any};
 
 static auto get_object_for_signature(Ctx ctx, IModel& db, uint32_t value, FirstOnly_e efirst)
 {
-    optional<HObject> object;
+    optional<HVersion> object;
     const auto sig = create_signature(ctx, value);
     size_t count = 0;
-    db.walk_objects_with_signature(sig, [&](const HObject& obj)
+    db.walk_versions_with_signature(sig, [&](const HVersion& obj)
     {
         ++count;
         object = obj;
@@ -494,29 +373,20 @@ static auto get_object_for_signature(Ctx ctx, IModel& db, uint32_t value, FirstO
 void walkObjectVersions_Impl(std::shared_ptr<IModel>db)
 {
     Ctx ctx;
-    const auto objH = get_object_for_signature(ctx, *db, 0x33333333, Any);
+    const auto objH = get_object_for_signature(ctx, *db, 0x11111111, Any);
     EXPECT_TRUE(objH.is_valid());
 
     std::multiset<std::string> values;
-    objH.walk_versions([&](const HVersion& ov)
-    {
-        values.insert(str(ov));
-        return WALK_CONTINUE;
-    });
+    values.insert(str(objH));
     expect_eq(values, {
-        {"data_00000000CCCCCCCC"},
-        {"data_00000000CCCCCCCC"},
+        {"data_00000000BBBBBBBB"},
     });
 
     const auto objH2 = get_object_for_signature(ctx, *db, 0xBADBADBA, Any);
     EXPECT_TRUE(objH2.is_valid());
     EXPECT_EQ(objH2.id(), 0xAAAAAAAA);
     EXPECT_EQ(objH2.type(), OBJECT_TYPE_CODE);
-    objH2.walk_versions([&](const HVersion& ov)
-    {
-        values.insert(str(ov));
-        return WALK_CONTINUE;
-    });
+    values.insert(str(objH2));
     expect_eq(values, {
         {"code_00000000AAAAAAAA"}
     });
@@ -532,16 +402,7 @@ TEST_F(TestYaToolDatabaseModel, FBModel_walkObjectVersions) {
 
 static auto get_version_for_signature(Ctx& ctx, IModel& db, uint32_t value)
 {
-    const auto object = get_object_for_signature(ctx, db, value, FirstOnly);
-    optional<HVersion> hver;
-    object.walk_versions([&](const HVersion& h)
-    {
-        EXPECT_TRUE(!hver);
-        hver = h;
-        return WALK_CONTINUE;
-    });
-    EXPECT_TRUE(!!hver);
-    return *hver;
+    return get_object_for_signature(ctx, db, value, FirstOnly);
 }
 
 void walkObjectVersionSignatures_Impl(std::shared_ptr<IModel>db)
@@ -653,17 +514,14 @@ void referencedObjectMatch_Impl(std::shared_ptr<IModel>db)
 
     //create a local dummy object
     const auto ov1 = create_version(0xAAAA0000, 0x11110001, 0x8);
-    const auto ro = create_object(0xAAAA0000);
-    ro->putVersion(ov1);
-    const auto roH1 = create_href(ctx, *ro);
+    const auto roH1 = create_href(ctx, *ov1);
 
     EXPECT_FALSE(roH1.match(foundObjectH));
     EXPECT_FALSE(foundObjectH.match(roH1));
 
     //Add an OV with same signature but bad size
     const auto ov2 = create_version(0xAAAA0000, 0x11111111, 0x10);
-    ro->putVersion(ov2);
-    const auto roH2 = create_href(ctx, *ro);
+    const auto roH2 = create_href(ctx, *ov2);
 
     EXPECT_FALSE(roH2.match(foundObjectH));
     EXPECT_FALSE(foundObjectH.match(roH2));
@@ -671,58 +529,49 @@ void referencedObjectMatch_Impl(std::shared_ptr<IModel>db)
 
     //Add an OV with different signature but same size
     const auto ov3 = create_version(0xAAAA0000, 0x11110002, 0x20);
-    ro->putVersion(ov3);
-    const auto roH3 = create_href(ctx, *ro);
+    const auto roH3 = create_href(ctx, *ov3);
 
     EXPECT_FALSE(roH3.match(foundObjectH));
     EXPECT_FALSE(foundObjectH.match(roH3));
 
     //Add an OV with same signature and same size
     const auto ov4 = create_version(0xAAAA0000, 0x11111111, 0x20);
-    ro->putVersion(ov4);
-    const auto roH4 = create_href(ctx, *ro);
+    const auto roH4 = create_href(ctx, *ov4);
 
     EXPECT_TRUE(roH4.match(foundObjectH));
     EXPECT_TRUE(foundObjectH.match(roH4));
 
-
-
     /*
      * Same thing but with 2 signatures in the found object
      */
-    HObject foundObjectH2 = db->get_object(0xAAAAAAAA);
+    const auto foundObjectH2 = db->get_object(0xAAAAAAAA);
     EXPECT_EQ(foundObjectH2.id(), 0xAAAAAAAA);
     EXPECT_EQ(foundObjectH2.type(), OBJECT_TYPE_CODE);
 
     //create a local dummy object
     const auto ov2_1 = create_version(0xBBBB0000, 0x22222222, 0x8);
-    const auto ro2 = create_object(0xBBBB0000);
-    ro2->putVersion(ov2_1);
-    const auto roH2_1 = create_href(ctx, *ro2);
+    const auto roH2_1 = create_href(ctx, *ov2_1);
 
     EXPECT_FALSE(roH2_1.match(foundObjectH2));
     EXPECT_FALSE(foundObjectH2.match(roH2_1));
 
     //Add an OV with same signature but bad size
     const auto ov2_2 = create_version(0xBBBB0000, 0xBADBADBA, 0x100);
-    ro2->putVersion(ov2_2);
-    const auto roH2_2 = create_href(ctx, *ro2);
+    const auto roH2_2 = create_href(ctx, *ov2_2);
 
     EXPECT_FALSE(roH2_2.match(foundObjectH2));
     EXPECT_FALSE(foundObjectH2.match(roH2_2));
 
     //Add an OV with different signature but same size
     const auto ov2_3 = create_version(0xBBBB0000, 0x33333333, 0x10);
-    ro2->putVersion(ov2_3);
-    const auto roH2_3 = create_href(ctx, *ro2);
+    const auto roH2_3 = create_href(ctx, *ov2_3);
 
     EXPECT_FALSE(roH2_3.match(foundObjectH2));
     EXPECT_FALSE(foundObjectH2.match(roH2_3));
 
     //Add an OV with same signature and same size, but 1 missing signature
     const auto ov2_4 = create_version(0xBBBB0000, 0xBADBADBA, 0x10);
-    ro2->putVersion(ov2_4);
-    const auto roH2_4 = create_href(ctx, *ro2);
+    const auto roH2_4 = create_href(ctx, *ov2_4);
 
     EXPECT_FALSE(roH2_4.match(foundObjectH2));
     EXPECT_FALSE(foundObjectH2.match(roH2_4));
@@ -730,8 +579,7 @@ void referencedObjectMatch_Impl(std::shared_ptr<IModel>db)
     //Add an OV with same signatureS and same size
     const auto ov2_5 = create_version(0xBBBB0000, 0xBADBADBA, 0x10);
     ov2_5->add_signature(MakeSignature(SIGNATURE_ALGORITHM_CRC32, SIGNATURE_FIRSTBYTE, make_string_ref("BADBAD00")));
-    ro2->putVersion(ov2_5);
-    const auto roH2_5 = create_href(ctx, *ro2);
+    const auto roH2_5 = create_href(ctx, *ov2_5);
 
     EXPECT_TRUE(roH2_5.match(foundObjectH2));
     EXPECT_TRUE(foundObjectH2.match(roH2_5));
@@ -749,9 +597,9 @@ TEST_F(TestYaToolDatabaseModel, FBModel_referencedObjectMatch) {
 void walkXrefsFromReferencedObject_Impl(std::shared_ptr<IModel>db)
 {
     std::multiset<std::tuple<std::string, offset_t, operand_t, std::string>> values;
-    db->walk_objects([&](YaToolObjectId, const HObject& href)
+    db->walk_objects([&](YaToolObjectId, const HVersion& href)
     {
-        href.walk_xrefs_from([&](offset_t offset, operand_t operand, const HObject& xref)
+        href.walk_xrefs_from([&](offset_t offset, operand_t operand, const HVersion& xref)
         {
             values.insert(std::make_tuple(str(href), offset, operand, str(xref)));
             return WALK_CONTINUE;
@@ -782,9 +630,9 @@ TEST_F(TestYaToolDatabaseModel, FBModel_walkXrefsFromReferencedObject) {
 void walkXrefsToReferencedObject_Impl(std::shared_ptr<IModel>db)
 {
     std::multiset<std::pair<std::string, std::string>> values;
-    db->walk_objects([&](YaToolObjectId, const HObject& href)
+    db->walk_objects([&](YaToolObjectId, const HVersion& href)
     {
-        href.walk_xrefs_to([&](const HObject& xref)
+        href.walk_xrefs_to([&](const HVersion& xref)
         {
             values.insert(std::make_pair(str(href), str(xref)));
             return WALK_CONTINUE;
@@ -812,15 +660,11 @@ TEST_F(TestYaToolDatabaseModel, FBModel_walkXrefsToReferencedObject) {
 void walkXrefsFromObjectVersion_Impl(std::shared_ptr<IModel>db)
 {
     std::multiset<std::tuple<std::string, std::string, offset_t, operand_t, std::string>> values;
-    db->walk_objects([&](YaToolObjectId, const HObject& href)
+    db->walk_objects([&](YaToolObjectId, const HVersion& hver)
     {
-        href.walk_versions([&](const HVersion& hver)
+        hver.walk_xrefs_from([&](offset_t offset, operand_t operand, const HVersion& xref)
         {
-            hver.walk_xrefs_from([&](offset_t offset, operand_t operand, const HObject& xref)
-            {
-                values.insert(std::make_tuple(str(href), str(hver), offset, operand, str(xref)));
-                return WALK_CONTINUE;
-            });
+            values.insert(std::make_tuple(str(hver), str(hver), offset, operand, str(xref)));
             return WALK_CONTINUE;
         });
         return WALK_CONTINUE;
@@ -849,15 +693,11 @@ TEST_F(TestYaToolDatabaseModel, FBModel_walkXrefsFromObjectVersion) {
 void walkXrefsToObjectVersion_Impl(std::shared_ptr<IModel>db)
 {
     std::multiset<std::tuple<std::string, std::string, std::string>> values;
-    db->walk_objects([&](YaToolObjectId, const HObject& href)
+    db->walk_objects([&](YaToolObjectId, const HVersion& hver)
     {
-        href.walk_versions([&](const HVersion& hver)
+        hver.walk_xrefs_to([&](const HVersion& xref)
         {
-            hver.walk_xrefs_to([&](const HObject& xref)
-            {
-                values.insert(std::make_tuple(str(href), str(hver), str(xref)));
-                return WALK_CONTINUE;
-            });
+            values.insert(std::make_tuple(str(hver), str(hver), str(xref)));
             return WALK_CONTINUE;
         });
         return WALK_CONTINUE;
@@ -866,12 +706,8 @@ void walkXrefsToObjectVersion_Impl(std::shared_ptr<IModel>db)
         std::make_tuple("data_00000000BBBBBBBB", "data_00000000BBBBBBBB", "code_00000000AAAAAAAA"),
         std::make_tuple("data_00000000BBBBBBBB", "data_00000000BBBBBBBB", "data_00000000DDDDDDDD"),
         std::make_tuple("data_00000000CCCCCCCC", "data_00000000CCCCCCCC", "code_00000000AAAAAAAA"),
-        std::make_tuple("data_00000000CCCCCCCC", "data_00000000CCCCCCCC", "code_00000000AAAAAAAA"),
-        std::make_tuple("data_00000000CCCCCCCC", "data_00000000CCCCCCCC", "data_00000000DDDDDDDD"),
         std::make_tuple("data_00000000CCCCCCCC", "data_00000000CCCCCCCC", "data_00000000DDDDDDDD"),
         std::make_tuple("data_00000000DDDDDDDD", "data_00000000DDDDDDDD", "code_00000000AAAAAAAA"),
-        std::make_tuple("data_00000000DDDDDDDD", "data_00000000DDDDDDDD", "code_00000000AAAAAAAA"),
-        std::make_tuple("data_00000000DDDDDDDD", "data_00000000DDDDDDDD", "data_00000000BBBBBBBB"),
         std::make_tuple("data_00000000DDDDDDDD", "data_00000000DDDDDDDD", "data_00000000BBBBBBBB"),
     });
 }
@@ -934,8 +770,8 @@ static void create_model_objects_without_versions(IModelVisitor& visitor)
 static void testObjectWithoutVersion(IModel& db)
 {
     std::multiset<std::pair<std::string, std::string>> values;
-    std::vector<std::pair<YaToolObjectId, HObject>> ids;
-    db.walk_objects([&](const YaToolObjectId& id, const HObject& href)
+    std::vector<std::pair<YaToolObjectId, HVersion>> ids;
+    db.walk_objects([&](const YaToolObjectId& id, const HVersion& href)
     {
         values.insert(std::make_pair(str(id), str(href)));
         ids.push_back({id, href});
@@ -968,7 +804,7 @@ TEST_F(TestYaToolDatabaseModel, test_model_get_object_with_invalid_id)
     EXPECT_EQ(hobj1.is_valid(), false);
     const auto hobj2 = model->get_object(0);
     EXPECT_EQ(hobj2.is_valid(), false);
-    model->walk_objects([&](YaToolObjectId id, const HObject& /*hobj*/)
+    model->walk_objects([&](YaToolObjectId id, const HVersion& /*hobj*/)
     {
         const auto hobj3 = model->get_object(id+1);
         EXPECT_EQ(hobj3.is_valid(), false);

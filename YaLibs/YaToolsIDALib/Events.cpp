@@ -20,7 +20,6 @@
 #include "Pool.hpp"
 #include "Hash.hpp"
 #include "YaHelpers.hpp"
-#include "HObject.hpp"
 #include "Repository.hpp"
 #include "Helpers.h"
 #include "HVersion.hpp"
@@ -603,12 +602,12 @@ namespace
     };
 
     // will add id to model on first insertion
-    bool try_add_id(DepCtx& ctx, YaToolObjectId id, const HObject& hobj)
+    bool try_add_id(DepCtx& ctx, YaToolObjectId id, const HVersion& hver)
     {
         // remember which ids have been seen already
         const auto inserted = ctx.seen.emplace(id).second;
         if(inserted)
-            hobj.accept(ctx.visitor);
+            hver.accept(ctx.visitor);
         return inserted;
     }
 
@@ -628,26 +627,22 @@ namespace
 
     void add_id_and_dependencies(DepCtx& ctx, YaToolObjectId id, DepsMode mode)
     {
-        const auto hobj = ctx.model.get_object(id);
-        if(!hobj.is_valid())
+        const auto hver = ctx.model.get_object(id);
+        if(!hver.is_valid())
             return;
 
-        const auto ok = try_add_id(ctx, id, hobj);
+        const auto ok = try_add_id(ctx, id, hver);
         if(!ok)
             return;
 
-        hobj.walk_versions([&](const HVersion& hver)
+        // add parent id & its dependencies
+        add_id_and_dependencies(ctx, hver.parent_id(), SKIP_DEPENDENCIES);
+        if(mode != USE_DEPENDENCIES && !must_add_dependencies(hver.type()))
+            return;
+        hver.walk_xrefs([&](offset_t, operand_t, auto xref_id, auto)
         {
-            // add parent id & its dependencies
-            add_id_and_dependencies(ctx, hver.parent_id(), SKIP_DEPENDENCIES);
-            if(mode != USE_DEPENDENCIES && !must_add_dependencies(hver.type()))
-                return WALK_CONTINUE;
-            hver.walk_xrefs([&](offset_t, operand_t, auto xref_id, auto)
-            {
-                // add xref id & its dependencies
-                add_id_and_dependencies(ctx, xref_id, SKIP_DEPENDENCIES);
-                return WALK_CONTINUE;
-            });
+            // add xref id & its dependencies
+            add_id_and_dependencies(ctx, xref_id, SKIP_DEPENDENCIES);
             return WALK_CONTINUE;
         });
     }
@@ -657,18 +652,14 @@ namespace
         if(!deleted.num_objects())
             return;
 
-        deps.model.walk_objects([&](YaToolObjectId id, const HObject& hobj)
+        deps.model.walk_objects([&](YaToolObjectId id, const HVersion& hver)
         {
-            if(!must_add_dependencies(hobj.type()))
+            if(!must_add_dependencies(hver.type()))
                 return WALK_CONTINUE;
-            hobj.walk_versions([&](const HVersion& hver)
+            hver.walk_xrefs([&](offset_t, operand_t, auto xref_id, auto)
             {
-                hver.walk_xrefs([&](offset_t, operand_t, auto xref_id, auto)
-                {
-                    if(deleted.has_object(xref_id))
-                        add_id_and_dependencies(deps, id, USE_DEPENDENCIES);
-                    return WALK_CONTINUE;
-                });
+                if(deleted.has_object(xref_id))
+                    add_id_and_dependencies(deps, id, USE_DEPENDENCIES);
                 return WALK_CONTINUE;
             });
             return WALK_CONTINUE;
@@ -694,7 +685,7 @@ namespace
         add_missing_parents_from_deletions(deps, deleted);
 
         // load all modified objects
-        updated.walk_objects([&](auto id, const HObject& /*hobj*/)
+        updated.walk_objects([&](auto id, const HVersion& /*hver*/)
         {
             // add this id & its dependencies
             add_id_and_dependencies(deps, id, USE_DEPENDENCIES);

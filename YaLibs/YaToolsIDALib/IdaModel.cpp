@@ -241,7 +241,6 @@ namespace
     {
         v.visit_start_reference_object(type);
         v.visit_id(id);
-        v.visit_start_object_version();
         if(parent)
             v.visit_parent_id(parent);
         v.visit_address(offset_from_ea(ea));
@@ -249,7 +248,6 @@ namespace
 
     void finish_object(IModelVisitor& v)
     {
-        v.visit_end_object_version();
         v.visit_end_reference_object();
     }
 

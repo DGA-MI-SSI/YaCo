@@ -28,10 +28,8 @@ class IModelVisitor
     virtual void visit_end_deleted_object() = 0;
     virtual void visit_end_reference_object() = 0;
     virtual void visit_id(YaToolObjectId object_id) = 0;
-    virtual void visit_start_object_version() = 0;
     virtual void visit_parent_id(YaToolObjectId parent_id) = 0;
     virtual void visit_address(offset_t address) = 0;
-    virtual void visit_end_object_version() = 0;
     virtual void visit_name(const const_string_ref& name, int flags) = 0;
     virtual void visit_size(offset_t size) = 0;
     virtual void visit_start_signatures() = 0;

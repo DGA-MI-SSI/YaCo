@@ -8,8 +8,6 @@ set(_yatools_files
     "../YaLibs/YaToolsLib/FlatBufferModel.hpp"
     "../YaLibs/YaToolsLib/FlatBufferVisitor.cpp"
     "../YaLibs/YaToolsLib/FlatBufferVisitor.hpp"
-    "../YaLibs/YaToolsLib/HObject.cpp"
-    "../YaLibs/YaToolsLib/HObject.hpp"
     "../YaLibs/YaToolsLib/HSignature.cpp"
     "../YaLibs/YaToolsLib/HSignature.hpp"
     "../YaLibs/YaToolsLib/HVersion.cpp"

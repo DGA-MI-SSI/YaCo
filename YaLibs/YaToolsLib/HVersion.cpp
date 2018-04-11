@@ -31,7 +31,7 @@ void HVersion::walk_xrefs_from(const IVersions::OnXrefFromFn& fnWalk) const
     model_->walk_xrefs_from(id_, fnWalk);
 }
 
-void HVersion::walk_xrefs_to(const IVersions::OnObjectFn& fnWalk) const
+void HVersion::walk_xrefs_to(const IVersions::OnVersionFn& fnWalk) const
 {
     model_->walk_xrefs_to(id_, fnWalk);
 }
@@ -131,20 +131,30 @@ void HVersion::walk_attributes(const IVersions::OnAttributeFn& fnWalk)const
     model_->walk_attributes(id_, fnWalk);
 }
 
-bool HVersion::match(const HVersion& version) const
+bool HVersion::match(const HVersion& remote) const
 {
-    ContinueWalking_e stop = WALK_CONTINUE;
-    walk_signatures([&](const HSignature& signature)
+    if(size() != remote.size())
+        return false;
+
+    bool this_match_found = true;
+    int local_count = 0;
+    int remote_count = 0;
+    remote.walk_signatures([&](const HSignature& remote_sig)
     {
-        version.walk_signatures([&](const HSignature& re_signature)
+        int found = 0;
+        local_count++;
+        remote_count = 0;
+        walk_signatures([&](const HSignature& local_sig)
         {
-            if(std::equal_to<>()(signature, re_signature))
-                stop = WALK_STOP;
-            return stop;
+            remote_count++;
+            found += remote_sig == local_sig;
+            return WALK_CONTINUE;
         });
-        return stop;
+        if(found != 1)
+            this_match_found = false;
+        return WALK_CONTINUE;
     });
-    return stop == WALK_STOP;
+    return this_match_found && local_count == remote_count;
 }
 
 bool HVersion::is_different_from(const HVersion& object_version_diff) const
