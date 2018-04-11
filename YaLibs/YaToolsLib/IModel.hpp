@@ -40,32 +40,32 @@ struct IVersions
     typedef std::function<ContinueWalking_e(offset_t, operand_t, YaToolObjectId, const XrefAttributes*)> OnXrefFn;
     typedef std::function<ContinueWalking_e(const const_string_ref&, const const_string_ref&)> OnAttributeFn;
 
-    virtual void                accept(HVersion_id_t version_id, IModelVisitor& visitor) const = 0;
+    virtual void                accept(VersionIndex idx, IModelVisitor& visitor) const = 0;
 
-    virtual YaToolObjectId      id              (HVersion_id_t version_id) const = 0;
-    virtual YaToolObjectId      parent_id       (HVersion_id_t version_id) const = 0;
-    virtual offset_t            size            (HVersion_id_t version_id) const = 0;
-    virtual YaToolObjectType_e  type            (HVersion_id_t version_id) const = 0;
-    virtual offset_t            address         (HVersion_id_t version_id) const = 0;
-    virtual const_string_ref    username        (HVersion_id_t version_id) const = 0;
-    virtual int                 username_flags  (HVersion_id_t version_id) const = 0;
-    virtual const_string_ref    prototype       (HVersion_id_t version_id) const = 0;
-    virtual YaToolFlag_T        flags           (HVersion_id_t version_id) const = 0;
-    virtual int                 string_type     (HVersion_id_t version_id) const = 0;
-    virtual const_string_ref    header_comment  (HVersion_id_t version_id, bool repeatable) const = 0;
-    virtual bool                has_signature   (HVersion_id_t version_id) const = 0;
+    virtual YaToolObjectId      id              (VersionIndex idx) const = 0;
+    virtual YaToolObjectId      parent_id       (VersionIndex idx) const = 0;
+    virtual offset_t            size            (VersionIndex idx) const = 0;
+    virtual YaToolObjectType_e  type            (VersionIndex idx) const = 0;
+    virtual offset_t            address         (VersionIndex idx) const = 0;
+    virtual const_string_ref    username        (VersionIndex idx) const = 0;
+    virtual int                 username_flags  (VersionIndex idx) const = 0;
+    virtual const_string_ref    prototype       (VersionIndex idx) const = 0;
+    virtual YaToolFlag_T        flags           (VersionIndex idx) const = 0;
+    virtual int                 string_type     (VersionIndex idx) const = 0;
+    virtual const_string_ref    header_comment  (VersionIndex idx, bool repeatable) const = 0;
+    virtual bool                has_signature   (VersionIndex idx) const = 0;
 
-    virtual void                walk_signatures         (HVersion_id_t version_id, const OnSignatureFn& fnWalk) const = 0;
-    virtual void                walk_xrefs_from         (HVersion_id_t version_id, const OnXrefFromFn& fnWalk) const = 0;
-    virtual void                walk_xrefs_to           (HVersion_id_t version_id, const OnVersionFn& fnWalk) const = 0;
-    virtual void                walk_blobs              (HVersion_id_t version_id, const OnBlobFn& fnWalk) const = 0;
-    virtual void                walk_comments           (HVersion_id_t version_id, const OnCommentFn& fnWalk) const = 0;
-    virtual void                walk_value_views        (HVersion_id_t version_id, const OnValueViewFn& fnWalk) const = 0;
-    virtual void                walk_register_views     (HVersion_id_t version_id, const OnRegisterViewFn& fnWalk) const = 0;
-    virtual void                walk_hidden_areas       (HVersion_id_t version_id, const OnHiddenAreaFn& fnWalk) const = 0;
-    virtual void                walk_xrefs              (HVersion_id_t version_id, const OnXrefFn& fnWalk) const = 0;
-    virtual void                walk_xref_attributes    (HVersion_id_t version_id, const XrefAttributes* hattr, const OnAttributeFn& fnWalk) const = 0;
-    virtual void                walk_attributes         (HVersion_id_t version_id, const OnAttributeFn& fnWalk) const = 0;
+    virtual void                walk_signatures         (VersionIndex idx, const OnSignatureFn& fnWalk) const = 0;
+    virtual void                walk_xrefs_from         (VersionIndex idx, const OnXrefFromFn& fnWalk) const = 0;
+    virtual void                walk_xrefs_to           (VersionIndex idx, const OnVersionFn& fnWalk) const = 0;
+    virtual void                walk_blobs              (VersionIndex idx, const OnBlobFn& fnWalk) const = 0;
+    virtual void                walk_comments           (VersionIndex idx, const OnCommentFn& fnWalk) const = 0;
+    virtual void                walk_value_views        (VersionIndex idx, const OnValueViewFn& fnWalk) const = 0;
+    virtual void                walk_register_views     (VersionIndex idx, const OnRegisterViewFn& fnWalk) const = 0;
+    virtual void                walk_hidden_areas       (VersionIndex idx, const OnHiddenAreaFn& fnWalk) const = 0;
+    virtual void                walk_xrefs              (VersionIndex idx, const OnXrefFn& fnWalk) const = 0;
+    virtual void                walk_xref_attributes    (VersionIndex idx, const XrefAttributes* hattr, const OnAttributeFn& fnWalk) const = 0;
+    virtual void                walk_attributes         (VersionIndex idx, const OnAttributeFn& fnWalk) const = 0;
 };
 
 struct ISignatures
@@ -84,25 +84,22 @@ struct IModel
     virtual void                accept(IModelVisitor& visitor) = 0;
 
     // private methods
-    typedef std::function<ContinueWalking_e(YaToolObjectId, const HVersion&)> OnVersionAndIdFn;
     typedef std::function<ContinueWalking_e(const HVersion&)> OnVersionFn;
-    typedef std::function<ContinueWalking_e(const HSignature&, const HVersion&)> OnSigAndVersionFn;
-    typedef std::function<ContinueWalking_e(const HVersion&, const HVersion&)> OnVersionPairFn;
+    typedef std::function<ContinueWalking_e(const HVersion&, const HSignature&)> OnSignatureFn;
 
-    virtual void                walk_objects                    (const OnVersionAndIdFn& fnWalk) const = 0;
-    virtual size_t              num_objects                     () const = 0;
-    virtual HVersion            get_object                      (YaToolObjectId id) const = 0;
-    virtual bool                has_object                      (YaToolObjectId id) const = 0;
-    virtual size_t              num_objects_with_signature      (const HSignature& hash) const = 0;
-    virtual void                walk_versions_with_signature    (const HSignature& hash, const OnVersionFn& fnWalk) const = 0;
-    virtual void                walk_versions_without_collision (const OnSigAndVersionFn& fnWalk) const = 0;
+    virtual void                walk            (const OnVersionFn& fnWalk) const = 0;
+    virtual size_t              size            () const = 0;
+    virtual HVersion            get             (YaToolObjectId id) const = 0;
+    virtual bool                has             (YaToolObjectId id) const = 0;
+    virtual size_t              size_matching   (const HSignature& sig) const = 0;
+    virtual void                walk_matching   (const HSignature& sig, const OnVersionFn& fnWalk) const = 0;
+    virtual void                walk_uniques    (const OnSignatureFn& fnWalk) const = 0;
 
     /**
      * Return all the versions from this object that match a version of another object
-     * This returns pairs of <va,vb> with matches
      * If the signature has collisions, the local version is checked for its size, and the match is ignored
      * if the size is < min_size
-     * Thus, small functions that have many collisions will be avoided
+     * Thus small functions that have many collisions are avoided
      */
-    virtual void walk_matching_versions(const HVersion& object, size_t min_size, const OnVersionPairFn& fnWalk) const = 0;
+    virtual void walk_matching(const HVersion& version, size_t min_size, const OnVersionFn& fnWalk) const = 0;
 };

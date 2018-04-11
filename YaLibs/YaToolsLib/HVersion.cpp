@@ -23,112 +23,112 @@ STATIC_ASSERT_POD(HVersion);
 
 void HVersion::walk_signatures(const IVersions::OnSignatureFn& fnWalk) const
 {
-    model_->walk_signatures(id_, fnWalk);
+    model_->walk_signatures(idx_, fnWalk);
 }
 
 void HVersion::walk_xrefs_from(const IVersions::OnXrefFromFn& fnWalk) const
 {
-    model_->walk_xrefs_from(id_, fnWalk);
+    model_->walk_xrefs_from(idx_, fnWalk);
 }
 
 void HVersion::walk_xrefs_to(const IVersions::OnVersionFn& fnWalk) const
 {
-    model_->walk_xrefs_to(id_, fnWalk);
+    model_->walk_xrefs_to(idx_, fnWalk);
 }
 
 offset_t HVersion::size() const
 {
-    return model_->size(id_);
+    return model_->size(idx_);
 }
 
 YaToolObjectType_e HVersion::type() const
 {
-    return model_->type(id_);
+    return model_->type(idx_);
 }
 
 YaToolObjectId HVersion::id() const
 {
-    return model_->id(id_);
+    return model_->id(idx_);
 }
 
 YaToolObjectId HVersion::parent_id() const
 {
-    return model_->parent_id(id_);
+    return model_->parent_id(idx_);
 }
 
 offset_t HVersion::address() const
 {
-    return model_->address(id_);
+    return model_->address(idx_);
 }
 
 const_string_ref HVersion::username() const
 {
-    return model_->username(id_);
+    return model_->username(idx_);
 }
 
 int HVersion::username_flags() const
 {
-    return model_->username_flags(id_);
+    return model_->username_flags(idx_);
 }
 
 const_string_ref HVersion::prototype() const
 {
-    return model_->prototype(id_);
+    return model_->prototype(idx_);
 }
 
 YaToolFlag_T HVersion::flags()const
 {
-    return model_->flags(id_);
+    return model_->flags(idx_);
 }
 
 int HVersion::string_type()const
 {
-    return model_->string_type(id_);
+    return model_->string_type(idx_);
 }
 
 void HVersion::walk_blobs(const IVersions::OnBlobFn& fnWalk)const
 {
-    model_->walk_blobs(id_, fnWalk);
+    model_->walk_blobs(idx_, fnWalk);
 }
 
 const_string_ref HVersion::header_comment(bool repeatable)const
 {
-    return model_->header_comment(id_, repeatable);
+    return model_->header_comment(idx_, repeatable);
 }
 
 void HVersion::walk_comments(const IVersions::OnCommentFn& fnWalk)const
 {
-    model_->walk_comments(id_, fnWalk);
+    model_->walk_comments(idx_, fnWalk);
 }
 
 void HVersion::walk_value_views(const IVersions::OnValueViewFn& fnWalk)const
 {
-    model_->walk_value_views(id_, fnWalk);
+    model_->walk_value_views(idx_, fnWalk);
 }
 
 void HVersion::walk_register_views(const IVersions::OnRegisterViewFn& fnWalk)const
 {
-    model_->walk_register_views(id_, fnWalk);
+    model_->walk_register_views(idx_, fnWalk);
 }
 
 void HVersion::walk_hidden_areas(const IVersions::OnHiddenAreaFn& fnWalk)const
 {
-    model_->walk_hidden_areas(id_, fnWalk);
+    model_->walk_hidden_areas(idx_, fnWalk);
 }
 
 void HVersion::walk_xrefs(const IVersions::OnXrefFn& fnWalk)const
 {
-    model_->walk_xrefs(id_, fnWalk);
+    model_->walk_xrefs(idx_, fnWalk);
 }
 
 void HVersion::walk_xref_attributes(const XrefAttributes* hattr, const IVersions::OnAttributeFn& fnWalk)const
 {
-    model_->walk_xref_attributes(id_, hattr, fnWalk);
+    model_->walk_xref_attributes(idx_, hattr, fnWalk);
 }
 
 void HVersion::walk_attributes(const IVersions::OnAttributeFn& fnWalk)const
 {
-    model_->walk_attributes(id_, fnWalk);
+    model_->walk_attributes(idx_, fnWalk);
 }
 
 bool HVersion::match(const HVersion& remote) const
@@ -292,13 +292,13 @@ bool HVersion::is_different_from(const HVersion& object_version_diff) const
 
 void HVersion::accept(IModelVisitor& visitor) const
 {
-    return model_->accept(id_, visitor);
+    return model_->accept(idx_, visitor);
 }
 
 bool HVersion::has_comments() const
 {
     bool found = false;
-    model_->walk_comments(id_, [&](offset_t, CommentType_e, const const_string_ref&)
+    model_->walk_comments(idx_, [&](offset_t, CommentType_e, const const_string_ref&)
     {
         found = true;
         return WALK_STOP;
@@ -309,7 +309,7 @@ bool HVersion::has_comments() const
 bool HVersion::has_attributes() const
 {
     bool found = false;
-    model_->walk_attributes(id_, [&](const const_string_ref&, const const_string_ref&)
+    model_->walk_attributes(idx_, [&](const const_string_ref&, const const_string_ref&)
     {
         found = true;
         return WALK_STOP;
@@ -320,7 +320,7 @@ bool HVersion::has_attributes() const
 bool HVersion::has_blobs() const
 {
     bool found = false;
-    model_->walk_blobs(id_, [&](offset_t, const void*, size_t)
+    model_->walk_blobs(idx_, [&](offset_t, const void*, size_t)
     {
         found = true;
         return WALK_STOP;
@@ -331,7 +331,7 @@ bool HVersion::has_blobs() const
 bool HVersion::has_signatures() const
 {
     bool found = false;
-    model_->walk_signatures(id_, [&](const HSignature&)
+    model_->walk_signatures(idx_, [&](const HSignature&)
     {
         found = true;
         return WALK_STOP;
@@ -342,7 +342,7 @@ bool HVersion::has_signatures() const
 bool HVersion::has_value_views() const
 {
     bool found = false;
-    model_->walk_value_views(id_, [&](offset_t, operand_t, const const_string_ref&)
+    model_->walk_value_views(idx_, [&](offset_t, operand_t, const const_string_ref&)
     {
         found = true;
         return WALK_STOP;
@@ -353,7 +353,7 @@ bool HVersion::has_value_views() const
 bool HVersion::has_register_views() const
 {
     bool found = false;
-    model_->walk_register_views(id_, [&](offset_t, offset_t, const const_string_ref&, const const_string_ref&)
+    model_->walk_register_views(idx_, [&](offset_t, offset_t, const const_string_ref&, const const_string_ref&)
     {
         found = true;
         return WALK_STOP;
@@ -364,7 +364,7 @@ bool HVersion::has_register_views() const
 bool HVersion::has_hidden_areas() const
 {
     bool found = false;
-    model_->walk_hidden_areas(id_, [&](offset_t, offset_t, const const_string_ref&)
+    model_->walk_hidden_areas(idx_, [&](offset_t, offset_t, const const_string_ref&)
     {
         found = true;
         return WALK_STOP;
@@ -375,7 +375,7 @@ bool HVersion::has_hidden_areas() const
 bool HVersion::has_xrefs() const
 {
     bool found = false;
-    model_->walk_xrefs(id_, [&](offset_t, operand_t, YaToolObjectId, const void*)
+    model_->walk_xrefs(idx_, [&](offset_t, operand_t, YaToolObjectId, const void*)
     {
         found = true;
         return WALK_STOP;
@@ -385,15 +385,15 @@ bool HVersion::has_xrefs() const
 
 bool HVersion::has_prototype() const
 {
-    return !!model_->prototype(id_).size;
+    return !!model_->prototype(idx_).size;
 }
 
 bool HVersion::has_username() const
 {
-    return !!model_->username(id_).size;
+    return !!model_->username(idx_).size;
 }
 
 bool HVersion::has_header_comment(bool repeatable) const
 {
-    return !!model_->header_comment(id_, repeatable).size;
+    return !!model_->header_comment(idx_, repeatable).size;
 }

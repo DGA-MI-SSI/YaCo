@@ -1883,7 +1883,7 @@ namespace
 
 void Visitor::update(const IModel& model)
 {
-    model.walk_objects([&](YaToolObjectId /*id*/, const HVersion& hver)
+    model.walk([&](const HVersion& hver)
     {
         update_version(*this, hver);
         return WALK_CONTINUE;

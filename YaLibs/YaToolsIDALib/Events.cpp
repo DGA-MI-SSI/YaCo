@@ -627,7 +627,7 @@ namespace
 
     void add_id_and_dependencies(DepCtx& ctx, YaToolObjectId id, DepsMode mode)
     {
-        const auto hver = ctx.model.get_object(id);
+        const auto hver = ctx.model.get(id);
         if(!hver.is_valid())
             return;
 
@@ -649,16 +649,17 @@ namespace
 
     void add_missing_parents_from_deletions(DepCtx& deps, const IModel& deleted)
     {
-        if(!deleted.num_objects())
+        if(!deleted.size())
             return;
 
-        deps.model.walk_objects([&](YaToolObjectId id, const HVersion& hver)
+        deps.model.walk([&](const HVersion& hver)
         {
             if(!must_add_dependencies(hver.type()))
                 return WALK_CONTINUE;
+            const auto id = hver.id();
             hver.walk_xrefs([&](offset_t, operand_t, auto xref_id, auto)
             {
-                if(deleted.has_object(xref_id))
+                if(deleted.has(xref_id))
                     add_id_and_dependencies(deps, id, USE_DEPENDENCIES);
                 return WALK_CONTINUE;
             });
@@ -685,10 +686,10 @@ namespace
         add_missing_parents_from_deletions(deps, deleted);
 
         // load all modified objects
-        updated.walk_objects([&](auto id, const HVersion& /*hver*/)
+        updated.walk([&](const HVersion& hver)
         {
             // add this id & its dependencies
-            add_id_and_dependencies(deps, id, USE_DEPENDENCIES);
+            add_id_and_dependencies(deps, hver.id(), USE_DEPENDENCIES);
             return WALK_CONTINUE;
         });
 
@@ -711,8 +712,8 @@ namespace
         });
         deleted->visit_end();
         updated->visit_end();
-        if(updated->num_objects() || deleted->num_objects())
-            LOG(INFO, "rebase: %zd updated %zd deleted\n", updated->num_objects(), deleted->num_objects());
+        if(updated->size() || deleted->size())
+            LOG(INFO, "rebase: %zd updated %zd deleted\n", updated->size(), deleted->size());
 
         // apply changes on ida
         sink.remove(*deleted);

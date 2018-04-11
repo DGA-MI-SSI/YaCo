@@ -140,7 +140,7 @@ namespace
 
 void delete_from_model(const IModel& model)
 {
-    model.walk_objects([](YaToolObjectId /*id*/, const HVersion& hver)
+    model.walk([](const HVersion& hver)
     {
         ::delete_object(hver);
         return WALK_CONTINUE;

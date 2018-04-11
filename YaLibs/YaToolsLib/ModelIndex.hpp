@@ -33,8 +33,8 @@ namespace
 {
 struct XrefTo
 {
-    HVersion_id_t from;
-    HVersion_id_t to;
+    VersionIndex from;
+    VersionIndex to;
 };
 STATIC_ASSERT_POD(XrefTo);
 
@@ -45,52 +45,52 @@ struct Sig
 };
 STATIC_ASSERT_POD(Sig);
 
-struct ObjectId
+struct VersionIdToIdx
 {
     YaToolObjectId  id;
-    HVersion_id_t   idx;
+    VersionIndex    idx;
 };
-STATIC_ASSERT_POD(ObjectId);
+STATIC_ASSERT_POD(VersionIdToIdx);
 
 struct ModelIndex
 {
-    std::vector<XrefTo>     xrefs_to_;
-    std::vector<Sig>        sigs_;
-    std::vector<Sig>        unique_sigs_;
-    std::vector<ObjectId>   object_ids_;
+    std::vector<XrefTo>         xrefs_to_;
+    std::vector<Sig>            sigs_;
+    std::vector<Sig>            uniques_;
+    std::vector<VersionIdToIdx> idxs_;
 };
 
 inline void reserve(ModelIndex& mi, size_t num_versions)
 {
-    mi.object_ids_.reserve(num_versions);
+    mi.idxs_.reserve(num_versions);
     mi.sigs_.reserve(num_versions);
-    mi.unique_sigs_.reserve(num_versions);
+    mi.uniques_.reserve(num_versions);
     mi.xrefs_to_.reserve(num_versions); // FIXME
 }
 
-bool operator<(const ObjectId& a, const ObjectId& b)
+bool operator<(const VersionIdToIdx& a, const VersionIdToIdx& b)
 {
     return a.id < b.id;
 }
 
-bool operator<(const ObjectId& a, YaToolObjectId b)
+bool operator<(const VersionIdToIdx& a, YaToolObjectId b)
 {
     return a.id < b;
 }
 
-void add_object(ModelIndex& mi, YaToolObjectId id, HVersion_id_t idx)
+void add_index(ModelIndex& mi, YaToolObjectId id, VersionIndex idx)
 {
-    mi.object_ids_.push_back({id, idx});
+    mi.idxs_.push_back({id, idx});
 }
 
-void finish_objects(ModelIndex& mi)
+void finish_indexs(ModelIndex& mi)
 {
-    std::sort(mi.object_ids_.begin(), mi.object_ids_.end());
+    std::sort(mi.idxs_.begin(), mi.idxs_.end());
 }
 
-optional<HVersion_id_t> find_object_id(const ModelIndex& mi, YaToolObjectId id)
+optional<VersionIndex> find_index(const ModelIndex& mi, YaToolObjectId id)
 {
-    const auto& d = mi.object_ids_;
+    const auto& d = mi.idxs_;
     const auto it = std::lower_bound(d.begin(), d.end(), id);
     if(it == d.end() || it->id != id)
         return nullopt;
@@ -107,10 +107,10 @@ bool operator==(const XrefTo& a, const XrefTo& b)
     return std::make_pair(a.to, a.from) == std::make_pair(b.to, b.from);
 }
 
-void add_xref_to(ModelIndex& mi, HVersion_id_t from, YaToolObjectId to)
+void add_xref_to(ModelIndex& mi, VersionIndex from, YaToolObjectId to)
 {
-    if(const auto id = find_object_id(mi, to))
-        mi.xrefs_to_.push_back({from, *id});
+    if(const auto idx = find_index(mi, to))
+        mi.xrefs_to_.push_back({from, *idx});
 }
 
 template<typename T>
@@ -124,13 +124,13 @@ void finish_xrefs(ModelIndex& mi, const T& operand)
 }
 
 template<typename T>
-void walk_xrefs(const ModelIndex& mi, HVersion_id_t object_idx, uint32_t xref_idx, const T& operand)
+void walk_xrefs(const ModelIndex& mi, VersionIndex idx, uint32_t xref_idx, const T& operand)
 {
     const auto end = mi.xrefs_to_.size();
     for(auto i = xref_idx; i < end; ++i)
     {
         const auto& xref = mi.xrefs_to_[i];
-        if(object_idx != xref.to)
+        if(idx != xref.to)
             return;
         if(operand(xref.from) != WALK_CONTINUE)
             return;
@@ -167,8 +167,8 @@ void finish_sigs(ModelIndex& mi, const SigMap& sigmap)
 {
     for(const auto& v : sigmap)
         if(v.second != invalid_sig_id)
-            mi.unique_sigs_.push_back({v.first, v.second});
-    std::sort(mi.unique_sigs_.begin(), mi.unique_sigs_.end());
+            mi.uniques_.push_back({v.first, v.second});
+    std::sort(mi.uniques_.begin(), mi.uniques_.end());
     std::sort(mi.sigs_.begin(), mi.sigs_.end());
 }
 
@@ -184,7 +184,7 @@ void walk_sigs(const ModelIndex& mi, const const_string_ref& key, const T& opera
 template<typename T>
 void walk_all_unique_sigs(const ModelIndex& mi, const T& operand)
 {
-    for(const auto& sig : mi.unique_sigs_)
+    for(const auto& sig : mi.uniques_)
         if(operand(sig) != WALK_CONTINUE)
             return;
 }
@@ -197,7 +197,7 @@ size_t num_sigs(const ModelIndex& mi, const const_string_ref& key)
 
 bool is_unique_sig(const ModelIndex& mi, const const_string_ref& key)
 {
-    const auto range = std::equal_range(mi.unique_sigs_.begin(), mi.unique_sigs_.end(), key);
+    const auto range = std::equal_range(mi.uniques_.begin(), mi.uniques_.end(), key);
     return range.first != range.second;
 }
 }

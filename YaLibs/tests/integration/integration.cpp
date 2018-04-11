@@ -53,9 +53,8 @@ namespace
     {
         StringModel values;
 
-        db.walk_objects([&](const YaToolObjectId& id, const HVersion& hver)
+        db.walk([&](const HVersion& hver)
         {
-            EXPECT_EQ(id, hver.id());
             values.insert(std::make_tuple("version", str(hver), str(hver.address()), ""));
             hver.walk_signatures([&](const HSignature& hsig)
             {
@@ -104,7 +103,7 @@ namespace
 
         void update(const IModel& model) override
         {
-            model.walk_objects([&](auto, const HVersion& hver)
+            model.walk([&](const HVersion& hver)
             {
                 hver.accept(visitor);
                 return WALK_CONTINUE;

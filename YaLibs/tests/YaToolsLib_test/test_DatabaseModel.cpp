@@ -130,15 +130,15 @@ public:
     MockDatabase(){}
     virtual ~MockDatabase(){}
 
-    void        accept(IModelVisitor&) override {};
-    void        walk_objects(const OnVersionAndIdFn&) const override {};
-    size_t      num_objects() const override { return 0; };
-    size_t      num_objects_with_signature(const HSignature&) const override { return 0; };
-    void        walk_versions_with_signature(const HSignature&, const OnVersionFn&) const override {};
-    HVersion    get_object(YaToolObjectId) const override { return HVersion{nullptr, 0}; };
-    bool        has_object(YaToolObjectId) const override { return false; };
-    void        walk_versions_without_collision(const OnSigAndVersionFn&) const override {};
-    void        walk_matching_versions(const HVersion&, size_t, const OnVersionPairFn&) const override {};
+    void        accept          (IModelVisitor&) override {};
+    void        walk            (const OnVersionFn&) const override {};
+    size_t      size            () const override { return 0; };
+    HVersion    get             (YaToolObjectId) const override { return HVersion{nullptr, 0}; };
+    bool        has             (YaToolObjectId) const override { return false; };
+    size_t      size_matching   (const HSignature&) const override { return 0; };
+    void        walk_matching   (const HSignature&, const OnVersionFn&) const override {};
+    void        walk_uniques    (const OnSignatureFn&) const override {};
+    void        walk_matching   (const HVersion&, size_t, const OnVersionFn&) const override {};
 };
 }
 
@@ -154,12 +154,12 @@ TEST_F(TestYaToolDatabaseModel, model)
 void ReferencedObjects_Impl(std::shared_ptr<IModel>db)
 {
     std::multiset<std::pair<std::string, std::string>> values;
-    db->walk_objects([&](const YaToolObjectId& id, const HVersion& href)
+    db->walk([&](const HVersion& href)
     {
-        values.insert(std::make_pair(str(id), str(href)));
+        values.insert(std::make_pair(str(href.id()), str(href)));
         return WALK_CONTINUE;
     });
-    EXPECT_EQ(values.size(), db->num_objects());
+    EXPECT_EQ(values.size(), db->size());
     expect_eq(values, {
         {"00000000AAAAAAAA", "code_00000000AAAAAAAA"},
         {"00000000BBBBBBBB", "data_00000000BBBBBBBB"},
@@ -216,39 +216,39 @@ void ReferencedObjectsBySignature_Impl(std::shared_ptr<IModel>db)
     const auto sigH = create_signature(ctx, 0x22222222);
 
     std::multiset<std::string> values;
-    db->walk_versions_with_signature(sigH, [&](const HVersion& href)
+    db->walk_matching(sigH, [&](const HVersion& href)
     {
         values.insert(str(href));
         return WALK_CONTINUE;
     });
-    EXPECT_EQ(values.size(), db->num_objects_with_signature(sigH));
+    EXPECT_EQ(values.size(), db->size_matching(sigH));
     expect_eq(values, {"data_00000000CCCCCCCC", "data_00000000DDDDDDDD"});
 
     const auto sigH2 = create_signature(ctx, 0x11111111);
-    db->walk_versions_with_signature(sigH2, [&](const HVersion& href)
+    db->walk_matching(sigH2, [&](const HVersion& href)
     {
         values.insert(str(href));
         return WALK_CONTINUE;
     });
-    EXPECT_EQ(values.size(), db->num_objects_with_signature(sigH2));
+    EXPECT_EQ(values.size(), db->size_matching(sigH2));
     expect_eq(values, {"data_00000000BBBBBBBB"});
 
     const auto sigH4 = create_signature(ctx, 0x55555555);
-    db->walk_versions_with_signature(sigH4, [&](const HVersion& href)
+    db->walk_matching(sigH4, [&](const HVersion& href)
     {
         values.insert(str(href));
         return WALK_CONTINUE;
     });
-    EXPECT_EQ(values.size(), db->num_objects_with_signature(sigH4));
+    EXPECT_EQ(values.size(), db->size_matching(sigH4));
     expect_eq(values, {});
 
     const auto sigH5 = create_signature(ctx, 0xBADBADBA);
-    db->walk_versions_with_signature(sigH5, [&](const HVersion& href)
+    db->walk_matching(sigH5, [&](const HVersion& href)
     {
         values.insert(str(href));
         return WALK_CONTINUE;
     });
-    EXPECT_EQ(values.size(), db->num_objects_with_signature(sigH5));
+    EXPECT_EQ(values.size(), db->size_matching(sigH5));
     expect_eq(values, {"code_00000000AAAAAAAA"});
 }
 
@@ -325,13 +325,13 @@ static HVersion create_href(Ctx& ctx, Version& version)
     db->visit_start();
     version.accept(*db);
     db->visit_end();
-    return db->get_object(version.id);
+    return db->get(version.id);
 }
 
 void walkNoSignatureCollision_Impl(std::shared_ptr<IModel>db)
 {
     std::multiset<std::pair<std::string, std::string>> values;
-    db->walk_versions_without_collision([&](const HSignature& sig, const HVersion& ov)
+    db->walk_uniques([&](const HVersion& ov, const HSignature& sig)
     {
         values.insert(std::make_pair(str(sig), str(ov)));
         return WALK_CONTINUE;
@@ -358,14 +358,14 @@ static auto get_object_for_signature(Ctx ctx, IModel& db, uint32_t value, FirstO
     optional<HVersion> object;
     const auto sig = create_signature(ctx, value);
     size_t count = 0;
-    db.walk_versions_with_signature(sig, [&](const HVersion& obj)
+    db.walk_matching(sig, [&](const HVersion& obj)
     {
         ++count;
         object = obj;
         return efirst == FirstOnly ? WALK_STOP : WALK_CONTINUE;
     });
     EXPECT_EQ(1u, count);
-    EXPECT_EQ(count, db.num_objects_with_signature(sig));
+    EXPECT_EQ(count, db.size_matching(sig));
     EXPECT_TRUE(!!object);
     return *object;
 }
@@ -435,7 +435,7 @@ void getReferencedObjectFromId_Impl(std::shared_ptr<IModel>db)
     std::vector<YaToolObjectId> ids = {0xAAAAAAAA, 0xBBBBBBBB, 0xCCCCCCCC, 0xDDDDDDDD};
     for(auto id: ids)
     {
-        EXPECT_EQ(id, db->get_object(id).id());
+        EXPECT_EQ(id, db->get(id).id());
     }
 }
 
@@ -449,10 +449,10 @@ TEST_F(TestYaToolDatabaseModel, FBModel_getReferencedObjectFromId) {
 
 void getObjectType_Impl(std::shared_ptr<IModel>db)
 {
-    EXPECT_EQ(OBJECT_TYPE_CODE, db->get_object(0xAAAAAAAA).type());
-    EXPECT_EQ(OBJECT_TYPE_DATA, db->get_object(0xBBBBBBBB).type());
-    EXPECT_EQ(OBJECT_TYPE_DATA, db->get_object(0xCCCCCCCC).type());
-    EXPECT_EQ(OBJECT_TYPE_DATA, db->get_object(0xDDDDDDDD).type());
+    EXPECT_EQ(OBJECT_TYPE_CODE, db->get(0xAAAAAAAA).type());
+    EXPECT_EQ(OBJECT_TYPE_DATA, db->get(0xBBBBBBBB).type());
+    EXPECT_EQ(OBJECT_TYPE_DATA, db->get(0xCCCCCCCC).type());
+    EXPECT_EQ(OBJECT_TYPE_DATA, db->get(0xDDDDDDDD).type());
 }
 
 TEST_F(TestYaToolDatabaseModel, memoryModel_getObjectType) {
@@ -467,9 +467,7 @@ void getObjectId_Impl(std::shared_ptr<IModel>db)
 {
     std::vector<YaToolObjectId> ids = {0xAAAAAAAA, 0xBBBBBBBB, 0xCCCCCCCC, 0xDDDDDDDD};
     for(auto id: ids)
-    {
-        EXPECT_EQ(id, db->get_object(id).id());
-    }
+        EXPECT_EQ(id, db->get(id).id());
 }
 
 TEST_F(TestYaToolDatabaseModel, memoryModel_getObjectId) {
@@ -544,7 +542,7 @@ void referencedObjectMatch_Impl(std::shared_ptr<IModel>db)
     /*
      * Same thing but with 2 signatures in the found object
      */
-    const auto foundObjectH2 = db->get_object(0xAAAAAAAA);
+    const auto foundObjectH2 = db->get(0xAAAAAAAA);
     EXPECT_EQ(foundObjectH2.id(), 0xAAAAAAAA);
     EXPECT_EQ(foundObjectH2.type(), OBJECT_TYPE_CODE);
 
@@ -597,7 +595,7 @@ TEST_F(TestYaToolDatabaseModel, FBModel_referencedObjectMatch) {
 void walkXrefsFromReferencedObject_Impl(std::shared_ptr<IModel>db)
 {
     std::multiset<std::tuple<std::string, offset_t, operand_t, std::string>> values;
-    db->walk_objects([&](YaToolObjectId, const HVersion& href)
+    db->walk([&](const HVersion& href)
     {
         href.walk_xrefs_from([&](offset_t offset, operand_t operand, const HVersion& xref)
         {
@@ -630,7 +628,7 @@ TEST_F(TestYaToolDatabaseModel, FBModel_walkXrefsFromReferencedObject) {
 void walkXrefsToReferencedObject_Impl(std::shared_ptr<IModel>db)
 {
     std::multiset<std::pair<std::string, std::string>> values;
-    db->walk_objects([&](YaToolObjectId, const HVersion& href)
+    db->walk([&](const HVersion& href)
     {
         href.walk_xrefs_to([&](const HVersion& xref)
         {
@@ -660,7 +658,7 @@ TEST_F(TestYaToolDatabaseModel, FBModel_walkXrefsToReferencedObject) {
 void walkXrefsFromObjectVersion_Impl(std::shared_ptr<IModel>db)
 {
     std::multiset<std::tuple<std::string, std::string, offset_t, operand_t, std::string>> values;
-    db->walk_objects([&](YaToolObjectId, const HVersion& hver)
+    db->walk([&](const HVersion& hver)
     {
         hver.walk_xrefs_from([&](offset_t offset, operand_t operand, const HVersion& xref)
         {
@@ -693,7 +691,7 @@ TEST_F(TestYaToolDatabaseModel, FBModel_walkXrefsFromObjectVersion) {
 void walkXrefsToObjectVersion_Impl(std::shared_ptr<IModel>db)
 {
     std::multiset<std::tuple<std::string, std::string, std::string>> values;
-    db->walk_objects([&](YaToolObjectId, const HVersion& hver)
+    db->walk([&](const HVersion& hver)
     {
         hver.walk_xrefs_to([&](const HVersion& xref)
         {
@@ -771,17 +769,18 @@ static void testObjectWithoutVersion(IModel& db)
 {
     std::multiset<std::pair<std::string, std::string>> values;
     std::vector<std::pair<YaToolObjectId, HVersion>> ids;
-    db.walk_objects([&](const YaToolObjectId& id, const HVersion& href)
+    db.walk([&](const HVersion& href)
     {
+        const auto id = href.id();
         values.insert(std::make_pair(str(id), str(href)));
         ids.push_back({id, href});
         return WALK_CONTINUE;
     });
-    EXPECT_EQ(values.size(), db.num_objects());
+    EXPECT_EQ(values.size(), db.size());
     expect_eq(values, {{"00000000AAAAAAAA", "code_00000000AAAAAAAA"}});
 
     for(const auto& p : ids)
-        EXPECT_EQ(p.first, db.get_object(p.first).id());
+        EXPECT_EQ(p.first, db.get(p.first).id());
 }
 
 TEST_F(TestYaToolDatabaseModel, memoryModel_objectWithoutVersion)
@@ -800,13 +799,13 @@ TEST_F(TestYaToolDatabaseModel, FBModel_objectWithoutVersion)
 TEST_F(TestYaToolDatabaseModel, test_model_get_object_with_invalid_id)
 {
     const auto model = create_fbmodel_with(&create_model);
-    const auto hobj1 = model->get_object(~0u);
+    const auto hobj1 = model->get(~0u);
     EXPECT_EQ(hobj1.is_valid(), false);
-    const auto hobj2 = model->get_object(0);
+    const auto hobj2 = model->get(0);
     EXPECT_EQ(hobj2.is_valid(), false);
-    model->walk_objects([&](YaToolObjectId id, const HVersion& /*hobj*/)
+    model->walk([&](const HVersion& hobj)
     {
-        const auto hobj3 = model->get_object(id+1);
+        const auto hobj3 = model->get(hobj.id() + 1);
         EXPECT_EQ(hobj3.is_valid(), false);
         return WALK_CONTINUE;
     });

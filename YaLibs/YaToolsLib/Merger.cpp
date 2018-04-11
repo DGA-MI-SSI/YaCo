@@ -62,13 +62,13 @@ MergeStatus_e Merger::smartMerge(const char* input_file1, const char* input_file
     MakeXmlFilesModel({input_file1})->accept(*db1);
     MakeXmlFilesModel({input_file2})->accept(*db2);
 
-    if(db1->num_objects() != 1 || db2->num_objects() != 1)
+    if(db1->size() != 1 || db2->size() != 1)
         throw std::runtime_error("invalid number of referenced object in databases");
 
-    const auto get_obj = [](IModel& model)
+    const auto get = [](IModel& model)
     {
         HVersion reply;
-        model.walk_objects([&](YaToolObjectId /*id*/, const HVersion& hver)
+        model.walk([&](const HVersion& hver)
         {
             reply = hver;
             return WALK_STOP;
@@ -78,8 +78,8 @@ MergeStatus_e Merger::smartMerge(const char* input_file1, const char* input_file
 
     /* Build relation */
     Relation relation;
-    relation.version1_ = get_obj(*db1);
-    relation.version2_ = get_obj(*db2);
+    relation.version1_ = get(*db1);
+    relation.version2_ = get(*db2);
     relation.type_ = RELATION_TYPE_EXACT_MATCH;
     relation.confidence_ = RELATION_CONFIDENCE_MAX;
     relation.direction_ = RELATION_DIRECTION_BOTH;

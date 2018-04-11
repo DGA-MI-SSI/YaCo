@@ -85,7 +85,7 @@ struct HVersion
     }
 
     const IVersions*    model_;
-    HVersion_id_t       id_;
+    VersionIndex        idx_;
 };
 
 namespace std
