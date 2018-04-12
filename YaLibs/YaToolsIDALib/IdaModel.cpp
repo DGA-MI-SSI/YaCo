@@ -238,8 +238,7 @@ namespace
 
     void start_object(IModelVisitor& v, YaToolObjectType_e type, YaToolObjectId id, YaToolObjectId parent, ea_t ea)
     {
-        v.visit_start_reference_object(type);
-        v.visit_id(id);
+        v.visit_start_version(type, id);
         if(parent)
             v.visit_parent_id(parent);
         v.visit_address(offset_from_ea(ea));
@@ -247,7 +246,7 @@ namespace
 
     void finish_object(IModelVisitor& v)
     {
-        v.visit_end_reference_object();
+        v.visit_end_version();
     }
 
     template<typename T>
@@ -512,12 +511,7 @@ namespace
 
         // we need to skip default members else we explode on structures with thousand of default fields
         if(is_default_member(*ctx.qpool_.acquire(), struc, member, ya::to_string_ref(*qbuf)))
-        {
-            v.visit_start_deleted_object(type);
-            v.visit_id(id);
-            v.visit_end_deleted_object();
-            return;
-        }
+            return v.visit_deleted(type, id);
 
         start_object(v, type, id, parent.id, offset);
         const auto size = get_member_size(member);
@@ -1848,9 +1842,7 @@ void ModelIncremental::accept_segment(IModelVisitor& v, ea_t ea)
 
 void ModelIncremental::delete_version(IModelVisitor& v, YaToolObjectType_e type, YaToolObjectId id)
 {
-    v.visit_start_deleted_object(type);
-    v.visit_id(id);
-    v.visit_end_deleted_object();
+    v.visit_deleted(type, id);
 }
 
 void export_from_ida(const std::string& filename)

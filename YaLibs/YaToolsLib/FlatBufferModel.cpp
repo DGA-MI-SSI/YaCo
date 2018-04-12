@@ -430,8 +430,7 @@ void walk_xrefs(const FlatBufferModel&, const VersionCtx& ctx, const T& operand)
 void accept_version(const FlatBufferModel& db, const VersionCtx& ctx, IModelVisitor& visitor)
 {
     const auto* version = ctx.version;
-    visitor.visit_start_reference_object(ctx.type);
-    visitor.visit_id(ctx.id);
+    visitor.visit_start_version(ctx.type, ctx.id);
     visitor.visit_size(version->size());
     visitor.visit_parent_id(version->parent_id());
     visitor.visit_address(version->address());
@@ -531,7 +530,7 @@ void accept_version(const FlatBufferModel& db, const VersionCtx& ctx, IModelVisi
         visitor.visit_blob(blob->offset(), data->data(), data->size());
     });
 
-    visitor.visit_end_reference_object();
+    visitor.visit_end_version();
 }
 
 template<typename T>

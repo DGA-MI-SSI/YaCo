@@ -460,38 +460,33 @@ namespace
 
     void accept_object(const std::string& object_type, xmlNodePtr node, IModelVisitor& visitor)
     {
-        if(xmlStrcmp(node->name, BAD_CAST object_type.c_str()) == 0)
+        if(xmlStrcmp(node->name, BAD_CAST object_type.c_str()))
+            return;
+
+        const auto otype = get_object_type(object_type.data());
+        if(otype == OBJECT_TYPE_UNKNOWN)
+            YALOG_ERROR(nullptr, "bug spotted, object_type %s\n", object_type.data());
+
+        bool has_id = false;
+        YaToolObjectId id = 0;
+        for(auto id_child = node->children; id_child != nullptr; id_child = id_child->next)
         {
-            const auto otype = get_object_type(object_type.data());
-            if (otype == OBJECT_TYPE_UNKNOWN)
-            {
-                YALOG_ERROR(nullptr, "bug spotted, object_type %s\n", object_type.data());
-            }
-            visitor.visit_start_reference_object(otype);
-
-            // id
-            for (xmlNodePtr id_child = node->children; id_child != nullptr; id_child = id_child->next)
-            {
-                if (xmlStrcasecmp(id_child->name, BAD_CAST "id") == 0)
-                {
-                    const auto node_content = xml_get_content(id_child->children);
-                    if(!node_content.empty())
-                    {
-                        visitor.visit_id(id_from_string(make_string_ref(node_content)));
-                    }
-                }
-            }
-
-            for (xmlNodePtr version_child = node->children; version_child != nullptr; version_child = version_child->next)
-            {
-                if (xmlStrcasecmp(version_child->name, BAD_CAST "version") == 0)
-                {
-                    accept_version(version_child, visitor);
-                }
-            }
-
-            visitor.visit_end_reference_object();
+            if(xmlStrcasecmp(id_child->name, BAD_CAST "id"))
+                continue;
+            const auto node_content = xml_get_content(id_child->children);
+            if(node_content.empty())
+                continue;
+            has_id = true;
+            id = id_from_string(make_string_ref(node_content));
         }
+        if(!has_id)
+            return;
+
+        visitor.visit_start_version(otype, id);
+        for(auto version_child = node->children; version_child != nullptr; version_child = version_child->next)
+            if(xmlStrcasecmp(version_child->name, BAD_CAST "version") == 0)
+                accept_version(version_child, visitor);
+        visitor.visit_end_version();
     }
 
     void accept_node(xmlNodePtr node, IModelVisitor& visitor)

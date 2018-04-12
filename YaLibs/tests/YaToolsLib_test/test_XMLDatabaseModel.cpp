@@ -94,9 +94,7 @@ TEST_F (TestXMLDatabaseModel, TestFiles)
 
     EXPECT_STREQ(call_queue->front().c_str(), "visit_start()");
     call_queue->pop();
-    EXPECT_STREQ(call_queue->front().c_str(), "visit_start_reference_object()");
-    call_queue->pop();
-    EXPECT_STREQ(call_queue->front().c_str(), "visit_id()");
+    EXPECT_STREQ(call_queue->front().c_str(), "visit_start_version()");
     call_queue->pop();
     EXPECT_STREQ(call_queue->front().c_str(), "visit_size()");
     call_queue->pop();
@@ -114,7 +112,7 @@ TEST_F (TestXMLDatabaseModel, TestFiles)
     call_queue->pop();
     EXPECT_STREQ(call_queue->front().c_str(), "visit_end_xrefs()");
     call_queue->pop();
-    EXPECT_STREQ(call_queue->front().c_str(), "visit_end_reference_object()");
+    EXPECT_STREQ(call_queue->front().c_str(), "visit_end_version()");
     call_queue->pop();
     EXPECT_STREQ(call_queue->front().c_str(), "visit_end()");
     call_queue->pop();
@@ -178,9 +176,7 @@ TEST_F (TestXMLDatabaseModel, TestOneDoubleFile)
 
     EXPECT_STREQ(call_queue->front().c_str(), "visit_start()");
     call_queue->pop();
-    EXPECT_STREQ(call_queue->front().c_str(), "visit_start_reference_object()");
-    call_queue->pop();
-    EXPECT_STREQ(call_queue->front().c_str(), "visit_id()");
+    EXPECT_STREQ(call_queue->front().c_str(), "visit_start_version()");
     call_queue->pop();
     EXPECT_STREQ(call_queue->front().c_str(), "visit_size()");
     call_queue->pop();
@@ -198,12 +194,10 @@ TEST_F (TestXMLDatabaseModel, TestOneDoubleFile)
     call_queue->pop();
     EXPECT_STREQ(call_queue->front().c_str(), "visit_end_xrefs()");
     call_queue->pop();
-    EXPECT_STREQ(call_queue->front().c_str(), "visit_end_reference_object()");
+    EXPECT_STREQ(call_queue->front().c_str(), "visit_end_version()");
     call_queue->pop();
 
-    EXPECT_STREQ(call_queue->front().c_str(), "visit_start_reference_object()");
-    call_queue->pop();
-    EXPECT_STREQ(call_queue->front().c_str(), "visit_id()");
+    EXPECT_STREQ(call_queue->front().c_str(), "visit_start_version()");
     call_queue->pop();
     EXPECT_STREQ(call_queue->front().c_str(), "visit_size()");
     call_queue->pop();
@@ -221,7 +215,7 @@ TEST_F (TestXMLDatabaseModel, TestOneDoubleFile)
     call_queue->pop();
     EXPECT_STREQ(call_queue->front().c_str(), "visit_end_xrefs()");
     call_queue->pop();
-    EXPECT_STREQ(call_queue->front().c_str(), "visit_end_reference_object()");
+    EXPECT_STREQ(call_queue->front().c_str(), "visit_end_version()");
     call_queue->pop();
     EXPECT_STREQ(call_queue->front().c_str(), "visit_end()");
     call_queue->pop();
@@ -603,12 +597,11 @@ TEST_F(TestXMLDatabaseModel, test_xml_escape)
     const fs::path filename("4223456789ABCDEF.xml");
     auto visitor = MakeFileXmlVisitor(filename.string());
     visitor->visit_start();
-    visitor->visit_start_reference_object(OBJECT_TYPE_BASIC_BLOCK);
-    visitor->visit_id(0x0123456701234567);
+    visitor->visit_start_version(OBJECT_TYPE_BASIC_BLOCK, 0x0123456701234567);
     visitor->visit_offset_comments(12, COMMENT_REPEATABLE, make_string_ref("pl<op"));
     visitor->visit_offset_comments(12, COMMENT_REPEATABLE, make_string_ref("plop\xe2"));
     visitor->visit_offset_comments(12, COMMENT_REPEATABLE, make_string_ref("plo>pÔ"));
-    visitor->visit_end_reference_object();
+    visitor->visit_end_version();
     visitor->visit_end();
 }
 

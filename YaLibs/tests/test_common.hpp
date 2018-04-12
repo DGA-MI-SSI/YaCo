@@ -64,134 +64,127 @@ public:
 #include "IModelVisitor.hpp"
 class TestDatabaseModelVisitor : public IModelVisitor {
 public:
-        virtual void visit_start(){
+        void visit_start() override
+        {
             call_trace_q->push("visit_start()");
         };
-        virtual void visit_end(){
+        void visit_end() override
+        {
             call_trace_q->push("visit_end()");
         };
-        virtual void visit_start_object(YaToolObjectType_e){
-            call_trace_q->push("visit_start_object()");
+        void visit_start_version(YaToolObjectType_e, YaToolObjectId) override
+        {
+            call_trace_q->push("visit_start_version()");
         };
-        virtual void visit_start_reference_object(YaToolObjectType_e){
-            call_trace_q->push("visit_start_reference_object()");
+        void visit_deleted(YaToolObjectType_e, YaToolObjectId) override
+        {
+            call_trace_q->push("visit_deleted()");
         };
-        virtual void visit_start_deleted_object(YaToolObjectType_e){
-            call_trace_q->push("visit_start_deleted_object()");
+        void visit_end_version() override
+        {
+            call_trace_q->push("visit_end_version()");
         };
-        virtual void visit_start_default_object(YaToolObjectType_e){
-            call_trace_q->push("visit_start_default_object()");
-        };
-        virtual void visit_end_deleted_object(){
-            call_trace_q->push("visit_end_deleted_object()");
-        };
-        virtual void visit_end_default_object(){
-            call_trace_q->push("visit_end_default_object()");
-        };
-        virtual void visit_end_reference_object(){
-            call_trace_q->push("visit_end_reference_object()");
-        };
-        virtual void visit_id(YaToolObjectId){
-            call_trace_q->push("visit_id()");
-        };
-        virtual void visit_start_object_version(){
-            call_trace_q->push("visit_start_object_version()");
-        };
-        virtual void visit_parent_id(YaToolObjectId){
+        void visit_parent_id(YaToolObjectId) override
+        {
             call_trace_q->push("visit_parent_id()");
         };
-        virtual void visit_address(offset_t){
+        void visit_address(offset_t) override
+        {
             call_trace_q->push("visit_address()");
         };
-        virtual void visit_end_object_version(){
-            call_trace_q->push("visit_end_object_version()");
-        };
-        virtual void visit_name(const const_string_ref&, int){
+        void visit_name(const const_string_ref&, int) override
+        {
             call_trace_q->push("visit_name()");
         };
-        virtual void visit_size(offset_t){
+        void visit_size(offset_t) override
+        {
             call_trace_q->push("visit_size()");
         };
-        virtual void visit_start_signatures(){
+        void visit_start_signatures() override
+        {
             call_trace_q->push("visit_start_signatures()");
         };
-        virtual void visit_signature(SignatureMethod_e, SignatureAlgo_e, const const_string_ref&){
+        void visit_signature(SignatureMethod_e, SignatureAlgo_e, const const_string_ref&) override
+        {
             call_trace_q->push("visit_signature()");
         };
-        virtual void visit_end_signatures(){
+        void visit_end_signatures() override
+        {
             call_trace_q->push("visit_end_signatures()");
         };
-        virtual void visit_prototype(const const_string_ref&){
+        void visit_prototype(const const_string_ref&) override
+        {
             call_trace_q->push("visit_prototype()");
         };
-        virtual void visit_string_type(int){
+        void visit_string_type(int) override
+        {
             call_trace_q->push("visit_string_type()");
         };
-        virtual void visit_header_comment(bool, const const_string_ref&){
+        void visit_header_comment(bool, const const_string_ref&) override
+        {
             call_trace_q->push("visit_header_comment()");
         };
-        virtual void visit_start_offsets(){
+        void visit_start_offsets() override
+        {
             call_trace_q->push("visit_start_offsets()");
         };
-        virtual void visit_end_offsets(){
+        void visit_end_offsets() override{
             call_trace_q->push("visit_end_offsets()");
         };
-        virtual void visit_offset_comments(offset_t, CommentType_e, const const_string_ref&){
+        void visit_offset_comments(offset_t, CommentType_e, const const_string_ref&) override
+        {
             call_trace_q->push("visit_offset_comments()");
         };
-        virtual void visit_offset_valueview(offset_t, int32_t, const const_string_ref&){
+        void visit_offset_valueview(offset_t, int32_t, const const_string_ref&) override
+        {
             call_trace_q->push("visit_offset_valueview()");
         };
-        virtual void visit_offset_registerview(offset_t, offset_t, const const_string_ref&, const const_string_ref&){
+        void visit_offset_registerview(offset_t, offset_t, const const_string_ref&, const const_string_ref&) override
+        {
             call_trace_q->push("visit_offset_registerview()");
         };
-        virtual void visit_offset_hiddenarea(offset_t, offset_t, const const_string_ref&){
+        void visit_offset_hiddenarea(offset_t, offset_t, const const_string_ref&) override
+        {
             call_trace_q->push("visit_offset_hiddenarea()");
         };
-        virtual void visit_start_xrefs(){
+        void visit_start_xrefs() override
+        {
             call_trace_q->push("visit_start_xrefs()");
         };
-        virtual void visit_end_xrefs(){
+        void visit_end_xrefs() override
+        {
             call_trace_q->push("visit_end_xrefs()");
         };
-        virtual void visit_start_xref(offset_t, YaToolObjectId, operand_t){
+        void visit_start_xref(offset_t, YaToolObjectId, operand_t) override
+        {
             call_trace_q->push("visit_start_xref()");
         };
-        virtual void visit_end_xref(){
+        void visit_end_xref() override
+        {
             call_trace_q->push("visit_end_xref()");
         };
-        virtual void visit_xref_attribute(const const_string_ref&, const const_string_ref&){
+        void visit_xref_attribute(const const_string_ref&, const const_string_ref&) override
+        {
             call_trace_q->push("visit_xref_attribute()");
         };
-        virtual void visit_start_matching_systems(){
-            call_trace_q->push("visit_start_matching_systems()");
-        };
-        virtual void visit_end_matching_systems(){
-            call_trace_q->push("visit_end_matching_systems()");
-        };
-        virtual void visit_start_matching_system(offset_t){
-            call_trace_q->push("visit_start_matching_system()");
-        };
-        virtual void visit_matching_system_description(const const_string_ref&, const const_string_ref&){
-            call_trace_q->push("visit_matching_system_description()");
-        };
-        virtual void visit_end_matching_system(){
-            call_trace_q->push("visit_end_matching_system()");
-        };
-        virtual void visit_segments_start(){
+        void visit_segments_start() override
+        {
             call_trace_q->push("visit_segments_start()");
         };
-        virtual void visit_segments_end(){
+        void visit_segments_end() override
+        {
             call_trace_q->push("visit_segments_end()");
         };
-        virtual void visit_attribute(const const_string_ref&, const const_string_ref&){
+        void visit_attribute(const const_string_ref&, const const_string_ref&) override
+        {
             call_trace_q->push("visit_attribute()");
         };
-
-        virtual void visit_blob(offset_t, const void*, size_t){
+        void visit_blob(offset_t, const void*, size_t) override
+        {
             call_trace_q->push("visit_blob()");
         };
-        virtual void visit_flags(flags_t){
+        void visit_flags(flags_t) override
+        {
             call_trace_q->push("visit_flags()");
         };
 

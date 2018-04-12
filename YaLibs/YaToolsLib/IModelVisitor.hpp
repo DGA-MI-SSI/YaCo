@@ -17,17 +17,14 @@
 
 #include "YaTypes.hpp"
 
-class IModelVisitor
+struct IModelVisitor
 {
-    public:
-    virtual ~IModelVisitor() {}
+    virtual ~IModelVisitor() = default;
     virtual void visit_start() = 0;
     virtual void visit_end() = 0;
-    virtual void visit_start_reference_object(YaToolObjectType_e object_type) = 0;
-    virtual void visit_start_deleted_object(YaToolObjectType_e object_type) = 0;
-    virtual void visit_end_deleted_object() = 0;
-    virtual void visit_end_reference_object() = 0;
-    virtual void visit_id(YaToolObjectId object_id) = 0;
+    virtual void visit_deleted(YaToolObjectType_e type, YaToolObjectId id) = 0;
+    virtual void visit_start_version(YaToolObjectType_e type, YaToolObjectId id) = 0;
+    virtual void visit_end_version() = 0;
     virtual void visit_parent_id(YaToolObjectId parent_id) = 0;
     virtual void visit_address(offset_t address) = 0;
     virtual void visit_name(const const_string_ref& name, int flags) = 0;

@@ -235,14 +235,9 @@ namespace
 MergeStatus_e Merger::mergeObjectVersions( IModelVisitor& visitor_db, std::set<YaToolObjectId>& newObjectIds,
                                                             const Relation& relation)
 {
-    visitor_db.visit_start_reference_object(relation.version2_.type());
+    visitor_db.visit_start_version(relation.version2_.type(), relation.version2_.id());
 
-    /* Visit id */
-    visitor_db.visit_id(relation.version2_.id());
-
-    /* Visit size */
     visitor_db.visit_size(relation.version2_.size());
-
     visitor_db.visit_parent_id(relation.version2_.parent_id());
     visitor_db.visit_address(relation.version2_.address());
 
@@ -466,7 +461,7 @@ MergeStatus_e Merger::mergeObjectVersions( IModelVisitor& visitor_db, std::set<Y
     /**********************************************/
 
 
-     visitor_db.visit_end_reference_object();
+     visitor_db.visit_end_version();
 
      return OBJECT_MERGE_STATUS_BOTH_UPDATED;
 }

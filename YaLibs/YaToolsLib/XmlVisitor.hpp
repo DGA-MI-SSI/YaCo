@@ -18,7 +18,7 @@
 #include <memory>
 #include <string>
 
-class IModelVisitor;
+struct IModelVisitor;
 
 std::shared_ptr<IModelVisitor> MakeXmlVisitor      (const std::string& path);
 std::shared_ptr<IModelVisitor> MakeFileXmlVisitor  (const std::string& path);

@@ -25,7 +25,7 @@
 
 #include "YaEnums.hpp"
 
-class IModelVisitor;
+struct IModelVisitor;
 struct IModel;
 struct Signature;
 struct HVersion;

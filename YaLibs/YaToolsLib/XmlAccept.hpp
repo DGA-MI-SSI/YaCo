@@ -18,7 +18,7 @@
 #include <string>
 #include <vector>
 
-class IModelVisitor;
+struct IModelVisitor;
 
 void AcceptXmlCache (IModelVisitor& visitor, const std::string& folder);
 void AcceptXmlFiles (IModelVisitor& visitor, const std::vector<std::string>& files);

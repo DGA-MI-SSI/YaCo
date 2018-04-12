@@ -17,6 +17,6 @@
 
 #include <memory>
 
-class IModelVisitor;
+struct IModelVisitor;
 
 std::shared_ptr<IModelVisitor> MakeExporterValidatorVisitor();

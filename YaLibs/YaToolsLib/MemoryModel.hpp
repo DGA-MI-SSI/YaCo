@@ -20,7 +20,7 @@
 #include <memory>
 
 struct IModel;
-class IModelVisitor;
+struct IModelVisitor;
 
 struct IModelAndVisitor
     : public IModel

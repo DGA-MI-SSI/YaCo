@@ -115,11 +115,9 @@ struct FlatBufferVisitor : public IFlatBufferVisitor
     // IModelVisitor
     void visit_start() override;
     void visit_end() override;
-    void visit_start_reference_object(YaToolObjectType_e object_type) override;
-    void visit_start_deleted_object(YaToolObjectType_e object_type) override;
-    void visit_end_deleted_object() override;
-    void visit_end_reference_object() override;
-    void visit_id(YaToolObjectId object_id) override;
+    void visit_start_version(YaToolObjectType_e type, YaToolObjectId id) override;
+    void visit_deleted(YaToolObjectType_e type, YaToolObjectId id) override;
+    void visit_end_version() override;
     void visit_parent_id(YaToolObjectId object_id) override;
     void visit_address(offset_t address) override;
     void visit_name(const const_string_ref& name, int flags) override;
@@ -304,17 +302,17 @@ ExportedBuffer FlatBufferVisitor::GetBuffer() const
     return ExportedBuffer{fbbuilder_.GetBufferPointer(), fbbuilder_.GetSize()};
 }
 
-void FlatBufferVisitor::visit_start_reference_object(YaToolObjectType_e type)
+void FlatBufferVisitor::visit_start_version(YaToolObjectType_e type, YaToolObjectId id)
 {
     object_type_ = type;
+    object_id_ = id;
 }
 
-void FlatBufferVisitor::visit_start_deleted_object(YaToolObjectType_e type)
+void FlatBufferVisitor::visit_deleted(YaToolObjectType_e /*type*/, YaToolObjectId /*id*/)
 {
-    object_type_ = type;
 }
 
-void FlatBufferVisitor::visit_end_reference_object()
+void FlatBufferVisitor::visit_end_version()
 {
     const auto dstvec = [&]() -> std::vector<fb::Offset<yadb::Version>>*
     {
@@ -366,15 +364,6 @@ void FlatBufferVisitor::visit_end_reference_object()
         make_strucs(fbbuilder_, signatures_)
     ));
     username_.clear();
-}
-
-void FlatBufferVisitor::visit_end_deleted_object()
-{
-}
-
-void FlatBufferVisitor::visit_id(YaToolObjectId id)
-{
-    object_id_ = id;
 }
 
 void FlatBufferVisitor::visit_parent_id(YaToolObjectId id)

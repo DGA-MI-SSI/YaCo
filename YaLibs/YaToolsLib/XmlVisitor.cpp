@@ -86,7 +86,6 @@ protected:
     std::string                     bufkey_;
     std::string                     bufval_;
     YaToolObjectType_e              object_type_;
-    bool                            delete_file_;
 };
 
 class XmlVisitor : public XmlVisitor_common
@@ -95,11 +94,9 @@ public:
     XmlVisitor(const std::string& path);
     void visit_start() override;
     void visit_end() override;
-    void visit_start_reference_object(YaToolObjectType_e object_type) override;
-    void visit_end_reference_object() override;
-    void visit_start_deleted_object(YaToolObjectType_e object_type) override;
-    void visit_end_deleted_object() override;
-    void visit_id(YaToolObjectId object_id) override;
+    void visit_deleted(YaToolObjectType_e type, YaToolObjectId id) override;
+    void visit_start_version(YaToolObjectType_e type, YaToolObjectId id) override;
+    void visit_end_version() override;
 
 private:
     std::string path_;
@@ -111,11 +108,9 @@ struct MemExporter
 {
     void visit_start() override;
     void visit_end() override;
-    void visit_start_reference_object(YaToolObjectType_e object_type) override;
-    void visit_end_reference_object() override;
-    void visit_start_deleted_object(YaToolObjectType_e object_type) override;
-    void visit_end_deleted_object() override;
-    void visit_id(YaToolObjectId object_id) override;
+    void visit_deleted(YaToolObjectType_e type, YaToolObjectId id) override;
+    void visit_start_version(YaToolObjectType_e type, YaToolObjectId id) override;
+    void visit_end_version() override;
 
     std::stringstream           stream_;
     std::shared_ptr<xmlBuffer>  buffer_;
@@ -165,7 +160,6 @@ XmlVisitor::XmlVisitor(const std::string& path)
 
 XmlVisitor_common::XmlVisitor_common()
     : object_type_  (OBJECT_TYPE_DATA)
-    , delete_file_  (false)
 {
 }
 
@@ -276,13 +270,20 @@ void write_string(xmlTextWriter& xml, const char* content)
     if(err < 0)
         throw std::runtime_error(std::string("unable to write string ") + content);
 }
+
+std::string get_path(std::string& bufid, YaToolObjectType_e type, YaToolObjectId id, const filesystem::path& root)
+{
+    char buf[sizeof id * 2 + 1];
+    to_hex<NullTerminate>(buf, id);
+    bufid.assign(buf);
+    return (root / get_object_type_string(type) / (bufid + ".xml")).string();
+}
 }
 
-void XmlVisitor::visit_start_reference_object(YaToolObjectType_e object_type)
+void XmlVisitor::visit_start_version(YaToolObjectType_e type, YaToolObjectId id)
 {
-    delete_file_ = false;
     int rc = 0;
-    object_type_ = object_type;
+    object_type_ = type;
     if(writer_)
         throw "could not start visiting reference object, last visit is not ended";
 
@@ -301,64 +302,15 @@ void XmlVisitor::visit_start_reference_object(YaToolObjectType_e object_type)
     }
 
     start_element(*writer_, "sigfile");
-    start_element(*writer_, get_object_type_string(object_type));
+    start_element(*writer_, get_object_type_string(type));
 
-    filesystem::path tmp_path(path_);
-    tmp_path /= get_object_type_string(object_type);
-
-    current_xml_file_path_ = tmp_path.string();
+    std::string bufid;
+    current_xml_file_path_ = get_path(bufid, type, id, path_);
+    add_element(*writer_, "id", bufid.data());
+    start_element(*writer_, "version");
 }
 
-void MemExporter::visit_start_reference_object(YaToolObjectType_e object_type)
-{
-    delete_file_ = false;
-    buffer_.reset(xmlBufferCreate(), xmlBufferFree);
-    writer_.reset(xmlNewTextWriterMemory(buffer_.get(), 0), xmlFreeTextWriter);
-    xmlTextWriterSetIndentString(writer_.get(), BAD_CAST INDENT_STRING);
-    xmlTextWriterSetIndent(writer_.get(), 1);
-    start_element(*writer_, get_object_type_string(object_type));
-}
-
-void XmlVisitor::visit_start_deleted_object(YaToolObjectType_e object_type)
-{
-    delete_file_ = true;
-    object_type_ = object_type;
-    if(writer_)
-    {
-        throw "could not start visiting reference object, last visit is not ended";
-    }
-
-    filesystem::path tmp_path(path_);
-    tmp_path /= get_object_type_string(object_type);
-
-    current_xml_file_path_ = tmp_path.string();
-}
-
-void MemExporter::visit_start_deleted_object(YaToolObjectType_e object_type)
-{
-    delete_file_ = true;
-    object_type_ = object_type;
-}
-
-void XmlVisitor::visit_end_deleted_object()
-{
-    try
-    {
-        filesystem::remove(current_xml_file_path_);
-    }
-    catch(const std::exception& exc)
-    {
-        YALOG_ERROR(nullptr, "Warning : could not delete object : %s\n", exc.what());
-    }
-    delete_file_ = false;
-}
-
-void MemExporter::visit_end_deleted_object()
-{
-
-}
-
-void XmlVisitor::visit_end_reference_object()
+void XmlVisitor::visit_end_version()
 {
     int rc = 0;
 
@@ -377,7 +329,38 @@ void XmlVisitor::visit_end_reference_object()
     doc_.reset();
 }
 
-void MemExporter::visit_end_reference_object()
+void XmlVisitor::visit_deleted(YaToolObjectType_e type, YaToolObjectId id)
+{
+    if(writer_)
+        throw "could not start visiting reference object, last visit is not ended";
+
+    std::string dummy;
+    current_xml_file_path_ = get_path(dummy, type, id, path_);
+    try
+    {
+        filesystem::remove(current_xml_file_path_);
+    }
+    catch(const std::exception& exc)
+    {
+        YALOG_ERROR(nullptr, "Warning : could not delete object : %s\n", exc.what());
+    }
+}
+
+void MemExporter::visit_start_version(YaToolObjectType_e type, YaToolObjectId id)
+{
+    buffer_.reset(xmlBufferCreate(), xmlBufferFree);
+    writer_.reset(xmlNewTextWriterMemory(buffer_.get(), 0), xmlFreeTextWriter);
+    xmlTextWriterSetIndentString(writer_.get(), BAD_CAST INDENT_STRING);
+    xmlTextWriterSetIndent(writer_.get(), 1);
+    start_element(*writer_, get_object_type_string(type));
+
+    char buf[sizeof id * 2 + 1];
+    to_hex<NullTerminate>(buf, id);
+    add_element(*writer_, "id", buf);
+    start_element(*writer_, "version");
+}
+
+void MemExporter::visit_end_version()
 {
     end_element(*writer_, "version");
     end_element(*writer_, get_object_type_string(object_type_));
@@ -390,31 +373,8 @@ void MemExporter::visit_end_reference_object()
     buffer_.reset();
 }
 
-void XmlVisitor::visit_id(YaToolObjectId object_id)
+void MemExporter::visit_deleted(YaToolObjectType_e /*type*/, YaToolObjectId /*id*/)
 {
-    char buf[sizeof object_id * 2 + 1];
-    to_hex<NullTerminate>(buf, object_id);
-
-    filesystem::path tmp_path(current_xml_file_path_);
-    tmp_path /= string(buf) + ".xml";
-    current_xml_file_path_ = tmp_path.string();
-
-    if(delete_file_)
-        return;
-
-    add_element(*writer_, "id", buf);
-    start_element(*writer_, "version");
-}
-
-void MemExporter::visit_id(YaToolObjectId object_id)
-{
-    if(delete_file_)
-        return;
-
-    char buf[sizeof object_id * 2 + 1];
-    to_hex<NullTerminate>(buf, object_id);
-    add_element(*writer_, "id", buf);
-    start_element(*writer_, "version");
 }
 
 void XmlVisitor_common::visit_parent_id(YaToolObjectId object_id)

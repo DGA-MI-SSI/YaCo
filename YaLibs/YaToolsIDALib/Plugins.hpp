@@ -19,7 +19,7 @@
 
 #include <memory>
 
-class IModelVisitor;
+struct IModelVisitor;
 struct HVersion;
 
 struct IPluginModel

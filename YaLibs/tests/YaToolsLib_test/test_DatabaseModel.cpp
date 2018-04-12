@@ -62,8 +62,7 @@ void create_object(IModelVisitor& v, YaToolObjectId id,
                    const char* crc,
                    const std::vector<Xref>& xrefs)
 {
-    v.visit_start_reference_object(OBJECT_TYPE_DATA);
-    v.visit_id(id);
+    v.visit_start_version(OBJECT_TYPE_DATA, id);
 
     v.visit_size(0x20);
     v.visit_start_signatures();
@@ -80,14 +79,13 @@ void create_object(IModelVisitor& v, YaToolObjectId id,
     }
     v.visit_end_xrefs();
 
-    v.visit_end_reference_object();
+    v.visit_end_version();
 }
 
 void create_model(IModelVisitor& v)
 {
     v.visit_start();
-    v.visit_start_reference_object(OBJECT_TYPE_CODE);
-    v.visit_id(0xAAAAAAAA);
+    v.visit_start_version(OBJECT_TYPE_CODE, 0xAAAAAAAA);
     v.visit_size(0x10);
     v.visit_start_signatures();
     v.visit_signature(SIGNATURE_OPCODE_HASH, SIGNATURE_ALGORITHM_CRC32, make_string_ref("BADBADBA"));
@@ -102,7 +100,7 @@ void create_model(IModelVisitor& v)
     v.visit_start_xref(0x30, 0xDDDDDDDD, 0);  v.visit_end_xref();
     v.visit_end_xrefs();
 
-    v.visit_end_reference_object();
+    v.visit_end_version();
 
     create_object(v, 0xBBBBBBBB, "11111111", {{{0x10, 0, 0xDDDDDDDD}}});
     create_object(v, 0xDDDDDDDD, "22222222", {{{0x20, 1, 0xCCCCCCCC}, {0x20, 2, 0xBBBBBBBB}}});
@@ -307,15 +305,14 @@ void Version::add_signature(const Signature& sig)
 
 void Version::accept(IModelVisitor& visitor)
 {
-    visitor.visit_start_reference_object(OBJECT_TYPE_DATA);
-    visitor.visit_id(id);
+    visitor.visit_start_version(OBJECT_TYPE_DATA, id);
     if(size)
         visitor.visit_size(size);
     visitor.visit_start_signatures();
     for(const auto& sig : sigs)
         visitor.visit_signature(sig.method, sig.algo, make_string_ref(sig));
     visitor.visit_end_signatures();
-    visitor.visit_end_reference_object();
+    visitor.visit_end_version();
 }
 
 static HVersion create_href(Ctx& ctx, Version& version)
@@ -759,9 +756,8 @@ TEST_F(TestYaToolDatabaseModel, FBModel_getObjectVersionSize) {
 static void create_model_objects_without_versions(IModelVisitor& visitor)
 {
     visitor.visit_start();
-    visitor.visit_start_reference_object(OBJECT_TYPE_CODE);
-    visitor.visit_id(0xAAAAAAAA);
-    visitor.visit_end_reference_object();
+    visitor.visit_start_version(OBJECT_TYPE_CODE, 0xAAAAAAAA);
+    visitor.visit_end_version();
     visitor.visit_end();
 }
 
