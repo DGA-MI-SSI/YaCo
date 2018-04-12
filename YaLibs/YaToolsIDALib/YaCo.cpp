@@ -21,7 +21,7 @@
 #include "Hooks.hpp"
 #include "IdaVisitor.hpp"
 #include "Events.hpp"
-#include "XmlModel.hpp"
+#include "XmlAccept.hpp"
 #include "Helpers.h"
 #include "FlatBufferVisitor.hpp"
 #include "IdaModel.hpp"
@@ -196,7 +196,7 @@ void YaCo::initial_load()
     LOG(DEBUG, "Loading...\n");
 
     const auto mem = MakeMemoryModel();
-    MakeXmlAllModel(".")->accept(*mem);
+    AcceptXmlCache(*mem, ".");
     MakeIdaSink()->update(*mem);
 
     const auto time_end = std::chrono::system_clock::now();

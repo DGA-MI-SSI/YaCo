@@ -18,7 +18,7 @@
 #include "HVersion.hpp"
 #include "XmlVisitor.hpp"
 #include "MemoryModel.hpp"
-#include "XmlModel.hpp"
+#include "XmlAccept.hpp"
 #include "FileUtils.hpp"
 #include "IModelSink.hpp"
 #include "IModelVisitor.hpp"
@@ -158,7 +158,7 @@ namespace
             Listener listener(*db);
             listener.update(*create_fbmodel_with([&](auto& visitor)
             {
-                MakeXmlFilesModel({xml})->accept(visitor);
+                AcceptXmlFiles(visitor, {xml});
             }));
             db->visit_end();
             return walk_model(*db);

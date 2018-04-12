@@ -17,7 +17,7 @@
 #include "IModelAccept.hpp"
 #include "FlatBufferModel.hpp"
 #include "FlatBufferVisitor.hpp"
-#include "XmlModel.hpp"
+#include "XmlAccept.hpp"
 
 #include <memory>
 #include <string>

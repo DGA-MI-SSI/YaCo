@@ -13,7 +13,7 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "XmlModel.hpp"
+#include "XmlAccept.hpp"
 
 #include "Signature.hpp"
 #include "IModelAccept.hpp"
@@ -103,19 +103,19 @@ namespace
         return files;
     }
 
-    struct XmlModelFiles : public IModelAccept
+    struct XmlModelFiles
     {
         XmlModelFiles(const std::vector<std::string>& files)
             : files_(sort_files(files))
         {
         }
 
-        void accept(IModelVisitor& visitor) override;
+        void accept(IModelVisitor& visitor);
 
         const std::vector<std::string> files_;
     };
 
-    struct XmlModelMemory : public IModelAccept
+    struct XmlModelMemory
     {
         XmlModelMemory(const void* data, size_t szdata)
             : data_(data)
@@ -123,50 +123,50 @@ namespace
         {
         }
 
-        void accept(IModelVisitor& visitor) override;
+        void accept(IModelVisitor& visitor);
 
         const void* data_;
         size_t      szdata_;
     };
 
-    struct XmlModelPath : public IModelAccept
+    struct XmlModelPath
     {
         XmlModelPath(const std::string& path)
             : path_(path)
         {
         }
 
-        void accept(IModelVisitor& visitor) override;
+        void accept(IModelVisitor& visitor);
 
         const std::string path_;
     };
 
-    struct XMLAllDatabaseModel : public IModelAccept
+    struct XMLAllDatabaseModel
     {
         XMLAllDatabaseModel(const std::string& folder)
             : folder_(folder)
         {
         }
 
-        void accept(IModelVisitor& visitor) override;
+        void accept(IModelVisitor& visitor);
 
         const std::string folder_;
     };
 }
 
-std::shared_ptr<IModelAccept> MakeXmlAllModel(const std::string& folder)
+void AcceptXmlCache(IModelVisitor& visitor, const std::string& folder)
 {
-    return std::make_shared<XMLAllDatabaseModel>(folder);
+    XMLAllDatabaseModel(folder).accept(visitor);
 }
 
-std::shared_ptr<IModelAccept> MakeXmlFilesModel(const std::vector<std::string>& files)
+void AcceptXmlFiles(IModelVisitor& visitor, const std::vector<std::string>& files)
 {
-    return std::make_shared<XmlModelFiles>(files);
+    XmlModelFiles(files).accept(visitor);
 }
 
-std::shared_ptr<IModelAccept> MakeXmlMemoryModel(const void* data, size_t szdata)
+void AcceptXmlMemory(IModelVisitor& visitor, const void* data, size_t szdata)
 {
-    return std::make_shared<XmlModelMemory>(data, szdata);
+    XmlModelMemory(data, szdata).accept(visitor);
 }
 
 namespace

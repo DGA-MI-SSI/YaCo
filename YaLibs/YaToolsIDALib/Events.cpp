@@ -24,7 +24,7 @@
 #include "Helpers.h"
 #include "HVersion.hpp"
 #include "IdaModel.hpp"
-#include "XmlModel.hpp"
+#include "XmlAccept.hpp"
 #include "MemoryModel.hpp"
 #include "IModel.hpp"
 #include "Yatools.hpp"
@@ -675,7 +675,7 @@ namespace
 
         // load all xml files into a model we can query
         const auto full = MakeMemoryModel();
-        MakeXmlAllModel(".")->accept(*full);
+        AcceptXmlCache(*full, ".");
 
         // prepare final updated model
         const auto all_updates = MakeMemoryModel();
@@ -707,7 +707,7 @@ namespace
         deleted->visit_start();
         repo.diff_index(commit, [&](const char* /*path*/, bool added, const void* ptr, size_t size)
         {
-            MakeXmlMemoryModel(ptr, size)->accept(added ? *updated : *deleted);
+            AcceptXmlMemory(added ? *updated : *deleted, ptr, size);
             return 0;
         });
         deleted->visit_end();

@@ -23,7 +23,7 @@
 #endif
 
 #include "test_common.hpp"
-#include "XmlModel.hpp"
+#include "XmlAccept.hpp"
 #include "ExporterValidatorVisitor.hpp"
 #include "XmlVisitor.hpp"
 #include "IModel.hpp"
@@ -68,7 +68,7 @@ namespace
         ofs.close();
         auto call_queue = std::make_shared<std::queue<std::string>>();
         TestDatabaseModelVisitor visitor(call_queue);
-        MakeXmlFilesModel({filename.string()})->accept(visitor);
+        AcceptXmlFiles(visitor, {filename.string()});
         EXPECT_FALSE(call_queue->empty());
         return call_queue;
     }
@@ -143,7 +143,7 @@ TEST_F (TestXMLDatabaseModel, TestFilesValidator)
 </sigfile>";
     test_input.close();
 
-    MakeXmlFilesModel({filename.string()})->accept(*MakeExporterValidatorVisitor());
+    AcceptXmlFiles(*MakeExporterValidatorVisitor(), {filename.string()});
 }
 
 TEST_F (TestXMLDatabaseModel, TestOneDoubleFile)
@@ -299,7 +299,7 @@ TEST_F (TestXMLDatabaseModel, TestOneFileWithBlob)
   </segment>\n\
 </sigfile>");
 
-    MakeXmlFilesModel({filename.string()})->accept(*MakeXmlVisitor("output"));
+    AcceptXmlFiles(*MakeXmlVisitor("output"), {filename.string()});
     diff_files(filename.string(), "output/segment/3223456789ABCDEF.xml");
 }
 
@@ -355,7 +355,7 @@ TEST_F (TestXMLDatabaseModel, TestOneFileWithComment)
   </segment>\n\
 </sigfile>");
 
-    MakeXmlFilesModel({filename.string()})->accept(*MakeXmlVisitor("output"));
+    AcceptXmlFiles(*MakeXmlVisitor("output"), {filename.string()});
     diff_files(filename.string(), "output/segment/3223456789ABCDEF.xml");
 }
 
@@ -412,7 +412,7 @@ TEST_F (TestXMLDatabaseModel, TestOneFileWithAccentuatedComment)
   </segment>\n\
 </sigfile>");
 
-    MakeXmlFilesModel({filename.string()})->accept(*MakeXmlVisitor("output"));
+    AcceptXmlFiles(*MakeXmlVisitor("output"), {filename.string()});
     diff_files(filename.string(), "output/segment/3223456789ABCDEF.xml");
 }
 
@@ -463,7 +463,7 @@ TEST_F (TestXMLDatabaseModel, TestOneFile_FileExporter)
 </segment>\n\
 </sigfile>");
 
-    MakeXmlFilesModel({filename.string()})->accept(*MakeFileXmlVisitor("output.xml"));
+    AcceptXmlFiles(*MakeFileXmlVisitor("output.xml"), {filename.string()});
     diff_files(filename.string(), "output.xml");
 }
 
@@ -514,7 +514,7 @@ TEST_F (TestXMLDatabaseModel, TestOneFileWithBlob_FileExporter)
 </segment>\n\
 </sigfile>");
 
-    MakeXmlFilesModel({filename.string()})->accept(*MakeFileXmlVisitor("output.xml"));
+    AcceptXmlFiles(*MakeFileXmlVisitor("output.xml"), {filename.string()});
     diff_files(filename.string(), "output.xml");
 }
 
@@ -553,7 +553,7 @@ TEST_F (TestXMLDatabaseModel, TestOneFileWithComments)
 </sigfile>\n\
 ");
 
-    MakeXmlFilesModel({filename.string()})->accept(*MakeXmlVisitor("output"));
+    AcceptXmlFiles(*MakeXmlVisitor("output"), {filename.string()});
     diff_files(filename.string(), "output/basic_block/4223456789ABCDEF.xml");
 }
 
@@ -593,7 +593,7 @@ TEST_F (TestXMLDatabaseModel, TestOneFileWithCommentsThroughMemory)
 ");
 
     auto model = MakeMemoryModel();
-    MakeXmlFilesModel({filename.string()})->accept(*model);
+    AcceptXmlFiles(*model, {filename.string()});
     model->accept(*MakeXmlVisitor("output"));
     diff_files(filename.string(), "output/basic_block/4223456789ABCDEF.xml");
 }
@@ -640,7 +640,7 @@ TEST_F (TestXMLDatabaseModel, TestOneFileWithXrefs)
 </sigfile>\n\
 ");
 
-    MakeXmlFilesModel({filename.string()})->accept(*MakeXmlVisitor("output"));
+    AcceptXmlFiles(*MakeXmlVisitor("output"), {filename.string()});
     diff_files(filename.string(), "output/basic_block/4223456789ABCDEF.xml");
 }
 
@@ -673,7 +673,7 @@ TEST_F (TestXMLDatabaseModel, TestOneFileWithXrefsThroughMemory)
 ");
 
     auto model = MakeMemoryModel();
-    MakeXmlFilesModel({filename.string()})->accept(*model);
+    AcceptXmlFiles(*model, {filename.string()});
     model->accept(*MakeXmlVisitor("output"));
     diff_files(filename.string(), "output/basic_block/4223456789ABCDEF.xml");
 }

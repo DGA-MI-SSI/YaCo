@@ -13,7 +13,7 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <XmlModel.hpp>
+#include <XmlAccept.hpp>
 #include <MemoryModel.hpp>
 #include <XmlVisitor.hpp>
 
@@ -29,7 +29,7 @@ void usage(char* name)
 int main_func(const std::string& folder, const std::string&  output_path)
 {
     const auto db = MakeMemoryModel();
-    MakeXmlAllModel(folder)->accept(*db);
+    AcceptXmlCache(*db, folder);
     db->accept(*MakeFileXmlVisitor(output_path));
     return 0;
 }

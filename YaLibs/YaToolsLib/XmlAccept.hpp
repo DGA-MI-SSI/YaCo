@@ -15,12 +15,11 @@
 
 #pragma once
 
-#include <memory>
 #include <string>
 #include <vector>
 
-class IModelAccept;
+class IModelVisitor;
 
-std::shared_ptr<IModelAccept> MakeXmlAllModel   (const std::string& folder);
-std::shared_ptr<IModelAccept> MakeXmlFilesModel (const std::vector<std::string>& files);
-std::shared_ptr<IModelAccept> MakeXmlMemoryModel(const void* data, size_t szdata);
+void AcceptXmlCache (IModelVisitor& visitor, const std::string& folder);
+void AcceptXmlFiles (IModelVisitor& visitor, const std::vector<std::string>& files);
+void AcceptXmlMemory(IModelVisitor& visitor, const void* data, size_t szdata);

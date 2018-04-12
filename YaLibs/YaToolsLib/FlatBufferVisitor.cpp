@@ -22,7 +22,7 @@
 #include "IModel.hpp"
 #include "Yatools.hpp"
 #include "FileUtils.hpp"
-#include "XmlModel.hpp"
+#include "XmlAccept.hpp"
 #include "Helpers.h"
 
 #include <flatbuffers/flatbuffers.h>
@@ -597,7 +597,7 @@ std::shared_ptr<IModel> MakeMultiFlatBufferModel(const std::vector<std::string>&
 bool merge_xmls_to_yadb(const std::string& output, const std::vector<std::string>& inputs)
 {
     const auto exporter = MakeFlatBufferVisitor();
-    MakeXmlFilesModel(inputs)->accept(*exporter);
+    AcceptXmlFiles(*exporter, inputs);
 
     // export buffer to file
     const auto buf = exporter->GetBuffer();

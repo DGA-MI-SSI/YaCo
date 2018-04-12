@@ -18,7 +18,7 @@
 #include "HVersion.hpp"
 #include "IModelVisitor.hpp"
 #include "MemoryModel.hpp"
-#include "XmlModel.hpp"
+#include "XmlAccept.hpp"
 #include "XmlVisitor.hpp"
 #include "Helpers.h"
 
@@ -59,8 +59,8 @@ MergeStatus_e Merger::smartMerge(const char* input_file1, const char* input_file
     const auto db2 = MakeMemoryModel();
 
     // reload two databases with one object version in each database
-    MakeXmlFilesModel({input_file1})->accept(*db1);
-    MakeXmlFilesModel({input_file2})->accept(*db2);
+    AcceptXmlFiles(*db1, {input_file1});
+    AcceptXmlFiles(*db2, {input_file2});
 
     if(db1->size() != 1 || db2->size() != 1)
         throw std::runtime_error("invalid number of referenced object in databases");
