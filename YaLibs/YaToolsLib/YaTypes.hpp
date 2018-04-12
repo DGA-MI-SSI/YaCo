@@ -41,7 +41,6 @@ typedef uint64_t offset_t;
 typedef int32_t  operand_t;
 typedef uint32_t flags_t;
 typedef uint64_t YaToolObjectId;
-typedef uint32_t YaToolFlag_T;
 
 YaToolObjectType_e  get_object_type(const char* object_type);
 const char*         get_object_type_string(YaToolObjectType_e object_type);

@@ -873,7 +873,7 @@ namespace
         });
     }
 
-    bool set_function_flags(func_t* func, YaToolFlag_T flags)
+    bool set_function_flags(func_t* func, flags_t flags)
     {
         const auto uflags = static_cast<ushort>(flags);
         if(uflags == func->flags)

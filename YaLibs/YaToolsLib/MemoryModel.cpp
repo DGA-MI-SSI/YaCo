@@ -302,7 +302,7 @@ struct ViewVersions
     const_string_ref    username        (VersionIndex idx) const override;
     int                 username_flags  (VersionIndex idx) const override;
     const_string_ref    prototype       (VersionIndex idx) const override;
-    YaToolFlag_T        flags           (VersionIndex idx) const override;
+    flags_t             flags           (VersionIndex idx) const override;
     int                 string_type     (VersionIndex idx) const override;
     const_string_ref    header_comment  (VersionIndex idx, bool repeatable) const override;
     bool                has_signature   (VersionIndex idx) const override;
@@ -841,7 +841,7 @@ const_string_ref ViewVersions::prototype(VersionIndex idx) const
     return make_string_ref(db_.versions_[idx].prototype);
 }
 
-YaToolFlag_T ViewVersions::flags(VersionIndex idx) const
+flags_t ViewVersions::flags(VersionIndex idx) const
 {
     return db_.versions_[idx].flags;
 }

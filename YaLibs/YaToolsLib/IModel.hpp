@@ -49,7 +49,7 @@ struct IVersions
     virtual const_string_ref    username        (VersionIndex idx) const = 0;
     virtual int                 username_flags  (VersionIndex idx) const = 0;
     virtual const_string_ref    prototype       (VersionIndex idx) const = 0;
-    virtual YaToolFlag_T        flags           (VersionIndex idx) const = 0;
+    virtual flags_t             flags           (VersionIndex idx) const = 0;
     virtual int                 string_type     (VersionIndex idx) const = 0;
     virtual const_string_ref    header_comment  (VersionIndex idx, bool repeatable) const = 0;
     virtual bool                has_signature   (VersionIndex idx) const = 0;

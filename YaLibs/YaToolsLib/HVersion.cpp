@@ -76,7 +76,7 @@ const_string_ref HVersion::prototype() const
     return model_->prototype(idx_);
 }
 
-YaToolFlag_T HVersion::flags()const
+flags_t HVersion::flags()const
 {
     return model_->flags(idx_);
 }

@@ -36,7 +36,7 @@ struct HVersion
     int                 username_flags      () const;
     const_string_ref    prototype           () const;
     bool                has_prototype       () const;
-    YaToolFlag_T        flags               () const;
+    flags_t             flags               () const;
     int                 string_type         () const;
     const_string_ref    header_comment      (bool repeatable) const;
     bool                has_header_comment  (bool repeatable) const;
