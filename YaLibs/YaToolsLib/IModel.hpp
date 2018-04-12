@@ -15,7 +15,6 @@
 
 #pragma once
 
-#include "IModelAccept.hpp"
 #include "YaTypes.hpp"
 #include "HSignature.hpp"
 
@@ -76,11 +75,9 @@ struct ISignatures
 };
 
 struct IModel
-    : public IModelAccept
 {
-    ~IModel() override = default;
+    virtual ~IModel() = default;
 
-    // IModelAccept methods
     virtual void                accept(IModelVisitor& visitor) = 0;
 
     // private methods

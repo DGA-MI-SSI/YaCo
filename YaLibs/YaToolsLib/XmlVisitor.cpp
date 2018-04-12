@@ -15,7 +15,6 @@
 
 #include "XmlVisitor.hpp"
 
-#include "IModelAccept.hpp"
 #include "Yatools.hpp"
 #include "Signature.hpp"
 #include "IModelVisitor.hpp"
@@ -129,6 +128,14 @@ struct FileXmlVisitor
     void visit_end() override;
     const std::string path_;
 };
+
+struct StringXmlVisitor
+    : public MemExporter
+{
+    StringXmlVisitor(std::string& output);
+    void visit_end() override;
+    std::string& output_;
+};
 }
 
 std::shared_ptr<IModelVisitor> MakeXmlVisitor(const std::string& path)
@@ -141,11 +148,9 @@ std::shared_ptr<IModelVisitor> MakeFileXmlVisitor(const std::string& path)
     return std::make_shared<FileXmlVisitor>(path);
 }
 
-std::string export_to_xml(IModelAccept& model)
+std::shared_ptr<IModelVisitor> MakeMemoryXmlVisitor(std::string& output)
 {
-    MemExporter mem;
-    model.accept(mem);
-    return mem.stream_.str();
+    return std::make_shared<StringXmlVisitor>(output);
 }
 
 FileXmlVisitor::FileXmlVisitor(const std::string& path)
@@ -214,6 +219,17 @@ void FileXmlVisitor::visit_end()
     output.open(path_);
     output << stream_.str();
     output.close();
+}
+
+StringXmlVisitor::StringXmlVisitor(std::string& output)
+    : output_(output)
+{
+}
+
+void StringXmlVisitor::visit_end()
+{
+    MemExporter::visit_end();
+    output_ = stream_.str();
 }
 
 namespace

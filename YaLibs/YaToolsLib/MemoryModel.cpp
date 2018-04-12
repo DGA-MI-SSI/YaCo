@@ -381,10 +381,9 @@ struct Model
     void visit_blob(offset_t offset, const void* blob, size_t len) override;
     void visit_flags(flags_t flags) override;
 
-    // IModelAccept
-    void accept(IModelVisitor& visitor) override;
 
     // IModel
+    void        accept          (IModelVisitor& visitor) override;
     void        walk            (const OnVersionFn& fnWalk) const override;
     size_t      size            () const override;
     size_t      size_matching   (const HSignature& hash) const override;

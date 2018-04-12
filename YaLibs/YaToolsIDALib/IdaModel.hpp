@@ -16,13 +16,12 @@
 #pragma once
 
 #include "YaTypes.hpp"
-#include "IModelAccept.hpp"
 
 #include <memory>
 
-class IModelAccept;
+class IModelVisitor;
 
-std::shared_ptr<IModelAccept> MakeIdaModel();
+void AcceptIdaModel(IModelVisitor& visitor);
 
 struct IModelIncremental
 {

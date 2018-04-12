@@ -15,8 +15,6 @@
 
 #pragma once
 
-#include "IModelAccept.hpp"
-
 #include <memory>
 #include <string>
 
@@ -24,5 +22,4 @@ class IModelVisitor;
 
 std::shared_ptr<IModelVisitor> MakeXmlVisitor      (const std::string& path);
 std::shared_ptr<IModelVisitor> MakeFileXmlVisitor  (const std::string& path);
-
-std::string export_to_xml(IModelAccept& model);
+std::shared_ptr<IModelVisitor> MakeMemoryXmlVisitor(std::string& output);

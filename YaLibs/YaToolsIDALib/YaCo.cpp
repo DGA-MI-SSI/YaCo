@@ -156,7 +156,7 @@ void YaCo::export_database()
     }
 
     const auto exporter = MakeFlatBufferVisitor();
-    MakeIdaModel()->accept(*exporter);
+    AcceptIdaModel(*exporter);
     ExportedBuffer buffer = exporter->GetBuffer();
 
     FILE* database = fopen("database/database.yadb", "wb");

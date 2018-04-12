@@ -14,7 +14,6 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "FileUtils.hpp"
-#include "IModelAccept.hpp"
 #include "FlatBufferModel.hpp"
 #include "FlatBufferVisitor.hpp"
 #include "XmlAccept.hpp"

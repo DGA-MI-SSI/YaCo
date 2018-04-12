@@ -17,7 +17,6 @@
 #include "Ida.h"
 
 #include "IdaModel.hpp"
-#include "IModelAccept.hpp"
 #include "IModelVisitor.hpp"
 #include "Hash.hpp"
 #include "YaHelpers.hpp"
@@ -1680,7 +1679,6 @@ namespace
 namespace
 {
     struct Model
-        : public IModelAccept
     {
         static const bool is_incremental = false;
 
@@ -1688,8 +1686,7 @@ namespace
 
         inline bool skip_id(YaToolObjectId, YaToolObjectType_e) const { return false; }
 
-        // IModelAccept methods
-        void accept(IModelVisitor& v) override;
+        void accept(IModelVisitor& v);
 
         Ctx<Model> ctx_;
     };
@@ -1725,9 +1722,9 @@ Model::Model()
 {
 }
 
-std::shared_ptr<IModelAccept> MakeIdaModel()
+void AcceptIdaModel(IModelVisitor& visitor)
 {
-    return std::make_shared<Model>();
+    Model().accept(visitor);
 }
 
 void Model::accept(IModelVisitor& v)
@@ -1868,6 +1865,16 @@ void export_from_ida(const std::string& filename)
 
     qfwrite(fh, buf.value, buf.size);
     qfclose(fh);
+}
+
+namespace
+{
+    std::string export_to_xml(IModel& model)
+    {
+        std::string output;
+        model.accept(*MakeMemoryXmlVisitor(output));
+        return output;
+    }
 }
 
 std::string export_xml(ea_t ea, int type_mask)

@@ -16,7 +16,6 @@
 #include "XmlAccept.hpp"
 
 #include "Signature.hpp"
-#include "IModelAccept.hpp"
 #include "IModelVisitor.hpp"
 #include "YaTypes.hpp"
 #include "Yatools.hpp"

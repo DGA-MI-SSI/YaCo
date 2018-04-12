@@ -14,7 +14,6 @@ set(_yatools_files
     "../YaLibs/YaToolsLib/HVersion.hpp"
     "../YaLibs/YaToolsLib/Helpers.h"
     "../YaLibs/YaToolsLib/IModel.hpp"
-    "../YaLibs/YaToolsLib/IModelAccept.hpp"
     "../YaLibs/YaToolsLib/IModelSink.hpp"
     "../YaLibs/YaToolsLib/IModelVisitor.hpp"
     "../YaLibs/YaToolsLib/Logger.cpp"

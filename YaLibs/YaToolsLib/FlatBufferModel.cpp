@@ -160,10 +160,8 @@ struct FlatBufferModel : public IModel
     // private methods
     void setup();
 
-    // IModelAccept methods
-    void                accept(IModelVisitor& visitor) override;
-
     // IModel methods
+    void                accept          (IModelVisitor& visitor) override;
     void                walk            (const OnVersionFn& fnWalk) const override;
     size_t              size            () const override;
     size_t              size_matching   (const HSignature& hash) const override;

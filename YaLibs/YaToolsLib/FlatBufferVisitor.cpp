@@ -15,7 +15,6 @@
 
 #include "FlatBufferVisitor.hpp"
 
-#include "IModelAccept.hpp"
 #include "IModelVisitor.hpp"
 #include "Signature.hpp"
 #include "FlatBufferModel.hpp"

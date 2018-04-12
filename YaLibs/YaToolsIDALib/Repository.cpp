@@ -16,7 +16,6 @@
 #include "Ida.h"
 #include "Repository.hpp"
 
-#include "IModelAccept.hpp"
 #include "Merger.hpp"
 #include "ResolveFileConflictCallback.hpp"
 #include "YaGitLib.hpp"
