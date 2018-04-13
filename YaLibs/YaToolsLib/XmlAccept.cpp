@@ -78,7 +78,7 @@ namespace
     {
         YaToolObjectId id = 0;
         const auto n = hexbin(&id, sizeof id, txt.value, txt.size);
-        return n == sizeof id ? swap(id) : 0;
+        return swap(id << (8 - n) * 8);
     }
 
     YaToolObjectType_e get_object_type_from_path(const filesystem::path& path)
@@ -478,6 +478,7 @@ namespace
                 continue;
             has_id = true;
             id = id_from_string(make_string_ref(node_content));
+            break;
         }
         if(!has_id)
             return;
