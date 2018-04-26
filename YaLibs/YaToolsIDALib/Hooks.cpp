@@ -26,9 +26,9 @@
 #define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("hooks", (FMT), ## __VA_ARGS__)
 
 // Log macro used for events logging
-#define LOG_IDP_EVENT(format, ...) do { if(LOG_IDP_EVENTS) LOG(INFO, "idp: " format, ## __VA_ARGS__); } while(0)
-#define LOG_DBG_EVENT(format, ...) do { if(LOG_DBG_EVENTS) LOG(INFO, "dbg: " format, ## __VA_ARGS__); } while(0)
-#define LOG_IDB_EVENT(format, ...) do { if(LOG_IDB_EVENTS) LOG(INFO, "idb: " format, ## __VA_ARGS__); } while(0)
+#define LOG_IDP_EVENT(format, ...) do { if(LOG_IDP_EVENTS) LOG(INFO, "idp: " format "\n", ## __VA_ARGS__); } while(0)
+#define LOG_DBG_EVENT(format, ...) do { if(LOG_DBG_EVENTS) LOG(INFO, "dbg: " format "\n", ## __VA_ARGS__); } while(0)
+#define LOG_IDB_EVENT(format, ...) do { if(LOG_IDB_EVENTS) LOG(INFO, "idb: " format "\n", ## __VA_ARGS__); } while(0)
 
 namespace
 {
