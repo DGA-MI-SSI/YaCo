@@ -93,6 +93,11 @@ inline bool operator==(const const_string_ref& a, const const_string_ref& b)
     return a.size == b.size && (!a.value || !strcmp(a.value, b.value));
 }
 
+inline bool operator!=(const const_string_ref& a, const const_string_ref& b)
+{
+    return !(a == b);
+}
+
 inline bool operator<(const const_string_ref& a, const const_string_ref& b)
 {
     return strcmp(a.value, b.value) < 0;

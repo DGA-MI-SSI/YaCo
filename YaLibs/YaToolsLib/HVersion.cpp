@@ -166,7 +166,7 @@ bool HVersion::is_different_from(const HVersion& object_version_diff) const
     }
 
     /* Check name */
-    if (!std::equal_to<>()(username(), object_version_diff.username()))
+    if (username() != object_version_diff.username())
     {
         return true;
     }
@@ -178,19 +178,19 @@ bool HVersion::is_different_from(const HVersion& object_version_diff) const
     }
 
     /* Check non repeatable header */
-    if (!std::equal_to<>()(header_comment(false), object_version_diff.header_comment(false)))
+    if (header_comment(false) != object_version_diff.header_comment(false))
     {
         return true;
     }
 
     /* Check repeatable header */
-    if (!std::equal_to<>()(header_comment(true), object_version_diff.header_comment(true)))
+    if (header_comment(true) != object_version_diff.header_comment(true))
     {
         return true;
     }
 
     /* Check prototype */
-    if (!std::equal_to<>()(prototype(), object_version_diff.prototype()))
+    if (prototype() != object_version_diff.prototype())
     {
         return true;
     }
@@ -207,7 +207,7 @@ bool HVersion::is_different_from(const HVersion& object_version_diff) const
         found = false;
         object_version_diff.walk_comments([&](offset_t diff_offset, CommentType_e diff_type, const const_string_ref& diff_comment)
         {
-            if (this_offset == diff_offset && this_type == diff_type && std::equal_to<>()(this_comment, diff_comment))
+            if (this_offset == diff_offset && this_type == diff_type && this_comment == diff_comment)
             {
                 found = true;
                 return WALK_STOP;
@@ -237,7 +237,7 @@ bool HVersion::is_different_from(const HVersion& object_version_diff) const
         found = false;
         object_version_diff.walk_attributes([&](const const_string_ref& diff_key, const const_string_ref& diff_value)
         {
-            if (std::equal_to<>()(this_key, diff_key) && std::equal_to<>()(this_value, diff_value))
+            if (this_key == diff_key && this_value == diff_value)
             {
                 found = true;
                 return WALK_STOP;
