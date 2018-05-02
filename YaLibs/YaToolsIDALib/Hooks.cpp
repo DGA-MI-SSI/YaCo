@@ -1256,10 +1256,15 @@ namespace
 
     void changing_cmt(Hooks& hooks, va_list args)
     {
-        const auto ea             = va_arg(args, ea_t);
-        const auto repeatable_cmt = static_cast<bool>(va_arg(args, int));
-        const auto newcmt         = va_arg(args, const char*);
-        LOG_IDB_EVENT("Item at %" PRIxEA " %scomment is to be changed from \"%s\" to \"%s\"", ea, REPEATABLE_STR[repeatable_cmt], get_cmt(ea, repeatable_cmt).c_str(), newcmt);
+        const auto ea           = va_arg(args, ea_t);
+        const auto repeatable   = static_cast<bool>(va_arg(args, int));
+        const auto newcmt       = va_arg(args, const char*);
+
+        const auto cmt = get_cmt(ea, repeatable);
+        if(make_string_ref(newcmt) == ya::to_string_ref(cmt))
+            return;
+
+        LOG_IDB_EVENT("Item at %" PRIxEA " %scomment is to be changed from \"%s\" to \"%s\"", ea, REPEATABLE_STR[repeatable], cmt.c_str(), newcmt);
         hooks.events_.touch_ea(ea);
     }
 

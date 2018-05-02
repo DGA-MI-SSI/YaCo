@@ -338,7 +338,7 @@ ida_auto.plan_and_wait(ea, ea+0x1f0)
             self.save_ea(ea),
         )
         a.check_git(added=["binary", "segment", "segment_chunk", "function", "stackframe", "data"] +
-            ["stackframe_member"] * 7 + ["basic_block"] * 17)
+            ["stackframe_member"] * 7 + ["basic_block"] * 15)
 
         b.run(
             self.check_ea(ea),
