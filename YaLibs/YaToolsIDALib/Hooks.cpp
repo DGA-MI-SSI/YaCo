@@ -1242,6 +1242,10 @@ namespace
         const auto new_name   = va_arg(args, const char*);
         const auto local_name = static_cast<bool>(va_arg(args, int));
         UNUSED(local_name);
+        const auto flags = get_flags(ea);
+        if(!has_any_name(flags))
+            return;
+
         LOG_IDB_EVENT("Byte at %" PRIxEA " renamed to %s", ea, new_name);
         hooks.events_.touch_ea(ea);
     }

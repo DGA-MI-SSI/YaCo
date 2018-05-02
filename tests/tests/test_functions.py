@@ -360,7 +360,7 @@ ida_auto.auto_wait()
 """),
             self.save_last_ea(),
         )
-        a.check_git(added=["segment_chunk"], modified=["data"])
+        a.check_git(modified=["data"])
 
         b.run(
             self.check_last_ea(),
