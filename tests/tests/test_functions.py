@@ -323,6 +323,32 @@ idc.del_items(ea, idc.DELIT_EXPAND, 0x2c)
             self.check_last_ea(),
         )
 
+    def test_rename_stackframe_and_undefine_func(self):
+        a, b = self.setup_repos()
+        a.run(
+            self.script("""
+ea = 0x6600EF70
+idaapi.set_name(ea, "new_function_EF30")
+frame = idaapi.get_frame(ea)
+offset = idc.get_first_member(frame.id)
+idaapi.set_member_name(frame, offset, "zorg")
+"""),
+            self.save_last_ea(),
+        )
+        b.run(
+            self.check_last_ea(),
+            self.script("""
+ea = 0x6600EF70
+idc.del_items(ea, idc.DELIT_EXPAND, 0x2c)
+"""),
+            self.save_last_ea(),
+        )
+        b.check_git(added=["data"], deleted=["function", "stackframe",
+            "stackframe_member", "stackframe_member", "basic_block"], modified=["segment_chunk"])
+        a.run(
+            self.check_last_ea(),
+        )
+
     def test_data_in_func_to_undef_and_back(self):
         a, b = self.setup_repos()
         ea = 0x66038DB0
