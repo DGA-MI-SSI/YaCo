@@ -31,8 +31,7 @@ idaapi.add_regvar(func, ea, ea+0x10, "ebp", "ebp_a", None)
 idaapi.add_regvar(func, ea+0x10, ea+0x20, "ebp", "ebp_b", None)
 """),
         )
-        entities= ["binary", "segment", "segment_chunk", "function",
-            "stackframe", "stackframe_member", "basic_block"]
+        entities= ["binary", "segment", "segment_chunk", "function", "basic_block"]
         a.check_git(added=entities)
 
         # push idb

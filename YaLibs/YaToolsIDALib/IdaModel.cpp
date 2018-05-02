@@ -1391,13 +1391,14 @@ namespace
             ctx.plugin_->accept_function(v, ea);
         finish_object(v);
 
+        accept_dependencies(ctx, v, deps);
+        if(Ctx::is_incremental)
+            return;
+
         if(frame)
             accept_struct(ctx, v, {id, ea}, frame, func);
-        accept_dependencies(ctx, v, deps);
-
-        if(!Ctx::is_incremental)
-            for(const auto& block : flow.blocks)
-                accept_block(ctx, v, {id, func->start_ea}, block);
+        for(const auto& block : flow.blocks)
+            accept_block(ctx, v, {id, func->start_ea}, block);
     }
 
     template<typename Ctx>
@@ -1873,7 +1874,11 @@ std::string export_xml(ea_t ea, int type_mask)
 {
     const auto db = MakeMemoryModel();
     db->visit_start();
-    ModelIncremental(type_mask).accept_ea(*db, ea);
+    ModelIncremental ctx(type_mask);
+    ctx.accept_ea(*db, ea);
+    const auto frame = get_frame(ea);
+    if(frame)
+        ctx.accept_struct(*db, ea, frame->id);
     db->visit_end();
     return export_to_xml(*db);
 }

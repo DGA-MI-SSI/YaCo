@@ -318,8 +318,7 @@ idc.del_items(ea, idc.DELIT_EXPAND, 0x2c)
 """),
             self.save_last_ea(),
         )
-        b.check_git(added=["data"], deleted=["function", "stackframe",
-            "stackframe_member", "stackframe_member", "basic_block"], modified=["segment_chunk"])
+        b.check_git(added=["data"], deleted=["function", "basic_block"], modified=["segment_chunk"])
         a.run(
             self.check_last_ea(),
         )

@@ -39,8 +39,7 @@ idaapi.update_extra_cmt(ea+6, idaapi.E_NEXT + 1, "cmt 0a")
 """),
             self.save_last_ea(),
         )
-        a.check_git(added=["binary", "segment", "segment_chunk", "function", "basic_block",
-            "stackframe", "stackframe_member", "stackframe_member"])
+        a.check_git(added=["binary", "segment", "segment_chunk", "function", "basic_block"])
         b.run(
             self.check_last_ea(),
             self.script("""

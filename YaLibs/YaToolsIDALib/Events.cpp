@@ -370,9 +370,6 @@ void Events::touch_ea(ea_t ea)
 void Events::touch_func(ea_t ea)
 {
     add_ea(*this, ea);
-    const auto frame = get_frame(ea);
-    if(frame)
-        update_struc(*this, frame->id);
 }
 
 void Events::touch_code(ea_t ea)

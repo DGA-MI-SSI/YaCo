@@ -31,8 +31,7 @@ idaapi.add_regvar(func, ea+0x10, ea+0x20, "ebp", "ebp_b", None)
 """),
             self.save_last_ea(),
         )
-        a.check_git(added=["binary", "segment", "segment_chunk", "function",
-            "stackframe", "stackframe_member", "basic_block"])
+        a.check_git(added=["binary", "segment", "segment_chunk", "function", "basic_block"])
         b.run(
             self.check_last_ea(),
             self.script("""
