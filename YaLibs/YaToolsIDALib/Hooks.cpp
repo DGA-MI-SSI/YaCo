@@ -1263,14 +1263,6 @@ namespace
         hooks.events_.touch_ea(ea);
     }
 
-    void cmt_changed(Hooks& hooks, va_list args)
-    {
-        const auto ea             = va_arg(args, ea_t);
-        const auto repeatable_cmt = static_cast<bool>(va_arg(args, int));
-        LOG_IDB_EVENT("Item at %" PRIxEA " %scomment has been changed to \"%s\"", ea, REPEATABLE_STR[repeatable_cmt], get_cmt(ea, repeatable_cmt).c_str());
-        hooks.events_.touch_ea(ea);
-    }
-
     void changing_range_cmt(Hooks& hooks, va_list args)
     {
         const auto kind       = static_cast<range_kind_t>(va_arg(args, int));
@@ -1355,7 +1347,6 @@ namespace
             case idb_event::event_code_t::changing_struc_member:   changing_struc_member(*hooks, args); break;
             case idb_event::event_code_t::changing_ti:             changing_ti(*hooks, args); break;
             case idb_event::event_code_t::closebase:               closebase(*hooks, args); break;
-            case idb_event::event_code_t::cmt_changed:             cmt_changed(*hooks, args); break;
             case idb_event::event_code_t::compiler_changed:        compiler_changed(*hooks, args); break;
             case idb_event::event_code_t::deleting_enum:           deleting_enum(*hooks, args); break;
             case idb_event::event_code_t::deleting_enum_member:    deleting_enum_member(*hooks, args); break;
@@ -1426,6 +1417,10 @@ namespace
             case idb_event::event_code_t::tryblks_updated:         tryblks_updated(*hooks, args); break;
             case idb_event::event_code_t::updating_tryblks:        updating_tryblks(*hooks, args); break;
             case idb_event::event_code_t::upgraded:                upgraded(*hooks, args); break;
+
+            // discard all those events
+            case idb_event::event_code_t::cmt_changed:
+                break;
         }
         return 0;
     }
