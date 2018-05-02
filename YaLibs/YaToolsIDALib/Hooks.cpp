@@ -1278,16 +1278,6 @@ namespace
         hooks.events_.touch_ea(a->start_ea);
     }
 
-    void range_cmt_changed(Hooks& hooks, va_list args)
-    {
-        const auto kind       = static_cast<range_kind_t>(va_arg(args, int));
-        const auto a          = va_arg(args, const range_t*);
-        const auto cmt        = va_arg(args, const char*);
-        const auto repeatable = static_cast<bool>(va_arg(args, int));
-        LOG_IDB_EVENT("%s range from %" PRIxEA " to %" PRIxEA " %scomment has been changed to \"%s\"", range_kind_to_str(kind), a->start_ea, a->end_ea, REPEATABLE_STR[repeatable], cmt);
-        hooks.events_.touch_ea(a->start_ea);
-    }
-
     void extra_cmt_changed(Hooks& hooks, va_list args)
     {
         const auto ea       = va_arg(args, ea_t);
@@ -1388,7 +1378,6 @@ namespace
             case idb_event::event_code_t::make_data:               make_data(*hooks, args); break;
             case idb_event::event_code_t::op_ti_changed:           op_ti_changed(*hooks, args); break;
             case idb_event::event_code_t::op_type_changed:         op_type_changed(*hooks, args); break;
-            case idb_event::event_code_t::range_cmt_changed:       range_cmt_changed(*hooks, args); break;
             case idb_event::event_code_t::renamed:                 renamed(*hooks, args); break;
             case idb_event::event_code_t::renaming_enum:           renaming_enum(*hooks, args); break;
             case idb_event::event_code_t::renaming_struc:          renaming_struc(*hooks, args); break;
@@ -1425,6 +1414,7 @@ namespace
 
             // discard all those events
             case idb_event::event_code_t::cmt_changed:
+            case idb_event::event_code_t::range_cmt_changed:
                 break;
         }
         return 0;
