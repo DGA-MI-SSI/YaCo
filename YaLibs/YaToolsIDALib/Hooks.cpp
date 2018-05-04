@@ -453,16 +453,10 @@ namespace
         hooks.events_.touch_ea(ea);
     }
 
-    void changing_op_type(Hooks& hooks, va_list args)
-    {
-        const auto ea = va_arg(args, ea_t);
-        LOG_IDB_EVENT("An operand type at %" PRIxEA " is to be changed", ea);
-        hooks.events_.touch_ea(ea);
-    }
-
     void op_type_changed(Hooks& hooks, va_list args)
     {
-        const auto ea = va_arg(args, ea_t);
+        const auto ea   = va_arg(args, ea_t);
+        const auto n    = va_arg(args, int);
         LOG_IDB_EVENT("An operand type at %" PRIxEA " has been set or deleted", ea);
         hooks.events_.touch_ea(ea);
     }
@@ -1297,7 +1291,6 @@ namespace
             case idb_event::event_code_t::changing_enum_bf:        changing_enum_bf(*hooks, args); break;
             case idb_event::event_code_t::changing_enum_cmt:       changing_enum_cmt(*hooks, args); break;
             case idb_event::event_code_t::changing_op_ti:          changing_op_ti(*hooks, args); break;
-            case idb_event::event_code_t::changing_op_type:        changing_op_type(*hooks, args); break;
             case idb_event::event_code_t::changing_range_cmt:      changing_range_cmt(*hooks, args); break;
             case idb_event::event_code_t::changing_segm_class:     changing_segm_class(*hooks, args); break;
             case idb_event::event_code_t::changing_segm_end:       changing_segm_end(*hooks, args); break;
@@ -1375,6 +1368,7 @@ namespace
             case idb_event::event_code_t::upgraded:                upgraded(*hooks, args); break;
 
             // discard all those events
+            case idb_event::event_code_t::changing_op_type:     // see op_type_changed (catch more events)
             case idb_event::event_code_t::cmt_changed:          // see changing_cmt
             case idb_event::event_code_t::enum_bf_changed:      // see changing_enum_bf
             case idb_event::event_code_t::enum_cmt_changed:     // see changing_enum_cmt
