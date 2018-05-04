@@ -23,7 +23,7 @@ class Fixture(runtests.Fixture):
     def test_enums(self):
         a, b = self.setup_repos()
         a.run(
-            self.script("idc.AddEnum(-1, 'name_a', idaapi.hexflag())"),
+            self.script("idaapi.add_enum(idaapi.BADADDR, 'name_a', idaapi.hexflag())"),
             self.save_enum("name_a"),
         )
         a.check_git(added=["enum"])
@@ -47,7 +47,7 @@ class Fixture(runtests.Fixture):
     def test_enum_members(self):
         a, b = self.setup_repos()
         a.run(
-            self.script("idaapi.add_enum_member(idc.AddEnum(-1, 'name_a', idaapi.hexflag()), 'field_a', 0, -1)"),
+            self.script("idaapi.add_enum_member(idaapi.add_enum(idaapi.BADADDR, 'name_a', idaapi.hexflag()), 'field_a', 0, -1)"),
             self.save_enum("name_a"),
         )
         a.check_git(added=["enum", "enum_member"])
@@ -102,7 +102,7 @@ eidx = 0
 for (flags, bits, bitfield, ea, operand, fields) in enums:
     name = "enum_%x" % eidx
     eidx += 1
-    eid = idc.AddEnum(-1, name, flags)
+    eid = idaapi.add_enum(idaapi.BADADDR, name, flags)
     if bits != 0:
         idaapi.set_enum_width(eid, bits)
     if bitfield:
