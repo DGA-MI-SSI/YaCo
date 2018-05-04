@@ -708,25 +708,6 @@ namespace
         hooks.events_.touch_struc(sptr->id);
     }
 
-    void log_struc_expanded(const struc_t* sptr)
-    {
-        if(!LOG_IDB_EVENTS)
-            return;
-
-        const auto func_ea = get_func_by_frame(sptr->id);
-        if(func_ea != BADADDR)
-            LOG_IDB_EVENT("Stackframe of function %s has been expanded/shrank", get_func_name(func_ea).c_str());
-        else
-            LOG_IDB_EVENT("Structure type %s has been expanded/shrank", get_struc_name(sptr->id).c_str());
-    }
-
-    void struc_expanded(Hooks& hooks, va_list args)
-    {
-        const auto sptr = va_arg(args, struc_t*);
-        log_struc_expanded(sptr);
-        hooks.events_.touch_struc(sptr->id);
-    }
-
     void log_struc_member_created(const struc_t* sptr, const member_t* mptr)
     {
         if(!LOG_IDB_EVENTS)
@@ -1403,7 +1384,6 @@ namespace
             case idb_event::event_code_t::struc_cmt_changed:       struc_cmt_changed(*hooks, args); break;
             case idb_event::event_code_t::struc_created:           struc_created(*hooks, args); break;
             case idb_event::event_code_t::struc_deleted:           struc_deleted(*hooks, args); break;
-            case idb_event::event_code_t::struc_expanded:          struc_expanded(*hooks, args); break;
             case idb_event::event_code_t::struc_member_changed:    struc_member_changed(*hooks, args); break;
             case idb_event::event_code_t::struc_member_created:    struc_member_created(*hooks, args); break;
             case idb_event::event_code_t::struc_member_deleted:    struc_member_deleted(*hooks, args); break;
@@ -1419,6 +1399,7 @@ namespace
             // discard all those events
             case idb_event::event_code_t::cmt_changed:
             case idb_event::event_code_t::range_cmt_changed:
+            case idb_event::event_code_t::struc_expanded:
                 break;
         }
         return 0;
