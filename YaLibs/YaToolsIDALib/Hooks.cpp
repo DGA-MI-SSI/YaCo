@@ -593,28 +593,6 @@ namespace
         hooks.events_.touch_struc(sptr->id);
     }
 
-    void log_struc_member_deleted(const struc_t* sptr, tid_t member_id, ea_t offset)
-    {
-        if(!LOG_IDB_EVENTS)
-            return;
-
-        UNUSED(member_id);
-        const auto func_ea = get_func_by_frame(sptr->id);
-        if(func_ea != BADADDR)
-            LOG_IDB_EVENT("Stackframe of function %s member at offset 0x%" PRIXEA " has been deleted", get_func_name(func_ea).c_str(), offset);
-        else
-            LOG_IDB_EVENT("Structure type %s member at offset 0x%" PRIXEA " has been deleted", get_struc_name(sptr->id).c_str(), offset);
-    }
-
-    void struc_member_deleted(Hooks& hooks, va_list args)
-    {
-        const auto sptr      = va_arg(args, struc_t*);
-        const auto member_id = va_arg(args, tid_t);
-        const auto offset    = va_arg(args, ea_t);
-        log_struc_member_deleted(sptr, member_id, offset);
-        hooks.events_.touch_struc(sptr->id);
-    }
-
     void log_renaming_struc_member(const struc_t* sptr, const member_t* mptr, const char* newname)
     {
         if(!LOG_IDB_EVENTS)
@@ -1112,7 +1090,6 @@ namespace
             case idb_event::event_code_t::struc_cmt_changed:       struc_cmt_changed(*hooks, args); break;
             case idb_event::event_code_t::struc_created:           struc_created(*hooks, args); break;
             case idb_event::event_code_t::struc_member_created:    struc_member_created(*hooks, args); break;
-            case idb_event::event_code_t::struc_member_deleted:    struc_member_deleted(*hooks, args); break;
             case idb_event::event_code_t::struc_renamed:           struc_renamed(*hooks, args); break;
             case idb_event::event_code_t::tail_owner_changed:      tail_owner_changed(*hooks, args); break;
             case idb_event::event_code_t::thunk_func_created:      thunk_func_created(*hooks, args); break;
@@ -1142,6 +1119,7 @@ namespace
             case idb_event::event_code_t::struc_align_changed:  // see changing_struc_align
             case idb_event::event_code_t::struc_expanded:       // see expanding_struc
             case idb_event::event_code_t::struc_member_changed: // see changing_struc_member
+            case idb_event::event_code_t::struc_member_deleted: // see deleting_struc_member
             case idb_event::event_code_t::struc_member_renamed: // see renaming_struc_member
             case idb_event::event_code_t::struc_deleted:        // see deleting_struc
             case idb_event::event_code_t::ti_changed:           // see changing_ti
