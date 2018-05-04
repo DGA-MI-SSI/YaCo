@@ -506,13 +506,6 @@ namespace
         hooks.events_.touch_struc(sptr->id);
     }
 
-    void struc_align_changed(Hooks& hooks, va_list args)
-    {
-        const auto sptr = va_arg(args, struc_t*);
-        LOG_IDB_EVENT("Structure type %s alignment has been changed to 0x%X", get_struc_name(sptr->id).c_str(), static_cast<int>(std::pow(2, sptr->get_alignment())));
-        hooks.events_.touch_struc(sptr->id);
-    }
-
     void renaming_struc(Hooks& hooks, va_list args)
     {
         const auto struc_id = va_arg(args, tid_t);
@@ -1116,7 +1109,6 @@ namespace
             case idb_event::event_code_t::set_func_end:            set_func_end(*hooks, args); break;
             case idb_event::event_code_t::set_func_start:          set_func_start(*hooks, args); break;
             case idb_event::event_code_t::stkpnts_changed:         stkpnts_changed(*hooks, args); break;
-            case idb_event::event_code_t::struc_align_changed:     struc_align_changed(*hooks, args); break;
             case idb_event::event_code_t::struc_cmt_changed:       struc_cmt_changed(*hooks, args); break;
             case idb_event::event_code_t::struc_created:           struc_created(*hooks, args); break;
             case idb_event::event_code_t::struc_member_created:    struc_member_created(*hooks, args); break;
@@ -1147,6 +1139,7 @@ namespace
             case idb_event::event_code_t::op_ti_changed:        // see changing_op_ti
             case idb_event::event_code_t::range_cmt_changed:    // see changing_range_cmt
             case idb_event::event_code_t::sgr_changed:          // unused
+            case idb_event::event_code_t::struc_align_changed:  // see changing_struc_align
             case idb_event::event_code_t::struc_expanded:       // see expanding_struc
             case idb_event::event_code_t::struc_member_changed: // see changing_struc_member
             case idb_event::event_code_t::struc_member_renamed: // see renaming_struc_member
