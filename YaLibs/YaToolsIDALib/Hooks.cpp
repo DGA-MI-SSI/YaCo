@@ -669,34 +669,6 @@ namespace
         hooks.events_.touch_struc(struc_id);
     }
 
-    void log_struc_cmt_changed(tid_t struc_id, bool repeatable)
-    {
-        if(!LOG_IDB_EVENTS)
-            return;
-
-        if(get_struc(struc_id))
-        {
-            LOG_IDB_EVENT("Structure type %s %scomment has been changed to \"%s\"", get_struc_name(struc_id).c_str(), REPEATABLE_STR[repeatable], get_struc_cmt(struc_id, repeatable).c_str());
-            return;
-        }
-
-        const auto struc = get_member_struc(get_member_fullname(struc_id).c_str());
-        const auto func_ea = get_func_by_frame(struc->id);
-        if(func_ea != BADADDR)
-            LOG_IDB_EVENT("Stackframe of function %s member %s %scomment has been changed to \"%s\"", get_func_name(func_ea).c_str(), get_member_name(struc_id).c_str(), REPEATABLE_STR[repeatable], get_member_name(struc_id).c_str());
-        else
-            LOG_IDB_EVENT("Structure type %s member %s %scomment has been changed to \"%s\"", get_struc_name(struc->id).c_str(), get_member_name(struc_id).c_str(), REPEATABLE_STR[repeatable], get_member_name(struc_id).c_str());
-    }
-
-    void struc_cmt_changed(Hooks& hooks, va_list args)
-    {
-        const auto struc_id   = va_arg(args, tid_t);
-        const auto repeatable = static_cast<bool>(va_arg(args, int));
-
-        log_struc_cmt_changed(struc_id, repeatable);
-        hooks.events_.touch_struc(struc_id);
-    }
-
     void segm_added(Hooks& hooks, va_list args)
     {
         const auto s = va_arg(args, segment_t*);
@@ -1087,7 +1059,6 @@ namespace
             case idb_event::event_code_t::set_func_end:            set_func_end(*hooks, args); break;
             case idb_event::event_code_t::set_func_start:          set_func_start(*hooks, args); break;
             case idb_event::event_code_t::stkpnts_changed:         stkpnts_changed(*hooks, args); break;
-            case idb_event::event_code_t::struc_cmt_changed:       struc_cmt_changed(*hooks, args); break;
             case idb_event::event_code_t::struc_created:           struc_created(*hooks, args); break;
             case idb_event::event_code_t::struc_member_created:    struc_member_created(*hooks, args); break;
             case idb_event::event_code_t::struc_renamed:           struc_renamed(*hooks, args); break;
@@ -1117,11 +1088,12 @@ namespace
             case idb_event::event_code_t::range_cmt_changed:    // see changing_range_cmt
             case idb_event::event_code_t::sgr_changed:          // unused
             case idb_event::event_code_t::struc_align_changed:  // see changing_struc_align
+            case idb_event::event_code_t::struc_cmt_changed:    // see changing_struc_cmt
+            case idb_event::event_code_t::struc_deleted:        // see deleting_struc
             case idb_event::event_code_t::struc_expanded:       // see expanding_struc
             case idb_event::event_code_t::struc_member_changed: // see changing_struc_member
             case idb_event::event_code_t::struc_member_deleted: // see deleting_struc_member
             case idb_event::event_code_t::struc_member_renamed: // see renaming_struc_member
-            case idb_event::event_code_t::struc_deleted:        // see deleting_struc
             case idb_event::event_code_t::ti_changed:           // see changing_ti
             case idb_event::event_code_t::tryblks_updated:      // unused
             case idb_event::event_code_t::updating_tryblks:     // unused
