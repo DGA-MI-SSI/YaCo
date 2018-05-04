@@ -813,14 +813,6 @@ namespace
         hooks.events_.touch_func(pfn->start_ea);
     }
 
-    void func_tail_deleted(Hooks& hooks, va_list args)
-    {
-        const auto pfn     = va_arg(args, func_t*);
-        const auto tail_ea = va_arg(args, ea_t);
-        LOG_IDB_EVENT("Function %s tail chunk at %" PRIxEA " has been removed", get_func_name(pfn->start_ea).c_str(), tail_ea);
-        hooks.events_.touch_func(pfn->start_ea);
-    }
-
     void tail_owner_changed(Hooks& hooks, va_list args)
     {
         const auto pfn        = va_arg(args, func_t*);
@@ -995,7 +987,6 @@ namespace
             case idb_event::event_code_t::func_added:              func_added(*hooks, args); break;
             case idb_event::event_code_t::func_noret_changed:      func_noret_changed(*hooks, args); break;
             case idb_event::event_code_t::func_tail_appended:      func_tail_appended(*hooks, args); break;
-            case idb_event::event_code_t::func_tail_deleted:       func_tail_deleted(*hooks, args); break;
             case idb_event::event_code_t::func_updated:            func_updated(*hooks, args); break;
             case idb_event::event_code_t::make_code:               make_code(*hooks, args); break;
             case idb_event::event_code_t::make_data:               make_data(*hooks, args); break;
@@ -1036,6 +1027,7 @@ namespace
             case idb_event::event_code_t::enum_member_deleted:  // see deleting_enum_member
             case idb_event::event_code_t::extlang_changed:      // unused
             case idb_event::event_code_t::flow_chart_created:   // unused
+            case idb_event::event_code_t::func_tail_deleted:    // see deleting_func_tail
             case idb_event::event_code_t::idasgn_loaded:        // unused
             case idb_event::event_code_t::kernel_config_loaded: // unused
             case idb_event::event_code_t::loader_finished:      // unused
