@@ -326,13 +326,6 @@ namespace
         hooks.events_.touch_ea(ea);
     }
 
-    void ti_changed(Hooks& hooks, va_list args)
-    {
-        const auto ea = va_arg(args, ea_t);
-        LOG_IDB_EVENT("An item typestring (c/c++ prototype) has been changed (ea: %" PRIxEA ")", ea);
-        hooks.events_.touch_ea(ea);
-    }
-
     void changing_op_ti(Hooks& hooks, va_list args)
     {
         const auto ea           = va_arg(args, ea_t);
@@ -1182,7 +1175,6 @@ namespace
             case idb_event::event_code_t::struc_renamed:           struc_renamed(*hooks, args); break;
             case idb_event::event_code_t::tail_owner_changed:      tail_owner_changed(*hooks, args); break;
             case idb_event::event_code_t::thunk_func_created:      thunk_func_created(*hooks, args); break;
-            case idb_event::event_code_t::ti_changed:              ti_changed(*hooks, args); break;
 
             // discard all those events
             case idb_event::event_code_t::allsegs_moved:        // unused
@@ -1207,6 +1199,7 @@ namespace
             case idb_event::event_code_t::range_cmt_changed:    // see changing_range_cmt
             case idb_event::event_code_t::sgr_changed:          // unused
             case idb_event::event_code_t::struc_expanded:       // see expanding_struc
+            case idb_event::event_code_t::ti_changed:           // see changing_ti
             case idb_event::event_code_t::tryblks_updated:      // unused
             case idb_event::event_code_t::updating_tryblks:     // unused
             case idb_event::event_code_t::upgraded:             // unused
