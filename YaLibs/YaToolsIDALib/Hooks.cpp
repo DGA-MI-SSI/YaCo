@@ -447,15 +447,6 @@ namespace
         hooks.events_.touch_enum(eid);
     }
 
-    void enum_member_deleted(Hooks& hooks, va_list args)
-    {
-        const auto eid = va_arg(args, enum_t);
-        const auto cid = va_arg(args, const_t);
-        UNUSED(cid);
-        LOG_IDB_EVENT("A member of enum type %s has been deleted", get_enum_name(eid).c_str());
-        hooks.events_.touch_enum(eid);
-    }
-
     void log_struc_created(tid_t struc_id)
     {
         if(!LOG_IDB_EVENTS)
@@ -997,7 +988,6 @@ namespace
             case idb_event::event_code_t::destroyed_items:         destroyed_items(*hooks, args); break;
             case idb_event::event_code_t::enum_created:            enum_created(*hooks, args); break;
             case idb_event::event_code_t::enum_member_created:     enum_member_created(*hooks, args); break;
-            case idb_event::event_code_t::enum_member_deleted:     enum_member_deleted(*hooks, args); break;
             case idb_event::event_code_t::enum_renamed:            enum_renamed(*hooks, args); break;
             case idb_event::event_code_t::expanding_struc:         expanding_struc(*hooks, args); break;
             case idb_event::event_code_t::extra_cmt_changed:       extra_cmt_changed(*hooks, args); break;
@@ -1043,6 +1033,7 @@ namespace
             case idb_event::event_code_t::enum_bf_changed:      // see changing_enum_bf
             case idb_event::event_code_t::enum_cmt_changed:     // see changing_enum_cmt
             case idb_event::event_code_t::enum_deleted:         // see deleting_enum
+            case idb_event::event_code_t::enum_member_deleted:  // see deleting_enum_member
             case idb_event::event_code_t::extlang_changed:      // unused
             case idb_event::event_code_t::flow_chart_created:   // unused
             case idb_event::event_code_t::idasgn_loaded:        // unused
