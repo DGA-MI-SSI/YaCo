@@ -651,26 +651,6 @@ namespace
         hooks.events_.touch_struc(sptr->id);
     }
 
-    void log_struc_member_renamed(const struc_t* sptr, const member_t* mptr)
-    {
-        if(!LOG_IDB_EVENTS)
-            return;
-
-        const auto func_ea = get_func_by_frame(sptr->id);
-        if(func_ea != BADADDR)
-            LOG_IDB_EVENT("A member of stackframe of function %s has been renamed to %s", get_func_name(func_ea).c_str(), get_member_name(mptr->id).c_str());
-        else
-            LOG_IDB_EVENT("A member of structure type %s has been renamed to %s", get_struc_name(sptr->id).c_str(), get_member_name(mptr->id).c_str());
-    }
-
-    void struc_member_renamed(Hooks& hooks, va_list args)
-    {
-        const auto sptr = va_arg(args, struc_t*);
-        const auto mptr = va_arg(args, member_t*);
-        log_struc_member_renamed(sptr, mptr);
-        hooks.events_.touch_struc(sptr->id);
-    }
-
     void log_changing_struc_member(const struc_t* sptr, const member_t* mptr, flags_t flag, const opinfo_t* ti, asize_t nbytes)
     {
         if(!LOG_IDB_EVENTS)
@@ -1171,7 +1151,6 @@ namespace
             case idb_event::event_code_t::struc_member_changed:    struc_member_changed(*hooks, args); break;
             case idb_event::event_code_t::struc_member_created:    struc_member_created(*hooks, args); break;
             case idb_event::event_code_t::struc_member_deleted:    struc_member_deleted(*hooks, args); break;
-            case idb_event::event_code_t::struc_member_renamed:    struc_member_renamed(*hooks, args); break;
             case idb_event::event_code_t::struc_renamed:           struc_renamed(*hooks, args); break;
             case idb_event::event_code_t::tail_owner_changed:      tail_owner_changed(*hooks, args); break;
             case idb_event::event_code_t::thunk_func_created:      thunk_func_created(*hooks, args); break;
@@ -1199,6 +1178,7 @@ namespace
             case idb_event::event_code_t::range_cmt_changed:    // see changing_range_cmt
             case idb_event::event_code_t::sgr_changed:          // unused
             case idb_event::event_code_t::struc_expanded:       // see expanding_struc
+            case idb_event::event_code_t::struc_member_renamed: // see renaming_struc_member
             case idb_event::event_code_t::ti_changed:           // see changing_ti
             case idb_event::event_code_t::tryblks_updated:      // unused
             case idb_event::event_code_t::updating_tryblks:     // unused
