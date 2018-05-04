@@ -311,120 +311,12 @@ void Hooks::save_and_update()
 
 namespace
 {
-    void closebase(Hooks& /*hooks*/, va_list args)
-    {
-        UNUSED(args);
-        LOG_IDB_EVENT("The database will be closed now");
-    }
-
     void savebase(Hooks& hooks, va_list args)
     {
         UNUSED(args);
         msg("\n");
         LOG_IDB_EVENT("The database is being saved");
         hooks.save_and_update();
-    }
-
-    void upgraded(Hooks& /*hooks*/, va_list args)
-    {
-        const auto from = va_arg(args, int);
-        LOG_IDB_EVENT("The database has been upgraded (old IDB version: %d)", from);
-    }
-
-    void auto_empty(Hooks& /*hooks*/, va_list args)
-    {
-        UNUSED(args);
-        LOG_IDB_EVENT("All analysis queues are empty");
-    }
-
-    void auto_empty_finally(Hooks& /*hooks*/, va_list args)
-    {
-        UNUSED(args);
-        LOG_IDB_EVENT("All analysis queues are empty definitively");
-    }
-
-    void determined_main(Hooks& /*hooks*/, va_list args)
-    {
-        const auto main = va_arg(args, ea_t);
-        LOG_IDB_EVENT("The main() function has been determined (address of the main() function: %" PRIxEA ")", main);
-    }
-
-    void local_types_changed(Hooks& /*hooks*/, va_list args)
-    {
-        UNUSED(args);
-        LOG_IDB_EVENT("Local types have been changed");
-    }
-
-    void log_extlang_changed(int kind, const extlang_t* el, int idx)
-    {
-        if(!LOG_IDB_EVENTS)
-            return;
-
-        UNUSED(idx);
-        switch (kind)
-        {
-            case 1:
-                LOG_IDB_EVENT("Extlang %s installed", el->name);
-                break;
-            case 2:
-                LOG_IDB_EVENT("Extlang %s removed", el->name);
-                break;
-            case 3:
-                LOG_IDB_EVENT("Default extlang changed: %s", el->name);
-                break;
-            default:
-                LOG_IDB_EVENT("The list of extlangs or the default extlang was changed");
-                break;
-        }
-    }
-
-    void extlang_changed(Hooks& /*hooks*/, va_list args)
-    {
-        const auto kind = va_arg(args, int); //0: extlang installed, 1: extlang removed, 2: default extlang changed
-        const auto el   = va_arg(args, extlang_t*);
-        const auto idx  = va_arg(args, int);
-        log_extlang_changed(kind, el, idx);
-    }
-
-    void idasgn_loaded(Hooks& /*hooks*/, va_list args)
-    {
-        const auto short_sig_name = va_arg(args, const char*);
-        // FLIRT = Fast Library Identification and Recognition Technology
-        // normal processing = not for recognition of startup sequences
-        LOG_IDB_EVENT("FLIRT signature %s has been loaded for normal processing", short_sig_name);
-    }
-
-    void kernel_config_loaded(Hooks& /*hooks*/, va_list args)
-    {
-        UNUSED(args);
-        LOG_IDB_EVENT("Kernel configuration loaded (ida.cfg parsed)");
-    }
-
-    static void log_loader_finished(const linput_t* li, uint16 neflags, const char* filetypename)
-    {
-        UNUSED(li);
-        UNUSED(neflags);
-        LOG_IDB_EVENT("External file loader for %s files finished its work", filetypename);
-    }
-
-    void loader_finished(Hooks& /*hooks*/, va_list args)
-    {
-        const auto li           = va_arg(args, linput_t*);
-        const auto neflags      = static_cast<uint16>(va_arg(args, int)); // NEF_.+ defines from loader.hpp
-        const auto filetypename = va_arg(args, const char*);
-        log_loader_finished(li, neflags, filetypename);
-    }
-
-    void flow_chart_created(Hooks& /*hooks*/, va_list args)
-    {
-        qflow_chart_t* fc = va_arg(args, qflow_chart_t*);
-        LOG_IDB_EVENT("Gui has retrieved a function flow chart (from %" PRIxEA " to %" PRIxEA ", name: %s, function: %s)", fc->bounds.start_ea, fc->bounds.end_ea, fc->title.c_str(), get_func_name(fc->pfn->start_ea).c_str());
-    }
-
-    void compiler_changed(Hooks& /*hooks*/, va_list args)
-    {
-        UNUSED(args);
-        LOG_IDB_EVENT("The kernel has changed the compiler information");
     }
 
     void changing_ti(Hooks& hooks, va_list args)
@@ -794,7 +686,7 @@ namespace
         UNUSED(flag);
         UNUSED(ti);
         UNUSED(nbytes);
-    
+
         const auto  func_ea = get_func_by_frame(sptr->id);
         if(func_ea != BADADDR)
             LOG_IDB_EVENT("Stackframe of function %s member %s is to be changed", get_func_name(func_ea).c_str(), get_member_name(mptr->id).c_str());
@@ -843,7 +735,7 @@ namespace
             LOG_IDB_EVENT("Structure type %s %scomment is to be changed from \"%s\" to \"%s\"", get_struc_name(struc_id).c_str(), REPEATABLE_STR[repeatable], get_struc_cmt(struc_id, repeatable).c_str(), newcmt);
             return;
         }
-     
+
         const auto struc = get_member_struc(get_member_fullname(struc_id).c_str());
         const auto func_ea = get_func_by_frame(struc->id);
         if(func_ea != BADADDR)
@@ -917,15 +809,6 @@ namespace
         const auto end_ea   = va_arg(args, ea_t);
         LOG_IDB_EVENT("A segment (from %" PRIxEA " to %" PRIxEA ") has been deleted", start_ea, end_ea);
         hooks.events_.touch_ea(start_ea);
-    }
-
-    void changing_segm_start(Hooks& /*hooks*/, va_list args)
-    {
-        const auto s            = va_arg(args, segment_t*);
-        const auto new_start    = va_arg(args, ea_t);
-        const auto segmod_flags = va_arg(args, int);
-        UNUSED(segmod_flags);
-        LOG_IDB_EVENT("Segment %s start address is to be changed from %" PRIxEA " to %" PRIxEA, get_segm_name(s).c_str(), s->start_ea, new_start);
     }
 
     void segm_start_changed(Hooks& hooks, va_list args)
@@ -1014,12 +897,6 @@ namespace
         log_segm_moved(from, to, size, changed_netmap);
         const auto* s = getseg(to);
         hooks.events_.touch_ea(s->start_ea);
-    }
-
-    void allsegs_moved(Hooks& /*hooks*/, va_list args)
-    {
-        const auto info = va_arg(args, segm_move_infos_t*);
-        LOG_IDB_EVENT("Program rebasing is complete, %zd segments have been moved", info->size());
     }
 
     void func_added(Hooks& hooks, va_list args)
@@ -1119,48 +996,6 @@ namespace
         const auto pfn = va_arg(args, func_t*);
         LOG_IDB_EVENT("Function %s stack change points have been modified", get_func_name(pfn->start_ea).c_str());
         hooks.events_.touch_func(pfn->start_ea);
-    }
-
-    void updating_tryblks(Hooks& /*hooks*/, va_list args)
-    {
-        const auto tbv = va_arg(args, const tryblks_t*);
-        UNUSED(tbv);
-        LOG_IDB_EVENT("About to update try block information");
-    }
-
-    void tryblks_updated(Hooks& /*hooks*/, va_list args)
-    {
-        const auto tbv = va_arg(args, const tryblks_t*);
-        UNUSED(tbv);
-        LOG_IDB_EVENT("Updated try block information");
-    }
-
-    void deleting_tryblks(Hooks& /*hooks*/, va_list args)
-    {
-        const auto range = va_arg(args, const range_t*);
-        LOG_IDB_EVENT("About to delete try block information in range %" PRIxEA "-%" PRIxEA, range->start_ea, range->end_ea);
-    }
-
-    void log_sgr_changed(ea_t start_ea, ea_t end_ea, int regnum, sel_t value, sel_t old_value, uchar tag)
-    {
-        UNUSED(start_ea);
-        UNUSED(end_ea);
-        UNUSED(regnum);
-        UNUSED(value);
-        UNUSED(old_value);
-        UNUSED(tag);
-        LOG_IDB_EVENT("The kernel has changed a segment register value");
-    }
-
-    void sgr_changed(Hooks& /*hooks*/, va_list args)
-    {
-        const auto start_ea  = va_arg(args, ea_t);
-        const auto end_ea    = va_arg(args, ea_t);
-        const auto regnum    = va_arg(args, int);
-        const auto value     = va_arg(args, sel_t);
-        const auto old_value = va_arg(args, sel_t);
-        const auto tag       = static_cast<uchar>(va_arg(args, int));
-        log_sgr_changed(start_ea, end_ea, regnum, value, old_value, tag);
     }
 
     void make_code(Hooks& hooks, va_list args)
@@ -1283,9 +1118,6 @@ namespace
         idb_event::event_code_t event = static_cast<idb_event::event_code_t>(notification_code);
         switch (event)
         {
-            case idb_event::event_code_t::allsegs_moved:           allsegs_moved(*hooks, args); break;
-            case idb_event::event_code_t::auto_empty:              auto_empty(*hooks, args); break;
-            case idb_event::event_code_t::auto_empty_finally:      auto_empty_finally(*hooks, args); break;
             case idb_event::event_code_t::byte_patched:            byte_patched(*hooks, args); break;
             case idb_event::event_code_t::changing_cmt:            changing_cmt(*hooks, args); break;
             case idb_event::event_code_t::changing_enum_bf:        changing_enum_bf(*hooks, args); break;
@@ -1295,13 +1127,10 @@ namespace
             case idb_event::event_code_t::changing_segm_class:     changing_segm_class(*hooks, args); break;
             case idb_event::event_code_t::changing_segm_end:       changing_segm_end(*hooks, args); break;
             case idb_event::event_code_t::changing_segm_name:      changing_segm_name(*hooks, args); break;
-            case idb_event::event_code_t::changing_segm_start:     changing_segm_start(*hooks, args); break;
             case idb_event::event_code_t::changing_struc_align:    changing_struc_align(*hooks, args); break;
             case idb_event::event_code_t::changing_struc_cmt:      changing_struc_cmt(*hooks, args); break;
             case idb_event::event_code_t::changing_struc_member:   changing_struc_member(*hooks, args); break;
             case idb_event::event_code_t::changing_ti:             changing_ti(*hooks, args); break;
-            case idb_event::event_code_t::closebase:               closebase(*hooks, args); break;
-            case idb_event::event_code_t::compiler_changed:        compiler_changed(*hooks, args); break;
             case idb_event::event_code_t::deleting_enum:           deleting_enum(*hooks, args); break;
             case idb_event::event_code_t::deleting_enum_member:    deleting_enum_member(*hooks, args); break;
             case idb_event::event_code_t::deleting_func:           deleting_func(*hooks, args); break;
@@ -1309,28 +1138,20 @@ namespace
             case idb_event::event_code_t::deleting_segm:           deleting_segm(*hooks, args); break;
             case idb_event::event_code_t::deleting_struc:          deleting_struc(*hooks, args); break;
             case idb_event::event_code_t::deleting_struc_member:   deleting_struc_member(*hooks, args); break;
-            case idb_event::event_code_t::deleting_tryblks:        deleting_tryblks(*hooks, args); break;
             case idb_event::event_code_t::destroyed_items:         destroyed_items(*hooks, args); break;
-            case idb_event::event_code_t::determined_main:         determined_main(*hooks, args); break;
             case idb_event::event_code_t::enum_created:            enum_created(*hooks, args); break;
             case idb_event::event_code_t::enum_deleted:            enum_deleted(*hooks, args); break;
             case idb_event::event_code_t::enum_member_created:     enum_member_created(*hooks, args); break;
             case idb_event::event_code_t::enum_member_deleted:     enum_member_deleted(*hooks, args); break;
             case idb_event::event_code_t::enum_renamed:            enum_renamed(*hooks, args); break;
             case idb_event::event_code_t::expanding_struc:         expanding_struc(*hooks, args); break;
-            case idb_event::event_code_t::extlang_changed:         extlang_changed(*hooks, args); break;
             case idb_event::event_code_t::extra_cmt_changed:       extra_cmt_changed(*hooks, args); break;
-            case idb_event::event_code_t::flow_chart_created:      flow_chart_created(*hooks, args); break;
             case idb_event::event_code_t::frame_deleted:           frame_deleted(*hooks, args); break;
             case idb_event::event_code_t::func_added:              func_added(*hooks, args); break;
             case idb_event::event_code_t::func_noret_changed:      func_noret_changed(*hooks, args); break;
             case idb_event::event_code_t::func_tail_appended:      func_tail_appended(*hooks, args); break;
             case idb_event::event_code_t::func_tail_deleted:       func_tail_deleted(*hooks, args); break;
             case idb_event::event_code_t::func_updated:            func_updated(*hooks, args); break;
-            case idb_event::event_code_t::idasgn_loaded:           idasgn_loaded(*hooks, args); break;
-            case idb_event::event_code_t::kernel_config_loaded:    kernel_config_loaded(*hooks, args); break;
-            case idb_event::event_code_t::loader_finished:         loader_finished(*hooks, args); break;
-            case idb_event::event_code_t::local_types_changed:     local_types_changed(*hooks, args); break;
             case idb_event::event_code_t::make_code:               make_code(*hooks, args); break;
             case idb_event::event_code_t::make_data:               make_data(*hooks, args); break;
             case idb_event::event_code_t::op_type_changed:         op_type_changed(*hooks, args); break;
@@ -1349,7 +1170,6 @@ namespace
             case idb_event::event_code_t::segm_start_changed:      segm_start_changed(*hooks, args); break;
             case idb_event::event_code_t::set_func_end:            set_func_end(*hooks, args); break;
             case idb_event::event_code_t::set_func_start:          set_func_start(*hooks, args); break;
-            case idb_event::event_code_t::sgr_changed:             sgr_changed(*hooks, args); break;
             case idb_event::event_code_t::stkpnts_changed:         stkpnts_changed(*hooks, args); break;
             case idb_event::event_code_t::struc_align_changed:     struc_align_changed(*hooks, args); break;
             case idb_event::event_code_t::struc_cmt_changed:       struc_cmt_changed(*hooks, args); break;
@@ -1363,18 +1183,33 @@ namespace
             case idb_event::event_code_t::tail_owner_changed:      tail_owner_changed(*hooks, args); break;
             case idb_event::event_code_t::thunk_func_created:      thunk_func_created(*hooks, args); break;
             case idb_event::event_code_t::ti_changed:              ti_changed(*hooks, args); break;
-            case idb_event::event_code_t::tryblks_updated:         tryblks_updated(*hooks, args); break;
-            case idb_event::event_code_t::updating_tryblks:        updating_tryblks(*hooks, args); break;
-            case idb_event::event_code_t::upgraded:                upgraded(*hooks, args); break;
 
             // discard all those events
+            case idb_event::event_code_t::allsegs_moved:        // unused
+            case idb_event::event_code_t::auto_empty:           // unused
+            case idb_event::event_code_t::auto_empty_finally:   // unused
             case idb_event::event_code_t::changing_op_type:     // see op_type_changed (catch more events)
+            case idb_event::event_code_t::changing_segm_start:  // unused
+            case idb_event::event_code_t::closebase:            // unused
             case idb_event::event_code_t::cmt_changed:          // see changing_cmt
+            case idb_event::event_code_t::compiler_changed:     // unused
+            case idb_event::event_code_t::deleting_tryblks:     // unused
+            case idb_event::event_code_t::determined_main:      // unused
             case idb_event::event_code_t::enum_bf_changed:      // see changing_enum_bf
             case idb_event::event_code_t::enum_cmt_changed:     // see changing_enum_cmt
+            case idb_event::event_code_t::extlang_changed:      // unused
+            case idb_event::event_code_t::flow_chart_created:   // unused
+            case idb_event::event_code_t::idasgn_loaded:        // unused
+            case idb_event::event_code_t::kernel_config_loaded: // unused
+            case idb_event::event_code_t::loader_finished:      // unused
+            case idb_event::event_code_t::local_types_changed:  // unused
             case idb_event::event_code_t::op_ti_changed:        // see changing_op_ti
             case idb_event::event_code_t::range_cmt_changed:    // see changing_range_cmt
+            case idb_event::event_code_t::sgr_changed:          // unused
             case idb_event::event_code_t::struc_expanded:       // see expanding_struc
+            case idb_event::event_code_t::tryblks_updated:      // unused
+            case idb_event::event_code_t::updating_tryblks:     // unused
+            case idb_event::event_code_t::upgraded:             // unused
                 break;
         }
         return 0;
