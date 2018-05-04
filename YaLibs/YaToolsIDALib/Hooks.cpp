@@ -675,14 +675,6 @@ namespace
         hooks.events_.touch_ea(start_ea);
     }
 
-    void segm_deleted(Hooks& hooks, va_list args)
-    {
-        const auto start_ea = va_arg(args, ea_t);
-        const auto end_ea   = va_arg(args, ea_t);
-        LOG_IDB_EVENT("A segment (from %" PRIxEA " to %" PRIxEA ") has been deleted", start_ea, end_ea);
-        hooks.events_.touch_ea(start_ea);
-    }
-
     void segm_start_changed(Hooks& hooks, va_list args)
     {
         const auto s        = va_arg(args, segment_t*);
@@ -998,7 +990,6 @@ namespace
             case idb_event::event_code_t::savebase:                savebase(*hooks, args); break;
             case idb_event::event_code_t::segm_added:              segm_added(*hooks, args); break;
             case idb_event::event_code_t::segm_attrs_updated:      segm_attrs_updated(*hooks, args); break;
-            case idb_event::event_code_t::segm_deleted:            segm_deleted(*hooks, args); break;
             case idb_event::event_code_t::segm_moved:              segm_moved(*hooks, args); break;
             case idb_event::event_code_t::segm_start_changed:      segm_start_changed(*hooks, args); break;
             case idb_event::event_code_t::set_func_end:            set_func_end(*hooks, args); break;
@@ -1035,6 +1026,7 @@ namespace
             case idb_event::event_code_t::op_ti_changed:        // see changing_op_ti
             case idb_event::event_code_t::range_cmt_changed:    // see changing_range_cmt
             case idb_event::event_code_t::segm_class_changed:   // see changing_segm_class
+            case idb_event::event_code_t::segm_deleted:         // see deleting_segm
             case idb_event::event_code_t::segm_end_changed:     // see changing_segm_end
             case idb_event::event_code_t::segm_name_changed:    // see changing_segm_name
             case idb_event::event_code_t::sgr_changed:          // unused
