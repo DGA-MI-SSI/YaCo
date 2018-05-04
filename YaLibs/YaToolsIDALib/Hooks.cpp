@@ -529,15 +529,11 @@ namespace
     void changing_enum_bf(Hooks& hooks, va_list args)
     {
         const auto id = va_arg(args, enum_t);
-        const auto new_bf = static_cast<bool>(va_arg(args, int));
-        LOG_IDB_EVENT("Enum type %s 'bitfield' attribute is to be changed to %s", get_enum_name(id).c_str(), BOOL_STR[new_bf]);
-        hooks.events_.touch_enum(id);
-    }
+        const auto bf = static_cast<bool>(va_arg(args, int));
+        if(is_bf(id) == bf)
+            return;
 
-    void enum_bf_changed(Hooks& hooks, va_list args)
-    {
-        const auto id = va_arg(args, enum_t);
-        LOG_IDB_EVENT("Enum type %s 'bitfield' attribute has been changed", get_enum_name(id).c_str());
+        LOG_IDB_EVENT("Enum type %s 'bitfield' attribute is to be changed to %s", get_enum_name(id).c_str(), BOOL_STR[bf]);
         hooks.events_.touch_enum(id);
     }
 
@@ -1338,7 +1334,6 @@ namespace
             case idb_event::event_code_t::deleting_tryblks:        deleting_tryblks(*hooks, args); break;
             case idb_event::event_code_t::destroyed_items:         destroyed_items(*hooks, args); break;
             case idb_event::event_code_t::determined_main:         determined_main(*hooks, args); break;
-            case idb_event::event_code_t::enum_bf_changed:         enum_bf_changed(*hooks, args); break;
             case idb_event::event_code_t::enum_cmt_changed:        enum_cmt_changed(*hooks, args); break;
             case idb_event::event_code_t::enum_created:            enum_created(*hooks, args); break;
             case idb_event::event_code_t::enum_deleted:            enum_deleted(*hooks, args); break;
@@ -1398,6 +1393,7 @@ namespace
 
             // discard all those events
             case idb_event::event_code_t::cmt_changed:
+            case idb_event::event_code_t::enum_bf_changed:
             case idb_event::event_code_t::range_cmt_changed:
             case idb_event::event_code_t::struc_expanded:
                 break;

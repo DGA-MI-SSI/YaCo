@@ -192,3 +192,26 @@ for (flags, bits, bitfield, ea, operand, fields) in enums:
             self.check_enum("enum_3"),
             self.check_enum("enum_4"),
         )
+
+    def test_enum_bf(self):
+        a, b = self.setup_repos()
+        a.run(
+            self.script("idaapi.add_enum(idaapi.BADADDR, 'name_a', idaapi.hexflag())"),
+            self.save_enum("name_a"),
+        )
+        a.check_git(added=["enum"])
+        b.run(
+            self.check_enum("name_a"),
+            self.script("idaapi.set_enum_bf(idaapi.get_enum('name_a'), True)"),
+            self.save_enum("name_a"),
+        )
+        b.check_git(modified=["enum"])
+        a.run(
+            self.check_enum("name_a"),
+            self.script("idaapi.set_enum_bf(idaapi.get_enum('name_a'), False)"),
+            self.save_enum("name_a"),
+        )
+        a.check_git(modified=["enum"])
+        b.run(
+            self.check_enum("name_a"),
+        )
