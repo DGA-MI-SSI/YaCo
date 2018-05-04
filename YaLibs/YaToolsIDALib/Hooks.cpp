@@ -717,14 +717,6 @@ namespace
         hooks.events_.touch_ea(s->start_ea);
     }
 
-    void segm_end_changed(Hooks& hooks, va_list args)
-    {
-        const auto s      = va_arg(args, segment_t*);
-        const auto oldend = va_arg(args, ea_t);
-        LOG_IDB_EVENT("Segment %s end address has been changed from %" PRIxEA " to %" PRIxEA, get_segm_name(s).c_str(), oldend, s->end_ea);
-        hooks.events_.touch_ea(s->start_ea);
-    }
-
     void changing_segm_name(Hooks& hooks, va_list args)
     {
         const auto s       = va_arg(args, segment_t*);
@@ -1043,7 +1035,6 @@ namespace
             case idb_event::event_code_t::segm_attrs_updated:      segm_attrs_updated(*hooks, args); break;
             case idb_event::event_code_t::segm_class_changed:      segm_class_changed(*hooks, args); break;
             case idb_event::event_code_t::segm_deleted:            segm_deleted(*hooks, args); break;
-            case idb_event::event_code_t::segm_end_changed:        segm_end_changed(*hooks, args); break;
             case idb_event::event_code_t::segm_moved:              segm_moved(*hooks, args); break;
             case idb_event::event_code_t::segm_start_changed:      segm_start_changed(*hooks, args); break;
             case idb_event::event_code_t::set_func_end:            set_func_end(*hooks, args); break;
@@ -1076,6 +1067,7 @@ namespace
             case idb_event::event_code_t::local_types_changed:  // unused
             case idb_event::event_code_t::op_ti_changed:        // see changing_op_ti
             case idb_event::event_code_t::range_cmt_changed:    // see changing_range_cmt
+            case idb_event::event_code_t::segm_end_changed:     // see changing_segm_end
             case idb_event::event_code_t::segm_name_changed:    // see changing_segm_name
             case idb_event::event_code_t::sgr_changed:          // unused
             case idb_event::event_code_t::struc_align_changed:  // see changing_struc_align
