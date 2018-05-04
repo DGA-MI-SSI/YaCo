@@ -499,14 +499,6 @@ namespace
         hooks.events_.touch_struc(sptr->id);
     }
 
-    void struc_deleted(Hooks& hooks, va_list args)
-    {
-        const auto struc_id = va_arg(args, tid_t);
-        UNUSED(struc_id);
-        LOG_IDB_EVENT("A structure type or stackframe has been deleted");
-        hooks.events_.touch_struc(struc_id);
-    }
-
     void changing_struc_align(Hooks& hooks, va_list args)
     {
         const auto sptr = va_arg(args, struc_t*);
@@ -1127,7 +1119,6 @@ namespace
             case idb_event::event_code_t::struc_align_changed:     struc_align_changed(*hooks, args); break;
             case idb_event::event_code_t::struc_cmt_changed:       struc_cmt_changed(*hooks, args); break;
             case idb_event::event_code_t::struc_created:           struc_created(*hooks, args); break;
-            case idb_event::event_code_t::struc_deleted:           struc_deleted(*hooks, args); break;
             case idb_event::event_code_t::struc_member_created:    struc_member_created(*hooks, args); break;
             case idb_event::event_code_t::struc_member_deleted:    struc_member_deleted(*hooks, args); break;
             case idb_event::event_code_t::struc_renamed:           struc_renamed(*hooks, args); break;
@@ -1159,6 +1150,7 @@ namespace
             case idb_event::event_code_t::struc_expanded:       // see expanding_struc
             case idb_event::event_code_t::struc_member_changed: // see changing_struc_member
             case idb_event::event_code_t::struc_member_renamed: // see renaming_struc_member
+            case idb_event::event_code_t::struc_deleted:        // see deleting_struc
             case idb_event::event_code_t::ti_changed:           // see changing_ti
             case idb_event::event_code_t::tryblks_updated:      // unused
             case idb_event::event_code_t::updating_tryblks:     // unused
