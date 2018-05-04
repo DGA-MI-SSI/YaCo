@@ -549,7 +549,8 @@ namespace
         start_object(v, type, id, parent.id, ea);
         const auto size = get_struc_size(struc);
         v.visit_size(size);
-        v.visit_name(ya::to_string_ref(*struc_name), DEFAULT_NAME_FLAGS);
+        if(!func)
+            v.visit_name(ya::to_string_ref(*struc_name), DEFAULT_NAME_FLAGS);
         if(struc->is_union())
             v.visit_flags(1); // FIXME constant
 
