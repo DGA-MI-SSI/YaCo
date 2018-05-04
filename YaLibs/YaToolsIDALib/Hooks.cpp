@@ -360,13 +360,6 @@ namespace
         hooks.events_.touch_enum(id);
     }
 
-    void enum_deleted(Hooks& hooks, va_list args)
-    {
-        const auto id = va_arg(args, enum_t);
-        LOG_IDB_EVENT("An enum type has been deleted");
-        hooks.events_.touch_enum(id);
-    }
-
     void log_renaming_enum(tid_t id, bool is_enum, const char* newname)
     {
         if(!LOG_IDB_EVENTS)
@@ -1003,7 +996,6 @@ namespace
             case idb_event::event_code_t::deleting_struc_member:   deleting_struc_member(*hooks, args); break;
             case idb_event::event_code_t::destroyed_items:         destroyed_items(*hooks, args); break;
             case idb_event::event_code_t::enum_created:            enum_created(*hooks, args); break;
-            case idb_event::event_code_t::enum_deleted:            enum_deleted(*hooks, args); break;
             case idb_event::event_code_t::enum_member_created:     enum_member_created(*hooks, args); break;
             case idb_event::event_code_t::enum_member_deleted:     enum_member_deleted(*hooks, args); break;
             case idb_event::event_code_t::enum_renamed:            enum_renamed(*hooks, args); break;
@@ -1050,6 +1042,7 @@ namespace
             case idb_event::event_code_t::determined_main:      // unused
             case idb_event::event_code_t::enum_bf_changed:      // see changing_enum_bf
             case idb_event::event_code_t::enum_cmt_changed:     // see changing_enum_cmt
+            case idb_event::event_code_t::enum_deleted:         // see deleting_enum
             case idb_event::event_code_t::extlang_changed:      // unused
             case idb_event::event_code_t::flow_chart_created:   // unused
             case idb_event::event_code_t::idasgn_loaded:        // unused
