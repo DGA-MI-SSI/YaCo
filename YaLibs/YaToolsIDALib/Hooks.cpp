@@ -443,15 +443,13 @@ namespace
 
     void changing_op_ti(Hooks& hooks, va_list args)
     {
-        const auto ea = va_arg(args, ea_t);
+        const auto ea           = va_arg(args, ea_t);
+        const auto n            = va_arg(args, int);
+        const auto new_type     = va_arg(args, const type_t*);
+        const auto new_fnames   = va_arg(args, const p_list*);
+        UNUSED(new_type);
+        UNUSED(new_fnames);
         LOG_IDB_EVENT("An operand typestring (c/c++ prototype) is to be changed (ea: %" PRIxEA ")", ea);
-        hooks.events_.touch_ea(ea);
-    }
-
-    void op_ti_changed(Hooks& hooks, va_list args)
-    {
-        const auto ea = va_arg(args, ea_t);
-        LOG_IDB_EVENT("An operand typestring (c/c++ prototype) has been changed (ea: %" PRIxEA ")", ea);
         hooks.events_.touch_ea(ea);
     }
 
@@ -1342,7 +1340,6 @@ namespace
             case idb_event::event_code_t::local_types_changed:     local_types_changed(*hooks, args); break;
             case idb_event::event_code_t::make_code:               make_code(*hooks, args); break;
             case idb_event::event_code_t::make_data:               make_data(*hooks, args); break;
-            case idb_event::event_code_t::op_ti_changed:           op_ti_changed(*hooks, args); break;
             case idb_event::event_code_t::op_type_changed:         op_type_changed(*hooks, args); break;
             case idb_event::event_code_t::renamed:                 renamed(*hooks, args); break;
             case idb_event::event_code_t::renaming_enum:           renaming_enum(*hooks, args); break;
@@ -1378,11 +1375,12 @@ namespace
             case idb_event::event_code_t::upgraded:                upgraded(*hooks, args); break;
 
             // discard all those events
-            case idb_event::event_code_t::cmt_changed:
-            case idb_event::event_code_t::enum_bf_changed:
-            case idb_event::event_code_t::enum_cmt_changed:
-            case idb_event::event_code_t::range_cmt_changed:
-            case idb_event::event_code_t::struc_expanded:
+            case idb_event::event_code_t::cmt_changed:          // see changing_cmt
+            case idb_event::event_code_t::enum_bf_changed:      // see changing_enum_bf
+            case idb_event::event_code_t::enum_cmt_changed:     // see changing_enum_cmt
+            case idb_event::event_code_t::op_ti_changed:        // see changing_op_ti
+            case idb_event::event_code_t::range_cmt_changed:    // see changing_range_cmt
+            case idb_event::event_code_t::struc_expanded:       // see expanding_struc
                 break;
         }
         return 0;
