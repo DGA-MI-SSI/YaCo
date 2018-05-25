@@ -332,6 +332,7 @@ namespace
         const auto n            = va_arg(args, int);
         const auto new_type     = va_arg(args, const type_t*);
         const auto new_fnames   = va_arg(args, const p_list*);
+        UNUSED(n);
         UNUSED(new_type);
         UNUSED(new_fnames);
         LOG_IDB_EVENT("An operand typestring (c/c++ prototype) is to be changed (ea: %" PRIxEA ")", ea);
@@ -342,6 +343,7 @@ namespace
     {
         const auto ea   = va_arg(args, ea_t);
         const auto n    = va_arg(args, int);
+        UNUSED(n);
         LOG_IDB_EVENT("An operand type at %" PRIxEA " has been set or deleted", ea);
         hooks.events_.touch_ea(ea);
     }
