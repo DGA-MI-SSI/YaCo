@@ -8,9 +8,9 @@ echo TARGET=$TARGET [Unix Makefiles, Ninja]
 
 if [ -z "$CONFIG" ]
 then
-    CONFIG=Release
+    CONFIG=RelWithDebInfo
 fi
-echo CONFIG=$CONFIG [Debug, Release]
+echo CONFIG=$CONFIG [Debug, RelWithDebInfo]
 
 if [ -z "$OUT" ]
 then
