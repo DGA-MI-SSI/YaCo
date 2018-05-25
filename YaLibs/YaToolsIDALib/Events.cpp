@@ -654,7 +654,7 @@ namespace
             if(!must_add_dependencies(hver.type()))
                 return WALK_CONTINUE;
             const auto id = hver.id();
-            hver.walk_xrefs([&](offset_t, operand_t, auto xref_id, auto)
+            hver.walk_xrefs([&](offset_t, operand_t, YaToolObjectId xref_id, const XrefAttributes*)
             {
                 if(deleted.has(xref_id))
                     add_id_and_dependencies(deps, id, USE_DEPENDENCIES);
