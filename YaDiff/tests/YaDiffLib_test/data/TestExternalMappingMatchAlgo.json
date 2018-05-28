@@ -1,0 +1,22 @@
+[
+    {
+        "src": 12345678,
+        "dst": 12345688,
+        "comment": "test comment 1"
+    },
+    {
+        "src": 22345678,
+        "dst": 22345688,
+        "comment": "test comment 2"
+    },
+    {
+        "src": 32345678,
+        "dst": 32345688,
+        "comment": "test comment 3"
+    },
+    {
+        "src": 42345678,
+        "dst": 42345688,
+        "comment": "test comment 4"
+    }
+]

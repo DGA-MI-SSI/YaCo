@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="iso-8859-15"?>
+<sigfile>
+  <function>
+    <id>0000000000000002</id>
+    <version>
+      <size>0x0000000000000008</size>
+      <str_type>0</str_type>
+      <signatures>
+        <signature algo="crc32" method="firstbyte">aabbccdd</signature>
+      </signatures>
+      <attribute key="stack_args">0x00000000</attribute>
+      <attribute key="stack_lvars">0x00000010</attribute>
+      <attribute key="stack_regvars">0x00000020</attribute>
+    </version>
+  </function>
+</sigfile>

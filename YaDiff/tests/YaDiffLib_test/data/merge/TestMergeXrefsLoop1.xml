@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="iso-8859-15"?>
+<sigfile>
+  <function>
+    <id>0000000000000001</id>
+    <version>
+      <size>0x0000000000000008</size>
+      <flags>0x0</flags>
+      <signatures>
+        <signature algo="crc32" method="firstbyte">aabbccdd</signature>
+      </signatures>
+      <offsets/>
+      <xrefs>
+        <xref offset="0x0000000000000010" size="0x00000010">0000000000000011</xref>
+      </xrefs>
+    </version>
+  </function>
+  <struc>
+    <id>0000000000000011</id>
+    <version>
+      <size>0x0000000000000008</size>
+      <flags>0x0</flags>
+      <signatures>
+        <signature algo="crc32" method="firstbyte">11111111</signature>
+      </signatures>
+      <offsets/>
+      <xrefs>
+        <xref offset="0x0000000000000020" size="0x00000010">0000000000000111</xref>
+      </xrefs>
+    </version>
+  </struc>
+  <strucmember>
+    <id>0000000000000111</id>
+    <version>
+      <size>0x0000000000000008</size>
+      <flags>0x0</flags>
+      <signatures>
+        <signature algo="crc32" method="firstbyte">22222222</signature>
+      </signatures>
+      <offsets/>
+      <xrefs>
+        <xref offset="0x0000000000000030" size="0x00000010">0000000000000011</xref>
+      </xrefs>
+    </version>
+  </strucmember>
+</sigfile>

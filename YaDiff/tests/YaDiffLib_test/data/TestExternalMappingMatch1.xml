@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="iso-8859-15"?>
+<sigfile>
+<basic_block>
+  <id>12345678</id>
+  <version>
+  <address>0xbc614e</address>
+    <size>0x0000000000000008</size>
+    <flags>0x0</flags>
+    <signatures>
+      <signature algo="crc32" method="firstbyte">aabbccd1</signature>
+    </signatures>
+    <xrefs/>
+  </version>
+</basic_block>
+<basic_block>
+  <id>22345678</id>
+  <version>
+  <address>0x154f7ce</address>
+    <size>0x0000000000000008</size>
+    <flags>0x0</flags>
+    <signatures>
+      <signature algo="crc32" method="firstbyte">aabbccc1</signature>
+    </signatures>
+    <xrefs/>
+  </version>
+</basic_block>
+<basic_block>
+  <id>32345678</id>
+  <version>
+  <address>0x1ed8e4e</address>
+    <size>0x0000000000000008</size>
+    <flags>0x0</flags>
+    <signatures>
+      <signature algo="crc32" method="firstbyte">aabbccc2</signature>
+    </signatures>
+    <xrefs/>
+  </version>
+</basic_block>
+<basic_block>
+  <id>42345678</id>
+  <version>
+  <address>0x28624ce</address>
+    <size>0x0000000000000008</size>
+    <flags>0x0</flags>
+    <signatures>
+      <signature algo="crc32" method="firstbyte">aabbccc3</signature>
+    </signatures>
+    <xrefs/>
+  </version>
+</basic_block>
+<basic_block>
+  <id>12345677</id>
+  <version>
+  <address>12345677</address>
+    <size>0x0000000000000008</size>
+    <flags>0x0</flags>
+    <signatures>
+      <signature algo="crc32" method="firstbyte">aabbccc4</signature>
+    </signatures>
+    <xrefs/>
+  </version>
+</basic_block>
+<basic_block>
+  <id>12345676</id>
+  <version>
+  <address>12345676</address>
+    <size>0x0000000000000008</size>
+    <flags>0x0</flags>
+    <signatures>
+      <signature algo="crc32" method="firstbyte">aabbccc5</signature>
+    </signatures>
+    <xrefs/>
+  </version>
+</basic_block>
+<basic_block>
+  <id>12345675</id>
+  <version>
+  <address>12345675</address>
+    <size>0x0000000000000008</size>
+    <flags>0x0</flags>
+    <signatures>
+      <signature algo="crc32" method="firstbyte">aabbccc6</signature>
+    </signatures>
+    <xrefs/>
+  </version>
+</basic_block>
+<basic_block>
+  <id>12345674</id>
+  <version>
+  <address>12345674</address>
+    <size>0x0000000000000008</size>
+    <flags>0x0</flags>
+    <signatures>
+      <signature algo="crc32" method="firstbyte">aabbccc7</signature>
+    </signatures>
+    <xrefs/>
+  </version>
+</basic_block>
+<basic_block>
+  <id>12345673</id>
+  <version>
+  <address>12345673</address>
+    <size>0x0000000000000009</size>
+    <flags>0x0</flags>
+    <signatures>
+      <signature algo="crc32" method="firstbyte">aabbccc8</signature>
+    </signatures>
+    <xrefs/>
+  </version>
+</basic_block>
+<basic_block>
+  <id>12345672</id>
+  <version>
+  <address>12345672</address>
+    <size>0x000000000000000a</size>
+    <flags>0x0</flags>
+    <signatures>
+      <signature algo="crc32" method="firstbyte">aabbccc9</signature>
+    </signatures>
+    <xrefs/>
+  </version>
+</basic_block>
+<basic_block>
+  <id>12345671</id>
+  <version>
+  <address>12345671</address>
+    <size>0x000000000000000b</size>
+    <flags>0x0</flags>
+    <signatures>
+      <signature algo="crc32" method="firstbyte">aabbccca</signature>
+    </signatures>
+    <xrefs/>
+  </version>
+</basic_block>
+</sigfile>

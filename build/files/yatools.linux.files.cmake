@@ -2,6 +2,8 @@
 set(_yatools_files
     "../YaLibs/YaToolsLib/BinHex.cpp"
     "../YaLibs/YaToolsLib/BinHex.hpp"
+    "../YaLibs/YaToolsLib/Configuration.cpp"
+    "../YaLibs/YaToolsLib/Configuration.hpp"
     "../YaLibs/YaToolsLib/FileUtils.cpp"
     "../YaLibs/YaToolsLib/FileUtils.hpp"
     "../YaLibs/YaToolsLib/FlatBufferModel.cpp"

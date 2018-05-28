@@ -29,6 +29,39 @@ enum RelationType_e
      * The functions match exactly
      */
     RELATION_TYPE_EXACT_MATCH,
+    /**
+     * The function are different
+     */
+    RELATION_TYPE_DIFF,
+    /**
+     * The function are different, but the difference doesn't impact the signature : one of the call changed
+     * This means that one of the call changed to a function that has an exact match in the local base, different to that of
+     * the initially called function
+     */
+    RELATION_TYPE_DIFF_CALL,
+    /**
+     * The current described function corresponds to one in N other functions
+     */
+    RELATION_TYPE_ALTERNATIVE_TO_N,
+    /**
+     * This function is one of several possible function that correspond to the pointed function
+     */
+    RELATION_TYPE_ALTERNATIVE_FROM_N,
+    /**
+     * Function have many parameters in common (basic block number, in/out call number, ret number ..)
+     * Matched with the Algo "VectorSign"
+     */
+    RELATION_TYPE_VECTOR_SIGN,
+    /**
+    * Function control flow graph (including the calls) matches with each other within 24 blocks in a horizontal walk
+    * Matched with the Algo "Patas"
+    */
+    RELATION_TYPE_PATAS,
+
+    /**
+     * Objects with this relation conflicts a lot with other object version, so don't trust relations.
+     */
+    RELATION_TYPE_UNTRUSTABLE,
 };
 
 enum RelationDirection_e

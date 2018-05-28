@@ -1,0 +1,9 @@
+<yadiff>
+	<Matching>
+		<option XRefOffsetMatch="true"/>
+		<option CallerXRefMatch="true"/>
+		<option CallerXRefMatch_TrustDiffingRelations="true"/>
+		<option DoAnalyzeUntilAlgoReturn0="true"/>
+		<option DoAnalyzeUntilAnalyzeReturn0="true"/>
+	</Matching>
+</yadiff>

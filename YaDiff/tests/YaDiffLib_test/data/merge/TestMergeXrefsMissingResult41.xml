@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="iso-8859-15"?>
+<sigfile>
+  <function>
+    <id>0000000000000041</id>
+    <version>
+      <size>0x0000000000000008</size>
+      <str_type>0</str_type>
+      <signatures>
+        <signature algo="crc32" method="firstbyte">11111111</signature>
+      </signatures>
+      <xrefs>
+        <xref offset="0x0000000000000014" size="0x00000010">00000000000000AA</xref>
+      </xrefs>
+    </version>
+  </function>
+</sigfile>

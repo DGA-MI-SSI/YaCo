@@ -336,3 +336,6 @@ target_include_directories(farmhash PUBLIC "${farm_dir}/src")
 if(WIN32)
     target_compile_definitions(farmhash PRIVATE FARMHASH_NO_BUILTIN_EXPECT)
 endif()
+
+# capstone
+include(capstone.cmake)

@@ -211,6 +211,8 @@ namespace
             }
             break;
 
+        case RELATION_TYPE_DIFF:
+            // TODO propagate comments ???
         default:
             if(relation.version2_.has_comments() || relation.version2_.has_value_views())
             {
@@ -275,6 +277,8 @@ MergeStatus_e Merger::mergeObjectVersions( IModelVisitor& visitor_db, std::set<Y
              });
          }
         break;
+    case RELATION_TYPE_DIFF:
+        // TODO propagate prototype ???
     default:
         if(relation.version2_.has_prototype())
         {
@@ -329,6 +333,8 @@ MergeStatus_e Merger::mergeObjectVersions( IModelVisitor& visitor_db, std::set<Y
             });
         }
         break;
+    case RELATION_TYPE_DIFF:
+        // TODO propagate ???
     default:
         if (relation.version2_.has_header_comment(false))
             visitor_db.visit_header_comment(false, relation.version2_.header_comment(false));
@@ -389,6 +395,8 @@ MergeStatus_e Merger::mergeObjectVersions( IModelVisitor& visitor_db, std::set<Y
             visitor_db.visit_end_xrefs();
         }
         break;
+    case RELATION_TYPE_DIFF:
+        // TODO propagate ???
     default:
         if (relation.version2_.has_xrefs())
         {
@@ -442,6 +450,8 @@ MergeStatus_e Merger::mergeObjectVersions( IModelVisitor& visitor_db, std::set<Y
         }
 
         break;
+    case RELATION_TYPE_DIFF:
+        // TODO propagate ???
     default:
         relation.version2_.walk_attributes([&](const const_string_ref& key, const const_string_ref& value)
         {

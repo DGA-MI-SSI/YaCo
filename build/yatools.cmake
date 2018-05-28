@@ -84,10 +84,14 @@ make_deploy_dir(${bin_dir}/.. YaCo ${ya_dir}/YaCo)
 add_custom_command(TARGET yatools POST_BUILD
     # make sure deploy_dir exists
     COMMAND ${CMAKE_COMMAND} -E make_directory ${deploy_dir}
+    # yaco library
+    COMMAND ${CMAKE_COMMAND} -E copy ${ya_dir}/YaDiff/merge_idb.py ${deploy_dir}
     # ida plugins
     COMMAND ${CMAKE_COMMAND} -E copy ${ya_dir}/YaCo/yaco_plugin.py ${deploy_dir}/../..
     # flatbuffers bindings
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${fb_dir}/python/flatbuffers" "${deploy_dir}/flatbuffers"
+    # capstone bindings
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${cap_dir}/bindings/python/capstone" "${deploy_dir}/capstone"
     # generated yadb bindings
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_BINARY_DIR}/yadb" "${deploy_dir}/yadb"
 )
@@ -125,6 +129,27 @@ target_link_libraries(yagit_tests PRIVATE
     yagit
 )
 
+# yadifflib
+add_target(yadifflib yatools "${ya_dir}/YaDiff/YaDiffLib" OPTIONS static_runtime recurse)
+setup_yatools(yadifflib)
+target_include_directories(yadifflib PUBLIC
+    "${ya_dir}/YaDiff/YaDiffLib"
+)
+target_link_libraries(yadifflib PUBLIC
+    yatools
+    yagit
+    capstone
+)
+
+# yadifflib_tests
+add_target(yadifflib_tests yatools/tests "${ya_dir}/YaDiff/tests/YaDiffLib_test" OPTIONS test recurse static_runtime)
+setup_yatools(yadifflib_tests)
+target_include_directories(yadifflib_tests PRIVATE "${ya_dir}/YaDiff/tests/" "${ya_dir}/YaLibs/tests")
+target_link_libraries(yadifflib_tests PRIVATE
+    gtest
+    yadifflib
+)
+
 # add tool
 function(add_tool target dir)
     add_target(${target} yatools/tools "${ya_dir}/${dir}" OPTIONS executable static_runtime)
@@ -132,6 +157,9 @@ function(add_tool target dir)
     target_link_libraries(${target} PRIVATE yatools ${ARGN})
     set_target_output_directory(${target} "")
 endfunction()
+
+# yadiff
+add_tool(yadiff YaDiff yadifflib)
 
 # yaxml2fb
 add_tool(yaxml2fb YaToolsUtils/YaToolsXMLToFB)
@@ -141,6 +169,9 @@ add_tool(yafb2xml YaToolsUtils/YaToolsFBToXML)
 
 # yacachemerger
 add_tool(yacachemerger YaToolsUtils/YaToolsCacheMerger)
+
+# yadbtovector
+add_tool(yadbtovector YaToolsUtils/YaToolsYaDBToVectors yadifflib)
 
 # swig modules
 function(add_swig_mod target name)
@@ -225,12 +256,14 @@ function(add_yatools_py bits)
     filter_in(yaswig_deps "[.]h$" "[.]hpp$")
     add_swig_mod(yatools_py${bits} YaToolsPy${bits} ${files} DEPS ${yaswig_deps} INCLUDES
         "${CMAKE_CURRENT_BINARY_DIR}/yatools_"
+        "${ya_dir}/YaDiff/YaDiffLib"
         "${ya_dir}/YaLibs/YaGitLib"
         "${ya_dir}/YaLibs/YaToolsIDALib"
         "${ya_dir}/YaLibs/YaToolsLib"
         "${ya_dir}/YaLibs/YaToolsPy"
     )
     target_link_libraries(_yatools_py${bits} PRIVATE
+        yadifflib
         yagit
         yaida${bits}
     )
@@ -287,3 +320,14 @@ foreach(test ${test_names})
     set_property(TEST ${shortname} APPEND PROPERTY DEPENDS make_testdata_qt54_svg_no_pdb)
     set_property(TEST ${shortname} APPEND PROPERTY DEPENDS make_testdata_cmder)
 endforeach()
+
+# merge_idb_tests
+add_test(NAME merge_idb_tests
+    COMMAND ${PYTHON_EXECUTABLE} "${ya_dir}/YaDiff/merge_idb.py"
+    ${root_dir}/testdata/qt54_svg/Qt5Svgd.dll.i64
+    ${root_dir}/testdata/qt57_svg/Qt5Svgd.dll.idb
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    )
+set_property(TEST merge_idb_tests APPEND PROPERTY ENVIRONMENT "YATOOLS_DIR=${deploy_dir}/..")
+set_property(TEST merge_idb_tests APPEND PROPERTY DEPENDS make_testdata_qt54_svg)
+set_property(TEST merge_idb_tests APPEND PROPERTY DEPENDS make_testdata_qt57_svg)

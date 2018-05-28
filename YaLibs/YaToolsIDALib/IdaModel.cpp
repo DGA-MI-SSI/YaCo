@@ -93,6 +93,7 @@ namespace
     DECLARE_REF(g_gs, "gs");
     DECLARE_REF(g_type, "type");
     DECLARE_REF(g_color, "color");
+    DECLARE_REF(g_format, "format");
 
 #undef DECLARE_REF
 
@@ -1616,6 +1617,13 @@ namespace
         v.visit_segments_end();
     }
 
+    void accept_binary_attributes(IModelVisitor& v)
+    {
+        char file_type[256];
+        const auto size = get_file_type_name(file_type, sizeof file_type);
+        v.visit_attribute(g_format, {file_type, size});
+    }
+
     template<typename Ctx>
     Parent accept_binary(Ctx& ctx, IModelVisitor& v)
     {
@@ -1647,6 +1655,7 @@ namespace
         }
         v.visit_end_xrefs();
 
+        accept_binary_attributes(v);
         finish_object(v);
 
         if(Ctx::is_incremental)

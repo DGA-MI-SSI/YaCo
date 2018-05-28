@@ -1,0 +1,11 @@
+<yadiff>
+	<section1>
+		<option value1="value1_value"/>
+	</section1>
+	<section2>
+		<option test="test" value2="value2_value"/>
+	</section2>
+	<section3>
+		<opt value1="value1_value"/>
+	</section3>
+</yadiff>

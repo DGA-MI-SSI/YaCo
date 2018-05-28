@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="iso-8859-15"?>
+<sigfile>
+<binary>
+  <id>91D3629D74B9EF90</id>
+  <version>
+    <size>0x0000000000000052</size>
+    <userdefinedname>main.obj</userdefinedname>
+    <str_type>0</str_type>
+    <xrefs>
+      <xref offset="0x0000000000000000">B6AAF36DF8CB730C</xref>
+      <xref offset="0x000000000000000C">C740C6DE5E974350</xref>
+    </xrefs>
+  </version>
+</binary>
+<segment>
+  <id>B6AAF36DF8CB730C</id>
+  <version>
+    <size>0x000000000000000C</size>
+    <userdefinedname>.data</userdefinedname>
+    <str_type>0</str_type>
+    <xrefs>
+      <xref offset="0x0000000000000000">FFA7A3860F945C51</xref>
+    </xrefs>
+    <attribute key="align">5</attribute>
+    <attribute key="bitness">1</attribute>
+    <attribute key="color">4294967295</attribute>
+    <attribute key="comb">2</attribute>
+    <attribute key="end_ea">12</attribute>
+    <attribute key="flags">16</attribute>
+    <attribute key="org_base">0</attribute>
+    <attribute key="perm">6</attribute>
+    <attribute key="sel">3</attribute>
+    <attribute key="start_ea">0</attribute>
+    <attribute key="type">3</attribute>
+  </version>
+</segment>
+<segment>
+  <id>C740C6DE5E974350</id>
+  <version>
+    <size>0x0000000000000046</size>
+    <userdefinedname>.text$mn</userdefinedname>
+    <str_type>0</str_type>
+    <xrefs>
+      <xref offset="0x0000000000000000">9C739B28F5851293</xref>
+    </xrefs>
+    <attribute key="align">3</attribute>
+    <attribute key="bitness">1</attribute>
+    <attribute key="color">4294967295</attribute>
+    <attribute key="comb">2</attribute>
+    <attribute key="end_ea">82</attribute>
+    <attribute key="flags">16</attribute>
+    <attribute key="org_base">0</attribute>
+    <attribute key="perm">5</attribute>
+    <attribute key="sel">4</attribute>
+    <attribute key="start_ea">12</attribute>
+    <attribute key="type">2</attribute>
+  </version>
+</segment>
+<segment_chunk>
+  <id>9C739B28F5851293</id>
+  <version>
+    <size>0x0000000000000046</size>
+    <str_type>0</str_type>
+    <xrefs>
+      <xref offset="0x0000000000000000">85E954B916FE44A9</xref>
+      <xref offset="0x0000000000000007">BC3F4BD752C568DC</xref>
+      <xref offset="0x0000000000000010">FF6DE5E9532D9AC4</xref>
+      <xref offset="0x0000000000000024">834831F9EFA6EAE7</xref>
+      <xref offset="0x0000000000000030">E342643E854F05D7</xref>
+    </xrefs>
+    <blob offset="0000000000000000">558BEC33C05DC3CCCCCCCCCCCCCCCCCC558BEC51C745FC00000000E8E0FFFFFF8BE55DC3CCCCCCCCCCCCCCCCCCCCCCCC558BEC837D08057E09B801000000EB04EB0233C05DC3</blob>
+  </version>
+</segment_chunk>
+<segment_chunk>
+  <id>FFA7A3860F945C51</id>
+  <version>
+    <size>0x000000000000000C</size>
+    <str_type>0</str_type>
+    <xrefs>
+      <xref offset="0x0000000000000000">34857FCE5B626E6C</xref>
+      <xref offset="0x0000000000000009">C5409031C30FB279</xref>
+    </xrefs>
+    <blob offset="0000000000000000">6120737472696E6700</blob>
+  </version>
+</segment_chunk>
+<function>
+  <id>85E954B916FE44A9</id>
+  <version>
+    <size>0x0000000000000007</size>
+    <proto>int __cdecl _main(int argc, const char **argv, const char **envp)</proto>
+    <flags>0x4410</flags>
+    <str_type>0</str_type>
+    <signatures>
+      <signature algo="crc32" method="firstbyte">-3D029CDC</signature>
+    </signatures>
+    <xrefs>
+      <xref offset="0x0000000000000000" size="0x00000007">F8A91A21E1671FE0</xref>
+      <xref offset="0x00000000FFFFFFFF">D0801388A2D93BEB</xref>
+    </xrefs>
+  </version>
+</function>
+<function>
+  <id>E342643E854F05D7</id>
+  <version>
+    <size>0x0000000000000016</size>
+    <flags>0x4010</flags>
+    <str_type>0</str_type>
+    <signatures>
+      <signature algo="crc32" method="firstbyte">02C99E73</signature>
+    </signatures>
+    <xrefs>
+      <xref offset="0x0000000000000000" size="0x00000009">EF87DDDED00A6C05</xref>
+      <xref offset="0x0000000000000009" size="0x00000007">72E9EDF026A8712A</xref>
+      <xref offset="0x0000000000000010" size="0x00000002">74E225877C7E8A94</xref>
+      <xref offset="0x0000000000000012" size="0x00000002">6993F8DEF74AE0AA</xref>
+      <xref offset="0x0000000000000014" size="0x00000002">FCB710DE5B375CB8</xref>
+      <xref offset="0x00000000FFFFFFFF">AC80B4C11CADF432</xref>
+    </xrefs>
+  </version>
+</function>
+<function>
+  <id>FF6DE5E9532D9AC4</id>
+  <version>
+    <size>0x0000000000000014</size>
+    <proto>int __thiscall _functionCaller(int argc)</proto>
+    <flags>0x4410</flags>
+    <str_type>0</str_type>
+    <signatures>
+      <signature algo="crc32" method="firstbyte">06F529F0</signature>
+    </signatures>
+    <xrefs>
+      <xref offset="0x0000000000000000" size="0x00000014">1D82B5807E1DCB77</xref>
+      <xref offset="0x00000000FFFFFFFF">E0204CA3888AFF32</xref>
+    </xrefs>
+  </version>
+</function>
+<stackframe>
+  <id>AC80B4C11CADF432</id>
+  <version>
+    <size>0x000000000000000C</size>
+    <userdefinedname>$ F3C</userdefinedname>
+    <str_type>0</str_type>
+    <xrefs>
+      <xref offset="0x0000000000000008">37878B07D927278C</xref>
+    </xrefs>
+    <attribute key="stack_args">0x00000000</attribute>
+    <attribute key="stack_lvars">0x00000000</attribute>
+    <attribute key="stack_regvars">0x00000004</attribute>
+  </version>
+</stackframe>
+<stackframe>
+  <id>D0801388A2D93BEB</id>
+  <version>
+    <size>0x0000000000000014</size>
+    <userdefinedname>$ FC</userdefinedname>
+    <str_type>0</str_type>
+    <xrefs>
+      <xref offset="0x0000000000000008">3EDDC8E0871E2D13</xref>
+      <xref offset="0x000000000000000C">3E842D1749F4006C</xref>
+      <xref offset="0x0000000000000010">28CA12EEB6554061</xref>
+    </xrefs>
+    <attribute key="stack_args">0x00000000</attribute>
+    <attribute key="stack_lvars">0x00000000</attribute>
+    <attribute key="stack_regvars">0x00000004</attribute>
+  </version>
+</stackframe>
+<stackframe>
+  <id>E0204CA3888AFF32</id>
+  <version>
+    <size>0x000000000000000C</size>
+    <userdefinedname>$ F1C</userdefinedname>
+    <str_type>0</str_type>
+    <xrefs>
+      <xref offset="0x0000000000000000">BD3FBD1C3CF27FCF</xref>
+    </xrefs>
+    <attribute key="stack_args">0x00000000</attribute>
+    <attribute key="stack_lvars">0x00000004</attribute>
+    <attribute key="stack_regvars">0x00000004</attribute>
+  </version>
+</stackframe>
+<stackframe_member>
+  <id>28CA12EEB6554061</id>
+  <version>
+    <size>0x0000000000000004</size>
+    <userdefinedname>envp</userdefinedname>
+    <proto>const char **</proto>
+    <flags>0x25500400</flags>
+    <str_type>0</str_type>
+  </version>
+</stackframe_member>
+<stackframe_member>
+  <id>37878B07D927278C</id>
+  <version>
+    <size>0x0000000000000004</size>
+    <userdefinedname>arg_0</userdefinedname>
+    <flags>0x20000400</flags>
+    <str_type>0</str_type>
+  </version>
+</stackframe_member>
+<stackframe_member>
+  <id>3E842D1749F4006C</id>
+  <version>
+    <size>0x0000000000000004</size>
+    <userdefinedname>argv</userdefinedname>
+    <proto>const char **</proto>
+    <flags>0x25500400</flags>
+    <str_type>0</str_type>
+  </version>
+</stackframe_member>
+<stackframe_member>
+  <id>3EDDC8E0871E2D13</id>
+  <version>
+    <size>0x0000000000000004</size>
+    <userdefinedname>argc</userdefinedname>
+    <proto>int</proto>
+    <flags>0x20000400</flags>
+    <str_type>0</str_type>
+  </version>
+</stackframe_member>
+<stackframe_member>
+  <id>BD3FBD1C3CF27FCF</id>
+  <version>
+    <size>0x0000000000000004</size>
+    <userdefinedname>var_4</userdefinedname>
+    <flags>0x20000400</flags>
+    <str_type>0</str_type>
+  </version>
+</stackframe_member>
+<basic_block>
+  <id>1D82B5807E1DCB77</id>
+  <version>
+    <size>0x0000000000000014</size>
+    <userdefinedname flags="0x00000052">_functionCaller</userdefinedname>
+    <flags>0x2</flags>
+    <str_type>0</str_type>
+    <signatures>
+      <signature algo="crc32" method="firstbyte">06F529F0</signature>
+    </signatures>
+    <offsets>
+      <comments offset="0000000000000000" type="nonrepeatable_comment">argv</comments>
+      <comments offset="0000000000000003" type="nonrepeatable_comment">argc</comments>
+      <valueview offset="0000000000000004" operand="0000000000000001">offset-off32</valueview>
+      <valueview offset="000000000000000B" operand="0000000000000000">offset-off32</valueview>
+    </offsets>
+    <xrefs>
+      <xref offset="0x0000000000000004">BD3FBD1C3CF27FCF</xref>
+      <xref offset="0x000000000000000B">85E954B916FE44A9</xref>
+    </xrefs>
+  </version>
+</basic_block>
+<basic_block>
+  <id>6993F8DEF74AE0AA</id>
+  <version>
+    <size>0x0000000000000002</size>
+    <str_type>0</str_type>
+    <signatures>
+      <signature algo="crc32" method="firstbyte">28FB0CE8</signature>
+    </signatures>
+    <xrefs>
+      <xref offset="0x0000000000000050">FCB710DE5B375CB8</xref>
+    </xrefs>
+  </version>
+</basic_block>
+<basic_block>
+  <id>72E9EDF026A8712A</id>
+  <version>
+    <size>0x0000000000000007</size>
+    <str_type>0</str_type>
+    <signatures>
+      <signature algo="crc32" method="firstbyte">7BB512F9</signature>
+    </signatures>
+    <xrefs>
+      <xref offset="0x0000000000000050">FCB710DE5B375CB8</xref>
+    </xrefs>
+  </version>
+</basic_block>
+<basic_block>
+  <id>74E225877C7E8A94</id>
+  <version>
+    <size>0x0000000000000002</size>
+    <str_type>0</str_type>
+    <signatures>
+      <signature algo="crc32" method="firstbyte">-13BF35ED</signature>
+    </signatures>
+    <xrefs>
+      <xref offset="0x0000000000000050">FCB710DE5B375CB8</xref>
+    </xrefs>
+  </version>
+</basic_block>
+<basic_block>
+  <id>EF87DDDED00A6C05</id>
+  <version>
+    <size>0x0000000000000009</size>
+    <userdefinedname flags="0x00000052">_functionIf</userdefinedname>
+    <str_type>0</str_type>
+    <signatures>
+      <signature algo="crc32" method="firstbyte">-5DF6EC63</signature>
+    </signatures>
+    <xrefs>
+      <xref offset="0x0000000000000003">37878B07D927278C</xref>
+      <xref offset="0x0000000000000045">72E9EDF026A8712A</xref>
+      <xref offset="0x000000000000004E">6993F8DEF74AE0AA</xref>
+    </xrefs>
+  </version>
+</basic_block>
+<basic_block>
+  <id>F8A91A21E1671FE0</id>
+  <version>
+    <size>0x0000000000000007</size>
+    <userdefinedname flags="0x00000052">_main</userdefinedname>
+    <flags>0x2</flags>
+    <str_type>0</str_type>
+    <signatures>
+      <signature algo="crc32" method="firstbyte">-3D029CDC</signature>
+    </signatures>
+  </version>
+</basic_block>
+<basic_block>
+  <id>FCB710DE5B375CB8</id>
+  <version>
+    <size>0x0000000000000002</size>
+    <flags>0x2</flags>
+    <str_type>0</str_type>
+    <signatures>
+      <signature algo="crc32" method="firstbyte">0DCF6557</signature>
+    </signatures>
+  </version>
+</basic_block>
+<data>
+  <id>34857FCE5B626E6C</id>
+  <version>
+    <size>0x0000000000000009</size>
+    <userdefinedname flags="0x00000054">$SG1373</userdefinedname>
+    <flags>0x50007561</flags>
+    <str_type>0</str_type>
+    <signatures>
+      <signature algo="crc32" method="firstbyte">-5F6B8AC1</signature>
+    </signatures>
+    <offsets>
+      <comments offset="0000000000000000" type="anterior_comment">; File Name   : H:\Software\C\VerySmallCNoImport\Ya\main.obj
+; Format      : COFF (X386MAGIC)
+; includelib &quot;LIBCMT&quot;
+; includelib &quot;OLDNAMES&quot;
+</comments>
+    </offsets>
+  </version>
+</data>
+<data>
+  <id>834831F9EFA6EAE7</id>
+  <version>
+    <size>0x000000000000000C</size>
+    <flags>0x5CC</flags>
+    <str_type>0</str_type>
+  </version>
+</data>
+<data>
+  <id>BC3F4BD752C568DC</id>
+  <version>
+    <size>0x0000000000000009</size>
+    <flags>0x5CC</flags>
+    <str_type>0</str_type>
+  </version>
+</data>
+<data>
+  <id>C5409031C30FB279</id>
+  <version>
+    <size>0x0000000000000003</size>
+    <flags>0xB0000400</flags>
+    <str_type>0</str_type>
+  </version>
+</data>
+</sigfile>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="iso-8859-15"?>
+<sigfile>
+<segment_chunk>
+  <id>0000000000000031</id>
+  <version>
+    <size>0x0000000000010000</size>
+    <xrefs>
+      <xref offset="0x0000000000000080">0000000000000041</xref>
+      <xref offset="0x0000000000000090">0000000000000021</xref>
+    </xrefs>
+  </version>
+</segment_chunk>
+<function>
+  <id>0000000000000041</id>
+  <version>
+    <size>0x000000000000010C</size>
+    <signatures>
+      <signature algo="crc32" method="firstbyte">44556677</signature>
+    </signatures>
+    <xrefs>
+      <xref offset="0x0000000000000000" size="0x00000010">0000000000000002</xref>
+    </xrefs>
+  </version>
+</function>
+<basic_block>
+  <id>0000000000000002</id>
+  <version>
+    <size>0x0000000000000008</size>
+    <flags>0x0</flags>
+    <signatures>
+      <signature algo="crc32" method="firstbyte">eeff0011</signature>
+    </signatures>
+    <xrefs>
+      <xref offset="0x0000000000000010" operand="0x0000000000000001">0000000000000021</xref>
+	</xrefs>
+  </version>
+</basic_block>
+<data>
+  <id>0000000000000021</id>
+  <version>
+    <size>0x0000000000000006</size>
+    <userdefinedname flags="0x00000000">aUnknowSntring</userdefinedname>
+    <signatures>
+      <signature algo="crc32" method="firstbyte">01234567</signature>
+    </signatures>
+  </version>
+</data>
+</sigfile>

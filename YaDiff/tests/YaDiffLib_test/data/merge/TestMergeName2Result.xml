@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="iso-8859-15"?>
+<sigfile>
+  <function>
+    <id>0000000000000002</id>
+    <version>
+      <size>0x0000000000000008</size>
+      <parent_id>8765432100000000</parent_id>
+      <address>12345678</address>
+      <userdefinedname>name1</userdefinedname>
+      <str_type>0</str_type>
+      <signatures>
+        <signature algo="crc32" method="firstbyte">aabbccdd</signature>
+      </signatures>
+    </version>
+  </function>
+</sigfile>

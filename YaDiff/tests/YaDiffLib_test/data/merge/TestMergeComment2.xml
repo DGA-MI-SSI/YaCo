@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="iso-8859-15"?>
+<sigfile>
+  <function>
+    <id>0000000000000002</id>
+    <version>
+      <size>0x0000000000000008</size>
+      <str_type>0</str_type>
+      <flags>0x0</flags>
+      <signatures>
+        <signature algo="crc32" method="firstbyte">aabbccdd</signature>
+      </signatures>
+      <offsets>
+        <comments offset="000000000000050" type="nonrepeatable_comment">comment2_test</comments>
+      </offsets>
+    </version>
+  </function>
+</sigfile>
