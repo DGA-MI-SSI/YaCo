@@ -33,7 +33,7 @@ class Fixture(runtests.Fixture):
             self.save_enum("name_a"),
             self.save_enum("name_b"),
         )
-        b.check_git(moved=["enum"])
+        b.check_git(added=["enum"], deleted=["enum"])
         self.assertEqual(self.enums["name_a"][1], "")
         a.run(
             self.check_enum("name_a"),
@@ -56,14 +56,14 @@ class Fixture(runtests.Fixture):
             self.script("idaapi.set_enum_member_name(idaapi.get_enum_member_by_name('field_a'), 'field_b')"),
             self.save_enum("name_a"),
         )
-        b.check_git(modified=["enum"], moved=["enum_member"])
+        b.check_git(modified=["enum"], added=["enum_member"], deleted=["enum_member"])
         a.run(
             self.check_enum("name_a"),
             self.script("idaapi.set_enum_name(idaapi.get_enum('name_a'), 'name_b')"),
             self.save_enum("name_a"),
             self.save_enum("name_b"),
         )
-        a.check_git(moved=["enum", "enum_member"])
+        a.check_git(added=["enum", "enum_member"], deleted=["enum", "enum_member"])
         self.assertEqual(self.enums["name_a"][1], "")
         b.run(
             self.check_enum("name_a"),

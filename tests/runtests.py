@@ -155,19 +155,17 @@ with open("%s", "wb") as fh:
     def run_bare(self, *args):
         return self.run_with(False, False, *args)
 
-    def check_git(self, added=None, modified=None, deleted=None, moved=None):
+    def check_git(self, added=None, modified=None, deleted=None):
         if not added:
             added = []
         if not modified:
             modified = []
         if not deleted:
             deleted = []
-        if not moved:
-            moved = []
-        want_state = {"added":added, "modified":modified, "deleted":deleted, "moved":moved}
+        want_state = {"added":added, "modified":modified, "deleted":deleted}
         output = sysexec(self.path, ["git", "diff", "--name-status", "HEAD~1..HEAD"])
         files = output.split("\n")
-        got_added, got_modified, got_deleted, got_moved = [], [], [], []
+        got_added, got_modified, got_deleted = [], [], []
         def add_simple(line):
             state, path = line.split()
             _, otype, name = re.split("[\\\/]", path)
@@ -182,11 +180,8 @@ with open("%s", "wb") as fh:
             _, path_a, path_b = line.split()
             _, otype_a, _ = re.split("[\\\/]", path_a)
             _, otype_b, _ = re.split("[\\\/]", path_b)
-            if otype_a == otype_b:
-                got_moved.append(otype_a)
-            else:
-                got_deleted.append(otype_a)
-                got_added.append(otype_b)
+            got_deleted.append(otype_a)
+            got_added.append(otype_b)
         for line in files:
             if not len(line):
                 continue
@@ -198,9 +193,9 @@ with open("%s", "wb") as fh:
                 add_moved(line)
             except:
                 pass
-        for x in [added, modified, deleted, moved, got_added, got_modified, got_deleted, got_moved]:
+        for x in [added, modified, deleted, got_added, got_modified, got_deleted]:
             x.sort()
-        got_state = {"added":got_added, "modified":got_modified, "deleted":got_deleted, "moved":got_moved}
+        got_state = {"added":got_added, "modified":got_modified, "deleted":got_deleted}
         self.ctx.assertEqual(want_state, got_state)
 
 ea_defmask = "(~0 & ~(1 << ya.OBJECT_TYPE_STRUCT) & ~(1 << ya.OBJECT_TYPE_ENUM)) & ~(1 << ya.OBJECT_TYPE_SEGMENT_CHUNK)"

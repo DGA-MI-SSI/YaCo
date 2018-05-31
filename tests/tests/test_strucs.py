@@ -36,7 +36,7 @@ idaapi.set_struc_cmt(eid, "cmt_02", False)
             self.save_struc("name_a"),
             self.save_struc("name_b"),
         )
-        b.check_git(moved=["struc"])
+        b.check_git(added=["struc"], deleted=["struc"])
         self.assertEqual(self.strucs["name_a"][1], "")
         self.assertNotEqual(self.strucs["name_b"][1], "")
         a.run(
@@ -67,7 +67,7 @@ idaapi.set_struc_cmt(eid, "cmt_02", False)
             self.save_struc("name_a"),
             self.save_struc("name_b"),
         )
-        a.check_git(moved=["struc", "strucmember"])
+        a.check_git(added=["struc", "strucmember"], deleted=["struc", "strucmember"])
         self.assertEqual(self.strucs["name_a"][1], "")
         self.assertNotEqual(self.strucs["name_b"][1], "")
         b.run(
