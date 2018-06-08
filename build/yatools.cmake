@@ -37,8 +37,9 @@ endif()
 include(${ya_dir}/build/yadeps.cmake)
 
 # IDA works with Python 2.7, which is mandatory to build swig tools
-find_package(PythonInterp 2.7 REQUIRED)
+# ask for pythonlibs first or it may not get python x64 libraries
 find_package(PythonLibs   2.7 REQUIRED)
+find_package(PythonInterp 2.7 REQUIRED)
 
 # yatools helpers
 function(setup_yatools target)
