@@ -54,19 +54,19 @@ sudo apt install build-essential git cmake libpython2.7 libpython2.7-dev
 
 Set IDA_DIR & IDASDK_DIR environment variables
 ```
-export IDA_DIR=/opt/ida7.0/
-export IDASDK_DIR=/opt/idasdk70/
+export IDA_DIR=/opt/ida7.1/
+export IDASDK_DIR=/opt/idasdk71/
 ```
 
 Clone, configure & build **YaTools**
 ```
-~/YaCo (master) $ cd build
-~/YaCo/build (master) $ ./configure.sh
-~/YaCo/build (master) $ pushd ../out/x64_Release
-~/YaCo/out/x64_Release (master) $ make -j4
-~/YaCo/out/x64_Release (master) $ make test -j4
-~/YaCo/out/x64_Release (master) $ pushd $IDA_DIR/plugin
-$IDA_DIR/plugin $ ~/YaCo/build/deploy.sh
+~/YaTools (master) $ cd build
+~/YaTools/build (master) $ ./configure.sh
+~/YaTools/build (master) $ pushd ../out/x64_RelWithDebInfo
+~/YaTools/out/x64_RelWithDebInfo (master) $ make -j4
+~/YaTools/out/x64_RelWithDebInfo (master) $ make test -j4
+~/YaTools/out/x64_RelWithDebInfo (master) $ pushd $IDA_DIR/plugin
+$IDA_DIR/plugin $ ~/YaTools/build/deploy.sh
 ```
 
 ### Windows
@@ -77,8 +77,8 @@ Only visual studio 2017 is currently supported
 Configure and build **YaTools**
 ```
 # export directories without quotes
-set IDA_DIR=C:\Program Files\IDA Pro 7.0
-set IDASDK_DIR=C:\idasdk70
+set IDA_DIR=C:\Program Files\IDA Pro 7.1
+set IDASDK_DIR=C:\idasdk71
 build> configure_2017.cmd
 out/x64> cmake --build . --config RelWithDebInfo
 out/x64> ctest . --output-on-failure -C RelWithDebInfo -j4
