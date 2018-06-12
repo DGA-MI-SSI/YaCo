@@ -1097,7 +1097,7 @@ namespace
             //const auto dump = ya::dump_flags(xflags);
             if(!is_valid)
                 continue;
-            const auto xref = Xref{ea - root, hash_untyped_ea(ya::get_range_item(xb.to).start_ea), DEFAULT_OPERAND, 0};
+            const auto xref = Xref{ea - root, hash::hash_ea(ya::get_range_item(xb.to).start_ea), DEFAULT_OPERAND, 0};
             ctx.xrefs_.push_back(xref);
         }
     }
@@ -1111,7 +1111,7 @@ namespace
         const auto next = prev_not_tail(end);
         for(auto ea = get_first_cref_from(next); ea != BADADDR; ea = get_next_cref_from(next, ea))
         {
-            const auto id = hash_untyped_ea(ea);
+            const auto id = hash::hash_ea(ea);
             ctx.xrefs_.push_back({ea - start, id, DEFAULT_OPERAND, 0});
         }
     }
