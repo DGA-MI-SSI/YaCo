@@ -286,8 +286,9 @@ function(make_testdata target bin src idaq)
 endfunction()
 make_testdata(qt54_svg        Qt5Svgd.dll qt54_svg ida64)
 make_testdata(qt54_svg_no_pdb Qt5Svgd.dll qt54_svg ida64)
-make_testdata(qt57_svg        Qt5Svgd.dll qt54_svg ida)
 make_testdata(cmder           Cmder.exe   cmder    ida64)
+make_testdata(vim_0197        vim.basic   vim_0197 ida64)
+make_testdata(vim_1453        vim.basic   vim_1453 ida64)
 
 # integration_tests
 add_target(integration_tests yatools/tests "${ya_dir}/YaLibs/tests/integration" OPTIONS test static_runtime)
@@ -300,7 +301,7 @@ target_link_libraries(integration_tests PRIVATE
     yatools
 )
 set_property(TEST integration_tests APPEND PROPERTY DEPENDS make_testdata_qt54_svg)
-set_property(TEST integration_tests APPEND PROPERTY DEPENDS make_testdata_qt57_svg)
+set_property(TEST integration_tests APPEND PROPERTY DEPENDS make_testdata_qt54_svg_no_pdb)
 
 # unit_tests
 execute_process(COMMAND
@@ -323,11 +324,12 @@ endforeach()
 
 # merge_idb_tests
 add_test(NAME merge_idb_tests
-    COMMAND ${PYTHON_EXECUTABLE} "${ya_dir}/YaDiff/merge_idb.py"
-    ${root_dir}/testdata/qt54_svg/Qt5Svgd.dll.i64
-    ${root_dir}/testdata/qt57_svg/Qt5Svgd.dll.idb
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    )
+    COMMAND ${PYTHON_EXECUTABLE} "${ya_dir}/tests/test_yadiff.py"
+    "${deploy_dir}/.."
+    "${PYTHON_EXECUTABLE}"
+    ${root_dir}/testdata/vim_0197/vim.basic.i64
+    ${root_dir}/testdata/vim_1453/vim.basic.i64
+)
 set_property(TEST merge_idb_tests APPEND PROPERTY ENVIRONMENT "YATOOLS_DIR=${deploy_dir}/..")
-set_property(TEST merge_idb_tests APPEND PROPERTY DEPENDS make_testdata_qt54_svg)
-set_property(TEST merge_idb_tests APPEND PROPERTY DEPENDS make_testdata_qt57_svg)
+set_property(TEST merge_idb_tests APPEND PROPERTY DEPENDS make_testdata_vim_0197)
+set_property(TEST merge_idb_tests APPEND PROPERTY DEPENDS make_testdata_vim_1453)

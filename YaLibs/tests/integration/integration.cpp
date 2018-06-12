@@ -166,8 +166,8 @@ namespace
         expect_eq(xmlmodel, expected);
     }
 
-    const char qt54svg[] = "../../testdata/qt54_svg/database/database.yadb";
-    const char qt57svg[] = "../../testdata/qt57_svg/database/database.yadb";
+    const char qt54svg[]        = "../../testdata/qt54_svg/database/database.yadb";
+    const char qt54svg_no_pdb[] = "../../testdata/qt54_svg_no_pdb/database/database.yadb";
 }
 
 int main(int argc, char* argv[])
@@ -177,5 +177,5 @@ int main(int argc, char* argv[])
     return RUN_ALL_TESTS();
 }
 
-TEST(IntegrationTest, yadb_model_conversions_qt54)      { CheckModelConversions(qt54svg); }
-TEST(IntegrationTest, yadb_model_conversions_qt57)      { CheckModelConversions(qt57svg); }
+TEST(IntegrationTest, yadb_model_conversions_qt54)        { CheckModelConversions(qt54svg); }
+TEST(IntegrationTest, yadb_model_conversions_qt54_no_pdb) { CheckModelConversions(qt54svg_no_pdb); }
