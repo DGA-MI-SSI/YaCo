@@ -1,11 +1,15 @@
 # YaCo - Collaborative Reverse-Engineering for IDA
+# YaDiff - Symbols Propagation between IDA databases
 
 ## [Latest Releases](https://github.com/DGA-MI-SSI/YaCo/releases)
+
+## Yaco 
 
 **YaCo** is a [**Hex-Rays IDA**](https://www.hex-rays.com/products/ida/) plugin enabling collaborative reverse-engineering on IDA databases for multiple users. Incremental database changes are stored & synchronized through **git** distributed version control system.
 Both offline & online work is supported.
 
-## Motivation
+### Motivation
+
 **IDA** does not allow multiple users to work on the same binary.
 During large malware analysis, we had to use a team of reversers and manual synchronization is a tedious and error-prone process. 
 
@@ -15,12 +19,33 @@ During large malware analysis, we had to use a team of reversers and manual sync
   * Be fast, users must not wait for synchronisation events
   * Prevent conflicts between users
   * Be user-friendly & easy to install
+  
+## YaDiff 
+
+**YaDiff** is a standalone command-line tool allowing symbol, comment, enum & struct propagation between distinct IDA databases.
+
+### Motivation
+
+There are two major uses cases for YaDiff
+    
+  * Merging previously analyzed binary symbols into an updated binary
+  * Merging debug symbols from an external library into another stripped binary
+    
+### Usage
+
+  * Uncompress the release into a directory
+  * Prepare two separate directories for each IDA database
+  * Call merge_idb.py on those two databases
+```
+python $yatools_directory/YaTools/bin/merge_idb.py $source_dir/source.idb $destination_dir/destination.idb
+```
+  * Open ```$destination_dir/destination.yadiff_local.idb``` and check results
 
 ## Installation
 
 ### Debian stretch/x64
 
-**YaCo** like **IDA** 7.1 is 64-bit only.
+**YaTools** like **IDA** 7.1 is 64-bit only.
 
 Install dependencies
 ```
@@ -33,7 +58,7 @@ export IDA_DIR=/opt/ida7.0/
 export IDASDK_DIR=/opt/idasdk70/
 ```
 
-Clone, configure & build **YaCo**
+Clone, configure & build **YaTools**
 ```
 ~/YaCo (master) $ cd build
 ~/YaCo/build (master) $ ./configure.sh
@@ -49,7 +74,7 @@ $IDA_DIR/plugin $ ~/YaCo/build/deploy.sh
 CMake & Python 2.7 64-bit must be installed and in the PATH
 Only visual studio 2017 is currently supported
 
-Configure and build **YaCo**
+Configure and build **YaTools**
 ```
 # export directories without quotes
 set IDA_DIR=C:\Program Files\IDA Pro 7.0
@@ -59,7 +84,7 @@ out/x64> cmake --build . --config RelWithDebInfo
 out/x64> ctest . --output-on-failure -C RelWithDebInfo -j4
 ```
 
-## Usage
+## YaCo Usage
 
 ### First user
 To create the **YaCo** environment:
