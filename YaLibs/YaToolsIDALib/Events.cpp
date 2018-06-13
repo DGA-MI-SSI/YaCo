@@ -709,10 +709,11 @@ namespace
         });
         deleted->visit_end();
         updated->visit_end();
-        if(updated->size() || deleted->size())
-            LOG(INFO, "rebase: %zd updated %zd deleted\n", updated->size(), deleted->size());
+        if(!updated->size() && !deleted->size())
+            return;
 
         // apply changes on ida
+        LOG(INFO, "rebase: %zd updated %zd deleted\n", updated->size(), deleted->size());
         sink.remove(*deleted);
         sink.update(*get_all_updates(*updated, *deleted));
     }
