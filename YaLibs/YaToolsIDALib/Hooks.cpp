@@ -747,9 +747,23 @@ namespace
         hooks.events_.touch_func(pfn->start_ea);
     }
 
+    bool want_func_updated_event(func_t* func)
+    {
+        // regvars is not null, so we may be notified
+        // the last register view has just been deleted
+        if(func->regvars)
+            return true;
+
+        // regvars changes are only notified through func_updated events
+        return func->regvarqty;
+    }
+
     void func_updated(Hooks& hooks, va_list args)
     {
         const auto pfn = va_arg(args, func_t*);
+        if(!want_func_updated_event(pfn))
+            return;
+
         LOG_IDB_EVENT("Function %s has been updated", get_func_name(pfn->start_ea).c_str());
         hooks.events_.touch_func(pfn->start_ea);
     }

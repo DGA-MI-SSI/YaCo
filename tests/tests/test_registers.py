@@ -38,11 +38,20 @@ idaapi.add_regvar(func, ea+0x10, ea+0x20, "ebp", "ebp_b", None)
 ea = 0x66013830
 func = idaapi.get_func(ea)
 idaapi.del_regvar(func, ea, ea+0x10, "ebp")
-idaapi.del_regvar(func, ea+0x10, ea+0x20, "ebp")
 """),
             self.save_last_ea(),
         )
         b.check_git(modified=["basic_block"])
         a.run(
+            self.check_last_ea(),
+            self.script("""
+ea = 0x66013830
+func = idaapi.get_func(ea)
+idaapi.del_regvar(func, ea+0x10, ea+0x20, "ebp")
+"""),
+            self.save_last_ea(),
+        )
+        a.check_git(modified=["basic_block"])
+        b.run(
             self.check_last_ea(),
         )
