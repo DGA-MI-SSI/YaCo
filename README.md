@@ -5,7 +5,7 @@
 
 ## Yaco 
 
-**YaCo** is a [**Hex-Rays IDA**](https://www.hex-rays.com/products/ida/) plugin enabling collaborative reverse-engineering on IDA databases for multiple users. Incremental database changes are stored & synchronized through **git** distributed version control system.
+**YaCo** is a [**Hex-Rays IDA**](https://www.hex-rays.com/products/ida/) plugin enabling collaborative reverse-engineering on IDA databases for multiple users. Incremental database changes are stored & synchronized through **Git** distributed version control system.
 Both offline & online work is supported.
 
 ### Motivation
@@ -26,15 +26,15 @@ During large malware analysis, we had to use a team of reversers and manual sync
 
 ### Motivation
 
-There are two major uses cases for YaDiff
+There are two major use cases for YaDiff
     
-  * Merging previously analyzed binary symbols into an updated binary
+  * Merging previously-analyzed binary symbols into an updated binary
   * Merging debug symbols from an external library into another stripped binary
     
 ### Usage
 
   * Uncompress the release into a directory
-  * Prepare two separate directories for each IDA database
+  * Put each of your two IDA databases in a different directory
   * Call merge_idb.py on those two databases
 ```
 python $yatools_directory/YaTools/bin/merge_idb.py $source_dir/source.idb $destination_dir/destination.idb
@@ -45,7 +45,7 @@ python $yatools_directory/YaTools/bin/merge_idb.py $source_dir/source.idb $desti
 
 ### Debian stretch/x64
 
-**YaTools** like **IDA** 7.1 is 64-bit only.
+**YaTools** is 64-bit only, like **IDA** 7.1.
 
 Install dependencies
 ```
@@ -91,14 +91,14 @@ To create the **YaCo** environment:
 
   1. open binary or idb file as usual
   2. click on Edit menu, Plugins, YaCo
-  3. enter path to git remote (could be a file system path, or empty to use current dir)
+  3. enter path to Git remote (could be a file system path, or empty to use current dir)
   4. a warning will inform you that **IDA** have to be re-launch with correct idb
   5. **IDA** auto close
   6. launch **IDA** for your FILE_local.idb file
   7. save database
   8. start working as usual
 
-Warning, to use with multiple user, **YaCo** project must be in a bare git project.
+Warning, in order to use it with multiple users, **YaCo** project must be in a bare Git repository.
 
 ### Other users
 Setup **YaCo** environment:
@@ -106,23 +106,23 @@ Setup **YaCo** environment:
   1. clone a **YaCo** project
   2. open idb/i64 file with ida
   3. click on Edit menu, Plugins, YaCo
-  4. a warning will inform you that **IDA** have to be re-launch with correct idb
+  4. a warning will inform you that **IDA** has to be re-launched with correct idb
   5. **IDA** auto close
   6. launch **IDA** for your FILE_local.idb file
   7. save database
   8. start working as usual
   
 ### How it works
-**YaCo** use a git server to synchronize changes between users.
+**YaCo** use a Git server to synchronize changes between users.
 
 In the local repository, **YaCo** stores the original IDB and incremental changes as xml files & commits.
 
 Note that the database is not modified anymore unless you force a synchronisation.
-When saving the database, we fetch remote changes, rebase local changes on top of those, import this new state into IDA and push this state to the remote git server.
+When saving the database, we fetch remote changes, rebase local changes on top of those, import this new state into IDA and push this state to the remote Git server.
 
-Any git server should work, like github, gitlab or gitea instances.
+Any Git server should work, for example github, gitlab or gitea instances. Note that some Git hosts have a file size limit, which can be an issue for large IDB files. See [#13](https://github.com/DGA-MI-SSI/YaCo/issues/13).
 
-Currently, **YaCo** only support SSH authentication. To keep the plugin user-friendly, there is no mechanism which ask for passwords & passphrases on every git operation. Instead, it is recommended to use an ssh agent, like pageant under windows or ssh-agent under linux.
+Currently, **YaCo** only supports SSH authentication. To keep the plugin user-friendly, there is no mechanism asking for passwords & passphrases on every Git operation. Instead, it is recommended to use an ssh agent, like pageant under windows or ssh-agent under linux.
 
 ## Contributors
 
