@@ -113,7 +113,7 @@ Setup **YaCo** environment:
   8. start working as usual
   
 ### How it works
-**YaCo** use a Git server to synchronize changes between users.
+**YaCo** uses a Git server to synchronize changes between users.
 
 In the local repository, **YaCo** stores the original IDB and incremental changes as xml files & commits.
 
