@@ -29,6 +29,7 @@
 #include <memory>
 #include <regex>
 #include <sstream>
+#include <fstream>
 
 #ifdef _MSC_VER
 #   include <filesystem>
@@ -264,6 +265,7 @@ namespace
         void ask_for_remote();
         bool ask_and_set_git_config_entry(const std::string& config_string, const std::string& default_value);
         bool ensure_git_globals();
+        bool ask_for_idb_tracking();
 
         // GitRepo wrappers
         bool init();
@@ -275,10 +277,11 @@ namespace
         bool push(const std::string& src_branch, const std::string& dst_branch);
         bool remote_exist(const std::string& remote);
         std::string get_commit(const std::string& ref);
+        bool is_file_tracked(const std::string& path);
 
         GitRepo repo_;
         std::vector<std::string> comments_;
-        bool repo_auto_sync_;
+        bool repo_auto_sync_, include_idb_;
     };
 }
 
@@ -294,10 +297,15 @@ Repository::Repository(const std::string& path)
 
     if (repo_already_exists)
     {
+        this->include_idb_ = is_file_tracked(get_original_idb_path());
+        LOG(INFO, "1 The IDB is%s tracked\n", this->include_idb_ ? "" : " not");
         LOG(DEBUG, "Repo opened\n");
         return;
     }
     LOG(INFO, "Repo created\n");
+
+    include_idb_ = ask_for_idb_tracking();
+    LOG(INFO, "2 The IDB is%s tracked\n", this->include_idb_ ? "" : " not");
 
     // add current IDB to repo, and create an initial commit
     if (add_file_to_index(get_current_idb_name()) && commit("Initial commit\n"))
@@ -610,6 +618,11 @@ void Repository::ask_to_checkout_modified_files()
     repo_auto_sync_ = false;
 }
 
+bool Repository::ask_for_idb_tracking()
+{
+     return (ask_yn(true, "Should the IDB be tracked?") == ASKBTN_YES);
+}
+
 void Repository::ask_for_remote()
 {
     qstring tmp = "ssh://username@repository_path/";
@@ -688,6 +701,12 @@ bool Repository::ask_and_set_git_config_entry(const std::string& config_entry, c
     return true;
 }
 
+bool Repository::is_file_tracked(const std::string& path)
+{
+    bool is_tracked = !repo_.get_untracked_objects_in_path(path).empty();
+    return is_tracked;
+}
+
 bool Repository::ensure_git_globals()
 {
     if (!ask_and_set_git_config_entry("user.name", "username"))
@@ -750,13 +769,22 @@ bool Repository::rebase(const std::string& upstream, const std::string& destinat
 
 bool Repository::add_file_to_index(const std::string& path)
 {
+    fs::path p = path;
+    if (!include_idb_ &&
+        (path == get_current_idb_name() ||
+        path == get_original_idb_name())) {
+        p.replace_extension(".idx_file");
+        std::fstream f;
+        f.open(p, std::fstream::out);
+        f << "DO NOT DELETE!" << std::endl;
+    }
     try
     {
-        repo_.add_file(path);
+        repo_.add_file(p);
     }
     catch (const std::runtime_error& error)
     {
-        LOG(WARNING, "Failed to add %s to index, error: %s\n", path.c_str(), error.what());
+        LOG(WARNING, "Failed to add %s to index, error: %s\n", p.c_str(), error.what());
         return false;
     }
     return true;
@@ -764,6 +792,11 @@ bool Repository::add_file_to_index(const std::string& path)
 
 bool Repository::remove_file_for_index(const std::string& path)
 {
+    if (!include_idb_ &&
+        (path == get_current_idb_name() ||
+        path == get_original_idb_name())) {
+        return true;
+    }
     try
     {
         repo_.remove_file(path);

@@ -22,6 +22,8 @@
 #include <IdaVisitor.hpp>
 #include <YaHelpers.hpp>
 
+#include <fstream>
+
 namespace yaswig
 {
     Private make_yaco()
