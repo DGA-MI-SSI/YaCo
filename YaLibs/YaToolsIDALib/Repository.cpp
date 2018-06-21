@@ -298,14 +298,14 @@ Repository::Repository(const std::string& path)
     if (repo_already_exists)
     {
         this->include_idb_ = is_file_tracked(get_original_idb_path());
-        LOG(INFO, "1 The IDB is%s tracked\n", this->include_idb_ ? "" : " not");
+        LOG(INFO, "The IDB is%s tracked\n", this->include_idb_ ? "" : " not");
         LOG(DEBUG, "Repo opened\n");
         return;
     }
     LOG(INFO, "Repo created\n");
 
     include_idb_ = ask_for_idb_tracking();
-    LOG(INFO, "2 The IDB is%s tracked\n", this->include_idb_ ? "" : " not");
+    LOG(INFO, "The IDB is%s tracked\n", this->include_idb_ ? "" : " not");
 
     // add current IDB to repo, and create an initial commit
     if (add_file_to_index(get_current_idb_name()) && commit("Initial commit\n"))
