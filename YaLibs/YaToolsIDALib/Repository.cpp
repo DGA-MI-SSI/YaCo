@@ -13,6 +13,7 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#define USE_STANDARD_FILE_FUNCTIONS
 #include "Ida.h"
 #include "Repository.hpp"
 
