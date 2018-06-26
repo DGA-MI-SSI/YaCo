@@ -259,6 +259,7 @@ namespace
         void sync_and_push_original_idb() override;
         void discard_and_pull_idb() override;
         void diff_index(const std::string& from, const on_blob_fn& on_blob) const override;
+        bool idb_is_tracked();
 
         // Retrieve informations with IDA GUI
         void ask_to_checkout_modified_files();
@@ -879,6 +880,10 @@ void Repository::diff_index(const std::string& from, const on_blob_fn& on_blob) 
     {
         LOG(WARNING, "unable to diff index: %s\n", error.what());
     }
+}
+
+bool Repository::idb_is_tracked() {
+    return include_idb_;
 }
 
 std::shared_ptr<IRepository> MakeRepository(const std::string& path)

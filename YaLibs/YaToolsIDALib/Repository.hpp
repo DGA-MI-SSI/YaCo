@@ -42,6 +42,8 @@ struct IRepository
 
     typedef std::function<int(const char*, bool, const void*, size_t)> on_blob_fn;
     virtual void diff_index(const std::string& from, const on_blob_fn& on_blob) const = 0;
+
+    virtual bool idb_is_tracked() = 0;
 };
 
 std::shared_ptr<IRepository> MakeRepository(const std::string& path);
