@@ -781,11 +781,11 @@ bool Repository::add_file_to_index(const std::string& path)
     }
     try
     {
-        repo_.add_file(p);
+        repo_.add_file(p.generic_string());
     }
     catch (const std::runtime_error& error)
     {
-        LOG(WARNING, "Failed to add %s to index, error: %s\n", p.c_str(), error.what());
+        LOG(WARNING, "Failed to add %s to index, error: %s\n", p.generic_string().c_str(), error.what());
         return false;
     }
     return true;
