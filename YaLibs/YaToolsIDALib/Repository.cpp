@@ -281,7 +281,8 @@ namespace
 
         GitRepo repo_;
         std::vector<std::string> comments_;
-        bool repo_auto_sync_, include_idb_;
+        bool repo_auto_sync_;
+        bool include_idb_;
     };
 }
 
@@ -297,7 +298,7 @@ Repository::Repository(const std::string& path)
 
     if (repo_already_exists)
     {
-        this->include_idb_ = is_file_tracked(get_original_idb_path());
+        include_idb_ = is_file_tracked(get_original_idb_path());
         LOG(INFO, "The IDB is%s tracked\n", this->include_idb_ ? "" : " not");
         LOG(DEBUG, "Repo opened\n");
         return;
@@ -620,7 +621,7 @@ void Repository::ask_to_checkout_modified_files()
 
 bool Repository::ask_for_idb_tracking()
 {
-     return (ask_yn(true, "Should the IDB be tracked?") == ASKBTN_YES);
+     return ask_yn(true, "Should the IDB be tracked?") == ASKBTN_YES;
 }
 
 void Repository::ask_for_remote()
@@ -703,8 +704,7 @@ bool Repository::ask_and_set_git_config_entry(const std::string& config_entry, c
 
 bool Repository::is_file_tracked(const std::string& path)
 {
-    bool is_tracked = !repo_.get_untracked_objects_in_path(path).empty();
-    return is_tracked;
+    return !repo_.get_untracked_objects_in_path(path).empty();
 }
 
 bool Repository::ensure_git_globals()
@@ -772,7 +772,8 @@ bool Repository::add_file_to_index(const std::string& path)
     fs::path p = path;
     if (!include_idb_ &&
         (path == get_current_idb_name() ||
-        path == get_original_idb_name())) {
+        path == get_original_idb_name()))
+    {
         p.replace_extension(".idx_file");
         std::fstream f;
         f.open(p, std::fstream::out);
