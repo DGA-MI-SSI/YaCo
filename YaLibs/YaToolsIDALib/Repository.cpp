@@ -299,14 +299,14 @@ Repository::Repository(const std::string& path)
     if (repo_already_exists)
     {
         include_idb_ = is_file_tracked(get_original_idb_path());
-        LOG(INFO, "The IDB is%s tracked\n", this->include_idb_ ? "" : " not");
+        LOG(INFO, "The IDB is%s tracked\n", include_idb_ ? "" : " not");
         LOG(DEBUG, "Repo opened\n");
         return;
     }
     LOG(INFO, "Repo created\n");
 
     include_idb_ = ask_for_idb_tracking();
-    LOG(INFO, "The IDB is%s tracked\n", this->include_idb_ ? "" : " not");
+    LOG(INFO, "The IDB is%s tracked\n", include_idb_ ? "" : " not");
 
     // add current IDB to repo, and create an initial commit
     if (add_file_to_index(get_current_idb_name()) && commit("Initial commit\n"))
@@ -774,10 +774,9 @@ bool Repository::add_file_to_index(const std::string& path)
         (path == get_current_idb_name() ||
         path == get_original_idb_name()))
     {
-        p.replace_extension(".idx_file");
-        std::fstream f;
+        p = ".gitignore";
         f.open(p, std::fstream::out);
-        f << "DO NOT DELETE!" << std::endl;
+        f << get_current_idb_path() << std::endl;
     }
     try
     {
