@@ -776,6 +776,7 @@ bool Repository::add_file_to_index(const std::string& path)
         path == get_original_idb_name()))
     {
         p = ".gitignore";
+        std::fstream f;
         f.open(p, std::fstream::out);
         f << get_current_idb_path() << std::endl;
     }
@@ -793,11 +794,6 @@ bool Repository::add_file_to_index(const std::string& path)
 
 bool Repository::remove_file_for_index(const std::string& path)
 {
-    if (!include_idb_ &&
-        (path == get_current_idb_name() ||
-        path == get_original_idb_name())) {
-        return true;
-    }
     try
     {
         repo_.remove_file(path);
