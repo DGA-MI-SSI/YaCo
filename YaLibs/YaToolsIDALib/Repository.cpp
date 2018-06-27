@@ -300,19 +300,32 @@ Repository::Repository(const std::string& path)
     if (repo_already_exists)
     {
         include_idb_ = repo_.is_tracked(get_original_idb_name());
-        LOG(INFO, "The IDB is%s tracked\n", include_idb_ ? "" : " not");
+        LOG(INFO, "%s %s\n", include_idb_ ? "tracking" : "ignoring", get_original_idb_name().data());
         LOG(DEBUG, "Repo opened\n");
         return;
     }
     LOG(INFO, "Repo created\n");
 
     include_idb_ = ask_for_idb_tracking();
-    LOG(INFO, "The IDB is%s tracked\n", include_idb_ ? "" : " not");
+    LOG(INFO, "%s %s\n", include_idb_ ? "tracking" : "ignoring", get_original_idb_name().data());
 
-    // add current IDB to repo, and create an initial commit
-    if (add_file_to_index(get_current_idb_name()) && commit("Initial commit\n"))
-        LOG(INFO, "IDB Committed\n");
-    else
+    // add .gitignore to repo
+    const auto gitignore = fs::path(get_current_idb_path()).replace_filename(".gitignore");
+    {
+        std::fstream f(gitignore, std::fstream::out);
+        if (!include_idb_)
+            f << get_current_idb_name();
+        f << std::endl;
+    }
+    if (!add_file_to_index(gitignore.filename().generic_string()))
+        LOG(ERROR, "Unable to add .gitignore\n");
+
+    // add current IDB to repo if tracking is enabled
+    if (include_idb_)
+        if (!add_file_to_index(get_current_idb_name()))
+            LOG(ERROR, "Unable to add IDB\n");
+
+    if (!commit("Initial commit\n"))
         LOG(ERROR, "Unable to commit IDB\n");
 
     ask_for_remote();
@@ -537,7 +550,7 @@ void Repository::sync_and_push_original_idb()
     }
 
     // git add original idb file
-    if (!add_file_to_index(get_original_idb_name()))
+    if (include_idb_ && !add_file_to_index(get_original_idb_name()))
     {
         LOG(ERROR, "Unable to add original idb file to index\n");
         return;
@@ -765,23 +778,13 @@ bool Repository::rebase(const std::string& upstream, const std::string& destinat
 
 bool Repository::add_file_to_index(const std::string& path)
 {
-    fs::path p = path;
-    if (!include_idb_ &&
-        (path == get_current_idb_name() ||
-        path == get_original_idb_name()))
-    {
-        p = ".gitignore";
-        std::fstream f;
-        f.open(p, std::fstream::out);
-        f << get_current_idb_path() << std::endl;
-    }
     try
     {
-        repo_.add_file(p.generic_string());
+        repo_.add_file(path);
     }
     catch (const std::runtime_error& error)
     {
-        LOG(WARNING, "Failed to add %s to index, error: %s\n", p.generic_string().c_str(), error.what());
+        LOG(WARNING, "Failed to add %s to index, error: %s\n", path.c_str(), error.what());
         return false;
     }
     return true;
