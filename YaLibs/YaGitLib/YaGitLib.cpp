@@ -535,6 +535,13 @@ std::set<std::string> GitRepo::get_untracked_objects()
     return objects;
 }
 
+bool GitRepo::is_tracked(const std::string& path)
+{
+    unsigned int flags = 0;
+    const auto err = git_status_file(&flags, repository, path.data());
+    return err == GIT_OK && !(flags & GIT_STATUS_WT_NEW);
+}
+
 std::set<std::string> GitRepo::get_conflicted_objects()
 {
     std::set<std::string>   objects;
