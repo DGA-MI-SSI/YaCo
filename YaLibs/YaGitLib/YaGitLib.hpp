@@ -97,6 +97,8 @@ public:
     std::set<std::tuple<std::string, bool, bool, bool>> get_status_in_path(const std::string& path);
 #endif //SWIGPYTHON
 
+    bool is_tracked(const std::string& path);
+
     std::string get_commit(const std::string& name);
     void push(const std::string& src_ref, const std::string& dst_ref);
 

@@ -279,7 +279,6 @@ namespace
         bool push(const std::string& src_branch, const std::string& dst_branch);
         bool remote_exist(const std::string& remote);
         std::string get_commit(const std::string& ref);
-        bool is_file_tracked(const std::string& path);
 
         GitRepo repo_;
         std::vector<std::string> comments_;
@@ -300,7 +299,7 @@ Repository::Repository(const std::string& path)
 
     if (repo_already_exists)
     {
-        include_idb_ = is_file_tracked(get_original_idb_path());
+        include_idb_ = repo_.is_tracked(get_original_idb_name());
         LOG(INFO, "The IDB is%s tracked\n", include_idb_ ? "" : " not");
         LOG(DEBUG, "Repo opened\n");
         return;
@@ -702,11 +701,6 @@ bool Repository::ask_and_set_git_config_entry(const std::string& config_entry, c
         return false;
     }
     return true;
-}
-
-bool Repository::is_file_tracked(const std::string& path)
-{
-    return !repo_.get_untracked_objects_in_path(path).empty();
 }
 
 bool Repository::ensure_git_globals()
