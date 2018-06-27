@@ -290,6 +290,7 @@ namespace
 Repository::Repository(const std::string& path)
     : repo_(path)
     , repo_auto_sync_(true)
+    , include_idb_(false)
 {
     const bool repo_already_exists = is_git_working_dir(path);
 
