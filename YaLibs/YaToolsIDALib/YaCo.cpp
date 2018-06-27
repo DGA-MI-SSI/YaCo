@@ -129,7 +129,8 @@ YaCo::YaCo()
 
     #define YACO_ACTION_DESC(name, label, handler) ACTION_DESC_LITERAL_OWNER(name, label, handler, nullptr, nullptr, nullptr, -1)
     action_descs_.push_back(YACO_ACTION_DESC("yaco_toggle_rebase_push",     "YaCo - Toggle YaCo auto rebase/push",   new_handler([&]{ toggle_auto_rebase_push(); })));
-    if(repo_->idb_is_tracked()) {
+    if(repo_->idb_is_tracked())
+    {
         action_descs_.push_back(YACO_ACTION_DESC("yaco_sync_and_push_idb", "YaCo - Resync idb & force push", new_handler([&] { sync_and_push_idb(IDA_INTERACTIVE); })));
         action_descs_.push_back(YACO_ACTION_DESC("yaco_discard_and_pull_idb", "YaCo - Discard idb & force pull", new_handler([&] { discard_and_pull_idb(IDA_INTERACTIVE); })));
     }

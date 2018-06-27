@@ -877,7 +877,8 @@ void Repository::diff_index(const std::string& from, const on_blob_fn& on_blob) 
     }
 }
 
-bool Repository::idb_is_tracked() {
+bool Repository::idb_is_tracked()
+{
     return include_idb_;
 }
 
