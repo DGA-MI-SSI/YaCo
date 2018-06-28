@@ -92,10 +92,8 @@ public:
     std::set<std::string> get_untracked_objects_in_path(const std::string& path);
     std::set<std::string> get_modified_objects_in_path(const std::string& path);
     std::set<std::string> get_deleted_objects_in_path(const std::string& path);
-#ifndef SWIGPYTHON
     std::set<std::tuple<std::string, bool, bool, bool>> get_status();
     std::set<std::tuple<std::string, bool, bool, bool>> get_status_in_path(const std::string& path);
-#endif //SWIGPYTHON
 
     bool is_tracked(const std::string& path);
 
