@@ -280,7 +280,7 @@ namespace
         bool remote_exist(const std::string& remote);
         std::string get_commit(const std::string& ref);
 
-        GitRepo repo_;
+        GitRepo git_;
         std::vector<std::string> comments_;
         bool repo_auto_sync_;
         bool include_idb_;
@@ -288,7 +288,7 @@ namespace
 }
 
 Repository::Repository(const std::string& path)
-    : repo_(path)
+    : git_(path)
     , repo_auto_sync_(true)
     , include_idb_(false)
 {
@@ -300,7 +300,7 @@ Repository::Repository(const std::string& path)
 
     if (repo_already_exists)
     {
-        include_idb_ = repo_.is_tracked(get_original_idb_name());
+        include_idb_ = git_.is_tracked(get_original_idb_name());
         LOG(INFO, "%s %s\n", include_idb_ ? "tracking" : "ignoring", get_original_idb_name().data());
         LOG(DEBUG, "Repo opened\n");
         return;
@@ -460,9 +460,9 @@ bool Repository::commit_cache()
 {
     LOG(DEBUG, "Committing changes...\n");
 
-    const std::set<std::string> untracked_files = repo_.get_untracked_objects_in_path("cache/");
-    const std::set<std::string> modified_files = repo_.get_modified_objects_in_path("cache/");
-    const std::set<std::string> deleted_files = repo_.get_deleted_objects_in_path("cache/");
+    const std::set<std::string> untracked_files = git_.get_untracked_objects_in_path("cache/");
+    const std::set<std::string> modified_files = git_.get_modified_objects_in_path("cache/");
+    const std::set<std::string> deleted_files = git_.get_deleted_objects_in_path("cache/");
 
     if (untracked_files.empty() && modified_files.empty() && deleted_files.empty())
     {
@@ -578,7 +578,7 @@ void Repository::discard_and_pull_idb()
     backup_original_idb();
 
     // delete all modified objects
-    repo_.checkout_head();
+    git_.checkout_head();
 
     // get synced original idb
     if (!fetch("origin"))
@@ -603,7 +603,7 @@ void Repository::ask_to_checkout_modified_files()
     bool idb_modified = false;
 
     const std::string original_idb_name = get_original_idb_name();
-    for (const std::string& modified_object : repo_.get_modified_objects())
+    for (const std::string& modified_object : git_.get_modified_objects())
     {
         if (modified_object == original_idb_name)
         {
@@ -619,7 +619,7 @@ void Repository::ask_to_checkout_modified_files()
     if (modified_objects.empty())
     {
         if (idb_modified)
-            repo_.checkout_head(); // checkout silently
+            git_.checkout_head(); // checkout silently
         return;
     }
 
@@ -627,7 +627,7 @@ void Repository::ask_to_checkout_modified_files()
     modified_objects += "\nhas been modified, this is not normal, do you want to checkout these files ? (Rebasing will be disabled if you answer no)";
     if (ask_yn(true, "%s", modified_objects.c_str()) != ASKBTN_NO)
     {
-        repo_.checkout_head();
+        git_.checkout_head();
         return;
     }
 
@@ -648,7 +648,7 @@ void Repository::ask_for_remote()
     const std::string url = tmp.c_str();
     try
     {
-        repo_.create_remote("origin", url);
+        git_.create_remote("origin", url);
     }
     catch (const std::runtime_error& err)
     {
@@ -689,7 +689,7 @@ bool Repository::ask_and_set_git_config_entry(const std::string& config_entry, c
     std::string current_value;
     try
     {
-        current_value = repo_.config_get_string(config_entry);
+        current_value = git_.config_get_string(config_entry);
     }
     catch (const std::runtime_error& error)
     {
@@ -707,7 +707,7 @@ bool Repository::ask_and_set_git_config_entry(const std::string& config_entry, c
 
     try
     {
-        repo_.config_set_string(config_entry, value.c_str());
+        git_.config_set_string(config_entry, value.c_str());
     }
     catch (const std::runtime_error& error)
     {
@@ -738,7 +738,7 @@ bool Repository::init()
 {
     try
     {
-        repo_.init();
+        git_.init();
     }
     catch (const std::runtime_error& error)
     {
@@ -752,7 +752,7 @@ bool Repository::fetch(const std::string& remote)
 {
     try
     {
-        repo_.fetch(remote);
+        git_.fetch(remote);
     }
     catch (const std::runtime_error& error)
     {
@@ -767,7 +767,7 @@ bool Repository::rebase(const std::string& upstream, const std::string& destinat
     try
     {
         IDAInteractiveFileConflictResolver resolver;
-        repo_.rebase(upstream, destination, resolver);
+        git_.rebase(upstream, destination, resolver);
         return true;
     }
     catch (const std::runtime_error& error)
@@ -781,7 +781,7 @@ bool Repository::add_file_to_index(const std::string& path)
 {
     try
     {
-        repo_.add_file(path);
+        git_.add_file(path);
     }
     catch (const std::runtime_error& error)
     {
@@ -795,7 +795,7 @@ bool Repository::remove_file_for_index(const std::string& path)
 {
     try
     {
-        repo_.remove_file(path);
+        git_.remove_file(path);
     }
     catch (const std::runtime_error& error)
     {
@@ -809,7 +809,7 @@ bool Repository::commit(const std::string& message)
 {
     try
     {
-        repo_.commit(message);
+        git_.commit(message);
     }
     catch (const std::runtime_error& error)
     {
@@ -826,7 +826,7 @@ bool Repository::push(const std::string& src_branch, const std::string& dst_bran
 
     try
     {
-        repo_.push(src_branch, dst_branch);
+        git_.push(src_branch, dst_branch);
     }
     catch (const std::runtime_error& error)
     {
@@ -841,7 +841,7 @@ bool Repository::remote_exist(const std::string& remote)
     std::map<std::string, std::string> remotes;
     try
     {
-        remotes = repo_.get_remotes();
+        remotes = git_.get_remotes();
     }
     catch (const std::runtime_error& error)
     {
@@ -856,7 +856,7 @@ std::string Repository::get_commit(const std::string& ref)
     std::string commit;
     try
     {
-        commit = repo_.get_commit(ref);
+        commit = git_.get_commit(ref);
     }
     catch (const std::runtime_error& error)
     {
@@ -869,7 +869,7 @@ void Repository::diff_index(const std::string& from, const on_blob_fn& on_blob) 
 {
     try
     {
-        repo_.diff_index(from, on_blob);
+        git_.diff_index(from, on_blob);
     }
     catch (const std::runtime_error& error)
     {
