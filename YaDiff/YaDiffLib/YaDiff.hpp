@@ -6,7 +6,6 @@
 struct Relation;
 
 class Configuration;
-class ResolveFileConflictCallback;
 struct IModel;
 
 namespace yadiff

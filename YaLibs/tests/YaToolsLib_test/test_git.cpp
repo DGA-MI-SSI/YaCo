@@ -1,0 +1,224 @@
+//  Copyright (C) 2017 The YaCo Authors
+//
+//  This program is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or
+//  (at your option) any later version.
+//
+//  This program is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License
+//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#include <iostream>
+#include <fstream>
+#include <iso646.h>
+
+#include "gtest/gtest.h"
+
+#include <Git.hpp>
+#include <test_common.hpp>
+
+using namespace testing;
+using namespace testing::internal;
+
+#define UNUSED(X) ((void)(X))
+
+class TestYaGitLib : public TestInTempFolder
+{
+    void SetUp() override
+    {
+        TestInTempFolder::SetUp();
+    }
+    void TearDown() override
+    {
+        TestInTempFolder::TearDown();
+    }
+};
+
+namespace
+{
+    void set_user_config(IGit& repo)
+    {
+        if (repo.config_get_string("user.name") == "")
+            repo.config_set_string("user.name", "test_user");
+        if (repo.config_get_string("user.email") == "")
+            repo.config_set_string("user.email", "test_email");
+    }
+
+    void write_file(const std::string& name, const std::string& data)
+    {
+        std::ofstream file(name);
+        file << data << std::endl;
+    }
+
+    void commit_file(IGit& git, const std::string& path, const std::string& name, const std::string& msg, const std::string& content)
+    {
+        write_file(path + name, content);
+        auto ok = git.add_file(name);
+        EXPECT_TRUE(ok);
+        ok = git.commit(msg);
+        EXPECT_TRUE(ok);
+    }
+
+    void push_file(IGit& git, const std::string& path, const std::string& name, const std::string& msg, const std::string& content)
+    {
+        commit_file(git, path, name, msg, content);
+        const auto ok = git.push("master", "master");
+        EXPECT_TRUE(ok);
+    }
+
+    void fetch_rebase(IGit& git, const std::string& remote, const std::string& branch)
+    {
+        auto ok = git.fetch(remote);
+        EXPECT_TRUE(ok);
+        ok = git.rebase(remote + "/" + branch, branch, [](const std::string& a, const std::string& b, const std::string& path)
+        {
+            UNUSED(a);
+            UNUSED(b);
+            UNUSED(path);
+            return true;
+        });
+        EXPECT_TRUE(ok);
+    }
+
+    std::string read_file(const std::string& path)
+    {
+        std::ifstream ifs(path);
+        std::string line;
+        std::string data;
+        while(std::getline(ifs, line))
+            data += line + "\n";
+        return data;
+    }
+}
+
+TEST_F(TestYaGitLib, test_git_init)
+{
+    const auto repo = MakeGit("test");
+    set_user_config(*repo);
+}
+
+TEST_F (TestYaGitLib, test_git_commit)
+{
+    const auto repo = MakeGit("test");
+    set_user_config(*repo);
+    commit_file(*repo, "test/", "file.txt", "first file", "content");
+}
+
+TEST_F (TestYaGitLib, test_git_get_modified_objects)
+{
+    const auto repo = MakeGit("test");
+    set_user_config(*repo);
+
+    commit_file(*repo, "test/", "file1.txt", "add first file", "file1 content");
+    commit_file(*repo, "test/", "file2.txt", "add second file", "file2 content");
+
+    write_file("test/file2.txt", "file2 content\nfile2 content cont'd");
+    std::set<std::string> files;
+    const auto ok = repo->status("", [&](const char* name, const IGit::Status& status)
+    {
+        if(status.modified)
+            files.insert(name);
+    });
+    EXPECT_TRUE(ok);
+    std::set<std::string>ref({"file2.txt"});
+    EXPECT_EQ(files, ref);
+}
+
+TEST_F (TestYaGitLib, test_git_status_with_path)
+{
+    const auto repo = MakeGit("test");
+    set_user_config(*repo);
+
+    write_file("test/file1.txt", "file1 content");
+    std::set<std::string> files;
+    auto ok = repo->status("", [&](const char* name, const IGit::Status& status)
+    {
+        if(status.untracked)
+            files.insert(name);
+    });
+    EXPECT_TRUE(ok);
+    std::set<std::string> ref({"file1.txt"});
+    EXPECT_EQ(files, ref);
+
+    ok = repo->add_file("file1.txt");
+    EXPECT_TRUE(ok);
+    ok = repo->commit("add first file");
+    EXPECT_TRUE(ok);
+
+    std::error_code ec;
+    fs::create_directories("test/cache", ec);
+    write_file("test/cache/file2.txt", "file2 content");
+
+    files.clear();
+    ok = repo->status("cache/", [&](const char* name, const IGit::Status& status)
+    {
+        if(status.untracked)
+            files.insert(name);
+    });
+    EXPECT_TRUE(ok);
+    std::set<std::string> ref2({"cache/file2.txt"});
+    EXPECT_EQ(files, ref2);
+}
+
+TEST_F (TestYaGitLib, test_git_rebase)
+{
+    // initialize upstream bare repository
+    const auto c = MakeGitBare("c");
+    auto ok = c->clone("a", IGit::CLONE_FULL);
+    EXPECT_TRUE(ok);
+
+    // create & fill first repo
+    const auto a = MakeGit("a");
+    set_user_config(*a);
+    push_file(*a, "a/", "file1.txt", "first file", "file1 content");
+
+    // create second repo
+    ok = c->clone("b", IGit::CLONE_FULL);
+    EXPECT_TRUE(ok);
+    const auto b = MakeGit("b");
+    set_user_config(*b);
+
+    // empty rebase
+    fetch_rebase(*b, "origin", "master");
+
+    // rebase with one upstream commit
+    push_file(*a, "a/", "file2.txt", "second file", "file2 content");
+    fetch_rebase(*b, "origin", "master");
+
+    // rebase with multiple commits on both sides
+    commit_file(*a, "a/", "file3.txt", "third file", "file3 content");
+    push_file(*a, "a/", "file4.txt", "fourth file", "file4 content");
+    commit_file(*b, "b/", "file5.txt", "fifth file", "file5 content");
+    commit_file(*b, "b/", "file6.txt", "sixth file", "file6 content");
+    fetch_rebase(*b, "origin", "master");
+    ok = b->push("master", "master");
+    EXPECT_TRUE(ok);
+
+    // rebase with conflicting commits
+    fetch_rebase(*a, "origin", "master");
+    push_file(*a, "a/", "file3.txt", "third file a", "mod a");
+    commit_file(*b, "b/", "file3.txt", "third file b", "mod b");
+    fetch_rebase(*b, "origin", "master");
+
+    const auto result = read_file("b/file3.txt");
+    const auto expected =
+"<<<<<<< refs/remotes/origin/master\n"
+"mod a\n"
+"=======\n"
+"mod b\n"
+">>>>>>> third file b\n";
+    EXPECT_EQ(result, expected);
+}
+
+TEST_F(TestYaGitLib, create_temp_files)
+{
+    const auto f1 = CreateTempFile();
+    EXPECT_TRUE(!!f1);
+    const auto f2 = CreateTempFile();
+    EXPECT_TRUE(!!f2);
+}

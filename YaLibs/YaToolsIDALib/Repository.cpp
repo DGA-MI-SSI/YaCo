@@ -18,8 +18,7 @@
 #include "Repository.hpp"
 
 #include "Merger.hpp"
-#include "ResolveFileConflictCallback.hpp"
-#include "YaGitLib.hpp"
+#include "Git.hpp"
 #include "Yatools.hpp"
 #include "Utils.hpp"
 #include "YaHelpers.hpp"
@@ -212,40 +211,32 @@ std::string IDAPromptMergeConflict::merge_attributes_callback(const char* messag
 
 namespace
 {
-    struct IDAInteractiveFileConflictResolver : public ResolveFileConflictCallback
+    bool IDAInteractiveFileConflictResolver(const std::string& input_file1, const std::string& input_file2, const std::string& output_file_result)
     {
-        bool callback(const std::string& input_file1, const std::string& input_file2, const std::string& output_file_result) override;
-    };
-}
+        if (!std::regex_match(output_file_result, std::regex(".*\\.xml$")))
+            return true;
 
-bool IDAInteractiveFileConflictResolver::callback(const std::string& input_file1, const std::string& input_file2, const std::string& output_file_result)
-{
-    if (!std::regex_match(output_file_result, std::regex(".*\\.xml$")))
-        return true;
+        IDAPromptMergeConflict merger_conflict;
+        Merger merger(&merger_conflict, ObjectVersionMergeStrategy_e::OBJECT_VERSION_MERGE_PROMPT);
+        if (merger.smartMerge(input_file1.c_str(), input_file2.c_str(), output_file_result.c_str()) != MergeStatus_e::OBJECT_MERGE_STATUS_NOT_UPDATED)
+        {
+            if (!is_valid_xml_file(output_file_result))
+            {
+                LOG(ERROR, "Merger generated invalid xml file\n");
+                return false;
+            }
+            return true;
+        }
 
-    IDAPromptMergeConflict merger_conflict;
-    Merger merger(&merger_conflict, ObjectVersionMergeStrategy_e::OBJECT_VERSION_MERGE_PROMPT);
-    if (merger.smartMerge(input_file1.c_str(), input_file2.c_str(), output_file_result.c_str()) != MergeStatus_e::OBJECT_MERGE_STATUS_NOT_UPDATED)
-    {
+        warning("Auto merge failed, please edit manually %s then continue\n", output_file_result.c_str());
         if (!is_valid_xml_file(output_file_result))
         {
-            LOG(ERROR, "Merger generated invalid xml file\n");
+            LOG(ERROR, "%s is an invalid xml file\n", output_file_result.c_str());
             return false;
         }
         return true;
     }
 
-    warning("Auto merge failed, please edit manually %s then continue\n", output_file_result.c_str());
-    if (!is_valid_xml_file(output_file_result))
-    {
-        LOG(ERROR, "%s is an invalid xml file\n", output_file_result.c_str());
-        return false;
-    }
-    return true;
-}
-
-namespace
-{
     struct Repository
         : public IRepository
     {
@@ -269,38 +260,31 @@ namespace
         bool ensure_git_globals();
         bool ask_for_idb_tracking();
 
-        // GitRepo wrappers
-        bool init();
-        bool fetch(const std::string& remote);
-        bool rebase(const std::string& origin, const std::string& branch);
-        bool add_file_to_index(const std::string& path);
-        bool remove_file_for_index(const std::string& path); // the file may exist, it is removed for the index but unchanged on the disk
-        bool commit(const std::string& message);
+        // wrappers
         bool push(const std::string& src_branch, const std::string& dst_branch);
-        bool remote_exist(const std::string& remote);
-        std::string get_commit(const std::string& ref);
+        bool has_remote(const std::string& remote);
 
-        GitRepo git_;
+        std::shared_ptr<IGit>    git_;
         std::vector<std::string> comments_;
-        bool repo_auto_sync_;
-        bool include_idb_;
+        bool                     repo_auto_sync_;
+        bool                     include_idb_;
     };
 }
 
 Repository::Repository(const std::string& path)
-    : git_(path)
-    , repo_auto_sync_(true)
+    : repo_auto_sync_(true)
     , include_idb_(false)
 {
+    // check git working directory before creating repo
     const bool repo_already_exists = is_git_working_dir(path);
 
-    init();
+    git_ = MakeGit(path);
     if (!ensure_git_globals())
         LOG(ERROR, "Unable to ensure git globals\n");
 
     if (repo_already_exists)
     {
-        include_idb_ = git_.is_tracked(get_original_idb_name());
+        include_idb_ = git_->is_tracked(get_original_idb_name());
         LOG(INFO, "%s %s\n", include_idb_ ? "tracking" : "ignoring", get_original_idb_name().data());
         LOG(DEBUG, "Repo opened\n");
         return;
@@ -318,15 +302,15 @@ Repository::Repository(const std::string& path)
             f << get_current_idb_name();
         f << std::endl;
     }
-    if (!add_file_to_index(gitignore.filename().generic_string()))
+    if (!git_->add_file(gitignore.filename().generic_string()))
         LOG(ERROR, "Unable to add .gitignore\n");
 
     // add current IDB to repo if tracking is enabled
     if (include_idb_)
-        if (!add_file_to_index(get_current_idb_name()))
+        if (!git_->add_file(get_current_idb_name()))
             LOG(ERROR, "Unable to add IDB\n");
 
-    if (!commit("Initial commit\n"))
+    if (!git_->commit("Initial commit\n"))
         LOG(ERROR, "Unable to commit IDB\n");
 
     ask_for_remote();
@@ -344,14 +328,14 @@ void Repository::check_valid_cache_startup()
 {
     LOG(DEBUG, "Validating cache...\n");
 
-    if (!remote_exist("origin"))
+    if (!has_remote("origin"))
     {
         LOG(INFO, "origin remote not defined: ignoring origin and master sync check\n");
     }
     else
     {
-        const std::string master_commit = get_commit("master");
-        const std::string origin_master_commit = get_commit("origin/master");
+        const std::string master_commit = git_->get_commit("master");
+        const std::string origin_master_commit = git_->get_commit("origin/master");
         if (master_commit.empty() || origin_master_commit.empty() || master_commit != origin_master_commit)
             LOG(WARNING, "Master and origin/master does not point to same commit, please update your master\n");
     }
@@ -398,7 +382,7 @@ void Repository::check_valid_cache_startup()
 std::string Repository::update_cache()
 {
     std::string commit;
-    if (!remote_exist("origin"))
+    if (!has_remote("origin"))
         return commit;
 
     // check if files has been modified in background
@@ -412,7 +396,7 @@ std::string Repository::update_cache()
 
     LOG(DEBUG, "Updating cache...\n");
     // get master commit
-    commit = get_commit("master");
+    commit = git_->get_commit("master");
     if (commit.empty())
     {
         LOG(INFO, "Unable to update cache\n");
@@ -421,12 +405,12 @@ std::string Repository::update_cache()
     LOG(DEBUG, "Current master: %s\n", commit.c_str());
 
     // fetch remote
-    fetch("origin");
-    LOG(DEBUG, "Fetched origin/master: %s\n", get_commit("origin/master").c_str());
+    git_->fetch("origin");
+    LOG(DEBUG, "Fetched origin/master: %s\n", git_->get_commit("origin/master").c_str());
 
     // rebase in master
     LOG(DEBUG, "Rebasing master on origin/master...\n");
-    if (!rebase("origin/master", "master"))
+    if (!git_->rebase("origin/master", "master", &IDAInteractiveFileConflictResolver))
     {
         LOG(INFO, "Unable to update cache\n");
         // disable auto sync (when closing database)
@@ -460,26 +444,32 @@ bool Repository::commit_cache()
 {
     LOG(DEBUG, "Committing changes...\n");
 
-    const std::set<std::string> untracked_files = git_.get_untracked_objects_in_path("cache/");
-    const std::set<std::string> modified_files = git_.get_modified_objects_in_path("cache/");
-    const std::set<std::string> deleted_files = git_.get_deleted_objects_in_path("cache/");
-
-    if (untracked_files.empty() && modified_files.empty() && deleted_files.empty())
+    std::set<std::string> untracked, modified, deleted;
+    git_->status("cache/", [&](const char* name, const IGit::Status& status)
+    {
+        if(status.deleted)
+            deleted.insert(name);
+        if(status.modified)
+            modified.insert(name);
+        if(status.untracked)
+            untracked.insert(name);
+    });
+    if (untracked.empty() && modified.empty() && deleted.empty())
     {
         LOG(DEBUG, "No changes to commit\n");
         return true;
     }
 
-    for(const auto& f : untracked_files)
-        if(!add_file_to_index(f))
+    for(const auto& f : untracked)
+        if(!git_->add_file(f))
             LOG(ERROR, "unable to add %s to index\n", f.c_str());
-    for(const auto& f : modified_files)
-        if(!add_file_to_index(f))
+    for(const auto& f : modified)
+        if(!git_->add_file(f))
             LOG(ERROR, "unable to add %s to index\n", f.c_str());
-    for(const auto& f : deleted_files)
-        if(!remove_file_for_index(f))
+    for(const auto& f : deleted)
+        if(!git_->remove_file(f))
             LOG(ERROR, "unable to remove %s for index\n", f.c_str());
-    LOG(INFO, "commit: %zd added %zd updated %zd deleted\n", untracked_files.size(), modified_files.size(), deleted_files.size());
+    LOG(INFO, "commit: %zd added %zd updated %zd deleted\n", untracked.size(), modified.size(), deleted.size());
 
     ya::dedup(comments_);
 
@@ -499,7 +489,7 @@ bool Repository::commit_cache()
     if(commit_msg.empty())
         commit_msg = "unknown changes";
 
-    if (!commit(commit_msg))
+    if (!git_->commit(commit_msg))
     {
         LOG(ERROR, "Unable to commit\n");
         return false;
@@ -538,7 +528,7 @@ void Repository::sync_and_push_original_idb()
             continue;
 
         // git remove xml
-        if (!remove_file_for_index(file_path.path().generic_string()))
+        if (!git_->remove_file(file_path.path().generic_string()))
         {
             LOG(ERROR, "Unable to remove %s for index\n", file_path.path().generic_string().c_str());
             return;
@@ -551,20 +541,20 @@ void Repository::sync_and_push_original_idb()
     }
 
     // git add original idb file
-    if (include_idb_ && !add_file_to_index(get_original_idb_name()))
+    if (include_idb_ && !git_->add_file(get_original_idb_name()))
     {
         LOG(ERROR, "Unable to add original idb file to index\n");
         return;
     }
 
     // git commit
-    if (!commit("YaCo force push"))
+    if (!git_->commit("YaCo force push"))
     {
         LOG(ERROR, "Unable to commit\n");
         return;
     }
 
-    if (!remote_exist("origin"))
+    if (!has_remote("origin"))
         return;
 
     // git push
@@ -578,15 +568,15 @@ void Repository::discard_and_pull_idb()
     backup_original_idb();
 
     // delete all modified objects
-    git_.checkout_head();
+    git_->checkout_head();
 
     // get synced original idb
-    if (!fetch("origin"))
+    if (!git_->fetch("origin"))
     {
         LOG(ERROR, "Unable to fetch origin\n");
         return;
     }
-    if (!rebase("origin/master", "master"))
+    if (!git_->rebase("origin/master", "master", &IDAInteractiveFileConflictResolver))
     {
         LOG(ERROR, "Unable to rebase master from origin/master\n");
         return;
@@ -599,35 +589,38 @@ void Repository::discard_and_pull_idb()
 
 void Repository::ask_to_checkout_modified_files()
 {
-    std::string modified_objects;
+    std::string modified;
     bool idb_modified = false;
 
     const std::string original_idb_name = get_original_idb_name();
-    for (const std::string& modified_object : git_.get_modified_objects())
+    git_->status("", [&](const char* path, const IGit::Status& status)
     {
-        if (modified_object == original_idb_name)
+        if(!status.modified)
+            return;
+
+        if(original_idb_name == path)
         {
             backup_original_idb();
             idb_modified = true;
-            continue;
+            return;
         }
-        modified_objects += modified_object;
-        modified_objects += '\n';
-    }
 
+        modified += path;
+        modified += "\n";
+    });
 
-    if (modified_objects.empty())
+    if (modified.empty())
     {
         if (idb_modified)
-            git_.checkout_head(); // checkout silently
+            git_->checkout_head(); // checkout silently
         return;
     }
 
     // modified_objects is now the message
-    modified_objects += "\nhas been modified, this is not normal, do you want to checkout these files ? (Rebasing will be disabled if you answer no)";
-    if (ask_yn(true, "%s", modified_objects.c_str()) != ASKBTN_NO)
+    modified += "\nhas been modified, this is not normal, do you want to checkout these files ? (Rebasing will be disabled if you answer no)";
+    if (ask_yn(true, "%s", modified.c_str()) != ASKBTN_NO)
     {
-        git_.checkout_head();
+        git_->checkout_head();
         return;
     }
 
@@ -646,15 +639,9 @@ void Repository::ask_for_remote()
         return;
 
     const std::string url = tmp.c_str();
-    try
-    {
-        git_.create_remote("origin", url);
-    }
-    catch (const std::runtime_error& err)
-    {
-        LOG(ERROR, "An error occured during remote creation, error: %s\n", err.what());
+    const auto ok = git_->add_remote("origin", url);
+    if(!ok)
         return;
-    }
 
     // FIXME add http/https to regex ? ("^((ssh)|(https?))://.*")
     if (std::regex_match(url, std::regex("^ssh://.*")))
@@ -673,48 +660,27 @@ void Repository::ask_for_remote()
         return;
     }
 
-    GitRepo tmp_repo(url);
-    try
+    const auto git = MakeGitBare(url);
+    if(!git)
     {
-        tmp_repo.init_bare();
-    }
-    catch (const std::runtime_error& _error)
-    {
-        LOG(ERROR, "Unable to init remote repo, error: %s\n", _error.what());
+        LOG(ERROR, "Unable to init remote repo\n");
     }
 }
 
 bool Repository::ask_and_set_git_config_entry(const std::string& config_entry, const std::string& default_value)
 {
-    std::string current_value;
-    try
-    {
-        current_value = git_.config_get_string(config_entry);
-    }
-    catch (const std::runtime_error& error)
-    {
-        LOG(WARNING, "Failed get git %s, error: %s\n", config_entry.c_str(), error.what());
-        return false;
-    }
-
-    if (!current_value.empty())
+    const auto current_value = git_->config_get_string(config_entry);
+    if(!current_value.empty())
         return true;
 
     qstring value;
     do
+    {
         value = default_value.c_str();
+    }
     while (!ask_str(&value, 0, "Enter git %s", config_entry.c_str()) || value.empty());
 
-    try
-    {
-        git_.config_set_string(config_entry, value.c_str());
-    }
-    catch (const std::runtime_error& error)
-    {
-        LOG(WARNING, "Failed to set git %s, error: %s\n", config_entry.c_str(), error.what());
-        return false;
-    }
-    return true;
+    return git_->config_set_string(config_entry, value.c_str());
 }
 
 bool Repository::ensure_git_globals()
@@ -734,147 +700,27 @@ bool Repository::ensure_git_globals()
     return true;
 }
 
-bool Repository::init()
-{
-    try
-    {
-        git_.init();
-    }
-    catch (const std::runtime_error& error)
-    {
-        LOG(WARNING, "Failed to init repository, error: %s\n", error.what());
-        return false;
-    }
-    return true;
-}
-
-bool Repository::fetch(const std::string& remote)
-{
-    try
-    {
-        git_.fetch(remote);
-    }
-    catch (const std::runtime_error& error)
-    {
-        LOG(WARNING, "Failed to fetch %s, error: %s\n", remote.c_str(), error.what());
-        return false;
-    }
-    return true;
-}
-
-bool Repository::rebase(const std::string& upstream, const std::string& destination)
-{
-    try
-    {
-        IDAInteractiveFileConflictResolver resolver;
-        git_.rebase(upstream, destination, resolver);
-        return true;
-    }
-    catch (const std::runtime_error& error)
-    {
-        LOG(WARNING, "Failed to rebase %s from %s, error: %s\n", destination.c_str(), upstream.c_str(), error.what());
-        return false;
-    }
-}
-
-bool Repository::add_file_to_index(const std::string& path)
-{
-    try
-    {
-        git_.add_file(path);
-    }
-    catch (const std::runtime_error& error)
-    {
-        LOG(WARNING, "Failed to add %s to index, error: %s\n", path.c_str(), error.what());
-        return false;
-    }
-    return true;
-}
-
-bool Repository::remove_file_for_index(const std::string& path)
-{
-    try
-    {
-        git_.remove_file(path);
-    }
-    catch (const std::runtime_error& error)
-    {
-        LOG(WARNING, "Failed to remove %s for index, error: %s\n", path.c_str(), error.what());
-        return false;
-    }
-    return true;
-}
-
-bool Repository::commit(const std::string& message)
-{
-    try
-    {
-        git_.commit(message);
-    }
-    catch (const std::runtime_error& error)
-    {
-        LOG(WARNING, "Failed to commit, error: %s\n", error.what());
-        return false;
-    }
-    return true;
-}
-
 bool Repository::push(const std::string& src_branch, const std::string& dst_branch)
 {
-    if (!remote_exist("origin"))
+    if (!has_remote("origin"))
         return true;
 
-    try
-    {
-        git_.push(src_branch, dst_branch);
-    }
-    catch (const std::runtime_error& error)
-    {
-        LOG(WARNING, "Failed to push to remote, error: %s\n", error.what());
-        return false;
-    }
-    return true;
+    return git_->push(src_branch, dst_branch);
 }
 
-bool Repository::remote_exist(const std::string& remote)
+bool Repository::has_remote(const std::string& remote)
 {
-    std::map<std::string, std::string> remotes;
-    try
+    bool found = true;
+    const auto ok = git_->remotes([&](const char* src, const char* /*dst*/)
     {
-        remotes = git_.get_remotes();
-    }
-    catch (const std::runtime_error& error)
-    {
-        LOG(WARNING, "Failed to get repo remotes, error: %s\n", error.what());
-        return false;
-    }
-    return remotes.find(remote) != remotes.end();
-}
-
-std::string Repository::get_commit(const std::string& ref)
-{
-    std::string commit;
-    try
-    {
-        commit = git_.get_commit(ref);
-    }
-    catch (const std::runtime_error& error)
-    {
-        LOG(WARNING, "Failed to get commit from master, error: %s\n", error.what());
-    }
-    return commit;
+        found |= remote == src;
+    });
+    return ok && found;
 }
 
 void Repository::diff_index(const std::string& from, const on_blob_fn& on_blob) const
 {
-    try
-    {
-        git_.diff_index(from, on_blob);
-    }
-    catch (const std::runtime_error& error)
-    {
-        LOG(WARNING, "unable to diff index: %s\n", error.what());
-    }
+    git_->diff_index(from, on_blob);
 }
 
 bool Repository::idb_is_tracked()

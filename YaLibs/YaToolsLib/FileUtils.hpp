@@ -29,6 +29,18 @@ struct Mmap_ABC
 };
 std::shared_ptr<Mmap_ABC> MmapFile(const char* pPath);
 
+struct File_ABC
+{
+    virtual ~File_ABC() {}
+
+    virtual const std::string& GetPath() const = 0;
+    virtual void Write(const char* line) const = 0;
+    virtual void Flush() const = 0;
+    virtual void Close() const = 0;
+};
+
+std::shared_ptr<File_ABC> CreateTempFile();
+
 std::string CreateTemporaryDirectory(const std::string& base);
 
 #endif

@@ -7,11 +7,9 @@
 
 namespace std { template<typename T> class function; }
 
-class ResolveFileConflictCallback;
 class GitRepo;
 struct HVersion;
 
-#include "YaGitLib.hpp"
 #include <Algo/Algo.hpp>
 
 #include <map>

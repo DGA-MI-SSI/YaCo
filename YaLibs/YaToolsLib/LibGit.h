@@ -21,33 +21,3 @@
 
 #include <git2.h>
 #include <git2/errors.h>
-
-static git_clone_options make_git_clone_options()
-{
-    git_clone_options opts = GIT_CLONE_OPTIONS_INIT;
-    return opts;
-}
-
-static git_fetch_options make_git_fetch_options()
-{
-    git_fetch_options opts = GIT_FETCH_OPTIONS_INIT;
-    return opts;
-}
-
-static git_checkout_options make_git_checkout_options()
-{
-    git_checkout_options opts = GIT_CHECKOUT_OPTIONS_INIT;
-    return opts;
-}
-
-static git_merge_options make_git_merge_options()
-{
-    git_merge_options opts = GIT_MERGE_OPTIONS_INIT;
-    return opts;
-}
-
-static git_rebase_options make_git_rebase_options()
-{
-    git_rebase_options opts = GIT_REBASE_OPTIONS_INIT;
-    return opts;
-}

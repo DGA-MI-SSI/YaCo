@@ -74,7 +74,9 @@ target_include_directories(yatools PUBLIC
 target_link_libraries(yatools PUBLIC
     farmhash
     flatbuffers
+    git2
     libxml2
+    ssh2
 )
 
 # export yatools dependencies
@@ -107,28 +109,6 @@ target_link_libraries(yatools_tests PRIVATE
     yatools
 )
 
-# yagit
-get_files(files "${ya_dir}/YaLibs/YaGitLib")
-filter_out(files "test[.]")
-make_target(yagit yatools ${files} OPTIONS static_runtime)
-setup_yatools(yagit)
-target_include_directories(yagit PUBLIC "${ya_dir}/YaLibs/YaGitLib")
-target_link_libraries(yagit PUBLIC git2 ssh2)
-
-# yagit_tests
-add_test(NAME yagit_tests_init
-    COMMAND ${CMAKE_COMMAND} -E remove_directory "${CMAKE_CURRENT_BINARY_DIR}/temp_folder_unittest"
-)
-get_files(files "${ya_dir}/YaLibs/tests/YaGitLib_test")
-make_target(yagit_tests yatools/tests ${files} OPTIONS test static_runtime)
-setup_yatools(yagit_tests)
-target_include_directories(yagit_tests PRIVATE "${ya_dir}/YaLibs/tests")
-set_property(TEST yagit_tests APPEND PROPERTY DEPENDS yagit_tests_init)
-target_link_libraries(yagit_tests PRIVATE
-    gtest
-    yagit
-)
-
 # yadifflib
 add_target(yadifflib yatools "${ya_dir}/YaDiff/YaDiffLib" OPTIONS static_runtime recurse)
 setup_yatools(yadifflib)
@@ -137,7 +117,6 @@ target_include_directories(yadifflib PUBLIC
 )
 target_link_libraries(yadifflib PUBLIC
     yatools
-    yagit
     capstone
 )
 
@@ -222,7 +201,6 @@ function(add_yatools_py bits)
     target_link_libraries(yaida${bits}
         PUBLIC
         yatools
-        yagit
         PRIVATE
         zlib
     )
@@ -264,7 +242,6 @@ function(add_yatools_py bits)
     )
     target_link_libraries(_yatools_py${bits} PRIVATE
         yadifflib
-        yagit
         yaida${bits}
     )
 endfunction()

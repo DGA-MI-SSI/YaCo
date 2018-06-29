@@ -15,6 +15,8 @@
 
 #include <gtest/gtest.h>
 
+#include <FileUtils.hpp>
+
 #include <string>
 #include <queue>
 #include <stdio.h>
@@ -34,9 +36,7 @@ class TestInTempFolder : public testing::Test
 protected:
     virtual void SetUp()
     {
-        char tmp[32];
-        snprintf(tmp, 32, "tmp_%x", ++index);
-        current_dir = fs::current_path() / "temp_folder_unittest" / tmp;
+        current_dir = CreateTemporaryDirectory("temp_folder_unittest");
         fs::create_directories(current_dir);
         ASSERT_EQ(chdir(current_dir.string().data()), 0);
     }
@@ -55,9 +55,6 @@ protected:
 
     fs::path current_dir;
     fs::path orig_dir;
-
-public:
-    static int index;
 };
 
 #ifdef YALIB_TEST

@@ -41,8 +41,6 @@
 
 namespace fs = std::experimental::filesystem;
 
-int TestInTempFolder::index = 0;
-
 class TestXMLDatabaseModel : public TestInTempFolder
 {
 protected:

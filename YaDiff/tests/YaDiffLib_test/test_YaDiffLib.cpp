@@ -40,8 +40,6 @@ using namespace std::experimental;
 
 #define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("xref", (FMT), ## __VA_ARGS__)
 
-int TestInTempFolder::index = 0;
-
 namespace
 {
 struct Buffer : public Mmap_ABC
