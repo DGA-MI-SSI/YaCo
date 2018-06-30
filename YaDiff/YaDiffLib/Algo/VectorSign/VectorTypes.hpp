@@ -39,7 +39,7 @@ struct FunctionControlFlowGraphData_t
     double height_disp;                 // 11 Height dispersion, Variance of the distance to ret of my BB set (not a square)
     int width;                          // 12 Number (maximum) of BB at the same distance from the BB entry.
     double width_disp;                  // 13 Variance of the graph width, average on all dist_to_root levels.*
-    int flat_len;                       // 14 TODO Len (in instruction number) of the flatten vector (~ Min inst number from top to bottom°)
+    int flat_len;                       // 14 TODO Len (in instruction number) of the flatten vector (~ Min inst number from top to bottomÂ°)
 };
 #define FunctionControlFlowGraphData_FIELD_COUNT 14
 
@@ -89,7 +89,7 @@ class BinaryInfo_t
 public:
     offset_t                                        base_address;
     offset_t                                        text_address;
-    char                                            format[FORMAT_MAX_SIZE];
+    char                                            format[FORMAT_MAX_SIZE+1];
     std::vector<uint8_t>                            blob;
     csh                                             h_capstone;
     cs_err                                          cs_error_val;
