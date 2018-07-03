@@ -78,7 +78,7 @@ namespace
         "error ",
         "warning ",
         "",
-        "debug",
+        "debug ",
     };
     static_assert(COUNT_OF(LogLevels) == logger::LOG_LEVEL_LAST, "missing log levels");
 
