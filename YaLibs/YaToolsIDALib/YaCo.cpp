@@ -169,13 +169,13 @@ void YaCo::export_database()
         return;
     }
 
-    if (fwrite(buffer.value, 1, buffer.size, database) != buffer.size)
+    const auto count = fwrite(buffer.value, buffer.size, 1, database);
+    fclose(database);
+    if(count != 1)
     {
         LOG(INFO, "Export failed\n");
         return;
     }
-
-    fclose(database);
 
     LOG(INFO, "Export complete\n");
 }
