@@ -1,5 +1,6 @@
 # generated with cmake
 set(_yatools_files
+    "../YaLibs/YaToolsLib/Bench.h"
     "../YaLibs/YaToolsLib/BinHex.cpp"
     "../YaLibs/YaToolsLib/BinHex.hpp"
     "../YaLibs/YaToolsLib/Configuration.cpp"

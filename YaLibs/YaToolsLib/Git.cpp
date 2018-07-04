@@ -38,6 +38,8 @@ namespace fs = std::experimental::filesystem;
 #define LOG(...) do {} while(0)
 #endif
 
+#include "Bench.h"
+
 #define UNUSED(X) ((void)(X))
 
 // custom deleters
@@ -182,6 +184,7 @@ namespace
 
 bool Git::fetch(const std::string& name)
 {
+    bench::Log log(__FUNCTION__);
     git_remote* ptr_remote = nullptr;
     auto err = git_remote_lookup(&ptr_remote, &*repo_, name.data());
     if(err != GIT_OK)
@@ -512,6 +515,7 @@ plop.txt content line 2
 
 bool Git::rebase(const std::string& upstream, const std::string& dst, const on_conflict_fn& on_conflict)
 {
+    bench::Log log(__FUNCTION__);
     const auto rebase = init_rebase(&*repo_, dst, upstream);
     if(!rebase)
         return false;
@@ -629,6 +633,7 @@ std::string Git::get_commit(const std::string& name)
 
 bool Git::push(const std::string& src, const std::string& dst)
 {
+    bench::Log log(__FUNCTION__);
     if(!remote_)
     {
         git_remote* ptr_remote = nullptr;
