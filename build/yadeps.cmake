@@ -260,6 +260,7 @@ target_include_directories(git2 PUBLIC
     "${git_dir}/include"
 )
 target_compile_definitions(git2 PRIVATE
+    GIT_ARCH_64
     GIT_SSH
     GIT_THREADS
     GIT_USE_ICONV
