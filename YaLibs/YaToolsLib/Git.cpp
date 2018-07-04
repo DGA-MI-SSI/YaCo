@@ -43,18 +43,19 @@ namespace fs = std::experimental::filesystem;
 // custom deleters
 namespace std
 {
-    template<> struct default_delete<git_annotated_commit> { static const bool marker = true; void operator()(git_annotated_commit* ptr) { git_annotated_commit_free(ptr); } };
-    template<> struct default_delete<git_commit>           { static const bool marker = true; void operator()(git_commit*           ptr) { git_commit_free(ptr); } };
-    template<> struct default_delete<git_config>           { static const bool marker = true; void operator()(git_config*           ptr) { git_config_free(ptr); } };
-    template<> struct default_delete<git_diff>             { static const bool marker = true; void operator()(git_diff*             ptr) { git_diff_free(ptr); } };
-    template<> struct default_delete<git_index>            { static const bool marker = true; void operator()(git_index*            ptr) { git_index_free(ptr); } };
-    template<> struct default_delete<git_rebase>           { static const bool marker = true; void operator()(git_rebase*           ptr) { git_rebase_free(ptr); } };
-    template<> struct default_delete<git_reference>        { static const bool marker = true; void operator()(git_reference*        ptr) { git_reference_free(ptr); } };
-    template<> struct default_delete<git_remote>           { static const bool marker = true; void operator()(git_remote*           ptr) { git_remote_free(ptr); } };
-    template<> struct default_delete<git_repository>       { static const bool marker = true; void operator()(git_repository*       ptr) { git_repository_free(ptr); } };
-    template<> struct default_delete<git_signature>        { static const bool marker = true; void operator()(git_signature*        ptr) { git_signature_free(ptr); } };
-    template<> struct default_delete<git_strarray>         { static const bool marker = true; void operator()(git_strarray*         ptr) { git_strarray_free(ptr); } };
-    template<> struct default_delete<git_tree>             { static const bool marker = true; void operator()(git_tree*             ptr) { git_tree_free(ptr); } };
+    template<> struct default_delete<git_annotated_commit>        { static const bool marker = true; void operator()(git_annotated_commit*        ptr) { git_annotated_commit_free(ptr); } };
+    template<> struct default_delete<git_commit>                  { static const bool marker = true; void operator()(git_commit*                  ptr) { git_commit_free(ptr); } };
+    template<> struct default_delete<git_config>                  { static const bool marker = true; void operator()(git_config*                  ptr) { git_config_free(ptr); } };
+    template<> struct default_delete<git_diff>                    { static const bool marker = true; void operator()(git_diff*                    ptr) { git_diff_free(ptr); } };
+    template<> struct default_delete<git_index>                   { static const bool marker = true; void operator()(git_index*                   ptr) { git_index_free(ptr); } };
+    template<> struct default_delete<git_index_conflict_iterator> { static const bool marker = true; void operator()(git_index_conflict_iterator* ptr) { git_index_conflict_iterator_free(ptr); } };
+    template<> struct default_delete<git_rebase>                  { static const bool marker = true; void operator()(git_rebase*                  ptr) { git_rebase_free(ptr); } };
+    template<> struct default_delete<git_reference>               { static const bool marker = true; void operator()(git_reference*               ptr) { git_reference_free(ptr); } };
+    template<> struct default_delete<git_remote>                  { static const bool marker = true; void operator()(git_remote*                  ptr) { git_remote_free(ptr); } };
+    template<> struct default_delete<git_repository>              { static const bool marker = true; void operator()(git_repository*              ptr) { git_repository_free(ptr); } };
+    template<> struct default_delete<git_signature>               { static const bool marker = true; void operator()(git_signature*               ptr) { git_signature_free(ptr); } };
+    template<> struct default_delete<git_strarray>                { static const bool marker = true; void operator()(git_strarray*                ptr) { git_strarray_free(ptr); } };
+    template<> struct default_delete<git_tree>                    { static const bool marker = true; void operator()(git_tree*                    ptr) { git_tree_free(ptr); } };
 }
 
 namespace
@@ -428,47 +429,6 @@ plop.txt content line 2
         return make_unique(ptr_commit);
     }
 
-    template<typename T>
-    bool on_status(git_repository* repo, const std::string& path, const T& on_status, unsigned int default_flags)
-    {
-        using Payload = struct
-        {
-            const T& on_status;
-        };
-        const auto callback = [](const char* path, unsigned int flags, void* payload)
-        {
-            Payload& p = *static_cast<Payload*>(payload);
-            Git::Status status;
-            status.deleted      = flags & GIT_STATUS_WT_DELETED;
-            status.modified     = flags & GIT_STATUS_WT_MODIFIED;
-            status.untracked    = flags & (GIT_STATUS_WT_NEW | GIT_STATUS_IGNORED);
-            status.conflicted   = flags & GIT_STATUS_CONFLICTED;
-            p.on_status(path, status);
-            return 0;
-        };
-    
-        git_status_options opts;
-        git_status_init_options(&opts, GIT_STATUS_OPTIONS_VERSION);
-        opts.flags |= default_flags
-                   |  GIT_STATUS_OPT_DISABLE_PATHSPEC_MATCH;
-        std::vector<char> buffer(path.begin(), path.end());
-        buffer.push_back(0);
-        char* begin = nullptr;
-        if(!path.empty())
-        {
-            begin = &buffer[0];
-            opts.pathspec.strings = &begin;
-            opts.pathspec.count = 1;
-        }
-    
-        Payload payload{on_status};
-        const auto err = git_status_foreach_ext(repo, &opts, callback, &payload);
-        if(err != GIT_OK)
-            FAIL_WITH(false, "unable to iterator git status");
-
-        return err == GIT_OK;
-    }
-
     std::unique_ptr<git_rebase> init_rebase(git_repository* repo, const std::string& dst, const std::string& upstream)
     {
         git_rebase* ptr_rebase = nullptr;
@@ -493,35 +453,37 @@ plop.txt content line 2
         return make_unique(ptr_rebase);
     }
 
-    bool rebase(Git& git, git_rebase* ptr_rebase, const Git::on_conflict_fn& on_conflit)
+    bool resolve_conflicts(Git& git, const Git::on_conflict_fn& on_conflict)
     {
+        if(!load_index(git))
+            return false;
+
+        git_index_conflict_iterator* ptr_iterator = nullptr;
+        auto err = git_index_conflict_iterator_new(&ptr_iterator, &*git.index_);
+        if(err != GIT_OK)
+            FAIL_WITH(false, "unable to create conflict iterator");
+
+        const auto iterator = make_unique(ptr_iterator);
         const auto root = fs::path(git.path_);
-        const auto resolve_conflicts = [&]
+        while(true)
         {
-            // skip index iteration if no conflicts found
-            if(load_index(git))
-                if(!git_index_has_conflicts(&*git.index_))
-                    return false;
+            const git_index_entry* ancestor = nullptr;
+            const git_index_entry* our      = nullptr;
+            const git_index_entry* their    = nullptr;
+            err = git_index_conflict_next(&ancestor, &our, &their, ptr_iterator);
+            if(err == GIT_ITEROVER)
+                return true;
 
-            bool aborted = false;
-            on_status(&*git.repo_, std::string(), [&](const char* path, const Git::Status& status)
-            {
-                if(aborted)
-                    return;
+            const auto aborted = !handle_conflict(root / our->path, on_conflict);
+            if(aborted)
+                return false;
 
-                if(!status.conflicted)
-                    return;
+            git.add_file(our->path);
+        }
+    }
 
-                const fs::path filename = root / path;
-                aborted = !handle_conflict(filename, on_conflit);
-                if(aborted)
-                    return;
-
-                git.add_file(path);
-            }, 0);
-            return aborted;
-        };
-
+    bool rebase(Git& git, git_rebase* ptr_rebase, const Git::on_conflict_fn& on_conflict)
+    {
         git_rebase_operation* operation = nullptr;
         while(true)
         {
@@ -532,11 +494,11 @@ plop.txt content line 2
             if(err != GIT_OK)
                 FAIL_WITH(false, "unable to rebase");
 
-            if (operation->type != GIT_REBASE_OPERATION_PICK)
+            if(operation->type != GIT_REBASE_OPERATION_PICK)
                 continue;
 
-            const auto aborted = resolve_conflicts();
-            if(aborted)
+            const auto ok = resolve_conflicts(git, on_conflict);
+            if(!ok)
                 return false;
 
             git_oid oid;
@@ -717,7 +679,40 @@ bool Git::remotes(const on_remote_fn& on_remote)
 
 bool Git::status(const std::string& path, const on_status_fn& on_status)
 {
-    return ::on_status(&*repo_, path, on_status, GIT_STATUS_OPT_DEFAULTS);
+    using Payload = struct
+    {
+        const on_status_fn& on_status;
+    };
+    const auto callback = [](const char* path, unsigned int flags, void* payload)
+    {
+        Payload& p = *static_cast<Payload*>(payload);
+        Git::Status status;
+        status.deleted      = flags & GIT_STATUS_WT_DELETED;
+        status.modified     = flags & GIT_STATUS_WT_MODIFIED;
+        status.untracked    = flags & (GIT_STATUS_WT_NEW | GIT_STATUS_IGNORED);
+        p.on_status(path, status);
+        return 0;
+    };
+    git_status_options opts;
+    git_status_init_options(&opts, GIT_STATUS_OPTIONS_VERSION);
+    opts.flags |= GIT_STATUS_OPT_DEFAULTS
+               |  GIT_STATUS_OPT_DISABLE_PATHSPEC_MATCH;
+    std::vector<char> buffer(path.begin(), path.end());
+    buffer.push_back(0);
+    char* begin = nullptr;
+    if(!path.empty())
+    {
+        begin = &buffer[0];
+        opts.pathspec.strings = &begin;
+        opts.pathspec.count = 1;
+    }
+
+    Payload payload{on_status};
+    const auto err = git_status_foreach_ext(&*repo_, &opts, callback, &payload);
+    if(err != GIT_OK)
+        FAIL_WITH(false, "unable to iterate git status");
+
+    return true;
 }
 
 bool Git::clone(const std::string& path, ECloneMode emode)

@@ -25,7 +25,6 @@ struct IGit
 
     struct Status
     {
-        bool conflicted;
         bool deleted;
         bool modified;
         bool untracked;
