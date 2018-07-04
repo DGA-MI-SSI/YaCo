@@ -698,6 +698,9 @@ namespace
     {
         // load updated & deleted models
         const auto commit = repo.update_cache();
+        if(commit.empty())
+            return;
+
         const auto updated = MakeMemoryModel();
         const auto deleted = MakeMemoryModel();
         updated->visit_start();

@@ -328,11 +328,7 @@ void Repository::check_valid_cache_startup()
 {
     LOG(DEBUG, "Validating cache...\n");
 
-    if (!has_remote("origin"))
-    {
-        LOG(INFO, "origin remote not defined: ignoring origin and master sync check\n");
-    }
-    else
+    if (has_remote("origin"))
     {
         const std::string master_commit = git_->get_commit("master");
         const std::string origin_master_commit = git_->get_commit("origin/master");
@@ -629,7 +625,7 @@ void Repository::ask_to_checkout_modified_files()
 
 bool Repository::ask_for_idb_tracking()
 {
-     return ask_yn(true, "Should the IDB be tracked?") == ASKBTN_YES;
+    return ask_yn(true, "Should the IDB be tracked?") == ASKBTN_YES;
 }
 
 void Repository::ask_for_remote()
