@@ -387,7 +387,7 @@ struct Model
 
     ViewVersions                    view_versions_;
     ViewSignatures                  view_signatures_;
-    std::unique_ptr<StdVersion>     current_;
+    StdVersion                      current_;
     std::vector<StdVersion>         versions_;
     std::vector<StdSignature>       signatures_;
     std::vector<StdVersion>         deleted_;
@@ -409,7 +409,6 @@ std::shared_ptr<IModelAndVisitor> MakeMemoryModel()
 
 void Model::visit_start()
 {
-    current_ = std::make_unique<StdVersion>();
 }
 
 namespace
@@ -547,7 +546,6 @@ void finish_index(Model& db)
 void Model::visit_end()
 {
     finish_index(*this);
-    current_.reset();
 
     // sort objects by type
     ordered_.reserve(versions_.size());
@@ -561,43 +559,43 @@ void Model::visit_end()
 
 void Model::visit_start_version(YaToolObjectType_e type, YaToolObjectId id)
 {
-    current_->clear();
-    current_->type = type;
-    current_->idx = static_cast<VersionIndex>(versions_.size());
-    current_->id = id;
+    current_.clear();
+    current_.type = type;
+    current_.idx = static_cast<VersionIndex>(versions_.size());
+    current_.id = id;
 }
 
 void Model::visit_deleted(YaToolObjectType_e type, YaToolObjectId id)
 {
     visit_start_version(type, id);
-    deleted_.emplace_back(*current_);
+    deleted_.emplace_back(current_);
 }
 
 void Model::visit_end_version()
 {
-    versions_.emplace_back(*current_);
-    add_index(index_, current_->id, current_->idx);
+    versions_.emplace_back(current_);
+    add_index(index_, current_.id, current_.idx);
 }
 
 void Model::visit_parent_id(YaToolObjectId id)
 {
-    current_->parent = id;
+    current_.parent = id;
 }
 
 void Model::visit_address(offset_t address)
 {
-    current_->address = address;
+    current_.address = address;
 }
 
 void Model::visit_name(const const_string_ref& name, int flags)
 {
-    current_->username.value = make_string(name);
-    current_->username.flags = flags;
+    current_.username.value = make_string(name);
+    current_.username.flags = flags;
 }
 
 void Model::visit_size(offset_t size)
 {
-    current_->size = size;
+    current_.size = size;
 }
 
 void Model::visit_start_signatures()
@@ -607,7 +605,7 @@ void Model::visit_start_signatures()
 void Model::visit_signature(SignatureMethod_e method, SignatureAlgo_e algo, const const_string_ref& hex)
 {
     const auto sig_idx = static_cast<HSignature_id_t>(signatures_.size());
-    current_->sig_idx = std::min(current_->sig_idx, sig_idx);
+    current_.sig_idx = std::min(current_.sig_idx, sig_idx);
     const auto idx = static_cast<VersionIndex>(versions_.size());
     signatures_.push_back({MakeSignature(algo, method, hex), idx});
 }
@@ -618,17 +616,17 @@ void Model::visit_end_signatures()
 
 void Model::visit_prototype(const const_string_ref& prototype)
 {
-    current_->prototype = make_string(prototype);
+    current_.prototype = make_string(prototype);
 }
 
 void Model::visit_string_type(int strtype)
 {
-    current_->strtype = static_cast<uint8_t>(strtype);
+    current_.strtype = static_cast<uint8_t>(strtype);
 }
 
 void Model::visit_header_comment(bool repeatable, const const_string_ref& comment)
 {
-    auto& dst = repeatable ? current_->header_comment_repeatable : current_->header_comment_nonrepeatable;
+    auto& dst = repeatable ? current_.header_comment_repeatable : current_.header_comment_nonrepeatable;
     dst = make_string(comment);
 }
 
@@ -642,27 +640,27 @@ void Model::visit_end_offsets()
 
 void Model::visit_offset_comments(offset_t offset, CommentType_e comment_type, const const_string_ref& comment)
 {
-    current_->comments.emplace_back(make_string(comment), offset, comment_type);
+    current_.comments.emplace_back(make_string(comment), offset, comment_type);
 }
 
 void Model::visit_offset_valueview(offset_t offset, operand_t operand, const const_string_ref& view_value)
 {
-    current_->valueviews.emplace_back(make_string(view_value), offset, operand);
+    current_.valueviews.emplace_back(make_string(view_value), offset, operand);
 }
 
 void Model::visit_offset_registerview(offset_t offset, offset_t end_offset, const const_string_ref& register_name, const const_string_ref& register_new_name)
 {
-    current_->registerviews.emplace_back(make_string(register_name), make_string(register_new_name), offset, end_offset);
+    current_.registerviews.emplace_back(make_string(register_name), make_string(register_new_name), offset, end_offset);
 }
 
 void Model::visit_offset_hiddenarea(offset_t offset, offset_t area_size, const const_string_ref& hidden_area_value)
 {
-    current_->hiddenareas.emplace_back(make_string(hidden_area_value), offset, area_size);
+    current_.hiddenareas.emplace_back(make_string(hidden_area_value), offset, area_size);
 }
 
 void Model::visit_start_xrefs()
 {
-    current_->xrefs.clear();
+    current_.xrefs.clear();
 }
 
 void Model::visit_end_xrefs()
@@ -671,12 +669,12 @@ void Model::visit_end_xrefs()
 
 void Model::visit_start_xref(offset_t offset, YaToolObjectId id, operand_t operand)
 {
-    current_->xrefs.emplace_back(std::vector<StdAttribute>(), offset, id, operand);
+    current_.xrefs.emplace_back(std::vector<StdAttribute>(), offset, id, operand);
 }
 
 void Model::visit_xref_attribute(const const_string_ref& key, const const_string_ref& value)
 {
-    current_->xrefs.back().attributes.emplace_back(make_string(key), make_string(value));
+    current_.xrefs.back().attributes.emplace_back(make_string(key), make_string(value));
 }
 
 void Model::visit_end_xref()
@@ -693,18 +691,18 @@ void Model::visit_segments_end()
 
 void Model::visit_attribute(const const_string_ref& key, const const_string_ref& value)
 {
-    current_->attributes.push_back({make_string(key), make_string(value)});
+    current_.attributes.push_back({make_string(key), make_string(value)});
 }
 
 void Model::visit_blob(offset_t offset, const void* blob, size_t len)
 {
     const uint8_t* ptr = static_cast<const uint8_t*>(blob);
-    current_->blobs.emplace_back(ptr, len, offset);
+    current_.blobs.emplace_back(ptr, len, offset);
 }
 
 void Model::visit_flags(flags_t flags)
 {
-    current_->flags = flags;
+    current_.flags = flags;
 }
 
 void Model::accept(IModelVisitor& visitor)
