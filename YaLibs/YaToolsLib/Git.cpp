@@ -20,6 +20,7 @@
 #include "Yatools.hpp"
 
 #include <fstream>
+#include <sstream>
 #include <string.h>
 #include <vector>
 
@@ -372,51 +373,43 @@ plop.txt content line 1
 plop.txt content line 2
 >>>>>>> update plop.txt line 2
 */
-
-        const auto first = CreateTempFile();
-        if(!first)
-            FAIL_WITH(false, "unable to create first temporary file");
-
-        const auto second = CreateTempFile();
-        if(!second)
-            FAIL_WITH(false, "unable to create second temporary file");
-
-        std::ifstream output(path);
-        bool has_first = true;
-        bool has_second = true;
-        while(output.good())
+        std::stringstream first;
+        std::stringstream second;
         {
             std::string line;
-            std::getline(output, line);
-            if(line.find("<<<<<<<") == 0)
+            bool has_first = true;
+            bool has_second = true;
+            std::ifstream input(path);
+            while(std::getline(input, line))
             {
-                has_first = true;
-                has_second = false;
-                continue;
+                if(line.find("<<<<<<<") == 0)
+                {
+                    has_first = true;
+                    has_second = false;
+                    continue;
+                }
+                else if(line.find("=======") == 0)
+                {
+                    has_first = false;
+                    has_second = true;
+                    continue;
+                }
+                else if(line.find(">>>>>>>") == 0)
+                {
+                    has_first = true;
+                    has_second = true;
+                    continue;
+                }
+                else if(line.empty())
+                    continue;
+                if(has_first)
+                    first << line << std::endl;
+                if(has_second)
+                    second << line << std::endl;
             }
-            else if(line.find("=======") == 0)
-            {
-                has_first = false;
-                has_second = true;
-                continue;
-            }
-            else if(line.find(">>>>>>>") == 0)
-            {
-                has_first = true;
-                has_second = true;
-                continue;
-            }
-            if(has_first)
-                first->Write(line.data());
-            if(has_second)
-                second->Write(line.data());
         }
-        output.close();
 
-        // FIXME unicode
-        first->Close();
-        second->Close();
-        return on_conflict(first->GetPath(), second->GetPath(), path.string());
+        return on_conflict(first.str(), second.str(), path.string());
     }
 
     std::unique_ptr<git_annotated_commit> get_annotated_commit(git_repository* repo, const std::string& name)

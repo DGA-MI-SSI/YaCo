@@ -211,29 +211,23 @@ std::string IDAPromptMergeConflict::merge_attributes_callback(const char* messag
 
 namespace
 {
-    bool IDAInteractiveFileConflictResolver(const std::string& input_file1, const std::string& input_file2, const std::string& output_file_result)
+    bool IDAInteractiveFileConflictResolver(const std::string& left, const std::string& right, const std::string& filename)
     {
-        if (!std::regex_match(output_file_result, std::regex(".*\\.xml$")))
+        if (!std::regex_match(filename, std::regex(".*\\.xml$")))
             return true;
 
         IDAPromptMergeConflict merger_conflict;
         Merger merger(&merger_conflict, ObjectVersionMergeStrategy_e::OBJECT_VERSION_MERGE_PROMPT);
-        if (merger.smartMerge(input_file1.c_str(), input_file2.c_str(), output_file_result.c_str()) != MergeStatus_e::OBJECT_MERGE_STATUS_NOT_UPDATED)
-        {
-            if (!is_valid_xml_file(output_file_result))
-            {
-                LOG(ERROR, "Merger generated invalid xml file\n");
-                return false;
-            }
-            return true;
-        }
+        const auto err = merger.smartMerge(left, right, filename);
+        if (err == MergeStatus_e::OBJECT_MERGE_STATUS_NOT_UPDATED)
+            warning("Auto merge failed, please edit manually %s then continue\n", filename.data());
 
-        warning("Auto merge failed, please edit manually %s then continue\n", output_file_result.c_str());
-        if (!is_valid_xml_file(output_file_result))
+        if (!is_valid_xml_file(filename))
         {
-            LOG(ERROR, "%s is an invalid xml file\n", output_file_result.c_str());
+            LOG(ERROR, "Merger generated invalid xml file\n");
             return false;
         }
+
         return true;
     }
 

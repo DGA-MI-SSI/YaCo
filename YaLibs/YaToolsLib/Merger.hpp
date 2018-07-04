@@ -72,8 +72,7 @@ public:
                                                             const Relation& relation);
     void mergeAttributes(const std::string& attribute_name, const const_string_ref& ref_attr, const const_string_ref& new_attr,
                                  const std::function<void(const const_string_ref&)>& fnCallback);
-    MergeStatus_e smartMerge(   const char* input_file1, const char* input_file2,
-                                const char* output_file_result);
+    MergeStatus_e smartMerge(const std::string& left, const std::string& right, const std::string& filename);
 
 private:
     PromptMergeConflict*            mpMergePrompt;

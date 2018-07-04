@@ -50,17 +50,15 @@ static bool is_unset(const const_string_ref& attribute)
         || begins_with(attribute, "offset_"));
 }
 
-MergeStatus_e Merger::smartMerge(const char* input_file1, const char* input_file2,
-                                 const char* output_file_result)
+MergeStatus_e Merger::smartMerge(const std::string& left, const std::string& right,
+                                 const std::string& filename)
 {
-
-    /* Load XML files */
     const auto db1 = MakeMemoryModel();
     const auto db2 = MakeMemoryModel();
 
     // reload two databases with one object version in each database
-    AcceptXmlFiles(*db1, {input_file1});
-    AcceptXmlFiles(*db2, {input_file2});
+    AcceptXmlMemory(*db1, left.data(), left.size());
+    AcceptXmlMemory(*db2, right.data(), right.size());
 
     if(db1->size() != 1 || db2->size() != 1)
         throw std::runtime_error("invalid number of referenced object in databases");
@@ -93,7 +91,7 @@ MergeStatus_e Merger::smartMerge(const char* input_file1, const char* input_file
 	output->visit_end();
     
     if(retval != OBJECT_MERGE_STATUS_NOT_UPDATED)
-        output->accept(*MakeFileXmlVisitor(output_file_result));
+        output->accept(*MakeFileXmlVisitor(filename));
 
     return retval;
 }

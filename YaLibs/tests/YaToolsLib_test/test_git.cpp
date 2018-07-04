@@ -71,15 +71,13 @@ namespace
         EXPECT_TRUE(ok);
     }
 
-    void fetch_rebase(IGit& git, const std::string& remote, const std::string& branch)
+    void fetch_rebase(IGit& git, const std::string& remote, const std::string& branch, const std::tuple<std::string, std::string, fs::path>& expected = std::tuple<std::string, std::string, fs::path>())
     {
         auto ok = git.fetch(remote);
         EXPECT_TRUE(ok);
-        ok = git.rebase(remote + "/" + branch, branch, [](const std::string& a, const std::string& b, const std::string& path)
+        ok = git.rebase(remote + "/" + branch, branch, [&](const std::string& left, const std::string& right, const std::string& path)
         {
-            UNUSED(a);
-            UNUSED(b);
-            UNUSED(path);
+            EXPECT_EQ(std::make_tuple(left, right, path), expected);
             return true;
         });
         EXPECT_TRUE(ok);
@@ -201,24 +199,20 @@ TEST_F (TestYaGitLib, test_git_rebase)
 
     // rebase with conflicting commits
     fetch_rebase(*a, "origin", "master");
-    push_file(*a, "a/", "file3.txt", "third file a", "mod a");
-    commit_file(*b, "b/", "file3.txt", "third file b", "mod b");
-    fetch_rebase(*b, "origin", "master");
+    const auto left = "header\nmod a\nfooter\n";
+    push_file(*a, "a/", "file3.txt", "third file a", left);
+    const auto right = "header\nmod b\nfooter\n";
+    commit_file(*b, "b/", "file3.txt", "third file b", right);
+    fetch_rebase(*b, "origin", "master", std::make_tuple(left, right, "b/file3.txt"));
 
     const auto result = read_file("b/file3.txt");
     const auto expected =
+"header\n"
 "<<<<<<< refs/remotes/origin/master\n"
 "mod a\n"
 "=======\n"
 "mod b\n"
-">>>>>>> third file b\n";
-    EXPECT_EQ(result, expected);
-}
-
-TEST_F(TestYaGitLib, create_temp_files)
-{
-    const auto f1 = CreateTempFile();
-    EXPECT_TRUE(!!f1);
-    const auto f2 = CreateTempFile();
-    EXPECT_TRUE(!!f2);
+">>>>>>> third file b\n"
+"footer\n\n";
+    EXPECT_EQ(expected, result);
 }
