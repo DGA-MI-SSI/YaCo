@@ -434,32 +434,26 @@ bool Repository::commit_cache()
 {
     LOG(DEBUG, "Committing changes...\n");
 
-    std::set<std::string> untracked, modified, deleted;
+    int untracked = 0, modified = 0, deleted = 0;
     git_->status("cache/", [&](const char* name, const IGit::Status& status)
     {
+        untracked += status.untracked;
+        modified  += status.modified;
+        deleted   += status.deleted;
+        if(status.untracked || status.modified)
+            if(!git_->add_file(name))
+                LOG(ERROR, "unable to add %s to index\n", name);
         if(status.deleted)
-            deleted.insert(name);
-        if(status.modified)
-            modified.insert(name);
-        if(status.untracked)
-            untracked.insert(name);
+            if(!git_->remove_file(name))
+                LOG(ERROR, "unable to remove %s from index\n", name);
     });
-    if (untracked.empty() && modified.empty() && deleted.empty())
+    if(!untracked && !modified && !deleted)
     {
         LOG(DEBUG, "No changes to commit\n");
         return true;
     }
 
-    for(const auto& f : untracked)
-        if(!git_->add_file(f))
-            LOG(ERROR, "unable to add %s to index\n", f.c_str());
-    for(const auto& f : modified)
-        if(!git_->add_file(f))
-            LOG(ERROR, "unable to add %s to index\n", f.c_str());
-    for(const auto& f : deleted)
-        if(!git_->remove_file(f))
-            LOG(ERROR, "unable to remove %s for index\n", f.c_str());
-    LOG(INFO, "commit: %zd added %zd updated %zd deleted\n", untracked.size(), modified.size(), deleted.size());
+    LOG(INFO, "commit: %d added %d updated %d deleted\n", untracked, modified, deleted);
 
     ya::dedup(comments_);
 
