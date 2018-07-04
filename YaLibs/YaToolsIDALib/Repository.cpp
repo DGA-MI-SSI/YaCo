@@ -710,7 +710,7 @@ bool Repository::push(const std::string& src_branch, const std::string& dst_bran
 
 bool Repository::has_remote(const std::string& remote)
 {
-    bool found = true;
+    bool found = false;
     const auto ok = git_->remotes([&](const char* src, const char* /*dst*/)
     {
         found |= remote == src;
