@@ -498,6 +498,11 @@ plop.txt content line 2
         const auto root = fs::path(git.path_);
         const auto resolve_conflicts = [&]
         {
+            // skip index iteration if no conflicts found
+            if(load_index(git))
+                if(!git_index_has_conflicts(&*git.index_))
+                    return false;
+
             bool aborted = false;
             on_status(&*git.repo_, std::string(), [&](const char* path, const Git::Status& status)
             {
