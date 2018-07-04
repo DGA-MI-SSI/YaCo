@@ -16,7 +16,6 @@
 #include "Helpers.h"
 
 #include "gtest/gtest.h"
-#include <test_common.hpp>
 
 #include <iostream>
 #include <fstream>
@@ -24,19 +23,13 @@
 #include <chrono>
 #include <sstream>
 
-using namespace std;
-using namespace testing;
-using namespace testing::internal;
-
-
 #ifdef _MSC_VER
 #   include <filesystem>
 #else
 #   include <experimental/filesystem>
 #endif
 
-using namespace std;
-using namespace std::experimental;
+namespace fs = std::experimental::filesystem;
 
 #define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("xref", (FMT), ## __VA_ARGS__)
 
@@ -73,7 +66,7 @@ std::shared_ptr<IModel> ExportToYadb(const fs::path& path)
 std::pair<std::shared_ptr<IModel>, std::shared_ptr<IModel>> create_memorySignatureDB(const std::string& path1, const std::string& path2)
 {
 
-    filesystem::path data_test_path("../../YaDiff/tests/YaDiffLib_test/data/");
+    fs::path data_test_path("../../YaDiff/tests/YaDiffLib_test/data/");
     std::vector<std::string> file1 { (data_test_path / path1 ).string() };
     std::vector<std::string> file2 { (data_test_path / path2).string() };
 
@@ -87,7 +80,7 @@ std::pair<std::shared_ptr<IModel>, std::shared_ptr<IModel>> create_memorySignatu
 
 std::pair<std::shared_ptr<IModel>, std::shared_ptr<IModel>> create_flatBufferSignatureDB(const std::string& path1, const std::string& path2)
 {
-    filesystem::path data_test_path("../../YaDiff/tests/YaDiffLib_test/data/");
+    fs::path data_test_path("../../YaDiff/tests/YaDiffLib_test/data/");
     auto db1 = ExportToYadb(data_test_path / path1);
     auto db2 = ExportToYadb(data_test_path / path2);
     return make_pair(db1, db2);

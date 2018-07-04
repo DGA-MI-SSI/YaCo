@@ -5,8 +5,6 @@
 #   define YALIB_TEST
 #endif
 
-#include "test_common.hpp"
-
 #include "gtest/gtest.h"
 #ifdef _MSC_VER
 #   include <filesystem>

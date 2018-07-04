@@ -23,8 +23,6 @@
 #   define YALIB_TEST
 #endif
 
-#include "test_common.hpp"
-
 #define DEFAULT_CONFIDENCE  12
 #define DEFAULT_TYPE RELATION_TYPE_NONE
 #define DEFAULT_FOREIGN 1

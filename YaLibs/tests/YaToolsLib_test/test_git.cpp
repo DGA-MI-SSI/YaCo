@@ -20,7 +20,7 @@
 #include "gtest/gtest.h"
 
 #include <Git.hpp>
-#include <test_common.hpp>
+#include "test_common.hpp"
 
 using namespace testing;
 using namespace testing::internal;
