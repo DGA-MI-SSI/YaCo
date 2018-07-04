@@ -691,7 +691,7 @@ bool Git::push(const std::string& src, const std::string& dst)
     opts.pb_parallelism = 1;
     const auto err = git_remote_push(&*remote_, &refspecs, &opts);
     if(err != GIT_OK)
-        FAIL_WITH(false, "unable to push origni %s:%s", src.data(), dst.data());
+        FAIL_WITH(false, "unable to push origin %s:%s", src.data(), dst.data());
 
     return true;
 }
