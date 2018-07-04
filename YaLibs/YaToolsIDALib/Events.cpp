@@ -707,7 +707,7 @@ namespace
         deleted->visit_start();
         repo.diff_index(commit, [&](const char* /*path*/, bool added, const void* ptr, size_t size)
         {
-            AcceptXmlMemory(added ? *updated : *deleted, ptr, size);
+            AcceptXmlMemoryChunk(added ? *updated : *deleted, ptr, size);
             return 0;
         });
         deleted->visit_end();

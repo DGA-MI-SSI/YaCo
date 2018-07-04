@@ -20,6 +20,7 @@
 
 struct IModelVisitor;
 
-void AcceptXmlCache (IModelVisitor& visitor, const std::string& folder);
-void AcceptXmlFiles (IModelVisitor& visitor, const std::vector<std::string>& files);
-void AcceptXmlMemory(IModelVisitor& visitor, const void* data, size_t szdata);
+void AcceptXmlCache         (IModelVisitor& visitor, const std::string& folder);
+void AcceptXmlFiles         (IModelVisitor& visitor, const std::vector<std::string>& files);
+void AcceptXmlMemory        (IModelVisitor& visitor, const void* data, size_t szdata);
+void AcceptXmlMemoryChunk   (IModelVisitor& visitor, const void* data, size_t szdata);

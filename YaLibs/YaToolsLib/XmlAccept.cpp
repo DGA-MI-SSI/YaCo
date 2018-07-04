@@ -165,6 +165,13 @@ void AcceptXmlFiles(IModelVisitor& visitor, const std::vector<std::string>& file
 
 void AcceptXmlMemory(IModelVisitor& visitor, const void* data, size_t szdata)
 {
+    visitor.visit_start();
+    XmlModelMemory(data, szdata).accept(visitor);
+    visitor.visit_end();
+}
+
+void AcceptXmlMemoryChunk(IModelVisitor& visitor, const void* data, size_t szdata)
+{
     XmlModelMemory(data, szdata).accept(visitor);
 }
 
