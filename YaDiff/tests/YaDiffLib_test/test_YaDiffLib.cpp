@@ -473,7 +473,7 @@ void TestMergeName_Impl(std::pair<std::shared_ptr<IModel>, std::shared_ptr<IMode
     auto xml_exporter_repo2 = MakeXmlVisitor(p.path.string());
 
     differ.MergeDatabases(*db1, *db2, relations);
-    auto propagater = yadiff::Propagate(config, yadiff::NoShowAssociations, nullptr);
+    auto propagater = yadiff::Propagate(config, nullptr);
     propagate_to(propagater, *xml_exporter_repo2, *db1, *db2, relations);
 
     expect_req(relations, {
@@ -509,7 +509,7 @@ static void TestParentsExport_Impl(std::pair<std::shared_ptr<IModel>, std::share
     const auto config = Configuration("../../YaDiff/tests/YaDiffLib_test/data/config.xml");
     auto differ = yadiff::YaDiff(config);
     differ.MergeDatabases(*db1, *db2, relations);
-    auto propagater = yadiff::Propagate(config, yadiff::NoShowAssociations, nullptr);
+    auto propagater = yadiff::Propagate(config, nullptr);
     propagate_to(propagater, *xml_exporter_repo2, *db1, *db2, relations);
 
     expect_req(relations, {
@@ -547,7 +547,7 @@ static void TestMergeComments_Impl(std::pair<std::shared_ptr<IModel>, std::share
     const auto config = Configuration("../../YaDiff/tests/YaDiffLib_test/data/config.xml");
     auto differ = yadiff::YaDiff(config);
     differ.MergeDatabases(*db1, *db2, relations);
-    auto propagater = yadiff::Propagate(config, yadiff::NoShowAssociations, nullptr);
+    auto propagater = yadiff::Propagate(config, nullptr);
     propagate_to(propagater, *xml_exporter_repo2, *db1, *db2, relations);
 
     expect_req(relations, {
@@ -592,7 +592,7 @@ static void TestMergeAttributes_Impl(std::pair<std::shared_ptr<IModel>, std::sha
     const auto config = Configuration("../../YaDiff/tests/YaDiffLib_test/data/config.xml");
     auto differ = yadiff::YaDiff(config);
     differ.MergeDatabases(*db1, *db2, relations);
-    auto propagater = yadiff::Propagate(config, yadiff::NoShowAssociations, nullptr);
+    auto propagater = yadiff::Propagate(config, nullptr);
     propagate_to(propagater, *xml_exporter_repo2, *db1, *db2, relations);
 
     expect_req(relations, {
@@ -637,7 +637,7 @@ static void TestMergeXrefs_Impl(std::pair<std::shared_ptr<IModel>, std::shared_p
     const auto config = Configuration("../../YaDiff/tests/YaDiffLib_test/data/config.xml");
     auto differ = yadiff::YaDiff(config);
     differ.MergeDatabases(*db1, *db2, relations);
-    auto propagater = yadiff::Propagate(config, yadiff::NoShowAssociations, nullptr);
+    auto propagater = yadiff::Propagate(config, nullptr);
     propagate_to(propagater, *xml_exporter_repo2, *db1, *db2, relations);
 
     expect_req(relations, {
@@ -682,7 +682,7 @@ static void TestMergeLoopXrefs_Impl(std::pair<std::shared_ptr<IModel>, std::shar
     const auto config = Configuration("../../YaDiff/tests/YaDiffLib_test/data/config.xml");
     auto differ = yadiff::YaDiff(config);
     differ.MergeDatabases(*db1, *db2, relations);
-    auto propagater = yadiff::Propagate(config, yadiff::NoShowAssociations, nullptr);
+    auto propagater = yadiff::Propagate(config, nullptr);
     propagate_to(propagater, *xml_exporter_repo2, *db1, *db2, relations);
 
     expect_req(relations, {
@@ -722,7 +722,7 @@ static void TestMergeMissingXrefs_Impl(std::pair<std::shared_ptr<IModel>, std::s
     const auto config = Configuration("../../YaDiff/tests/YaDiffLib_test/data/config.xml");
     auto differ = yadiff::YaDiff(config);
     differ.MergeDatabases(*db1, *db2, relations);
-    auto propagater = yadiff::Propagate(config, yadiff::NoShowAssociations, nullptr);
+    auto propagater = yadiff::Propagate(config, nullptr);
     propagate_to(propagater, *xml_exporter_repo2, *db1, *db2, relations);
 
     expect_req(relations, {
@@ -768,7 +768,7 @@ static void TestMergeMultiStrucXrefs_Impl(std::pair<std::shared_ptr<IModel>, std
     const auto config = Configuration("../../YaDiff/tests/YaDiffLib_test/data/config.xml");
     auto differ = yadiff::YaDiff(config);
     differ.MergeDatabases(*db1, *db2, relations);
-    auto propagater = yadiff::Propagate(config, yadiff::NoShowAssociations, nullptr);
+    auto propagater = yadiff::Propagate(config, nullptr);
     propagate_to(propagater, *xml_exporter_repo2, *db1, *db2, relations);
 
     expect_req(relations, {

@@ -9,44 +9,29 @@
 #include <Algo/Algo.hpp>
 
 #include <deque>
-#include <assert.h>
+#include <set>
 
 using namespace std;
 
 #define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("propagate", (FMT), ## __VA_ARGS__)
-
-//#define XML_CACHE_EXPORT
-//#define YADIFF_MERGE_XREFS
 
 namespace yadiff
 {
 static const std::string SECTION_NAME = "Propagate";
 
 
-Propagate::Propagate(const Configuration& config, ShowAssociations_e eShowAssociations, const Merger::on_conflict_fn& on_conflict)
-    : mShowAssociations(eShowAssociations == ShowAssociations)
+Propagate::Propagate(const Configuration& config, const Merger::on_conflict_fn& on_conflict)
+    : estrategy_(OBJECT_VERSION_MERGE_IGNORE)
     , config_(config)
     , on_conflict_(on_conflict)
 {
     const auto MergerStrat = config.GetOption(SECTION_NAME, "MergeStrategy");
     if(MergerStrat == "PROMPT")
-    {
-        assert(MergePrompt != nullptr);
-        mObjectVersionMergeStrategy = OBJECT_VERSION_MERGE_PROMPT;
-    }
+        estrategy_ = OBJECT_VERSION_MERGE_PROMPT;
     else if(MergerStrat == "FORCE_REFERENCE")
-    {
-        mObjectVersionMergeStrategy = OBJECT_VERSION_MERGE_FORCE_REFERENCE;
-    }
+        estrategy_ = OBJECT_VERSION_MERGE_FORCE_REFERENCE;
     else if(MergerStrat == "FORCE_NEW")
-    {
-        mObjectVersionMergeStrategy = OBJECT_VERSION_MERGE_FORCE_NEW;
-    }
-    else /* (MergerStrat == "IGNORE") and default case */
-    {
-        mObjectVersionMergeStrategy = OBJECT_VERSION_MERGE_IGNORE;
-    }
-
+        estrategy_ = OBJECT_VERSION_MERGE_FORCE_NEW;
 }
 
 bool NeedExportAsChild(const HVersion& hver)
@@ -82,61 +67,62 @@ void Propagate::PropagateToDB(IModelVisitor& visitor_db, const IModel& ref_model
     std::set<YaToolObjectId> newObjectIds;
 
     // build merger
-    Merger merger(mObjectVersionMergeStrategy, on_conflict_);
+    Merger merger(estrategy_, on_conflict_);
 
     visitor_db.visit_start();
 
     /* Iterate throw relations */
-        walk([&](const Relation& relation){
-            if((relation.direction_ & RELATION_DIRECTION_LOCAL_TO_REMOTE) == 0)
-                return true;
-
-            // TODO check relation_confidence
-            switch(relation.confidence_)
-            {
-            case RELATION_CONFIDENCE_MAX:
-                break;
-            default:
-                return true;
-            }
-
-            switch(relation.type_)
-            {
-            case RELATION_TYPE_EXACT_MATCH:
-                break;
-            case RELATION_TYPE_DIFF:
-                // check conf
-                break;
-            default:
-                return true;
-            }
-
-            /* Check if object has been already exported */
-            const auto obj_id = relation.version2_.id();
-            if (exportedObjects.find(obj_id) != exportedObjects.end())
-            {
-                return true;
-            }
-
-            /* Check objects have the same type */
-            if (relation.version1_.type() != relation.version2_.type())
-            {
-                LOG(ERROR, "PropagateToDB: Invalid object type, local: %x, remote: %x\n", relation.version1_.type(), relation.version2_.type());
-                return true;
-            }
-
-            /* Check if object in db1 has difference with object in db2 */
-            if (relation.version1_.is_different_from(relation.version2_) == false)
-            {
-                return true;
-            }
-
-            merger.merge_ids(visitor_db, newObjectIds, relation);
-
-            exportedObjects.insert(obj_id);
-
+    walk([&](const Relation& relation)
+    {
+        if((relation.direction_ & RELATION_DIRECTION_LOCAL_TO_REMOTE) == 0)
             return true;
-        });
+
+        // TODO check relation_confidence
+        switch(relation.confidence_)
+        {
+        case RELATION_CONFIDENCE_MAX:
+            break;
+        default:
+            return true;
+        }
+
+        switch(relation.type_)
+        {
+        case RELATION_TYPE_EXACT_MATCH:
+            break;
+        case RELATION_TYPE_DIFF:
+            // check conf
+            break;
+        default:
+            return true;
+        }
+
+        /* Check if object has been already exported */
+        const auto obj_id = relation.version2_.id();
+        if (exportedObjects.find(obj_id) != exportedObjects.end())
+        {
+            return true;
+        }
+
+        /* Check objects have the same type */
+        if (relation.version1_.type() != relation.version2_.type())
+        {
+            LOG(ERROR, "PropagateToDB: Invalid object type, local: %x, remote: %x\n", relation.version1_.type(), relation.version2_.type());
+            return true;
+        }
+
+        /* Check if object in db1 has difference with object in db2 */
+        if (relation.version1_.is_different_from(relation.version2_) == false)
+        {
+            return true;
+        }
+
+        merger.merge_ids(visitor_db, newObjectIds, relation);
+
+        exportedObjects.insert(obj_id);
+
+        return true;
+    });
 
     // Export children and parents
     std::set<YaToolObjectId> walkedChilds;

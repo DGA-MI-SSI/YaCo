@@ -65,7 +65,7 @@ void MergeToCache(YaDiff& differ, const Configuration& config, const std::string
     std::vector<Relation> relations;
     differ.MergeDatabases(*ref_model, *new_model, relations);
     
-    Propagate propagater(config, NoShowAssociations, nullptr);
+    Propagate propagater(config, nullptr);
     for(const auto& cache : caches)
     {
         LOG(INFO, "Propagating cache %s\n", cache.data());
