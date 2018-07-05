@@ -672,7 +672,7 @@ namespace
 
         // load all xml files into a model we can query
         const auto full = MakeMemoryModel();
-        AcceptXmlCache(*full, ".");
+        AcceptXmlCache(*full, "cache");
 
         // prepare final updated model
         const auto all_updates = MakeMemoryModel();

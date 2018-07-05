@@ -199,7 +199,7 @@ void YaCo::initial_load()
     LOG(DEBUG, "Loading...\n");
 
     const auto mem = MakeMemoryModel();
-    AcceptXmlCache(*mem, ".");
+    AcceptXmlCache(*mem, "cache");
     MakeIdaSink()->update(*mem);
 
     const auto time_end = std::chrono::system_clock::now();

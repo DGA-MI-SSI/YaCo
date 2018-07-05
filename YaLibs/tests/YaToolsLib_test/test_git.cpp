@@ -149,17 +149,17 @@ TEST_F (TestYaGitLib, test_git_status_with_path)
     EXPECT_TRUE(ok);
 
     std::error_code ec;
-    fs::create_directories("test/cache", ec);
-    write_file("test/cache/file2.txt", "file2 content");
+    fs::create_directories("test/subdir", ec);
+    write_file("test/subdir/file2.txt", "file2 content");
 
     files.clear();
-    ok = repo->status("cache/", [&](const char* name, const IGit::Status& status)
+    ok = repo->status("subdir/", [&](const char* name, const IGit::Status& status)
     {
         if(status.untracked)
             files.insert(name);
     });
     EXPECT_TRUE(ok);
-    std::set<std::string> ref2({"cache/file2.txt"});
+    std::set<std::string> ref2({"subdir/file2.txt"});
     EXPECT_EQ(files, ref2);
 }
 

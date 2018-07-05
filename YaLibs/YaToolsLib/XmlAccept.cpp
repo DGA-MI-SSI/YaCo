@@ -34,7 +34,7 @@
 #   include <experimental/filesystem>
 #endif
 
-using namespace std::experimental;
+namespace fs = std::experimental::filesystem;
 
 #define THROW(FMT, ...) do {\
     YALOG_ERROR(nullptr, (FMT), ## __VA_ARGS__);\
@@ -81,7 +81,7 @@ namespace
         return swap(id << (8 - n) * 8);
     }
 
-    YaToolObjectType_e get_object_type_from_path(const filesystem::path& path)
+    YaToolObjectType_e get_object_type_from_path(const fs::path& path)
     {
         auto it = path.begin();
         if(it == path.end())
@@ -92,7 +92,7 @@ namespace
 
     std::vector<std::string> sort_files(std::vector<std::string> files)
     {
-        std::sort(files.begin(), files.end(), [](const filesystem::path& a, const filesystem::path& b)
+        std::sort(files.begin(), files.end(), [](const fs::path& a, const fs::path& b)
         {
             const auto atype = get_object_type_from_path(a);
             const auto btype = get_object_type_from_path(b);
@@ -149,7 +149,7 @@ namespace
 
         void accept(IModelVisitor& visitor);
 
-        const std::string folder_;
+        const fs::path folder_;
     };
 }
 
@@ -549,19 +549,19 @@ void XmlModelPath::accept(IModelVisitor& visitor)
 {
     try
     {
-        filesystem::path root_folder(path_);
-        if (filesystem::exists(root_folder) && filesystem::is_directory(root_folder))
+        fs::path root_folder(path_);
+        if (fs::exists(root_folder) && fs::is_directory(root_folder))
         {
             for (const auto& sub_folder : gFolders)
             {
-                filesystem::path sub_folder_path(root_folder);
+                fs::path sub_folder_path(root_folder);
                 sub_folder_path /= sub_folder;
-                if (filesystem::exists(sub_folder_path) && filesystem::is_directory(sub_folder_path))
+                if (fs::exists(sub_folder_path) && fs::is_directory(sub_folder_path))
                 {
                     std::list<std::string> files;
-                    for (filesystem::directory_iterator file(sub_folder_path), end; file != end; file++)
+                    for (fs::directory_iterator file(sub_folder_path), end; file != end; file++)
                     {
-                        filesystem::path file_path(*file);
+                        fs::path file_path(*file);
                         files.push_back(file_path.string());
                     }
                     files.sort();
@@ -577,7 +577,7 @@ void XmlModelPath::accept(IModelVisitor& visitor)
             THROW("input folder %s does not exist or is not a directory\n", root_folder.string().data());
         }
     }
-    catch (const filesystem::filesystem_error& ex)
+    catch (const fs::filesystem_error& ex)
     {
         YALOG_ERROR(nullptr, "%s\n", ex.what());
     }
@@ -586,10 +586,9 @@ void XmlModelPath::accept(IModelVisitor& visitor)
 void XMLAllDatabaseModel::accept(IModelVisitor& visitor)
 {
     visitor.visit_start();
-    const auto cache_path = filesystem::path(folder_) / "cache";
-    if(filesystem::is_directory(cache_path))
-        XmlModelPath(cache_path.string()).accept(visitor);
+    if(fs::is_directory(folder_))
+        XmlModelPath(folder_.string()).accept(visitor);
     else
-        YALOG_ERROR(nullptr, "input cache not found as %s\n", cache_path.generic_string().data());
+        YALOG_ERROR(nullptr, "missing directory %s\n", folder_.string().data());
     visitor.visit_end();
 }

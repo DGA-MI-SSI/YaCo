@@ -18,7 +18,7 @@ using namespace std;
 
 void usage(char* argv[])
 {
-    std::cerr << argv[0] << ": <config.xml> <ref_db.yadb> <new_db.yadb> <cache.yadb>" << std::endl;
+    std::cerr << argv[0] << ": <config.xml> <ref_db.yadb> <new_db.yadb> <yadiff.yadb>" << std::endl;
     std::cerr << "\tconfig.xml: " << std::endl;
     std::cerr << "\tref_db.yadb: " << std::endl;
     std::cerr << "\tnew_db.yadb: " << std::endl;

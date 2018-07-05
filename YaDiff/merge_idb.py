@@ -222,8 +222,8 @@ def main(options):
 
     yadb_from = export_database(ctx, options.idb_from, "from", options.dont_close_ida)
     yadb_to = export_database(ctx, options.idb_to, "to", options.dont_close_ida)
-    cache = diff_databases(ctx, yadb_from, options.idb_to, yadb_to, config_path)
-    load_yadb(ctx, options.idb_to, cache, options.analysis, options.dont_close_ida)
+    yadb_diff = diff_databases(ctx, yadb_from, options.idb_to, yadb_to, config_path)
+    load_yadb(ctx, options.idb_to, yadb_diff, options.analysis, options.dont_close_ida)
 
     if not options.no_cleanup:
         cleanup(ctx)
