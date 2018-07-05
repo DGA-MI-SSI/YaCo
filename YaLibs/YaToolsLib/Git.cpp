@@ -46,11 +46,14 @@ namespace fs = std::experimental::filesystem;
 namespace std
 {
     template<> struct default_delete<git_annotated_commit>        { static const bool marker = true; void operator()(git_annotated_commit*        ptr) { git_annotated_commit_free(ptr); } };
+    template<> struct default_delete<git_buf>                     { static const bool marker = true; void operator()(git_buf*                     ptr) { git_buf_free(ptr); } };
     template<> struct default_delete<git_commit>                  { static const bool marker = true; void operator()(git_commit*                  ptr) { git_commit_free(ptr); } };
     template<> struct default_delete<git_config>                  { static const bool marker = true; void operator()(git_config*                  ptr) { git_config_free(ptr); } };
     template<> struct default_delete<git_diff>                    { static const bool marker = true; void operator()(git_diff*                    ptr) { git_diff_free(ptr); } };
-    template<> struct default_delete<git_index>                   { static const bool marker = true; void operator()(git_index*                   ptr) { git_index_free(ptr); } };
     template<> struct default_delete<git_index_conflict_iterator> { static const bool marker = true; void operator()(git_index_conflict_iterator* ptr) { git_index_conflict_iterator_free(ptr); } };
+    template<> struct default_delete<git_index>                   { static const bool marker = true; void operator()(git_index*                   ptr) { git_index_free(ptr); } };
+    template<> struct default_delete<git_merge_file_result>       { static const bool marker = true; void operator()(git_merge_file_result*       ptr) { git_merge_file_result_free(ptr); } };
+    template<> struct default_delete<git_patch>                   { static const bool marker = true; void operator()(git_patch*                   ptr) { git_patch_free(ptr); } };
     template<> struct default_delete<git_rebase>                  { static const bool marker = true; void operator()(git_rebase*                  ptr) { git_rebase_free(ptr); } };
     template<> struct default_delete<git_reference>               { static const bool marker = true; void operator()(git_reference*               ptr) { git_reference_free(ptr); } };
     template<> struct default_delete<git_remote>                  { static const bool marker = true; void operator()(git_remote*                  ptr) { git_remote_free(ptr); } };
@@ -736,4 +739,56 @@ bool Git::clone(const std::string& path, ECloneMode emode)
     const auto repo = make_unique(ptr_repo);
     UNUSED(repo); // will delete repo
     return true;
+}
+
+std::string diff_strings(const const_string_ref& left, const char* leftname, const const_string_ref& right, const char* rightname)
+{
+    git_patch* ptr_patch = nullptr;
+    git_diff_options opts;
+    git_diff_init_options(&opts, GIT_DIFF_OPTIONS_VERSION);
+    opts.flags |= GIT_DIFF_INDENT_HEURISTIC;
+    opts.context_lines = 3;
+    auto err = git_patch_from_buffers(&ptr_patch, left.value, left.size, leftname, right.value, right.size, rightname, &opts);
+    if(err != GIT_OK)
+        return std::string();
+
+    const auto patch = make_unique(ptr_patch);
+    git_buf buf;
+    memset(&buf, 0, sizeof buf);
+    err = git_patch_to_buf(&buf, ptr_patch);
+    if(err != GIT_OK)
+        return std::string();
+
+    const auto free_buf = make_unique(&buf);
+    return std::string(buf.ptr, buf.size);
+}
+
+namespace
+{
+    git_merge_file_input make_merge_input(const char* name, const const_string_ref& value)
+    {
+        git_merge_file_input input;
+        git_merge_file_init_input(&input, GIT_MERGE_FILE_INPUT_VERSION);
+        input.path = name;
+        input.ptr = value.value;
+        input.size = value.size;
+        return input;
+    }
+}
+
+std::string merge_strings(const const_string_ref& left, const char* leftname, const const_string_ref& right, const char* rightname)
+{
+    const auto local  = make_merge_input(leftname, left);
+    const auto remote = make_merge_input(rightname, right);
+    git_merge_file_result result;
+    memset(&result, 0, sizeof result);
+    git_merge_file_options opts;
+    git_merge_file_init_options(&opts, GIT_MERGE_FILE_OPTIONS_VERSION);
+    opts.flags = static_cast<git_merge_file_flag_t>(opts.flags | GIT_MERGE_FILE_DIFF_MINIMAL);
+    const auto err = git_merge_file(&result, nullptr, &local, &remote, &opts);
+    if(err != GIT_OK)
+        return std::string();
+
+    const auto free_result = make_unique(&result);
+    return std::string(result.ptr, result.len);
 }

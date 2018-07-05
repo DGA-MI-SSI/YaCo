@@ -117,7 +117,7 @@ namespace
 
         case OBJECT_VERSION_MERGE_PROMPT:
             /* A conflict is detected, need to fix conflict manually */
-            const auto message = "Conflict detected between " + name + " attribute";
+            const auto message = "Conflict detected on " + name + " attribute";
             const auto reply = m.on_conflict_(message, make_string(local), make_string(remote));
             return on_merge(reply.empty() ? remote : make_string_ref(reply));
         }

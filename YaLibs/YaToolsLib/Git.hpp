@@ -15,6 +15,8 @@
 
 #pragma once
 
+#include "YaTypes.hpp"
+
 #include <memory>
 #include <string>
 #include <functional>
@@ -62,3 +64,6 @@ struct IGit
 
 std::shared_ptr<IGit> MakeGit       (const std::string& path);
 std::shared_ptr<IGit> MakeGitBare   (const std::string& path);
+
+std::string diff_strings (const const_string_ref& left, const char* leftname, const const_string_ref& right, const char* rightname);
+std::string merge_strings(const const_string_ref& left, const char* leftname, const const_string_ref& right, const char* rightname);

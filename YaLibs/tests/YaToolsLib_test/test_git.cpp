@@ -206,13 +206,6 @@ TEST_F (TestYaGitLib, test_git_rebase)
     fetch_rebase(*b, "origin", "master", std::make_tuple(left, right, "b/file3.txt"));
 
     const auto result = read_file("b/file3.txt");
-    const auto expected =
-"header\n"
-"<<<<<<< refs/remotes/origin/master\n"
-"mod a\n"
-"=======\n"
-"mod b\n"
-">>>>>>> third file b\n"
-"footer\n\n";
+    const auto expected = merge_strings(make_string_ref(left), "refs/remotes/origin/master", make_string_ref(right), "third file b") + "\n";
     EXPECT_EQ(expected, result);
 }

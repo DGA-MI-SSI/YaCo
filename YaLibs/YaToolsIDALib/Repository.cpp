@@ -190,9 +190,8 @@ namespace
     std::string merge_attributes_callback(const std::string& message, const std::string& local, const std::string& remote)
     {
         qstring buffer;
-        const auto ok = ask_text(&buffer, 0, local.data(),
-                                 "%s\nValue from local : %s\nValue from remote : %s\n",
-                                 message.data(), local.data(), remote.data());
+        const auto defval = merge_strings(make_string_ref(local), "local", make_string_ref(remote), "remote");
+        const auto ok = ask_text(&buffer, 0, defval.data(), "%s\n", message.data());
         if(!ok)
             return local;
 
