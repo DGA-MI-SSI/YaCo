@@ -3,9 +3,9 @@
 #include <YaTypes.hpp>
 #include <Merger.hpp>
 
+#include <functional>
 #include <map>
 
-namespace std { template<typename T> class function; }
 
 class GitRepo;
 struct HVersion;
@@ -44,14 +44,10 @@ enum ShowAssociations_e
     ShowAssociations,
 };
 
-struct MergeContext_t
-{
-};
-
 class Propagate
 {
 public:
-    Propagate(const Configuration& config, ShowAssociations_e eShowAssociations, PromptMergeConflict* MergePrompt);
+    Propagate(const Configuration& config, ShowAssociations_e eShowAssociations, const Merger::on_conflict_fn& on_conflict);
 
     void PropagateToDB(IModelVisitor& visitor_db, const IModel& ref_model, const IModel& new_model, yadiff::RelationWalkerfn walk);
 
@@ -66,16 +62,13 @@ private:
 
     unsigned int addCommentToComments(const std::map<std::pair<offset_t, CommentType_e>, std::string> & fromOffsetComments,
                                       const std::map<std::pair<offset_t, CommentType_e>, std::string> & toOffsetComments,
-                                      ObjectVersionMergeStrategy_e MergeStrategie,
-                                      PromptMergeConflict& Prompt
-                                      );
+                                      ObjectVersionMergeStrategy_e MergeStrategie);
 
     ObjectVersionMergeStrategy_e            mObjectVersionMergeStrategy;
     ObjectVersionMergeStrategy_e            mNot_ObjectVersionMergeStrategy;
-    PromptMergeConflict*                    mpMergePrompt;
     bool                                    mShowAssociations;
     const Configuration&                    config_;
-
+    const Merger::on_conflict_fn&           on_conflict_;
 };
 
 } // end namespace

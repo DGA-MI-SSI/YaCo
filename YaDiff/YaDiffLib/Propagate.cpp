@@ -23,11 +23,10 @@ namespace yadiff
 static const std::string SECTION_NAME = "Propagate";
 
 
-Propagate::Propagate(const Configuration& config,
-                         ShowAssociations_e eShowAssociations, PromptMergeConflict* MergePrompt)
-    : mpMergePrompt(MergePrompt)
-    , mShowAssociations(eShowAssociations == ShowAssociations)
+Propagate::Propagate(const Configuration& config, ShowAssociations_e eShowAssociations, const Merger::on_conflict_fn& on_conflict)
+    : mShowAssociations(eShowAssociations == ShowAssociations)
     , config_(config)
+    , on_conflict_(on_conflict)
 {
     const auto MergerStrat = config.GetOption(SECTION_NAME, "MergeStrategy");
     if(MergerStrat == "PROMPT")
@@ -83,7 +82,7 @@ void Propagate::PropagateToDB(IModelVisitor& visitor_db, const IModel& ref_model
     std::set<YaToolObjectId> newObjectIds;
 
     // build merger
-    Merger merger(mpMergePrompt, mObjectVersionMergeStrategy);
+    Merger merger(mObjectVersionMergeStrategy, on_conflict_);
 
     visitor_db.visit_start();
 
@@ -132,7 +131,7 @@ void Propagate::PropagateToDB(IModelVisitor& visitor_db, const IModel& ref_model
                 return true;
             }
 
-            merger.mergeObjectVersions(visitor_db, newObjectIds, relation);
+            merger.merge_ids(visitor_db, newObjectIds, relation);
 
             exportedObjects.insert(obj_id);
 

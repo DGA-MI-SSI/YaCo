@@ -187,38 +187,25 @@ namespace
 
 namespace
 {
-    struct IDAPromptMergeConflict : public PromptMergeConflict
+    std::string merge_attributes_callback(const std::string& message, const std::string& local, const std::string& remote)
     {
-        std::string merge_attributes_callback(const char* message_info, const char* input_attribute1, const char* input_attribute2) override;
-    };
-}
+        qstring buffer;
+        const auto ok = ask_text(&buffer, 0, local.data(),
+                                 "%s\nValue from local : %s\nValue from remote : %s\n",
+                                 message.data(), local.data(), remote.data());
+        if(!ok)
+            return local;
 
-std::string IDAPromptMergeConflict::merge_attributes_callback(const char* message_info, const char* input_attribute1, const char* input_attribute2)
-{
-    qstring buffer;
-    if (!ask_text(
-        &buffer,
-        0,
-        input_attribute1,
-        "%s\nValue from local : %s\nValue from remote : %s\n",
-        message_info,
-        input_attribute1,
-        input_attribute2
-    ))
-        return std::string(input_attribute1);
-    return std::string(buffer.c_str());
-}
+        return buffer.c_str();
+    }
 
-namespace
-{
-    bool IDAInteractiveFileConflictResolver(const std::string& left, const std::string& right, const std::string& filename)
+    bool IDAInteractiveFileConflictResolver(const std::string& local, const std::string& remote, const std::string& filename)
     {
         if (!std::regex_match(filename, std::regex(".*\\.xml$")))
             return true;
 
-        IDAPromptMergeConflict merger_conflict;
-        Merger merger(&merger_conflict, ObjectVersionMergeStrategy_e::OBJECT_VERSION_MERGE_PROMPT);
-        const auto err = merger.smartMerge(left, right, filename);
+        Merger merger(ObjectVersionMergeStrategy_e::OBJECT_VERSION_MERGE_PROMPT, &merge_attributes_callback);
+        const auto err = merger.merge_files(local, remote, filename);
         if (err == MergeStatus_e::OBJECT_MERGE_STATUS_NOT_UPDATED)
             warning("Auto merge failed, please edit manually %s then continue\n", filename.data());
 
