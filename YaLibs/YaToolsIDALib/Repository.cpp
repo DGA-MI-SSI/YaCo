@@ -223,6 +223,7 @@ namespace
         Repository(const std::string& path);
 
         // IRepository
+        std::string get_cache() override;
         void add_comment(const std::string& msg) override;
         void check_valid_cache_startup() override; // can stop IDA
         std::string update_cache() override;
@@ -317,7 +318,7 @@ void Repository::check_valid_cache_startup()
     }
 
     std::error_code ec;
-    fs::create_directory("cache", ec);
+    fs::create_directory(get_cache(), ec);
     if (ec)
         LOG(WARNING, "Cache directory creation failed, error: %s\n", ec.message().c_str());
 
@@ -421,7 +422,7 @@ bool Repository::commit_cache()
     LOG(DEBUG, "Committing changes...\n");
 
     int untracked = 0, modified = 0, deleted = 0;
-    git_->status("cache/", [&](const char* name, const IGit::Status& status)
+    git_->status(get_cache() + "/", [&](const char* name, const IGit::Status& status)
     {
         untracked += status.untracked;
         modified  += status.modified;
@@ -490,7 +491,7 @@ void Repository::sync_and_push_original_idb()
     }
 
     // remove xml cache files
-    for (const fs::directory_entry& file_path : fs::recursive_directory_iterator("cache"))
+    for (const auto& file_path : fs::recursive_directory_iterator(get_cache()))
     {
         std::error_code ec;
         const bool is_regular_file = fs::is_regular_file(file_path.path(), ec);
@@ -696,6 +697,11 @@ void Repository::diff_index(const std::string& from, const on_blob_fn& on_blob) 
 bool Repository::idb_is_tracked()
 {
     return include_idb_;
+}
+
+std::string Repository::get_cache()
+{
+    return "cache";
 }
 
 std::shared_ptr<IRepository> MakeRepository(const std::string& path)

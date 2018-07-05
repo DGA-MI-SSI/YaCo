@@ -537,14 +537,6 @@ namespace
             }
     }
 
-    std::string get_cache_folder_path()
-    {
-        std::string cache_folder_path = get_path(PATH_TYPE_IDB);
-        remove_substring(cache_folder_path, fs::path(cache_folder_path).filename().string());
-        cache_folder_path += "cache";
-        return cache_folder_path;
-    }
-
     void save(Events& ev)
     {
         LOG(DEBUG, "Saving cache...\n");
@@ -559,7 +551,7 @@ namespace
             save_eas(ev, *model, *db);
         }
         db->visit_end();
-        db->accept(*MakeXmlVisitor(get_cache_folder_path()));
+        db->accept(*MakeXmlVisitor(ev.repo_.get_cache()));
 
         const auto time_end = std::chrono::system_clock::now();
         const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(time_end - time_start).count();
@@ -664,7 +656,7 @@ namespace
         });
     }
 
-    std::shared_ptr<IModel> get_all_updates(const IModel& updated, const IModel& deleted)
+    std::shared_ptr<IModel> get_all_updates(IRepository& repo, const IModel& updated, const IModel& deleted)
     {
         // two things we need to watch for:
         // * applying a struc in a basic block, make sure the struc is reloaded
@@ -672,7 +664,7 @@ namespace
 
         // load all xml files into a model we can query
         const auto full = MakeMemoryModel();
-        AcceptXmlCache(*full, "cache");
+        AcceptXmlCache(*full, repo.get_cache());
 
         // prepare final updated model
         const auto all_updates = MakeMemoryModel();
@@ -718,7 +710,7 @@ namespace
         // apply changes on ida
         LOG(INFO, "rebase: %zd updated %zd deleted\n", updated->size(), deleted->size());
         sink.remove(*deleted);
-        sink.update(*get_all_updates(*updated, *deleted));
+        sink.update(*get_all_updates(repo, *updated, *deleted));
     }
 }
 
