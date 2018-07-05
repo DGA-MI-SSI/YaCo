@@ -5,6 +5,7 @@
 
 #include "Yatools.hpp"
 #include "Helpers.h"
+#include "Relation.hpp"
 #include <IModel.hpp>
 #include <Algo/Algo.hpp>
 
@@ -117,7 +118,10 @@ void Propagate::PropagateToDB(IModelVisitor& visitor_db, const IModel& ref_model
             return true;
         }
 
-        merger.merge_ids(visitor_db, newObjectIds, relation);
+        merger.merge_ids(visitor_db, relation, [&](YaToolObjectId id)
+        {
+            newObjectIds.insert(id);
+        });
 
         exportedObjects.insert(obj_id);
 

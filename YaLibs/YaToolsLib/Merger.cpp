@@ -18,6 +18,7 @@
 #include "MemoryModel.hpp"
 #include "XmlAccept.hpp"
 #include "XmlVisitor.hpp"
+#include "Relation.hpp"
 
 #include <algorithm>
 #include <map>
@@ -81,8 +82,7 @@ MergeStatus_e Merger::merge_files(const std::string& local, const std::string& r
     /* Merge */
     const auto output = MakeMemoryModel();
     output->visit_start();
-    std::set<YaToolObjectId> ids;
-    const auto retval = merge_ids(*output, ids, relation);
+    const auto retval = merge_ids(*output, relation, nullptr);
 	output->visit_end();
     
     if(retval != OBJECT_MERGE_STATUS_NOT_UPDATED)
@@ -209,7 +209,7 @@ namespace
     }
 }
 
-MergeStatus_e Merger::merge_ids(IModelVisitor& visitor_db, std::set<YaToolObjectId>& ids, const Relation& relation)
+MergeStatus_e Merger::merge_ids(IModelVisitor& visitor_db, const Relation& relation, const on_id_fn& on_id)
 {
     visitor_db.visit_start_version(relation.version2_.type(), relation.version2_.id());
 
@@ -358,7 +358,8 @@ MergeStatus_e Merger::merge_ids(IModelVisitor& visitor_db, std::set<YaToolObject
                 operand_t operand = xref.first.second;
 
                 visitor_db.visit_start_xref(xref_offset, xref.second.xref_value, operand);
-                ids.insert(xref.second.xref_value);
+                if(on_id)
+                    on_id(xref.second.xref_value);
                 xref.second.object.walk_xref_attributes(xref.second.hattr, [&](const const_string_ref& xref_attr_key, const const_string_ref& xref_attr_value)
                 {
                     visitor_db.visit_xref_attribute(xref_attr_key, xref_attr_value);

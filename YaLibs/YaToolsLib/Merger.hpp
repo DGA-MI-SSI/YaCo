@@ -12,12 +12,11 @@
 //
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-#include "HVersion.hpp"
-#include "Relation.hpp"
+#include "YaTypes.hpp"
 
 #include <functional>
-#include <set>
+
+struct Relation;
 
 /**
  * Merge strategy during merge of two ObjectVersion
@@ -35,30 +34,21 @@ enum ObjectVersionMergeStrategy_e
  */
 enum MergeStatus_e
 {
-    OBJECT_MERGE_STATUS_NOT_UPDATED           = 0x00,
-    OBJECT_MERGE_STATUS_LOCAL_UPDATED         = 0x01,
-    OBJECT_MERGE_STATUS_REMOTE_UPDATED        = 0x10,
-    OBJECT_MERGE_STATUS_BOTH_UPDATED          = 0x11,
-};
-
-#define OBJECT_MERGE_STATUS_IS_LOCAL_UPDATED(X)     (X && OBJECT_MERGE_STATUS_LOCAL_UPDATED)
-#define OBJECT_MERGE_STATUS_IS_REMOTE_UPDATED(X)    (X && OBJECT_MERGE_STATUS_REMOTE_UPDATED)
-
-
-enum PromptMergeConflictResult_e
-{
-    PROMPT_MERGE_CONFLICT_SOLVED = 0,
-    PROMPT_MERGE_CONFLICT_UNSOLVED
+    OBJECT_MERGE_STATUS_NOT_UPDATED,
+    OBJECT_MERGE_STATUS_LOCAL_UPDATED,
+    OBJECT_MERGE_STATUS_REMOTE_UPDATED,
+    OBJECT_MERGE_STATUS_BOTH_UPDATED,
 };
 
 struct Merger
 {
     using on_conflict_fn = std::function<std::string(const std::string& info, const std::string& local, const std::string& remote)>;
     using on_merge_fn    = std::function<void(const std::string&)>;
+    using on_id_fn       = std::function<void(YaToolObjectId)>;
 
     Merger(ObjectVersionMergeStrategy_e estrategy, const on_conflict_fn& on_conflict);
 
-    MergeStatus_e   merge_ids       (IModelVisitor& visitor, std::set<YaToolObjectId>& ids, const Relation& relation);
+    MergeStatus_e   merge_ids       (IModelVisitor& visitor, const Relation& relation, const on_id_fn& on_id);
     MergeStatus_e   merge_files     (const std::string& local, const std::string& remote, const std::string& filename);
 
     const on_conflict_fn            on_conflict_;
