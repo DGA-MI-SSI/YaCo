@@ -28,6 +28,7 @@
 #include "XmlVisitor.hpp"
 #include "IModel.hpp"
 #include "MemoryModel.hpp"
+#include "Git.hpp"
 
 #include "gtest/gtest.h"
 #include <queue>
@@ -222,25 +223,25 @@ TEST_F (TestXMLDatabaseModel, TestOneDoubleFile)
 
 namespace
 {
-    void diff_files(const std::string& a, const std::string& b)
+    std::string read_file(const std::string& filename)
     {
-        std::ifstream fa;
-        fa.open(a, std::ios::in);
-        std::ifstream fb;
-        fb.open(b, std::ios::in);
-        while(!fa.eof())
-        {
-            std::string sa, sb;
-            getline(fa, sa);
-            getline(fb, sb);
-            EXPECT_EQ(sa, sb);
-        }
-        while(!fb.eof())
-        {
-            std::string sa, sb;
-            getline(fb, sb);
-            EXPECT_EQ(sa, sb);
-        }
+        std::ifstream ifs(filename);
+        std::string line;
+        std::string reply;
+        while(std::getline(ifs, line))
+            reply += line + "\n";
+        return reply;
+    }
+
+    void diff_files(const std::string& left, const std::string& right)
+    {
+        const auto a = read_file(left);
+        const auto b = read_file(right);
+        const auto reply = diff_strings(make_string_ref(a), left.data(), make_string_ref(b), right.data());
+        if(reply.empty())
+            return;
+        fprintf(stderr, "%s", reply.data());
+        GTEST_FAIL();
     }
 }
 
