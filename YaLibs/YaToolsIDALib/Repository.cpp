@@ -21,14 +21,11 @@
 #include "Git.hpp"
 #include "Yatools.hpp"
 #include "Utils.hpp"
-#include "YaHelpers.hpp"
 #include "Helpers.h"
 
 #include <ctime>
 #include <libxml/xmlreader.h>
-#include <memory>
 #include <regex>
-#include <sstream>
 #include <fstream>
 
 #ifdef _MSC_VER
@@ -239,10 +236,10 @@ namespace
         bool push(const std::string& src_branch, const std::string& dst_branch);
         bool has_remote(const std::string& remote);
 
-        std::shared_ptr<IGit>    git_;
-        std::vector<std::string> comments_;
-        bool                     repo_auto_sync_;
-        bool                     include_idb_;
+        std::shared_ptr<IGit>   git_;
+        std::set<std::string>   comments_;
+        bool                    repo_auto_sync_;
+        bool                    include_idb_;
     };
 }
 
@@ -298,7 +295,7 @@ Repository::Repository(const std::string& path)
 
 void Repository::add_comment(const std::string& msg)
 {
-    comments_.emplace_back(msg);
+    comments_.insert(msg);
 }
 
 bool Repository::check_valid_cache_startup()
@@ -439,8 +436,6 @@ bool Repository::commit_cache()
     }
 
     LOG(INFO, "commit: %d added %d updated %d deleted\n", untracked, modified, deleted);
-
-    ya::dedup(comments_);
 
     std::string commit_msg;
     for(const auto& it : comments_)
