@@ -47,12 +47,6 @@ namespace
     const int    GIT_PUSH_RETRIES = 3;
 
 
-    bool is_git_working_dir(const std::string& path)
-    {
-        std::error_code ec;
-        return fs::is_directory(path + "/.git", ec) && !ec;
-    }
-
     bool is_valid_xml_file(const std::string& filename)
     {
         std::shared_ptr<xmlTextReader> reader(xmlReaderForFile(filename.c_str(), NULL, 0), &xmlFreeTextReader);
@@ -256,8 +250,7 @@ Repository::Repository(const std::string& path)
     : repo_auto_sync_(true)
     , include_idb_(false)
 {
-    // check git working directory before creating repo
-    const bool repo_already_exists = is_git_working_dir(path);
+    const bool repo_already_exists = is_git_directory(path);
 
     git_ = MakeGit(path);
     if(!git_)
@@ -273,10 +266,10 @@ Repository::Repository(const std::string& path)
         LOG(DEBUG, "Repo opened\n");
         return;
     }
-    LOG(INFO, "Repo created\n");
 
     include_idb_ = ask_for_idb_tracking();
     LOG(INFO, "%s %s\n", include_idb_ ? "tracking" : "ignoring", get_original_idb_name().data());
+    LOG(INFO, "Repo created\n");
 
     // add .gitignore to repo
     const auto gitignore = fs::path(get_current_idb_path()).replace_filename(".gitignore");

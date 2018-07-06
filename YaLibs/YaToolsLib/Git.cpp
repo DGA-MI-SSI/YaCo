@@ -140,14 +140,15 @@ namespace
 
     std::shared_ptr<IGit> init(const std::string& path, Git::ECloneMode emode)
     {
-        const auto fullpath = fs::canonical(fs::absolute(path));
+        const auto fullpath = fs::absolute(path);
         git_repository* ptr_repo = nullptr;
         auto err = git_repository_init(&ptr_repo, fullpath.generic_string().data(), emode == Git::CLONE_BARE);
         if(err != GIT_OK)
-            FAIL_WITH(std::nullptr_t(), "unable to initialize %srepository at %s", emode == Git::CLONE_BARE ? "bare " : "", fullpath.generic_string().data());
+            err = git_repository_open(&ptr_repo, fullpath.string().data());
+        if(err != GIT_OK)
+            FAIL_WITH(std::nullptr_t(), "unable to open git repository at %s", fullpath.generic_string().data());
 
-        auto repo = make_unique(ptr_repo);
-        return std::make_shared<Git>(path, std::move(repo));
+        return std::make_shared<Git>(path, std::move(make_unique(ptr_repo)));
     }
 }
 
@@ -159,6 +160,15 @@ std::shared_ptr<IGit> MakeGit(const std::string& path)
 std::shared_ptr<IGit> MakeGitBare(const std::string& path)
 {
     return init(path, Git::CLONE_BARE);
+}
+
+bool is_git_directory(const std::string& path)
+{
+    const auto fullpath = fs::absolute(path);
+    git_repository* ptr_repo = nullptr;
+    const auto err = git_repository_open(&ptr_repo, fullpath.generic_string().data());
+    const auto repo = make_unique(ptr_repo);
+    return err == GIT_OK;
 }
 
 Git::Git(const std::string& path, std::unique_ptr<git_repository>&& repo)

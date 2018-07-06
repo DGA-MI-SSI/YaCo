@@ -37,3 +37,38 @@ class Fixture(runtests.Fixture):
         a.run(
             self.script("idc.AddEnum(-1, 'name', idaapi.hexflag())"),
         )
+
+    def test_git_submodule(self):
+        a, b = self.setup_repos()
+
+        # setup git repo 'd' containing submodule 'a' at path 'modules/z'
+        d = os.path.abspath(os.path.join(a.path, "..", "d"))
+        os.makedirs(os.path.join(d, "modules"))
+        runtests.sysexec(d, ["git", "init"])
+        with open(os.path.join(d, "modules", ".gitignore"), "wb") as fh:
+            fh.write("dummy file")
+        runtests.sysexec(d, ["git", "add", "-A"])
+        runtests.sysexec(d, ["git", "commit", "-m", "init"])
+        runtests.sysexec(d, ["git", "submodule", "add", "../c", "modules/z"])
+
+        # 'e' now contains our submodule
+        target = "Qt5Svgd.dll"
+        pe = os.path.abspath(os.path.join(d, "modules", "z"))
+        e = runtests.Repo(self, pe, target)
+
+        # initialize YaCo
+        e.run_script("""
+import yaco_plugin
+yaco_plugin.start()
+""", target=target + ".i64")
+
+        # check changes are properly propagated
+        e.run(
+            self.script("idaapi.add_enum(idaapi.BADADDR, 'name_a', idaapi.hexflag())"),
+            self.save_enum("name_a"),
+        )
+        e.check_git(added=["enum"])
+
+        a.run(
+            self.check_enum("name_a"),
+        )
