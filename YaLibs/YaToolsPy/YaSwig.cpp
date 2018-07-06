@@ -29,6 +29,11 @@ namespace yaswig
         return {::MakeYaCo()};
     }
 
+    bool Private::is_started()
+    {
+        return !!yaco;
+    }
+
     void Private::sync_and_push_idb()
     {
         yaco->sync_and_push_idb(IDA_NOT_INTERACTIVE);

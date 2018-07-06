@@ -64,6 +64,9 @@ class YaCoPlugin(idaapi.plugin_t):
         if input_filename.count("_local.") > 0 and os.path.exists(".git"):
             print("yaco: initializing")
             start()
+            if not yaco.is_started():
+                return idaapi.PLUGIN_SKIP
+
             return idaapi.PLUGIN_KEEP
 
         if "_local." not in input_filename and os.path.exists(".git"):

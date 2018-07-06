@@ -108,8 +108,8 @@ namespace
         std::shared_ptr<IRepository> repo_;
         std::shared_ptr<IEvents>     events_;
         std::shared_ptr<IHooks>      hooks_;
-
         std::vector<action_desc_t>   action_descs_;
+        bool                         loaded_;
     };
 }
 
@@ -118,10 +118,13 @@ YaCo::YaCo()
     : repo_(MakeRepository("."))
     , events_(MakeEvents(*repo_))
     , hooks_(MakeHooks(*events_))
+    , loaded_(false)
 {
-    LOG(INFO, "YaCo version %s\n", GitVersion);
-
-    repo_->check_valid_cache_startup();
+    if(!repo_->check_valid_cache_startup())
+    {
+        LOG(ERROR, "unable to start\n");
+        return;
+    }
 
     // hooks not hooked yet
     initial_load();
@@ -144,6 +147,7 @@ YaCo::YaCo()
     }
 
     hooks_->hook();
+    loaded_ = true;
 }
 
 void YaCo::export_database()
@@ -262,5 +266,10 @@ std::shared_ptr<IYaCo> MakeYaCo()
     {
         msg("%s", &message[prefix + 1]);
     });
-    return std::make_shared<YaCo>();
+    LOG(INFO, "YaCo version %s\n", GitVersion);
+    const auto ptr = std::make_shared<YaCo>();
+    if(!ptr->loaded_)
+        return std::nullptr_t();
+
+    return ptr;
 }

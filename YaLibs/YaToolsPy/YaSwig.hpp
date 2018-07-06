@@ -32,6 +32,7 @@ namespace yaswig
     {
         std::shared_ptr<IYaCo> yaco;
 
+        bool is_started();
         void sync_and_push_idb();
         void discard_and_pull_idb();
     };

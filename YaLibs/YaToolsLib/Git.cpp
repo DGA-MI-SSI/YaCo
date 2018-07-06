@@ -119,7 +119,7 @@ namespace
     #define FAIL_WITH(X, FMT, ...) do\
     {\
         const auto giterr = giterr_last();\
-        LOG(ERROR, "%s: " FMT, giterr ? giterr->message : "", ## __VA_ARGS__);\
+        LOG(ERROR, "%s: " FMT "\n", giterr ? giterr->message : "", ## __VA_ARGS__);\
         return (X);\
     } while(0)
 
@@ -140,10 +140,11 @@ namespace
 
     std::shared_ptr<IGit> init(const std::string& path, Git::ECloneMode emode)
     {
+        const auto fullpath = fs::canonical(fs::absolute(path));
         git_repository* ptr_repo = nullptr;
-        auto err = git_repository_init(&ptr_repo, path.data(), emode == Git::CLONE_BARE);
+        auto err = git_repository_init(&ptr_repo, fullpath.generic_string().data(), emode == Git::CLONE_BARE);
         if(err != GIT_OK)
-            FAIL_WITH(std::nullptr_t(), "unable to initialize %srepository at %s", emode == Git::CLONE_BARE ? "bare " : "", path.data());
+            FAIL_WITH(std::nullptr_t(), "unable to initialize %srepository at %s", emode == Git::CLONE_BARE ? "bare " : "", fullpath.generic_string().data());
 
         auto repo = make_unique(ptr_repo);
         return std::make_shared<Git>(path, std::move(repo));

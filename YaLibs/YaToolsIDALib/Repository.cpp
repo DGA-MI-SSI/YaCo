@@ -224,15 +224,15 @@ namespace
 
         // IRepository
         std::string get_cache() override;
-        void add_comment(const std::string& msg) override;
-        void check_valid_cache_startup() override; // can stop IDA
+        void        add_comment(const std::string& msg) override;
+        bool        check_valid_cache_startup() override; // can stop IDA
         std::string update_cache() override;
-        bool commit_cache() override;
-        void toggle_repo_auto_sync() override;
-        void sync_and_push_original_idb() override;
-        void discard_and_pull_idb() override;
-        void diff_index(const std::string& from, const on_blob_fn& on_blob) const override;
-        bool idb_is_tracked();
+        bool        commit_cache() override;
+        void        toggle_repo_auto_sync() override;
+        void        sync_and_push_original_idb() override;
+        void        discard_and_pull_idb() override;
+        void        diff_index(const std::string& from, const on_blob_fn& on_blob) const override;
+        bool        idb_is_tracked();
 
         // Retrieve informations with IDA GUI
         void ask_to_checkout_modified_files();
@@ -260,6 +260,9 @@ Repository::Repository(const std::string& path)
     const bool repo_already_exists = is_git_working_dir(path);
 
     git_ = MakeGit(path);
+    if(!git_)
+        return;
+
     if (!ensure_git_globals())
         LOG(ERROR, "Unable to ensure git globals\n");
 
@@ -305,9 +308,11 @@ void Repository::add_comment(const std::string& msg)
     comments_.emplace_back(msg);
 }
 
-void Repository::check_valid_cache_startup()
+bool Repository::check_valid_cache_startup()
 {
     LOG(DEBUG, "Validating cache...\n");
+    if(!git_)
+        return false;
 
     if (has_remote("origin"))
     {
@@ -330,7 +335,7 @@ void Repository::check_valid_cache_startup()
     if (std::regex_match(idb_prefix, std::regex(".*_local$")))
     {
         LOG(DEBUG, "Cache validated\n");
-        return;
+        return true;
     }
 
     LOG(INFO, "Current IDB filename is missing _local suffix\n");
@@ -343,7 +348,7 @@ void Repository::check_valid_cache_startup()
         if (ec)
         {
             LOG(ERROR, "Unable to create local idb file, error: %s\n", ec.message().c_str());
-            return;
+            return false;
         }
     }
 

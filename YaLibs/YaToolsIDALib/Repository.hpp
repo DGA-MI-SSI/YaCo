@@ -26,26 +26,18 @@ struct IRepository
 {
     virtual ~IRepository() = default;
 
+    using on_blob_fn = std::function<int(const char*, bool, const void*, size_t)>;
+
     virtual std::string get_cache() = 0;
-
-    virtual void add_comment(const std::string& msg) = 0;
-
-    virtual void check_valid_cache_startup() = 0;
-
+    virtual void        add_comment(const std::string& msg) = 0;
+    virtual bool        check_valid_cache_startup() = 0;
     virtual std::string update_cache() = 0;
-
-    virtual bool commit_cache() = 0;
-
-    virtual void toggle_repo_auto_sync() = 0;
-
-    virtual void sync_and_push_original_idb() = 0;
-
-    virtual void discard_and_pull_idb() = 0;
-
-    typedef std::function<int(const char*, bool, const void*, size_t)> on_blob_fn;
-    virtual void diff_index(const std::string& from, const on_blob_fn& on_blob) const = 0;
-
-    virtual bool idb_is_tracked() = 0;
+    virtual bool        commit_cache() = 0;
+    virtual void        toggle_repo_auto_sync() = 0;
+    virtual void        sync_and_push_original_idb() = 0;
+    virtual void        discard_and_pull_idb() = 0;
+    virtual void        diff_index(const std::string& from, const on_blob_fn& on_blob) const = 0;
+    virtual bool        idb_is_tracked() = 0;
 };
 
 std::shared_ptr<IRepository> MakeRepository(const std::string& path);
