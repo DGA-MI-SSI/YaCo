@@ -51,7 +51,7 @@ struct Merger
     MergeStatus_e   merge_ids       (IModelVisitor& visitor, const Relation& relation, const on_id_fn& on_id);
     MergeStatus_e   merge_files     (const std::string& local, const std::string& remote, const std::string& filename);
 
-    const on_conflict_fn            on_conflict_;
     ObjectVersionMergeStrategy_e    estrategy_;
+    const on_conflict_fn            on_conflict_;
 };
 
