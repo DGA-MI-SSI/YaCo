@@ -1478,10 +1478,11 @@ namespace
         // do not chunk empty loader segments
         if(!is_mapped(seg->start_ea))
             return;
-        for(auto ea = seg->start_ea; ea < seg->end_ea; ea += SEGMENT_CHUNK_MAX_SIZE)
+        for(auto ea = seg->start_ea; ea < seg->end_ea; /**/)
         {
-            const auto end = std::min(ea + SEGMENT_CHUNK_MAX_SIZE, seg->end_ea);
+            const auto end = ea + std::min<ea_t>(SEGMENT_CHUNK_MAX_SIZE, seg->end_ea - ea);
             operand(ea, end);
+            ea = end;
         }
     }
 
@@ -1792,7 +1793,7 @@ namespace
         const auto binary = ::accept_binary(ctx, v);
         const auto segment = ::accept_segment(ctx, v, binary, seg);
         const auto chunk_start = ea - ((ea - seg->start_ea) % SEGMENT_CHUNK_MAX_SIZE);
-        const auto chunk_end = std::min(chunk_start + SEGMENT_CHUNK_MAX_SIZE, seg->end_ea);
+        const auto chunk_end = chunk_start + std::min<ea_t>(SEGMENT_CHUNK_MAX_SIZE, seg->end_ea - chunk_start);
         return ::accept_segment_chunk(ctx, v, segment, chunk_start, chunk_end);
     }
 }
