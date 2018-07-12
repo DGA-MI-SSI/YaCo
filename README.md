@@ -120,6 +120,20 @@ Any Git server should work, for example github, gitlab or gitea instances. Note 
 
 Currently, **YaCo** only supports SSH authentication. To keep the plugin user-friendly, there is no mechanism asking for passwords & passphrases on every Git operation. Instead, it is recommended to use an ssh agent, like pageant under windows or ssh-agent under linux.
 
+### How to use YaCo with git & SSH on Windows
+
+You have a git repository, on github or equivalent
+
+  * Clone the git repository ```git clone git@server_name:group_name/repo_name.git```
+  * Import/generate your SSH key with puttygen.exe & save the private key into a ppk file
+  * Associate your public key in your server profile
+  * Start pageant.exe & add your ppk key
+  * Try to connect once using bare SSH on your server with plink ```plink git@server_name:group_name/repo_name.git```
+  * It should connect & exit immediately
+  * Copy the file.idb into file_local.idb in the repository
+  * Open file_local.idb with IDA & check YaCo is properly starting
+  * Save the file once & check whether YaCo is able to fetch, rebase & push on the git server
+
 ## Contributors
 
   * Benoît Amiaux
