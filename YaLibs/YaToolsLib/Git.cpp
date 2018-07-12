@@ -106,7 +106,7 @@ namespace
         bool        checkout_head       () override;
         bool        is_tracked          (const std::string& name) override;
         std::string get_commit          (const std::string& name) override;
-        bool        push                (const std::string& src, const std::string& dst) override;
+        bool        push                (const std::string& src, const std::string& remote, const std::string& dst) override;
         bool        remotes             (const on_remote_fn& on_remote) override;
         bool        status              (const std::string& path, const on_status_fn& on_path) override;
 
@@ -184,7 +184,7 @@ bool Git::add_remote(const std::string& name, const std::string& url)
     if(err != GIT_OK)
         FAIL_WITH(false, "unable to create remote %s at %s", name.data(), url.data());
 
-    remote_ = make_unique(ptr_remote);
+    const auto remote = make_unique(ptr_remote);
     return true;
 }
 
@@ -194,25 +194,35 @@ namespace
     {
         return git_cred_ssh_key_from_agent(cred, username_from_url);
     };
+
+    bool load_remote(Git& git, const char* name)
+    {
+        if(git.remote_)
+            return true;
+
+        git_remote* ptr_remote = nullptr;
+        auto err = git_remote_lookup(&ptr_remote, &*git.repo_, name);
+        if(err != GIT_OK)
+            FAIL_WITH(false, "unable to lookup remote %s", name);
+
+        git.remote_ = make_unique(ptr_remote);
+        return true;
+    }
 }
 
 bool Git::fetch(const std::string& name)
 {
     bench::Log log(__FUNCTION__);
-    git_remote* ptr_remote = nullptr;
-    auto err = git_remote_lookup(&ptr_remote, &*repo_, name.data());
-    if(err != GIT_OK)
-        FAIL_WITH(false, "unable to lookup remote %s", name.data());
+    if(!load_remote(*this, name.data()))
+        return false;
 
-    auto remote = make_unique(ptr_remote);
     git_fetch_options options;
     git_fetch_init_options(&options, GIT_FETCH_OPTIONS_VERSION);
     options.callbacks.credentials = &default_credentials;
-    err = git_remote_fetch(ptr_remote, nullptr, &options, "");
+    const auto err = git_remote_fetch(&*remote_, nullptr, &options, "");
     if(err != GIT_OK)
         FAIL_WITH(false, "unable to fetch remote %s", name.data());
 
-    remote_ = std::move(remote);
     return true;
 }
 
@@ -645,18 +655,16 @@ std::string Git::get_commit(const std::string& name)
     return std::string(oidstr, sizeof oidstr);
 }
 
-bool Git::push(const std::string& src, const std::string& dst)
+bool Git::push(const std::string& src, const std::string& remote, const std::string& dst)
 {
     bench::Log log(__FUNCTION__);
-    if(!remote_)
-    {
-        git_remote* ptr_remote = nullptr;
-        const auto err = git_remote_lookup(&ptr_remote, &*repo_, "origin");
-        if(err != GIT_OK)
-            FAIL_WITH(false, "unable to lookup remote origin");
-        
-        remote_ = make_unique(ptr_remote);
-    }
+
+    // skip push if there is nothing to do
+    if(get_commit(src) == get_commit(remote + "/" + dst))
+        return true;
+
+    if(!load_remote(*this, remote.data()))
+        return false;
 
     const auto target = "refs/heads/" + src + ":refs/heads/" + dst;
     std::vector<char> targets(target.begin(), target.end());
@@ -667,10 +675,10 @@ bool Git::push(const std::string& src, const std::string& dst)
     git_push_options opts;
     git_push_init_options(&opts, GIT_PUSH_OPTIONS_VERSION);
     opts.callbacks.credentials = &default_credentials;
-    opts.pb_parallelism = 1;
-    const auto err = git_remote_push(&*remote_, &refspecs, &opts);
+    opts.pb_parallelism = 0;
+    auto err = git_remote_push(&*remote_, &refspecs, &opts);
     if(err != GIT_OK)
-        FAIL_WITH(false, "unable to push origin %s:%s", src.data(), dst.data());
+        FAIL_WITH(false, "unable to upload %s to %s:%s", src.data(), remote.data(), dst.data());
 
     return true;
 }

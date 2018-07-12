@@ -67,7 +67,7 @@ namespace
     void push_file(IGit& git, const std::string& path, const std::string& name, const std::string& msg, const std::string& content)
     {
         commit_file(git, path, name, msg, content);
-        const auto ok = git.push("master", "master");
+        const auto ok = git.push("master", "origin", "master");
         EXPECT_TRUE(ok);
     }
 
@@ -194,7 +194,7 @@ TEST_F (TestYaGitLib, test_git_rebase)
     commit_file(*b, "b/", "file5.txt", "fifth file", "file5 content");
     commit_file(*b, "b/", "file6.txt", "sixth file", "file6 content");
     fetch_rebase(*b, "origin", "master");
-    ok = b->push("master", "master");
+    ok = b->push("master", "origin", "master");
     EXPECT_TRUE(ok);
 
     // rebase with conflicting commits

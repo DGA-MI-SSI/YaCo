@@ -57,7 +57,7 @@ struct IGit
     virtual bool        checkout_head       () = 0;
     virtual bool        is_tracked          (const std::string& name) = 0;
     virtual std::string get_commit          (const std::string& name) = 0;
-    virtual bool        push                (const std::string& src, const std::string& dst) = 0;
+    virtual bool        push                (const std::string& src, const std::string& remote, const std::string& dst) = 0;
     virtual bool        remotes             (const on_remote_fn& on_remote) = 0;
     virtual bool        status              (const std::string& path, const on_status_fn& on_path) = 0;
 };

@@ -40,8 +40,9 @@ namespace fs = std::experimental::filesystem;
 
 namespace
 {
-    const size_t TRUNCATE_COMMIT_MSG_LENGTH = 4000;
-    const int    GIT_PUSH_RETRIES = 3;
+    const size_t        TRUNCATE_COMMIT_MSG_LENGTH = 4000;
+    const int           GIT_PUSH_RETRIES = 3;
+    const std::string   default_remote_name = "origin";
 
 
     bool is_valid_xml_file(const std::string& filename)
@@ -304,12 +305,12 @@ bool Repository::check_valid_cache_startup()
     if(!git_)
         return false;
 
-    if (has_remote("origin"))
+    if (has_remote(default_remote_name))
     {
         const std::string master_commit = git_->get_commit("master");
-        const std::string origin_master_commit = git_->get_commit("origin/master");
+        const std::string origin_master_commit = git_->get_commit(default_remote_name + "/master");
         if (master_commit.empty() || origin_master_commit.empty() || master_commit != origin_master_commit)
-            LOG(WARNING, "Master and origin/master does not point to same commit, please update your master\n");
+            LOG(WARNING, "Master and %s/master does not point to same commit, please update your master\n", default_remote_name.data());
     }
 
     std::error_code ec;
@@ -362,7 +363,7 @@ bool Repository::check_valid_cache_startup()
 std::string Repository::update_cache()
 {
     std::string commit;
-    if (!has_remote("origin"))
+    if (!has_remote(default_remote_name))
         return commit;
 
     // check if files has been modified in background
@@ -385,12 +386,12 @@ std::string Repository::update_cache()
     LOG(DEBUG, "Current master: %s\n", commit.c_str());
 
     // fetch remote
-    git_->fetch("origin");
-    LOG(DEBUG, "Fetched origin/master: %s\n", git_->get_commit("origin/master").c_str());
+    git_->fetch(default_remote_name);
+    LOG(DEBUG, "Fetched %s/master: %s\n", default_remote_name.data(), git_->get_commit(default_remote_name + "/master").data());
 
     // rebase in master
-    LOG(DEBUG, "Rebasing master on origin/master...\n");
-    if (!git_->rebase("origin/master", "master", &IDAInteractiveFileConflictResolver))
+    LOG(DEBUG, "Rebasing master on %s/master...\n", default_remote_name.data());
+    if (!git_->rebase(default_remote_name + "/master", "master", &IDAInteractiveFileConflictResolver))
     {
         LOG(INFO, "Unable to update cache\n");
         // disable auto sync (when closing database)
@@ -400,23 +401,23 @@ std::string Repository::update_cache()
 
     LOG(DEBUG, "Master rebased\n");
 
-    // push to origin
+    // push to remote
     for (int nb_try = 0; nb_try < GIT_PUSH_RETRIES; ++nb_try)
     {
-        LOG(DEBUG, "Pushing master to origin...\n");
+        LOG(DEBUG, "Pushing master to %s...\n", default_remote_name.data());
         if (!push("master", "master"))
             continue;
 
-        LOG(DEBUG, "Master pushed to origin\n");
+        LOG(DEBUG, "Master pushed to %s\n", default_remote_name.data());
         LOG(DEBUG, "Cache updated\n");
         return commit;
     }
 
-    LOG(WARNING, "Errors occured during push to origin, they need to be resolved manually\n");
+    LOG(WARNING, "Errors occured during push, they need to be resolved manually\n");
     repo_auto_sync_ = false;
     LOG(INFO, "Auto rebase/push disabled\n");
 
-    warning("You have errors during push to origin. You have to resolve it manually\n");
+    warning("You have errors during push. You have to resolve it manually\n");
     return commit;
 }
 
@@ -526,7 +527,7 @@ void Repository::sync_and_push_original_idb()
         return;
     }
 
-    if (!has_remote("origin"))
+    if (!has_remote(default_remote_name))
         return;
 
     // git push
@@ -543,14 +544,14 @@ void Repository::discard_and_pull_idb()
     git_->checkout_head();
 
     // get synced original idb
-    if (!git_->fetch("origin"))
+    if (!git_->fetch(default_remote_name))
     {
-        LOG(ERROR, "Unable to fetch origin\n");
+        LOG(ERROR, "Unable to fetch %s\n", default_remote_name.data());
         return;
     }
-    if (!git_->rebase("origin/master", "master", &IDAInteractiveFileConflictResolver))
+    if (!git_->rebase(default_remote_name + "/master", "master", &IDAInteractiveFileConflictResolver))
     {
-        LOG(ERROR, "Unable to rebase master from origin/master\n");
+        LOG(ERROR, "Unable to rebase master from %s/master\n", default_remote_name.data());
         return;
     }
 
@@ -607,11 +608,11 @@ bool Repository::ask_for_idb_tracking()
 void Repository::ask_for_remote()
 {
     qstring tmp = "ssh://username@repository_path/";
-    if (!ask_str(&tmp, 0, "Specify a remote origin :"))
+    if (!ask_str(&tmp, 0, "Specify remote:"))
         return;
 
     const std::string url = tmp.c_str();
-    const auto ok = git_->add_remote("origin", url);
+    const auto ok = git_->add_remote(default_remote_name, url);
     if(!ok)
         return;
 
@@ -674,10 +675,10 @@ bool Repository::ensure_git_globals()
 
 bool Repository::push(const std::string& src_branch, const std::string& dst_branch)
 {
-    if (!has_remote("origin"))
+    if (!has_remote(default_remote_name))
         return true;
 
-    return git_->push(src_branch, dst_branch);
+    return git_->push(src_branch, default_remote_name, dst_branch);
 }
 
 bool Repository::has_remote(const std::string& remote)
