@@ -154,7 +154,7 @@ add_tool(yadbtovector YaToolsUtils/YaToolsYaDBToVectors yadifflib)
 
 # swig modules
 function(add_swig_mod target name)
-    add_swig_module(${target} yatools/swig ${ARGN})
+    add_swig_module(${target} yatools ${ARGN})
     target_include_directories(_${target} PRIVATE ${PYTHON_INCLUDE_DIRS})
     if(MSVC)
         # ida does not install debug python libraries
