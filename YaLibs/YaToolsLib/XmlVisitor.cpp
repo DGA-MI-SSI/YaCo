@@ -336,14 +336,10 @@ void XmlVisitor::visit_deleted(YaToolObjectType_e type, YaToolObjectId id)
 
     std::string dummy;
     current_xml_file_path_ = get_path(dummy, type, id, path_);
-    try
-    {
-        filesystem::remove(current_xml_file_path_);
-    }
-    catch(const std::exception& exc)
-    {
-        YALOG_ERROR(nullptr, "Warning : could not delete object : %s\n", exc.what());
-    }
+    std::error_code ec;
+    const auto ok = filesystem::remove(current_xml_file_path_, ec);
+    if(!ok && ec && ec != std::errc::no_such_file_or_directory)
+        YALOG_ERROR(nullptr, "warning: unable to delete %s\n", current_xml_file_path_.data());
 }
 
 void MemExporter::visit_start_version(YaToolObjectType_e type, YaToolObjectId id)
