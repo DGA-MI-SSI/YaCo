@@ -82,10 +82,6 @@ WARNING : YaCo is disabled !
         return idaapi.PLUGIN_KEEP
 
     def run(self, *args, **kwargs):
-        print("yaco: waiting for auto analysis...\n")
-        idc.Wait()
-        print("yaco: saving current base...\n")
-        idc.SaveBase("")
         start()
 
     def term(self, *args, **kwargs):

@@ -240,15 +240,15 @@ namespace
         std::set<std::string>   comments_;
         bool                    repo_auto_sync_;
         bool                    include_idb_;
+        bool                    is_tracked_;
     };
 }
 
 Repository::Repository(const std::string& path)
     : repo_auto_sync_(true)
     , include_idb_(false)
+    , is_tracked_(is_git_directory(path))
 {
-    const bool repo_already_exists = is_git_directory(path);
-
     git_ = MakeGit(path);
     if(!git_)
         return;
@@ -256,7 +256,7 @@ Repository::Repository(const std::string& path)
     if (!ensure_git_globals())
         LOG(ERROR, "Unable to ensure git globals\n");
 
-    if (repo_already_exists)
+    if (is_tracked_)
     {
         include_idb_ = git_->is_tracked(get_original_idb_name());
         LOG(INFO, "%s %s\n", include_idb_ ? "tracking" : "ignoring", get_original_idb_name().data());
@@ -333,6 +333,14 @@ bool Repository::check_valid_cache_startup()
     bool local_idb_exist = fs::exists(local_idb_path, ec);
     if (!local_idb_exist)
     {
+        if(!is_tracked_)
+        {
+            // local idb is not tracked yet
+            LOG(INFO, "wait for auto-analysis\n");
+            auto_wait();
+            LOG(INFO, "save current database\n");
+            save_database(current_idb_path.generic_string().data(), 0, nullptr, nullptr);
+        }
         LOG(INFO, "Creating required local idb\n");
         fs::copy_file(current_idb_path, local_idb_path, ec);
         if (ec)
