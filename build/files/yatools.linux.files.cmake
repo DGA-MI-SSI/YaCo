@@ -13,6 +13,7 @@ set(_yatools_files
     "../YaLibs/YaToolsLib/FlatBufferVisitor.hpp"
     "../YaLibs/YaToolsLib/Git.cpp"
     "../YaLibs/YaToolsLib/Git.hpp"
+    "../YaLibs/YaToolsLib/GitAsync.cpp"
     "../YaLibs/YaToolsLib/HSignature.cpp"
     "../YaLibs/YaToolsLib/HSignature.hpp"
     "../YaLibs/YaToolsLib/HVersion.cpp"

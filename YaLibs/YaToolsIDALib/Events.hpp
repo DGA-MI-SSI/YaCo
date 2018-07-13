@@ -32,6 +32,7 @@ struct IEvents
 
     virtual void save               () = 0;
     virtual void update             () = 0;
+    virtual void touch              () = 0;
 };
 
 std::shared_ptr<IEvents> MakeEvents(IRepository& repo);

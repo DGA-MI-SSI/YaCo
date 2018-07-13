@@ -111,6 +111,12 @@ namespace
         std::vector<action_desc_t>   action_descs_;
         bool                         loaded_;
     };
+
+    void exit(YaCo& yaco)
+    {
+        yaco.repo_.reset();
+        qexit(0);
+    }
 }
 
 
@@ -121,10 +127,7 @@ YaCo::YaCo()
     , loaded_(false)
 {
     if(!repo_->check_valid_cache_startup())
-    {
-        LOG(ERROR, "unable to start\n");
-        return;
-    }
+        exit(*this);
 
     // hooks not hooked yet
     initial_load();
@@ -235,7 +238,7 @@ void YaCo::sync_and_push_idb(IdaMode mode)
     repo_->sync_and_push_original_idb();
 
     warning("Force push complete, you can restart IDA and other YaCo users can \"Force pull\"");
-    qexit(0);
+    exit(*this);
 }
 
 void YaCo::discard_and_pull_idb(IdaMode mode)
@@ -253,7 +256,7 @@ void YaCo::discard_and_pull_idb(IdaMode mode)
 
     set_database_flag(DBFL_KILL);
     warning("Force pull complete, you can restart IDA");
-    qexit(0);
+    exit(*this);
 }
 
 std::shared_ptr<IYaCo> MakeYaCo()
@@ -266,7 +269,7 @@ std::shared_ptr<IYaCo> MakeYaCo()
     {
         msg("%s", &message[prefix + 1]);
     });
-    LOG(INFO, "YaCo version %s\n", GitVersion);
+    LOG(INFO, "version %s\n", GitVersion);
     const auto ptr = std::make_shared<YaCo>();
     if(!ptr->loaded_)
         return std::nullptr_t();

@@ -225,6 +225,8 @@ namespace
         void        discard_and_pull_idb() override;
         void        diff_index(const std::string& from, const on_blob_fn& on_blob) const override;
         bool        idb_is_tracked();
+        void        push() override;
+        void        touch() override;
 
         // Retrieve informations with IDA GUI
         void ask_to_checkout_modified_files();
@@ -234,7 +236,6 @@ namespace
         bool ask_for_idb_tracking();
 
         // wrappers
-        bool push(const std::string& src_branch, const std::string& dst_branch);
         bool has_remote(const std::string& remote);
 
         std::shared_ptr<IGit>   git_;
@@ -250,7 +251,7 @@ Repository::Repository(const std::string& path)
     , include_idb_(false)
     , is_tracked_(is_git_directory(path))
 {
-    git_ = MakeGit(path);
+    git_ = MakeGitAsync(path);
     if(!git_)
         return;
 
@@ -289,9 +290,7 @@ Repository::Repository(const std::string& path)
         LOG(ERROR, "Unable to commit IDB\n");
 
     ask_for_remote();
-
-    if (!push("master", "master"))
-        LOG(ERROR, "Unable to push\n");
+    push();
 }
 
 void Repository::add_comment(const std::string& msg)
@@ -357,7 +356,7 @@ bool Repository::check_valid_cache_startup()
     msg += '.';
     set_database_flag(DBFL_KILL);
     warning("%s", msg.c_str());
-    qexit(0);
+    return false;
 }
 
 std::string Repository::update_cache()
@@ -401,50 +400,40 @@ std::string Repository::update_cache()
 
     LOG(DEBUG, "Master rebased\n");
 
-    // push to remote
-    for (int nb_try = 0; nb_try < GIT_PUSH_RETRIES; ++nb_try)
-    {
-        LOG(DEBUG, "Pushing master to %s...\n", default_remote_name.data());
-        if (!push("master", "master"))
-            continue;
-
-        LOG(DEBUG, "Master pushed to %s\n", default_remote_name.data());
-        LOG(DEBUG, "Cache updated\n");
-        return commit;
-    }
-
-    LOG(WARNING, "Errors occured during push, they need to be resolved manually\n");
-    repo_auto_sync_ = false;
-    LOG(INFO, "Auto rebase/push disabled\n");
-
-    warning("You have errors during push. You have to resolve it manually\n");
-    return commit;
+    const auto now = git_->get_commit("master");
+    return commit != now ? commit : std::string();
 }
 
 bool Repository::commit_cache()
 {
     LOG(DEBUG, "Committing changes...\n");
 
-    int untracked = 0, modified = 0, deleted = 0;
+    std::set<std::string> untracked, modified, deleted;
     git_->status(get_cache() + "/", [&](const char* name, const IGit::Status& status)
     {
-        untracked += status.untracked;
-        modified  += status.modified;
-        deleted   += status.deleted;
-        if(status.untracked || status.modified)
-            if(!git_->add_file(name))
-                LOG(ERROR, "unable to add %s to index\n", name);
+        if(status.untracked)
+            untracked.insert(name);
+        if(status.modified)
+            modified.insert(name);
         if(status.deleted)
-            if(!git_->remove_file(name))
-                LOG(ERROR, "unable to remove %s from index\n", name);
+            deleted.insert(name);
     });
-    if(!untracked && !modified && !deleted)
+    if(untracked.empty() && modified.empty() && deleted.empty())
     {
         LOG(DEBUG, "No changes to commit\n");
         return true;
     }
 
-    LOG(INFO, "commit: %d added %d updated %d deleted\n", untracked, modified, deleted);
+    for(const auto name : untracked)
+        if(!git_->add_file(name))
+            LOG(ERROR, "unable to add %s to index\n", name.data());
+    for(const auto name : modified)
+        if(!git_->add_file(name))
+            LOG(ERROR, "unable to add %s to index\n", name.data());
+    for(const auto name : deleted)
+        if(!git_->remove_file(name))
+            LOG(ERROR, "unable to remove %s from index\n", name.data());
+    LOG(INFO, "commit: %zd added %zd updated %zd deleted\n", untracked.size(), modified.size(), deleted.size());
 
     std::string commit_msg;
     for(const auto& it : comments_)
@@ -527,12 +516,7 @@ void Repository::sync_and_push_original_idb()
         return;
     }
 
-    if (!has_remote(default_remote_name))
-        return;
-
-    // git push
-    if (!push("master", "master"))
-        LOG(ERROR, "Unable to push\n");
+    push();
 }
 
 void Repository::discard_and_pull_idb()
@@ -673,14 +657,6 @@ bool Repository::ensure_git_globals()
     return true;
 }
 
-bool Repository::push(const std::string& src_branch, const std::string& dst_branch)
-{
-    if (!has_remote(default_remote_name))
-        return true;
-
-    return git_->push(src_branch, default_remote_name, dst_branch);
-}
-
 bool Repository::has_remote(const std::string& remote)
 {
     bool found = false;
@@ -704,6 +680,19 @@ bool Repository::idb_is_tracked()
 std::string Repository::get_cache()
 {
     return "cache";
+}
+
+void Repository::push()
+{
+    if(!has_remote(default_remote_name))
+        return;
+
+    git_->push("master", default_remote_name, "master");
+}
+
+void Repository::touch()
+{
+    git_->flush();
 }
 
 std::shared_ptr<IRepository> MakeRepository(const std::string& path)

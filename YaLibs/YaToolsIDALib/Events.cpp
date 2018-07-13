@@ -104,6 +104,7 @@ namespace
 
         void save               () override;
         void update             () override;
+        void touch              () override;
 
         IRepository&    repo_;     
         Pool<qstring>   qpool_;
@@ -718,6 +719,7 @@ void Events::update()
 {
     // update cache and export modifications to IDA
     update_from_cache(*MakeIdaSink(), repo_);
+    repo_.push();
 
     // Let IDA apply modifications
     const auto time_start = std::chrono::system_clock::now();
@@ -730,4 +732,9 @@ void Events::update()
     const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(time_end - time_start).count();
     if(elapsed)
         LOG(INFO, "ida: analyzed in %d seconds\n", static_cast<int>(elapsed));
+}
+
+void Events::touch()
+{
+    repo_.touch();
 }

@@ -17,8 +17,10 @@
 
 //#define BENCHMARK
 
+#ifdef BENCHMARK
 #include <chrono>
 #include <string>
+#endif
 
 namespace bench
 {

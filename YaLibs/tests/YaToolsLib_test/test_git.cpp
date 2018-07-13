@@ -69,6 +69,7 @@ namespace
         commit_file(git, path, name, msg, content);
         const auto ok = git.push("master", "origin", "master");
         EXPECT_TRUE(ok);
+        git.flush();
     }
 
     void fetch_rebase(IGit& git, const std::string& remote, const std::string& branch, const std::tuple<std::string, std::string, fs::path>& expected = std::tuple<std::string, std::string, fs::path>())
@@ -96,20 +97,20 @@ namespace
 
 TEST_F(TestYaGitLib, test_git_init)
 {
-    const auto repo = MakeGit("test");
+    const auto repo = MakeGitAsync("test");
     set_user_config(*repo);
 }
 
 TEST_F (TestYaGitLib, test_git_commit)
 {
-    const auto repo = MakeGit("test");
+    const auto repo = MakeGitAsync("test");
     set_user_config(*repo);
     commit_file(*repo, "test/", "file.txt", "first file", "content");
 }
 
 TEST_F (TestYaGitLib, test_git_get_modified_objects)
 {
-    const auto repo = MakeGit("test");
+    const auto repo = MakeGitAsync("test");
     set_user_config(*repo);
 
     commit_file(*repo, "test/", "file1.txt", "add first file", "file1 content");
@@ -129,7 +130,7 @@ TEST_F (TestYaGitLib, test_git_get_modified_objects)
 
 TEST_F (TestYaGitLib, test_git_status_with_path)
 {
-    const auto repo = MakeGit("test");
+    const auto repo = MakeGitAsync("test");
     set_user_config(*repo);
 
     write_file("test/file1.txt", "file1 content");
@@ -171,14 +172,14 @@ TEST_F (TestYaGitLib, test_git_rebase)
     EXPECT_TRUE(ok);
 
     // create & fill first repo
-    const auto a = MakeGit("a");
+    const auto a = MakeGitAsync("a");
     set_user_config(*a);
     push_file(*a, "a/", "file1.txt", "first file", "file1 content");
 
     // create second repo
     ok = c->clone("b", IGit::CLONE_FULL);
     EXPECT_TRUE(ok);
-    const auto b = MakeGit("b");
+    const auto b = MakeGitAsync("b");
     set_user_config(*b);
 
     // empty rebase
@@ -196,6 +197,7 @@ TEST_F (TestYaGitLib, test_git_rebase)
     fetch_rebase(*b, "origin", "master");
     ok = b->push("master", "origin", "master");
     EXPECT_TRUE(ok);
+    b->flush();
 
     // rebase with conflicting commits
     fetch_rebase(*a, "origin", "master");

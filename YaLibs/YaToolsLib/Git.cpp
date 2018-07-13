@@ -100,7 +100,7 @@ namespace
         bool        remove_file         (const std::string& name) override;
         std::string config_get_string   (const std::string& name) override;
         bool        config_set_string   (const std::string& name, const std::string& value) override;
-        bool        diff_index          (const std::string& from, const on_blob_fn& on_blob) const override;
+        bool        diff_index          (const std::string& from, const on_blob_fn& on_blob) override;
         bool        rebase              (const std::string& upstream, const std::string& dst, const on_conflict_fn& on_conflict) override;
         bool        commit              (const std::string& message) override;
         bool        checkout_head       () override;
@@ -109,33 +109,52 @@ namespace
         bool        push                (const std::string& src, const std::string& remote, const std::string& dst) override;
         bool        remotes             (const on_remote_fn& on_remote) override;
         bool        status              (const std::string& path, const on_status_fn& on_path) override;
+        void        flush               () override;
 
         const std::string               path_;
         std::unique_ptr<git_repository> repo_;
-        std::unique_ptr<git_remote>     remote_;
         std::unique_ptr<git_index>      index_;
+        std::vector<std::string>        errors_;
     };
 
-    #define FAIL_WITH(X, FMT, ...) do\
-    {\
-        const auto giterr = giterr_last();\
-        LOG(ERROR, "%s: " FMT "\n", giterr ? giterr->message : "", ## __VA_ARGS__);\
-        return (X);\
-    } while(0)
-
-    std::unique_ptr<git_signature> make_signature(git_repository* repo)
+    template<typename ...Args>
+    std::string format_string(const char* fmt, const Args... args)
     {
-        git_signature* ptr_sig = nullptr;
-        const auto err = git_signature_default(&ptr_sig, repo);
-        if(err != GIT_OK)
-            FAIL_WITH(std::nullptr_t(), "unable to create default signature");
-
-        return make_unique(ptr_sig);
+        const auto size = std::snprintf(nullptr, 0, fmt, args...);
+        std::vector<char> buffer(size + 1);
+        std::snprintf(&buffer[0], size + 1, fmt, args...);
+        return std::string(&buffer[0], &buffer[size]);
     }
+
+    template<typename ...Args>
+    std::string format_last_git_error(const char* fmt, const Args... args)
+    {
+        const auto giterr = giterr_last();
+        if(giterr)
+            return format_string((std::string("%s: ") + fmt).data(), giterr->message, args...);
+        return format_string(fmt, args...);
+    }
+
+    template<typename ...Args>
+    void fail_with(Git& git, const char* fmt, const Args... args)
+    {
+        git.errors_.push_back(format_last_git_error(fmt, args...));
+    }
+
+    #define FAIL_WITH(X, GIT, FMT, ...) do {\
+        if(false) printf((FMT), ## __VA_ARGS__);\
+        fail_with((GIT), (FMT), ## __VA_ARGS__);\
+        return X;\
+    } while(0)
 
     std::unique_ptr<git_signature> make_signature(Git& git)
     {
-        return make_signature(&*git.repo_);
+        git_signature* ptr_sig = nullptr;
+        const auto err = git_signature_default(&ptr_sig, &*git.repo_);
+        if(err != GIT_OK)
+            FAIL_WITH(std::nullptr_t(), git, "unable to create default signature");
+
+        return make_unique(ptr_sig);
     }
 
     std::shared_ptr<IGit> init(const std::string& path, Git::ECloneMode emode)
@@ -146,7 +165,10 @@ namespace
         if(err != GIT_OK)
             err = git_repository_open(&ptr_repo, fullpath.string().data());
         if(err != GIT_OK)
-            FAIL_WITH(std::nullptr_t(), "unable to open git repository at %s", fullpath.generic_string().data());
+        {
+            LOG(ERROR, "%s\n", format_last_git_error("unable to open/init git repository at %s", fullpath.generic_string().data()).data());
+            return std::nullptr_t();
+        }
 
         return std::make_shared<Git>(path, std::move(make_unique(ptr_repo)));
     }
@@ -182,7 +204,7 @@ bool Git::add_remote(const std::string& name, const std::string& url)
     git_remote* ptr_remote = nullptr;
     const auto err = git_remote_create(&ptr_remote, &*repo_, name.data(), url.data());
     if(err != GIT_OK)
-        FAIL_WITH(false, "unable to create remote %s at %s", name.data(), url.data());
+        FAIL_WITH(false, *this, "unable to create remote %s at %s", name.data(), url.data());
 
     const auto remote = make_unique(ptr_remote);
     return true;
@@ -195,33 +217,29 @@ namespace
         return git_cred_ssh_key_from_agent(cred, username_from_url);
     };
 
-    bool load_remote(Git& git, const char* name)
+    std::unique_ptr<git_remote> load_remote(Git& git, const char* name)
     {
-        if(git.remote_)
-            return true;
-
         git_remote* ptr_remote = nullptr;
         auto err = git_remote_lookup(&ptr_remote, &*git.repo_, name);
         if(err != GIT_OK)
-            FAIL_WITH(false, "unable to lookup remote %s", name);
+            FAIL_WITH(std::nullptr_t(), git, "unable to lookup remote %s", name);
 
-        git.remote_ = make_unique(ptr_remote);
-        return true;
+        return make_unique(ptr_remote);
     }
 }
 
 bool Git::fetch(const std::string& name)
 {
-    bench::Log log(__FUNCTION__);
-    if(!load_remote(*this, name.data()))
+    const auto remote = load_remote(*this, name.data());
+    if(!remote)
         return false;
 
     git_fetch_options options;
     git_fetch_init_options(&options, GIT_FETCH_OPTIONS_VERSION);
     options.callbacks.credentials = &default_credentials;
-    const auto err = git_remote_fetch(&*remote_, nullptr, &options, "");
+    const auto err = git_remote_fetch(&*remote, nullptr, &options, "");
     if(err != GIT_OK)
-        FAIL_WITH(false, "unable to fetch remote %s", name.data());
+        FAIL_WITH(false, *this, "unable to fetch remote %s", name.data());
 
     return true;
 }
@@ -236,12 +254,12 @@ namespace
         git_index* ptr_index = nullptr;
         auto err = git_repository_index(&ptr_index, &*git.repo_);
         if(err != GIT_OK)
-            FAIL_WITH(false, "unable to get index");
+            FAIL_WITH(false, git, "unable to get index");
         
         auto index = make_unique(ptr_index);
         err = git_index_read(ptr_index, true);
         if(err != GIT_OK)
-            FAIL_WITH(false, "unable to read index");
+            FAIL_WITH(false, git, "unable to read index");
 
         git.index_ = std::move(index);
         return true;
@@ -255,11 +273,11 @@ bool Git::add_file(const std::string& name)
 
     auto err = git_index_add_bypath(&*index_, name.data());
     if(err != GIT_OK)
-        FAIL_WITH(false, "unable to add %s to index", name.data());
+        FAIL_WITH(false, *this, "unable to add %s to index", name.data());
 
     err = git_index_write(&*index_);
     if(err != GIT_OK)
-        FAIL_WITH(false, "unable to write index");
+        FAIL_WITH(false, *this, "unable to write index");
 
     return true;
 }
@@ -271,11 +289,11 @@ bool Git::remove_file(const std::string& name)
 
     auto err = git_index_remove_bypath(&*index_, name.data());
     if(err != GIT_OK)
-        FAIL_WITH(false, "unable to remove %s from index", name.data());
+        FAIL_WITH(false, *this, "unable to remove %s from index", name.data());
 
     err = git_index_write(&*index_);
     if(err != GIT_OK)
-        FAIL_WITH(false, "unable to write index");
+        FAIL_WITH(false, *this, "unable to write index");
 
     return true;
 }
@@ -287,7 +305,7 @@ namespace
         git_config* ptr_config = nullptr;
         auto err = git_repository_config_snapshot(&ptr_config, &*git.repo_);
         if(err != GIT_OK)
-            FAIL_WITH(std::nullptr_t(), "unable to snapshot config");
+            FAIL_WITH(std::nullptr_t(), git, "unable to snapshot config");
 
         return make_unique(ptr_config);
     }
@@ -302,7 +320,7 @@ std::string Git::config_get_string(const std::string& name)
     const char* buffer = nullptr;
     const auto err = git_config_get_string(&buffer, &*config, name.data());
     if(err != GIT_OK)
-        FAIL_WITH(std::string(), "unable to read config string %s", name.data());
+        FAIL_WITH(std::string(), *this, "unable to read config string %s", name.data());
 
     return std::string(buffer);
 }
@@ -315,47 +333,47 @@ bool Git::config_set_string(const std::string& name, const std::string& value)
 
     const auto err = git_config_set_string(&*config, name.data(), value.data());
     if (err != GIT_OK)
-        FAIL_WITH(false, "unable to set config string %s to %s", name.data(), value.data());
+        FAIL_WITH(false, *this, "unable to set config string %s to %s", name.data(), value.data());
 
     return true;
 }
 
 namespace
 {
-    std::unique_ptr<git_tree> get_tree(git_repository* repo, const std::string& target)
+    std::unique_ptr<git_tree> get_tree(Git& git, const std::string& target)
     {
         git_oid oid;
         auto err = git_oid_fromstr(&oid, target.data());
         if(err != GIT_OK)
-            err = git_reference_name_to_id(&oid, repo, target.data());
+            err = git_reference_name_to_id(&oid, &*git.repo_, target.data());
         if(err != GIT_OK)
-            FAIL_WITH(std::nullptr_t(), "unknown target %s", target.data());
+            FAIL_WITH(std::nullptr_t(), git, "unknown target %s", target.data());
 
         git_commit* ptr_commit = nullptr;
-        err = git_commit_lookup(&ptr_commit, repo, &oid);
+        err = git_commit_lookup(&ptr_commit, &*git.repo_, &oid);
         if(err != GIT_OK)
-            FAIL_WITH(std::nullptr_t(), "unable to lookup commit from %s", target.data());
+            FAIL_WITH(std::nullptr_t(), git, "unable to lookup commit from %s", target.data());
 
         auto commit = make_unique(ptr_commit);
         git_tree* ptr_tree = nullptr;
         err = git_commit_tree(&ptr_tree, ptr_commit);
         if(err != GIT_OK)
-            FAIL_WITH(std::nullptr_t(), "unable to get commit tree from %s", target.data());
+            FAIL_WITH(std::nullptr_t(), git, "unable to get commit tree from %s", target.data());
 
         return make_unique(ptr_tree);
     }
 }
 
-bool Git::diff_index(const std::string& from, const Git::on_blob_fn& on_blob) const
+bool Git::diff_index(const std::string& from, const Git::on_blob_fn& on_blob)
 {
-    const auto from_tree = get_tree(&*repo_, from);
+    const auto from_tree = get_tree(*this, from);
     if(!from_tree)
         return false;
 
     git_diff* ptr_diff = nullptr;
     auto err = git_diff_tree_to_index(&ptr_diff, &*repo_, &*from_tree, nullptr, nullptr);
     if(err != GIT_OK)
-        FAIL_WITH(false, "unable to diff tree to index");
+        FAIL_WITH(false, *this, "unable to diff tree to index");
 
     const auto diff = make_unique(ptr_diff);
     using Payload = struct
@@ -383,7 +401,7 @@ bool Git::diff_index(const std::string& from, const Git::on_blob_fn& on_blob) co
     Payload payload{&*repo_, on_blob};
     err = git_diff_foreach(ptr_diff, file_cb, nullptr, nullptr, nullptr, &payload);
     if(err != GIT_OK)
-        FAIL_WITH(false, "unable to iterate diff index");
+        FAIL_WITH(false, *this, "unable to iterate diff index");
 
     return true;
 }
@@ -440,42 +458,42 @@ plop.txt content line 2
         return on_conflict(first.str(), second.str(), path.string());
     }
 
-    std::unique_ptr<git_annotated_commit> get_annotated_commit(git_repository* repo, const std::string& name)
+    std::unique_ptr<git_annotated_commit> get_annotated_commit(Git& git, const std::string& name)
     {
         git_reference* ptr_ref = nullptr;
-        auto err = git_reference_dwim(&ptr_ref, repo, name.data());
+        auto err = git_reference_dwim(&ptr_ref, &*git.repo_, name.data());
         if(err != GIT_OK)
-            FAIL_WITH(std::nullptr_t(), "unable to resolve reference %s", name.data());
+            FAIL_WITH(std::nullptr_t(), git, "unable to resolve reference %s", name.data());
 
         const auto ref = make_unique(ptr_ref);
         git_annotated_commit* ptr_commit = nullptr;
-        err = git_annotated_commit_from_ref(&ptr_commit, repo, ptr_ref);
+        err = git_annotated_commit_from_ref(&ptr_commit, &*git.repo_, ptr_ref);
         if(err != GIT_OK)
-            FAIL_WITH(std::nullptr_t(), "unable to get annotated commit from %s", name.data());
+            FAIL_WITH(std::nullptr_t(), git, "unable to get annotated commit from %s", name.data());
 
         return make_unique(ptr_commit);
     }
 
-    std::unique_ptr<git_rebase> init_rebase(git_repository* repo, const std::string& dst, const std::string& upstream)
+    std::unique_ptr<git_rebase> init_rebase(Git& git, const std::string& dst, const std::string& upstream)
     {
         git_rebase* ptr_rebase = nullptr;
         git_rebase_options options;
         git_rebase_init_options(&options, GIT_REBASE_OPTIONS_VERSION);
-        auto err = git_rebase_open(&ptr_rebase, repo, &options);
+        auto err = git_rebase_open(&ptr_rebase, &*git.repo_, &options);
         if(err == GIT_OK)
             return make_unique(ptr_rebase);
 
-        const auto commit_dst = get_annotated_commit(repo, dst);
+        const auto commit_dst = get_annotated_commit(git, dst);
         if(!commit_dst)
-            FAIL_WITH(std::nullptr_t(), "unable to get annotated commit from %s", dst.data());
+            FAIL_WITH(std::nullptr_t(), git, "unable to get annotated commit from %s", dst.data());
 
-        const auto commit_upstream = get_annotated_commit(repo, upstream);
+        const auto commit_upstream = get_annotated_commit(git, upstream);
         if(!commit_upstream)
-            FAIL_WITH(std::nullptr_t(), "unable to get annotated commit from %s", upstream.data());
+            FAIL_WITH(std::nullptr_t(), git, "unable to get annotated commit from %s", upstream.data());
 
-        err = git_rebase_init(&ptr_rebase, repo, &*commit_dst, &*commit_upstream, nullptr, &options);
+        err = git_rebase_init(&ptr_rebase, &*git.repo_, &*commit_dst, &*commit_upstream, nullptr, &options);
         if(err != GIT_OK)
-            FAIL_WITH(std::nullptr_t(), "unable to initialize rebase");
+            FAIL_WITH(std::nullptr_t(), git, "unable to initialize rebase");
 
         return make_unique(ptr_rebase);
     }
@@ -488,7 +506,7 @@ plop.txt content line 2
         git_index_conflict_iterator* ptr_iterator = nullptr;
         auto err = git_index_conflict_iterator_new(&ptr_iterator, &*git.index_);
         if(err != GIT_OK)
-            FAIL_WITH(false, "unable to create conflict iterator");
+            FAIL_WITH(false, git, "unable to create conflict iterator");
 
         const auto iterator = make_unique(ptr_iterator);
         const auto root = fs::path(git.path_);
@@ -519,7 +537,7 @@ plop.txt content line 2
                 return true;
 
             if(err != GIT_OK)
-                FAIL_WITH(false, "unable to rebase");
+                FAIL_WITH(false, git, "unable to rebase");
 
             if(operation->type != GIT_REBASE_OPERATION_PICK)
                 continue;
@@ -532,15 +550,14 @@ plop.txt content line 2
             memset(&oid, 0, sizeof oid);
             err = git_rebase_commit(&oid, ptr_rebase, nullptr, make_signature(git).get(), nullptr, nullptr);
             if(err != GIT_OK)
-                FAIL_WITH(false, "unable to pick rebase commit");
+                FAIL_WITH(false, git, "unable to pick rebase commit");
         }
     }
 }
 
 bool Git::rebase(const std::string& upstream, const std::string& dst, const on_conflict_fn& on_conflict)
 {
-    bench::Log log(__FUNCTION__);
-    const auto rebase = init_rebase(&*repo_, dst, upstream);
+    const auto rebase = init_rebase(*this, dst, upstream);
     if(!rebase)
         return false;
 
@@ -549,13 +566,13 @@ bool Git::rebase(const std::string& upstream, const std::string& dst, const on_c
     {
         const auto err = git_rebase_abort(&*rebase);
         if(err != GIT_OK)
-            FAIL_WITH(false, "unable to abort rebase");
+            FAIL_WITH(false, *this, "unable to abort rebase");
         return false;
     }
 
     const auto err = git_rebase_finish(&*rebase, make_signature(*this).get());
     if(err != GIT_OK)
-        FAIL_WITH(false, "unable to finish rebase");
+        FAIL_WITH(false, *this, "unable to finish rebase");
 
     return true;
 }
@@ -572,12 +589,12 @@ namespace
         memset(&tree_id, 0, sizeof tree_id);
         auto err = git_index_write_tree(&tree_id, &*git.index_);
         if(err != GIT_OK)
-            FAIL_WITH(false, "unable to write index");
+            FAIL_WITH(false, git, "unable to write index");
 
         git_tree* ptr_tree = nullptr;
         err = git_tree_lookup(&ptr_tree, &*git.repo_, &tree_id);
         if(err != GIT_OK)
-            FAIL_WITH(false, "unable to lookup tree");
+            FAIL_WITH(false, git, "unable to lookup tree");
 
         const auto tree = make_unique(ptr_tree);
         git_oid parent_id;
@@ -589,7 +606,7 @@ namespace
             git_oid commit_id;
             err = git_commit_create_v(&commit_id, &*git.repo_, reference.data(), &*sig, &*sig, nullptr, message.data(), ptr_tree, 0);
             if(err != GIT_OK)
-                FAIL_WITH(false, "unable to create first commit");
+                FAIL_WITH(false, git, "unable to create first commit");
 
             return true;
         }
@@ -597,7 +614,7 @@ namespace
         git_commit* ptr_commit = nullptr;
         err = git_commit_lookup(&ptr_commit, &*git.repo_, &parent_id);
         if(err != GIT_OK)
-            FAIL_WITH(false, "unable to lookup commit");
+            FAIL_WITH(false, git, "unable to lookup commit");
         
         const auto commit = make_unique(ptr_commit);
         const git_commit* parents[] = { ptr_commit };
@@ -605,7 +622,7 @@ namespace
         memset(&commit_id, 0, sizeof commit_id);
         err = git_commit_create(&commit_id, &*git.repo_, reference.data(), &*sig, &*sig, nullptr, message.data(), ptr_tree, 1, parents);
         if(err != GIT_OK)
-            FAIL_WITH(false, "unable to create commit");
+            FAIL_WITH(false, git, "unable to create commit");
 
         return true;
     }
@@ -623,7 +640,7 @@ bool Git::checkout_head()
     opts.checkout_strategy = GIT_CHECKOUT_FORCE;
     const auto err = git_checkout_head(&*repo_, &opts);
     if(err != GIT_OK)
-        FAIL_WITH(false, "unable to checkout head");
+        FAIL_WITH(false, *this, "unable to checkout head");
 
     return true;
 }
@@ -640,14 +657,14 @@ std::string Git::get_commit(const std::string& name)
     git_reference* ptr_ref = nullptr;
     auto err = git_reference_dwim(&ptr_ref, &*repo_, name.data());
     if(err != GIT_OK)
-        FAIL_WITH(std::string(), "unable to get reference from %s", name.data());
+        FAIL_WITH(std::string(), *this, "unable to get reference from %s", name.data());
 
     const auto ref = make_unique(ptr_ref);
     git_oid oid;
     memset(&oid, 0, sizeof oid);
     err = git_reference_name_to_id(&oid, &*repo_, git_reference_name(ptr_ref));
     if(err != GIT_OK)
-        FAIL_WITH(std::string(), "unable to convert reference %s to oid", name.data());
+        FAIL_WITH(std::string(), *this, "unable to convert reference %s to oid", name.data());
 
     char oidstr[GIT_OID_HEXSZ+1];
     memset(oidstr, 0, sizeof oidstr);
@@ -655,15 +672,14 @@ std::string Git::get_commit(const std::string& name)
     return std::string(oidstr, sizeof oidstr);
 }
 
-bool Git::push(const std::string& src, const std::string& remote, const std::string& dst)
+bool Git::push(const std::string& src, const std::string& remotename, const std::string& dst)
 {
-    bench::Log log(__FUNCTION__);
-
     // skip push if there is nothing to do
-    if(get_commit(src) == get_commit(remote + "/" + dst))
+    if(get_commit(src) == get_commit(remotename + "/" + dst))
         return true;
 
-    if(!load_remote(*this, remote.data()))
+    const auto remote = load_remote(*this, remotename.data());
+    if(!remote)
         return false;
 
     const auto target = "refs/heads/" + src + ":refs/heads/" + dst;
@@ -676,9 +692,9 @@ bool Git::push(const std::string& src, const std::string& remote, const std::str
     git_push_init_options(&opts, GIT_PUSH_OPTIONS_VERSION);
     opts.callbacks.credentials = &default_credentials;
     opts.pb_parallelism = 0;
-    auto err = git_remote_push(&*remote_, &refspecs, &opts);
+    auto err = git_remote_push(&*remote, &refspecs, &opts);
     if(err != GIT_OK)
-        FAIL_WITH(false, "unable to upload %s to %s:%s", src.data(), remote.data(), dst.data());
+        FAIL_WITH(false, *this, "unable to upload %s to %s:%s", src.data(), remotename.data(), dst.data());
 
     return true;
 }
@@ -688,7 +704,7 @@ bool Git::remotes(const on_remote_fn& on_remote)
     git_strarray remotes;
     auto err = git_remote_list(&remotes, &*repo_);
     if(err != GIT_OK)
-        FAIL_WITH(false, "unable to list remotes");
+        FAIL_WITH(false, *this, "unable to list remotes");
 
     const auto free_remotes = make_unique(&remotes);
     for(size_t i = 0; i < remotes.count; ++i)
@@ -737,7 +753,7 @@ bool Git::status(const std::string& path, const on_status_fn& on_status)
     Payload payload{on_status};
     const auto err = git_status_foreach_ext(&*repo_, &opts, callback, &payload);
     if(err != GIT_OK)
-        FAIL_WITH(false, "unable to iterate git status");
+        FAIL_WITH(false, *this, "unable to iterate git status");
 
     return true;
 }
@@ -747,17 +763,24 @@ bool Git::clone(const std::string& path, ECloneMode emode)
     git_clone_options opts;
     auto err = git_clone_init_options(&opts, GIT_CLONE_OPTIONS_VERSION);
     if(err != GIT_OK)
-        FAIL_WITH(false, "unable to initialize git clone options");
+        FAIL_WITH(false, *this, "unable to initialize git clone options");
 
     opts.bare = emode == CLONE_BARE;
     git_repository* ptr_repo = nullptr;
     err = git_clone(&ptr_repo, path_.data(), path.data(), &opts);
     if(err != GIT_OK)
-        FAIL_WITH(false, "unable to clone %s to %s", path_.data(), path.data());
+        FAIL_WITH(false, *this, "unable to clone %s to %s", path_.data(), path.data());
 
     const auto repo = make_unique(ptr_repo);
     UNUSED(repo); // will delete repo
     return true;
+}
+
+void Git::flush()
+{
+    for(const auto& err : errors_)
+        LOG(ERROR, "%s\n", err.data());
+    errors_.clear();
 }
 
 std::string diff_strings(const const_string_ref& left, const char* leftname, const const_string_ref& right, const char* rightname)

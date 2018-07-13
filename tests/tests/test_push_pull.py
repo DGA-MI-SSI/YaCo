@@ -34,7 +34,7 @@ idaapi.add_regvar(func, ea+0x10, ea+0x20, "ebp", "ebp_b", None)
         entities= ["binary", "segment", "segment_chunk", "function", "basic_block"]
         a.check_git(added=entities)
 
-        # push idb
+        # push idb, cache will be deleted
         b.run(
             self.script("""
 import yaco_plugin

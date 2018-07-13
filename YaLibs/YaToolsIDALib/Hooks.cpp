@@ -962,6 +962,7 @@ namespace
         if(!hooks->enabled_)
             return 0;
 
+        hooks->events_.touch();
         idb_event::event_code_t event = static_cast<idb_event::event_code_t>(notification_code);
         switch (event)
         {

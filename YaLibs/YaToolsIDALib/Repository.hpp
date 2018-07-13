@@ -38,6 +38,8 @@ struct IRepository
     virtual void        discard_and_pull_idb() = 0;
     virtual void        diff_index(const std::string& from, const on_blob_fn& on_blob) const = 0;
     virtual bool        idb_is_tracked() = 0;
+    virtual void        push() = 0;
+    virtual void        touch() = 0;
 };
 
 std::shared_ptr<IRepository> MakeRepository(const std::string& path);
