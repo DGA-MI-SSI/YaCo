@@ -881,15 +881,25 @@ namespace
 
     func_t* add_function(ea_t ea, const HVersion& version)
     {
-        const auto func = get_func(ea);
+        auto func = get_func(ea);
         const auto flags = get_flags(ea);
         if(is_func(flags) && func && func->start_ea == ea)
             return func;
 
-        auto_make_proc(ea);
+        const auto end = static_cast<ea_t>(ea + version.size());
         // we really really need sp-analysis on created functions
-        if(!get_func(ea))
-            plan_and_wait(ea, static_cast<ea_t>(ea + version.size()));
+        auto_make_proc(ea);
+        func = get_func(ea);
+        if(func)
+            return func;
+
+        plan_and_wait(ea, end);
+        func = get_func(ea);
+        if(func)
+            return func;
+
+        // try harder, maybe plan_and_wait mishandling
+        auto_make_proc(ea);
         return get_func(ea);
     }
 
