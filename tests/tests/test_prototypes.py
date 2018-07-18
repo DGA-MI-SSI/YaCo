@@ -124,3 +124,17 @@ with open(read, "wb") as fr:
         # do not check read values by default, as they change too much between ida versions
         if False:
             self.check_golden(a.path, read)
+
+    def test_usercall(self):
+        a, b = self.setup_cmder()
+        a.run(
+            self.script("""
+ea = 0x40197E
+idc.SetType(ea, "void __usercall WinMain(HINSTANCE hInstance@<eax>, HINSTANCE hPrevInstance@<ebx>, LPSTR lpCmdLine@<edx>, int nShowCmd@<ecx>);")
+"""),
+            self.save_last_ea(),
+        )
+        a.check_git(added=["binary", "segment", "segment_chunk", "function", "basic_block"])
+        b.run(
+            self.check_last_ea(),
+        )

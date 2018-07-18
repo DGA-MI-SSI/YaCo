@@ -79,6 +79,8 @@ namespace
     {
         if(cc != CM_CC_SPECIAL && cc != CM_CC_SPECIALE && cc != CM_CC_SPECIALP)
             return;
+        if(loc.is_badloc())
+            return;
         const auto size = print_argloc(buffer, bufsize, loc);
         if(!size)
             return;
