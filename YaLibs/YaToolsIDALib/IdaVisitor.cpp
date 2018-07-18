@@ -584,21 +584,17 @@ namespace
 
             const auto blob_ea = static_cast<ea_t>(ea + offset);
             visitor.buffer_.resize(szbuf);
-            auto ok = get_bytes(&visitor.buffer_[0], szbuf, blob_ea, GMB_READALL);
-            if(!ok)
-            {
-                LOG(ERROR, "make_segment_chunk: 0x%" PRIxEA " unable to read %zd bytes\n", blob_ea, szbuf);
-                return WALK_CONTINUE;
-            }
-            if(!memcmp(&visitor.buffer_[0], pbuf, szbuf))
+            const auto nr = get_bytes(&visitor.buffer_[0], szbuf, blob_ea, GMB_READALL);
+            if(nr == static_cast<ssize_t>(szbuf) && !memcmp(&visitor.buffer_[0], pbuf, szbuf))
                 return WALK_CONTINUE;
 
-            // put_many_bytes does not return any error code...
+            // unable to read first, so write & check
             put_bytes(blob_ea, pbuf, szbuf);
-            ok = get_bytes(&visitor.buffer_[0], szbuf, blob_ea, GMB_READALL);
-            if(!ok || memcmp(&visitor.buffer_[0], pbuf, szbuf))
-                LOG(ERROR, "make_segment_chunk: 0x%" PRIxEA " unable to write %zd bytes\n", blob_ea, szbuf);
+            const auto nw = get_bytes(&visitor.buffer_[0], szbuf, blob_ea, GMB_READALL);
+            if(nw == static_cast<ssize_t>(szbuf) && !memcmp(&visitor.buffer_[0], pbuf, szbuf))
+                return WALK_CONTINUE;
 
+            LOG(ERROR, "make_segment_chunk: 0x%" PRIxEA " unable to write %zd bytes\n", blob_ea, szbuf);
             return WALK_CONTINUE;
         });
     }
