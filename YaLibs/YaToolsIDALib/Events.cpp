@@ -283,12 +283,9 @@ namespace
             add_ea(ev, hash::hash_ea(ea), func ? OBJECT_TYPE_BASIC_BLOCK : OBJECT_TYPE_CODE, ea);
             return;
         }
-        if(is_data(flags))
-        {
-            ea = get_item_head(ea);
-            add_ea(ev, hash::hash_ea(ea), OBJECT_TYPE_DATA, ea);
-            return;
-        }
+
+        ea = get_item_head(ea);
+        add_ea(ev, hash::hash_ea(ea), OBJECT_TYPE_DATA, ea);
     }
 
     void update_struc_member(Events& ev, struc_t* struc, const qstring& name, member_t* m)

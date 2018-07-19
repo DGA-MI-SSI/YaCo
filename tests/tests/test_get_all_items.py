@@ -87,3 +87,43 @@ idc.set_func_end(ea, ea+0x6C)
             full = fh.read()
         a, _ = self.setup_repos()
         self.check_range(a, 0x66001000, 0x66073F5C, full)
+
+    def test_undefined_data_items(self):
+        a, b = self.setup_cmder()
+        self.check_range(a, 0x0041C2DF, 0x0041C30C, """
+0x41c2e0: data:10
+0x41c2e4: data:1
+0x41c2e8: data:1
+0x41c2ec: data:1
+0x41c2f0: unexplored:1
+0x41c2fc: data:5
+0x41c300: data:2
+0x41c304: data:2
+0x41c308: data:2
+""")
+
+        # modify undefined data
+        a.run(
+            self.script("""
+ea = 0x41C2E0
+idaapi.set_name(ea, "another_name")
+"""),
+            self.save_last_ea(),
+        )
+        a.check_git(added=["binary", "segment", "segment_chunk", "data"])
+        b.run(
+            self.check_last_ea(),
+        )
+
+        # modify unexplored data
+        a.run(
+            self.script("""
+ea = 0x41BE10
+idaapi.set_name(ea, "unexname")
+"""),
+            self.save_last_ea(),
+        )
+        a.check_git(added=["data"], modified=["segment_chunk"])
+        b.run(
+            self.check_last_ea(),
+        )
