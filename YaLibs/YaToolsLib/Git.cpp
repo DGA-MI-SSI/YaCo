@@ -340,6 +340,39 @@ bool Git::config_set_string(const std::string& name, const std::string& value)
 
 namespace
 {
+    std::unique_ptr<git_reference> get_reference_from(git_repository* repo, const char* name)
+    {
+        git_reference* ptr_ref = nullptr;
+        const auto err = git_reference_dwim(&ptr_ref, repo, name);
+        if(err != GIT_OK)
+            return std::nullptr_t();
+
+        return make_unique(ptr_ref);
+    }
+
+    git_oid get_oid_from(git_repository* repo, const char* name)
+    {
+        git_oid empty;
+        memset(&empty, 0, sizeof empty);
+        const auto ref = get_reference_from(repo, name);
+        if(!ref)
+            return empty;
+
+        git_oid reply;
+        const auto err = git_reference_name_to_id(&reply, repo, git_reference_name(&*ref));
+        if(err != GIT_OK)
+            return empty;
+
+        return reply;
+    }
+
+    bool is_equal_oid(git_repository* repo, const char* a, const char* b)
+    {
+        const auto oida = get_oid_from(repo, a);
+        const auto oidb = get_oid_from(repo, b);
+        return !git_oid_cmp(&oida, &oidb);
+    }
+
     std::unique_ptr<git_tree> get_tree(Git& git, const std::string& target)
     {
         git_oid oid;
@@ -460,14 +493,12 @@ plop.txt content line 2
 
     std::unique_ptr<git_annotated_commit> get_annotated_commit(Git& git, const std::string& name)
     {
-        git_reference* ptr_ref = nullptr;
-        auto err = git_reference_dwim(&ptr_ref, &*git.repo_, name.data());
-        if(err != GIT_OK)
+        const auto ref = get_reference_from(&*git.repo_, name.data());
+        if(!ref)
             FAIL_WITH(std::nullptr_t(), git, "unable to resolve reference %s", name.data());
 
-        const auto ref = make_unique(ptr_ref);
         git_annotated_commit* ptr_commit = nullptr;
-        err = git_annotated_commit_from_ref(&ptr_commit, &*git.repo_, ptr_ref);
+        const auto err = git_annotated_commit_from_ref(&ptr_commit, &*git.repo_, &*ref);
         if(err != GIT_OK)
             FAIL_WITH(std::nullptr_t(), git, "unable to get annotated commit from %s", name.data());
 
@@ -557,6 +588,9 @@ plop.txt content line 2
 
 bool Git::rebase(const std::string& upstream, const std::string& dst, const on_conflict_fn& on_conflict)
 {
+    if(is_equal_oid(&*repo_, upstream.data(), dst.data()))
+        return true;
+
     const auto rebase = init_rebase(*this, dst, upstream);
     if(!rebase)
         return false;
@@ -654,17 +688,9 @@ bool Git::is_tracked(const std::string& name)
 
 std::string Git::get_commit(const std::string& name)
 {
-    git_reference* ptr_ref = nullptr;
-    auto err = git_reference_dwim(&ptr_ref, &*repo_, name.data());
-    if(err != GIT_OK)
+    const auto oid = get_oid_from(&*repo_, name.data());
+    if(git_oid_iszero(&oid))
         FAIL_WITH(std::string(), *this, "unable to get reference from %s", name.data());
-
-    const auto ref = make_unique(ptr_ref);
-    git_oid oid;
-    memset(&oid, 0, sizeof oid);
-    err = git_reference_name_to_id(&oid, &*repo_, git_reference_name(ptr_ref));
-    if(err != GIT_OK)
-        FAIL_WITH(std::string(), *this, "unable to convert reference %s to oid", name.data());
 
     char oidstr[GIT_OID_HEXSZ+1];
     memset(oidstr, 0, sizeof oidstr);
@@ -675,7 +701,7 @@ std::string Git::get_commit(const std::string& name)
 bool Git::push(const std::string& src, const std::string& remotename, const std::string& dst)
 {
     // skip push if there is nothing to do
-    if(get_commit(src) == get_commit(remotename + "/" + dst))
+    if(is_equal_oid(&*repo_, src.data(), (remotename + "/" + dst).data()))
         return true;
 
     const auto remote = load_remote(*this, remotename.data());
