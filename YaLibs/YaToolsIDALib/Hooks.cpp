@@ -261,6 +261,104 @@ namespace
         return "";
     }
 
+    const char* idb_event_to_txt(idb_event::event_code_t event)
+    {
+        switch(event)
+        {
+            case idb_event::event_code_t::closebase:                return "closebase";
+            case idb_event::event_code_t::savebase:                 return "savebase";
+            case idb_event::event_code_t::upgraded:                 return "upgraded";
+            case idb_event::event_code_t::auto_empty:               return "auto_empty";
+            case idb_event::event_code_t::auto_empty_finally:       return "auto_empty_finally";
+            case idb_event::event_code_t::determined_main:          return "determined_main";
+            case idb_event::event_code_t::local_types_changed:      return "local_types_changed";
+            case idb_event::event_code_t::extlang_changed:          return "extlang_changed";
+            case idb_event::event_code_t::idasgn_loaded:            return "idasgn_loaded";
+            case idb_event::event_code_t::kernel_config_loaded:     return "kernel_config_loaded";
+            case idb_event::event_code_t::loader_finished:          return "loader_finished";
+            case idb_event::event_code_t::flow_chart_created:       return "flow_chart_created";
+            case idb_event::event_code_t::compiler_changed:         return "compiler_changed";
+            case idb_event::event_code_t::changing_ti:              return "changing_ti";
+            case idb_event::event_code_t::ti_changed:               return "ti_changed";
+            case idb_event::event_code_t::changing_op_ti:           return "changing_op_ti";
+            case idb_event::event_code_t::op_ti_changed:            return "op_ti_changed";
+            case idb_event::event_code_t::changing_op_type:         return "changing_op_type";
+            case idb_event::event_code_t::op_type_changed:          return "op_type_changed";
+            case idb_event::event_code_t::enum_created:             return "enum_created";
+            case idb_event::event_code_t::deleting_enum:            return "deleting_enum";
+            case idb_event::event_code_t::enum_deleted:             return "enum_deleted";
+            case idb_event::event_code_t::renaming_enum:            return "renaming_enum";
+            case idb_event::event_code_t::enum_renamed:             return "enum_renamed";
+            case idb_event::event_code_t::changing_enum_bf:         return "changing_enum_bf";
+            case idb_event::event_code_t::enum_bf_changed:          return "enum_bf_changed";
+            case idb_event::event_code_t::changing_enum_cmt:        return "changing_enum_cmt";
+            case idb_event::event_code_t::enum_cmt_changed:         return "enum_cmt_changed";
+            case idb_event::event_code_t::enum_member_created:      return "enum_member_created";
+            case idb_event::event_code_t::deleting_enum_member:     return "deleting_enum_member";
+            case idb_event::event_code_t::enum_member_deleted:      return "enum_member_deleted";
+            case idb_event::event_code_t::struc_created:            return "struc_created";
+            case idb_event::event_code_t::deleting_struc:           return "deleting_struc";
+            case idb_event::event_code_t::struc_deleted:            return "struc_deleted";
+            case idb_event::event_code_t::changing_struc_align:     return "changing_struc_align";
+            case idb_event::event_code_t::struc_align_changed:      return "struc_align_changed";
+            case idb_event::event_code_t::renaming_struc:           return "renaming_struc";
+            case idb_event::event_code_t::struc_renamed:            return "struc_renamed";
+            case idb_event::event_code_t::expanding_struc:          return "expanding_struc";
+            case idb_event::event_code_t::struc_expanded:           return "struc_expanded";
+            case idb_event::event_code_t::struc_member_created:     return "struc_member_created";
+            case idb_event::event_code_t::deleting_struc_member:    return "deleting_struc_member";
+            case idb_event::event_code_t::struc_member_deleted:     return "struc_member_deleted";
+            case idb_event::event_code_t::renaming_struc_member:    return "renaming_struc_member";
+            case idb_event::event_code_t::struc_member_renamed:     return "struc_member_renamed";
+            case idb_event::event_code_t::changing_struc_member:    return "changing_struc_member";
+            case idb_event::event_code_t::struc_member_changed:     return "struc_member_changed";
+            case idb_event::event_code_t::changing_struc_cmt:       return "changing_struc_cmt";
+            case idb_event::event_code_t::struc_cmt_changed:        return "struc_cmt_changed";
+            case idb_event::event_code_t::segm_added:               return "segm_added";
+            case idb_event::event_code_t::deleting_segm:            return "deleting_segm";
+            case idb_event::event_code_t::segm_deleted:             return "segm_deleted";
+            case idb_event::event_code_t::changing_segm_start:      return "changing_segm_start";
+            case idb_event::event_code_t::segm_start_changed:       return "segm_start_changed";
+            case idb_event::event_code_t::changing_segm_end:        return "changing_segm_end";
+            case idb_event::event_code_t::segm_end_changed:         return "segm_end_changed";
+            case idb_event::event_code_t::changing_segm_name:       return "changing_segm_name";
+            case idb_event::event_code_t::segm_name_changed:        return "segm_name_changed";
+            case idb_event::event_code_t::changing_segm_class:      return "changing_segm_class";
+            case idb_event::event_code_t::segm_class_changed:       return "segm_class_changed";
+            case idb_event::event_code_t::segm_attrs_updated:       return "segm_attrs_updated";
+            case idb_event::event_code_t::segm_moved:               return "segm_moved";
+            case idb_event::event_code_t::allsegs_moved:            return "allsegs_moved";
+            case idb_event::event_code_t::func_added:               return "func_added";
+            case idb_event::event_code_t::func_updated:             return "func_updated";
+            case idb_event::event_code_t::set_func_start:           return "set_func_start";
+            case idb_event::event_code_t::set_func_end:             return "set_func_end";
+            case idb_event::event_code_t::deleting_func:            return "deleting_func";
+            case idb_event::event_code_t::frame_deleted:            return "frame_deleted";
+            case idb_event::event_code_t::thunk_func_created:       return "thunk_func_created";
+            case idb_event::event_code_t::func_tail_appended:       return "func_tail_appended";
+            case idb_event::event_code_t::deleting_func_tail:       return "deleting_func_tail";
+            case idb_event::event_code_t::func_tail_deleted:        return "func_tail_deleted";
+            case idb_event::event_code_t::tail_owner_changed:       return "tail_owner_changed";
+            case idb_event::event_code_t::func_noret_changed:       return "func_noret_changed";
+            case idb_event::event_code_t::stkpnts_changed:          return "stkpnts_changed";
+            case idb_event::event_code_t::updating_tryblks:         return "updating_tryblks";
+            case idb_event::event_code_t::tryblks_updated:          return "tryblks_updated";
+            case idb_event::event_code_t::deleting_tryblks:         return "deleting_tryblks";
+            case idb_event::event_code_t::sgr_changed:              return "sgr_changed";
+            case idb_event::event_code_t::make_code:                return "make_code";
+            case idb_event::event_code_t::make_data:                return "make_data";
+            case idb_event::event_code_t::destroyed_items:          return "destroyed_items";
+            case idb_event::event_code_t::renamed:                  return "renamed";
+            case idb_event::event_code_t::byte_patched:             return "byte_patched";
+            case idb_event::event_code_t::changing_cmt:             return "changing_cmt";
+            case idb_event::event_code_t::cmt_changed:              return "cmt_changed";
+            case idb_event::event_code_t::changing_range_cmt:       return "changing_range_cmt";
+            case idb_event::event_code_t::range_cmt_changed:        return "range_cmt_changed";
+            case idb_event::event_code_t::extra_cmt_changed:        return "extra_cmt_changed";
+        }
+        return "";
+    }
+
     const char* range_kind_to_str(range_kind_t kind)
     {
         switch (kind)
@@ -964,6 +1062,7 @@ namespace
 
         hooks->events_.touch();
         idb_event::event_code_t event = static_cast<idb_event::event_code_t>(notification_code);
+        LOG(DEBUG, "event: %s\n", idb_event_to_txt(event));
         switch (event)
         {
             case idb_event::event_code_t::byte_patched:            byte_patched(*hooks, args); break;
