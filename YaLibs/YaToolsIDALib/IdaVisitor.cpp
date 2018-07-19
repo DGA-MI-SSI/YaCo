@@ -1181,7 +1181,9 @@ namespace
                 del_items(ea, DELIT_DELNAMES, static_cast<asize_t>(size));
                 auto ok = create_struct(ea, static_cast<asize_t>(size), fi->second.tid);
                 if(!ok)
-                    LOG(ERROR, "make_data: 0x%" PRIxEA " unable to set struct %016" PRIx64 " size %zd\n", ea, id, size);
+                    ok = create_struct(ea, 0, fi->second.tid);
+                if(!ok)
+                    LOG(ERROR, "make_data: 0x%" PRIxEA " unable to set struct %016" PRIx64 "\n", ea, id);
                 found = true;
                 return WALK_CONTINUE;
             });
@@ -1733,10 +1735,8 @@ namespace
         const auto flags = version.flags();
         auto size = static_cast<asize_t>(version.size());
         const auto pop = get_member_info(&op, size, visitor, version, flags);
-        auto ok = set_member_type(struc, ea, (flags & DT_TYPE) | FF_DATA, pop, size);
-        const auto is_struct_applied = ok && is_struct(flags);
-        if(!ok)
-            LOG(ERROR, "make_%s: %s.%s: unable to set member type %x to %" PRIuEA " bytes\n", where, sname->c_str(), name.data(), flags, size);
+        auto ok_type = set_member_type(struc, ea, (flags & DT_TYPE) | FF_DATA, pop, size);
+        const auto is_struct_applied = ok_type && is_struct(flags);
 
         const auto member = get_member(struc, ea);
         if(!member)
@@ -1749,7 +1749,7 @@ namespace
         {
             const auto cmt = version.header_comment(repeat);
             const auto strcmt = make_string(cmt);
-            ok = set_member_cmt(member, strcmt.data(), repeat);
+            const auto ok = set_member_cmt(member, strcmt.data(), repeat);
             if(!ok)
                 LOG(ERROR, "make_%s: %s.%s: unable to set %s comment to '%s'\n", where, sname->c_str(), name.data(), repeat ? "repeatable" : "non-repeatable", strcmt.data());
         }
@@ -1759,11 +1759,15 @@ namespace
         if(prototype.size && !is_struct_applied)
         {
             const auto strtype = make_string(prototype);
-            ok = set_struct_member_type(member->id, strtype);
+            const auto ok = set_struct_member_type(member->id, strtype);
+            ok_type |= ok;
             if(!ok)
                 LOG(ERROR, "make_%s: %s.%s: unable to set prototype '%s'\n", where, sname->c_str(), name.data(), strtype.data());
         }
         set_tid(visitor, version.id(), member->id, 0, struc->props & SF_FRAME ? OBJECT_TYPE_STACKFRAME_MEMBER : OBJECT_TYPE_STRUCT_MEMBER);
+
+        if(!ok_type)
+            LOG(ERROR, "make_%s: %s.%s: unable to set member type %s to %" PRIuEA " bytes\n", where, sname->c_str(), name.data(), ya::dump_flags(flags).data(), size);
     }
 
     struc_t* try_get_struc(const HVersion& version, const char* name)
