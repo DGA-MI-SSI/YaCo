@@ -66,37 +66,37 @@ ya.export_from_ida(name, "dat.yadb")
             return tostr(name.Value()) if name else ""
         data = {}
         versions = [
-            ("bin", root.Binaries,          root.BinariesLength(),          lambda x: x.Address()),
-            ("str", root.Structs,           root.StructsLength(),           lambda x: getname(x)),
-            ("stm", root.StructMembers,     root.StructMembersLength(),     lambda x: (getname(data[x.ParentId()]), x.Address())),
-            ("enu", root.Enums,             root.EnumsLength(),             lambda x: getname(x)),
-            ("enm", root.EnumMembers,       root.EnumMembersLength(),       lambda x: (getname(data[x.ParentId()]), x.Address())),
-            ("seg", root.Segments,          root.SegmentsLength(),          lambda x: x.Address()),
-            ("chk", root.SegmentChunks,     root.SegmentChunksLength(),     lambda x: x.Address()),
-            ("fun", root.Functions,         root.FunctionsLength(),         lambda x: x.Address()),
-            ("stk", root.Stackframes,       root.StackframesLength(),       lambda x: x.Address()),
-            ("stm", root.StackframeMembers, root.StackframeMembersLength(), lambda x: (data[x.ParentId()].Address(), x.Address())),
-            ("ref", root.ReferenceInfos,    root.ReferenceInfosLength(),    lambda x: x.Address()),
-            ("cod", root.Codes,             root.CodesLength(),             lambda x: x.Address()),
-            ("dat", root.Datas,             root.DatasLength(),             lambda x: x.Address()),
-            ("bbk", root.BasicBlocks,       root.BasicBlocksLength(),       lambda x: x.Address()),
+            ("bin", root.Binaries,          root.BinariesLength(),          lambda x: x.Address(),                                  lambda x: "%-2x" % x.Address()),
+            ("str", root.Structs,           root.StructsLength(),           lambda x: getname(x),                                   lambda x: "%-2x" % x.Address()),
+            ("stm", root.StructMembers,     root.StructMembersLength(),     lambda x: (getname(data[x.ParentId()]), x.Address()),   lambda x: "%s:%-2x" % (getname(data[x.ParentId()]), x.Address())),
+            ("enu", root.Enums,             root.EnumsLength(),             lambda x: getname(x),                                   lambda x: "%-2x" % x.Address()),
+            ("enm", root.EnumMembers,       root.EnumMembersLength(),       lambda x: (getname(data[x.ParentId()]), x.Address()),   lambda x: "%s:%-2x" % (getname(data[x.ParentId()]), x.Address())),
+            ("seg", root.Segments,          root.SegmentsLength(),          lambda x: x.Address(),                                  lambda x: "%-2x" % x.Address()),
+            ("chk", root.SegmentChunks,     root.SegmentChunksLength(),     lambda x: x.Address(),                                  lambda x: "%-2x" % x.Address()),
+            ("fun", root.Functions,         root.FunctionsLength(),         lambda x: x.Address(),                                  lambda x: "%-2x" % x.Address()),
+            ("stk", root.Stackframes,       root.StackframesLength(),       lambda x: x.Address(),                                  lambda x: "%-2x" % x.Address()),
+            ("skm", root.StackframeMembers, root.StackframeMembersLength(), lambda x: (data[x.ParentId()].Address(), x.Address()),  lambda x: "%x:%-2x" % (data[x.ParentId()].Address(), x.Address())),
+            ("ref", root.ReferenceInfos,    root.ReferenceInfosLength(),    lambda x: x.Address(),                                  lambda x: "%-2x" % x.Address()),
+            ("cod", root.Codes,             root.CodesLength(),             lambda x: x.Address(),                                  lambda x: "%-2x" % x.Address()),
+            ("dat", root.Datas,             root.DatasLength(),             lambda x: x.Address(),                                  lambda x: "%-2x" % x.Address()),
+            ("bbk", root.BasicBlocks,       root.BasicBlocksLength(),       lambda x: x.Address(),                                  lambda x: "%-2x" % x.Address()),
         ]
         got = StringIO.StringIO()
         num_versions = 0
-        for (prefix, getter, size, getkey) in versions:
+        for (prefix, getter, size, getkey, getea) in versions:
             num_versions += size
         got.write("objects: %d\n" % num_versions)
-        for (prefix, getter, size, getkey) in versions:
+        for (prefix, getter, size, getkey, getea) in versions:
             got.write("\n%s: %d\n" % (prefix, size))
             values = []
             for it in iterate(getter, size):
                 data[it.ObjectId()] = it
                 name = getname(it)
                 prototype = tostr(it.Prototype())
-                values.append((getkey(it), prefix, it.Address(), name, prototype))
+                values.append((getkey(it), prefix, getea(it), name, prototype))
             values.sort(cmp=lambda x, y: cmp(x[0], y[0]))
             for (key, prefix, ea, name, prototype) in values:
-                line = "%s_%-2x %s %s" % (prefix, ea, name, prototype)
+                line = "%s_%-2s %s %s" % (prefix, ea, name, prototype)
                 got.write(line.rstrip() + "\n")
         self.check_golden(golden_filename, got.getvalue())
 

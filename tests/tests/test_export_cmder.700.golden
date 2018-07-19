@@ -10,26 +10,26 @@ str_35 TryBlockMapEntry
 str_34 UnwindMapEntry
 
 stm: 20
-stm_0  magicNumber
-stm_4  maxState
-stm_8  pUnwindMap void *
-stm_c  nTryBlocks
-stm_10 pTryBlockMap void *
-stm_14 nIPMapEntries
-stm_18 pIPtoStateMap void *
-stm_1c pESTypeList void *
-stm_20 EHFlags
-stm_0  adjectives
-stm_4  pType void *
-stm_8  dispCatchObj
-stm_c  addressOfHandler void *
-stm_0  tryLow
-stm_4  tryHigh
-stm_8  catchHigh
-stm_c  nCatches
-stm_10 pHandlerArray void *
-stm_0  toState
-stm_4  action void *
+stm_FuncInfo:0  magicNumber
+stm_FuncInfo:4  maxState
+stm_FuncInfo:8  pUnwindMap void *
+stm_FuncInfo:c  nTryBlocks
+stm_FuncInfo:10 pTryBlockMap void *
+stm_FuncInfo:14 nIPMapEntries
+stm_FuncInfo:18 pIPtoStateMap void *
+stm_FuncInfo:1c pESTypeList void *
+stm_FuncInfo:20 EHFlags
+stm_HandlerType:0  adjectives
+stm_HandlerType:4  pType void *
+stm_HandlerType:8  dispCatchObj
+stm_HandlerType:c  addressOfHandler void *
+stm_TryBlockMapEntry:0  tryLow
+stm_TryBlockMapEntry:4  tryHigh
+stm_TryBlockMapEntry:8  catchHigh
+stm_TryBlockMapEntry:c  nCatches
+stm_TryBlockMapEntry:10 pHandlerArray void *
+stm_UnwindMapEntry:0  toState
+stm_UnwindMapEntry:4  action void *
 
 enu: 0
 
@@ -1171,1527 +1171,1527 @@ stk_412440
 stk_412470
 stk_4125b0
 
-stm: 1520
-stm_8  Buffer WCHAR[2]
-stm_c  Text WCHAR
-stm_80c var_4
-stm_818 arg_0 int
-stm_10 var_50
-stm_44 var_1C
-stm_48 pNumArgs int
-stm_5c var_4
-stm_6c arg_4
-stm_10 StartupInfo struct _STARTUPINFOW
-stm_54 SystemInfo struct _SYSTEM_INFO
-stm_78 ProcessInformation struct _PROCESS_INFORMATION
-stm_88 CommandLine WCHAR
-stm_698 Buffer WCHAR
-stm_8a0 Dst wchar_t
-stm_aa8 pszDest WCHAR
-stm_cb0 var_E48 WCHAR
-stm_eb8 ApplicationName WCHAR
-stm_10c0 NewFileName WCHAR
-stm_12c8 ExistingFileName WCHAR
-stm_14d0 pszPath WCHAR
-stm_16d8 Src WCHAR
-stm_18e0 Filename WCHAR
-stm_1ae8 var_10
-stm_1aec var_C
-stm_1af4 var_4
-stm_1b00 arg_0 wchar_t *
-stm_1b04 arg_4 int
-stm_1b14 arg_14 int
-stm_1b18 arg_18 int
-stm_1b28 arg_28 int
-stm_1b2c arg_2C int
-stm_10 var_2C wchar_t *
-stm_20 var_1C
-stm_24 var_18
-stm_28 phkResult HKEY
-stm_38 var_4
-stm_44 arg_0
-stm_48 arg_4
-stm_14 hKey HKEY
-stm_18 phkResult HKEY
-stm_1c Data WCHAR
-stm_24c pszDest WCHAR
-stm_454 Filename WCHAR
-stm_668 var_4
-stm_674 arg_0
-stm_678 arg_4
-stm_28 phkResult HKEY
-stm_38 var_4
-stm_44 arg_0
-stm_48 arg_4
-stm_14 var_34 wchar_t *
-stm_28 var_20
-stm_2c var_1C int
-stm_44 var_4
-stm_50 hInstance HINSTANCE
-stm_54 hPrevInstance HINSTANCE
-stm_58 lpCmdLine LPSTR
-stm_5c nShowCmd int
-stm_c  arg_0 wchar_t *
-stm_4  var_4
-stm_10 arg_0 wchar_t *
-stm_c  var_4
-stm_18 arg_0 void *
-stm_10 arg_0 void *
-stm_8  arg_0 int
-stm_c  arg_4 int
-stm_10 arg_8 int
-stm_8  arg_0 int
-stm_c  arg_4 int
-stm_10 arg_8 int
-stm_8  arg_0 int
-stm_c  arg_4 int
-stm_10 arg_8 int
-stm_c  var_8
-stm_10 var_4 void *
-stm_1c arg_0
-stm_24 arg_8
-stm_c  arg_0 struct std::exception *
-stm_c  arg_0 const struct std::exception *
-stm_4  var_8
-stm_14 arg_0 const char *const
-stm_c  arg_0 struct std::exception *
-stm_4  var_4
-stm_10 arg_0 char *
-stm_c  arg_0 struct std::exception *
-stm_c  arg_0
-stm_14 arg_0 char *
-stm_8  arg_0 size_t
-stm_8  lpMem LPVOID
-stm_10 var_24
-stm_14 var_20 int
-stm_1c ms_exc CPPEH_RECORD
-stm_c  arg_0
-stm_8  ExceptionInfo struct _EXCEPTION_POINTERS *
-stm_0  var_324
-stm_31c var_8
-stm_324 var_s0
-stm_32c arg_0
-stm_c  arg_0 struct std::exception *
-stm_4  lpMem LPVOID
-stm_8  arg_0
-stm_c  arg_0 unsigned __int8 *const
-stm_10 arg_4 unsigned int
-stm_8  arg_0
-stm_0  var_C
-stm_4  var_8
-stm_8  var_4
-stm_14 arg_0
-stm_10 ms_exc CPPEH_RECORD
-stm_30 arg_0
-stm_8  arg_0
-stm_8  arg_0
-stm_c  arg_4
-stm_8  arg_0 _onexit_t
-stm_8  arg_0 _onexit_t
-stm_0  PerformanceCount LARGE_INTEGER
-stm_8  SystemTimeAsFileTime struct _FILETIME
-stm_10 var_4
-stm_0  var_32C size_t
-stm_8  var_324
-stm_94 var_298
-stm_98 var_294
-stm_9c var_290
-stm_a0 var_28C
-stm_a4 var_288
-stm_a8 var_284
-stm_ac var_280
-stm_b0 var_27C
-stm_b4 var_278
-stm_b8 var_274
-stm_bc var_270
-stm_c0 var_26C
-stm_c4 var_268
-stm_c8 var_264
-stm_cc var_260
-stm_d0 var_25C
-stm_2d4 var_58
-stm_2d8 var_54
-stm_2e0 var_4C
-stm_324 ExceptionInfo struct _EXCEPTION_POINTERS
-stm_334 arg_0
-stm_0  StartupInfo struct _STARTUPINFOW
-stm_8  ExceptionInfo struct _EXCEPTION_POINTERS *
-stm_8  arg_4
-stm_4  var_24
-stm_8  var_20
-stm_c  var_1C
-stm_10 var_18
-stm_14 var_14
-stm_18 var_10
-stm_1c var_C
-stm_20 var_8
-stm_24 var_4
-stm_0  var_18
-stm_4  var_14
-stm_8  var_10
-stm_c  var_C
-stm_10 var_8
-stm_14 var_4
-stm_20 arg_0 struct EHRegistrationNode *
-stm_24 arg_4 const struct _s_FuncInfo *
-stm_28 arg_8 void *
-stm_2c arg_C int
-stm_30 arg_10 unsigned int
-stm_4  var_38
-stm_8  var_34
-stm_c  var_30
-stm_10 var_2C
-stm_14 var_28
-stm_18 var_24
-stm_1c var_20
-stm_20 var_1C
-stm_24 var_18
-stm_28 var_14
-stm_2c var_10
-stm_30 var_C
-stm_34 var_8
-stm_38 var_4
-stm_44 arg_0 struct EHExceptionRecord *
-stm_48 arg_4 struct EHRegistrationNode *
-stm_4c arg_8 void *
-stm_54 arg_10 const struct _s_FuncInfo *
-stm_58 arg_14 int
-stm_5c arg_18 struct EHRegistrationNode *
-stm_c  var_4
-stm_18 arg_0 const struct _s_FuncInfo *
-stm_1c arg_4 int
-stm_20 arg_8 int
-stm_24 arg_C unsigned int *
-stm_28 arg_10 unsigned int *
-stm_4  var_4
-stm_10 arg_0 void *
-stm_14 arg_4 struct EHRegistrationNode *
-stm_c  var_8
-stm_10 TargetIp PVOID
-stm_1c TargetFrame PVOID
-stm_20 ExceptionRecord PEXCEPTION_RECORD
-stm_c  ExceptionRecord PEXCEPTION_RECORD
-stm_10 TargetFrame PVOID
-stm_14 arg_8 struct _CONTEXT *
-stm_c  arg_0
-stm_10 arg_4
-stm_c  arg_0
-stm_4  var_4
-stm_10 ExceptionRecord PEXCEPTION_RECORD
-stm_14 TargetFrame PVOID
-stm_18 arg_8 struct _CONTEXT *
-stm_c  var_8
-stm_10 var_4 struct _s_FuncInfo *
-stm_1c ExceptionRecord PEXCEPTION_RECORD
-stm_20 arg_4 struct EHRegistrationNode *
-stm_24 arg_8 struct _CONTEXT *
-stm_28 arg_C void *
-stm_c  arg_0 void *
-stm_10 arg_4 const void *
-stm_14 arg_8 size_t
-stm_c  arg_0 void *
-stm_10 arg_4 const void *
-stm_14 arg_8 size_t
-stm_10 ms_exc CPPEH_RECORD
-stm_30 arg_0
-stm_34 arg_4
-stm_8  arg_0 void *const
-stm_c  arg_4 void *const
-stm_8  arg_0
-stm_c  arg_0
-stm_10 arg_4
-stm_8  arg_0
-stm_c  arg_0
-stm_10 arg_4
-stm_c  arg_0
-stm_c  dwExceptionCode DWORD
-stm_10 dwExceptionFlags DWORD
-stm_1c nNumberOfArguments DWORD
-stm_20 Arguments ULONG_PTR
-stm_24 var_8
-stm_28 var_4
-stm_34 arg_0
-stm_38 arg_4
-stm_10 arg_0
-stm_14 arg_4
-stm_c  var_1C
-stm_10 var_18
-stm_14 var_14
-stm_18 var_10
-stm_1c var_C
-stm_20 var_8
-stm_30 ExceptionRecord PEXCEPTION_RECORD
-stm_34 TargetFrame PVOID
-stm_38 arg_8 int
-stm_8  arg_0
-stm_8  arg_0
-stm_c  arg_4
-stm_4  arg_0 void *
-stm_8  arg_4 int
-stm_c  arg_8 size_t
-stm_8  lpMem LPVOID
-stm_4  var_4
-stm_10 arg_0
-stm_14 arg_4
-stm_18 arg_8
-stm_c  arg_0 struct std::exception *
-stm_18 var_40
-stm_1c var_3C
-stm_20 var_38
-stm_24 var_34
-stm_28 var_30
-stm_2c var_2C
-stm_30 var_28
-stm_34 var_24
-stm_38 var_20
-stm_3c var_1C
-stm_40 ms_exc CPPEH_RECORD
-stm_60 arg_0 struct EHExceptionRecord *
-stm_64 arg_4 struct EHRegistrationNode *
-stm_68 arg_8 struct _CONTEXT *
-stm_6c arg_C struct _s_FuncInfo *
-stm_70 arg_10 void *
-stm_74 arg_14 int
-stm_78 arg_18 unsigned int
-stm_1c var_4
-stm_28 arg_0 const struct _s_ESTypeList *
-stm_2c arg_4
-stm_14 ExceptionRecord PEXCEPTION_RECORD
-stm_18 arg_4 struct EHRegistrationNode *
-stm_1c arg_8 struct _CONTEXT *
-stm_20 arg_C void *
-stm_24 arg_10 struct _s_FuncInfo *
-stm_28 arg_14 const struct _s_HandlerType *
-stm_2c arg_18 const struct _s_CatchableType *
-stm_30 arg_1C const struct _s_TryBlockMapEntry *
-stm_34 arg_20 int
-stm_38 TargetFrame PVOID
-stm_8  arg_0 struct _EXCEPTION_POINTERS *
-stm_18 var_34 struct _s_TryBlockMapEntry *
-stm_1c var_30
-stm_20 var_2C
-stm_24 var_28 unsigned int
-stm_28 var_24 unsigned __int8[4]
-stm_2c var_20
-stm_30 var_1C
-stm_34 var_18 struct _s_ESTypeList *
-stm_38 var_14 unsigned int
-stm_3c var_10 struct _s_HandlerType *
-stm_40 var_C
-stm_44 var_8 struct _CONTEXT *
-stm_54 ExceptionRecord PEXCEPTION_RECORD
-stm_58 arg_4 struct EHRegistrationNode *
-stm_5c arg_8 struct _CONTEXT *
-stm_60 arg_C void *
-stm_64 arg_10 struct _s_FuncInfo *
-stm_68 arg_14
-stm_6c arg_18 int
-stm_70 TargetFrame PVOID
-stm_4  var_8 unsigned int
-stm_8  var_4 unsigned int
-stm_14 ExceptionRecord PEXCEPTION_RECORD
-stm_18 arg_4 struct EHRegistrationNode *
-stm_1c arg_8 struct _CONTEXT *
-stm_20 arg_C void *
-stm_24 arg_10 struct _s_FuncInfo *
-stm_28 arg_14 int
-stm_2c arg_18 int
-stm_30 TargetFrame PVOID
-stm_c  var_18
-stm_10 var_14
-stm_14 var_10
-stm_18 var_C
-stm_1c var_8
-stm_20 var_4
-stm_2c arg_0 struct EHExceptionRecord *
-stm_30 arg_4 const struct _s_ESTypeList *
-stm_14 arg_0 const struct _s_ESTypeList *
-stm_8  arg_0 void *const
-stm_c  arg_4 void *const
-stm_10 arg_8 void *const
-stm_8  arg_0 void *const
-stm_c  arg_4 void *const
-stm_10 arg_8 void *const
-stm_14 arg_C int
-stm_10 ms_exc CPPEH_RECORD
-stm_30 arg_0 int
-stm_34 arg_4 void *
-stm_38 arg_8 int
-stm_3c arg_C int
-stm_10 var_20
-stm_14 var_1C
-stm_18 ms_exc CPPEH_RECORD
-stm_38 arg_0 int
-stm_3c arg_4 void *
-stm_40 arg_8 int
-stm_44 arg_C int
-stm_10 var_20
-stm_14 var_1C
-stm_18 ms_exc CPPEH_RECORD
-stm_38 arg_0
-stm_40 arg_8
-stm_44 arg_C
-stm_14 ExceptionRecord PEXCEPTION_RECORD
-stm_18 arg_4 struct EHRegistrationNode *
-stm_1c arg_8 struct _CONTEXT *
-stm_20 arg_C void *
-stm_24 arg_10 struct _s_FuncInfo *
-stm_28 arg_14 int
-stm_2c TargetFrame PVOID
-stm_30 arg_1C
-stm_14 arg_0
-stm_18 arg_4
-stm_1c arg_8
-stm_8  arg_0
-stm_8  arg_0
-stm_0  var_20
-stm_24 arg_0
-stm_28 arg_4
-stm_2c arg_8
-stm_4  arg_0
-stm_8  arg_4
-stm_10 arg_C
-stm_8  arg_0
-stm_8  arg_0
-stm_c  arg_4
-stm_c  var_4
-stm_18 arg_0
-stm_1c arg_4
-stm_10 arg_0
-stm_14 lpProcName LPCSTR
-stm_18 arg_8
-stm_1c arg_C
-stm_c  arg_0
-stm_c  dwTlsIndex DWORD
-stm_c  dwTlsIndex DWORD
-stm_c  dwTlsIndex DWORD
-stm_10 lpTlsValue LPVOID
-stm_c  lpCriticalSection LPCRITICAL_SECTION
-stm_10 dwSpinCount DWORD
-stm_14 arg_8 int
-stm_8  arg_0
-stm_18 TargetFrame PVOID
-stm_4  arg_0
-stm_8  arg_4
-stm_10 arg_C
-stm_14 arg_10
-stm_0  var_20
-stm_8  var_18
-stm_24 arg_0
-stm_28 arg_4
-stm_10 arg_0
-stm_8  arg_0 unsigned int
-stm_14 ms_exc CPPEH_RECORD
-stm_34 uExitCode UINT
-stm_38 arg_4
-stm_3c arg_8
-stm_8  uExitCode UINT
-stm_0  phModule HMODULE
-stm_4  var_4
-stm_10 arg_0 unsigned int
-stm_8  arg_0
-stm_8  arg_0 int
-stm_8  arg_0
-stm_8  arg_0 int
-stm_4  var_484
-stm_14 var_474
-stm_18 var_470
-stm_1c var_46C
-stm_20 var_468
-stm_28 var_460
-stm_484 var_4
-stm_490 arg_0 int
-stm_494 arg_4 int
-stm_498 arg_8 int
-stm_49c arg_C int
-stm_4a0 arg_10 int
-stm_4a4 arg_14 struct __crt_locale_pointers *
-stm_4a8 arg_18 int
-stm_8  arg_0 int
-stm_c  arg_4 int
-stm_10 arg_8 int
-stm_14 arg_C int
-stm_18 arg_10 int
-stm_1c arg_14 struct __crt_locale_pointers *
-stm_20 arg_18 int
-stm_8  var_4
-stm_14 arg_0
-stm_8  arg_0
-stm_10 arg_8
-stm_14 arg_C
-stm_14 arg_0
-stm_18 arg_4
-stm_1c arg_8
-stm_10 var_4
-stm_1c arg_0
-stm_20 arg_4
-stm_24 arg_8
-stm_28 arg_C
-stm_c  arg_0
-stm_10 arg_4
-stm_14 arg_8
-stm_18 arg_C
-stm_0  var_4
-stm_c  arg_0
-stm_10 arg_4
-stm_14 arg_8
-stm_18 arg_C
-stm_1c arg_10
-stm_20 arg_14
-stm_c  arg_0
-stm_10 arg_4
-stm_14 arg_8
-stm_18 arg_C
-stm_1c arg_10
-stm_20 arg_14
-stm_c  arg_0 struct __crt_locale_pointers *const
-stm_c  arg_0
-stm_c  this __crt_stdio_output *
-stm_10 arg_4 char *
-stm_8  arg_0
-stm_c  arg_4
-stm_c  this __crt_stdio_output *
-stm_10 arg_4 char *
-stm_c  var_4 wchar_t *
-stm_18 arg_0
-stm_8  var_C
-stm_c  var_8
-stm_10 var_4
-stm_8  arg_0
-stm_8  var_8 double
-stm_c  SrcCh
-stm_10 arg_0
-stm_14 arg_4
-stm_10 arg_0
-stm_8  arg_0
-stm_c  arg_4
-stm_c  var_8
-stm_10 DstCh wchar_t[2]
-stm_8  var_8
-stm_c  var_4
-stm_18 arg_0 void *
-stm_1c arg_4 int
-stm_20 arg_8 int
-stm_24 arg_C int
-stm_8  arg_0 int
-stm_c  arg_4 int
-stm_10 arg_8 int
-stm_14 arg_C int
-stm_18 arg_10 int
-stm_1c arg_14 struct __crt_locale_pointers *
-stm_20 arg_18 int
-stm_8  Str1 wchar_t *
-stm_c  Str2 wchar_t *
-stm_8  var_10
-stm_c  var_C struct localeinfo_struct
-stm_20 Str1 const wchar_t *
-stm_24 Str2 const wchar_t *
-stm_28 Locale _locale_t
-stm_c  Dst wchar_t *
-stm_10 SizeInWords rsize_t
-stm_14 Src const wchar_t *
-stm_8  arg_0 const wchar_t *
-stm_4  ExceptionInfo struct _EXCEPTION_POINTERS
-stm_c  var_320
-stm_10 var_31C
-stm_18 var_314
-stm_5c var_2D0
-stm_e8 var_244
-stm_ec var_240
-stm_f0 var_23C
-stm_f4 var_238
-stm_f8 var_234
-stm_fc var_230
-stm_100 var_22C
-stm_104 var_228
-stm_108 var_224
-stm_10c var_220
-stm_110 var_21C
-stm_114 var_218
-stm_118 var_214
-stm_11c var_210
-stm_120 var_20C
-stm_124 var_208
-stm_328 var_4
-stm_334 arg_0
-stm_338 arg_4
-stm_33c arg_8
-stm_8  arg_0
-stm_4  var_4
-stm_10 arg_0
-stm_14 arg_4
-stm_18 arg_8
-stm_1c arg_C
-stm_20 arg_10
-stm_10 arg_0
-stm_14 arg_4
-stm_18 arg_8
-stm_1c arg_C
-stm_8  Dst wchar_t *
-stm_c  SizeInWords rsize_t
-stm_10 Src const wchar_t *
-stm_14 MaxCount rsize_t
-stm_8  arg_0
-stm_4  var_4
-stm_10 arg_0
-stm_10 var_1C
-stm_14 ms_exc CPPEH_RECORD
-stm_4  var_8
-stm_8  var_4
-stm_14 arg_0
-stm_18 arg_4
-stm_8  arg_0
-stm_c  arg_0
-stm_8  arg_0
-stm_4  var_4
-stm_10 arg_0
-stm_8  arg_0
-stm_4  var_C
-stm_8  lpMem LPVOID
-stm_c  var_4
-stm_18 arg_0
-stm_c  var_10
-stm_10 var_C
-stm_14 var_8
-stm_24 arg_0
-stm_28 arg_4
-stm_2c arg_8
-stm_30 arg_C
-stm_34 arg_10
-stm_c  arg_0
-stm_10 arg_4
-stm_14 arg_8
-stm_c  SizeInWords rsize_t
-stm_10 var_4
-stm_1c Src wchar_t *
-stm_c  lpMem LPVOID
-stm_8  var_4
-stm_14 arg_0
-stm_8  arg_0
-stm_8  arg_0
-stm_c  var_8
-stm_10 var_4
-stm_1c arg_0
-stm_20 arg_4
-stm_8  var_4
-stm_14 arg_0
-stm_18 arg_4
-stm_8  Mode int
-stm_10 ms_exc CPPEH_RECORD
-stm_c  arg_0
-stm_8  arg_0
-stm_4  lpMem LPVOID
-stm_10 var_1C
-stm_14 ms_exc CPPEH_RECORD
-stm_34 arg_0
-stm_38 arg_4
-stm_3c arg_8
-stm_10 var_1C
-stm_14 ms_exc CPPEH_RECORD
-stm_34 arg_0
-stm_38 arg_4
-stm_3c arg_8
-stm_0  var_C
-stm_4  var_8
-stm_14 arg_0
-stm_18 arg_4
-stm_0  var_C
-stm_4  var_8
-stm_14 arg_0
-stm_18 arg_4
-stm_8  arg_0
-stm_4  var_18
-stm_8  var_14
-stm_c  var_10
-stm_10 var_C
-stm_14 var_8
-stm_18 var_4
-stm_4  var_C
-stm_8  var_8
-stm_c  var_4
-stm_8  arg_0
-stm_0  var_4
-stm_c  arg_0
-stm_c  arg_0
-stm_0  var_8
-stm_4  var_4
-stm_10 arg_0
-stm_14 arg_4
-stm_0  var_4
-stm_c  CurrentState unsigned int *
-stm_10 NewValue unsigned int
-stm_14 Mask unsigned int
-stm_14 ms_exc CPPEH_RECORD
-stm_c  Dst char *
-stm_10 SizeInBytes rsize_t
-stm_14 Src const char *
-stm_8  lpMem LPVOID
-stm_c  dwBytes SIZE_T
-stm_c  arg_0
-stm_10 arg_4
-stm_8  arg_0 const wchar_t *
-stm_c  arg_4 const wchar_t *
-stm_10 arg_8 size_t
-stm_8  arg_0
-stm_c  arg_4
-stm_8  var_1C
-stm_18 var_C
-stm_1c var_8
-stm_20 var_4
-stm_2c arg_0 struct __crt_locale_pointers *
-stm_30 arg_4 int
-stm_34 arg_8 int
-stm_38 arg_C int
-stm_3c arg_10
-stm_8  arg_0
-stm_8  arg_0
-stm_c  arg_4
-stm_10 arg_8
-stm_8  C int
-stm_c  Type int
-stm_10 Locale _locale_t
-stm_8  arg_0
-stm_8  arg_0
-stm_14 arg_0
-stm_18 lpProcName LPCSTR
-stm_1c arg_8
-stm_20 arg_C
-stm_c  arg_0
-stm_4  var_4
-stm_10 arg_0
-stm_4  var_4
-stm_10 dwTlsIndex DWORD
-stm_4  var_4
-stm_10 dwTlsIndex DWORD
-stm_4  var_4
-stm_10 dwTlsIndex DWORD
-stm_14 lpTlsValue LPVOID
-stm_4  var_4
-stm_10 lpCriticalSection LPCRITICAL_SECTION
-stm_14 dwSpinCount DWORD
-stm_18 arg_8 int
-stm_4  var_4
-stm_10 arg_0 wchar_t *
-stm_14 dwMapFlags DWORD
-stm_18 lpSrcStr LPCWSTR
-stm_1c cchSrc int
-stm_20 lpDestStr LPWSTR
-stm_24 cchDest int
-stm_28 arg_18 int
-stm_2c arg_1C int
-stm_30 arg_20 int
-stm_4  var_4
-stm_10 arg_0 wchar_t *
-stm_14 arg_4 int
-stm_0  var_8
-stm_4  var_4
-stm_8  arg_0
-stm_0  var_10
-stm_4  var_C struct localeinfo_struct
-stm_18 C int
-stm_1c Locale _locale_t
-stm_8  C int
-stm_4  var_1C
-stm_8  Locale struct localeinfo_struct
-stm_14 var_C
-stm_18 DestStr WCHAR
-stm_1c MultiByteStr CHAR[2]
-stm_28 C int
-stm_2c dwMapFlags DWORD
-stm_30 arg_8 struct __crt_locale_pointers *
-stm_8  C int
-stm_c  Locale _locale_t
-stm_8  C int
-stm_c  Locale _locale_t
-stm_8  C int
-stm_8  arg_0
-stm_c  arg_0
-stm_8  arg_0
-stm_c  arg_4
-stm_10 arg_8
-stm_8  arg_0 const wchar_t *
-stm_c  arg_4 wchar_t **
-stm_10 arg_8 int
-stm_8  var_10
-stm_c  var_C struct localeinfo_struct
-stm_20 lpWideCharStr LPWSTR
-stm_24 lpMultiByteStr LPCSTR
-stm_28 SrcSizeInBytes size_t
-stm_2c Locale _locale_t
-stm_8  DstCh wchar_t *
-stm_c  SrcCh char *
-stm_10 SrcSizeInBytes size_t
-stm_8  var_4
-stm_14 Src const wchar_t *
-stm_18 MaxCount size_t
-stm_10 ms_exc CPPEH_RECORD
-stm_30 arg_0
-stm_34 arg_4
-stm_38 arg_8
-stm_10 ms_exc CPPEH_RECORD
-stm_30 arg_0
-stm_34 arg_4
-stm_38 arg_8
-stm_10 ms_exc CPPEH_RECORD
-stm_30 arg_0
-stm_34 arg_4
-stm_38 arg_8
-stm_10 ms_exc CPPEH_RECORD
-stm_30 arg_0
-stm_34 arg_4
-stm_38 arg_8
-stm_0  var_C
-stm_4  var_8
-stm_14 arg_0
-stm_18 arg_4
-stm_0  var_C
-stm_4  var_8
-stm_14 arg_0
-stm_18 arg_4
-stm_0  var_C
-stm_4  var_8
-stm_14 arg_0
-stm_18 arg_4
-stm_0  var_C
-stm_4  var_8
-stm_14 arg_0
-stm_18 arg_4
-stm_0  var_8
-stm_4  var_4
-stm_10 arg_0 struct __acrt_ptd *const
-stm_14 arg_4 struct __crt_locale_data **const
-stm_8  lpMem LPVOID
-stm_0  var_4
-stm_c  arg_0 struct __acrt_ptd *const
-stm_c  arg_0 struct __acrt_ptd *const
-stm_10 arg_4 struct __crt_locale_data *const
-stm_c  arg_0
-stm_10 arg_4
-stm_c  arg_0
-stm_10 arg_4
-stm_14 arg_0
-stm_8  arg_0 const double *
-stm_c  var_30
-stm_10 var_2C
-stm_1c var_20
-stm_20 var_1C
-stm_24 var_18
-stm_2c var_10
-stm_30 var_C
-stm_34 var_8
-stm_38 var_4
-stm_44 arg_0 double *
-stm_48 arg_4 char *
-stm_4c arg_8 unsigned int
-stm_50 arg_C char *
-stm_54 arg_10 unsigned int
-stm_58 arg_14 size_t
-stm_5c arg_18
-stm_60 arg_1C unsigned int
-stm_64 arg_20 struct __crt_locale_pointers *
-stm_8  var_C int
-stm_1c arg_0 const double *const
-stm_20 arg_4 char *
-stm_24 arg_8 unsigned int
-stm_28 arg_C char *const
-stm_2c arg_10 unsigned int
-stm_30 arg_14 int
-stm_34 arg_18
-stm_38 arg_1C unsigned int
-stm_3c arg_20 struct __crt_locale_pointers *
-stm_8  var_10
-stm_c  var_C
-stm_20 arg_0 char *
-stm_24 arg_4 unsigned int
-stm_28 arg_8 int
-stm_2c arg_C
-stm_30 arg_10 unsigned int
-stm_34 arg_14 struct _strflt *const
-stm_38 arg_18
-stm_3c arg_1C struct __crt_locale_pointers *
-stm_8  var_C int
-stm_c  var_8
-stm_1c arg_0 const double *const
-stm_20 arg_4 char *
-stm_24 arg_8 unsigned int
-stm_28 arg_C char *const
-stm_2c arg_10 unsigned int
-stm_30 arg_14 size_t
-stm_34 arg_18 struct __crt_locale_pointers *
-stm_c  var_10
-stm_10 var_C
-stm_24 arg_0 char *
-stm_28 arg_4 unsigned int
-stm_2c arg_8 size_t
-stm_30 arg_C struct _strflt *const
-stm_34 arg_10
-stm_38 arg_14 struct __crt_locale_pointers *
-stm_c  var_10 int
-stm_10 var_C
-stm_18 var_4
-stm_24 arg_0 const double *const
-stm_28 arg_4 char *
-stm_2c arg_8 unsigned int
-stm_30 arg_C char *const
-stm_34 arg_10 unsigned int
-stm_38 arg_14 size_t
-stm_3c arg_18
-stm_40 arg_1C unsigned int
-stm_44 arg_20 struct __crt_locale_pointers *
-stm_4  var_48
-stm_8  Src char *
-stm_c  var_40
-stm_10 var_3C
-stm_14 var_38
-stm_18 var_34
-stm_1c var_30
-stm_20 var_2C
-stm_24 var_28
-stm_28 var_24
-stm_2c var_20
-stm_30 var_1C
-stm_34 var_18
-stm_38 var_14
-stm_3c var_10
-stm_40 var_C
-stm_44 var_8
-stm_48 var_4
-stm_54 arg_0
-stm_58 arg_4
-stm_5c Dst char *
-stm_60 SizeInBytes rsize_t
-stm_64 arg_10
-stm_10 arg_8 char *const
-stm_14 arg_C int
-stm_8  var_8
-stm_c  var_4 bool[4]
-stm_18 arg_0 double *
-stm_1c arg_4 char *
-stm_20 arg_8 unsigned int
-stm_24 arg_C char *
-stm_28 arg_10 unsigned int
-stm_2c arg_14 int
-stm_30 arg_18 size_t
-stm_34 arg_1C int
-stm_3c arg_24 struct __crt_locale_pointers *
-stm_8  arg_0 FILE *
-stm_8  arg_0
-stm_8  arg_0
-stm_0  StartupInfo struct _STARTUPINFOW
-stm_44 var_4
-stm_14 ms_exc CPPEH_RECORD
-stm_0  var_18
-stm_4  var_14
-stm_10 var_8
-stm_14 DestStr WCHAR
-stm_20 C wint_t
-stm_24 Locale _locale_t
-stm_8  arg_0 const void *
-stm_c  arg_4 const void *
-stm_4  var_30
-stm_8  var_2C
-stm_c  var_28 int
-stm_10 var_24
-stm_14 var_20
-stm_18 var_1C
-stm_1c var_18
-stm_20 var_14
-stm_24 var_10
-stm_28 var_C wchar_t[2]
-stm_2c var_8
-stm_30 var_4
-stm_3c arg_0
-stm_40 arg_4
-stm_8  var_4 rsize_t
-stm_14 arg_0 wchar_t *
-stm_18 Src wchar_t *
-stm_1c MaxCount rsize_t
-stm_20 arg_C int
-stm_c  var_260
-stm_10 MaxCount rsize_t
-stm_14 var_258 int
-stm_18 FindFileData
-stm_44 var_228 wchar_t
-stm_46 var_226
-stm_48 var_224
-stm_268 var_4
-stm_274 lpFileName LPCWSTR
-stm_278 arg_4 int
-stm_27c arg_8 int
-stm_10 lpMem LPVOID
-stm_10 ms_exc CPPEH_RECORD
-stm_30 arg_0
-stm_34 arg_4
-stm_38 arg_8
-stm_0  var_C
-stm_4  var_8
-stm_14 arg_0
-stm_18 arg_4
-stm_8  arg_0 int
-stm_0  var_10
-stm_4  var_C
-stm_18 arg_0 int
-stm_14 arg_0 struct __crt_multibyte_data *
-stm_c  var_720
-stm_10 var_71C
-stm_14 CPInfo struct _cpinfo
-stm_28 CharType WORD
-stm_428 var_304 WCHAR
-stm_528 DestStr WCHAR
-stm_628 MultiByteStr CHAR
-stm_728 var_4
-stm_734 arg_0 struct __crt_multibyte_data *
-stm_0  var_C int
-stm_8  var_4
-stm_14 arg_0 int
-stm_18 arg_4
-stm_10 var_1C
-stm_14 ms_exc CPPEH_RECORD
-stm_8  var_20
-stm_c  var_1C
-stm_10 CPInfo struct _cpinfo
-stm_24 var_4
-stm_30 arg_0 int
-stm_34 arg_4 struct __crt_multibyte_data *
-stm_c  arg_0 const wchar_t *const
-stm_8  var_8
-stm_c  lpCriticalSection LPCRITICAL_SECTION
-stm_14 var_20
-stm_18 var_1C
-stm_1c ms_exc CPPEH_RECORD
-stm_3c arg_0
-stm_8  arg_0
-stm_8  arg_0
-stm_14 arg_0
-stm_8  arg_0 int
-stm_0  var_4
-stm_c  arg_0
-stm_c  arg_0
-stm_14 arg_0 const void **const
-stm_18 arg_4 unsigned int
-stm_c  arg_0 void **
-stm_14 arg_0 const wchar_t *
-stm_18 arg_4 const wchar_t *
-stm_c  var_18
-stm_10 var_14
-stm_1c cchWideChar int
-stm_20 var_4
-stm_2c arg_0 struct __crt_locale_pointers *
-stm_30 dwInfoType DWORD
-stm_34 lpMultiByteStr LPCSTR
-stm_38 cbMultiByte int
-stm_3c lpCharType LPWORD
-stm_40 CodePage UINT
-stm_44 arg_18 int
-stm_8  arg_0
-stm_8  arg_0
-stm_c  var_4
-stm_18 lpMem LPVOID
-stm_8  arg_0
-stm_c  lpMem LPVOID
-stm_8  arg_0
-stm_8  arg_0
-stm_10 var_1C
-stm_14 ms_exc CPPEH_RECORD
-stm_10 arg_0
-stm_14 arg_4
-stm_8  lpMem void *
-stm_c  arg_4 int
-stm_10 arg_8 int
-stm_4  var_4
-stm_10 arg_0
-stm_14 arg_4
-stm_4  var_4
-stm_10 arg_0
-stm_14 arg_4
-stm_10 var_1C
-stm_14 ms_exc CPPEH_RECORD
-stm_34 arg_0
-stm_3c arg_8
-stm_0  var_C
-stm_4  var_8
-stm_14 arg_0
-stm_18 arg_4
-stm_8  arg_0 int
-stm_8  arg_0 int
-stm_c  arg_4 struct __crt_signal_action_t *const
-stm_8  arg_0
-stm_10 var_3C
-stm_14 var_38
-stm_18 var_34
-stm_1c var_30
-stm_20 var_2C
-stm_24 var_28
-stm_28 var_24
-stm_34 ms_exc CPPEH_RECORD
-stm_54 arg_0 int
-stm_8  arg_0
-stm_0  var_C
-stm_4  var_8
-stm_8  var_4
-stm_0  var_10
-stm_4  var_C
-stm_8  var_8
-stm_c  var_4
-stm_18 arg_0 unsigned int
-stm_1c arg_4 unsigned int
-stm_8  arg_0
-stm_0  SrcStr WCHAR
-stm_4  CharType WORD
-stm_10 arg_0 wint_t
-stm_14 arg_4 wctype_t
-stm_4  var_24
-stm_8  var_20
-stm_c  var_1C struct localeinfo_struct
-stm_18 MultiByteStr CHAR
-stm_1c CharType WORD[2]
-stm_20 var_8
-stm_24 var_4
-stm_30 C int
-stm_34 Type int
-stm_38 Locale _locale_t
-stm_c  var_10
-stm_10 var_C
-stm_14 var_8
-stm_18 var_4
-stm_24 arg_0 const wchar_t *
-stm_8  arg_0 wchar_t *
-stm_0  var_10
-stm_4  var_C
-stm_18 C int
-stm_1c Locale _locale_t
-stm_c  cchWideChar int
-stm_10 var_4
-stm_1c arg_0 struct __crt_locale_pointers *
-stm_20 arg_4 wchar_t *
-stm_24 dwMapFlags DWORD
-stm_28 lpMultiByteStr LPCSTR
-stm_2c cbMultiByte int
-stm_30 lpDestStr LPWSTR
-stm_34 cchDest int
-stm_38 CodePage UINT
-stm_3c arg_20 int
-stm_0  var_10
-stm_18 arg_0 struct __crt_locale_pointers *
-stm_1c arg_4 wchar_t *
-stm_20 dwMapFlags DWORD
-stm_24 lpMultiByteStr LPCSTR
-stm_28 cbMultiByte int
-stm_2c lpDestStr LPWSTR
-stm_30 cchDest int
-stm_34 CodePage UINT
-stm_38 arg_20 int
-stm_c  arg_0 void *
-stm_10 arg_4 int
-stm_14 arg_8 int
-stm_18 arg_C int
-stm_4  var_21C
-stm_8  Src
-stm_1d4 var_4C
-stm_1d8 var_48
-stm_1dc var_44
-stm_1e0 var_40
-stm_1e4 var_3C
-stm_1e8 var_38
-stm_1ec var_34
-stm_1f0 var_30
-stm_1f8 var_28
-stm_1fc var_24
-stm_200 var_20
-stm_204 var_1C
-stm_208 var_18
-stm_20c var_14
-stm_210 var_10
-stm_214 var_C
-stm_218 var_8
-stm_21c var_4
-stm_228 this __crt_strtox *
-stm_22c arg_4 struct __crt_strtox::big_integer *
-stm_0  var_978 double
-stm_14 var_964
-stm_1f4 var_784
-stm_1f8 var_780
-stm_1fc var_77C
-stm_200 var_778
-stm_204 var_774
-stm_208 var_770
-stm_20c var_76C
-stm_210 var_768
-stm_218 var_760
-stm_21c var_75C
-stm_220 var_758
-stm_224 var_754
-stm_228 var_750
-stm_22c var_74C
-stm_234 var_744
-stm_238 var_740
-stm_404 var_574
-stm_408 Src
-stm_40c var_56C
-stm_5d4 var_3A4
-stm_5d8 var_3A0
-stm_7a4 var_1D4
-stm_7a8 var_1D0
-stm_7ac var_1CC
-stm_974 var_4
-stm_980 arg_0
-stm_988 arg_8
-stm_98c arg_C
-stm_990 Dst char *
-stm_994 SizeInBytes rsize_t
-stm_c  Dst void *
-stm_10 DstSize size_t
-stm_14 arg_8 void *
-stm_18 MaxCount size_t
-stm_10 var_20
-stm_14 var_1C
-stm_18 ms_exc CPPEH_RECORD
-stm_c  arg_0 FILE *
-stm_c  File FILE *
-stm_10 var_2C
-stm_14 var_28
-stm_18 var_24
-stm_1c var_20
-stm_20 var_1C
-stm_24 ms_exc CPPEH_RECORD
-stm_44 arg_0
-stm_10 arg_0
-stm_8  arg_0 int
-stm_c  arg_0 wchar_t *
-stm_10 dwMapFlags DWORD
-stm_14 Src wchar_t *
-stm_18 MaxCount size_t
-stm_1c lpDestStr LPWSTR
-stm_20 cchDest int
-stm_4  var_4
-stm_10 arg_0 char *
-stm_14 arg_4 char *
-stm_18 arg_8 unsigned int
-stm_1c arg_C int (__cdecl *)(const void *, const void *)
-stm_c  arg_0 char *
-stm_10 arg_4 char *
-stm_14 arg_8 unsigned int
-stm_8  var_11C
-stm_c  var_118
-stm_10 var_114
-stm_14 var_110
-stm_18 var_10C
-stm_1c var_108
-stm_20 var_104 char *
-stm_24 var_100
-stm_28 var_FC
-stm_2c var_F8 char *
-stm_30 var_F4
-stm_a8 var_7C
-stm_120 var_4
-stm_12c arg_0 char *
-stm_130 arg_4 size_t
-stm_134 arg_8 size_t
-stm_138 arg_C int (__cdecl *)(const void *, const void *)
-stm_0  var_24
-stm_2c arg_0 const char *
-stm_30 arg_4 const char *
-stm_8  lpMem LPCVOID
-stm_c  lpMem LPVOID
-stm_10 dwBytes SIZE_T
-stm_10 ms_exc CPPEH_RECORD
-stm_30 arg_0
-stm_0  var_4
-stm_0  var_8
-stm_4  var_4
-stm_10 arg_0
-stm_14 arg_4
-stm_0  var_C
-stm_8  var_4
-stm_14 arg_0
-stm_0  var_4
-stm_8  arg_0
-stm_c  arg_4
-stm_c  arg_0
-stm_4  var_8
-stm_8  var_4
-stm_14 arg_0
-stm_0  var_8
-stm_4  var_4
-stm_10 arg_0
-stm_0  var_8
-stm_4  var_4
-stm_c  arg_0 double
-stm_4  var_8
-stm_8  var_4
-stm_0  var_4
-stm_8  arg_0
-stm_c  arg_4
-stm_0  var_10
-stm_4  var_C
-stm_8  var_8
-stm_c  var_4
-stm_14 arg_0 double
-stm_c  CodePage UINT
-stm_10 var_34
-stm_14 var_30
-stm_18 var_2C
-stm_1c hFile HANDLE
-stm_20 var_24
-stm_24 NumberOfBytesWritten DWORD
-stm_28 Buffer
-stm_2c WideCharStr WCHAR
-stm_30 MultiByteStr CHAR
-stm_40 var_4
-stm_4c arg_0
-stm_50 arg_4
-stm_54 arg_8 char *
-stm_58 arg_C
-stm_c  var_4
-stm_18 arg_0
-stm_1c arg_4
-stm_20 arg_8
-stm_4  Mode DWORD
-stm_10 arg_0 int
-stm_c  var_1410
-stm_10 NumberOfBytesWritten DWORD
-stm_14 var_1408
-stm_18 Buffer
-stm_1418 var_4
-stm_1424 arg_0
-stm_1428 arg_4
-stm_142c arg_8
-stm_1430 arg_C
-stm_c  var_1410
-stm_10 NumberOfBytesWritten DWORD
-stm_14 var_1408
-stm_18 Buffer
-stm_1418 var_4
-stm_1424 arg_0
-stm_1428 arg_4
-stm_142c arg_8
-stm_1430 arg_C
-stm_c  var_1418
-stm_10 hFile HANDLE
-stm_14 NumberOfBytesWritten DWORD
-stm_18 var_140C
-stm_1c MultiByteStr CHAR
-stm_d74 WideCharStr WCHAR
-stm_1420 var_4
-stm_142c arg_0
-stm_1430 arg_4
-stm_1434 arg_8
-stm_1438 arg_C
-stm_14 var_20
-stm_18 var_1C
-stm_1c ms_exc CPPEH_RECORD
-stm_3c arg_0 int
-stm_40 lpBuffer LPCVOID
-stm_44 arg_8 unsigned int
-stm_8  var_30
-stm_c  var_2C
-stm_10 var_28
-stm_14 var_24
-stm_18 var_20
-stm_1c var_1C
-stm_20 var_18
-stm_24 var_14
-stm_28 NumberOfBytesWritten DWORD
-stm_2c var_C
-stm_30 nNumberOfBytesToWrite DWORD
-stm_34 var_4
-stm_40 arg_0 int
-stm_44 lpBuffer LPCVOID
-stm_48 arg_8 int
-stm_8  NewFilePointer LARGE_INTEGER
-stm_18 arg_0 int
-stm_1c liDistanceToMove LARGE_INTEGER
-stm_24 dwMoveMethod DWORD
-stm_8  arg_0 int
-stm_c  liDistanceToMove LARGE_INTEGER
-stm_14 dwMoveMethod DWORD
-stm_c  File FILE *
-stm_10 var_20
-stm_14 var_1C
-stm_18 ms_exc CPPEH_RECORD
-stm_38 File FILE *
-stm_10 var_1C
-stm_14 ms_exc CPPEH_RECORD
-stm_34 arg_0
-stm_38 arg_4
-stm_3c arg_8
-stm_0  var_C
-stm_4  var_8
-stm_14 arg_0
-stm_18 arg_4
-stm_4  var_4
-stm_10 arg_0 int
-stm_8  arg_0
-stm_8  arg_0
-stm_8  arg_0
-stm_8  arg_0
-stm_8  arg_0
-stm_8  arg_0
-stm_0  var_8
-stm_4  var_4
-stm_0  var_8
-stm_4  var_4
-stm_c  var_20
-stm_10 var_1C
-stm_14 var_18
-stm_18 var_14
-stm_1c var_10
-stm_20 var_C
-stm_24 var_8
-stm_28 var_4
-stm_34 arg_0
-stm_c  var_20
-stm_10 var_1C
-stm_14 var_18
-stm_18 var_14
-stm_1c var_10
-stm_20 var_C
-stm_24 var_8
-stm_28 var_4
-stm_34 arg_0
-stm_0  var_8
-stm_0  var_1C
-stm_4  var_18
-stm_8  var_14
-stm_c  var_10
-stm_10 var_C
-stm_20 arg_0
-stm_0  var_A
-stm_8  arg_4
-stm_0  var_8
-stm_0  var_20
-stm_10 var_10
-stm_14 var_C
-stm_38 arg_10
-stm_3c arg_14
-stm_0  var_20
-stm_4  var_1C
-stm_8  var_18
-stm_c  var_14
-stm_18 var_8
-stm_28 arg_0
-stm_30 arg_8
-stm_34 arg_C
-stm_8  var_24
-stm_c  var_20
-stm_10 var_1C
-stm_18 var_14
-stm_20 var_C
-stm_28 var_4
-stm_34 arg_0
-stm_38 arg_4
-stm_3c arg_8
-stm_40 arg_C
-stm_0  var_24
-stm_c  var_18 double
-stm_1c var_8
-stm_2c arg_0 double
-stm_0  NumberOfCharsWritten DWORD
-stm_c  Buffer __int16
-stm_10 var_1C
-stm_14 ms_exc CPPEH_RECORD
-stm_34 arg_0
-stm_38 arg_4
-stm_3c arg_8
-stm_0  var_C
-stm_4  var_8
-stm_14 arg_0
-stm_18 arg_4
-stm_4  var_4
-stm_10 arg_0
-stm_10 arg_0 int
-stm_8  arg_0
-stm_14 arg_0
-stm_18 arg_4
-stm_1c arg_8
-stm_0  var_10 double
-stm_8  var_8
-stm_18 arg_0 double
-stm_0  var_8 double
-stm_10 arg_0 double
-stm_18 arg_8 double
-stm_20 arg_10 int
-stm_4  var_8
-stm_0  var_8
-stm_10 arg_0 double
-stm_8  arg_0
-stm_0  var_B8 int[]
-stm_8  var_B0 int[]
-stm_10 var_A8 double
-stm_18 var_A0
-stm_b0 var_8
-stm_0  var_28 double
-stm_18 var_10
-stm_24 var_4 int
-stm_30 arg_0
-stm_34 arg_4
-stm_38 arg_8
-stm_8  Arguments ULONG_PTR
-stm_c  arg_4 int
-stm_10 arg_8 int
-stm_14 arg_C int
-stm_18 arg_10 int
-stm_1c arg_14 int
-stm_10 Arguments ULONG_PTR
-stm_14 arg_4 int
-stm_18 arg_8 int
-stm_1c arg_C int
-stm_20 arg_10 int
-stm_24 arg_14 int
-stm_28 arg_18 int
-stm_8  arg_0
-stm_0  var_20
-stm_4  var_1C
-stm_8  var_18
-stm_c  var_14
-stm_10 var_10
-stm_14 var_C
-stm_18 var_8
-stm_28 arg_0 int
-stm_2c arg_4 int
-stm_30 arg_8 int
-stm_34 arg_C int
-stm_38 arg_10 int
-stm_3c arg_14 int
-stm_40 arg_18 double
-stm_48 arg_20 int
-stm_0  var_14
-stm_1c arg_0 double
-stm_24 arg_8 int
-stm_0  var_8
-stm_16 arg_6
-stm_18 arg_8
-stm_8  arg_0
-stm_c  arg_4
-stm_0  var_8
-stm_10 arg_0 double
-stm_4  ProcessorFeature DWORD
-stm_14 arg_0
-stm_18 arg_4
-stm_10 ms_exc CPPEH_RECORD
-stm_30 arg_0
-stm_8  arg_0
-stm_8  arg_0
-stm_c  arg_4
-stm_10 arg_8
-stm_14 arg_C
-stm_8  arg_4
-stm_4  arg_0
-stm_8  arg_4
-stm_c  arg_8
-stm_10 arg_C
-stm_10 arg_0
-stm_14 arg_4
-stm_18 arg_8
-stm_1c arg_C
-stm_0  var_24
-stm_10 var_14
-stm_18 var_C
-stm_20 var_4
-stm_c  arg_0 const char *
-stm_10 arg_4 int
-stm_4  arg_0 const char *
-stm_8  arg_4 int
+skm: 1520
+skm_401006:8  Buffer WCHAR[2]
+skm_401006:c  Text WCHAR
+skm_401006:80c var_4
+skm_401006:818 arg_0 int
+skm_40108c:10 var_50
+skm_40108c:44 var_1C
+skm_40108c:48 pNumArgs int
+skm_40108c:5c var_4
+skm_40108c:6c arg_4
+skm_4011cd:10 StartupInfo struct _STARTUPINFOW
+skm_4011cd:54 SystemInfo struct _SYSTEM_INFO
+skm_4011cd:78 ProcessInformation struct _PROCESS_INFORMATION
+skm_4011cd:88 CommandLine WCHAR
+skm_4011cd:698 Buffer WCHAR
+skm_4011cd:8a0 Dst wchar_t
+skm_4011cd:aa8 pszDest WCHAR
+skm_4011cd:cb0 var_E48 WCHAR
+skm_4011cd:eb8 ApplicationName WCHAR
+skm_4011cd:10c0 NewFileName WCHAR
+skm_4011cd:12c8 ExistingFileName WCHAR
+skm_4011cd:14d0 pszPath WCHAR
+skm_4011cd:16d8 Src WCHAR
+skm_4011cd:18e0 Filename WCHAR
+skm_4011cd:1ae8 var_10
+skm_4011cd:1aec var_C
+skm_4011cd:1af4 var_4
+skm_4011cd:1b00 arg_0 wchar_t *
+skm_4011cd:1b04 arg_4 int
+skm_4011cd:1b14 arg_14 int
+skm_4011cd:1b18 arg_18 int
+skm_4011cd:1b28 arg_28 int
+skm_4011cd:1b2c arg_2C int
+skm_40162d:10 var_2C wchar_t *
+skm_40162d:20 var_1C
+skm_40162d:24 var_18
+skm_40162d:28 phkResult HKEY
+skm_40162d:38 var_4
+skm_40162d:44 arg_0
+skm_40162d:48 arg_4
+skm_401702:14 hKey HKEY
+skm_401702:18 phkResult HKEY
+skm_401702:1c Data WCHAR
+skm_401702:24c pszDest WCHAR
+skm_401702:454 Filename WCHAR
+skm_401702:668 var_4
+skm_401702:674 arg_0
+skm_401702:678 arg_4
+skm_4018f0:28 phkResult HKEY
+skm_4018f0:38 var_4
+skm_4018f0:44 arg_0
+skm_4018f0:48 arg_4
+skm_40197e:14 var_34 wchar_t *
+skm_40197e:28 var_20
+skm_40197e:2c var_1C int
+skm_40197e:44 var_4
+skm_40197e:50 hInstance HINSTANCE
+skm_40197e:54 hPrevInstance HINSTANCE
+skm_40197e:58 lpCmdLine LPSTR
+skm_40197e:5c nShowCmd int
+skm_401bb2:c  arg_0 wchar_t *
+skm_401c3c:4  var_4
+skm_401c3c:10 arg_0 wchar_t *
+skm_401c97:c  var_4
+skm_401c97:18 arg_0 void *
+skm_401d3d:10 arg_0 void *
+skm_401d74:8  arg_0 int
+skm_401d74:c  arg_4 int
+skm_401d74:10 arg_8 int
+skm_401da5:8  arg_0 int
+skm_401da5:c  arg_4 int
+skm_401da5:10 arg_8 int
+skm_401dd6:8  arg_0 int
+skm_401dd6:c  arg_4 int
+skm_401dd6:10 arg_8 int
+skm_401e07:c  var_8
+skm_401e07:10 var_4 void *
+skm_401e07:1c arg_0
+skm_401e07:24 arg_8
+skm_401f2f:c  arg_0 struct std::exception *
+skm_401f62:c  arg_0 const struct std::exception *
+skm_401f8e:4  var_8
+skm_401f8e:14 arg_0 const char *const
+skm_401fc5:c  arg_0 struct std::exception *
+skm_401fe0:4  var_4
+skm_401fe0:10 arg_0 char *
+skm_402001:c  arg_0 struct std::exception *
+skm_40202d:c  arg_0
+skm_402077:14 arg_0 char *
+skm_4020b5:8  arg_0 size_t
+skm_4020e5:8  lpMem LPVOID
+skm_4021b1:10 var_24
+skm_4021b1:14 var_20 int
+skm_4021b1:1c ms_exc CPPEH_RECORD
+skm_40232c:c  arg_0
+skm_40234f:8  ExceptionInfo struct _EXCEPTION_POINTERS *
+skm_402377:0  var_324
+skm_402377:31c var_8
+skm_402377:324 var_s0
+skm_402377:32c arg_0
+skm_402472:c  arg_0 struct std::exception *
+skm_4024c2:4  lpMem LPVOID
+skm_4024c7:8  arg_0
+skm_4024e4:c  arg_0 unsigned __int8 *const
+skm_4024e4:10 arg_4 unsigned int
+skm_40255d:8  arg_0
+skm_402596:0  var_C
+skm_402596:4  var_8
+skm_402596:8  var_4
+skm_402596:14 arg_0
+skm_402640:10 ms_exc CPPEH_RECORD
+skm_402640:30 arg_0
+skm_4026ca:8  arg_0
+skm_4026e7:8  arg_0
+skm_4026e7:c  arg_4
+skm_40270f:8  arg_0 _onexit_t
+skm_40274a:8  arg_0 _onexit_t
+skm_40275f:0  PerformanceCount LARGE_INTEGER
+skm_40275f:8  SystemTimeAsFileTime struct _FILETIME
+skm_40275f:10 var_4
+skm_40286f:0  var_32C size_t
+skm_40286f:8  var_324
+skm_40286f:94 var_298
+skm_40286f:98 var_294
+skm_40286f:9c var_290
+skm_40286f:a0 var_28C
+skm_40286f:a4 var_288
+skm_40286f:a8 var_284
+skm_40286f:ac var_280
+skm_40286f:b0 var_27C
+skm_40286f:b4 var_278
+skm_40286f:b8 var_274
+skm_40286f:bc var_270
+skm_40286f:c0 var_26C
+skm_40286f:c4 var_268
+skm_40286f:c8 var_264
+skm_40286f:cc var_260
+skm_40286f:d0 var_25C
+skm_40286f:2d4 var_58
+skm_40286f:2d8 var_54
+skm_40286f:2e0 var_4C
+skm_40286f:324 ExceptionInfo struct _EXCEPTION_POINTERS
+skm_40286f:334 arg_0
+skm_40298b:0  StartupInfo struct _STARTUPINFOW
+skm_402a0e:8  ExceptionInfo struct _EXCEPTION_POINTERS *
+skm_402ac0:8  arg_4
+skm_402b1b:4  var_24
+skm_402b1b:8  var_20
+skm_402b1b:c  var_1C
+skm_402b1b:10 var_18
+skm_402b1b:14 var_14
+skm_402b1b:18 var_10
+skm_402b1b:1c var_C
+skm_402b1b:20 var_8
+skm_402b1b:24 var_4
+skm_402cc0:0  var_18
+skm_402cc0:4  var_14
+skm_402cc0:8  var_10
+skm_402cc0:c  var_C
+skm_402cc0:10 var_8
+skm_402cc0:14 var_4
+skm_402cc0:20 arg_0 struct EHRegistrationNode *
+skm_402cc0:24 arg_4 const struct _s_FuncInfo *
+skm_402cc0:28 arg_8 void *
+skm_402cc0:2c arg_C int
+skm_402cc0:30 arg_10 unsigned int
+skm_402d20:4  var_38
+skm_402d20:8  var_34
+skm_402d20:c  var_30
+skm_402d20:10 var_2C
+skm_402d20:14 var_28
+skm_402d20:18 var_24
+skm_402d20:1c var_20
+skm_402d20:20 var_1C
+skm_402d20:24 var_18
+skm_402d20:28 var_14
+skm_402d20:2c var_10
+skm_402d20:30 var_C
+skm_402d20:34 var_8
+skm_402d20:38 var_4
+skm_402d20:44 arg_0 struct EHExceptionRecord *
+skm_402d20:48 arg_4 struct EHRegistrationNode *
+skm_402d20:4c arg_8 void *
+skm_402d20:54 arg_10 const struct _s_FuncInfo *
+skm_402d20:58 arg_14 int
+skm_402d20:5c arg_18 struct EHRegistrationNode *
+skm_402dfd:c  var_4
+skm_402dfd:18 arg_0 const struct _s_FuncInfo *
+skm_402dfd:1c arg_4 int
+skm_402dfd:20 arg_8 int
+skm_402dfd:24 arg_C unsigned int *
+skm_402dfd:28 arg_10 unsigned int *
+skm_402e75:4  var_4
+skm_402e75:10 arg_0 void *
+skm_402e75:14 arg_4 struct EHRegistrationNode *
+skm_402ea7:c  var_8
+skm_402ea7:10 TargetIp PVOID
+skm_402ea7:1c TargetFrame PVOID
+skm_402ea7:20 ExceptionRecord PEXCEPTION_RECORD
+skm_402efc:c  ExceptionRecord PEXCEPTION_RECORD
+skm_402efc:10 TargetFrame PVOID
+skm_402efc:14 arg_8 struct _CONTEXT *
+skm_402f2d:c  arg_0
+skm_402f2d:10 arg_4
+skm_402f51:c  arg_0
+skm_402f96:4  var_4
+skm_402f96:10 ExceptionRecord PEXCEPTION_RECORD
+skm_402f96:14 TargetFrame PVOID
+skm_402f96:18 arg_8 struct _CONTEXT *
+skm_403035:c  var_8
+skm_403035:10 var_4 struct _s_FuncInfo *
+skm_403035:1c ExceptionRecord PEXCEPTION_RECORD
+skm_403035:20 arg_4 struct EHRegistrationNode *
+skm_403035:24 arg_8 struct _CONTEXT *
+skm_403035:28 arg_C void *
+skm_403070:c  arg_0 void *
+skm_403070:10 arg_4 const void *
+skm_403070:14 arg_8 size_t
+skm_4035f0:c  arg_0 void *
+skm_4035f0:10 arg_4 const void *
+skm_4035f0:14 arg_8 size_t
+skm_403b64:10 ms_exc CPPEH_RECORD
+skm_403b64:30 arg_0
+skm_403b64:34 arg_4
+skm_403bf9:8  arg_0 void *const
+skm_403bf9:c  arg_4 void *const
+skm_403c06:8  arg_0
+skm_403c2c:c  arg_0
+skm_403c2c:10 arg_4
+skm_403c51:8  arg_0
+skm_403c96:c  arg_0
+skm_403c96:10 arg_4
+skm_403cf9:c  arg_0
+skm_403d18:c  dwExceptionCode DWORD
+skm_403d18:10 dwExceptionFlags DWORD
+skm_403d18:1c nNumberOfArguments DWORD
+skm_403d18:20 Arguments ULONG_PTR
+skm_403d18:24 var_8
+skm_403d18:28 var_4
+skm_403d18:34 arg_0
+skm_403d18:38 arg_4
+skm_403d90:10 arg_0
+skm_403d90:14 arg_4
+skm_403dd0:c  var_1C
+skm_403dd0:10 var_18
+skm_403dd0:14 var_14
+skm_403dd0:18 var_10
+skm_403dd0:1c var_C
+skm_403dd0:20 var_8
+skm_403dd0:30 ExceptionRecord PEXCEPTION_RECORD
+skm_403dd0:34 TargetFrame PVOID
+skm_403dd0:38 arg_8 int
+skm_403f56:8  arg_0
+skm_403f75:8  arg_0
+skm_403f75:c  arg_4
+skm_403fc0:4  arg_0 void *
+skm_403fc0:8  arg_4 int
+skm_403fc0:c  arg_8 size_t
+skm_40411a:8  lpMem LPVOID
+skm_404240:4  var_4
+skm_404240:10 arg_0
+skm_404240:14 arg_4
+skm_404240:18 arg_8
+skm_40428c:c  arg_0 struct std::exception *
+skm_4042bf:18 var_40
+skm_4042bf:1c var_3C
+skm_4042bf:20 var_38
+skm_4042bf:24 var_34
+skm_4042bf:28 var_30
+skm_4042bf:2c var_2C
+skm_4042bf:30 var_28
+skm_4042bf:34 var_24
+skm_4042bf:38 var_20
+skm_4042bf:3c var_1C
+skm_4042bf:40 ms_exc CPPEH_RECORD
+skm_4042bf:60 arg_0 struct EHExceptionRecord *
+skm_4042bf:64 arg_4 struct EHRegistrationNode *
+skm_4042bf:68 arg_8 struct _CONTEXT *
+skm_4042bf:6c arg_C struct _s_FuncInfo *
+skm_4042bf:70 arg_10 void *
+skm_4042bf:74 arg_14 int
+skm_4042bf:78 arg_18 unsigned int
+skm_40447b:1c var_4
+skm_40447b:28 arg_0 const struct _s_ESTypeList *
+skm_40447b:2c arg_4
+skm_4044b5:14 ExceptionRecord PEXCEPTION_RECORD
+skm_4044b5:18 arg_4 struct EHRegistrationNode *
+skm_4044b5:1c arg_8 struct _CONTEXT *
+skm_4044b5:20 arg_C void *
+skm_4044b5:24 arg_10 struct _s_FuncInfo *
+skm_4044b5:28 arg_14 const struct _s_HandlerType *
+skm_4044b5:2c arg_18 const struct _s_CatchableType *
+skm_4044b5:30 arg_1C const struct _s_TryBlockMapEntry *
+skm_4044b5:34 arg_20 int
+skm_4044b5:38 TargetFrame PVOID
+skm_40452e:8  arg_0 struct _EXCEPTION_POINTERS *
+skm_404578:18 var_34 struct _s_TryBlockMapEntry *
+skm_404578:1c var_30
+skm_404578:20 var_2C
+skm_404578:24 var_28 unsigned int
+skm_404578:28 var_24 unsigned __int8[4]
+skm_404578:2c var_20
+skm_404578:30 var_1C
+skm_404578:34 var_18 struct _s_ESTypeList *
+skm_404578:38 var_14 unsigned int
+skm_404578:3c var_10 struct _s_HandlerType *
+skm_404578:40 var_C
+skm_404578:44 var_8 struct _CONTEXT *
+skm_404578:54 ExceptionRecord PEXCEPTION_RECORD
+skm_404578:58 arg_4 struct EHRegistrationNode *
+skm_404578:5c arg_8 struct _CONTEXT *
+skm_404578:60 arg_C void *
+skm_404578:64 arg_10 struct _s_FuncInfo *
+skm_404578:68 arg_14
+skm_404578:6c arg_18 int
+skm_404578:70 TargetFrame PVOID
+skm_4048d9:4  var_8 unsigned int
+skm_4048d9:8  var_4 unsigned int
+skm_4048d9:14 ExceptionRecord PEXCEPTION_RECORD
+skm_4048d9:18 arg_4 struct EHRegistrationNode *
+skm_4048d9:1c arg_8 struct _CONTEXT *
+skm_4048d9:20 arg_C void *
+skm_4048d9:24 arg_10 struct _s_FuncInfo *
+skm_4048d9:28 arg_14 int
+skm_4048d9:2c arg_18 int
+skm_4048d9:30 TargetFrame PVOID
+skm_4049f4:c  var_18
+skm_4049f4:10 var_14
+skm_4049f4:14 var_10
+skm_4049f4:18 var_C
+skm_4049f4:1c var_8
+skm_4049f4:20 var_4
+skm_4049f4:2c arg_0 struct EHExceptionRecord *
+skm_4049f4:30 arg_4 const struct _s_ESTypeList *
+skm_404a90:14 arg_0 const struct _s_ESTypeList *
+skm_404acf:8  arg_0 void *const
+skm_404acf:c  arg_4 void *const
+skm_404acf:10 arg_8 void *const
+skm_404adf:8  arg_0 void *const
+skm_404adf:c  arg_4 void *const
+skm_404adf:10 arg_8 void *const
+skm_404adf:14 arg_C int
+skm_404af2:10 ms_exc CPPEH_RECORD
+skm_404af2:30 arg_0 int
+skm_404af2:34 arg_4 void *
+skm_404af2:38 arg_8 int
+skm_404af2:3c arg_C int
+skm_404b81:10 var_20
+skm_404b81:14 var_1C
+skm_404b81:18 ms_exc CPPEH_RECORD
+skm_404b81:38 arg_0 int
+skm_404b81:3c arg_4 void *
+skm_404b81:40 arg_8 int
+skm_404b81:44 arg_C int
+skm_404cb4:10 var_20
+skm_404cb4:14 var_1C
+skm_404cb4:18 ms_exc CPPEH_RECORD
+skm_404cb4:38 arg_0
+skm_404cb4:40 arg_8
+skm_404cb4:44 arg_C
+skm_404d81:14 ExceptionRecord PEXCEPTION_RECORD
+skm_404d81:18 arg_4 struct EHRegistrationNode *
+skm_404d81:1c arg_8 struct _CONTEXT *
+skm_404d81:20 arg_C void *
+skm_404d81:24 arg_10 struct _s_FuncInfo *
+skm_404d81:28 arg_14 int
+skm_404d81:2c TargetFrame PVOID
+skm_404d81:30 arg_1C
+skm_404e7d:14 arg_0
+skm_404e7d:18 arg_4
+skm_404e7d:1c arg_8
+skm_404f0b:8  arg_0
+skm_404f3b:8  arg_0
+skm_404f70:0  var_20
+skm_404f70:24 arg_0
+skm_404f70:28 arg_4
+skm_404f70:2c arg_8
+skm_405000:4  arg_0
+skm_405000:8  arg_4
+skm_405000:10 arg_C
+skm_405048:8  arg_0
+skm_4050c0:8  arg_0
+skm_4050c0:c  arg_4
+skm_405142:c  var_4
+skm_405142:18 arg_0
+skm_405142:1c arg_4
+skm_405208:10 arg_0
+skm_405208:14 lpProcName LPCSTR
+skm_405208:18 arg_8
+skm_405208:1c arg_C
+skm_40528f:c  arg_0
+skm_4052c9:c  dwTlsIndex DWORD
+skm_405303:c  dwTlsIndex DWORD
+skm_40533d:c  dwTlsIndex DWORD
+skm_40533d:10 lpTlsValue LPVOID
+skm_40537a:c  lpCriticalSection LPCRITICAL_SECTION
+skm_40537a:10 dwSpinCount DWORD
+skm_40537a:14 arg_8 int
+skm_4053fa:8  arg_0
+skm_405450:18 TargetFrame PVOID
+skm_405471:4  arg_0
+skm_405471:8  arg_4
+skm_405471:10 arg_C
+skm_405471:14 arg_10
+skm_4054b6:0  var_20
+skm_4054b6:8  var_18
+skm_4054b6:24 arg_0
+skm_4054b6:28 arg_4
+skm_40556c:10 arg_0
+skm_4055aa:8  arg_0 unsigned int
+skm_4055bd:14 ms_exc CPPEH_RECORD
+skm_4055bd:34 uExitCode UINT
+skm_4055bd:38 arg_4
+skm_4055bd:3c arg_8
+skm_4056d6:8  uExitCode UINT
+skm_405717:0  phModule HMODULE
+skm_405717:4  var_4
+skm_405717:10 arg_0 unsigned int
+skm_405781:8  arg_0
+skm_4057ae:8  arg_0 int
+skm_4057c4:8  arg_0
+skm_4057fc:8  arg_0 int
+skm_405812:4  var_484
+skm_405812:14 var_474
+skm_405812:18 var_470
+skm_405812:1c var_46C
+skm_405812:20 var_468
+skm_405812:28 var_460
+skm_405812:484 var_4
+skm_405812:490 arg_0 int
+skm_405812:494 arg_4 int
+skm_405812:498 arg_8 int
+skm_405812:49c arg_C int
+skm_405812:4a0 arg_10 int
+skm_405812:4a4 arg_14 struct __crt_locale_pointers *
+skm_405812:4a8 arg_18 int
+skm_405997:8  arg_0 int
+skm_405997:c  arg_4 int
+skm_405997:10 arg_8 int
+skm_405997:14 arg_C int
+skm_405997:18 arg_10 int
+skm_405997:1c arg_14 struct __crt_locale_pointers *
+skm_405997:20 arg_18 int
+skm_405a29:8  var_4
+skm_405a29:14 arg_0
+skm_405aaf:8  arg_0
+skm_405aaf:10 arg_8
+skm_405aaf:14 arg_C
+skm_405b1c:14 arg_0
+skm_405b1c:18 arg_4
+skm_405b1c:1c arg_8
+skm_405b91:10 var_4
+skm_405b91:1c arg_0
+skm_405b91:20 arg_4
+skm_405b91:24 arg_8
+skm_405b91:28 arg_C
+skm_405c19:c  arg_0
+skm_405c19:10 arg_4
+skm_405c19:14 arg_8
+skm_405c19:18 arg_C
+skm_405c4a:0  var_4
+skm_405c96:c  arg_0
+skm_405c96:10 arg_4
+skm_405c96:14 arg_8
+skm_405c96:18 arg_C
+skm_405c96:1c arg_10
+skm_405c96:20 arg_14
+skm_405cd2:c  arg_0
+skm_405cd2:10 arg_4
+skm_405cd2:14 arg_8
+skm_405cd2:18 arg_C
+skm_405cd2:1c arg_10
+skm_405cd2:20 arg_14
+skm_405d07:c  arg_0 struct __crt_locale_pointers *const
+skm_405da4:c  arg_0
+skm_405dc8:c  this __crt_stdio_output *
+skm_405dc8:10 arg_4 char *
+skm_405e1f:8  arg_0
+skm_405e1f:c  arg_4
+skm_405e56:c  this __crt_stdio_output *
+skm_405e56:10 arg_4 char *
+skm_405eb2:c  var_4 wchar_t *
+skm_405eb2:18 arg_0
+skm_40625c:8  var_C
+skm_40625c:c  var_8
+skm_40625c:10 var_4
+skm_4064e5:8  arg_0
+skm_4065a4:8  var_8 double
+skm_406716:c  SrcCh
+skm_4067ae:10 arg_0
+skm_4067ae:14 arg_4
+skm_406a17:10 arg_0
+skm_406a94:8  arg_0
+skm_406a94:c  arg_4
+skm_406ad9:c  var_8
+skm_406ad9:10 DstCh wchar_t[2]
+skm_406b64:8  var_8
+skm_406b64:c  var_4
+skm_406b64:18 arg_0 void *
+skm_406b64:1c arg_4 int
+skm_406b64:20 arg_8 int
+skm_406b64:24 arg_C int
+skm_406bfe:8  arg_0 int
+skm_406bfe:c  arg_4 int
+skm_406bfe:10 arg_8 int
+skm_406bfe:14 arg_C int
+skm_406bfe:18 arg_10 int
+skm_406bfe:1c arg_14 struct __crt_locale_pointers *
+skm_406bfe:20 arg_18 int
+skm_406c22:8  Str1 wchar_t *
+skm_406c22:c  Str2 wchar_t *
+skm_406cb7:8  var_10
+skm_406cb7:c  var_C struct localeinfo_struct
+skm_406cb7:20 Str1 const wchar_t *
+skm_406cb7:24 Str2 const wchar_t *
+skm_406cb7:28 Locale _locale_t
+skm_406d97:c  Dst wchar_t *
+skm_406d97:10 SizeInWords rsize_t
+skm_406d97:14 Src const wchar_t *
+skm_406dfb:8  arg_0 const wchar_t *
+skm_406e16:4  ExceptionInfo struct _EXCEPTION_POINTERS
+skm_406e16:c  var_320
+skm_406e16:10 var_31C
+skm_406e16:18 var_314
+skm_406e16:5c var_2D0
+skm_406e16:e8 var_244
+skm_406e16:ec var_240
+skm_406e16:f0 var_23C
+skm_406e16:f4 var_238
+skm_406e16:f8 var_234
+skm_406e16:fc var_230
+skm_406e16:100 var_22C
+skm_406e16:104 var_228
+skm_406e16:108 var_224
+skm_406e16:10c var_220
+skm_406e16:110 var_21C
+skm_406e16:114 var_218
+skm_406e16:118 var_214
+skm_406e16:11c var_210
+skm_406e16:120 var_20C
+skm_406e16:124 var_208
+skm_406e16:328 var_4
+skm_406e16:334 arg_0
+skm_406e16:338 arg_4
+skm_406e16:33c arg_8
+skm_406f51:8  arg_0
+skm_406f65:4  var_4
+skm_406f65:10 arg_0
+skm_406f65:14 arg_4
+skm_406f65:18 arg_8
+skm_406f65:1c arg_C
+skm_406f65:20 arg_10
+skm_407040:10 arg_0
+skm_407040:14 arg_4
+skm_407040:18 arg_8
+skm_407040:1c arg_C
+skm_40710d:8  Dst wchar_t *
+skm_40710d:c  SizeInWords rsize_t
+skm_40710d:10 Src const wchar_t *
+skm_40710d:14 MaxCount rsize_t
+skm_407118:8  arg_0
+skm_40712c:4  var_4
+skm_40712c:10 arg_0
+skm_407170:10 var_1C
+skm_407170:14 ms_exc CPPEH_RECORD
+skm_4071cd:4  var_8
+skm_4071cd:8  var_4
+skm_4071cd:14 arg_0
+skm_4071cd:18 arg_4
+skm_407346:8  arg_0
+skm_407355:c  arg_0
+skm_40739f:8  arg_0
+skm_4073b3:4  var_4
+skm_4073b3:10 arg_0
+skm_4073fc:8  arg_0
+skm_407411:4  var_C
+skm_407411:8  lpMem LPVOID
+skm_407411:c  var_4
+skm_407411:18 arg_0
+skm_407530:c  var_10
+skm_407530:10 var_C
+skm_407530:14 var_8
+skm_407530:24 arg_0
+skm_407530:28 arg_4
+skm_407530:2c arg_8
+skm_407530:30 arg_C
+skm_407530:34 arg_10
+skm_4076b6:c  arg_0
+skm_4076b6:10 arg_4
+skm_4076b6:14 arg_8
+skm_40776a:c  SizeInWords rsize_t
+skm_40776a:10 var_4
+skm_40776a:1c Src wchar_t *
+skm_407864:c  lpMem LPVOID
+skm_407893:8  var_4
+skm_407893:14 arg_0
+skm_4078d3:8  arg_0
+skm_4078ee:8  arg_0
+skm_40798b:c  var_8
+skm_40798b:10 var_4
+skm_40798b:1c arg_0
+skm_40798b:20 arg_4
+skm_4079e7:8  var_4
+skm_4079e7:14 arg_0
+skm_4079e7:18 arg_4
+skm_407a2c:8  Mode int
+skm_407a74:10 ms_exc CPPEH_RECORD
+skm_407ac6:c  arg_0
+skm_407b2e:8  arg_0
+skm_407b63:4  lpMem LPVOID
+skm_407b68:10 var_1C
+skm_407b68:14 ms_exc CPPEH_RECORD
+skm_407b68:34 arg_0
+skm_407b68:38 arg_4
+skm_407b68:3c arg_8
+skm_407bb9:10 var_1C
+skm_407bb9:14 ms_exc CPPEH_RECORD
+skm_407bb9:34 arg_0
+skm_407bb9:38 arg_4
+skm_407bb9:3c arg_8
+skm_407c0a:0  var_C
+skm_407c0a:4  var_8
+skm_407c0a:14 arg_0
+skm_407c0a:18 arg_4
+skm_407c32:0  var_C
+skm_407c32:4  var_8
+skm_407c32:14 arg_0
+skm_407c32:18 arg_4
+skm_407c5a:8  arg_0
+skm_407c79:4  var_18
+skm_407c79:8  var_14
+skm_407c79:c  var_10
+skm_407c79:10 var_C
+skm_407c79:14 var_8
+skm_407c79:18 var_4
+skm_407d99:4  var_C
+skm_407d99:8  var_8
+skm_407d99:c  var_4
+skm_407eda:8  arg_0
+skm_407ef0:0  var_4
+skm_407ef0:c  arg_0
+skm_407f0d:c  arg_0
+skm_407f4a:0  var_8
+skm_407f4a:4  var_4
+skm_407f4a:10 arg_0
+skm_407f4a:14 arg_4
+skm_407f80:0  var_4
+skm_408086:c  CurrentState unsigned int *
+skm_408086:10 NewValue unsigned int
+skm_408086:14 Mask unsigned int
+skm_4080e5:14 ms_exc CPPEH_RECORD
+skm_408121:c  Dst char *
+skm_408121:10 SizeInBytes rsize_t
+skm_408121:14 Src const char *
+skm_40817b:8  lpMem LPVOID
+skm_4081b5:c  dwBytes SIZE_T
+skm_408246:c  arg_0
+skm_408246:10 arg_4
+skm_4082a3:8  arg_0 const wchar_t *
+skm_4082a3:c  arg_4 const wchar_t *
+skm_4082a3:10 arg_8 size_t
+skm_4082dd:8  arg_0
+skm_4082dd:c  arg_4
+skm_408310:8  var_1C
+skm_408310:18 var_C
+skm_408310:1c var_8
+skm_408310:20 var_4
+skm_408310:2c arg_0 struct __crt_locale_pointers *
+skm_408310:30 arg_4 int
+skm_408310:34 arg_8 int
+skm_408310:38 arg_C int
+skm_408310:3c arg_10
+skm_4089f5:8  arg_0
+skm_408a21:8  arg_0
+skm_408a21:c  arg_4
+skm_408a21:10 arg_8
+skm_408a4b:8  C int
+skm_408a4b:c  Type int
+skm_408a4b:10 Locale _locale_t
+skm_408abf:8  arg_0
+skm_408b07:8  arg_0
+skm_408b1e:14 arg_0
+skm_408b1e:18 lpProcName LPCSTR
+skm_408b1e:1c arg_8
+skm_408b1e:20 arg_C
+skm_408bba:c  arg_0
+skm_408c35:4  var_4
+skm_408c35:10 arg_0
+skm_408c8b:4  var_4
+skm_408c8b:10 dwTlsIndex DWORD
+skm_408ce1:4  var_4
+skm_408ce1:10 dwTlsIndex DWORD
+skm_408d37:4  var_4
+skm_408d37:10 dwTlsIndex DWORD
+skm_408d37:14 lpTlsValue LPVOID
+skm_408d90:4  var_4
+skm_408d90:10 lpCriticalSection LPCRITICAL_SECTION
+skm_408d90:14 dwSpinCount DWORD
+skm_408d90:18 arg_8 int
+skm_408df2:4  var_4
+skm_408df2:10 arg_0 wchar_t *
+skm_408df2:14 dwMapFlags DWORD
+skm_408df2:18 lpSrcStr LPCWSTR
+skm_408df2:1c cchSrc int
+skm_408df2:20 lpDestStr LPWSTR
+skm_408df2:24 cchDest int
+skm_408df2:28 arg_18 int
+skm_408df2:2c arg_1C int
+skm_408df2:30 arg_20 int
+skm_408e7a:4  var_4
+skm_408e7a:10 arg_0 wchar_t *
+skm_408e7a:14 arg_4 int
+skm_408efc:0  var_8
+skm_408efc:4  var_4
+skm_408f85:8  arg_0
+skm_408fb9:0  var_10
+skm_408fb9:4  var_C struct localeinfo_struct
+skm_408fb9:18 C int
+skm_408fb9:1c Locale _locale_t
+skm_408ff1:8  C int
+skm_40901e:4  var_1C
+skm_40901e:8  Locale struct localeinfo_struct
+skm_40901e:14 var_C
+skm_40901e:18 DestStr WCHAR
+skm_40901e:1c MultiByteStr CHAR[2]
+skm_40901e:28 C int
+skm_40901e:2c dwMapFlags DWORD
+skm_40901e:30 arg_8 struct __crt_locale_pointers *
+skm_409168:8  C int
+skm_409168:c  Locale _locale_t
+skm_409185:8  C int
+skm_409185:c  Locale _locale_t
+skm_40919f:8  C int
+skm_4091cf:8  arg_0
+skm_409212:c  arg_0
+skm_40925b:8  arg_0
+skm_40925b:c  arg_4
+skm_40925b:10 arg_8
+skm_409276:8  arg_0 const wchar_t *
+skm_409276:c  arg_4 wchar_t **
+skm_409276:10 arg_8 int
+skm_4092a2:8  var_10
+skm_4092a2:c  var_C struct localeinfo_struct
+skm_4092a2:20 lpWideCharStr LPWSTR
+skm_4092a2:24 lpMultiByteStr LPCSTR
+skm_4092a2:28 SrcSizeInBytes size_t
+skm_4092a2:2c Locale _locale_t
+skm_40939c:8  DstCh wchar_t *
+skm_40939c:c  SrcCh char *
+skm_40939c:10 SrcSizeInBytes size_t
+skm_4093b6:8  var_4
+skm_4093b6:14 Src const wchar_t *
+skm_4093b6:18 MaxCount size_t
+skm_40956d:10 ms_exc CPPEH_RECORD
+skm_40956d:30 arg_0
+skm_40956d:34 arg_4
+skm_40956d:38 arg_8
+skm_4095bd:10 ms_exc CPPEH_RECORD
+skm_4095bd:30 arg_0
+skm_4095bd:34 arg_4
+skm_4095bd:38 arg_8
+skm_40961e:10 ms_exc CPPEH_RECORD
+skm_40961e:30 arg_0
+skm_40961e:34 arg_4
+skm_40961e:38 arg_8
+skm_409669:10 ms_exc CPPEH_RECORD
+skm_409669:30 arg_0
+skm_409669:34 arg_4
+skm_409669:38 arg_8
+skm_4096b1:0  var_C
+skm_4096b1:4  var_8
+skm_4096b1:14 arg_0
+skm_4096b1:18 arg_4
+skm_4096d9:0  var_C
+skm_4096d9:4  var_8
+skm_4096d9:14 arg_0
+skm_4096d9:18 arg_4
+skm_409701:0  var_C
+skm_409701:4  var_8
+skm_409701:14 arg_0
+skm_409701:18 arg_4
+skm_409729:0  var_C
+skm_409729:4  var_8
+skm_409729:14 arg_0
+skm_409729:18 arg_4
+skm_409751:0  var_8
+skm_409751:4  var_4
+skm_409751:10 arg_0 struct __acrt_ptd *const
+skm_409751:14 arg_4 struct __crt_locale_data **const
+skm_4097ca:8  lpMem LPVOID
+skm_4097eb:0  var_4
+skm_4097eb:c  arg_0 struct __acrt_ptd *const
+skm_409894:c  arg_0 struct __acrt_ptd *const
+skm_409894:10 arg_4 struct __crt_locale_data *const
+skm_409a2e:c  arg_0
+skm_409a2e:10 arg_4
+skm_409a5b:c  arg_0
+skm_409a5b:10 arg_4
+skm_409a88:14 arg_0
+skm_409af4:8  arg_0 const double *
+skm_409b12:c  var_30
+skm_409b12:10 var_2C
+skm_409b12:1c var_20
+skm_409b12:20 var_1C
+skm_409b12:24 var_18
+skm_409b12:2c var_10
+skm_409b12:30 var_C
+skm_409b12:34 var_8
+skm_409b12:38 var_4
+skm_409b12:44 arg_0 double *
+skm_409b12:48 arg_4 char *
+skm_409b12:4c arg_8 unsigned int
+skm_409b12:50 arg_C char *
+skm_409b12:54 arg_10 unsigned int
+skm_409b12:58 arg_14 size_t
+skm_409b12:5c arg_18
+skm_409b12:60 arg_1C unsigned int
+skm_409b12:64 arg_20 struct __crt_locale_pointers *
+skm_409e15:8  var_C int
+skm_409e15:1c arg_0 const double *const
+skm_409e15:20 arg_4 char *
+skm_409e15:24 arg_8 unsigned int
+skm_409e15:28 arg_C char *const
+skm_409e15:2c arg_10 unsigned int
+skm_409e15:30 arg_14 int
+skm_409e15:34 arg_18
+skm_409e15:38 arg_1C unsigned int
+skm_409e15:3c arg_20 struct __crt_locale_pointers *
+skm_409eb0:8  var_10
+skm_409eb0:c  var_C
+skm_409eb0:20 arg_0 char *
+skm_409eb0:24 arg_4 unsigned int
+skm_409eb0:28 arg_8 int
+skm_409eb0:2c arg_C
+skm_409eb0:30 arg_10 unsigned int
+skm_409eb0:34 arg_14 struct _strflt *const
+skm_409eb0:38 arg_18
+skm_409eb0:3c arg_1C struct __crt_locale_pointers *
+skm_409ffb:8  var_C int
+skm_409ffb:c  var_8
+skm_409ffb:1c arg_0 const double *const
+skm_409ffb:20 arg_4 char *
+skm_409ffb:24 arg_8 unsigned int
+skm_409ffb:28 arg_C char *const
+skm_409ffb:2c arg_10 unsigned int
+skm_409ffb:30 arg_14 size_t
+skm_409ffb:34 arg_18 struct __crt_locale_pointers *
+skm_40a088:c  var_10
+skm_40a088:10 var_C
+skm_40a088:24 arg_0 char *
+skm_40a088:28 arg_4 unsigned int
+skm_40a088:2c arg_8 size_t
+skm_40a088:30 arg_C struct _strflt *const
+skm_40a088:34 arg_10
+skm_40a088:38 arg_14 struct __crt_locale_pointers *
+skm_40a15f:c  var_10 int
+skm_40a15f:10 var_C
+skm_40a15f:18 var_4
+skm_40a15f:24 arg_0 const double *const
+skm_40a15f:28 arg_4 char *
+skm_40a15f:2c arg_8 unsigned int
+skm_40a15f:30 arg_C char *const
+skm_40a15f:34 arg_10 unsigned int
+skm_40a15f:38 arg_14 size_t
+skm_40a15f:3c arg_18
+skm_40a15f:40 arg_1C unsigned int
+skm_40a15f:44 arg_20 struct __crt_locale_pointers *
+skm_40a227:4  var_48
+skm_40a227:8  Src char *
+skm_40a227:c  var_40
+skm_40a227:10 var_3C
+skm_40a227:14 var_38
+skm_40a227:18 var_34
+skm_40a227:1c var_30
+skm_40a227:20 var_2C
+skm_40a227:24 var_28
+skm_40a227:28 var_24
+skm_40a227:2c var_20
+skm_40a227:30 var_1C
+skm_40a227:34 var_18
+skm_40a227:38 var_14
+skm_40a227:3c var_10
+skm_40a227:40 var_C
+skm_40a227:44 var_8
+skm_40a227:48 var_4
+skm_40a227:54 arg_0
+skm_40a227:58 arg_4
+skm_40a227:5c Dst char *
+skm_40a227:60 SizeInBytes rsize_t
+skm_40a227:64 arg_10
+skm_40a31f:10 arg_8 char *const
+skm_40a31f:14 arg_C int
+skm_40a353:8  var_8
+skm_40a353:c  var_4 bool[4]
+skm_40a353:18 arg_0 double *
+skm_40a353:1c arg_4 char *
+skm_40a353:20 arg_8 unsigned int
+skm_40a353:24 arg_C char *
+skm_40a353:28 arg_10 unsigned int
+skm_40a353:2c arg_14 int
+skm_40a353:30 arg_18 size_t
+skm_40a353:34 arg_1C int
+skm_40a353:3c arg_24 struct __crt_locale_pointers *
+skm_40a49d:8  arg_0 FILE *
+skm_40a5d7:8  arg_0
+skm_40a5eb:8  arg_0
+skm_40a614:0  StartupInfo struct _STARTUPINFOW
+skm_40a614:44 var_4
+skm_40a780:14 ms_exc CPPEH_RECORD
+skm_40a802:0  var_18
+skm_40a802:4  var_14
+skm_40a802:10 var_8
+skm_40a802:14 DestStr WCHAR
+skm_40a802:20 C wint_t
+skm_40a802:24 Locale _locale_t
+skm_40a8cb:8  arg_0 const void *
+skm_40a8cb:c  arg_4 const void *
+skm_40a8e3:4  var_30
+skm_40a8e3:8  var_2C
+skm_40a8e3:c  var_28 int
+skm_40a8e3:10 var_24
+skm_40a8e3:14 var_20
+skm_40a8e3:18 var_1C
+skm_40a8e3:1c var_18
+skm_40a8e3:20 var_14
+skm_40a8e3:24 var_10
+skm_40a8e3:28 var_C wchar_t[2]
+skm_40a8e3:2c var_8
+skm_40a8e3:30 var_4
+skm_40a8e3:3c arg_0
+skm_40a8e3:40 arg_4
+skm_40aab0:8  var_4 rsize_t
+skm_40aab0:14 arg_0 wchar_t *
+skm_40aab0:18 Src wchar_t *
+skm_40aab0:1c MaxCount rsize_t
+skm_40aab0:20 arg_C int
+skm_40ab4e:c  var_260
+skm_40ab4e:10 MaxCount rsize_t
+skm_40ab4e:14 var_258 int
+skm_40ab4e:18 FindFileData
+skm_40ab4e:44 var_228 wchar_t
+skm_40ab4e:46 var_226
+skm_40ab4e:48 var_224
+skm_40ab4e:268 var_4
+skm_40ab4e:274 lpFileName LPCWSTR
+skm_40ab4e:278 arg_4 int
+skm_40ab4e:27c arg_8 int
+skm_40ad29:10 lpMem LPVOID
+skm_40adf0:10 ms_exc CPPEH_RECORD
+skm_40adf0:30 arg_0
+skm_40adf0:34 arg_4
+skm_40adf0:38 arg_8
+skm_40ae33:0  var_C
+skm_40ae33:4  var_8
+skm_40ae33:14 arg_0
+skm_40ae33:18 arg_4
+skm_40af1f:8  arg_0 int
+skm_40af5d:0  var_10
+skm_40af5d:4  var_C
+skm_40af5d:18 arg_0 int
+skm_40afd0:14 arg_0 struct __crt_multibyte_data *
+skm_40b035:c  var_720
+skm_40b035:10 var_71C
+skm_40b035:14 CPInfo struct _cpinfo
+skm_40b035:28 CharType WORD
+skm_40b035:428 var_304 WCHAR
+skm_40b035:528 DestStr WCHAR
+skm_40b035:628 MultiByteStr CHAR
+skm_40b035:728 var_4
+skm_40b035:734 arg_0 struct __crt_multibyte_data *
+skm_40b1c9:0  var_C int
+skm_40b1c9:8  var_4
+skm_40b1c9:14 arg_0 int
+skm_40b1c9:18 arg_4
+skm_40b2e8:10 var_1C
+skm_40b2e8:14 ms_exc CPPEH_RECORD
+skm_40b38a:8  var_20
+skm_40b38a:c  var_1C
+skm_40b38a:10 CPInfo struct _cpinfo
+skm_40b38a:24 var_4
+skm_40b38a:30 arg_0 int
+skm_40b38a:34 arg_4 struct __crt_multibyte_data *
+skm_40b597:c  arg_0 const wchar_t *const
+skm_40b61e:8  var_8
+skm_40b698:c  lpCriticalSection LPCRITICAL_SECTION
+skm_40b6cd:14 var_20
+skm_40b6cd:18 var_1C
+skm_40b6cd:1c ms_exc CPPEH_RECORD
+skm_40b6cd:3c arg_0
+skm_40b765:8  arg_0
+skm_40b788:8  arg_0
+skm_40b7ab:14 arg_0
+skm_40b83c:8  arg_0 int
+skm_40b8a6:0  var_4
+skm_40b8cc:c  arg_0
+skm_40b9ca:c  arg_0
+skm_40ba33:14 arg_0 const void **const
+skm_40ba33:18 arg_4 unsigned int
+skm_40ba6f:c  arg_0 void **
+skm_40bb53:14 arg_0 const wchar_t *
+skm_40bb53:18 arg_4 const wchar_t *
+skm_40bb98:c  var_18
+skm_40bb98:10 var_14
+skm_40bb98:1c cchWideChar int
+skm_40bb98:20 var_4
+skm_40bb98:2c arg_0 struct __crt_locale_pointers *
+skm_40bb98:30 dwInfoType DWORD
+skm_40bb98:34 lpMultiByteStr LPCSTR
+skm_40bb98:38 cbMultiByte int
+skm_40bb98:3c lpCharType LPWORD
+skm_40bb98:40 CodePage UINT
+skm_40bb98:44 arg_18 int
+skm_40bcb5:8  arg_0
+skm_40bcd5:8  arg_0
+skm_40bd52:c  var_4
+skm_40bd52:18 lpMem LPVOID
+skm_40be9c:8  arg_0
+skm_40bec5:c  lpMem LPVOID
+skm_40bef5:8  arg_0
+skm_40bf1e:8  arg_0
+skm_40bf9f:10 var_1C
+skm_40bf9f:14 ms_exc CPPEH_RECORD
+skm_40c016:10 arg_0
+skm_40c016:14 arg_4
+skm_40c066:8  lpMem void *
+skm_40c066:c  arg_4 int
+skm_40c066:10 arg_8 int
+skm_40c0f9:4  var_4
+skm_40c0f9:10 arg_0
+skm_40c0f9:14 arg_4
+skm_40c17c:4  var_4
+skm_40c17c:10 arg_0
+skm_40c17c:14 arg_4
+skm_40c1c9:10 var_1C
+skm_40c1c9:14 ms_exc CPPEH_RECORD
+skm_40c1c9:34 arg_0
+skm_40c1c9:3c arg_8
+skm_40c223:0  var_C
+skm_40c223:4  var_8
+skm_40c223:14 arg_0
+skm_40c223:18 arg_4
+skm_40c24b:8  arg_0 int
+skm_40c28d:8  arg_0 int
+skm_40c28d:c  arg_4 struct __crt_signal_action_t *const
+skm_40c2cc:8  arg_0
+skm_40c310:10 var_3C
+skm_40c310:14 var_38
+skm_40c310:18 var_34
+skm_40c310:1c var_30
+skm_40c310:20 var_2C
+skm_40c310:24 var_28
+skm_40c310:28 var_24
+skm_40c310:34 ms_exc CPPEH_RECORD
+skm_40c310:54 arg_0 int
+skm_40c518:8  arg_0
+skm_40c5c3:0  var_C
+skm_40c5c3:4  var_8
+skm_40c5c3:8  var_4
+skm_40c6a1:0  var_10
+skm_40c6a1:4  var_C
+skm_40c6a1:8  var_8
+skm_40c6a1:c  var_4
+skm_40c6a1:18 arg_0 unsigned int
+skm_40c6a1:1c arg_4 unsigned int
+skm_40c9a3:8  arg_0
+skm_40ca3c:0  SrcStr WCHAR
+skm_40ca3c:4  CharType WORD
+skm_40ca3c:10 arg_0 wint_t
+skm_40ca3c:14 arg_4 wctype_t
+skm_40ca9b:4  var_24
+skm_40ca9b:8  var_20
+skm_40ca9b:c  var_1C struct localeinfo_struct
+skm_40ca9b:18 MultiByteStr CHAR
+skm_40ca9b:1c CharType WORD[2]
+skm_40ca9b:20 var_8
+skm_40ca9b:24 var_4
+skm_40ca9b:30 C int
+skm_40ca9b:34 Type int
+skm_40ca9b:38 Locale _locale_t
+skm_40cb6d:c  var_10
+skm_40cb6d:10 var_C
+skm_40cb6d:14 var_8
+skm_40cb6d:18 var_4
+skm_40cb6d:24 arg_0 const wchar_t *
+skm_40cc29:8  arg_0 wchar_t *
+skm_40cc55:0  var_10
+skm_40cc55:4  var_C
+skm_40cc55:18 C int
+skm_40cc55:1c Locale _locale_t
+skm_40cc8e:c  cchWideChar int
+skm_40cc8e:10 var_4
+skm_40cc8e:1c arg_0 struct __crt_locale_pointers *
+skm_40cc8e:20 arg_4 wchar_t *
+skm_40cc8e:24 dwMapFlags DWORD
+skm_40cc8e:28 lpMultiByteStr LPCSTR
+skm_40cc8e:2c cbMultiByte int
+skm_40cc8e:30 lpDestStr LPWSTR
+skm_40cc8e:34 cchDest int
+skm_40cc8e:38 CodePage UINT
+skm_40cc8e:3c arg_20 int
+skm_40ceab:0  var_10
+skm_40ceab:18 arg_0 struct __crt_locale_pointers *
+skm_40ceab:1c arg_4 wchar_t *
+skm_40ceab:20 dwMapFlags DWORD
+skm_40ceab:24 lpMultiByteStr LPCSTR
+skm_40ceab:28 cbMultiByte int
+skm_40ceab:2c lpDestStr LPWSTR
+skm_40ceab:30 cchDest int
+skm_40ceab:34 CodePage UINT
+skm_40ceab:38 arg_20 int
+skm_40cef6:c  arg_0 void *
+skm_40cef6:10 arg_4 int
+skm_40cef6:14 arg_8 int
+skm_40cef6:18 arg_C int
+skm_40cfe0:4  var_21C
+skm_40cfe0:8  Src
+skm_40cfe0:1d4 var_4C
+skm_40cfe0:1d8 var_48
+skm_40cfe0:1dc var_44
+skm_40cfe0:1e0 var_40
+skm_40cfe0:1e4 var_3C
+skm_40cfe0:1e8 var_38
+skm_40cfe0:1ec var_34
+skm_40cfe0:1f0 var_30
+skm_40cfe0:1f8 var_28
+skm_40cfe0:1fc var_24
+skm_40cfe0:200 var_20
+skm_40cfe0:204 var_1C
+skm_40cfe0:208 var_18
+skm_40cfe0:20c var_14
+skm_40cfe0:210 var_10
+skm_40cfe0:214 var_C
+skm_40cfe0:218 var_8
+skm_40cfe0:21c var_4
+skm_40cfe0:228 this __crt_strtox *
+skm_40cfe0:22c arg_4 struct __crt_strtox::big_integer *
+skm_40d48e:0  var_978 double
+skm_40d48e:14 var_964
+skm_40d48e:1f4 var_784
+skm_40d48e:1f8 var_780
+skm_40d48e:1fc var_77C
+skm_40d48e:200 var_778
+skm_40d48e:204 var_774
+skm_40d48e:208 var_770
+skm_40d48e:20c var_76C
+skm_40d48e:210 var_768
+skm_40d48e:218 var_760
+skm_40d48e:21c var_75C
+skm_40d48e:220 var_758
+skm_40d48e:224 var_754
+skm_40d48e:228 var_750
+skm_40d48e:22c var_74C
+skm_40d48e:234 var_744
+skm_40d48e:238 var_740
+skm_40d48e:404 var_574
+skm_40d48e:408 Src
+skm_40d48e:40c var_56C
+skm_40d48e:5d4 var_3A4
+skm_40d48e:5d8 var_3A0
+skm_40d48e:7a4 var_1D4
+skm_40d48e:7a8 var_1D0
+skm_40d48e:7ac var_1CC
+skm_40d48e:974 var_4
+skm_40d48e:980 arg_0
+skm_40d48e:988 arg_8
+skm_40d48e:98c arg_C
+skm_40d48e:990 Dst char *
+skm_40d48e:994 SizeInBytes rsize_t
+skm_40e82a:c  Dst void *
+skm_40e82a:10 DstSize size_t
+skm_40e82a:14 arg_8 void *
+skm_40e82a:18 MaxCount size_t
+skm_40e8ab:10 var_20
+skm_40e8ab:14 var_1C
+skm_40e8ab:18 ms_exc CPPEH_RECORD
+skm_40e94b:c  arg_0 FILE *
+skm_40e9b1:c  File FILE *
+skm_40ea01:10 var_2C
+skm_40ea01:14 var_28
+skm_40ea01:18 var_24
+skm_40ea01:1c var_20
+skm_40ea01:20 var_1C
+skm_40ea01:24 ms_exc CPPEH_RECORD
+skm_40ea01:44 arg_0
+skm_40ead9:10 arg_0
+skm_40eb17:8  arg_0 int
+skm_40eb6d:c  arg_0 wchar_t *
+skm_40eb6d:10 dwMapFlags DWORD
+skm_40eb6d:14 Src wchar_t *
+skm_40eb6d:18 MaxCount size_t
+skm_40eb6d:1c lpDestStr LPWSTR
+skm_40eb6d:20 cchDest int
+skm_40ebb0:4  var_4
+skm_40ebb0:10 arg_0 char *
+skm_40ebb0:14 arg_4 char *
+skm_40ebb0:18 arg_8 unsigned int
+skm_40ebb0:1c arg_C int (__cdecl *)(const void *, const void *)
+skm_40ec50:c  arg_0 char *
+skm_40ec50:10 arg_4 char *
+skm_40ec50:14 arg_8 unsigned int
+skm_40ec90:8  var_11C
+skm_40ec90:c  var_118
+skm_40ec90:10 var_114
+skm_40ec90:14 var_110
+skm_40ec90:18 var_10C
+skm_40ec90:1c var_108
+skm_40ec90:20 var_104 char *
+skm_40ec90:24 var_100
+skm_40ec90:28 var_FC
+skm_40ec90:2c var_F8 char *
+skm_40ec90:30 var_F4
+skm_40ec90:a8 var_7C
+skm_40ec90:120 var_4
+skm_40ec90:12c arg_0 char *
+skm_40ec90:130 arg_4 size_t
+skm_40ec90:134 arg_8 size_t
+skm_40ec90:138 arg_C int (__cdecl *)(const void *, const void *)
+skm_40f030:0  var_24
+skm_40f030:2c arg_0 const char *
+skm_40f030:30 arg_4 const char *
+skm_40f07f:8  lpMem LPCVOID
+skm_40f0b2:c  lpMem LPVOID
+skm_40f0b2:10 dwBytes SIZE_T
+skm_40f11b:10 ms_exc CPPEH_RECORD
+skm_40f11b:30 arg_0
+skm_40f191:0  var_4
+skm_40f1a4:0  var_8
+skm_40f1a4:4  var_4
+skm_40f1a4:10 arg_0
+skm_40f1a4:14 arg_4
+skm_40f1d0:0  var_C
+skm_40f1d0:8  var_4
+skm_40f1d0:14 arg_0
+skm_40f22b:0  var_4
+skm_40f23d:8  arg_0
+skm_40f23d:c  arg_4
+skm_40f259:c  arg_0
+skm_40f276:4  var_8
+skm_40f276:8  var_4
+skm_40f276:14 arg_0
+skm_40f2bf:0  var_8
+skm_40f2bf:4  var_4
+skm_40f2bf:10 arg_0
+skm_40f310:0  var_8
+skm_40f310:4  var_4
+skm_40f310:c  arg_0 double
+skm_40f350:4  var_8
+skm_40f350:8  var_4
+skm_40f3a8:0  var_4
+skm_40f3a8:8  arg_0
+skm_40f3a8:c  arg_4
+skm_40f460:0  var_10
+skm_40f460:4  var_C
+skm_40f460:8  var_8
+skm_40f460:c  var_4
+skm_40f460:14 arg_0 double
+skm_40f57d:c  CodePage UINT
+skm_40f57d:10 var_34
+skm_40f57d:14 var_30
+skm_40f57d:18 var_2C
+skm_40f57d:1c hFile HANDLE
+skm_40f57d:20 var_24
+skm_40f57d:24 NumberOfBytesWritten DWORD
+skm_40f57d:28 Buffer
+skm_40f57d:2c WideCharStr WCHAR
+skm_40f57d:30 MultiByteStr CHAR
+skm_40f57d:40 var_4
+skm_40f57d:4c arg_0
+skm_40f57d:50 arg_4
+skm_40f57d:54 arg_8 char *
+skm_40f57d:58 arg_C
+skm_40f730:c  var_4
+skm_40f730:18 arg_0
+skm_40f730:1c arg_4
+skm_40f730:20 arg_8
+skm_40f79d:4  Mode DWORD
+skm_40f79d:10 arg_0 int
+skm_40f813:c  var_1410
+skm_40f813:10 NumberOfBytesWritten DWORD
+skm_40f813:14 var_1408
+skm_40f813:18 Buffer
+skm_40f813:1418 var_4
+skm_40f813:1424 arg_0
+skm_40f813:1428 arg_4
+skm_40f813:142c arg_8
+skm_40f813:1430 arg_C
+skm_40f8f2:c  var_1410
+skm_40f8f2:10 NumberOfBytesWritten DWORD
+skm_40f8f2:14 var_1408
+skm_40f8f2:18 Buffer
+skm_40f8f2:1418 var_4
+skm_40f8f2:1424 arg_0
+skm_40f8f2:1428 arg_4
+skm_40f8f2:142c arg_8
+skm_40f8f2:1430 arg_C
+skm_40f9e0:c  var_1418
+skm_40f9e0:10 hFile HANDLE
+skm_40f9e0:14 NumberOfBytesWritten DWORD
+skm_40f9e0:18 var_140C
+skm_40f9e0:1c MultiByteStr CHAR
+skm_40f9e0:d74 WideCharStr WCHAR
+skm_40f9e0:1420 var_4
+skm_40f9e0:142c arg_0
+skm_40f9e0:1430 arg_4
+skm_40f9e0:1434 arg_8
+skm_40f9e0:1438 arg_C
+skm_40fb0d:14 var_20
+skm_40fb0d:18 var_1C
+skm_40fb0d:1c ms_exc CPPEH_RECORD
+skm_40fb0d:3c arg_0 int
+skm_40fb0d:40 lpBuffer LPCVOID
+skm_40fb0d:44 arg_8 unsigned int
+skm_40fbf8:8  var_30
+skm_40fbf8:c  var_2C
+skm_40fbf8:10 var_28
+skm_40fbf8:14 var_24
+skm_40fbf8:18 var_20
+skm_40fbf8:1c var_1C
+skm_40fbf8:20 var_18
+skm_40fbf8:24 var_14
+skm_40fbf8:28 NumberOfBytesWritten DWORD
+skm_40fbf8:2c var_C
+skm_40fbf8:30 nNumberOfBytesToWrite DWORD
+skm_40fbf8:34 var_4
+skm_40fbf8:40 arg_0 int
+skm_40fbf8:44 lpBuffer LPCVOID
+skm_40fbf8:48 arg_8 int
+skm_40fe04:8  NewFilePointer LARGE_INTEGER
+skm_40fe04:18 arg_0 int
+skm_40fe04:1c liDistanceToMove LARGE_INTEGER
+skm_40fe04:24 dwMoveMethod DWORD
+skm_40fe82:8  arg_0 int
+skm_40fe82:c  liDistanceToMove LARGE_INTEGER
+skm_40fe82:14 dwMoveMethod DWORD
+skm_40fe9d:c  File FILE *
+skm_40ff13:10 var_20
+skm_40ff13:14 var_1C
+skm_40ff13:18 ms_exc CPPEH_RECORD
+skm_40ff13:38 File FILE *
+skm_40ff93:10 var_1C
+skm_40ff93:14 ms_exc CPPEH_RECORD
+skm_40ff93:34 arg_0
+skm_40ff93:38 arg_4
+skm_40ff93:3c arg_8
+skm_41002b:0  var_C
+skm_41002b:4  var_8
+skm_41002b:14 arg_0
+skm_41002b:18 arg_4
+skm_410053:4  var_4
+skm_410053:10 arg_0 int
+skm_4100c2:8  arg_0
+skm_41013f:8  arg_0
+skm_4101b2:8  arg_0
+skm_410223:8  arg_0
+skm_4102a3:8  arg_0
+skm_410304:8  arg_0
+skm_410365:0  var_8
+skm_410365:4  var_4
+skm_4103a8:0  var_8
+skm_4103a8:4  var_4
+skm_410450:c  var_20
+skm_410450:10 var_1C
+skm_410450:14 var_18
+skm_410450:18 var_14
+skm_410450:1c var_10
+skm_410450:20 var_C
+skm_410450:24 var_8
+skm_410450:28 var_4
+skm_410450:34 arg_0
+skm_4104d0:c  var_20
+skm_4104d0:10 var_1C
+skm_4104d0:14 var_18
+skm_4104d0:18 var_14
+skm_4104d0:1c var_10
+skm_4104d0:20 var_C
+skm_4104d0:24 var_8
+skm_4104d0:28 var_4
+skm_4104d0:34 arg_0
+skm_410560:0  var_8
+skm_41057e:0  var_1C
+skm_41057e:4  var_18
+skm_41057e:8  var_14
+skm_41057e:c  var_10
+skm_41057e:10 var_C
+skm_41057e:20 arg_0
+skm_410c35:0  var_A
+skm_410c78:8  arg_4
+skm_410cc5:0  var_8
+skm_410d80:0  var_20
+skm_410d80:10 var_10
+skm_410d80:14 var_C
+skm_410d80:38 arg_10
+skm_410d80:3c arg_14
+skm_410d97:0  var_20
+skm_410d97:4  var_1C
+skm_410d97:8  var_18
+skm_410d97:c  var_14
+skm_410d97:18 var_8
+skm_410d97:28 arg_0
+skm_410d97:30 arg_8
+skm_410d97:34 arg_C
+skm_410dd3:8  var_24
+skm_410dd3:c  var_20
+skm_410dd3:10 var_1C
+skm_410dd3:18 var_14
+skm_410dd3:20 var_C
+skm_410dd3:28 var_4
+skm_410dd3:34 arg_0
+skm_410dd3:38 arg_4
+skm_410dd3:3c arg_8
+skm_410dd3:40 arg_C
+skm_410feb:0  var_24
+skm_410feb:c  var_18 double
+skm_410feb:1c var_8
+skm_410feb:2c arg_0 double
+skm_4110a4:0  NumberOfCharsWritten DWORD
+skm_4110a4:c  Buffer __int16
+skm_4110e9:10 var_1C
+skm_4110e9:14 ms_exc CPPEH_RECORD
+skm_4110e9:34 arg_0
+skm_4110e9:38 arg_4
+skm_4110e9:3c arg_8
+skm_41116b:0  var_C
+skm_41116b:4  var_8
+skm_41116b:14 arg_0
+skm_41116b:18 arg_4
+skm_411193:4  var_4
+skm_411193:10 arg_0
+skm_411212:10 arg_0 int
+skm_4112ae:8  arg_0
+skm_4112f0:14 arg_0
+skm_4112f0:18 arg_4
+skm_4112f0:1c arg_8
+skm_411351:0  var_10 double
+skm_411351:8  var_8
+skm_411351:18 arg_0 double
+skm_4113bb:0  var_8 double
+skm_4113bb:10 arg_0 double
+skm_4113bb:18 arg_8 double
+skm_4113bb:20 arg_10 int
+skm_4114e6:4  var_8
+skm_4115f1:0  var_8
+skm_4115f1:10 arg_0 double
+skm_411607:8  arg_0
+skm_41163b:0  var_B8 int[]
+skm_41163b:8  var_B0 int[]
+skm_41163b:10 var_A8 double
+skm_41163b:18 var_A0
+skm_41163b:b0 var_8
+skm_411709:0  var_28 double
+skm_411709:18 var_10
+skm_411709:24 var_4 int
+skm_411709:30 arg_0
+skm_411709:34 arg_4
+skm_411709:38 arg_8
+skm_4118e9:8  Arguments ULONG_PTR
+skm_4118e9:c  arg_4 int
+skm_4118e9:10 arg_8 int
+skm_4118e9:14 arg_C int
+skm_4118e9:18 arg_10 int
+skm_4118e9:1c arg_14 int
+skm_41190c:10 Arguments ULONG_PTR
+skm_41190c:14 arg_4 int
+skm_41190c:18 arg_8 int
+skm_41190c:1c arg_C int
+skm_41190c:20 arg_10 int
+skm_41190c:24 arg_14 int
+skm_41190c:28 arg_18 int
+skm_411bfd:8  arg_0
+skm_411c2c:0  var_20
+skm_411c2c:4  var_1C
+skm_411c2c:8  var_18
+skm_411c2c:c  var_14
+skm_411c2c:10 var_10
+skm_411c2c:14 var_C
+skm_411c2c:18 var_8
+skm_411c2c:28 arg_0 int
+skm_411c2c:2c arg_4 int
+skm_411c2c:30 arg_8 int
+skm_411c2c:34 arg_C int
+skm_411c2c:38 arg_10 int
+skm_411c2c:3c arg_14 int
+skm_411c2c:40 arg_18 double
+skm_411c2c:48 arg_20 int
+skm_411cce:0  var_14
+skm_411cce:1c arg_0 double
+skm_411cce:24 arg_8 int
+skm_411da2:0  var_8
+skm_411da2:16 arg_6
+skm_411da2:18 arg_8
+skm_411dd1:8  arg_0
+skm_411dd1:c  arg_4
+skm_411e65:0  var_8
+skm_411e65:10 arg_0 double
+skm_411f09:4  ProcessorFeature DWORD
+skm_411f10:14 arg_0
+skm_411f10:18 arg_4
+skm_411f60:10 ms_exc CPPEH_RECORD
+skm_411f60:30 arg_0
+skm_412020:8  arg_0
+skm_4120f0:8  arg_0
+skm_4120f0:c  arg_4
+skm_4120f0:10 arg_8
+skm_4120f0:14 arg_C
+skm_412190:8  arg_4
+skm_4121f0:4  arg_0
+skm_4121f0:8  arg_4
+skm_4121f0:c  arg_8
+skm_4121f0:10 arg_C
+skm_412230:10 arg_0
+skm_412230:14 arg_4
+skm_412230:18 arg_8
+skm_412230:1c arg_C
+skm_412380:0  var_24
+skm_412380:10 var_14
+skm_412380:18 var_C
+skm_412380:20 var_4
+skm_412470:c  arg_0 const char *
+skm_412470:10 arg_4 int
+skm_4125b0:4  arg_0 const char *
+skm_4125b0:8  arg_4 int
 
 ref: 0
 
