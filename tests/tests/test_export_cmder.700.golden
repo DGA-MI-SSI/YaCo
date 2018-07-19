@@ -1,4 +1,4 @@
-objects: 9388
+objects: 9358
 
 bin: 1
 bin_400000 Cmder.exe
@@ -1171,7 +1171,7 @@ stk_412440
 stk_412470
 stk_4125b0
 
-skm: 1520
+skm: 1490
 skm_401006:8  Buffer WCHAR[2]
 skm_401006:c  Text WCHAR
 skm_401006:80c var_4
@@ -1209,7 +1209,6 @@ skm_40162d:20 var_1C
 skm_40162d:24 var_18
 skm_40162d:28 phkResult HKEY
 skm_40162d:38 var_4
-skm_40162d:44 arg_0
 skm_40162d:48 arg_4
 skm_401702:14 hKey HKEY
 skm_401702:18 phkResult HKEY
@@ -1217,11 +1216,9 @@ skm_401702:1c Data WCHAR
 skm_401702:24c pszDest WCHAR
 skm_401702:454 Filename WCHAR
 skm_401702:668 var_4
-skm_401702:674 arg_0
 skm_401702:678 arg_4
 skm_4018f0:28 phkResult HKEY
 skm_4018f0:38 var_4
-skm_4018f0:44 arg_0
 skm_4018f0:48 arg_4
 skm_40197e:14 var_34 wchar_t *
 skm_40197e:28 var_20
@@ -1258,19 +1255,16 @@ skm_401fc5:c  arg_0 struct std::exception *
 skm_401fe0:4  var_4
 skm_401fe0:10 arg_0 char *
 skm_402001:c  arg_0 struct std::exception *
-skm_40202d:c  arg_0
 skm_402077:14 arg_0 char *
 skm_4020b5:8  arg_0 size_t
 skm_4020e5:8  lpMem LPVOID
 skm_4021b1:10 var_24
 skm_4021b1:14 var_20 int
 skm_4021b1:1c ms_exc CPPEH_RECORD
-skm_40232c:c  arg_0
 skm_40234f:8  ExceptionInfo struct _EXCEPTION_POINTERS *
 skm_402377:0  var_324
 skm_402377:31c var_8
 skm_402377:324 var_s0
-skm_402377:32c arg_0
 skm_402472:c  arg_0 struct std::exception *
 skm_4024c2:4  lpMem LPVOID
 skm_4024c7:8  arg_0
@@ -1283,9 +1277,7 @@ skm_402596:8  var_4
 skm_402596:14 arg_0
 skm_402640:10 ms_exc CPPEH_RECORD
 skm_402640:30 arg_0
-skm_4026ca:8  arg_0
 skm_4026e7:8  arg_0
-skm_4026e7:c  arg_4
 skm_40270f:8  arg_0 _onexit_t
 skm_40274a:8  arg_0 _onexit_t
 skm_40275f:0  PerformanceCount LARGE_INTEGER
@@ -1394,7 +1386,6 @@ skm_4035f0:10 arg_4 const void *
 skm_4035f0:14 arg_8 size_t
 skm_403b64:10 ms_exc CPPEH_RECORD
 skm_403b64:30 arg_0
-skm_403b64:34 arg_4
 skm_403bf9:8  arg_0 void *const
 skm_403bf9:c  arg_4 void *const
 skm_403c06:8  arg_0
@@ -1423,7 +1414,6 @@ skm_403dd0:20 var_8
 skm_403dd0:30 ExceptionRecord PEXCEPTION_RECORD
 skm_403dd0:34 TargetFrame PVOID
 skm_403dd0:38 arg_8 int
-skm_403f56:8  arg_0
 skm_403f75:8  arg_0
 skm_403f75:c  arg_4
 skm_403fc0:4  arg_0 void *
@@ -1484,7 +1474,6 @@ skm_404578:58 arg_4 struct EHRegistrationNode *
 skm_404578:5c arg_8 struct _CONTEXT *
 skm_404578:60 arg_C void *
 skm_404578:64 arg_10 struct _s_FuncInfo *
-skm_404578:68 arg_14
 skm_404578:6c arg_18 int
 skm_404578:70 TargetFrame PVOID
 skm_4048d9:4  var_8 unsigned int
@@ -1538,7 +1527,6 @@ skm_404d81:20 arg_C void *
 skm_404d81:24 arg_10 struct _s_FuncInfo *
 skm_404d81:28 arg_14 int
 skm_404d81:2c TargetFrame PVOID
-skm_404d81:30 arg_1C
 skm_404e7d:14 arg_0
 skm_404e7d:18 arg_4
 skm_404e7d:1c arg_8
@@ -1569,7 +1557,6 @@ skm_40533d:10 lpTlsValue LPVOID
 skm_40537a:c  lpCriticalSection LPCRITICAL_SECTION
 skm_40537a:10 dwSpinCount DWORD
 skm_40537a:14 arg_8 int
-skm_4053fa:8  arg_0
 skm_405450:18 TargetFrame PVOID
 skm_405471:4  arg_0
 skm_405471:8  arg_4
@@ -1621,14 +1608,11 @@ skm_405aaf:10 arg_8
 skm_405aaf:14 arg_C
 skm_405b1c:14 arg_0
 skm_405b1c:18 arg_4
-skm_405b1c:1c arg_8
 skm_405b91:10 var_4
 skm_405b91:1c arg_0
 skm_405b91:20 arg_4
 skm_405b91:24 arg_8
-skm_405b91:28 arg_C
 skm_405c19:c  arg_0
-skm_405c19:10 arg_4
 skm_405c19:14 arg_8
 skm_405c19:18 arg_C
 skm_405c4a:0  var_4
@@ -1811,12 +1795,9 @@ skm_407d99:8  var_8
 skm_407d99:c  var_4
 skm_407eda:8  arg_0
 skm_407ef0:0  var_4
-skm_407ef0:c  arg_0
 skm_407f0d:c  arg_0
 skm_407f4a:0  var_8
 skm_407f4a:4  var_4
-skm_407f4a:10 arg_0
-skm_407f4a:14 arg_4
 skm_407f80:0  var_4
 skm_408086:c  CurrentState unsigned int *
 skm_408086:10 NewValue unsigned int
@@ -1842,7 +1823,6 @@ skm_408310:2c arg_0 struct __crt_locale_pointers *
 skm_408310:30 arg_4 int
 skm_408310:34 arg_8 int
 skm_408310:38 arg_C int
-skm_408310:3c arg_10
 skm_4089f5:8  arg_0
 skm_408a21:8  arg_0
 skm_408a21:c  arg_4
@@ -1885,7 +1865,6 @@ skm_408e7a:10 arg_0 wchar_t *
 skm_408e7a:14 arg_4 int
 skm_408efc:0  var_8
 skm_408efc:4  var_4
-skm_408f85:8  arg_0
 skm_408fb9:0  var_10
 skm_408fb9:4  var_C struct localeinfo_struct
 skm_408fb9:18 C int
@@ -1986,7 +1965,6 @@ skm_409b12:4c arg_8 unsigned int
 skm_409b12:50 arg_C char *
 skm_409b12:54 arg_10 unsigned int
 skm_409b12:58 arg_14 size_t
-skm_409b12:5c arg_18
 skm_409b12:60 arg_1C unsigned int
 skm_409b12:64 arg_20 struct __crt_locale_pointers *
 skm_409e15:8  var_C int
@@ -1996,7 +1974,6 @@ skm_409e15:24 arg_8 unsigned int
 skm_409e15:28 arg_C char *const
 skm_409e15:2c arg_10 unsigned int
 skm_409e15:30 arg_14 int
-skm_409e15:34 arg_18
 skm_409e15:38 arg_1C unsigned int
 skm_409e15:3c arg_20 struct __crt_locale_pointers *
 skm_409eb0:8  var_10
@@ -2004,10 +1981,8 @@ skm_409eb0:c  var_C
 skm_409eb0:20 arg_0 char *
 skm_409eb0:24 arg_4 unsigned int
 skm_409eb0:28 arg_8 int
-skm_409eb0:2c arg_C
 skm_409eb0:30 arg_10 unsigned int
 skm_409eb0:34 arg_14 struct _strflt *const
-skm_409eb0:38 arg_18
 skm_409eb0:3c arg_1C struct __crt_locale_pointers *
 skm_409ffb:8  var_C int
 skm_409ffb:c  var_8
@@ -2024,7 +1999,6 @@ skm_40a088:24 arg_0 char *
 skm_40a088:28 arg_4 unsigned int
 skm_40a088:2c arg_8 size_t
 skm_40a088:30 arg_C struct _strflt *const
-skm_40a088:34 arg_10
 skm_40a088:38 arg_14 struct __crt_locale_pointers *
 skm_40a15f:c  var_10 int
 skm_40a15f:10 var_C
@@ -2035,7 +2009,6 @@ skm_40a15f:2c arg_8 unsigned int
 skm_40a15f:30 arg_C char *const
 skm_40a15f:34 arg_10 unsigned int
 skm_40a15f:38 arg_14 size_t
-skm_40a15f:3c arg_18
 skm_40a15f:40 arg_1C unsigned int
 skm_40a15f:44 arg_20 struct __crt_locale_pointers *
 skm_40a227:4  var_48
@@ -2057,10 +2030,8 @@ skm_40a227:40 var_C
 skm_40a227:44 var_8
 skm_40a227:48 var_4
 skm_40a227:54 arg_0
-skm_40a227:58 arg_4
 skm_40a227:5c Dst char *
 skm_40a227:60 SizeInBytes rsize_t
-skm_40a227:64 arg_10
 skm_40a31f:10 arg_8 char *const
 skm_40a31f:14 arg_C int
 skm_40a353:8  var_8
@@ -2144,7 +2115,6 @@ skm_40b035:734 arg_0 struct __crt_multibyte_data *
 skm_40b1c9:0  var_C int
 skm_40b1c9:8  var_4
 skm_40b1c9:14 arg_0 int
-skm_40b1c9:18 arg_4
 skm_40b2e8:10 var_1C
 skm_40b2e8:14 ms_exc CPPEH_RECORD
 skm_40b38a:8  var_20

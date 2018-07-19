@@ -433,9 +433,9 @@ const_string_ref ya::get_default_name(qstring& buffer, ea_t offset, func_t* func
         return ya::read_string_from(buffer, TO_FMT("field_%" PRIXEA, offset));
     if(offset <= func->frsize)
         return ya::read_string_from(buffer, TO_FMT("var_%" PRIXEA, func->frsize - offset));
-    if(offset < func->frsize + 4)
+    if(offset < func->frsize + 4 + func->frregs)
         return ya::read_string_from(buffer, TO_FMT("var_s%" PRIuEA, offset - func->frsize));
-    return ya::read_string_from(buffer, TO_FMT("arg_%" PRIXEA, offset - func->frsize - 4));
+    return ya::read_string_from(buffer, TO_FMT("arg_%" PRIXEA, offset - func->frsize - 4 - func->frregs));
 }
 
 namespace ya

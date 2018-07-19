@@ -1,4 +1,4 @@
-objects: 25159
+objects: 25114
 
 bin: 1
 bin_66000000 Qt5Svgd.dll
@@ -5508,10 +5508,9 @@ stk_66051a40
 stk_66051a60
 stk_66051a80
 
-skm: 5574
+skm: 5529
 skm_66005520:0  var_C
 skm_66005520:8  var_4
-skm_66005520:14 arg_0
 skm_66005560:14 var_4
 skm_660055a0:0  var_4
 skm_660055b0:0  var_4 QSvgNode *
@@ -5870,7 +5869,6 @@ skm_660099f0:0  var_4
 skm_660099f0:c  arg_0
 skm_66009a40:0  var_4
 skm_66009a60:0  var_4
-skm_66009a60:c  arg_0
 skm_66009a80:0  var_4
 skm_66009a80:c  arg_0
 skm_66009ab0:0  var_4 QSvgStyleProperty *
@@ -5944,7 +5942,6 @@ skm_6600afb0:0  var_4 QSvgNode *
 skm_6600afb0:c  arg_0 struct QSvgNode *
 skm_6600b030:0  var_4 QSvgNode *
 skm_6600b030:c  arg_0 struct QSvgNode *
-skm_6600b030:10 arg_4
 skm_6600b090:0  var_4 QSvgStyleProperty *
 skm_6600b090:c  arg_0 struct QSvgStyleProperty *
 skm_6600b0f0:0  var_4
@@ -6658,11 +6655,8 @@ skm_66013950:c  arg_0 const struct QString *
 skm_66013980:0  var_4
 skm_66013980:c  arg_0 const struct QString *
 skm_660139b0:0  var_4
-skm_660139b0:c  arg_0
 skm_660139e0:0  var_4
-skm_660139e0:c  arg_0
 skm_66013a10:0  var_4
-skm_66013a10:c  arg_0
 skm_66013a30:0  var_4
 skm_66013a30:c  arg_0
 skm_66013a70:0  var_4
@@ -6676,7 +6670,6 @@ skm_66013b40:0  var_C
 skm_66013b40:8  var_4
 skm_66013b40:14 arg_0 double
 skm_66013b90:0  var_4
-skm_66013b90:c  arg_0
 skm_66013be0:0  var_4
 skm_66013be0:c  arg_0
 skm_66013c20:0  var_4
@@ -6686,7 +6679,6 @@ skm_66013c50:c  arg_0
 skm_66013c80:0  var_4
 skm_66013c80:c  arg_0
 skm_66013cc0:0  var_4
-skm_66013cc0:c  arg_0
 skm_66013d10:0  var_4
 skm_66013d10:c  arg_0 int
 skm_66013d40:0  var_4
@@ -6763,7 +6755,6 @@ skm_66014650:18 var_4
 skm_660146c0:0  var_4
 skm_660146c0:c  arg_0
 skm_66014720:0  var_4
-skm_66014720:c  arg_0
 skm_66014740:0  var_4
 skm_66014760:0  var_4
 skm_66014780:0  var_4
@@ -6778,7 +6769,6 @@ skm_660147d0:a0 var_14
 skm_660147d0:a4 var_10
 skm_660147d0:a8 var_C
 skm_660147d0:b0 var_4
-skm_660147d0:bc arg_0
 skm_660147d0:c0 arg_4
 skm_66014bf0:a0 var_C4
 skm_66014bf0:a4 var_C0
@@ -6847,10 +6837,8 @@ skm_66015e40:50 var_14 QSvgNode *
 skm_66015e40:5c var_8 QSvgStrokeStyle *
 skm_66015e40:60 var_4 QSvgFillStyle *
 skm_66015e40:6c arg_0 struct QSvgNode *
-skm_660160c0:8  arg_0
 skm_66016120:c  arg_0
 skm_66016160:0  var_4
-skm_66016160:c  arg_0
 skm_66016190:0  var_10
 skm_66016190:4  var_C
 skm_66016190:8  var_8
@@ -7720,7 +7708,6 @@ skm_660282a0:0  var_4
 skm_660282c0:0  var_4
 skm_660282c0:c  arg_0
 skm_660282e0:0  var_4
-skm_660282e0:c  arg_0
 skm_66028310:0  var_4
 skm_66028310:c  arg_0
 skm_66028330:0  var_4
@@ -7973,14 +7960,10 @@ skm_6602b8b0:8  arg_0
 skm_6602b8b0:c  arg_4
 skm_6602b8b0:10 arg_8
 skm_6602b8d0:4  var_4
-skm_6602b8d0:10 arg_0
-skm_6602b8d0:14 arg_4
 skm_6602b920:8  arg_0
 skm_6602b920:c  arg_4
 skm_6602b920:10 arg_8
 skm_6602b940:4  var_4
-skm_6602b940:10 arg_0
-skm_6602b940:14 arg_4
 skm_6602b990:0  var_4
 skm_6602b990:c  arg_0
 skm_6602b990:10 arg_4
@@ -8008,11 +7991,7 @@ skm_6602bc50:0  var_4
 skm_6602bc70:0  var_4
 skm_6602bca0:0  var_4
 skm_6602bcd0:4  var_4
-skm_6602bcd0:10 arg_0
-skm_6602bcd0:14 arg_4
 skm_6602bd20:4  var_4
-skm_6602bd20:10 arg_0
-skm_6602bd20:14 arg_4
 skm_6602bd70:4  var_4
 skm_6602bd70:10 arg_0
 skm_6602bd70:14 arg_4
@@ -9268,7 +9247,6 @@ skm_660394a0:0  var_4
 skm_660394a0:c  arg_0 const struct QStringList *
 skm_660394c0:0  var_4
 skm_660394e0:0  var_4
-skm_660394e0:c  arg_0
 skm_66039530:0  var_4
 skm_66039530:c  arg_0 enum DisplayMode
 skm_66039550:0  var_4
@@ -9411,8 +9389,6 @@ skm_6603afd0:8  arg_0
 skm_6603b000:0  var_C
 skm_6603b000:4  var_8
 skm_6603b000:8  var_4
-skm_6603b000:14 arg_0
-skm_6603b000:18 arg_4
 skm_6603b070:0  var_4
 skm_6603b070:c  arg_0
 skm_6603b0d0:0  var_4
@@ -9490,7 +9466,6 @@ skm_6603bb20:c  arg_0 double
 skm_6603bb50:0  var_4
 skm_6603bb50:c  arg_0 struct QSvgFillStyleProperty *
 skm_6603bb80:0  var_4
-skm_6603bb80:c  arg_0
 skm_6603bbc0:0  var_4 QSvgStyleProperty *
 skm_6603bbc0:c  arg_0 const struct QBrush *
 skm_6603bc00:0  var_4
@@ -9584,7 +9559,6 @@ skm_6603cd20:10 arg_0
 skm_6603cd20:14 arg_4
 skm_6603cd20:18 arg_8
 skm_6603cdb0:0  var_4
-skm_6603cdb0:c  arg_0
 skm_6603cdd0:0  var_4
 skm_6603cdd0:c  arg_0 double
 skm_6603cdf0:0  var_4 QSvgAnimateTransform *
@@ -9661,10 +9635,8 @@ skm_6603d700:0  var_4 QSvgStyleProperty *
 skm_6603d700:c  arg_0 int
 skm_6603d700:10 arg_4 int
 skm_6603d780:0  var_4
-skm_6603d780:c  arg_0
 skm_6603d780:10 arg_4
 skm_6603d7b0:0  var_4
-skm_6603d7b0:c  arg_0
 skm_6603d7d0:0  var_4
 skm_6603d7d0:c  arg_0 double
 skm_6603d7f0:0  var_AC double
@@ -9825,7 +9797,6 @@ skm_6603f890:ac arg_0
 skm_6603f890:b0 arg_4
 skm_6603f890:b4 arg_8
 skm_6603f890:b8 arg_C
-skm_6603f890:c0 arg_14
 skm_6603fc50:0  var_4
 skm_6603fc70:0  var_4
 skm_6603fc70:c  arg_0
@@ -9857,7 +9828,6 @@ skm_6603fef0:18 arg_4 int
 skm_6603fef0:1c arg_8 struct QSvgGlyph *
 skm_6603ffd0:8  arg_0
 skm_6603ffd0:c  arg_4
-skm_6603ffe0:8  arg_0
 skm_6603ffe0:c  arg_4
 skm_66040010:0  var_8
 skm_66040010:4  var_4
@@ -9892,10 +9862,8 @@ skm_660405b0:0  var_4 QSvgStructureNode *
 skm_66040600:0  var_4
 skm_66040610:0  var_4
 skm_66040610:c  arg_0 int
-skm_66040610:10 arg_4
 skm_66040640:0  var_4
 skm_66040640:c  arg_0 int
-skm_66040640:10 arg_4
 skm_66040670:8  var_4
 skm_66040670:14 arg_0 const struct QRectF *
 skm_660406a0:0  var_4 QSvgTinyDocument *
@@ -9949,7 +9917,6 @@ skm_66040e20:14 arg_0 const struct QString *
 skm_66040e60:0  var_4
 skm_66040e80:0  var_4
 skm_66040ea0:0  var_4
-skm_66040ea0:c  arg_0
 skm_66040ec0:0  var_20
 skm_66040ec0:8  var_18
 skm_66040ec0:10 var_10
@@ -10340,7 +10307,6 @@ skm_660449f0:34 arg_0
 skm_660449f0:3c arg_8
 skm_66044a80:0  var_C
 skm_66044a80:8  var_4
-skm_66044a80:14 arg_0
 skm_66044ad0:0  var_8
 skm_66044ad0:4  var_4
 skm_66044b10:0  var_8
@@ -10385,7 +10351,6 @@ skm_66044fd0:4  var_4 QGraphicsSvgItem *
 skm_66044fd0:10 arg_0
 skm_66045000:8  var_8
 skm_66045000:c  var_4
-skm_66045000:18 arg_0
 skm_66045050:0  var_8
 skm_66045050:4  var_4
 skm_66045080:30 var_4
@@ -10421,7 +10386,6 @@ skm_66045250:274 arg_0
 skm_66045250:278 arg_4
 skm_66045250:27c arg_8
 skm_66045a50:0  var_4
-skm_66045a50:c  arg_0
 skm_66045a80:0  var_4
 skm_66045af0:0  var_4
 skm_66045b10:0  var_4
@@ -10466,7 +10430,6 @@ skm_66046030:8  var_D4
 skm_66046030:d8 var_4
 skm_660461a0:0  var_C
 skm_660461a0:8  var_4
-skm_660461a0:14 arg_0
 skm_660461e0:8  arg_0
 skm_660461f0:0  var_18
 skm_660461f0:4  var_14
@@ -10560,7 +10523,6 @@ skm_66046c10:24 var_20
 skm_66046c10:28 var_1C
 skm_66046c10:2c var_18
 skm_66046c10:3c var_8
-skm_66046c10:4c arg_0
 skm_66046c10:50 arg_4
 skm_66046c10:54 arg_8
 skm_66046d30:8  arg_0
@@ -10619,9 +10581,7 @@ skm_66047db0:44 var_4
 skm_66047db0:50 arg_0
 skm_66047db0:54 arg_4
 skm_66048680:0  var_4
-skm_66048680:c  arg_0
 skm_660486b0:0  var_4
-skm_660486b0:c  arg_0
 skm_660486e0:0  var_4
 skm_660486e0:c  arg_0
 skm_66048740:0  var_4
@@ -10693,7 +10653,6 @@ skm_660493b0:18 arg_0
 skm_66049480:38 var_4
 skm_660495f0:0  var_4
 skm_66049610:8  arg_0
-skm_66049620:8  arg_0
 skm_66049630:8  arg_0
 skm_66049650:0  var_8
 skm_66049650:4  var_4
@@ -10707,7 +10666,6 @@ skm_66049780:0  var_4
 skm_66049780:c  arg_0
 skm_66049810:0  var_8
 skm_66049810:4  var_4
-skm_66049810:10 arg_0
 skm_660498d0:68 var_14
 skm_660498d0:78 var_4
 skm_660498d0:84 arg_0
@@ -10883,7 +10841,6 @@ skm_6604c790:0  var_C
 skm_6604c790:4  Size size_t
 skm_6604c790:8  var_4
 skm_6604c790:14 arg_0 int
-skm_6604c790:18 arg_4
 skm_6604c860:0  var_4
 skm_6604c860:c  arg_0
 skm_6604c8b0:0  var_8
@@ -10892,7 +10849,6 @@ skm_6604c900:0  var_8
 skm_6604c900:4  var_4
 skm_6604c950:0  var_C void *
 skm_6604c950:4  var_8
-skm_6604c950:14 arg_0
 skm_6604c950:18 Size size_t
 skm_6604ca20:0  var_4
 skm_6604ca40:0  var_4
@@ -10990,7 +10946,6 @@ skm_6604e4a0:8  arg_0
 skm_6604e4f0:0  var_324
 skm_6604e4f0:31c var_8
 skm_6604e4f0:324 var_s0
-skm_6604e4f0:32c arg_0
 skm_6604e610:0  var_31C
 skm_6604e610:31c var_s0
 skm_6604e610:324 arg_0

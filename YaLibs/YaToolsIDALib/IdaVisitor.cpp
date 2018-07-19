@@ -1456,17 +1456,6 @@ namespace
             set_path(path, ea);
     }
 
-    void set_struct_member(qstring& buffer, const char* where, struc_t* struc, ea_t ea, asize_t size, func_t* func)
-    {
-        const auto defname = ya::get_default_name(buffer, ea, func);
-        auto ok = set_member_name(struc, ea, defname.value);
-        if(!ok)
-            LOG(ERROR, "%s: 0x%" PRIxEA ":%" PRIxEA " unable to set member name %s\n", where, struc->id, ea, ""/*defname.value*/);
-        ok = set_member_type(struc, ea, byte_flag(), nullptr, size);
-        if(!ok)
-            LOG(ERROR, "%s: 0x%" PRIxEA ":%" PRIxEA " unable to set member type to 0x%" PRIxEA " bytes\n", where, struc->id, ea, size);
-    }
-
     void clear_struct_fields(Visitor& visitor, const char* where, const HVersion& version, ea_t struct_id)
     {
         begin_type_updating(UTP_STRUCT);
@@ -1512,8 +1501,11 @@ namespace
 
         for(size_t i = 0; i < struc->memqty; ++i)
         {
-            // ignore new fields
             auto& m = struc->members[i];
+            if(is_special_member(m.id))
+                    continue;
+
+            // ignore new fields
             const auto offset = m.soff;
             const auto is_new = new_fields.count(offset);
             if(is_new)
@@ -1537,14 +1529,27 @@ namespace
             // reset known fields but take special care of last field so that struc size is not modified
             auto field_size = static_cast<int>(offset == last_offset ? get_member_size(&m) : 1);
             field_size = std::min(field_size, std::max(0, static_cast<int>(size) - static_cast<int>(offset)));
-            set_struct_member(member_name, where, struc, offset, field_size, func);
+            const auto ok = set_member_type(struc, offset, byte_flag(), nullptr, field_size);
+            if(!ok)
+                LOG(ERROR, "%s: 0x%" PRIxEA ":%" PRIxEA " unable to set member type to 0x%d bytes\n", where, struc->id, offset, field_size);
             for(const auto repeat : {false, true})
-            {
-                const auto ok = set_member_cmt(&m, g_empty.value, repeat);
-                if(!ok)
+                if(!set_member_cmt(&m, g_empty.value, repeat))
                     LOG(ERROR, "clear_%s: 0x%" PRIxEA ":%" PRIxEA " unable to reset %s comment\n", where, struct_id, offset, repeat ? "repeatable" : "non-repeatable");
-            }
         }
+
+        // reset field names in two pass so that name conflicts get fixed on the second pass
+        for(auto pass = 0; pass < 2; ++pass)
+            for(size_t i = 0; i < struc->memqty; ++i)
+            {
+                auto& m = struc->members[i];
+                if(is_special_member(m.id))
+                    continue;
+
+                const auto defname = ya::get_default_name(member_name, m.soff, func);
+                const auto ok = set_member_name(struc, m.soff, defname.value);
+                if(pass && !ok)
+                    LOG(ERROR, "%s: 0x%" PRIxEA ":%" PRIxEA " unable to reset member name to %s\n", where, struc->id, m.soff, defname.value);
+            }
 
         end_type_updating(UTP_STRUCT);
     }
