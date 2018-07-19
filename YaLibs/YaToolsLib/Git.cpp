@@ -766,6 +766,7 @@ bool Git::status(const std::string& path, const on_status_fn& on_status)
     git_status_init_options(&opts, GIT_STATUS_OPTIONS_VERSION);
     opts.flags |= GIT_STATUS_OPT_DEFAULTS
                |  GIT_STATUS_OPT_DISABLE_PATHSPEC_MATCH;
+    opts.show = GIT_STATUS_SHOW_WORKDIR_ONLY;
     std::vector<char> buffer(path.begin(), path.end());
     buffer.push_back(0);
     char* begin = nullptr;
