@@ -894,12 +894,6 @@ namespace
             return func;
 
         plan_and_wait(ea, end);
-        func = get_func(ea);
-        if(func)
-            return func;
-
-        // try harder, maybe plan_and_wait mishandling
-        auto_make_proc(ea);
         return get_func(ea);
     }
 
@@ -1109,20 +1103,40 @@ namespace
         });
     }
 
-    void try_make_code(const HVersion& version, ea_t ea)
+    void make_insn(const HVersion& version, ea_t ea)
     {
-        const auto flags = get_flags(ea);
-        if(is_code(flags))
-            return;
+        insn_t insn;
+        const auto end = static_cast<ea_t>(ea + version.size());
+        bool dirty = false;
+        for(ea_t it = ea, len = 0; it < end; it += len)
+        {
+            if(is_code(get_flags(it)))
+            {
+                len = static_cast<int>(get_item_end(it) - it);
+                continue;
+            }
+            dirty = true;
+            len = create_insn(it, nullptr);
+            if(len)
+                continue;
 
-        create_insn(ea);
-        plan_and_wait(ea, static_cast<ea_t>(ea + version.size()));
+            len = decode_insn(&insn, it);
+            del_items(it, 0, len);
+            len = create_insn(it, nullptr);
+            if(len)
+                continue;
+             
+            LOG(ERROR, "make_insn: 0x%" PRIxEA " unable to create instruction at 0x%" PRIxEA "\n", ea, it);
+            return;
+        }
+        if(dirty) // it can be extremely slow to plan & wait all insn chunks
+            plan_and_wait(ea, end);
     }
 
     void make_code(Visitor& visitor, const HVersion& version, ea_t ea)
     {
         del_func(ea);
-        try_make_code(version, ea);
+        make_insn(version, ea);
         make_name(visitor, version, ea);
         make_views(version, ea);
     }
@@ -1417,7 +1431,7 @@ namespace
     void make_basic_block(Visitor& visitor, const HVersion& version, ea_t ea)
     {
         Paths paths;
-        try_make_code(version, ea);
+        make_insn(version, ea);
         make_name(visitor, version, ea);
         make_views(version, ea);
         version.walk_xrefs([&](offset_t offset, operand_t operand, YaToolObjectId xref_id, const XrefAttributes* attrs)
@@ -1554,7 +1568,31 @@ namespace
         end_type_updating(UTP_STRUCT);
     }
 
-    struc_t* get_or_add_frame(const HVersion& version, ea_t func_ea)
+    struct FrameState
+    {
+        asize_t vars;
+        ushort  saved;
+        asize_t args;
+    };
+
+    FrameState get_frame_state(const HVersion& version)
+    {
+        FrameState state;
+        memset(&state, 0, sizeof state);
+        version.walk_attributes([&](const const_string_ref& key, const const_string_ref& val)
+        {
+            if(key == g_stack_lvars)
+                state.vars = to_xmlea(make_string(val).data());
+            else if(key == g_stack_regvars)
+                state.saved = static_cast<ushort>(to_xmlea(make_string(val).data()));
+            else if(key == g_stack_args)
+                state.args = to_xmlea(make_string(val).data());
+            return WALK_CONTINUE;
+        });
+        return state;
+    }
+
+    struc_t* get_or_add_frame(ea_t func_ea, const HVersion& version)
     {
         auto frame = get_frame(func_ea);
         if(frame)
@@ -1564,28 +1602,14 @@ namespace
         if(!func)
             return nullptr;
 
-        ea_t lvars = 0;
-        ushort regvars = 0;
-        ea_t args = 0;
-        version.walk_attributes([&](const const_string_ref& key, const const_string_ref& val)
-        {
-            if(key == g_stack_lvars)
-                lvars = to_xmlea(make_string(val).data());
-            else if(key == g_stack_regvars)
-                regvars = static_cast<ushort>(to_xmlea(make_string(val).data()));
-            else if(key == g_stack_args)
-                args = to_xmlea(make_string(val).data());
-            return WALK_CONTINUE;
-        });
-        const auto ok = add_frame(func, lvars, regvars, args);
-        if(!ok)
-            set_frame_size(func, lvars, regvars, args);
+        const auto state = get_frame_state(version);
+        add_frame(func, state.vars, state.saved, state.args);
         return get_frame(func);
     }
 
     void make_stackframe(Visitor& visitor, const HVersion& version, ea_t ea)
     {
-        const auto frame = get_or_add_frame(version, ea);
+        const auto frame = get_or_add_frame(ea, version);
         if(!frame)
         {
             LOG(ERROR, "make_stackframe: 0x%" PRIxEA " unable to create function\n", ea);

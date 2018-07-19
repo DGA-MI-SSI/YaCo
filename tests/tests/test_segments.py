@@ -43,14 +43,14 @@ ida_auto.plan_and_wait(ea, idc.find_func_end(ea))
         # we need to force push because deleting tracked data is easier
         a.run(
             self.script("""
-ea = 0x402E76
+ea = 0x402E75
 idc.del_func(ea)
 idaapi.set_name(ea, "funcname")
-ida_bytes.del_items(ea+0x1C, 0, 3)
-ida_bytes.create_word(ea+0x1C, 2)
+ida_bytes.del_items(ea+0x1D, 0, 3)
+ida_bytes.create_word(ea+0x1D, 2)
 """),
         )
-        a.check_git(added=["binary", "segment", "segment_chunk", "code"])
+        a.check_git(added=["binary", "segment", "segment_chunk", "code", "code"])
 
         a.run(
             self.script("""
@@ -58,7 +58,7 @@ import yaco_plugin
 yaco_plugin.yaco.sync_and_push_idb()
 """),
         )
-        a.check_git(deleted=["binary", "segment", "segment_chunk", "code"])
+        a.check_git(deleted=["binary", "segment", "segment_chunk", "code", "code"])
 
         b.run_no_sync(
             self.script("""
@@ -69,14 +69,14 @@ yaco_plugin.yaco.discard_and_pull_idb()
 
         a.run(
             self.script("""
-ea = 0x402E76
-ida_bytes.del_items(ea+0x1C, 3)
-idc.add_func(ea)
+ea = 0x402E75
+ida_bytes.del_items(ea+0x1D, 0, 3)
+idc.add_func(ea, ea+0x32)
 ida_auto.plan_and_wait(ea, idc.find_func_end(ea))
 """),
             self.save_last_ea(),
         )
-        a.check_git(added=["binary", "segment", "segment_chunk", "function", "stackframe", "code", "basic_block"] + ["stackframe_member"] * 3)
+        a.check_git(added=["binary", "segment", "segment_chunk", "function", "stackframe", "basic_block"] + ["stackframe_member"] * 3)
 
         b.run(
             self.check_last_ea(),

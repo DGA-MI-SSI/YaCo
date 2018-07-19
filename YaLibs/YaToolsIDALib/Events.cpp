@@ -519,10 +519,13 @@ namespace
         if(got != id || !func)
         {
             model.delete_version(visitor, OBJECT_TYPE_BASIC_BLOCK, id);
+            model.accept_ea(visitor, ea);
             return;
         }
 
         model.accept_ea(visitor, ea);
+        model.delete_version(visitor, OBJECT_TYPE_CODE, got);
+        model.delete_version(visitor, OBJECT_TYPE_DATA, got);
     }
 
     void save_eas(Events& ev, IModelIncremental& model, IModelVisitor& visitor)
