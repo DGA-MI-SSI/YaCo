@@ -1887,6 +1887,10 @@ std::string export_xml(ea_t ea, int type_mask)
     db->visit_start();
     ModelIncremental ctx(type_mask);
     ctx.accept_ea(*db, ea);
+    const auto func = get_func(ea);
+    if(func)
+        for(const auto& b : qflow_chart_t(nullptr, func, func->start_ea, func->end_ea, 0).blocks)
+            ctx.accept_ea(*db, b.start_ea);
     const auto frame = get_frame(ea);
     if(frame)
         ctx.accept_struct(*db, ea, frame->id);

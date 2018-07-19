@@ -1017,8 +1017,8 @@ namespace
             return;
         }
 
-        const auto ea0 = static_cast<ea_t>(func->start_ea + offset);
-        const auto ea1 = static_cast<ea_t>(func->start_ea + end);
+        const auto ea0 = static_cast<ea_t>(ea + offset);
+        const auto ea1 = static_cast<ea_t>(ea + end);
         const auto regvar = find_regvar(func, ea0, ea1, name.data(), newname.data());
         if(regvar)
         {

@@ -24,20 +24,20 @@ class Fixture(runtests.Fixture):
         a, b = self.setup_repos()
         a.run(
             self.script("""
-ea = 0x66013830
+ea = 0x66014090
 func = idaapi.get_func(ea)
-idaapi.add_regvar(func, ea, ea+0x10, "ebp", "ebp_a", None)
-idaapi.add_regvar(func, ea+0x10, ea+0x20, "ebp", "ebp_b", None)
+idaapi.add_regvar(func, ea+0x1C, ea+0x28, "eax", "eax_a", None)
+idaapi.add_regvar(func, ea+0x22, ea+0x28, "ebp", "ebp_b", None)
 """),
             self.save_last_ea(),
         )
-        a.check_git(added=["binary", "segment", "segment_chunk", "function", "basic_block"])
+        a.check_git(added=["binary", "segment", "segment_chunk", "function"] + ["basic_block"] * 4)
         b.run(
             self.check_last_ea(),
             self.script("""
-ea = 0x66013830
+ea = 0x66014090
 func = idaapi.get_func(ea)
-idaapi.del_regvar(func, ea, ea+0x10, "ebp")
+idaapi.del_regvar(func, ea+0x22, ea+0x28, "ebp")
 """),
             self.save_last_ea(),
         )
@@ -45,9 +45,9 @@ idaapi.del_regvar(func, ea, ea+0x10, "ebp")
         a.run(
             self.check_last_ea(),
             self.script("""
-ea = 0x66013830
+ea = 0x66014090
 func = idaapi.get_func(ea)
-idaapi.del_regvar(func, ea+0x10, ea+0x20, "ebp")
+idaapi.del_regvar(func, ea+0x1C, ea+0x28, "eax")
 """),
             self.save_last_ea(),
         )

@@ -863,7 +863,9 @@ namespace
             return;
 
         LOG_IDB_EVENT("Function %s has been updated", get_func_name(pfn->start_ea).c_str());
-        hooks.events_.touch_func(pfn->start_ea);
+        const auto flow = qflow_chart_t(nullptr, pfn, pfn->start_ea, pfn->end_ea, 0);
+        for(const auto& b : flow.blocks)
+            hooks.events_.touch_func(b.start_ea);
     }
 
     void set_func_start(Hooks& hooks, va_list args)
