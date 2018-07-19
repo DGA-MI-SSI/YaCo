@@ -1167,8 +1167,10 @@ Hooks::Hooks(IEvents& events)
     : events_(events)
     , enabled_(false)
 {
-    hook_to_notification_point(HT_IDP, &idp_event_handler, this);
-    hook_to_notification_point(HT_DBG, &dbg_event_handler, this);
+    if(false)
+        hook_to_notification_point(HT_IDP, &idp_event_handler, this);
+    if(false)
+        hook_to_notification_point(HT_DBG, &dbg_event_handler, this);
     hook_to_notification_point(HT_IDB, &idb_event_handler, this);
 }
 
