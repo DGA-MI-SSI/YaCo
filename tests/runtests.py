@@ -326,6 +326,12 @@ class Fixture(unittest.TestCase):
         filename = self.item_range
         return self.check_diff("", got)(filename)
 
+    def check_range(self, a, start, end, want):
+        a.run(
+            self.save_item_range(start, end),
+        )
+        self.check_item_range(want)
+
     def set_master(self, repo, master):
         sysexec(repo, ["git", "remote", "add", "origin", master])
         sysexec(repo, ["git", "fetch", "origin"])

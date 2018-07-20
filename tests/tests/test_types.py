@@ -62,3 +62,48 @@ idc.apply_type(ea, pt)
         a.run(
             self.check_last_ea(),
         )
+
+    def test_apply_type_delete_contained_items(self):
+        a, b = self.setup_cmder()
+
+        self.check_range(a, 0x41BB98, 0x41BB98+0x20, """
+0x41bb98: data:1
+0x41bb9c: data:17
+0x41bba0: data:9
+0x41bba4: data:1
+0x41bba8: unexplored:2
+""")
+        a.run(
+            self.script("""
+ea = 0x41BB98
+idaapi.set_name(ea+0x0,  "f1")
+idaapi.set_name(ea+0x4,  "f2")
+idaapi.set_name(ea+0x8,  "f3")
+idaapi.set_name(ea+0xC,  "f4")
+idaapi.set_name(ea+0x10, "f5")
+
+sid = idaapi.add_struc(-1, "sa", False)
+idc.add_struc_member(sid, "off", 0, idaapi.FF_BYTE, -1, 0x20)
+"""),
+            self.save_last_ea()
+        )
+        a.check_git(added=["binary", "segment", "segment_chunk", "struc", "strucmember"] + ["data"] * 5)
+
+        b.run(
+            self.check_last_ea(),
+            self.script("""
+ea = 0x41BB98
+ida_bytes.del_items(ea, idc.DELIT_DELNAMES, 0x20)
+pt = idc.parse_decl("sa", 0)
+idc.apply_type(ea, pt)
+"""),
+            self.save_last_ea(),
+        )
+        b.check_git(modified=["segment_chunk", "data"], deleted=["data"] * 4)
+
+        a.run(
+            self.check_last_ea(),
+        )
+        self.check_range(a, 0x41BB98, 0x41BB98+0x20, """
+0x41bb98: data:1
+""")

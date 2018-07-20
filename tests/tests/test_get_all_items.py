@@ -23,12 +23,6 @@ import unittest
 
 class Fixture(runtests.Fixture):
 
-    def check_range(self, a, start, end, want):
-        a.run(
-            self.save_item_range(start, end),
-        )
-        self.check_item_range(want)
-
     def test_get_all_items_qt54(self):
         a, _ = self.setup_repos()
         self.check_range(a, 0x66023FE9, 0x66024012, """

@@ -1141,16 +1141,26 @@ namespace
         make_views(version, ea);
     }
 
+    void reset_ea(ea_t ea)
+    {
+        del_items(ea, DELIT_DELNAMES, get_item_size(ea));
+        tinfo_t tif;
+        apply_tinfo(ea, tif, TINFO_DEFINITE);
+        set_name(ea, "");
+    }
+
     void set_data_type(const Visitor& visitor, const HVersion& version, ea_t ea)
     {
         const auto size = std::max(static_cast<offset_t>(1), version.size());
 
-        if(!is_unknown(get_flags(ea)))
-            if(!del_items(ea, DELIT_EXPAND, static_cast<asize_t>(size)))
-            {
-                LOG(ERROR, "make_data: 0x%" PRIxEA " unable to set unknown\n", ea);
-                return;
-            }
+        del_items(ea, DELIT_SIMPLE, static_cast<asize_t>(size));
+        for(const auto it : ya::get_all_items(ea, static_cast<ea_t>(ea + size)))
+            reset_ea(it);
+        
+        // applying empty type clear target address type
+        tinfo_t tif;
+        apply_tinfo(ea, tif, TINFO_DEFINITE);
+
         const auto flags = version.flags();
         if(!flags)
         {
@@ -1178,7 +1188,6 @@ namespace
                 if(fi == visitor.tids_.end())
                     return WALK_CONTINUE;
 
-                del_items(ea, DELIT_DELNAMES, static_cast<asize_t>(size));
                 auto ok = create_struct(ea, static_cast<asize_t>(size), fi->second.tid);
                 if(!ok)
                     ok = create_struct(ea, 0, fi->second.tid);
