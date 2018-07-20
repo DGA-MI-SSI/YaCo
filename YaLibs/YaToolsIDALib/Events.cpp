@@ -622,7 +622,11 @@ namespace
             return;
 
         const auto ok = try_add_id(ctx, id, hver);
-        if(!ok)
+        // due to dependencies, we may visit an id twice and first with
+        // SKIP_DEPENDENCIES, this is bad because we won't visit this
+        // id xrefs, so if we have seen this id already, only skip it
+        // if it's a side effect
+        if(!ok && mode == SKIP_DEPENDENCIES)
             return;
 
         // add parent id & its dependencies
