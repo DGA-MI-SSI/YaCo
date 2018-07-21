@@ -1141,24 +1141,15 @@ namespace
         make_views(version, ea);
     }
 
-    void reset_ea(ea_t ea)
-    {
-        del_items(ea, DELIT_DELNAMES, get_item_size(ea));
-        tinfo_t tif;
-        apply_tinfo(ea, tif, TINFO_DEFINITE);
-        set_name(ea, "");
-    }
-
     void set_data_type(const Visitor& visitor, const HVersion& version, ea_t ea)
     {
         const auto size = std::max(static_cast<offset_t>(1), version.size());
 
-        del_items(ea, DELIT_SIMPLE, static_cast<asize_t>(size));
-        for(const auto it : ya::get_all_items(ea, static_cast<ea_t>(ea + size)))
-            reset_ea(it);
-        
-        // applying empty type clear target address type
+        // we don't check del_items return code because it fails on unexplored bytes
+        del_items(ea, DELIT_DELNAMES, static_cast<asize_t>(size));
         tinfo_t tif;
+        // we don't check apply_tinfo because it fails on empty tinfo_t
+        // but it does reset target ea type info
         apply_tinfo(ea, tif, TINFO_DEFINITE);
 
         const auto flags = version.flags();
