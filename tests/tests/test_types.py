@@ -107,3 +107,49 @@ idc.apply_type(ea, pt)
         self.check_range(a, 0x41BB98, 0x41BB98+0x20, """
 0x41bb98: data:1
 """)
+
+    def test_unexplored_glitch(self):
+        a, b = self.setup_cmder()
+        a.run(
+            self.script("""
+ea = 0x41BBA8
+idaapi.set_name(ea, "noname")
+"""),
+            self.save_last_ea(),
+        )
+        a.check_git(added=["binary", "segment", "segment_chunk", "data"])
+
+        b.run(
+            self.check_last_ea(),
+            self.script("""
+ea = 0x41BBA8
+idaapi.set_name(ea, "")
+"""),
+            self.save_last_ea(),
+        )
+        b.check_git(modified=["data"])
+
+        # we now have an unexplored byte in xml cache
+        a.run(
+            self.check_last_ea(),
+            self.script("""
+ea = 0x41BBA4
+sid = idaapi.add_struc(-1, "sa", False)
+idc.add_struc_member(sid, "off", 0, idaapi.FF_BYTE, -1, 8)
+ida_bytes.del_items(ea, idc.DELIT_DELNAMES, 8)
+pt = idc.parse_decl("sa", 0)
+idc.apply_type(ea, pt)
+"""),
+            self.save_last_ea(),
+        )
+        a.check_git(added=["struc", "strucmember", "data"], modified=["segment_chunk"], deleted=["data"])
+        self.check_range(a, 0x41BBA4, 0x41BBA4+8, """
+0x41bba4: data:1
+""")
+
+        b.run(
+            self.check_last_ea(),
+        )
+        self.check_range(b, 0x41BBA4, 0x41BBA4+8, """
+0x41bba4: data:1
+""")

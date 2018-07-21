@@ -981,7 +981,8 @@ namespace
         const auto local_name = static_cast<bool>(va_arg(args, int));
         UNUSED(local_name);
         const auto flags = get_flags(ea);
-        if(!has_any_name(flags))
+        const auto wanted = has_any_name(flags) || has_xref(flags);
+        if(!wanted)
             return;
 
         LOG_IDB_EVENT("Byte at %" PRIxEA " renamed to %s", ea, new_name);

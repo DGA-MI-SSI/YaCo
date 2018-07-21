@@ -284,7 +284,6 @@ namespace
             return;
         }
 
-        ea = get_item_head(ea);
         add_ea(ev, hash::hash_ea(ea), OBJECT_TYPE_DATA, ea);
     }
 
@@ -378,7 +377,6 @@ void Events::touch_code(ea_t ea)
 
 void Events::touch_data(ea_t ea)
 {
-    ea = get_item_head(ea);
     add_ea(*this, hash::hash_ea(ea), OBJECT_TYPE_DATA, ea);
 }
 
@@ -495,6 +493,8 @@ namespace
 
     void save_data(IModelIncremental& model, IModelVisitor& visitor, YaToolObjectId id, ea_t ea)
     {
+        // resolve real data item at the very end so we can delete now invalidated data items
+        ea = get_item_head(ea);
         const auto got = hash::hash_ea(ea);
         const auto flags = get_flags(ea);
         if(got != id || !is_data(flags))
