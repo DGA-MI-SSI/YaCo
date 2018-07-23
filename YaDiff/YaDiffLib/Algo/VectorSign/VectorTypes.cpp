@@ -11,6 +11,12 @@
 #include <assert.h>
 #include <memory>
 
+#if 0
+#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("yadiff", (FMT), ## __VA_ARGS__)
+#else
+#define LOG(...) do {} while(0)
+#endif
+
 namespace yadiff
 {
 
