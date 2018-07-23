@@ -721,11 +721,28 @@ void CreateConcatenatedVector(FunctionSignatureMap_t& functionSignatureMap)
         FunctionSignature_t& function_signature = it.second;
         function_signature.vector = FunctionData2Vector(function_signature.function_data, NULL, "");
     }
+	LOG(INFO, "Creating concatenated vector for all functions\n");
+
+	//TODO : replace these with a "simple" matricial product
+	/*
+	 * We have 6 products to do : childer, parents, children of parents, children of children, parents of parents, parents of children
+	 * 
+	 * Input :
+	 *   -NxM matrice of M coordinates for N function
+	 *   -6xNxN vector : weights for each functions : loop over the 6 above categories, and
+	 * 	               increment the weights
+	 * output :
+	 *   -MxNx6 : additionnal coordinates, we just have to divide the result by the sum of the weights in order to get the mean
+	 * 
+	 */
+
 
     // For all function
     for (auto& it: functionSignatureMap)
     {
         FunctionSignature_t& function_signature = it.second;
+        
+        LOG(INFO, "Creating concatenated vector for function %s with %lu children and %lu parents\n", function_signature.name.value, function_signature.children.size(), function_signature.parents.size());
 
         // 0: Me
         function_signature.concatenated_vector = function_signature.vector;
