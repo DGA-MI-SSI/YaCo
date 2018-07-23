@@ -183,8 +183,8 @@ bool CallerXRefMatchAlgo::Analyse(const yadiff::OnRelationFn& output, const yadi
                     new_relation.direction_ = RELATION_DIRECTION_BOTH;
                     new_relation.version1_ = *LocalXrefObjectVersionSet.begin();
                     new_relation.version2_ = *RemoteXrefObjectVersionSet.begin();
-                    LOG(INFO, "from %lx(%s) <-> %lx(%s)\n", relation.version1_.address(), relation.version1_.username().value, relation.version2_.address(), relation.version2_.username().value);
-                    LOG(INFO, "associate %lx(%s) <-> %lx(%s)\n", new_relation.version1_.address(), new_relation.version1_.username().value, new_relation.version2_.address(), new_relation.version2_.username().value);
+                    LOG(INFO, "CXMA: from %lx(%s) <-> %lx(%s)\n", relation.version1_.address(), relation.version1_.username().value, relation.version2_.address(), relation.version2_.username().value);
+                    LOG(INFO, "CXMA: --> associate %lx(%s) <-> %lx(%s)\n", new_relation.version1_.address(), new_relation.version1_.username().value, new_relation.version2_.address(), new_relation.version2_.username().value);
                     output(new_relation);
                 }
                 else
@@ -213,8 +213,8 @@ bool CallerXRefMatchAlgo::Analyse(const yadiff::OnRelationFn& output, const yadi
                 new_relation.direction_ = RELATION_DIRECTION_BOTH;
                 new_relation.version1_ = diff_version1;
                 new_relation.version2_ = diff_version2;
-                LOG(INFO, "from %lx(%s) <-> %lx(%s)\n", relation.version1_.address(), relation.version1_.username().value, relation.version2_.address(), relation.version2_.username().value);
-                LOG(INFO, "associate %lx(%s) <-> %lx(%s)\n", new_relation.version1_.address(), new_relation.version1_.username().value, new_relation.version2_.address(), new_relation.version2_.username().value);
+                LOG(INFO, "CXMA: from %lx(%s) <-> %lx(%s)\n", relation.version1_.address(), relation.version1_.username().value, relation.version2_.address(), relation.version2_.username().value);
+                LOG(INFO, "CXMA: --> associate %lx(%s) <-> %lx(%s)\n", new_relation.version1_.address(), new_relation.version1_.username().value, new_relation.version2_.address(), new_relation.version2_.username().value);
                 output(new_relation);
 
                 /* try to propagate diff relations to parent only for basic blocks */
@@ -239,8 +239,8 @@ bool CallerXRefMatchAlgo::Analyse(const yadiff::OnRelationFn& output, const yadi
 
                 if (nullptr != diff_parent1 && nullptr != diff_parent2)
                 {
-                    LOG(INFO, "from %lx(%s) <-> %lx(%s)\n", relation.version1_.address(), relation.version1_.username().value, relation.version2_.address(), relation.version2_.username().value);
-                    LOG(INFO, "--> associate %lx(%s) <-> %lx(%s)\n", new_relation.version1_.address(), new_relation.version1_.username().value, new_relation.version2_.address(), new_relation.version2_.username().value);
+                    LOG(INFO, "CXMA: from %lx(%s) <-> %lx(%s)\n", relation.version1_.address(), relation.version1_.username().value, relation.version2_.address(), relation.version2_.username().value);
+                    LOG(INFO, "CXMA: --> associate %lx(%s) <-> %lx(%s)\n", new_relation.version1_.address(), new_relation.version1_.username().value, new_relation.version2_.address(), new_relation.version2_.username().value);
                     output(new_relation);
                 }
             }
