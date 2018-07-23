@@ -6,6 +6,7 @@
 #include "IModel.hpp"
 #include "HVersion.hpp"
 #include "Helpers.h"
+#include "Yatools.hpp"
 
 
 #include <assert.h>
@@ -231,6 +232,8 @@ BinaryInfo_t::BinaryInfo_t(const IModel& db, const yadiff::AlgoCfg& /*config*/)
 
     // 1.2: Set blob text
     SetBlobText(*this, db);
+	
+	LOG(DEBUG, "parsing architecture : %s\n", format);
 
     // 2: Branch on arch
     if (strstr(format, "80386") != NULL)

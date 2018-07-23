@@ -8,7 +8,6 @@
 
 struct IModel;
 struct HVersion;
-typedef uint64_t YaToolObjectId;
 
 namespace yadiff
 {

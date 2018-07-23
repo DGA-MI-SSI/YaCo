@@ -11,6 +11,7 @@ TODO : get the Arch and the mode in database.
 #include "IModel.hpp"
 #include "Helpers.h"
 #include "HVersion.hpp"
+#include "Yatools.hpp"
 
 #include <capstone/capstone.h>
 
@@ -83,7 +84,7 @@ std::string PrintPrettyInsn(const std::vector<cs_insn>& instructions)
 /*@brief :  Disassemble a array of byte
 * @param :  <code_int_array> pointer to the buffer containing the executable bytes
 *           <size>           size fo this buffer
-*		    <addr>			 address of the first byte offset (like 400000 in IDA)
+*            <addr>             address of the first byte offset (like 400000 in IDA)
 * @return:  insn_array : array of instruction
 * @remark:  The uint8_t_array is a perfect input structure here
 */

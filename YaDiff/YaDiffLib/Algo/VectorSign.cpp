@@ -32,8 +32,11 @@
 #define FUNC_LIB        0x00000004     ///< Library function
 #endif
 
-#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("vector_sign", (FMT), ## __VA_ARGS__)
-
+#if 0
+#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("yadiff", (FMT), ## __VA_ARGS__)
+#else
+#define LOG(...) do {} while(0)
+#endif
 namespace
 {
 

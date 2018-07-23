@@ -58,7 +58,7 @@ Vector GetCentralMomentByte(const Vector& byteVector, size_t size)
         res[moment] /= res[0];
 
         // 3.2: Root
-        double sign = 1 - 2 * std::signbit(res[moment]);
+        double sign = 1 - 2 * signbit(res[moment]);
         res[moment] = sign * pow(sign * res[moment], 1. / moment);
     }
 
