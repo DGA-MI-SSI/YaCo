@@ -236,12 +236,16 @@ BinaryInfo_t::BinaryInfo_t(const IModel& db, const yadiff::AlgoCfg& /*config*/)
 	LOG(DEBUG, "parsing architecture : %s\n", format);
 
     // 2: Branch on arch
-    if (strstr(format, "80386") != NULL)
+    if (strstr(format, "80386") != NULL ||
+			(
+				strstr(format, "Intel") != NULL && strstr(format, "386") != NULL
+			)
+		)
     {
         cs_arch_val = CS_ARCH_X86;
         cs_mode_val = CS_MODE_32;
     }
-    else if (strstr(format, "AMD64") != NULL)
+    else if (strstr(format, "AMD64") != NULL || strstr(format, "x64") != NULL || strstr(format, "x86-64") != NULL)
     {
         cs_arch_val = CS_ARCH_X86;
         cs_mode_val = CS_MODE_64;
@@ -256,7 +260,7 @@ BinaryInfo_t::BinaryInfo_t(const IModel& db, const yadiff::AlgoCfg& /*config*/)
         cs_arch_val = CS_ARCH_ARM;
         cs_mode_val = CS_MODE_THUMB;
     }
-    else if (strstr(format, "PowerPC") != NULL)
+    else if (strstr(format, "PowerPC") != NULL || strstr(format, "ppc") != NULL)
     {
         cs_arch_val = CS_ARCH_PPC;
         cs_mode_val = CS_MODE_32;
@@ -266,7 +270,7 @@ BinaryInfo_t::BinaryInfo_t(const IModel& db, const yadiff::AlgoCfg& /*config*/)
         cs_arch_val = CS_ARCH_MIPS;
         cs_mode_val = CS_MODE_32;
     }
-
+	
 
     // 3: instantiate IArch
     iarch_ptr = MakeArch(cs_arch_val, cs_mode_val);
