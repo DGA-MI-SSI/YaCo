@@ -104,6 +104,54 @@ std::vector<double> FunctionData2Vector(const FunctionData_t& function_data,
 }
 
 
+
+// TODO reseve
+inline std::vector<double> StatFunction2Vector(const StatFunction_t& stat_function)
+{
+    std::vector<double> res = std::vector<double>();
+
+    // TODO remove that 
+    std::vector<double> a = FunctionData2Vector(stat_function.mean, NULL, "");
+    std::vector<double> b = FunctionData2Vector(stat_function.median, NULL, "");
+    std::vector<double> c = FunctionData2Vector(stat_function.disp, NULL, "");
+    
+    res.insert(res.begin(), a.begin(), a.end());
+    res.insert(res.begin(), b.begin(), b.end());
+    res.insert(res.begin(), c.begin(), c.end());
+    return res;
+}
+
+
+inline std::vector<double> TypeStat2Vector(const TypeStat_t& type_stat)
+{
+    std::vector<double> res = std::vector<double>();
+
+    std::vector<double> a = StatFunction2Vector(type_stat.not_ponderated);
+    std::vector<double> b = StatFunction2Vector(type_stat.ponderated);
+
+    res.insert(res.begin(), a.begin(), a.end());
+    res.insert(res.begin(), b.begin(), b.end());
+    
+    return res;
+}
+
+
+std::vector<double> Concatenated2Vector(const Concatenated_t& concatenated)
+{
+    std::vector<double> res = std::vector<double>();
+
+    // TODO remove that too
+    std::vector<double> me = FunctionData2Vector(concatenated.me, NULL, "");
+    std::vector<double> a = TypeStat2Vector(concatenated.father);
+    std::vector<double> b = TypeStat2Vector(concatenated.child);
+    
+    res.insert(res.begin(), me.begin(), me.end());
+    res.insert(res.begin(), a.begin(), a.end());
+    res.insert(res.begin(), b.begin(), b.end());
+    
+    return res;
+}
+
 #define DECLARE_REF(name, value)\
     const char name ## _txt[] = value;\
     const const_string_ref name = {name ## _txt, sizeof name ## _txt - 1};

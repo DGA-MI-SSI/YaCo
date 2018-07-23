@@ -72,8 +72,6 @@ struct InstructionData_t
 #define InstructionData_FIELD_COUNT 7
 
 
-
-
 // 0: The function scalars
 struct FunctionData_t
 {
@@ -82,7 +80,30 @@ struct FunctionData_t
     InstructionData_t                   insts[INST_TYPE_COUNT];
 };
 
+// 1: The statistics on neighbourgs on the call graph
+struct StatFunction_t
+{
+    FunctionData_t                      mean;
+    FunctionData_t                      median;
+    FunctionData_t                      disp;
+};
 
+// 2: The type of statistc makking
+struct TypeStat_t
+{
+    StatFunction_t                      not_ponderated;
+    StatFunction_t                      ponderated;
+};
+
+// ~: Full vector input 
+struct Concatenated_t
+{
+    FunctionData_t                      me;
+    TypeStat_t                          father;
+    TypeStat_t                          child;
+};
+
+	
 #define FORMAT_MAX_SIZE   256
 class BinaryInfo_t
 {
