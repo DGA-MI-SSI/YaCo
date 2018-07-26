@@ -219,7 +219,7 @@ def convert_bin_to_yafb(ctx, options, binary_file_path, yafb):
     binary_file_path = tmpfile
     
     print("Converting file %s" % binary_file_path)
-    idb = os.path.join(tmpdir, file_name_stripped + ".i64")
+    idb = os.path.join(tmpdir, file_name + ".i64")
     create_idb(ctx, binary_file_path)
     yadb1 = export_database(ctx, idb)
     
@@ -284,8 +284,8 @@ def walk_dir_multithreads(ctx, options, elf_path, yafb_path, vect_path, num_work
             if name not in done:
                 basename = os.path.splitext(name)[0]
                 elf  = os.path.join(root, name)
-                yafb = os.path.join(yafb_path, basename + ".yafb")
-                vect = os.path.join(vect_path, basename + ".vect")
+                yafb = os.path.join(yafb_path, name + ".yafb")
+                vect = os.path.join(vect_path, name + ".vect")
                 done.add(name)
                 q.put((elf, yafb, vect))
 
