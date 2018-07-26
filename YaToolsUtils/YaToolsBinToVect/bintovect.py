@@ -319,7 +319,7 @@ def main(options):
         
         walk_dir_multithreads(ctx, options, options.binary_from, options.yafb_to, options.vect_to, num_worker_threads=num_cpu)
     else:
-        handle_bin(ctx, options, options.binary_from)
+        handle_bin(ctx, options, options.binary_from, options.yafb_to, options.vect_to)
 
 if __name__ == "__main__":
     sys.exit(main(parse_options()))
