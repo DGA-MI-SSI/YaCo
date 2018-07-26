@@ -640,7 +640,10 @@ void VectorSignAlgo::PrintFunctionSignatureMap(const FunctionSignatureMap_t& fun
 
     for (const auto& it : functionSignatureMap)
     {
-        PrintFunctionSignature(output, it.second, false, NULL);
+		if (it.second.name.value != nullptr)
+		{
+			PrintFunctionSignature(output, it.second, false, NULL);
+		}
     }
 }
 
@@ -815,6 +818,12 @@ void VectorSignAlgo::CreateFunctionSignatureMap(FunctionSignatureMap_t& function
 
         // 2.2/ Walk horizontally the control flow.
         const auto firstBBId  = functionSignatureMap[fctVersion.id()].firstBBId;
+        if (firstBBId == 0x0)
+        {
+			LOG(WARNING, "WARN addr:%" PRIxEA "\n", fctVersion.address());
+			return WALK_CONTINUE;
+		}
+        
         ControlFlowGraphHorizontalWalk(fctVersion, db.get(firstBBId), functionSignatureMap);
 
         // 2.3/ Set the disassembly fields (semantic)
