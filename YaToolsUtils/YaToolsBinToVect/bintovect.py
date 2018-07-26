@@ -165,12 +165,18 @@ def setup_ctx(ctx, options):
 
     # get idaq binary path
     idaq = os.path.join(ctx.ida_dir, get_binary_name(ctx, "idaq"))
-    if not os.path.isfile(idaq):
-        fail(ctx, "%s is not a file" % idaq)
-    ctx.idaq = idaq
-    ctx.idaq64 = os.path.join(ctx.ida_dir, get_binary_name(ctx, "idaq64"))
+    if os.path.isfile(idaq):
+        idaq64 = os.path.join(ctx.ida_dir, get_binary_name(ctx, "idaq64"))
+    elif os.path.isfile(os.path.join(ctx.ida_dir, get_binary_name(ctx, "ida"))):
+        idaq = os.path.join(ctx.ida_dir, get_binary_name(ctx, "ida"))
+        idaq64 = os.path.join(ctx.ida_dir, get_binary_name(ctx, "ida64"))
+        if not os.path.isfile(idaq):
+            fail(ctx, "%s is not a file" % idaq)
     logging.info("idaq = %s" % idaq)
-    logging.info("idaq64 = %s" % ctx.idaq64)
+    logging.info("idaq64 = %s" % idaq64)
+    
+    ctx.idaq = idaq
+    ctx.idaq64 = idaq64
 
     # get yatools dir
     yatools_dir = os.path.join(ctx.ida_dir, "plugins", "YaTools")
