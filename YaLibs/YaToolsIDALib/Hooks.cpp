@@ -38,7 +38,6 @@ namespace
     const bool LOG_IDB_EVENTS = false;
 
     const char BOOL_STR[][6] = { "false", "true" };
-    const char REPEATABLE_STR[][12] = { "", "repeatable " };
 
     qstring get_func_name(ea_t ea)
     {
@@ -61,13 +60,6 @@ namespace
         return name;
     }
 
-    qstring get_enum_member_cmt(enum_t id, bool repeatable)
-    {
-        qstring name;
-        get_enum_member_cmt(&name, id, repeatable);
-        return name;
-    }
-
     qstring get_struc_cmt(tid_t id, bool repeatable)
     {
         qstring cmt;
@@ -75,24 +67,10 @@ namespace
         return cmt;
     }
 
-    qstring get_member_fullname(tid_t mid)
-    {
-        qstring name;
-        get_member_fullname(&name, mid);
-        return name;
-    }
-
     qstring get_segm_name(const segment_t *s)
     {
         qstring name;
         get_segm_name(&name, s);
-        return name;
-    }
-
-    qstring get_segm_class(const segment_t *s)
-    {
-        qstring name;
-        get_segm_class(&name, s);
         return name;
     }
 
@@ -261,104 +239,6 @@ namespace
         return "";
     }
 
-    const char* idb_event_to_txt(idb_event::event_code_t event)
-    {
-        switch(event)
-        {
-            case idb_event::event_code_t::closebase:                return "closebase";
-            case idb_event::event_code_t::savebase:                 return "savebase";
-            case idb_event::event_code_t::upgraded:                 return "upgraded";
-            case idb_event::event_code_t::auto_empty:               return "auto_empty";
-            case idb_event::event_code_t::auto_empty_finally:       return "auto_empty_finally";
-            case idb_event::event_code_t::determined_main:          return "determined_main";
-            case idb_event::event_code_t::local_types_changed:      return "local_types_changed";
-            case idb_event::event_code_t::extlang_changed:          return "extlang_changed";
-            case idb_event::event_code_t::idasgn_loaded:            return "idasgn_loaded";
-            case idb_event::event_code_t::kernel_config_loaded:     return "kernel_config_loaded";
-            case idb_event::event_code_t::loader_finished:          return "loader_finished";
-            case idb_event::event_code_t::flow_chart_created:       return "flow_chart_created";
-            case idb_event::event_code_t::compiler_changed:         return "compiler_changed";
-            case idb_event::event_code_t::changing_ti:              return "changing_ti";
-            case idb_event::event_code_t::ti_changed:               return "ti_changed";
-            case idb_event::event_code_t::changing_op_ti:           return "changing_op_ti";
-            case idb_event::event_code_t::op_ti_changed:            return "op_ti_changed";
-            case idb_event::event_code_t::changing_op_type:         return "changing_op_type";
-            case idb_event::event_code_t::op_type_changed:          return "op_type_changed";
-            case idb_event::event_code_t::enum_created:             return "enum_created";
-            case idb_event::event_code_t::deleting_enum:            return "deleting_enum";
-            case idb_event::event_code_t::enum_deleted:             return "enum_deleted";
-            case idb_event::event_code_t::renaming_enum:            return "renaming_enum";
-            case idb_event::event_code_t::enum_renamed:             return "enum_renamed";
-            case idb_event::event_code_t::changing_enum_bf:         return "changing_enum_bf";
-            case idb_event::event_code_t::enum_bf_changed:          return "enum_bf_changed";
-            case idb_event::event_code_t::changing_enum_cmt:        return "changing_enum_cmt";
-            case idb_event::event_code_t::enum_cmt_changed:         return "enum_cmt_changed";
-            case idb_event::event_code_t::enum_member_created:      return "enum_member_created";
-            case idb_event::event_code_t::deleting_enum_member:     return "deleting_enum_member";
-            case idb_event::event_code_t::enum_member_deleted:      return "enum_member_deleted";
-            case idb_event::event_code_t::struc_created:            return "struc_created";
-            case idb_event::event_code_t::deleting_struc:           return "deleting_struc";
-            case idb_event::event_code_t::struc_deleted:            return "struc_deleted";
-            case idb_event::event_code_t::changing_struc_align:     return "changing_struc_align";
-            case idb_event::event_code_t::struc_align_changed:      return "struc_align_changed";
-            case idb_event::event_code_t::renaming_struc:           return "renaming_struc";
-            case idb_event::event_code_t::struc_renamed:            return "struc_renamed";
-            case idb_event::event_code_t::expanding_struc:          return "expanding_struc";
-            case idb_event::event_code_t::struc_expanded:           return "struc_expanded";
-            case idb_event::event_code_t::struc_member_created:     return "struc_member_created";
-            case idb_event::event_code_t::deleting_struc_member:    return "deleting_struc_member";
-            case idb_event::event_code_t::struc_member_deleted:     return "struc_member_deleted";
-            case idb_event::event_code_t::renaming_struc_member:    return "renaming_struc_member";
-            case idb_event::event_code_t::struc_member_renamed:     return "struc_member_renamed";
-            case idb_event::event_code_t::changing_struc_member:    return "changing_struc_member";
-            case idb_event::event_code_t::struc_member_changed:     return "struc_member_changed";
-            case idb_event::event_code_t::changing_struc_cmt:       return "changing_struc_cmt";
-            case idb_event::event_code_t::struc_cmt_changed:        return "struc_cmt_changed";
-            case idb_event::event_code_t::segm_added:               return "segm_added";
-            case idb_event::event_code_t::deleting_segm:            return "deleting_segm";
-            case idb_event::event_code_t::segm_deleted:             return "segm_deleted";
-            case idb_event::event_code_t::changing_segm_start:      return "changing_segm_start";
-            case idb_event::event_code_t::segm_start_changed:       return "segm_start_changed";
-            case idb_event::event_code_t::changing_segm_end:        return "changing_segm_end";
-            case idb_event::event_code_t::segm_end_changed:         return "segm_end_changed";
-            case idb_event::event_code_t::changing_segm_name:       return "changing_segm_name";
-            case idb_event::event_code_t::segm_name_changed:        return "segm_name_changed";
-            case idb_event::event_code_t::changing_segm_class:      return "changing_segm_class";
-            case idb_event::event_code_t::segm_class_changed:       return "segm_class_changed";
-            case idb_event::event_code_t::segm_attrs_updated:       return "segm_attrs_updated";
-            case idb_event::event_code_t::segm_moved:               return "segm_moved";
-            case idb_event::event_code_t::allsegs_moved:            return "allsegs_moved";
-            case idb_event::event_code_t::func_added:               return "func_added";
-            case idb_event::event_code_t::func_updated:             return "func_updated";
-            case idb_event::event_code_t::set_func_start:           return "set_func_start";
-            case idb_event::event_code_t::set_func_end:             return "set_func_end";
-            case idb_event::event_code_t::deleting_func:            return "deleting_func";
-            case idb_event::event_code_t::frame_deleted:            return "frame_deleted";
-            case idb_event::event_code_t::thunk_func_created:       return "thunk_func_created";
-            case idb_event::event_code_t::func_tail_appended:       return "func_tail_appended";
-            case idb_event::event_code_t::deleting_func_tail:       return "deleting_func_tail";
-            case idb_event::event_code_t::func_tail_deleted:        return "func_tail_deleted";
-            case idb_event::event_code_t::tail_owner_changed:       return "tail_owner_changed";
-            case idb_event::event_code_t::func_noret_changed:       return "func_noret_changed";
-            case idb_event::event_code_t::stkpnts_changed:          return "stkpnts_changed";
-            case idb_event::event_code_t::updating_tryblks:         return "updating_tryblks";
-            case idb_event::event_code_t::tryblks_updated:          return "tryblks_updated";
-            case idb_event::event_code_t::deleting_tryblks:         return "deleting_tryblks";
-            case idb_event::event_code_t::sgr_changed:              return "sgr_changed";
-            case idb_event::event_code_t::make_code:                return "make_code";
-            case idb_event::event_code_t::make_data:                return "make_data";
-            case idb_event::event_code_t::destroyed_items:          return "destroyed_items";
-            case idb_event::event_code_t::renamed:                  return "renamed";
-            case idb_event::event_code_t::byte_patched:             return "byte_patched";
-            case idb_event::event_code_t::changing_cmt:             return "changing_cmt";
-            case idb_event::event_code_t::cmt_changed:              return "cmt_changed";
-            case idb_event::event_code_t::changing_range_cmt:       return "changing_range_cmt";
-            case idb_event::event_code_t::range_cmt_changed:        return "range_cmt_changed";
-            case idb_event::event_code_t::extra_cmt_changed:        return "extra_cmt_changed";
-        }
-        return "";
-    }
-
     const char* range_kind_to_str(range_kind_t kind)
     {
         switch (kind)
@@ -409,19 +289,151 @@ void Hooks::save_and_update()
 
 namespace
 {
-    void savebase(Hooks& hooks, va_list args)
+    qstring to_hex(uint64_t ea)
     {
-        UNUSED(args);
+        char dst[2 + sizeof ea * 2];
+        ea = swap(ea);
+        const auto ref = binhex<sizeof ea, RemovePadding | HexaPrefix>(dst, &ea);
+        return qstring(ref.value, ref.size);
+    }
+
+    qstring get_name(ea_t ea)
+    {
+        if(ea == BADADDR)
+            return "bad address";
+
+        const auto func_ea = get_func_by_frame(ea);
+        if(func_ea != BADADDR)
+            return qstring("frame ") + get_func_name(func_ea);
+        
+        auto struc = get_struc(ea);
+        if(struc)
+            return qstring("struc ") + get_struc_name(struc->id);
+
+        const auto member = get_member_by_id(ea, &struc);
+        if(member)
+            return get_name(struc->id) + "::" + get_member_name(member->id);
+
+        const auto idx = get_enum_idx(ea);
+        if(idx != BADADDR)
+            return qstring("enum ") + get_enum_name(ea);
+
+        const auto eid = get_enum_member_enum(ea);
+        if(eid != BADADDR)
+            return get_name(eid) + "::" + get_enum_member_name(ea);
+
+        if(!getseg(ea))
+            return qstring();
+
+        return to_hex(ea);
+    }
+
+    void closebase(Hooks& /*hooks*/, va_list /*args*/)
+    {
+        LOG_IDB_EVENT("closebase");
+    }
+
+    void savebase(Hooks& hooks, va_list /*args*/)
+    {
         msg("\n");
-        LOG_IDB_EVENT("The database is being saved");
+        LOG_IDB_EVENT("savebase");
         hooks.save_and_update();
+    }
+
+    void upgraded(Hooks& /*hooks*/, va_list args)
+    {
+        const auto old = va_arg(args, int);
+        LOG_IDB_EVENT("upgraded: old %d", old);
+    }
+
+    void auto_empty(Hooks& /*hooks*/, va_list /*args*/)
+    {
+        LOG_IDB_EVENT("auto_empty");
+    }
+
+    void auto_empty_finally(Hooks& /*hooks*/, va_list /*args*/)
+    {
+        LOG_IDB_EVENT("auto_empty_finally");
+    }
+
+    void determined_main(Hooks& /*hooks*/, va_list args)
+    {
+        const auto ea = va_arg(args, ea_t);
+        LOG_IDB_EVENT("determined_main: 0x%" PRIXEA, ea);
+    }
+
+    void local_types_changed(Hooks& /*hooks*/, va_list /*args*/)
+    {
+        LOG_IDB_EVENT("local_types_changed");
+    }
+
+    void extlang_changed(Hooks& /*hooks*/, va_list args)
+    {
+        const auto kind = va_arg(args, int);
+        const auto el   = va_arg(args, extlang_t*);
+        const auto idx  = va_arg(args, int);
+        LOG_IDB_EVENT("extlang_changed: kind %d idx %d", kind, idx);
+        UNUSED(el);
+    }
+
+    void idasgn_loaded(Hooks& /*hooks*/, va_list args)
+    {
+        const auto name = va_arg(args, const char*);
+        LOG_IDB_EVENT("idasgn_loaded: sort_sig_name %s", name);
+    }
+
+    void kernel_config_loaded(Hooks& /*hooks*/, va_list /*args*/)
+    {
+        LOG_IDB_EVENT("kernel_config_loaded");
+    }
+
+    void loader_finished(Hooks& /*hooks*/, va_list args)
+    {
+        const auto li           = va_arg(args, linput_t*);
+        const auto neflags      = va_arg(args, uint16_t);
+        const auto filetypename = va_arg(args, const char*);
+        LOG_IDB_EVENT("loader_finished: neflags 0x%x filetypename %s", neflags, filetypename);
+        UNUSED(li);
+    }
+
+    void flow_chart_created(Hooks& /*hooks*/, va_list args)
+    {
+        const auto fc = va_arg(args, qflow_chart_t*);
+        LOG_IDB_EVENT("flow_char_created");
+        UNUSED(fc);
+    }
+
+    void compiler_changed(Hooks& /*hooks*/, va_list /*args*/)
+    {
+        LOG_IDB_EVENT("compiler_changed");
     }
 
     void changing_ti(Hooks& hooks, va_list args)
     {
-        const auto ea = va_arg(args, ea_t);
-        LOG_IDB_EVENT("An item typestring (c/c++ prototype) is to be changed (ea: %" PRIxEA ")", ea);
+        const auto ea           = va_arg(args, ea_t);
+        const auto new_type     = va_arg(args, const type_t*);
+        const auto new_fnames   = va_arg(args, const p_list*);
+        LOG_IDB_EVENT("changing_ti: %s", get_name(ea).c_str());
+        UNUSED(new_type);
+        UNUSED(new_fnames);
         hooks.events_.touch_ea(ea);
+    }
+
+    void ti_changed(Hooks& /*hooks*/, va_list args)
+    {
+        const auto ea       = va_arg(args, ea_t);
+        const auto type     = va_arg(args, const type_t*);
+        const auto fnames   = va_arg(args, const p_list*);
+        LOG_IDB_EVENT("ti_changed: %s", get_name(ea).c_str());
+        UNUSED(type);
+        UNUSED(fnames);
+    }
+
+    std::string to_operand(int n)
+    {
+        if(n == -1)
+            return std::string();
+        return " [" + std::to_string(n) + "]";
     }
 
     void changing_op_ti(Hooks& hooks, va_list args)
@@ -430,164 +442,167 @@ namespace
         const auto n            = va_arg(args, int);
         const auto new_type     = va_arg(args, const type_t*);
         const auto new_fnames   = va_arg(args, const p_list*);
-        UNUSED(n);
+        LOG_IDB_EVENT("changing_op_ti: %s%s", get_name(ea).c_str(), to_operand(n).data());
         UNUSED(new_type);
         UNUSED(new_fnames);
-        LOG_IDB_EVENT("An operand typestring (c/c++ prototype) is to be changed (ea: %" PRIxEA ")", ea);
         hooks.events_.touch_ea(ea);
+    }
+
+    void op_ti_changed(Hooks& /*hooks*/, va_list args)
+    {
+        const auto ea       = va_arg(args, ea_t);
+        const auto n        = va_arg(args, int);
+        const auto type     = va_arg(args, const type_t*);
+        const auto fnames   = va_arg(args, const p_list*);
+        LOG_IDB_EVENT("op_to_changed: %s%s", get_name(ea).c_str(), to_operand(n).data());
+        UNUSED(type);
+        UNUSED(fnames);
+    }
+
+    void changing_op_type(Hooks& /*hooks*/, va_list args)
+    {
+        const auto ea       = va_arg(args, ea_t);
+        const auto n        = va_arg(args, int);
+        const auto opinfo   = va_arg(args, const opinfo_t*);
+        LOG_IDB_EVENT("changing_op_type: %s%s", get_name(ea).c_str(), to_operand(n).data());
+        UNUSED(opinfo);
     }
 
     void op_type_changed(Hooks& hooks, va_list args)
     {
         const auto ea   = va_arg(args, ea_t);
         const auto n    = va_arg(args, int);
-        UNUSED(n);
-        LOG_IDB_EVENT("An operand type at %" PRIxEA " has been set or deleted", ea);
+        LOG_IDB_EVENT("op_type_changed: %s%s", get_name(ea).c_str(), to_operand(n).data());
         hooks.events_.touch_ea(ea);
     }
 
     void enum_created(Hooks& hooks, va_list args)
     {
         const auto id = va_arg(args, enum_t);
-        LOG_IDB_EVENT("Enum type %s has been created", get_enum_name(id).c_str());
+        LOG_IDB_EVENT("enum_created: %s", get_name(id).c_str());
         hooks.events_.touch_enum(id);
     }
 
     void deleting_enum(Hooks& hooks, va_list args)
     {
         const auto id = va_arg(args, enum_t);
-        LOG_IDB_EVENT("Enum type %s is to be deleted", get_enum_name(id).c_str());
+        LOG_IDB_EVENT("deleting_enum: %s", get_name(id).c_str());
         hooks.events_.touch_enum(id);
     }
 
-    void log_renaming_enum(tid_t id, bool is_enum, const char* newname)
+    void enum_deleted(Hooks& /*hooks*/, va_list args)
     {
-        if(!LOG_IDB_EVENTS)
-            return;
-        if(is_enum)
-            LOG_IDB_EVENT("Enum type %s is to be renamed to %s", get_enum_name(id).c_str(), newname);
-        else
-            LOG_IDB_EVENT("A member of enum type %s is to be renamed from %s to %s", get_enum_member_name(id).c_str(), get_enum_name(get_enum_member_enum(id)).c_str(), newname);
+        const auto id = va_arg(args, enum_t);
+        LOG_IDB_EVENT("enum_deleted: %s", get_name(id).c_str());
     }
 
     void renaming_enum(Hooks& hooks, va_list args)
     {
-        const auto id      = va_arg(args, tid_t);
-        const auto is_enum = static_cast<bool>(va_arg(args, int));
-        const auto newname = va_arg(args, const char*);
-        log_renaming_enum(id, is_enum, newname);
+        const auto id       = va_arg(args, tid_t);
+        const auto is_enum  = static_cast<bool>(va_arg(args, int));
+        const auto newname  = va_arg(args, const char*);
+        LOG_IDB_EVENT("renaming_enum: %s:%s", get_name(id).c_str(), newname);
         hooks.events_.touch_enum(id);
-    }
-
-    static void log_enum_renamed(tid_t id)
-    {
-        if(!LOG_IDB_EVENTS)
-            return;
-        if(get_enum_member_enum(id) == BADADDR)
-            LOG_IDB_EVENT("An enum type has been renamed %s", get_enum_name(id).c_str());
-        else
-            LOG_IDB_EVENT("A member of enum type %s has been renamed %s", get_enum_name(get_enum_member_enum(id)).c_str(), get_enum_member_name(id).c_str());
     }
 
     void enum_renamed(Hooks& hooks, va_list args)
     {
         const auto id = va_arg(args, tid_t);
-        log_enum_renamed(id);
+        LOG_IDB_EVENT("enum_renamed: %s", get_name(id).c_str());
         hooks.events_.touch_enum(id);
     }
 
     void changing_enum_bf(Hooks& hooks, va_list args)
     {
         const auto id = va_arg(args, enum_t);
-        const auto bf = static_cast<bool>(va_arg(args, int));
-        if(is_bf(id) == bf)
+        const auto new_bf = static_cast<bool>(va_arg(args, int));
+        LOG_IDB_EVENT("changing_enum_bf: %s new_bf %s", get_name(id).c_str(), BOOL_STR[new_bf]);
+        if(is_bf(id) == new_bf)
             return;
 
-        LOG_IDB_EVENT("Enum type %s 'bitfield' attribute is to be changed to %s", get_enum_name(id).c_str(), BOOL_STR[bf]);
         hooks.events_.touch_enum(id);
     }
 
-    void log_changing_enum_cmt(enum_t id, bool repeatable, const char* newcmt)
+    void enum_bf_changed(Hooks& /*hooks*/, va_list args)
     {
-        if(!LOG_IDB_EVENTS)
-            return;
-        if(get_enum_member_enum(id) == BADADDR)
-            LOG_IDB_EVENT("Enum type %s %scomment is to be changed from \"%s\" to \"%s\"", get_enum_name(id).c_str(), REPEATABLE_STR[repeatable], get_enum_cmt(id, repeatable).c_str(), newcmt);
-        else
-            LOG_IDB_EVENT("Enum type %s member %s %scomment is to be changed from \"%s\" to \"%s\"", get_enum_name(get_enum_member_enum(id)).c_str(), get_enum_member_name(id).c_str(), REPEATABLE_STR[repeatable], get_enum_member_cmt(id, repeatable).c_str(), newcmt);
+        const auto id = va_arg(args, enum_t);
+        LOG_IDB_EVENT("enum_bf_changed: %s", get_name(id).c_str());
     }
 
     void changing_enum_cmt(Hooks& hooks, va_list args)
     {
-        const auto id         = va_arg(args, enum_t);
-        const auto repeatable = static_cast<bool>(va_arg(args, int));
-        const auto newcmt     = va_arg(args, const char*);
-
-        const auto cmt = get_enum_cmt(id, repeatable);
-        if(make_string_ref(newcmt) == ya::to_string_ref(cmt))
+        const auto id           = va_arg(args, enum_t);
+        const auto repeatable   = static_cast<bool>(va_arg(args, int));
+        const auto newcmt       = va_arg(args, const char*);
+        const auto cmt          = get_enum_cmt(id, repeatable);
+        LOG_IDB_EVENT("changing_enum_cmt: %s %scmt %s:%s", get_name(id).c_str(), repeatable ? "repeatable "  : "", cmt.c_str(), newcmt);
+        if(cmt == newcmt)
             return;
 
-        log_changing_enum_cmt(id, repeatable, newcmt);
         hooks.events_.touch_enum(id);
+    }
+
+    void enum_cmt_changed(Hooks& /*hooks*/, va_list args)
+    {
+        const auto id           = va_arg(args, enum_t);
+        const auto repeatable   = static_cast<bool>(va_arg(args, int));
+        LOG_IDB_EVENT("enum_cmt_changed: %s %scmt", get_name(id).c_str(), repeatable ? "repeatable "  : "");
     }
 
     void enum_member_created(Hooks& hooks, va_list args)
     {
-        const auto eid = va_arg(args, enum_t);
-        const auto cid = va_arg(args, const_t);
-        LOG_IDB_EVENT("Enum type %s member %s has been created", get_enum_name(eid).c_str(), get_enum_member_name(cid).c_str());
-        hooks.events_.touch_enum(eid);
+        const auto id   = va_arg(args, enum_t);
+        const auto cid  = va_arg(args, const_t);
+        LOG_IDB_EVENT("enum_member_created: %s::%s", get_enum_name(id).c_str(), get_enum_member_name(cid).c_str());
+        hooks.events_.touch_enum(id);
     }
 
     void deleting_enum_member(Hooks& hooks, va_list args)
     {
-        const auto eid = va_arg(args, enum_t);
-        const auto cid = va_arg(args, const_t);
-        LOG_IDB_EVENT("Enum type %s member %s is to be deleted", get_enum_name(eid).c_str(), get_enum_member_name(cid).c_str());
-        hooks.events_.touch_enum(eid);
+        const auto id   = va_arg(args, enum_t);
+        const auto cid  = va_arg(args, const_t);
+        LOG_IDB_EVENT("deleting_enum_member: %s::%s", get_enum_name(id).c_str(), get_enum_member_name(cid).c_str());
+        hooks.events_.touch_enum(id);
     }
 
-    void log_struc_created(tid_t struc_id)
+    void enum_member_deleted(Hooks& /*hooks*/, va_list args)
     {
-        if(!LOG_IDB_EVENTS)
-            return;
-        const auto func_ea = get_func_by_frame(struc_id);
-        if(func_ea != BADADDR)
-            LOG_IDB_EVENT("Stackframe of function %s has been created", get_func_name(func_ea).c_str());
-        else
-            LOG_IDB_EVENT("Structure type %s has been created", get_struc_name(struc_id).c_str());
+        const auto id   = va_arg(args, enum_t);
+        const auto cid  = va_arg(args, const_t);
+        LOG_IDB_EVENT("enum_member_deleted: %s::%s", get_enum_name(id).c_str(), get_enum_member_name(cid).c_str());
     }
 
     void struc_created(Hooks& hooks, va_list args)
     {
         const auto struc_id = va_arg(args, tid_t);
-        log_struc_created(struc_id);
+        LOG_IDB_EVENT("struc_created: %s", get_name(struc_id).c_str());
         hooks.events_.touch_struc(struc_id);
-    }
-
-    void log_deleting_struc(const struc_t* sptr)
-    {
-        if(!LOG_IDB_EVENTS)
-            return;
-        const auto func_ea = get_func_by_frame(sptr->id);
-        if(func_ea != BADADDR)
-            LOG_IDB_EVENT("Stackframe of function %s is to be deleted", get_func_name(func_ea).c_str());
-        else
-            LOG_IDB_EVENT("Structure type %s is to be deleted", get_struc_name(sptr->id).c_str());
     }
 
     void deleting_struc(Hooks& hooks, va_list args)
     {
         const auto sptr = va_arg(args, struc_t*);
-        log_deleting_struc(sptr);
+        LOG_IDB_EVENT("deleting_struc: %s", get_name(sptr->id).c_str());
         hooks.events_.touch_struc(sptr->id);
+    }
+
+    void struc_deleted(Hooks& /*hooks*/, va_list args)
+    {
+        const auto struc_id = va_arg(args, tid_t);
+        LOG_IDB_EVENT("struc_deleted: %s", get_name(struc_id).c_str());
     }
 
     void changing_struc_align(Hooks& hooks, va_list args)
     {
         const auto sptr = va_arg(args, struc_t*);
-        LOG_IDB_EVENT("Structure type %s alignment is being changed from 0x%X", get_struc_name(sptr->id).c_str(), static_cast<int>(std::pow(2, sptr->get_alignment())));
+        LOG_IDB_EVENT("changing_struc_align: %s", get_name(sptr->id).c_str());
         hooks.events_.touch_struc(sptr->id);
+    }
+
+    void struc_align_changed(Hooks& /*hooks*/, va_list args)
+    {
+        const auto sptr = va_arg(args, struc_t*);
+        LOG_IDB_EVENT("struc_align_changed: %s", get_name(sptr->id).c_str());
     }
 
     void renaming_struc(Hooks& hooks, va_list args)
@@ -595,37 +610,16 @@ namespace
         const auto struc_id = va_arg(args, tid_t);
         const auto oldname  = va_arg(args, const char*);
         const auto newname  = va_arg(args, const char*);
-        LOG_IDB_EVENT("Structure type %s is to be renamed to %s", oldname, newname);
+        LOG_IDB_EVENT("renaming_struc: %s:%s", get_name(struc_id).c_str(), newname);
+        UNUSED(oldname);
         hooks.events_.touch_struc(struc_id);
     }
 
     void struc_renamed(Hooks& hooks, va_list args)
     {
         const auto sptr = va_arg(args, struc_t*);
-        LOG_IDB_EVENT("A structure type has been renamed %s", get_struc_name(sptr->id).c_str());
+        LOG_IDB_EVENT("struc_renamed: %s", get_name(sptr->id).c_str());
         hooks.events_.touch_struc(sptr->id);
-    }
-
-    void log_expanding_struc(const struc_t* sptr, ea_t offset, adiff_t delta)
-    {
-        if(!LOG_IDB_EVENTS)
-            return;
-
-        const auto func_ea = get_func_by_frame(sptr->id);
-        if(func_ea != BADADDR)
-        {
-            if(delta > 0)
-                LOG_IDB_EVENT("Stackframe of function %s is to be expanded of 0x%" PRIXEA " bytes at offset 0x%" PRIXEA, get_func_name(func_ea).c_str(), delta, offset);
-            else
-                LOG_IDB_EVENT("Stackframe of function %s is to be shrunk of 0x%" PRIXEA " bytes at offset 0x%" PRIXEA, get_func_name(func_ea).c_str(), ~delta + 1, offset);
-        }
-        else
-        {
-            if(delta > 0)
-                LOG_IDB_EVENT("Structure type %s is to be expanded of 0x%" PRIXEA " bytes at offset 0x%" PRIXEA, get_struc_name(sptr->id).c_str(), delta, offset);
-            else
-                LOG_IDB_EVENT("Structure type %s is to be shrunk of 0x%" PRIXEA " bytes at offset 0x%" PRIXEA, get_struc_name(sptr->id).c_str(), ~delta + 1, offset);
-        }
     }
 
     void expanding_struc(Hooks& hooks, va_list args)
@@ -633,60 +627,38 @@ namespace
         const auto sptr   = va_arg(args, struc_t*);
         const auto offset = va_arg(args, ea_t);
         const auto delta  = va_arg(args, adiff_t);
-        log_expanding_struc(sptr, offset, delta);
+        LOG_IDB_EVENT("expanding_struc: %s offset: 0x%" PRIXEA " delta: %" PRIdEA, get_name(sptr->id).c_str(), offset, delta);
         hooks.events_.touch_struc(sptr->id);
     }
 
-    void log_struc_member_created(const struc_t* sptr, const member_t* mptr)
+    void struc_expanded(Hooks& /*hooks*/, va_list args)
     {
-        if(!LOG_IDB_EVENTS)
-            return;
-
-        const auto func_ea = get_func_by_frame(sptr->id);
-        if(func_ea != BADADDR)
-            LOG_IDB_EVENT("Stackframe of function %s member %s has been created", get_func_name(func_ea).c_str(), get_member_name(mptr->id).c_str());
-        else
-            LOG_IDB_EVENT("Structure type %s member %s has been created", get_struc_name(sptr->id).c_str(), get_member_name(mptr->id).c_str());
+        const auto sptr = va_arg(args, struc_t*);
+        LOG_IDB_EVENT("struc_expanded: %s", get_name(sptr->id).c_str());
     }
 
     void struc_member_created(Hooks& hooks, va_list args)
     {
         const auto sptr = va_arg(args, struc_t*);
         const auto mptr = va_arg(args, member_t*);
-        log_struc_member_created(sptr, mptr);
+        LOG_IDB_EVENT("struc_member_created: %s", get_name(mptr->id).c_str());
         hooks.events_.touch_struc(sptr->id);
-    }
-
-    void log_deleting_struc_member(const struc_t* sptr, const member_t* mptr)
-    {
-        if(!LOG_IDB_EVENTS)
-            return;
-
-        const auto func_ea = get_func_by_frame(sptr->id);
-        if(func_ea != BADADDR)
-            LOG_IDB_EVENT("Stackframe of function %s member %s is to be deleted", get_func_name(func_ea).c_str(), get_member_name(mptr->id).c_str());
-        else
-            LOG_IDB_EVENT("Structure type %s member %s is to be deleted", get_struc_name(sptr->id).c_str(), get_member_name(mptr->id).c_str());
     }
 
     void deleting_struc_member(Hooks& hooks, va_list args)
     {
         const auto sptr = va_arg(args, struc_t*);
         const auto mptr = va_arg(args, member_t*);
-        log_deleting_struc_member(sptr, mptr);
+        LOG_IDB_EVENT("deleting_struc_member: %s", get_name(mptr->id).c_str());
         hooks.events_.touch_struc(sptr->id);
     }
 
-    void log_renaming_struc_member(const struc_t* sptr, const member_t* mptr, const char* newname)
+    void struc_member_deleted(Hooks& /*hooks*/, va_list args)
     {
-        if(!LOG_IDB_EVENTS)
-            return;
-
-        const auto func_ea = get_func_by_frame(sptr->id);
-        if(func_ea != BADADDR)
-            LOG_IDB_EVENT("A member of stackframe of function %s is to be renamed from %s to %s", get_func_name(func_ea).c_str(), get_member_name(mptr->id).c_str(), newname);
-        else
-            LOG_IDB_EVENT("A member of structure type %s is to be renamed from %s to %s", get_struc_name(sptr->id).c_str(), get_member_name(mptr->id).c_str(), newname);
+        const auto sptr         = va_arg(args, struc_t*);
+        const auto member_id    = va_arg(args, tid_t);
+        const auto offset       = va_arg(args, ea_t);
+        LOG_IDB_EVENT("struc_member_deleted: %s 0x%" PRIXEA, get_name(sptr->id).c_str(), offset);
     }
 
     void renaming_struc_member(Hooks& hooks, va_list args)
@@ -694,24 +666,16 @@ namespace
         const auto sptr    = va_arg(args, struc_t*);
         const auto mptr    = va_arg(args, member_t*);
         const auto newname = va_arg(args, const char*);
-        log_renaming_struc_member(sptr, mptr, newname);
+        LOG_IDB_EVENT("renaming_struc_member: %s:%s", get_name(mptr->id).c_str(), newname);
         hooks.events_.touch_struc(sptr->id);
     }
 
-    void log_changing_struc_member(const struc_t* sptr, const member_t* mptr, flags_t flag, const opinfo_t* ti, asize_t nbytes)
+    void struc_member_renamed(Hooks& /*hooks*/, va_list args)
     {
-        if(!LOG_IDB_EVENTS)
-            return;
-
-        UNUSED(flag);
-        UNUSED(ti);
-        UNUSED(nbytes);
-
-        const auto  func_ea = get_func_by_frame(sptr->id);
-        if(func_ea != BADADDR)
-            LOG_IDB_EVENT("Stackframe of function %s member %s is to be changed", get_func_name(func_ea).c_str(), get_member_name(mptr->id).c_str());
-        else
-            LOG_IDB_EVENT("Structure type %s member %s is to be changed", get_struc_name(sptr->id).c_str(), get_member_name(mptr->id).c_str());
+        const auto sptr = va_arg(args, struc_t*);
+        const auto mptr = va_arg(args, member_t*);
+        LOG_IDB_EVENT("struc_member_renamed: %s", get_name(mptr->id).c_str());
+        UNUSED(sptr);
     }
 
     void changing_struc_member(Hooks& hooks, va_list args)
@@ -721,27 +685,18 @@ namespace
         const auto flag   = va_arg(args, flags_t);
         const auto ti     = va_arg(args, const opinfo_t*);
         const auto nbytes = va_arg(args, asize_t);
-        log_changing_struc_member(sptr, mptr, flag, ti, nbytes);
+        LOG_IDB_EVENT("changing_struc_member: %s flag 0x%x nbytes 0x%" PRIXEA, get_name(mptr->id).c_str(), flag, nbytes);
+        UNUSED(sptr);
+        UNUSED(ti);
         hooks.events_.touch_struc(sptr->id);
     }
 
-    void log_changing_struc_cmt(tid_t struc_id, bool repeatable, const char* newcmt)
+    void struc_member_changed(Hooks& /*hooks*/, va_list args)
     {
-        if(!LOG_IDB_EVENTS)
-            return;
-
-        if(get_struc(struc_id))
-        {
-            LOG_IDB_EVENT("Structure type %s %scomment is to be changed from \"%s\" to \"%s\"", get_struc_name(struc_id).c_str(), REPEATABLE_STR[repeatable], get_struc_cmt(struc_id, repeatable).c_str(), newcmt);
-            return;
-        }
-
-        const auto struc = get_member_struc(get_member_fullname(struc_id).c_str());
-        const auto func_ea = get_func_by_frame(struc->id);
-        if(func_ea != BADADDR)
-            LOG_IDB_EVENT("Stackframe of function %s member %s %scomment is to be changed from \"%s\" to \"%s\"", get_func_name(func_ea).c_str(), get_member_name(struc_id).c_str(), REPEATABLE_STR[repeatable], get_member_name(struc_id).c_str(), newcmt);
-        else
-            LOG_IDB_EVENT("Structure type %s member %s %scomment is to be changed from \"%s\" to \"%s\"", get_struc_name(struc->id).c_str(), get_member_name(struc_id).c_str(), REPEATABLE_STR[repeatable], get_member_name(struc_id).c_str(), newcmt);
+        const auto sptr = va_arg(args, struc_t*);
+        const auto mptr = va_arg(args, member_t*);
+        LOG_IDB_EVENT("struc_member_changed: %s", get_name(mptr->id).c_str());
+        UNUSED(sptr);
     }
 
     void changing_struc_cmt(Hooks& hooks, va_list args)
@@ -749,37 +704,55 @@ namespace
         const auto struc_id   = va_arg(args, tid_t);
         const auto repeatable = static_cast<bool>(va_arg(args, int));
         const auto newcmt     = va_arg(args, const char*);
-        log_changing_struc_cmt(struc_id, repeatable, newcmt);
+        const auto oldcmt     = get_struc_cmt(struc_id, repeatable);
+        LOG_IDB_EVENT("changing_struc_cmt: %s %scmt %s:%s", get_name(struc_id).c_str(), repeatable ? "repeatable "  : "", get_struc_cmt(struc_id, repeatable).c_str(), newcmt);
+        if(oldcmt == newcmt)
+            return;
+
         hooks.events_.touch_struc(struc_id);
+    }
+
+    void struc_cmt_changed(Hooks& /*hooks*/, va_list args)
+    {
+        const auto struc_id     = va_arg(args, tid_t);
+        const auto repeatable   = static_cast<bool>(va_arg(args, int));
+        LOG_IDB_EVENT("struc_cmt_changed: %s %scmt", get_name(struc_id).c_str(), repeatable ? "repeatable "  : "");
     }
 
     void segm_added(Hooks& hooks, va_list args)
     {
         const auto s = va_arg(args, segment_t*);
-        LOG_IDB_EVENT("Segment %s has been created from %" PRIxEA " to %" PRIxEA, get_segm_name(s).c_str(), s->start_ea, s->end_ea);
+        LOG_IDB_EVENT("segm_added: %s 0x%" PRIXEA "-0x%" PRIXEA, get_segm_name(s).c_str(), s->start_ea, s->end_ea);
         hooks.events_.touch_ea(s->start_ea);
-    }
-
-    void log_deleting_segm(ea_t start_ea)
-    {
-        if(!LOG_IDB_EVENTS)
-            return;
-        const auto* s = getseg(start_ea);
-        LOG_IDB_EVENT("Segment %s (from %" PRIxEA " to %" PRIxEA ") is to be deleted", get_segm_name(s).c_str(), s->start_ea, s->end_ea);
     }
 
     void deleting_segm(Hooks& hooks, va_list args)
     {
         const auto start_ea = va_arg(args, ea_t);
-        log_deleting_segm(start_ea);
+        LOG_IDB_EVENT("deleting_segm: 0x%" PRIXEA, start_ea);
         hooks.events_.touch_ea(start_ea);
+    }
+
+    void segm_deleted(Hooks& /*hooks*/, va_list args)
+    {
+        const auto start_ea = va_arg(args, ea_t);
+        const auto end_ea   = va_arg(args, ea_t);
+        LOG_IDB_EVENT("semg_deleted: start_ea 0x%" PRIXEA " end_ea 0x%" PRIXEA, start_ea, end_ea);
+    }
+
+    void changing_segm_start(Hooks& /*hooks*/, va_list args)
+    {
+        const auto s            = va_arg(args, segment_t*);
+        const auto new_start    = va_arg(args, ea_t);
+        const auto segmod_flags = va_arg(args, int);
+        LOG_IDB_EVENT("changing_segm_start: %s new_start 0x%" PRIXEA " segmod_flags 0x%x", get_segm_name(s).c_str(), new_start, segmod_flags);
     }
 
     void segm_start_changed(Hooks& hooks, va_list args)
     {
         const auto s        = va_arg(args, segment_t*);
         const auto oldstart = va_arg(args, ea_t);
-        LOG_IDB_EVENT("Segment %s start address has been changed from %" PRIxEA " to %" PRIxEA, get_segm_name(s).c_str(), oldstart, s->start_ea);
+        LOG_IDB_EVENT("segm_start_changed: %s oldstart 0x%" PRIXEA, get_segm_name(s).c_str(), oldstart);
         hooks.events_.touch_ea(s->start_ea);
     }
 
@@ -788,43 +761,52 @@ namespace
         const auto s            = va_arg(args, segment_t*);
         const auto new_end      = va_arg(args, ea_t);
         const auto segmod_flags = va_arg(args, int);
-        UNUSED(segmod_flags);
-        LOG_IDB_EVENT("Segment %s end address is to be changed from %" PRIxEA " to %" PRIxEA, get_segm_name(s).c_str(), s->end_ea, new_end);
+        LOG_IDB_EVENT("changing_segm_end: %s new_end 0x%" PRIXEA " segmod_flags 0x%x", get_segm_name(s).c_str(), new_end, segmod_flags);
         hooks.events_.touch_ea(s->start_ea);
+    }
+
+    void segm_end_changed(Hooks& /*hooks*/, va_list args)
+    {
+        const auto s        = va_arg(args, segment_t*);
+        const auto oldend   = va_arg(args, ea_t);
+        LOG_IDB_EVENT("segm_end_changed: %s oldend 0x%" PRIXEA, get_segm_name(s).c_str(), oldend);
     }
 
     void changing_segm_name(Hooks& hooks, va_list args)
     {
         const auto s       = va_arg(args, segment_t*);
         const auto oldname = va_arg(args, const char*);
-        UNUSED(s);
-        LOG_IDB_EVENT("Segment %s is being renamed", oldname);
+        LOG_IDB_EVENT("changing_segm_name: %s:%s", oldname, get_segm_name(s).c_str());
         hooks.events_.touch_ea(s->start_ea);
+    }
+
+    void segm_name_changed(Hooks& /*hooks*/, va_list args)
+    {
+        const auto s    = va_arg(args, segment_t*);
+        const auto name = va_arg(args, const char*);
+        LOG_IDB_EVENT("segm_name_changed: %s", name);
+        UNUSED(s);
     }
 
     void changing_segm_class(Hooks& hooks, va_list args)
     {
         const auto s = va_arg(args, segment_t*);
-        LOG_IDB_EVENT("Segment %s class is being changed from %s", get_segm_name(s).c_str(), get_segm_class(s).c_str());
+        LOG_IDB_EVENT("changing_segm_class: %s", get_segm_name(s).c_str());
         hooks.events_.touch_ea(s->start_ea);
+    }
+
+    void segm_class_changed(Hooks& /*hooks*/, va_list args)
+    {
+        const auto s        = va_arg(args, segment_t*);
+        const auto sclass   = va_arg(args, const char*);
+        LOG_IDB_EVENT("segm_class_changed: %s sclass %s", get_segm_name(s).c_str(), sclass);
     }
 
     void segm_attrs_updated(Hooks& hooks, va_list args)
     {
-        // This event is generated for secondary segment attributes (examples: color, permissions, etc)
         const auto s = va_arg(args, segment_t*);
-        LOG_IDB_EVENT("Segment %s attributes has been changed", get_segm_name(s).c_str());
+        LOG_IDB_EVENT("segm_attrs_updated: %s", get_segm_name(s).c_str());
         hooks.events_.touch_ea(s->start_ea);
-    }
-
-    void log_segm_moved(ea_t from, ea_t to, asize_t size, bool changed_netmap)
-    {
-        if(!LOG_IDB_EVENTS)
-            return;
-
-        const segment_t* s = getseg(to);
-        const char changed_netmap_txt[][18] = { "", " (changed netmap)" };
-        LOG_IDB_EVENT("Segment %s has been moved from %" PRIxEA "-%" PRIxEA " to %" PRIxEA "-%" PRIxEA "%s", get_segm_name(s).c_str(), from, from + size, to, to + size, changed_netmap_txt[changed_netmap]);
     }
 
     void segm_moved(Hooks& hooks, va_list args)
@@ -833,15 +815,22 @@ namespace
         const auto to             = va_arg(args, ea_t);
         const auto size           = va_arg(args, asize_t);
         const auto changed_netmap = static_cast<bool>(va_arg(args, int));
-        log_segm_moved(from, to, size, changed_netmap);
+        LOG_IDB_EVENT("segm_moved: from 0x%" PRIXEA " to 0x%" PRIXEA " size 0x%" PRIXEA " %s", from, to, size, changed_netmap ? " changed netmap" : "");
         const auto* s = getseg(to);
         hooks.events_.touch_ea(s->start_ea);
+    }
+
+    void allsegs_moved(Hooks& /*hooks*/, va_list args)
+    {
+        const auto info = va_arg(args, segm_move_infos_t*);
+        LOG_IDB_EVENT("allsegs_moved");
+        UNUSED(info);
     }
 
     void func_added(Hooks& hooks, va_list args)
     {
         const auto pfn = va_arg(args, func_t*);
-        LOG_IDB_EVENT("Function %s has been created from %" PRIxEA " to %" PRIxEA, get_func_name(pfn->start_ea).c_str(), pfn->start_ea, pfn->end_ea);
+        LOG_IDB_EVENT("func_added: %s 0x%" PRIXEA "-0x%" PRIXEA, get_func_name(pfn->start_ea).c_str(), pfn->start_ea, pfn->end_ea);
         hooks.events_.touch_func(pfn->start_ea);
     }
 
@@ -859,10 +848,10 @@ namespace
     void func_updated(Hooks& hooks, va_list args)
     {
         const auto pfn = va_arg(args, func_t*);
+        LOG_IDB_EVENT("func_updated: %s", get_func_name(pfn->start_ea).c_str());
         if(!want_func_updated_event(pfn))
             return;
 
-        LOG_IDB_EVENT("Function %s has been updated", get_func_name(pfn->start_ea).c_str());
         const auto flow = qflow_chart_t(nullptr, pfn, pfn->start_ea, pfn->end_ea, 0);
         for(const auto& b : flow.blocks)
             hooks.events_.touch_func(b.start_ea);
@@ -872,7 +861,7 @@ namespace
     {
         const auto pfn       = va_arg(args, func_t*);
         const auto new_start = va_arg(args, ea_t);
-        LOG_IDB_EVENT("Function %s chunk start address will be changed from %" PRIxEA " to %" PRIxEA, get_func_name(pfn->start_ea).c_str(), pfn->start_ea, new_start);
+        LOG_IDB_EVENT("set_func_start: %s 0x%" PRIXEA ":0x%" PRIXEA, get_func_name(pfn->start_ea).c_str(), pfn->start_ea, new_start);
         hooks.events_.touch_func(pfn->start_ea);
     }
 
@@ -880,28 +869,28 @@ namespace
     {
         const auto pfn     = va_arg(args, func_t*);
         const auto new_end = va_arg(args, ea_t);
-        LOG_IDB_EVENT("Function %s chunk end address will be changed from %" PRIxEA " to %" PRIxEA, get_func_name(pfn->start_ea).c_str(), pfn->end_ea, new_end);
+        LOG_IDB_EVENT("set_func_end: %s 0x%" PRIXEA ":0x%" PRIXEA, get_func_name(pfn->start_ea).c_str(), pfn->end_ea, new_end);
         hooks.events_.touch_func(pfn->start_ea);
     }
 
     void deleting_func(Hooks& hooks, va_list args)
     {
         const auto pfn = va_arg(args, func_t*);
-        LOG_IDB_EVENT("Function %s is about to be deleted (%" PRIxEA " to %" PRIxEA")", get_func_name(pfn->start_ea).c_str(), pfn->start_ea, pfn->end_ea);
+        LOG_IDB_EVENT("deleting_func: %s 0x%" PRIXEA "-0x%" PRIXEA, get_func_name(pfn->start_ea).c_str(), pfn->start_ea, pfn->end_ea);
         hooks.events_.touch_func(pfn->start_ea);
     }
 
     void frame_deleted(Hooks& hooks, va_list args)
     {
         const auto pfn = va_arg(args, func_t*);
-        LOG_IDB_EVENT("A function frame has been deleted");
+        LOG_IDB_EVENT("frame_deleted: %s", get_func_name(pfn->start_ea).c_str());
         hooks.events_.touch_func(pfn->start_ea);
     }
 
     void thunk_func_created(Hooks& hooks, va_list args)
     {
         const auto pfn = va_arg(args, func_t*);
-        LOG_IDB_EVENT("Function %s thunk bit has been set to %s", get_func_name(pfn->start_ea).c_str(), BOOL_STR[!!(pfn->flags & FUNC_THUNK)]);
+        LOG_IDB_EVENT("thunk_func_created: %s thunk bit %s", get_func_name(pfn->start_ea).c_str(), (pfn->flags & FUNC_THUNK) ? "on" : "off");
         hooks.events_.touch_func(pfn->start_ea);
     }
 
@@ -909,7 +898,7 @@ namespace
     {
         const auto pfn  = va_arg(args, func_t*);
         const auto tail = va_arg(args, func_t*);
-        LOG_IDB_EVENT("Function %s tail chunk from %" PRIxEA " to %" PRIxEA " has been appended", get_func_name(pfn->start_ea).c_str(), tail->start_ea, tail->end_ea);
+        LOG_IDB_EVENT("func_tail_appended: %s 0x%" PRIXEA "-0x%" PRIXEA, get_func_name(pfn->start_ea).c_str(), tail->start_ea, tail->end_ea);
         hooks.events_.touch_func(pfn->start_ea);
     }
 
@@ -917,8 +906,15 @@ namespace
     {
         const auto pfn  = va_arg(args, func_t*);
         const auto tail = va_arg(args, const range_t*);
-        LOG_IDB_EVENT("Function %s tail chunk from %" PRIxEA " to %" PRIxEA " is to be removed", get_func_name(pfn->start_ea).c_str(), tail->start_ea, tail->end_ea);
+        LOG_IDB_EVENT("deleting_func_tail: %s 0x%" PRIXEA "-0x%" PRIXEA, get_func_name(pfn->start_ea).c_str(), tail->start_ea, tail->end_ea);
         hooks.events_.touch_func(pfn->start_ea);
+    }
+
+    void func_tail_deleted(Hooks& /*hooks*/, va_list args)
+    {
+        const auto pfn      = va_arg(args, func_t*);
+        const auto tail_ea  = va_arg(args, ea_t);
+        LOG_IDB_EVENT("func_tail_deleted: %s tail_ea 0x%" PRIXEA, get_func_name(pfn->start_ea).c_str(), tail_ea);
     }
 
     void tail_owner_changed(Hooks& hooks, va_list args)
@@ -926,7 +922,7 @@ namespace
         const auto pfn        = va_arg(args, func_t*);
         const auto owner_func = va_arg(args, ea_t);
         const auto old_owner  = va_arg(args, ea_t);
-        LOG_IDB_EVENT("Tail chunk from %" PRIxEA " to %" PRIxEA " owner function changed from %s to %s", pfn->start_ea, pfn->end_ea, get_func_name(old_owner).c_str(), get_func_name(owner_func).c_str());
+        LOG_IDB_EVENT("tail_owner_changed: %s 0x%" PRIXEA ":0x%" PRIXEA, get_func_name(pfn->start_ea).c_str(), old_owner, owner_func);
         hooks.events_.touch_func(owner_func);
         hooks.events_.touch_func(old_owner);
     }
@@ -934,21 +930,52 @@ namespace
     void func_noret_changed(Hooks& hooks, va_list args)
     {
         const auto pfn = va_arg(args, func_t*);
-        LOG_IDB_EVENT("Function %s FUNC_NORET flag has been changed to %s", get_func_name(pfn->start_ea).c_str(), BOOL_STR[!!(pfn->flags & FUNC_NORET)]);
+        LOG_IDB_EVENT("func_noret_changed: %s noret %s", get_func_name(pfn->start_ea).c_str(), (pfn->flags & FUNC_NORET) ? "on" : "off");
         hooks.events_.touch_func(pfn->start_ea);
     }
 
     void stkpnts_changed(Hooks& hooks, va_list args)
     {
         const auto pfn = va_arg(args, func_t*);
-        LOG_IDB_EVENT("Function %s stack change points have been modified", get_func_name(pfn->start_ea).c_str());
+        LOG_IDB_EVENT("stkpnts_changed: %s", get_func_name(pfn->start_ea).c_str());
         hooks.events_.touch_func(pfn->start_ea);
+    }
+
+    void updating_tryblks(Hooks& /*hooks*/, va_list args)
+    {
+        const auto tbv = va_arg(args, const tryblks_t*);
+        LOG_IDB_EVENT("updating_tryblks");
+        UNUSED(tbv);
+    }
+
+    void tryblks_updated(Hooks& /*hooks*/, va_list args)
+    {
+        const auto tbv = va_arg(args, const tryblks_t*);
+        LOG_IDB_EVENT("tryblks_updated");
+        UNUSED(tbv);
+    }
+
+    void deleting_tryblks(Hooks& /*hooks*/, va_list args)
+    {
+        const auto range = va_arg(args, const range_t*);
+        LOG_IDB_EVENT("deleting_tryblks: 0x%" PRIXEA "-0x%" PRIXEA, range->start_ea, range->end_ea);
+    }
+
+    void sgr_changed(Hooks& /*hooks*/, va_list args)
+    {
+        const auto start_ea     = va_arg(args, ea_t);
+        const auto end_ea       = va_arg(args, ea_t);
+        const auto regnum       = va_arg(args, int);
+        const auto value        = va_arg(args, sel_t);
+        const auto old_value    = va_arg(args, sel_t);
+        const auto tag          = va_arg(args, uchar);
+        LOG_IDB_EVENT("sgr_changed: 0x%" PRIXEA "-0x%" PRIXEA " regnum %d value 0x%" PRIXEA ":0x%" PRIXEA " tag 0x%x", start_ea, end_ea, regnum, old_value, value, tag);
     }
 
     void make_code(Hooks& hooks, va_list args)
     {
         const auto insn = va_arg(args, const insn_t*);
-        LOG_IDB_EVENT("An instruction is being created at %" PRIxEA, insn->ea);
+        LOG_IDB_EVENT("make_code: 0x%" PRIXEA, insn->ea);
         hooks.events_.touch_code(insn->ea);
     }
 
@@ -958,34 +985,29 @@ namespace
         const auto flags = va_arg(args, flags_t);
         const auto tid   = va_arg(args, tid_t);
         const auto len   = va_arg(args, asize_t);
-        UNUSED(flags);
-        UNUSED(tid);
-        UNUSED(len);
-        LOG_IDB_EVENT("A data item is being created at %" PRIxEA, ea);
+        LOG_IDB_EVENT("make_data: 0x%" PRIXEA " flags 0x%x size 0x%" PRIXEA, ea, flags, len);
         hooks.events_.touch_data(ea);
     }
 
     void destroyed_items(Hooks& /*hooks*/, va_list args)
     {
-        const auto ea1 = va_arg(args, ea_t);
-        const auto ea2 = va_arg(args, ea_t);
-        const auto will_disable_range = static_cast<bool>(va_arg(args, int));
-        UNUSED(will_disable_range);
-        LOG_IDB_EVENT("Instructions/data have been destroyed in %" PRIxEA "-%" PRIxEA, ea1, ea2);
+        const auto ea1                  = va_arg(args, ea_t);
+        const auto ea2                  = va_arg(args, ea_t);
+        const auto will_disable_range   = static_cast<bool>(va_arg(args, int));
+        LOG_IDB_EVENT("destroyed_items: 0x%" PRIXEA "-0x%" PRIXEA "%s", ea1, ea2, will_disable_range ? " [will disable range]" : "");
     }
 
     void renamed(Hooks& hooks, va_list args)
     {
-        const auto ea         = va_arg(args, ea_t);
-        const auto new_name   = va_arg(args, const char*);
-        const auto local_name = static_cast<bool>(va_arg(args, int));
-        UNUSED(local_name);
-        const auto flags = get_flags(ea);
-        const auto wanted = has_any_name(flags) || has_xref(flags);
+        const auto ea           = va_arg(args, ea_t);
+        const auto new_name     = va_arg(args, const char*);
+        const auto local_name   = static_cast<bool>(va_arg(args, int));
+        LOG_IDB_EVENT("renamed: %s: %s%s", get_name(ea).c_str(), new_name, local_name ? " [local name]" : "");
+        const auto flags        = get_flags(ea);
+        const auto wanted       = has_any_name(flags) || has_xref(flags);
         if(!wanted)
             return;
 
-        LOG_IDB_EVENT("Byte at %" PRIxEA " renamed to %s", ea, new_name);
         hooks.events_.touch_ea(ea);
     }
 
@@ -993,22 +1015,28 @@ namespace
     {
         const auto ea        = va_arg(args, ea_t);
         const auto old_value = va_arg(args, uint32);
-        LOG_IDB_EVENT("Byte at %" PRIxEA " has been changed from 0x%02X to 0x%02X", ea, old_value, get_byte(ea));
+        LOG_IDB_EVENT("byte_patched: 0x%" PRIXEA " 0x%02X:0x%02X", ea, old_value, get_byte(ea));
         hooks.events_.touch_ea(ea);
     }
 
     void changing_cmt(Hooks& hooks, va_list args)
     {
         const auto ea           = va_arg(args, ea_t);
-        const auto repeatable   = static_cast<bool>(va_arg(args, int));
+        const auto repeatable   = !!va_arg(args, int);
         const auto newcmt       = va_arg(args, const char*);
-
-        const auto cmt = get_cmt(ea, repeatable);
-        if(make_string_ref(newcmt) == ya::to_string_ref(cmt))
+        const auto cmt          = get_cmt(ea, repeatable);
+        LOG_IDB_EVENT("changing_cmt: %s %scmt %s:%s", get_name(ea).c_str(), repeatable ? "repeatable " : "", cmt.c_str(), newcmt);
+        if(cmt == newcmt)
             return;
-
-        LOG_IDB_EVENT("Item at %" PRIxEA " %scomment is to be changed from \"%s\" to \"%s\"", ea, REPEATABLE_STR[repeatable], cmt.c_str(), newcmt);
+        
         hooks.events_.touch_ea(ea);
+    }
+
+    void cmt_changed(Hooks& /*hooks*/, va_list args)
+    {
+        const auto ea           = va_arg(args, ea_t);
+        const auto repeatable   = !!va_arg(args, int);
+        LOG_IDB_EVENT("cmt_changed: %s %scmt", get_name(ea).c_str(), repeatable ? "repeatable " : "");
     }
 
     void changing_range_cmt(Hooks& hooks, va_list args)
@@ -1016,9 +1044,18 @@ namespace
         const auto kind       = static_cast<range_kind_t>(va_arg(args, int));
         const auto a          = va_arg(args, const range_t*);
         const auto cmt        = va_arg(args, const char*);
-        const auto repeatable = static_cast<bool>(va_arg(args, int));
-        LOG_IDB_EVENT("%s range from %" PRIxEA " to %" PRIxEA " %scomment is to be changed to \"%s\"", range_kind_to_str(kind), a->start_ea, a->end_ea, REPEATABLE_STR[repeatable], cmt);
+        const auto repeatable = !!va_arg(args, int);
+        LOG_IDB_EVENT("changing_range_cmt: %s 0x%" PRIXEA "-0x%" PRIXEA " %scmt: %s", range_kind_to_str(kind), a->start_ea, a->end_ea, repeatable ? "repeatable " : "", cmt);
         hooks.events_.touch_ea(a->start_ea);
+    }
+
+    void range_cmt_changed(Hooks& /*hooks*/, va_list args)
+    {
+        const auto kind         = static_cast<range_kind_t>(va_arg(args, int));
+        const auto a            = va_arg(args, const range_t*);
+        const auto cmt          = va_arg(args, const char*);
+        const auto repeatable   = !!va_arg(args, int);
+        LOG_IDB_EVENT("range_cmt_changed: %s 0x%" PRIXEA "-0x%" PRIXEA " %scmt: %s", range_kind_to_str(kind), a->start_ea, a->end_ea, repeatable ? "repeatable " : "", cmt);
     }
 
     void extra_cmt_changed(Hooks& hooks, va_list args)
@@ -1026,8 +1063,7 @@ namespace
         const auto ea       = va_arg(args, ea_t);
         const auto line_idx = va_arg(args, int);
         const auto cmt      = va_arg(args, const char*);
-        UNUSED(line_idx);
-        LOG_IDB_EVENT("Extra comment at %" PRIxEA " has been changed to \"%s\"", ea, cmt);
+        LOG_IDB_EVENT("extra_cmt_changed: %s cmt[%d]: %s", get_name(ea).c_str(), line_idx, cmt ? cmt : "");
         hooks.events_.touch_ea(ea);
     }
 
@@ -1065,102 +1101,98 @@ namespace
 
         hooks->events_.touch();
         idb_event::event_code_t event = static_cast<idb_event::event_code_t>(notification_code);
-        LOG(DEBUG, "event: %s\n", idb_event_to_txt(event));
         switch (event)
         {
-            case idb_event::event_code_t::byte_patched:            byte_patched(*hooks, args); break;
-            case idb_event::event_code_t::changing_cmt:            changing_cmt(*hooks, args); break;
-            case idb_event::event_code_t::changing_enum_bf:        changing_enum_bf(*hooks, args); break;
-            case idb_event::event_code_t::changing_enum_cmt:       changing_enum_cmt(*hooks, args); break;
-            case idb_event::event_code_t::changing_op_ti:          changing_op_ti(*hooks, args); break;
-            case idb_event::event_code_t::changing_range_cmt:      changing_range_cmt(*hooks, args); break;
-            case idb_event::event_code_t::changing_segm_class:     changing_segm_class(*hooks, args); break;
-            case idb_event::event_code_t::changing_segm_end:       changing_segm_end(*hooks, args); break;
-            case idb_event::event_code_t::changing_segm_name:      changing_segm_name(*hooks, args); break;
-            case idb_event::event_code_t::changing_struc_align:    changing_struc_align(*hooks, args); break;
-            case idb_event::event_code_t::changing_struc_cmt:      changing_struc_cmt(*hooks, args); break;
-            case idb_event::event_code_t::changing_struc_member:   changing_struc_member(*hooks, args); break;
-            case idb_event::event_code_t::changing_ti:             changing_ti(*hooks, args); break;
-            case idb_event::event_code_t::deleting_enum:           deleting_enum(*hooks, args); break;
-            case idb_event::event_code_t::deleting_enum_member:    deleting_enum_member(*hooks, args); break;
-            case idb_event::event_code_t::deleting_func:           deleting_func(*hooks, args); break;
-            case idb_event::event_code_t::deleting_func_tail:      deleting_func_tail(*hooks, args); break;
-            case idb_event::event_code_t::deleting_segm:           deleting_segm(*hooks, args); break;
-            case idb_event::event_code_t::deleting_struc:          deleting_struc(*hooks, args); break;
-            case idb_event::event_code_t::deleting_struc_member:   deleting_struc_member(*hooks, args); break;
-            case idb_event::event_code_t::destroyed_items:         destroyed_items(*hooks, args); break;
-            case idb_event::event_code_t::enum_created:            enum_created(*hooks, args); break;
-            case idb_event::event_code_t::enum_member_created:     enum_member_created(*hooks, args); break;
-            case idb_event::event_code_t::enum_renamed:            enum_renamed(*hooks, args); break;
-            case idb_event::event_code_t::expanding_struc:         expanding_struc(*hooks, args); break;
-            case idb_event::event_code_t::extra_cmt_changed:       extra_cmt_changed(*hooks, args); break;
-            case idb_event::event_code_t::frame_deleted:           frame_deleted(*hooks, args); break;
-            case idb_event::event_code_t::func_added:              func_added(*hooks, args); break;
-            case idb_event::event_code_t::func_noret_changed:      func_noret_changed(*hooks, args); break;
-            case idb_event::event_code_t::func_tail_appended:      func_tail_appended(*hooks, args); break;
-            case idb_event::event_code_t::func_updated:            func_updated(*hooks, args); break;
-            case idb_event::event_code_t::make_code:               make_code(*hooks, args); break;
-            case idb_event::event_code_t::make_data:               make_data(*hooks, args); break;
-            case idb_event::event_code_t::op_type_changed:         op_type_changed(*hooks, args); break;
-            case idb_event::event_code_t::renamed:                 renamed(*hooks, args); break;
-            case idb_event::event_code_t::renaming_enum:           renaming_enum(*hooks, args); break;
-            case idb_event::event_code_t::renaming_struc:          renaming_struc(*hooks, args); break;
-            case idb_event::event_code_t::renaming_struc_member:   renaming_struc_member(*hooks, args); break;
-            case idb_event::event_code_t::savebase:                savebase(*hooks, args); break;
-            case idb_event::event_code_t::segm_added:              segm_added(*hooks, args); break;
-            case idb_event::event_code_t::segm_attrs_updated:      segm_attrs_updated(*hooks, args); break;
-            case idb_event::event_code_t::segm_moved:              segm_moved(*hooks, args); break;
-            case idb_event::event_code_t::segm_start_changed:      segm_start_changed(*hooks, args); break;
-            case idb_event::event_code_t::set_func_end:            set_func_end(*hooks, args); break;
-            case idb_event::event_code_t::set_func_start:          set_func_start(*hooks, args); break;
-            case idb_event::event_code_t::stkpnts_changed:         stkpnts_changed(*hooks, args); break;
-            case idb_event::event_code_t::struc_created:           struc_created(*hooks, args); break;
-            case idb_event::event_code_t::struc_member_created:    struc_member_created(*hooks, args); break;
-            case idb_event::event_code_t::struc_renamed:           struc_renamed(*hooks, args); break;
-            case idb_event::event_code_t::tail_owner_changed:      tail_owner_changed(*hooks, args); break;
-            case idb_event::event_code_t::thunk_func_created:      thunk_func_created(*hooks, args); break;
-
-            // discard all those events
-            case idb_event::event_code_t::allsegs_moved:        // unused
-            case idb_event::event_code_t::auto_empty:           // unused
-            case idb_event::event_code_t::auto_empty_finally:   // unused
-            case idb_event::event_code_t::changing_op_type:     // see op_type_changed (catch more events)
-            case idb_event::event_code_t::changing_segm_start:  // unused
-            case idb_event::event_code_t::closebase:            // unused
-            case idb_event::event_code_t::cmt_changed:          // see changing_cmt
-            case idb_event::event_code_t::compiler_changed:     // unused
-            case idb_event::event_code_t::deleting_tryblks:     // unused
-            case idb_event::event_code_t::determined_main:      // unused
-            case idb_event::event_code_t::enum_bf_changed:      // see changing_enum_bf
-            case idb_event::event_code_t::enum_cmt_changed:     // see changing_enum_cmt
-            case idb_event::event_code_t::enum_deleted:         // see deleting_enum
-            case idb_event::event_code_t::enum_member_deleted:  // see deleting_enum_member
-            case idb_event::event_code_t::extlang_changed:      // unused
-            case idb_event::event_code_t::flow_chart_created:   // unused
-            case idb_event::event_code_t::func_tail_deleted:    // see deleting_func_tail
-            case idb_event::event_code_t::idasgn_loaded:        // unused
-            case idb_event::event_code_t::kernel_config_loaded: // unused
-            case idb_event::event_code_t::loader_finished:      // unused
-            case idb_event::event_code_t::local_types_changed:  // unused
-            case idb_event::event_code_t::op_ti_changed:        // see changing_op_ti
-            case idb_event::event_code_t::range_cmt_changed:    // see changing_range_cmt
-            case idb_event::event_code_t::segm_class_changed:   // see changing_segm_class
-            case idb_event::event_code_t::segm_deleted:         // see deleting_segm
-            case idb_event::event_code_t::segm_end_changed:     // see changing_segm_end
-            case idb_event::event_code_t::segm_name_changed:    // see changing_segm_name
-            case idb_event::event_code_t::sgr_changed:          // unused
-            case idb_event::event_code_t::struc_align_changed:  // see changing_struc_align
-            case idb_event::event_code_t::struc_cmt_changed:    // see changing_struc_cmt
-            case idb_event::event_code_t::struc_deleted:        // see deleting_struc
-            case idb_event::event_code_t::struc_expanded:       // see expanding_struc
-            case idb_event::event_code_t::struc_member_changed: // see changing_struc_member
-            case idb_event::event_code_t::struc_member_deleted: // see deleting_struc_member
-            case idb_event::event_code_t::struc_member_renamed: // see renaming_struc_member
-            case idb_event::event_code_t::ti_changed:           // see changing_ti
-            case idb_event::event_code_t::tryblks_updated:      // unused
-            case idb_event::event_code_t::updating_tryblks:     // unused
-            case idb_event::event_code_t::upgraded:             // unused
-                break;
+            case idb_event::event_code_t::closebase:                closebase(*hooks, args); break;
+            case idb_event::event_code_t::savebase:                 savebase(*hooks, args); break;
+            case idb_event::event_code_t::upgraded:                 upgraded(*hooks, args); break;
+            case idb_event::event_code_t::auto_empty:               auto_empty(*hooks, args); break;
+            case idb_event::event_code_t::auto_empty_finally:       auto_empty_finally(*hooks, args); break;
+            case idb_event::event_code_t::determined_main:          determined_main(*hooks, args); break;
+            case idb_event::event_code_t::local_types_changed:      local_types_changed(*hooks, args); break;
+            case idb_event::event_code_t::extlang_changed:          extlang_changed(*hooks, args); break;
+            case idb_event::event_code_t::idasgn_loaded:            idasgn_loaded(*hooks, args); break;
+            case idb_event::event_code_t::kernel_config_loaded:     kernel_config_loaded(*hooks, args); break;
+            case idb_event::event_code_t::loader_finished:          loader_finished(*hooks, args); break;
+            case idb_event::event_code_t::flow_chart_created:       flow_chart_created(*hooks, args); break;
+            case idb_event::event_code_t::compiler_changed:         compiler_changed(*hooks, args); break;
+            case idb_event::event_code_t::changing_ti:              changing_ti(*hooks, args); break;
+            case idb_event::event_code_t::ti_changed:               ti_changed(*hooks, args); break;
+            case idb_event::event_code_t::changing_op_ti:           changing_op_ti(*hooks, args); break;
+            case idb_event::event_code_t::op_ti_changed:            op_ti_changed(*hooks, args); break;
+            case idb_event::event_code_t::changing_op_type:         changing_op_type(*hooks, args); break;
+            case idb_event::event_code_t::op_type_changed:          op_type_changed(*hooks, args); break;
+            case idb_event::event_code_t::enum_created:             enum_created(*hooks, args); break;
+            case idb_event::event_code_t::deleting_enum:            deleting_enum(*hooks, args); break;
+            case idb_event::event_code_t::enum_deleted:             enum_deleted(*hooks, args); break;
+            case idb_event::event_code_t::renaming_enum:            renaming_enum(*hooks, args); break;
+            case idb_event::event_code_t::enum_renamed:             enum_renamed(*hooks, args); break;
+            case idb_event::event_code_t::changing_enum_bf:         changing_enum_bf(*hooks, args); break;
+            case idb_event::event_code_t::enum_bf_changed:          enum_bf_changed(*hooks, args); break;
+            case idb_event::event_code_t::changing_enum_cmt:        changing_enum_cmt(*hooks, args); break;
+            case idb_event::event_code_t::enum_cmt_changed:         enum_cmt_changed(*hooks, args); break;
+            case idb_event::event_code_t::enum_member_created:      enum_member_created(*hooks, args); break;
+            case idb_event::event_code_t::deleting_enum_member:     deleting_enum_member(*hooks, args); break;
+            case idb_event::event_code_t::enum_member_deleted:      enum_member_deleted(*hooks, args); break;
+            case idb_event::event_code_t::struc_created:            struc_created(*hooks, args); break;
+            case idb_event::event_code_t::deleting_struc:           deleting_struc(*hooks, args); break;
+            case idb_event::event_code_t::struc_deleted:            struc_deleted(*hooks, args); break;
+            case idb_event::event_code_t::changing_struc_align:     changing_struc_align(*hooks, args); break;
+            case idb_event::event_code_t::struc_align_changed:      struc_align_changed(*hooks, args); break;
+            case idb_event::event_code_t::renaming_struc:           renaming_struc(*hooks, args); break;
+            case idb_event::event_code_t::struc_renamed:            struc_renamed(*hooks, args); break;
+            case idb_event::event_code_t::expanding_struc:          expanding_struc(*hooks, args); break;
+            case idb_event::event_code_t::struc_expanded:           struc_expanded(*hooks, args); break;
+            case idb_event::event_code_t::struc_member_created:     struc_member_created(*hooks, args); break;
+            case idb_event::event_code_t::deleting_struc_member:    deleting_struc_member(*hooks, args); break;
+            case idb_event::event_code_t::struc_member_deleted:     struc_member_deleted(*hooks, args); break;
+            case idb_event::event_code_t::renaming_struc_member:    renaming_struc_member(*hooks, args); break;
+            case idb_event::event_code_t::struc_member_renamed:     struc_member_renamed(*hooks, args); break;
+            case idb_event::event_code_t::changing_struc_member:    changing_struc_member(*hooks, args); break;
+            case idb_event::event_code_t::struc_member_changed:     struc_member_changed(*hooks, args); break;
+            case idb_event::event_code_t::changing_struc_cmt:       changing_struc_cmt(*hooks, args); break;
+            case idb_event::event_code_t::struc_cmt_changed:        struc_cmt_changed(*hooks, args); break;
+            case idb_event::event_code_t::segm_added:               segm_added(*hooks, args); break;
+            case idb_event::event_code_t::deleting_segm:            deleting_segm(*hooks, args); break;
+            case idb_event::event_code_t::segm_deleted:             segm_deleted(*hooks, args); break;
+            case idb_event::event_code_t::changing_segm_start:      changing_segm_start(*hooks, args); break;
+            case idb_event::event_code_t::segm_start_changed:       segm_start_changed(*hooks, args); break;
+            case idb_event::event_code_t::changing_segm_end:        changing_segm_end(*hooks, args); break;
+            case idb_event::event_code_t::segm_end_changed:         segm_end_changed(*hooks, args); break;
+            case idb_event::event_code_t::changing_segm_name:       changing_segm_name(*hooks, args); break;
+            case idb_event::event_code_t::segm_name_changed:        segm_name_changed(*hooks, args); break;
+            case idb_event::event_code_t::changing_segm_class:      changing_segm_class(*hooks, args); break;
+            case idb_event::event_code_t::segm_class_changed:       segm_class_changed(*hooks, args); break;
+            case idb_event::event_code_t::segm_attrs_updated:       segm_attrs_updated(*hooks, args); break;
+            case idb_event::event_code_t::segm_moved:               segm_moved(*hooks, args); break;
+            case idb_event::event_code_t::allsegs_moved:            allsegs_moved(*hooks, args); break;
+            case idb_event::event_code_t::func_added:               func_added(*hooks, args); break;
+            case idb_event::event_code_t::func_updated:             func_updated(*hooks, args); break;
+            case idb_event::event_code_t::set_func_start:           set_func_start(*hooks, args); break;
+            case idb_event::event_code_t::set_func_end:             set_func_end(*hooks, args); break;
+            case idb_event::event_code_t::deleting_func:            deleting_func(*hooks, args); break;
+            case idb_event::event_code_t::frame_deleted:            frame_deleted(*hooks, args); break;
+            case idb_event::event_code_t::thunk_func_created:       thunk_func_created(*hooks, args); break;
+            case idb_event::event_code_t::func_tail_appended:       func_tail_appended(*hooks, args); break;
+            case idb_event::event_code_t::deleting_func_tail:       deleting_func_tail(*hooks, args); break;
+            case idb_event::event_code_t::func_tail_deleted:        func_tail_deleted(*hooks, args); break;
+            case idb_event::event_code_t::tail_owner_changed:       tail_owner_changed(*hooks, args); break;
+            case idb_event::event_code_t::func_noret_changed:       func_noret_changed(*hooks, args); break;
+            case idb_event::event_code_t::stkpnts_changed:          stkpnts_changed(*hooks, args); break;
+            case idb_event::event_code_t::updating_tryblks:         updating_tryblks(*hooks, args); break;
+            case idb_event::event_code_t::tryblks_updated:          tryblks_updated(*hooks, args); break;
+            case idb_event::event_code_t::deleting_tryblks:         deleting_tryblks(*hooks, args); break;
+            case idb_event::event_code_t::sgr_changed:              sgr_changed(*hooks, args); break;
+            case idb_event::event_code_t::make_code:                make_code(*hooks, args); break;
+            case idb_event::event_code_t::make_data:                make_data(*hooks, args); break;
+            case idb_event::event_code_t::destroyed_items:          destroyed_items(*hooks, args); break;
+            case idb_event::event_code_t::renamed:                  renamed(*hooks, args); break;
+            case idb_event::event_code_t::byte_patched:             byte_patched(*hooks, args); break;
+            case idb_event::event_code_t::changing_cmt:             changing_cmt(*hooks, args); break;
+            case idb_event::event_code_t::cmt_changed:              cmt_changed(*hooks, args); break;
+            case idb_event::event_code_t::changing_range_cmt:       changing_range_cmt(*hooks, args); break;
+            case idb_event::event_code_t::range_cmt_changed:        range_cmt_changed(*hooks, args); break;
+            case idb_event::event_code_t::extra_cmt_changed:        extra_cmt_changed(*hooks, args); break;
         }
         return 0;
     }
