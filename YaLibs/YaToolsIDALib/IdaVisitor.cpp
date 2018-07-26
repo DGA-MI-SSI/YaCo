@@ -49,7 +49,7 @@ using namespace nonstd;
 using namespace std::experimental;
 #endif
 
-#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("ida_exporter", (FMT), ## __VA_ARGS__)
+#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("import", (FMT), ## __VA_ARGS__)
 
 namespace
 {
@@ -1005,7 +1005,7 @@ namespace
     {
         const auto ok = try_make_valueview(ea, operand, view);
         if(!ok)
-            LOG(ERROR, "make_valueview: 0x%" PRIxEA " unable to make value view\n", ea);
+            LOG(ERROR, "make_valueview: 0x%" PRIxEA " unable to make %s value view\n", ea, view.data());
     }
 
     void make_registerview(ea_t ea, offset_t offset, const std::string& name, offset_t end, const std::string& newname)
@@ -1614,13 +1614,13 @@ namespace
         const auto frame = get_or_add_frame(ea, version);
         if(!frame)
         {
-            LOG(ERROR, "make_stackframe: 0x%" PRIxEA " unable to create function\n", ea);
+            LOG(ERROR, "make_frame: 0x%" PRIxEA " unable to create function\n", ea);
             return;
         }
 
         const auto id = version.id();
         set_tid(visitor, id, frame->id, version.size(), OBJECT_TYPE_STACKFRAME);
-        clear_struct_fields(visitor, "stackframe_fields", version, frame->id);
+        clear_struct_fields(visitor, "frame", version, frame->id);
     }
 
     optional<YaToolObjectId> get_xref_at(const HVersion& version, offset_t offset, operand_t operand)
@@ -1713,8 +1713,11 @@ namespace
 
         const auto sname = visitor.qpool_.acquire();
         ya::wrap(&get_struc_name, *sname, parent.tid);
-        const auto qbuf = visitor.qpool_.acquire();
         const auto func = get_func(get_func_by_frame(struc->id));
+        if(func)
+            ya::wrap(&get_func_name, *sname, func->start_ea);
+
+        const auto qbuf = visitor.qpool_.acquire();
         for(auto it = get_struc_last_offset(struc); struc->is_union() && it != BADADDR && it < ea; ++it)
         {
             const auto offset = it + 1;
@@ -1863,7 +1866,7 @@ namespace
 
             case OBJECT_TYPE_STACKFRAME_MEMBER:
                 if(visitor.use_stack_)
-                    make_struct_member(visitor, "stackframe_member", version, ea);
+                    make_struct_member(visitor, "frame_member", version, ea);
                 break;
 
             case OBJECT_TYPE_ENUM:
