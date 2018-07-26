@@ -451,11 +451,11 @@ void VectorSignAlgo::SetFunctionFields(const HVersion& fctVersion, FunctionSigna
                 else
                     bHasBBOneBBSon = true;
             }
-            return WALK_STOP;
+            return WALK_CONTINUE;
         }); // End of BB son  xRef
         if (bDoBBRet)
             function_data.cfg.ret_nb++;
-        return WALK_STOP;
+        return WALK_CONTINUE;
      }); // End crfunction xRefs loop
 
     // Calculate size_disp
