@@ -157,10 +157,11 @@ namespace
         
         const auto cc = tif.get_cc();
         add_suffix(dst, get_calling_convention(cc));
+        add_suffix(dst, name.size ? name : default_function_name);
 
+        // append return type usercall *after* function name
         char buffer[256];
         append_location(dst, cc, buffer, sizeof buffer, fi.retloc);
-        add_suffix(dst, name.size ? name : default_function_name);
 
         size_t i = 0;
         std::string argname;

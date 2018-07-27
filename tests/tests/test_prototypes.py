@@ -130,7 +130,7 @@ with open(read, "wb") as fr:
         a.run(
             self.script("""
 ea = 0x40197E
-idc.SetType(ea, "void __usercall WinMain(HINSTANCE hInstance@<eax>, HINSTANCE hPrevInstance@<ebx>, LPSTR lpCmdLine@<edx>, int nShowCmd@<ecx>);")
+idc.SetType(ea, "int __usercall WinMain@<eax>(HINSTANCE hInstance@<eax>, HINSTANCE hPrevInstance@<ebx>, LPSTR lpCmdLine@<edx>, int nShowCmd@<ecx>);")
 """),
             self.save_last_ea(),
         )
