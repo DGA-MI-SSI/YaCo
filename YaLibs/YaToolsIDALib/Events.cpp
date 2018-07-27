@@ -283,8 +283,27 @@ namespace
             add_ea(ev, hash::hash_ea(ea), func ? OBJECT_TYPE_BASIC_BLOCK : OBJECT_TYPE_CODE, ea);
             return;
         }
+        const auto seg = getseg(ea);
+        if(seg)
+            return add_ea(ev, hash::hash_ea(ea), OBJECT_TYPE_DATA, ea);
 
-        add_ea(ev, hash::hash_ea(ea), OBJECT_TYPE_DATA, ea);
+        auto struc = get_struc(ea);
+        if(struc)
+            return ev.touch_struc(struc->id);
+
+        const auto member = get_member_by_id(ea, &struc);
+        if(member)
+            return ev.touch_struc(struc->id);
+
+        const auto idx = get_enum_idx(ea);
+        if(idx != BADADDR)
+            return ev.touch_enum(ea);
+
+        const auto eid = get_enum_member_enum(ea);
+        if(eid != BADADDR)
+            return ev.touch_enum(eid);
+
+        LOG(ERROR, "add_ea: invalid ea 0x%" PRIxEA, ea);
     }
 
     void update_struc_member(Events& ev, struc_t* struc, const qstring& name, member_t* m)
