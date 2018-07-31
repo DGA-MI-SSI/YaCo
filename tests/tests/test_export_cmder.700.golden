@@ -1,4 +1,4 @@
-objects: 9358
+objects: 10435
 
 bin: 1
 bin_400000 Cmder.exe
@@ -2689,7 +2689,7 @@ cod_410bdd __rtchsifneg
 cod_410c05 __load_CW
 cod_412346 __alloca_probe_8
 
-dat: 1256
+dat: 2333
 dat_402321 $LN33
 dat_4032d4 jpt_403295
 dat_403380 jpt_403378
@@ -2786,28 +2786,52 @@ dat_413154 MessageBoxW int __stdcall sub(HWND hWnd, LPCWSTR lpText, LPCWSTR lpCa
 dat_413158 SendMessageTimeoutW LRESULT __stdcall sub(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam, UINT fuFlags, UINT uTimeout, PDWORD_PTR lpdwResult)
 dat_413160 ___guard_check_icall_fptr
 dat_413164 unk_413164
+dat_413168
 dat_41316c unk_41316C
 dat_413170 unk_413170
+dat_413174
+dat_413178
+dat_41317c
+dat_413180
+dat_413184
 dat_413188 unk_413188
 dat_41318c unk_41318C
+dat_413190
+dat_413194
+dat_413198
 dat_41319c unk_41319C
 dat_4131a0 unk_4131A0
 dat_4131a4 unk_4131A4
+dat_4131b0
 dat_4131b4 ??_7exception@std@@6B@
+dat_4131b8
 dat_4131bc aUnknownExcepti
+dat_4131d0
 dat_4131d4 ??_7bad_alloc@std@@6B@
+dat_4131d8
 dat_4131dc aBadAllocation
+dat_4131ec
 dat_4131f0 ??_7logic_error@std@@6B@
+dat_4131f4
+dat_4131f8
 dat_4131fc ??_7length_error@std@@6B@
+dat_413200
+dat_413204
 dat_413208 ??_7type_info@@6B@
 dat_41320c ExceptionInfo struct _EXCEPTION_POINTERS
+dat_413214
 dat_413218 ??_7bad_array_new_length@std@@6B@
+dat_41321c
 dat_413220 aBadArrayNewLen
 dat_413238 off_413238
 dat_41323c unk_41323C
+dat_41325c
 dat_413260 ??_7bad_exception@std@@6B@
+dat_413264
 dat_413268 aBadException
 dat_413278 lpLibFileName LPCWSTR
+dat_41327c
+dat_413280
 dat_413284 aApiMsWinCoreFi
 dat_4132c0 aApiMsWinCoreSy
 dat_4132fc aKernel32
@@ -2823,6 +2847,107 @@ dat_413368 unk_413368
 dat_413370 aFlssetvalue
 dat_41337c unk_41337C
 dat_413384 aInitializecrit
+dat_4133a0
+dat_4133a4
+dat_4133a8
+dat_4133ac
+dat_4133b0
+dat_4133b4
+dat_4133b8
+dat_4133bc
+dat_4133c0
+dat_4133c4
+dat_4133c8
+dat_4133cc
+dat_4133d0
+dat_4133d4
+dat_4133d8
+dat_4133dc
+dat_4133e0
+dat_4133e4
+dat_4133e8
+dat_4133ec
+dat_4133f0
+dat_4133f4
+dat_4133f8
+dat_4133fc
+dat_413400
+dat_413404
+dat_413408
+dat_41340c
+dat_413410
+dat_413414
+dat_413418
+dat_41341c
+dat_413420
+dat_413424
+dat_413428
+dat_41342c
+dat_413430
+dat_413434
+dat_413438
+dat_41343c
+dat_413440
+dat_413444
+dat_413448
+dat_41344c
+dat_413450
+dat_413454
+dat_413458
+dat_41345c
+dat_413460
+dat_413464
+dat_413468
+dat_41346c
+dat_413470
+dat_413474
+dat_413478
+dat_41347c
+dat_413480
+dat_413484
+dat_413488
+dat_41348c
+dat_413490
+dat_413494
+dat_413498
+dat_41349c
+dat_4134a0
+dat_4134a4
+dat_4134a8
+dat_4134ac
+dat_4134b0
+dat_4134b4
+dat_4134b8
+dat_4134bc
+dat_4134c0
+dat_4134c4
+dat_4134c8
+dat_4134cc
+dat_4134d0
+dat_4134d4
+dat_4134d8
+dat_4134dc
+dat_4134e0
+dat_4134e4
+dat_4134e8
+dat_4134ec
+dat_4134f0
+dat_4134f4
+dat_4134f8
+dat_4134fc
+dat_413500
+dat_413504
+dat_413508
+dat_41350c
+dat_413510
+dat_413514
+dat_413518
+dat_41351c
+dat_413520
+dat_413524
+dat_413528
+dat_41352c
+dat_413530
 dat_413534 aBased
 dat_413540 aCdecl
 dat_413548 aPascal
@@ -2933,7 +3058,49 @@ dat_413c48 dword_413C48
 dat_413c4c dword_413C4C
 dat_413c50 dword_413C50
 dat_413c58 off_413C58
+dat_413c60
+dat_413c68
+dat_413c6c
+dat_413c70
+dat_413c74
+dat_413c78
+dat_413c7c
+dat_413c80
+dat_413c84
+dat_413c8c
+dat_413c90
+dat_413c94
+dat_413c98
+dat_413c9c
+dat_413ca0
+dat_413ca4
+dat_413ca8
+dat_413cb4
+dat_413cbc
+dat_413cc0
+dat_413cc4
+dat_413cc8
+dat_413ccc
 dat_413cd0 off_413CD0 LPCWSTR
+dat_413cd4
+dat_413cd8
+dat_413cdc
+dat_413ce0
+dat_413ce4
+dat_413ce8
+dat_413cec
+dat_413cf0
+dat_413cf4
+dat_413cf8
+dat_413cfc
+dat_413d00
+dat_413d04
+dat_413d08
+dat_413d0c
+dat_413d10
+dat_413d14
+dat_413d18
+dat_413d1c
 dat_413d20 aApiMsWinAppmod
 dat_413d68 aApiMsWinCoreDa
 dat_413da8 aApiMsWinCoreFi_0
@@ -3059,6 +3226,92 @@ dat_4146c4 aDdddMmmmDdYyyy_0
 dat_4146ec aHhMmSs_0
 dat_414700 aEnUs
 dat_414710 off_414710
+dat_414714
+dat_414718
+dat_41471c
+dat_414720
+dat_414724
+dat_414728
+dat_41472c
+dat_414730
+dat_414734
+dat_414738
+dat_41473c
+dat_414740
+dat_414744
+dat_414748
+dat_41474c
+dat_414750
+dat_414754
+dat_414758
+dat_41475c
+dat_414760
+dat_414764
+dat_414768
+dat_41476c
+dat_414770
+dat_414774
+dat_414778
+dat_41477c
+dat_414780
+dat_414784
+dat_414788
+dat_41478c
+dat_414790
+dat_414794
+dat_414798
+dat_41479c
+dat_4147a0
+dat_4147a4
+dat_4147a8
+dat_4147ac
+dat_4147b0
+dat_4147b4
+dat_4147b8
+dat_4147c4
+dat_4147c8
+dat_4147cc
+dat_4147d0
+dat_4147d4
+dat_4147d8
+dat_4147dc
+dat_4147e0
+dat_4147e4
+dat_4147e8
+dat_4147ec
+dat_4147f0
+dat_4147f4
+dat_4147f8
+dat_4147fc
+dat_414800
+dat_414804
+dat_414808
+dat_41480c
+dat_414810
+dat_414814
+dat_414818
+dat_41481c
+dat_414820
+dat_414824
+dat_414828
+dat_41482c
+dat_414830
+dat_414834
+dat_414838
+dat_41483c
+dat_414840
+dat_414844
+dat_414848
+dat_41484c
+dat_414850
+dat_414854
+dat_414858
+dat_41485c
+dat_414860
+dat_414864
+dat_414868
+dat_41486c
+dat_414870
 dat_414874 off_414874
 dat_414878 off_414878
 dat_41487c off_41487C
@@ -3073,6 +3326,234 @@ dat_414e40 unk_414E40
 dat_414fc0 unk_414FC0
 dat_4150c0 aUk
 dat_4150c8 dword_4150C8
+dat_4150cc
+dat_4150d4
+dat_4150dc
+dat_4150e4
+dat_4150ec
+dat_4150f4
+dat_4150fc
+dat_415104
+dat_41510c
+dat_415114
+dat_41511c
+dat_415124
+dat_41512c
+dat_415134
+dat_41513c
+dat_415144
+dat_41514c
+dat_415154
+dat_41515c
+dat_415164
+dat_41516c
+dat_415174
+dat_41517c
+dat_415184
+dat_41518c
+dat_415194
+dat_41519c
+dat_4151a4
+dat_4151ac
+dat_4151b4
+dat_4151bc
+dat_4151c4
+dat_4151cc
+dat_4151d4
+dat_4151dc
+dat_4151e4
+dat_4151ec
+dat_4151f4
+dat_4151fc
+dat_415204
+dat_41520c
+dat_415214
+dat_41521c
+dat_415224
+dat_41522c
+dat_415234
+dat_41523c
+dat_415244
+dat_41524c
+dat_415254
+dat_41525c
+dat_415264
+dat_41526c
+dat_415274
+dat_41527c
+dat_415284
+dat_41528c
+dat_415294
+dat_41529c
+dat_4152a4
+dat_4152ac
+dat_4152b4
+dat_4152bc
+dat_4152c4
+dat_4152cc
+dat_4152d4
+dat_4152dc
+dat_4152e4
+dat_4152ec
+dat_4152f4
+dat_4152fc
+dat_415304
+dat_41530c
+dat_415314
+dat_41531c
+dat_415324
+dat_41532c
+dat_415334
+dat_41533c
+dat_415344
+dat_41534c
+dat_415354
+dat_41535c
+dat_415364
+dat_41536c
+dat_415374
+dat_41537c
+dat_415384
+dat_41538c
+dat_415394
+dat_41539c
+dat_4153a4
+dat_4153ac
+dat_4153b4
+dat_4153bc
+dat_4153c4
+dat_4153cc
+dat_4153d4
+dat_4153dc
+dat_4153e4
+dat_4153ec
+dat_4153f4
+dat_4153fc
+dat_415404
+dat_41540c
+dat_415414
+dat_41541c
+dat_415424
+dat_41542c
+dat_415434
+dat_41543c
+dat_415444
+dat_41544c
+dat_415454
+dat_41545c
+dat_415464
+dat_41546c
+dat_415474
+dat_41547c
+dat_415484
+dat_41548c
+dat_415494
+dat_41549c
+dat_4154a4
+dat_4154ac
+dat_4154b4
+dat_4154bc
+dat_4154c4
+dat_4154cc
+dat_4154d4
+dat_4154dc
+dat_4154e4
+dat_4154ec
+dat_4154f4
+dat_4154fc
+dat_415504
+dat_41550c
+dat_415514
+dat_41551c
+dat_415524
+dat_41552c
+dat_415534
+dat_41553c
+dat_415544
+dat_41554c
+dat_415554
+dat_41555c
+dat_415564
+dat_41556c
+dat_415574
+dat_41557c
+dat_415584
+dat_41558c
+dat_415594
+dat_41559c
+dat_4155a4
+dat_4155ac
+dat_4155b4
+dat_4155bc
+dat_4155c4
+dat_4155cc
+dat_4155d4
+dat_4155dc
+dat_4155e4
+dat_4155ec
+dat_4155f4
+dat_4155fc
+dat_415604
+dat_41560c
+dat_415614
+dat_41561c
+dat_415624
+dat_41562c
+dat_415634
+dat_41563c
+dat_415644
+dat_41564c
+dat_415654
+dat_41565c
+dat_415664
+dat_41566c
+dat_415674
+dat_41567c
+dat_415684
+dat_41568c
+dat_415694
+dat_41569c
+dat_4156a4
+dat_4156ac
+dat_4156b4
+dat_4156bc
+dat_4156c4
+dat_4156cc
+dat_4156d4
+dat_4156dc
+dat_4156e4
+dat_4156ec
+dat_4156f4
+dat_4156fc
+dat_415704
+dat_41570c
+dat_415714
+dat_41571c
+dat_415724
+dat_41572c
+dat_415734
+dat_41573c
+dat_415744
+dat_41574c
+dat_415754
+dat_41575c
+dat_415764
+dat_41576c
+dat_415774
+dat_41577c
+dat_415784
+dat_41578c
+dat_415794
+dat_41579c
+dat_4157a4
+dat_4157ac
+dat_4157b4
+dat_4157bc
+dat_4157c4
+dat_4157cc
+dat_4157d4
+dat_4157dc
+dat_4157e4
 dat_4157e8 aAr
 dat_4157f0 aBg
 dat_4157f8 aCa
@@ -3296,6 +3777,233 @@ dat_4161cc aZhCht
 dat_4161dc aSr
 dat_4161e8 off_4161E8
 dat_4161ec dword_4161EC
+dat_4161f0
+dat_4161f8
+dat_416200
+dat_416208
+dat_416210
+dat_416218
+dat_416220
+dat_416228
+dat_416230
+dat_416238
+dat_416240
+dat_416248
+dat_416250
+dat_416258
+dat_416260
+dat_416268
+dat_416270
+dat_416278
+dat_416280
+dat_416288
+dat_416290
+dat_416298
+dat_4162a0
+dat_4162a8
+dat_4162b0
+dat_4162b8
+dat_4162c0
+dat_4162c8
+dat_4162d0
+dat_4162d8
+dat_4162e0
+dat_4162e8
+dat_4162f0
+dat_4162f8
+dat_416300
+dat_416308
+dat_416310
+dat_416318
+dat_416320
+dat_416328
+dat_416330
+dat_416338
+dat_416340
+dat_416348
+dat_416350
+dat_416358
+dat_416360
+dat_416368
+dat_416370
+dat_416378
+dat_416380
+dat_416388
+dat_416390
+dat_416398
+dat_4163a0
+dat_4163a8
+dat_4163b0
+dat_4163b8
+dat_4163c0
+dat_4163c8
+dat_4163d0
+dat_4163d8
+dat_4163e0
+dat_4163e8
+dat_4163f0
+dat_4163f8
+dat_416400
+dat_416408
+dat_416410
+dat_416418
+dat_416420
+dat_416428
+dat_416430
+dat_416438
+dat_416440
+dat_416448
+dat_416450
+dat_416458
+dat_416460
+dat_416468
+dat_416470
+dat_416478
+dat_416480
+dat_416488
+dat_416490
+dat_416498
+dat_4164a0
+dat_4164a8
+dat_4164b0
+dat_4164b8
+dat_4164c0
+dat_4164c8
+dat_4164d0
+dat_4164d8
+dat_4164e0
+dat_4164e8
+dat_4164f0
+dat_4164f8
+dat_416500
+dat_416508
+dat_416510
+dat_416518
+dat_416520
+dat_416528
+dat_416530
+dat_416538
+dat_416540
+dat_416548
+dat_416550
+dat_416558
+dat_416560
+dat_416568
+dat_416570
+dat_416578
+dat_416580
+dat_416588
+dat_416590
+dat_416598
+dat_4165a0
+dat_4165a8
+dat_4165b0
+dat_4165b8
+dat_4165c0
+dat_4165c8
+dat_4165d0
+dat_4165d8
+dat_4165e0
+dat_4165e8
+dat_4165f0
+dat_4165f8
+dat_416600
+dat_416608
+dat_416610
+dat_416618
+dat_416620
+dat_416628
+dat_416630
+dat_416638
+dat_416640
+dat_416648
+dat_416650
+dat_416658
+dat_416660
+dat_416668
+dat_416670
+dat_416678
+dat_416680
+dat_416688
+dat_416690
+dat_416698
+dat_4166a0
+dat_4166a8
+dat_4166b0
+dat_4166b8
+dat_4166c0
+dat_4166c8
+dat_4166d0
+dat_4166d8
+dat_4166e0
+dat_4166e8
+dat_4166f0
+dat_4166f8
+dat_416700
+dat_416708
+dat_416710
+dat_416718
+dat_416720
+dat_416728
+dat_416730
+dat_416738
+dat_416740
+dat_416748
+dat_416750
+dat_416758
+dat_416760
+dat_416768
+dat_416770
+dat_416778
+dat_416780
+dat_416788
+dat_416790
+dat_416798
+dat_4167a0
+dat_4167a8
+dat_4167b0
+dat_4167b8
+dat_4167c0
+dat_4167c8
+dat_4167d0
+dat_4167d8
+dat_4167e0
+dat_4167e8
+dat_4167f0
+dat_4167f8
+dat_416800
+dat_416808
+dat_416810
+dat_416818
+dat_416820
+dat_416828
+dat_416830
+dat_416838
+dat_416840
+dat_416848
+dat_416850
+dat_416858
+dat_416860
+dat_416868
+dat_416870
+dat_416878
+dat_416880
+dat_416888
+dat_416890
+dat_416898
+dat_4168a0
+dat_4168a8
+dat_4168b0
+dat_4168b8
+dat_4168c0
+dat_4168c8
+dat_4168d0
+dat_4168d8
+dat_4168e0
+dat_4168e8
+dat_4168f0
+dat_4168f8
+dat_416900
 dat_416908 aAfZa_0
 dat_416914 aArAe_0
 dat_416920 aArBh_0
@@ -3494,6 +4202,10 @@ dat_417ca0 tbyte_417CA0
 dat_417caa tbyte_417CAA
 dat_417cbe tbyte_417CBE
 dat_417cd2 dbl_417CD2
+dat_417cea
+dat_417cee
+dat_417cf2
+dat_417cf6
 dat_417d00 tbyte_417D00
 dat_417d14 tbyte_417D14
 dat_417d1e dbl_417D1E
@@ -3540,6 +4252,34 @@ dat_418660 aLogb
 dat_418668 aNextafter
 dat_418678 dword_418678
 dat_41867c off_41867C
+dat_418684
+dat_41868c
+dat_418694
+dat_41869c
+dat_4186a4
+dat_4186ac
+dat_4186b4
+dat_4186bc
+dat_4186c4
+dat_4186cc
+dat_4186d4
+dat_4186dc
+dat_4186e4
+dat_4186ec
+dat_4186f4
+dat_4186fc
+dat_418704
+dat_41870c
+dat_418714
+dat_41871c
+dat_418724
+dat_41872c
+dat_418734
+dat_41873c
+dat_418744
+dat_41874c
+dat_418754
+dat_41875c
 dat_418760 aSinh
 dat_418768 aCosh
 dat_418770 dbl_418770
@@ -3590,37 +4330,203 @@ dat_418edc aDirectoryShell
 dat_418f08 aUnregister wchar_t
 dat_418f20 aUnrecognizedPa const WCHAR
 dat_419030 aStringTooLong char[]
+dat_419040
+dat_419044
+dat_419048
+dat_41904a
+dat_41904c
+dat_419050
+dat_419054
+dat_419058
+dat_41905c
+dat_419060
+dat_419064
+dat_419066
+dat_419068
+dat_41906c
+dat_419070
+dat_419074
+dat_419078
+dat_41907c
+dat_419080
+dat_419082
+dat_419084
+dat_419088
+dat_41908c
+dat_419090
+dat_419094
+dat_419098
+dat_41909c
+dat_41909e
+dat_4190a0
+dat_4190a4
+dat_4190a8
+dat_4190ac
 dat_4190b0 __load_config_used
+dat_4190b4
+dat_4190b8
+dat_4190bc
+dat_4190c0
+dat_4190c4
+dat_4190c8
+dat_4190cc
+dat_4190d0
+dat_4190d4
+dat_4190d8
+dat_4190dc
+dat_4190e0
+dat_4190e4
+dat_4190e6
+dat_4190e8
+dat_4190ec
+dat_4190f0
+dat_4190f4
+dat_4190f8
+dat_4190fc
+dat_419100
+dat_419104
+dat_419108
 dat_419150 ??_R4exception@std@@6B@
+dat_419154
+dat_419158
+dat_41915c
+dat_419160
 dat_419164 ??_R3exception@std@@8
+dat_419168
+dat_41916c
+dat_419170
 dat_419174 ??_R2exception@std@@8
 dat_41917c ??_R1A@?0A@EA@exception@std@@8
+dat_419180
+dat_419184
+dat_419188
+dat_41918c
+dat_419190
+dat_419194
 dat_419198 ??_R4bad_alloc@std@@6B@
+dat_41919c
+dat_4191a0
+dat_4191a4
+dat_4191a8
 dat_4191ac ??_R3bad_alloc@std@@8
+dat_4191b0
+dat_4191b4
+dat_4191b8
 dat_4191bc ??_R2bad_alloc@std@@8
+dat_4191c0
 dat_4191c8 ??_R1A@?0A@EA@bad_alloc@std@@8
+dat_4191cc
+dat_4191d0
+dat_4191d4
+dat_4191d8
+dat_4191dc
+dat_4191e0
 dat_4191e4 ??_R4logic_error@std@@6B@
+dat_4191e8
+dat_4191ec
+dat_4191f0
+dat_4191f4
 dat_4191f8 ??_R3logic_error@std@@8
+dat_4191fc
+dat_419200
+dat_419204
 dat_419208 ??_R2logic_error@std@@8
+dat_41920c
 dat_419214 ??_R1A@?0A@EA@logic_error@std@@8
+dat_419218
+dat_41921c
+dat_419220
+dat_419224
+dat_419228
+dat_41922c
 dat_419230 ??_R4length_error@std@@6B@
+dat_419234
+dat_419238
+dat_41923c
+dat_419240
 dat_419244 ??_R3length_error@std@@8
+dat_419248
+dat_41924c
+dat_419250
 dat_419254 ??_R2length_error@std@@8
+dat_419258
+dat_41925c
 dat_419264 ??_R1A@?0A@EA@length_error@std@@8
+dat_419268
+dat_41926c
+dat_419270
+dat_419274
+dat_419278
+dat_41927c
 dat_419280 ??_R4type_info@@6B@
+dat_419284
+dat_419288
+dat_41928c
+dat_419290
 dat_419294 ??_R3type_info@@8
+dat_419298
+dat_41929c
+dat_4192a0
 dat_4192a4 ??_R2type_info@@8
 dat_4192ac ??_R1A@?0A@EA@type_info@@8
+dat_4192b0
+dat_4192b4
+dat_4192b8
+dat_4192bc
+dat_4192c0
+dat_4192c4
 dat_4192c8 ??_R4bad_array_new_length@std@@6B@
+dat_4192cc
+dat_4192d0
+dat_4192d4
+dat_4192d8
 dat_4192dc ??_R3bad_array_new_length@std@@8
+dat_4192e0
+dat_4192e4
+dat_4192e8
 dat_4192ec ??_R2bad_array_new_length@std@@8
+dat_4192f0
+dat_4192f4
 dat_4192fc ??_R1A@?0A@EA@bad_array_new_length@std@@8
+dat_419300
+dat_419304
+dat_419308
+dat_41930c
+dat_419310
+dat_419314
 dat_419318 ??_R4bad_exception@std@@6B@
+dat_41931c
+dat_419320
+dat_419324
+dat_419328
 dat_41932c ??_R3bad_exception@std@@8
+dat_419330
+dat_419334
+dat_419338
 dat_41933c ??_R2bad_exception@std@@8
+dat_419340
 dat_419348 ??_R1A@?0A@EA@bad_exception@std@@8
+dat_41934c
+dat_419350
+dat_419354
+dat_419358
+dat_41935c
+dat_419360
 dat_419370 ___safe_se_handler_table
+dat_419374
+dat_419378
+dat_41937c
+dat_419380
+dat_419384
+dat_419388
+dat_41938c
+dat_419390
+dat_419394
+dat_419398
 dat_41939c asc_41939C
+dat_4193a0  GUID
+dat_4193b0
+dat_4193b4
 dat_4193e4 unk_4193E4
 dat_4193f8 aGctl
 dat_4196c0 unk_4196C0
@@ -3636,17 +4542,64 @@ dat_41977c stru_41977C FuncInfo
 dat_4197a0 stru_4197A0 UnwindMapEntry
 dat_4197a8 stru_4197A8 FuncInfo
 dat_4197cc __TI2?AVbad_alloc@std@@
+dat_4197d0
+dat_4197d4
+dat_4197d8
 dat_4197dc __CTA2?AVbad_alloc@std@@
+dat_4197e0
+dat_4197e4
 dat_4197e8 __CT??_R0?AVbad_alloc@std@@@8_401F2F
+dat_4197ec
+dat_4197f0
+dat_4197f4
+dat_4197f8
+dat_4197fc
+dat_419800
 dat_419804 __CT??_R0?AVexception@std@@@8_401F62
+dat_419808
+dat_41980c
+dat_419810
+dat_419814
+dat_419818
+dat_41981c
 dat_419820 __CT??_R0?AVlogic_error@std@@@8_402001
+dat_419824
+dat_419828
+dat_41982c
+dat_419830
+dat_419834
+dat_419838
 dat_41983c __TI3?AVlength_error@std@@
+dat_419840
+dat_419844
+dat_419848
 dat_41984c __CTA3?AVlength_error@std@@
+dat_419850
+dat_419854
+dat_419858
 dat_41985c __CT??_R0?AVlength_error@std@@@8_401FC5
+dat_419860
+dat_419864
+dat_419868
+dat_41986c
+dat_419870
+dat_419874
 dat_419878 stru_419878 _EH4_SCOPETABLE
 dat_419894 __TI3?AVbad_array_new_length@std@@
+dat_419898
+dat_41989c
+dat_4198a0
 dat_4198a4 __CTA3?AVbad_array_new_length@std@@
+dat_4198a8
+dat_4198ac
+dat_4198b0
 dat_4198b4 __CT??_R0?AVbad_array_new_length@std@@@8_402472
+dat_4198b8
+dat_4198bc
+dat_4198c0
+dat_4198c4
+dat_4198c8
+dat_4198cc
 dat_4198d0 stru_4198D0 _EH4_SCOPETABLE
 dat_4198f0 stru_4198F0 _EH4_SCOPETABLE
 dat_419910 stru_419910 _EH4_SCOPETABLE
@@ -3658,8 +4611,19 @@ dat_4199a0 stru_4199A0 TryBlockMapEntry
 dat_4199b4 stru_4199B4 FuncInfo
 dat_4199d8 stru_4199D8 _EH4_SCOPETABLE
 dat_4199f4 __TI2?AVbad_exception@std@@
+dat_4199f8
+dat_4199fc
+dat_419a00
 dat_419a04 __CTA2?AVbad_exception@std@@
+dat_419a08
+dat_419a0c
 dat_419a10 __CT??_R0?AVbad_exception@std@@@8_40428C
+dat_419a14
+dat_419a18
+dat_419a1c
+dat_419a20
+dat_419a24
+dat_419a28
 dat_419a30 stru_419A30 _EH4_SCOPETABLE
 dat_419a58 stru_419A58 _EH4_SCOPETABLE
 dat_419a78 stru_419A78 _EH4_SCOPETABLE
@@ -3686,15 +4650,113 @@ dat_419d00 stru_419D00 _EH4_SCOPETABLE
 dat_419d20 stru_419D20 _EH4_SCOPETABLE
 dat_419d40 stru_419D40 _EH4_SCOPETABLE
 dat_419d5c __IMPORT_DESCRIPTOR_KERNEL32
+dat_419d60
+dat_419d64
+dat_419d68
+dat_419d6c
 dat_419d70 __IMPORT_DESCRIPTOR_USER32
+dat_419d74
+dat_419d78
+dat_419d7c
+dat_419d80
 dat_419d84 __IMPORT_DESCRIPTOR_ADVAPI32
+dat_419d88
+dat_419d8c
+dat_419d90
+dat_419d94
 dat_419d98 __IMPORT_DESCRIPTOR_SHELL32
+dat_419d9c
+dat_419da0
+dat_419da4
+dat_419da8
 dat_419dac __IMPORT_DESCRIPTOR_SHLWAPI
+dat_419db0
+dat_419db4
+dat_419db8
+dat_419dbc
 dat_419dd4 off_419DD4
+dat_419dd8
+dat_419ddc
+dat_419de0
+dat_419de4
 dat_419dec off_419DEC
+dat_419df0
+dat_419df4
+dat_419df8
+dat_419dfc
+dat_419e00
+dat_419e04
+dat_419e08
+dat_419e0c
+dat_419e10
+dat_419e14
+dat_419e18
+dat_419e1c
+dat_419e20
+dat_419e24
+dat_419e28
+dat_419e2c
+dat_419e30
+dat_419e34
+dat_419e38
+dat_419e3c
+dat_419e40
+dat_419e44
+dat_419e48
+dat_419e4c
+dat_419e50
+dat_419e54
+dat_419e58
+dat_419e5c
+dat_419e60
+dat_419e64
+dat_419e68
+dat_419e6c
+dat_419e70
+dat_419e74
+dat_419e78
+dat_419e7c
+dat_419e80
+dat_419e84
+dat_419e88
+dat_419e8c
+dat_419e90
+dat_419e94
+dat_419e98
+dat_419e9c
+dat_419ea0
+dat_419ea4
+dat_419ea8
+dat_419eac
+dat_419eb0
+dat_419eb4
+dat_419eb8
+dat_419ebc
+dat_419ec0
+dat_419ec4
+dat_419ec8
+dat_419ecc
+dat_419ed0
+dat_419ed4
+dat_419ed8
+dat_419edc
+dat_419ee0
+dat_419ee4
+dat_419ee8
+dat_419eec
+dat_419ef0
+dat_419ef4
+dat_419ef8
+dat_419efc
+dat_419f00
+dat_419f04
+dat_419f08
 dat_419f10 off_419F10
 dat_419f18 off_419F18
+dat_419f1c
+dat_419f20
 dat_419f28 off_419F28
+dat_419f2c
 dat_419f34 word_419F34
 dat_419f46 word_419F46
 dat_419f62 word_419F62
@@ -3795,6 +4857,15 @@ dat_41b048 unk_41B048
 dat_41b04c dword_41B04C DWORD
 dat_41b050 unk_41B050
 dat_41b0f8 off_41B0F8
+dat_41b128
+dat_41b138
+dat_41b148
+dat_41b158
+dat_41b168
+dat_41b180
+dat_41b18c
+dat_41b190
+dat_41b194
 dat_41b1b0 off_41B1B0
 dat_41b1b4 off_41B1B4
 dat_41b1b8 unk_41B1B8
@@ -3831,16 +4902,22 @@ dat_41b738 dword_41B738
 dat_41b740 dword_41B740
 dat_41b750 hObject HANDLE
 dat_41b770 ??_R0?AVbad_alloc@std@@@8
+dat_41b774
 dat_41b778 aAvbadAllocStd
 dat_41b78c ??_R0?AVexception@std@@@8
+dat_41b790
 dat_41b794 aAvexceptionStd
 dat_41b7a8 ??_R0?AVlogic_error@std@@@8
+dat_41b7ac
 dat_41b7b0 aAvlogicErrorSt
 dat_41b7c8 ??_R0?AVlength_error@std@@@8
+dat_41b7cc
 dat_41b7d0 aAvlengthErrorS
 dat_41b7e8 ??_R0?AVtype_info@@@8
+dat_41b7ec
 dat_41b7f0 aAvtypeInfo
 dat_41b800 ??_R0?AVbad_array_new_length@std@@@8
+dat_41b804
 dat_41b808 aAvbadArrayNewL
 dat_41b828 ??_R0?AVbad_exception@std@@@8
 dat_41b82c dword_41B82C

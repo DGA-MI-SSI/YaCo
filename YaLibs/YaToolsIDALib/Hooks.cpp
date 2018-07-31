@@ -1004,7 +1004,7 @@ namespace
         const auto local_name   = static_cast<bool>(va_arg(args, int));
         LOG_IDB_EVENT("renamed: %s: %s%s", get_name(ea).c_str(), new_name, local_name ? " [local name]" : "");
         const auto flags        = get_flags(ea);
-        const auto wanted       = has_any_name(flags) || has_xref(flags);
+        const auto wanted       = ya::need_item(flags);
         if(!wanted)
             return;
 

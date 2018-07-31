@@ -189,4 +189,16 @@ namespace ya
     range_t get_range_item(ea_t ea);
     range_t get_range_code(ea_t ea, ea_t min, ea_t max);
     std::vector<ea_t> get_all_items(ea_t start, ea_t end);
+
+    static inline bool need_item(flags_t flags)
+    {
+        return has_cmt(flags)
+            || has_xref(flags)
+            || has_extra_cmts(flags)
+            || has_any_name(flags)
+            || !!(flags & FF_SIGN)
+            || !!(flags & FF_BNOT)
+            || is_defarg0(flags)
+            || is_defarg1(flags);
+    }
 }

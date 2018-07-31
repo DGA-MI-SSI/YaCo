@@ -517,6 +517,7 @@ create_timer
 crypt_append_msg
 crypt_blowfish_init
 crypt_check_current_method
+crypt_check_method
 crypt_check_method_0
 crypt_create
 crypt_create_for_writing
@@ -1089,18 +1090,19 @@ f_arglistid
 f_argv
 f_assert_exception
 f_assert_fails
-f_assert_false
 f_assert_inrange
 f_assert_notequal
-f_assert_true
 f_bufexists
 f_bufname
 f_bufnr
+f_bufwinid
+f_bufwinnr
 f_byte2line
 f_ch_canread
 f_ch_close
 f_ch_close_in
 f_ch_evalexpr
+f_ch_evalraw
 f_ch_getbufnr
 f_ch_getjob
 f_ch_info
@@ -1108,6 +1110,7 @@ f_ch_log
 f_ch_logfile
 f_ch_open
 f_ch_sendexpr
+f_ch_sendraw
 f_ch_setoptions
 f_ch_status
 f_changenr
@@ -1139,8 +1142,6 @@ f_extend
 f_feedkeys
 f_filereadable
 f_filewritable
-f_filter
-f_findfile
 f_fnameescape
 f_fnamemodify
 f_foldclosed
@@ -1169,7 +1170,9 @@ f_getreg
 f_getregtype
 f_gettabinfo
 f_gettabvar
+f_gettabwinvar
 f_getwininfo
+f_getwinvar
 f_glob
 f_glob2regpat
 f_globpath
@@ -1211,7 +1214,6 @@ f_libcallnr
 f_line
 f_lispindent
 f_localtime
-f_map
 f_matchaddpos
 f_matcharg
 f_matchdelete
@@ -1280,6 +1282,8 @@ f_synIDattr
 f_synIDtrans
 f_synconcealed
 f_synstack
+f_system
+f_systemlist
 f_tabpagebuflist
 f_tabpagewinnr
 f_tagfiles
@@ -3171,4 +3175,4 @@ wvsp_one
 yank_copy_line
 yank_register_mline
 
-symbols: 3172
+symbols: 3176

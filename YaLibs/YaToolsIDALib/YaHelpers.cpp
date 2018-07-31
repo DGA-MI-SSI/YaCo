@@ -492,7 +492,7 @@ namespace ya
         const auto add_ea = [&](ea_t x)
         {
             const auto flags = get_flags(x);
-            if(is_code(flags) || has_any_name(flags) || has_xref(flags))
+            if(is_code(flags) || ya::need_item(flags))
                 if(allowed.contains(x))
                     items.emplace_back(x);
         };

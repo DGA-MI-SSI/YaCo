@@ -29,7 +29,9 @@ class Fixture(runtests.Fixture):
 0x66023ff0: data: data dword comm ref name 0:off
 0x66024004: data: data byte comm ref labl
 """)
+        # first data item has prev line comment
         self.check_range(a, 0x66001000, 0x6600100F, """
+0x66001000: data: data byte line
 0x66001005: block: code func ref name
 0x6600100a: block: code func ref name
 """)
@@ -41,7 +43,10 @@ class Fixture(runtests.Fixture):
 """)
         self.check_range(a, 0x6605E1B6, 0x6605E1EB, """
 """)
+        # two items have comments
         self.check_range(a, 0x66066EE8, 0x66066EF4, """
+0x66066ee8: data: data dword comm 0:numd
+0x66066eec: data: data dword comm 0:off
 """)
         self.check_range(a,  0x66071e04, 0x66071e0c, """
 0x66071e09: unexplored: unkn ref labl

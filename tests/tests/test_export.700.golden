@@ -1,4 +1,4 @@
-objects: 25114
+objects: 26678
 
 bin: 1
 bin_66000000 Qt5Svgd.dll
@@ -11156,7 +11156,8 @@ cod_6604f194
 cod_6604f564
 cod_6604f570
 
-dat: 3277
+dat: 4841
+dat_66001000
 dat_66015568 jpt_6601505A
 dat_66015574 byte_66015574
 dat_66015e24 jpt_66015C24
@@ -11189,9 +11190,39 @@ dat_66049d60 jpt_66049912
 dat_66049d78 byte_66049D78
 dat_6604a890 jpt_6604A231
 dat_66053000 unk_66053000
+dat_66053104
+dat_66053108
+dat_6605310c
+dat_66053110
+dat_66053114
+dat_66053118
+dat_6605311c
+dat_66053124
+dat_66053128
+dat_6605312c
+dat_66053130
+dat_66053134
 dat_66053240 unk_66053240
 dat_66053344 unk_66053344
+dat_66053448
+dat_6605354c
 dat_66053650 unk_66053650
+dat_66053760
+dat_66053764
+dat_66053768
+dat_6605376a
+dat_6605376c
+dat_66053770
+dat_66053774
+dat_66053778
+dat_6605377c
+dat_66053780
+dat_66053784
+dat_66053786
+dat_66053788
+dat_6605378c
+dat_66053790
+dat_66053794
 dat_66053798 aCWorkBuildQt5W_2
 dat_660537f0 aAsize0AsizeAal
 dat_66053810 aCWorkBuildQt5W_3
@@ -11279,40 +11310,171 @@ dat_66054d68 aCWorkBuildQt5W
 dat_66054dd0 aIsempty
 dat_66054de0 aCWorkBuildQt5W_1
 dat_66054e44 aIndexOutOfRang
+dat_66054e5c
 dat_66054e60 ??_7QSvgRefCounted@@6B@
+dat_66054e68
 dat_66054e6c ??_7QSvgStyleProperty@@6B@
+dat_66054e70
+dat_66054e74
+dat_66054e78
+dat_66054e80
 dat_66054e84 ??_7QSvgFillStyleProperty@@6B@
+dat_66054e88
+dat_66054e8c
+dat_66054e90
+dat_66054e94
+dat_66054e9c
 dat_66054ea0 ??_7QSvgQualityStyle@@6B@
+dat_66054ea4
+dat_66054ea8
+dat_66054eac
+dat_66054eb4
 dat_66054eb8 ??_7QSvgOpacityStyle@@6B@
+dat_66054ebc
+dat_66054ec0
+dat_66054ec4
+dat_66054ecc
 dat_66054ed0 ??_7QSvgFillStyle@@6B@
+dat_66054ed4
+dat_66054ed8
+dat_66054edc
+dat_66054ee4
 dat_66054ee8 ??_7QSvgViewportFillStyle@@6B@
+dat_66054eec
+dat_66054ef0
+dat_66054ef4
+dat_66054efc
 dat_66054f00 ??_7QSvgFontStyle@@6B@
+dat_66054f04
+dat_66054f08
+dat_66054f0c
+dat_66054f14
 dat_66054f18 ??_7QSvgStrokeStyle@@6B@
+dat_66054f1c
+dat_66054f20
+dat_66054f24
 dat_66054f2c aCWorkBuildQt5W_41
 dat_66054f74 aMStrokedasharr
+dat_66054f90
 dat_66054f94 ??_7QSvgSolidColorStyle@@6B@
+dat_66054f98
+dat_66054f9c
+dat_66054fa0
+dat_66054fa4
+dat_66054fac
 dat_66054fb0 ??_7QSvgGradientStyle@@6B@
+dat_66054fb4
+dat_66054fb8
+dat_66054fbc
+dat_66054fc0
+dat_66054fc8
 dat_66054fcc ??_7QSvgTransformStyle@@6B@
+dat_66054fd0
+dat_66054fd4
+dat_66054fd8
+dat_66054fe0
 dat_66054fe4 ??_7QSvgAnimateTransform@@6B@
+dat_66054fe8
+dat_66054fec
+dat_66054ff0
+dat_66054ff8
 dat_66054ffc ??_7QSvgAnimateColor@@6B@
+dat_66055000
+dat_66055004
+dat_66055008
+dat_66055010
 dat_66055014 ??_7QSvgCompOpStyle@@6B@
+dat_66055018
+dat_6605501c
+dat_66055020
+dat_66055028
 dat_6605502c ??_7QSvgNode@@6B@
+dat_66055030
+dat_66055034
+dat_66055038
+dat_6605503c
+dat_66055044
 dat_66055048 ??_7QSvgAnimation@@6B@
+dat_6605504c
+dat_66055050
+dat_66055054
+dat_66055058
+dat_66055060
 dat_66055064 ??_7QSvgArc@@6B@
+dat_66055068
+dat_6605506c
+dat_66055070
+dat_66055074
+dat_6605507c
 dat_66055080 ??_7QSvgEllipse@@6B@
+dat_66055084
+dat_66055088
+dat_6605508c
+dat_66055090
+dat_66055098
 dat_6605509c ??_7QSvgCircle@@6B@
+dat_660550a0
+dat_660550a4
+dat_660550a8
+dat_660550ac
+dat_660550b4
 dat_660550b8 ??_7QSvgImage@@6B@
+dat_660550bc
+dat_660550c0
+dat_660550c4
+dat_660550c8
+dat_660550d0
 dat_660550d4 ??_7QSvgLine@@6B@
+dat_660550d8
+dat_660550dc
+dat_660550e0
+dat_660550e4
+dat_660550ec
 dat_660550f0 ??_7QSvgPath@@6B@
+dat_660550f4
+dat_660550f8
+dat_660550fc
+dat_66055100
+dat_66055108
 dat_6605510c ??_7QSvgPolygon@@6B@
+dat_66055110
+dat_66055114
+dat_66055118
+dat_6605511c
+dat_66055124
 dat_66055128 ??_7QSvgPolyline@@6B@
+dat_6605512c
+dat_66055130
+dat_66055134
+dat_66055138
+dat_66055140
 dat_66055144 ??_7QSvgRect@@6B@
+dat_66055148
+dat_6605514c
+dat_66055150
+dat_66055154
+dat_6605515c
 dat_66055160 ??_7QSvgText@@6B@
+dat_66055164
+dat_66055168
+dat_6605516c
+dat_66055170
+dat_66055178
 dat_6605517c ??_7QSvgTspan@@6B@
+dat_66055180
+dat_66055184
+dat_66055188
+dat_6605518c
 dat_66055194 aTspansShouldBe
 dat_660551d0 aCWorkBuildQt5W_0
 dat_6605521c aTspansShouldBe_0
+dat_6605525c
 dat_66055260 ??_7QSvgUse@@6B@
+dat_66055264
+dat_66055268
+dat_6605526c
+dat_66055270
+dat_66055278
 dat_6605527c ??_7QSvgFont@@6B@
 dat_66055284 aIsdetached
 dat_66055294 aQvectorTOperat
@@ -12006,12 +12168,48 @@ dat_6605aac8 aCx_1 char[]
 dat_6605aacc aNimation char[]
 dat_6605aad8 aCy_1 char[]
 dat_6605bc64 aQlistTAt
+dat_6605bc74
 dat_6605bc78 ??_7QSvgStructureNode@@6B@
+dat_6605bc7c
+dat_6605bc80
+dat_6605bc84
+dat_6605bc88
+dat_6605bc90
 dat_6605bc94 ??_7QSvgG@@6B@
+dat_6605bc98
+dat_6605bc9c
+dat_6605bca0
+dat_6605bca4
+dat_6605bcac
 dat_6605bcb0 ??_7QSvgDefs@@6B@
+dat_6605bcb4
+dat_6605bcb8
+dat_6605bcbc
+dat_6605bcc0
+dat_6605bcc8
 dat_6605bccc ??_7QSvgSwitch@@6B@
+dat_6605bcd0
+dat_6605bcd4
+dat_6605bcd8
+dat_6605bcdc
+dat_6605bce4
 dat_6605bce8 ??_7QSvgTinyDocument@@6B@
+dat_6605bcec
+dat_6605bcf0
+dat_6605bcf4
+dat_6605bcf8
+dat_6605bd00
 dat_6605bd04 ??_7QSvgStyleSelector@@6B@
+dat_6605bd08
+dat_6605bd0c
+dat_6605bd10
+dat_6605bd14
+dat_6605bd18
+dat_6605bd1c
+dat_6605bd20
+dat_6605bd24
+dat_6605bd28
+dat_6605bd2c
 dat_6605bd3c aId_2 char[3]
 dat_6605bd40 aXmlId_1 char[]
 dat_6605bd48 aClass_1 char[]
@@ -12335,10 +12533,33 @@ dat_6605ffdb aQsvgrendererCp_5
 dat_6605fff0 aVoidThiscallQs_5
 dat_66060028 aQsvgrendererCp
 dat_6606003c aQsvgrendererSe
+dat_6606015c
 dat_66060160 ??_7QTimer@@6B@
+dat_66060164
+dat_66060168
+dat_6606016c
+dat_66060170
+dat_66060174
+dat_66060178
+dat_6606017c
+dat_66060180
+dat_66060184
+dat_66060188
 dat_66060198 aCWorkBuildQt5W_177
 dat_66060208 aD_0
+dat_6606020c
 dat_66060210 ??_7QSvgRenderer@@6B@
+dat_66060214
+dat_66060218
+dat_6606021c
+dat_66060220
+dat_66060224
+dat_66060228
+dat_6606022c
+dat_66060230
+dat_66060234
+dat_66060238
+dat_66060248
 dat_6606024c ??_7QSvgRendererPrivate@@6B@
 dat_66060254 a1update
 dat_6606025e aQsvgwidgetCpp9
@@ -12348,9 +12569,73 @@ dat_66060294 a1update_0
 dat_6606029e aQsvgwidgetCpp1
 dat_660602b4 a2repaintneeded_3
 dat_660602c5 aQsvgwidgetCpp1_0
+dat_660602f4
 dat_660602f8 ??_7QSvgWidget@@6BQObject@@@
+dat_660602fc
+dat_66060300
+dat_66060304
+dat_66060308
+dat_6606030c
+dat_66060310
+dat_66060314
+dat_66060318
+dat_6606031c
+dat_66060320
+dat_66060324
+dat_66060328
+dat_6606032c
+dat_66060330
+dat_66060334
+dat_66060338
+dat_6606033c
+dat_66060340
+dat_66060344
+dat_66060348
+dat_6606034c
+dat_66060350
+dat_66060354
+dat_66060358
+dat_6606035c
+dat_66060360
+dat_66060364
+dat_66060368
+dat_6606036c
+dat_66060370
+dat_66060374
+dat_66060378
+dat_6606037c
+dat_66060380
+dat_66060384
+dat_66060388
+dat_6606038c
+dat_66060390
+dat_66060394
+dat_66060398
+dat_6606039c
+dat_660603a0
+dat_660603a4
+dat_660603a8
+dat_660603d0
 dat_660603d4 ??_7QSvgWidget@@6BQPaintDevice@@@
+dat_660603d8
+dat_660603dc
+dat_660603e0
+dat_660603e4
+dat_660603e8
+dat_660603ec
+dat_660603f8
 dat_660603fc ??_7QSvgWidgetPrivate@@6B@
+dat_66060400
+dat_66060404
+dat_66060408
+dat_6606040c
+dat_66060410
+dat_66060414
+dat_66060418
+dat_6606041c
+dat_66060420
+dat_66060424
+dat_66060428
 dat_66060438 unk_66060438
 dat_66060488 aQgraphicssvgit char[]
 dat_66060499 aQRepaintitem
@@ -12383,9 +12668,72 @@ dat_66060ad8 aCWorkBuildQt5W_271
 dat_66060b30 aCWorkBuildQt5W_272
 dat_66060b88 aTheSpecifiedIt
 dat_66060bbc aQvectorInsert
+dat_66060d50
 dat_66060d54 ??_7QGraphicsSvgItem@@6BQObject@@@
+dat_66060d58
+dat_66060d5c
+dat_66060d60
+dat_66060d64
+dat_66060d68
+dat_66060d6c
+dat_66060d70
+dat_66060d74
+dat_66060d78
+dat_66060d7c
+dat_66060d8c
 dat_66060d90 ??_7QGraphicsSvgItem@@6BQGraphicsItem@@@
+dat_66060d94
+dat_66060d98
+dat_66060d9c
+dat_66060da0
+dat_66060da4
+dat_66060da8
+dat_66060dac
+dat_66060db0
+dat_66060db4
+dat_66060db8
+dat_66060dbc
+dat_66060dc0
+dat_66060dc4
+dat_66060dc8
+dat_66060dcc
+dat_66060dd0
+dat_66060dd4
+dat_66060dd8
+dat_66060ddc
+dat_66060de0
+dat_66060de4
+dat_66060de8
+dat_66060dec
+dat_66060df0
+dat_66060df4
+dat_66060df8
+dat_66060dfc
+dat_66060e00
+dat_66060e04
+dat_66060e08
+dat_66060e0c
+dat_66060e10
+dat_66060e14
+dat_66060e18
+dat_66060e1c
+dat_66060e40
 dat_66060e44 ??_7QGraphicsSvgItemPrivate@@6B@
+dat_66060e48
+dat_66060e4c
+dat_66060e50
+dat_66060e54
+dat_66060e58
+dat_66060e5c
+dat_66060e60
+dat_66060e64
+dat_66060e68
+dat_66060e6c
+dat_66060e70
+dat_66060e74
+dat_66060e78
+dat_66060e7c
+dat_66060e80
 dat_66060e94 a1QRepaintitem
 dat_66060ea6 aQgraphicssvgit_0
 dat_66060ec8 a2repaintneeded_4
@@ -12547,17 +12895,79 @@ dat_660628c0 asc_660628C0
 dat_660628c4 aDSizeAsize_20
 dat_660628d8 asc_660628D8
 dat_660628dc aText
+dat_66062e14
 dat_66062e18 ??_7QTextStream@@6B@
+dat_66062e20
 dat_66062e24 ??_7QFile@@6B@
+dat_66062e28
+dat_66062e2c
+dat_66062e30
+dat_66062e34
+dat_66062e38
+dat_66062e3c
+dat_66062e40
+dat_66062e44
+dat_66062e48
+dat_66062e4c
+dat_66062e50
+dat_66062e54
+dat_66062e58
+dat_66062e5c
+dat_66062e60
+dat_66062e64
+dat_66062e68
+dat_66062e6c
+dat_66062e70
+dat_66062e74
+dat_66062e78
+dat_66062e7c
+dat_66062e80
+dat_66062e84
+dat_66062e88
+dat_66062e8c
+dat_66062e90
+dat_66062e94
+dat_66062e98
+dat_66062e9c
+dat_66062ebc
 dat_66062ec0 ??_7QSvgGenerator@@6B@
+dat_66062ec4
+dat_66062ec8
+dat_66062ecc
+dat_66062ed0
+dat_66062ed4
+dat_66062ed8
+dat_66062ee4
 dat_66062ee8 ??_7QSvgPaintEnginePrivate@@6B@
+dat_66062eec
 dat_66062ef4 aQtSvgDocument char[]
 dat_66062f08 aGeneratedWithQ char[]
 dat_66062f20 aSerif char[]
 dat_66062f28 a10pt char[]
 dat_66062f30 aNormal_2 char[]
 dat_66062f38 aGradient1
+dat_66062f48
 dat_66062f4c ??_7QSvgPaintEngine@@6B@
+dat_66062f50
+dat_66062f54
+dat_66062f58
+dat_66062f5c
+dat_66062f60
+dat_66062f64
+dat_66062f68
+dat_66062f6c
+dat_66062f70
+dat_66062f74
+dat_66062f78
+dat_66062f7c
+dat_66062f80
+dat_66062f84
+dat_66062f88
+dat_66062f8c
+dat_66062f90
+dat_66062f94
+dat_66062f98
+dat_66062f9c
 dat_66062fb4 aQsvggeneratorC_11
 dat_66062fcc aIsactive
 dat_66062fdc aLineargradient char[]
@@ -12626,21 +13036,47 @@ dat_660634c0 unk_660634C0
 dat_66063510 aQsvgwidget char[]
 dat_6606351b aLoad_0
 dat_66063530 unk_66063530
+dat_66065794
 dat_66065798 ??_7error_category@std@@6B@
+dat_6606579c
+dat_660657a0
+dat_660657a4
+dat_660657a8
+dat_660657ac
+dat_660657b8
 dat_660657bc ??_7_Generic_error_category@std@@6B@
+dat_660657c0
+dat_660657c4
+dat_660657c8
+dat_660657cc
+dat_660657d0
 dat_660657dc aGeneric
 dat_660657e8 aUnknownError_1
+dat_660657f8
 dat_660657fc ??_7_Iostream_error_category@std@@6B@
+dat_66065800
+dat_66065804
+dat_66065808
+dat_6606580c
+dat_66065810
 dat_6606581c aIostream
 dat_66065828 aIostreamStream char[]
+dat_66065844
 dat_66065848 ??_7_System_error_category@std@@6B@
+dat_6606584c
+dat_66065850
+dat_66065854
+dat_66065858
+dat_6606585c
 dat_66065868 aSystem
 dat_66065870 aCProgramFilesM
 dat_6606590c aStringTooLong
 dat_66065920 aInvalidStringP
 dat_6606593c aInvalidNullPoi
+dat_66065970
 dat_66065974 ??_7type_info@@6B@
 dat_66065978 off_66065978
+dat_6606597c
 dat_66065980 aOnexitbeginNul
 dat_66065a44 aS_2
 dat_66065a50 aFDdVctoolsCrtC
@@ -12648,266 +13084,1211 @@ dat_66065aac aFDdVctoolsCrtC_0
 dat_66065adc dword_66065ADC
 dat_66065ae0 aFDdVctoolsCrtC_1
 dat_66065b20 __load_config_used
+dat_66065b24
+dat_66065b28
+dat_66065b2c
+dat_66065b30
+dat_66065b34
+dat_66065b38
+dat_66065b3c
+dat_66065b40
+dat_66065b44
+dat_66065b48
+dat_66065b4c
+dat_66065b50
+dat_66065b54
+dat_66065b56
+dat_66065b58
+dat_66065b5c
+dat_66065b60
+dat_66065b64
 dat_66065d90 asc_66065D90
+dat_66065d94  GUID
+dat_66065da4
+dat_66065da8
 dat_66065ddc unk_66065DDC
 dat_66065f04 ??_R4QSvgNode@@6B@
+dat_66065f08
+dat_66065f0c
+dat_66065f10
+dat_66065f14
 dat_66065f1c ??_R3QSvgNode@@8
+dat_66065f20
+dat_66065f24
+dat_66065f28
 dat_66065f30 ??_R2QSvgNode@@8
 dat_66065f38 ??_R1A@?0A@EA@QSvgNode@@8
+dat_66065f3c
+dat_66065f40
+dat_66065f44
+dat_66065f48
+dat_66065f4c
+dat_66065f50
 dat_66065f5c ??_R4QSvgFont@@6B@
+dat_66065f60
+dat_66065f64
+dat_66065f68
+dat_66065f6c
 dat_66065f74 ??_R3QSvgFont@@8
+dat_66065f78
+dat_66065f7c
+dat_66065f80
 dat_66065f88 ??_R2QSvgFont@@8
+dat_66065f8c
 dat_66065f94 ??_R1A@?0A@EA@QSvgFont@@8
+dat_66065f98
+dat_66065f9c
+dat_66065fa0
+dat_66065fa4
+dat_66065fa8
+dat_66065fac
 dat_66065fb8 ??_R1A@?0A@EA@QSvgRefCounted@@8
+dat_66065fbc
+dat_66065fc0
+dat_66065fc4
+dat_66065fc8
+dat_66065fcc
+dat_66065fd0
 dat_66065fdc ??_R3QSvgRefCounted@@8
+dat_66065fe0
+dat_66065fe4
+dat_66065fe8
 dat_66065ff0 ??_R2QSvgRefCounted@@8
 dat_66065ff8 ??_R4QSvgRefCounted@@6B@
+dat_66065ffc
+dat_66066000
+dat_66066004
+dat_66066008
 dat_66066010 ??_R4QSvgStyleProperty@@6B@
+dat_66066014
+dat_66066018
+dat_6606601c
+dat_66066020
 dat_66066028 ??_R3QSvgStyleProperty@@8
+dat_6606602c
+dat_66066030
+dat_66066034
 dat_6606603c ??_R2QSvgStyleProperty@@8
+dat_66066040
 dat_66066048 ??_R1A@?0A@EA@QSvgStyleProperty@@8
+dat_6606604c
+dat_66066050
+dat_66066054
+dat_66066058
+dat_6606605c
+dat_66066060
 dat_6606606c ??_R4QSvgFillStyleProperty@@6B@
+dat_66066070
+dat_66066074
+dat_66066078
+dat_6606607c
 dat_66066084 ??_R3QSvgFillStyleProperty@@8
+dat_66066088
+dat_6606608c
+dat_66066090
 dat_66066098 ??_R2QSvgFillStyleProperty@@8
+dat_6606609c
+dat_660660a0
 dat_660660a8 ??_R1A@?0A@EA@QSvgFillStyleProperty@@8
+dat_660660ac
+dat_660660b0
+dat_660660b4
+dat_660660b8
+dat_660660bc
+dat_660660c0
 dat_660660cc ??_R4QSvgQualityStyle@@6B@
+dat_660660d0
+dat_660660d4
+dat_660660d8
+dat_660660dc
 dat_660660e4 ??_R3QSvgQualityStyle@@8
+dat_660660e8
+dat_660660ec
+dat_660660f0
 dat_660660f8 ??_R2QSvgQualityStyle@@8
+dat_660660fc
+dat_66066100
 dat_66066108 ??_R1A@?0A@EA@QSvgQualityStyle@@8
+dat_6606610c
+dat_66066110
+dat_66066114
+dat_66066118
+dat_6606611c
+dat_66066120
 dat_6606612c ??_R4QSvgOpacityStyle@@6B@
+dat_66066130
+dat_66066134
+dat_66066138
+dat_6606613c
 dat_66066144 ??_R3QSvgOpacityStyle@@8
+dat_66066148
+dat_6606614c
+dat_66066150
 dat_66066158 ??_R2QSvgOpacityStyle@@8
+dat_6606615c
+dat_66066160
 dat_66066168 ??_R1A@?0A@EA@QSvgOpacityStyle@@8
+dat_6606616c
+dat_66066170
+dat_66066174
+dat_66066178
+dat_6606617c
+dat_66066180
 dat_6606618c ??_R4QSvgFillStyle@@6B@
+dat_66066190
+dat_66066194
+dat_66066198
+dat_6606619c
 dat_660661a4 ??_R3QSvgFillStyle@@8
+dat_660661a8
+dat_660661ac
+dat_660661b0
 dat_660661b8 ??_R2QSvgFillStyle@@8
+dat_660661bc
+dat_660661c0
 dat_660661c8 ??_R1A@?0A@EA@QSvgFillStyle@@8
+dat_660661cc
+dat_660661d0
+dat_660661d4
+dat_660661d8
+dat_660661dc
+dat_660661e0
 dat_660661ec ??_R4QSvgViewportFillStyle@@6B@
+dat_660661f0
+dat_660661f4
+dat_660661f8
+dat_660661fc
 dat_66066204 ??_R3QSvgViewportFillStyle@@8
+dat_66066208
+dat_6606620c
+dat_66066210
 dat_66066218 ??_R2QSvgViewportFillStyle@@8
+dat_6606621c
+dat_66066220
 dat_66066228 ??_R1A@?0A@EA@QSvgViewportFillStyle@@8
+dat_6606622c
+dat_66066230
+dat_66066234
+dat_66066238
+dat_6606623c
+dat_66066240
 dat_6606624c ??_R4QSvgFontStyle@@6B@
+dat_66066250
+dat_66066254
+dat_66066258
+dat_6606625c
 dat_66066264 ??_R3QSvgFontStyle@@8
+dat_66066268
+dat_6606626c
+dat_66066270
 dat_66066278 ??_R2QSvgFontStyle@@8
+dat_6606627c
+dat_66066280
 dat_66066288 ??_R1A@?0A@EA@QSvgFontStyle@@8
+dat_6606628c
+dat_66066290
+dat_66066294
+dat_66066298
+dat_6606629c
+dat_660662a0
 dat_660662ac ??_R4QSvgStrokeStyle@@6B@
+dat_660662b0
+dat_660662b4
+dat_660662b8
+dat_660662bc
 dat_660662c4 ??_R3QSvgStrokeStyle@@8
+dat_660662c8
+dat_660662cc
+dat_660662d0
 dat_660662d8 ??_R2QSvgStrokeStyle@@8
+dat_660662dc
+dat_660662e0
 dat_660662e8 ??_R1A@?0A@EA@QSvgStrokeStyle@@8
+dat_660662ec
+dat_660662f0
+dat_660662f4
+dat_660662f8
+dat_660662fc
+dat_66066300
 dat_6606630c ??_R4QSvgSolidColorStyle@@6B@
+dat_66066310
+dat_66066314
+dat_66066318
+dat_6606631c
 dat_66066324 ??_R3QSvgSolidColorStyle@@8
+dat_66066328
+dat_6606632c
+dat_66066330
 dat_66066338 ??_R2QSvgSolidColorStyle@@8
+dat_6606633c
+dat_66066340
+dat_66066344
 dat_6606634c ??_R1A@?0A@EA@QSvgSolidColorStyle@@8
+dat_66066350
+dat_66066354
+dat_66066358
+dat_6606635c
+dat_66066360
+dat_66066364
 dat_66066370 ??_R4QSvgGradientStyle@@6B@
+dat_66066374
+dat_66066378
+dat_6606637c
+dat_66066380
 dat_66066388 ??_R3QSvgGradientStyle@@8
+dat_6606638c
+dat_66066390
+dat_66066394
 dat_6606639c ??_R2QSvgGradientStyle@@8
+dat_660663a0
+dat_660663a4
+dat_660663a8
 dat_660663b0 ??_R1A@?0A@EA@QSvgGradientStyle@@8
+dat_660663b4
+dat_660663b8
+dat_660663bc
+dat_660663c0
+dat_660663c4
+dat_660663c8
 dat_660663d4 ??_R4QSvgTransformStyle@@6B@
+dat_660663d8
+dat_660663dc
+dat_660663e0
+dat_660663e4
 dat_660663ec ??_R3QSvgTransformStyle@@8
+dat_660663f0
+dat_660663f4
+dat_660663f8
 dat_66066400 ??_R2QSvgTransformStyle@@8
+dat_66066404
+dat_66066408
 dat_66066410 ??_R1A@?0A@EA@QSvgTransformStyle@@8
+dat_66066414
+dat_66066418
+dat_6606641c
+dat_66066420
+dat_66066424
+dat_66066428
 dat_66066434 ??_R4QSvgAnimateTransform@@6B@
+dat_66066438
+dat_6606643c
+dat_66066440
+dat_66066444
 dat_6606644c ??_R3QSvgAnimateTransform@@8
+dat_66066450
+dat_66066454
+dat_66066458
 dat_66066460 ??_R2QSvgAnimateTransform@@8
+dat_66066464
+dat_66066468
 dat_66066470 ??_R1A@?0A@EA@QSvgAnimateTransform@@8
+dat_66066474
+dat_66066478
+dat_6606647c
+dat_66066480
+dat_66066484
+dat_66066488
 dat_66066494 ??_R4QSvgAnimateColor@@6B@
+dat_66066498
+dat_6606649c
+dat_660664a0
+dat_660664a4
 dat_660664ac ??_R3QSvgAnimateColor@@8
+dat_660664b0
+dat_660664b4
+dat_660664b8
 dat_660664c0 ??_R2QSvgAnimateColor@@8
+dat_660664c4
+dat_660664c8
 dat_660664d0 ??_R1A@?0A@EA@QSvgAnimateColor@@8
+dat_660664d4
+dat_660664d8
+dat_660664dc
+dat_660664e0
+dat_660664e4
+dat_660664e8
 dat_660664f4 ??_R4QSvgCompOpStyle@@6B@
+dat_660664f8
+dat_660664fc
+dat_66066500
+dat_66066504
 dat_6606650c ??_R3QSvgCompOpStyle@@8
+dat_66066510
+dat_66066514
+dat_66066518
 dat_66066520 ??_R2QSvgCompOpStyle@@8
+dat_66066524
+dat_66066528
 dat_66066530 ??_R1A@?0A@EA@QSvgCompOpStyle@@8
+dat_66066534
+dat_66066538
+dat_6606653c
+dat_66066540
+dat_66066544
+dat_66066548
 dat_66066554 ??_R4QSvgAnimation@@6B@
+dat_66066558
+dat_6606655c
+dat_66066560
+dat_66066564
 dat_6606656c ??_R3QSvgAnimation@@8
+dat_66066570
+dat_66066574
+dat_66066578
 dat_66066580 ??_R2QSvgAnimation@@8
+dat_66066584
 dat_6606658c ??_R1A@?0A@EA@QSvgAnimation@@8
+dat_66066590
+dat_66066594
+dat_66066598
+dat_6606659c
+dat_660665a0
+dat_660665a4
 dat_660665b0 ??_R4QSvgArc@@6B@
+dat_660665b4
+dat_660665b8
+dat_660665bc
+dat_660665c0
 dat_660665c8 ??_R3QSvgArc@@8
+dat_660665cc
+dat_660665d0
+dat_660665d4
 dat_660665dc ??_R2QSvgArc@@8
+dat_660665e0
 dat_660665e8 ??_R1A@?0A@EA@QSvgArc@@8
+dat_660665ec
+dat_660665f0
+dat_660665f4
+dat_660665f8
+dat_660665fc
+dat_66066600
 dat_6606660c ??_R4QSvgEllipse@@6B@
+dat_66066610
+dat_66066614
+dat_66066618
+dat_6606661c
 dat_66066624 ??_R3QSvgEllipse@@8
+dat_66066628
+dat_6606662c
+dat_66066630
 dat_66066638 ??_R2QSvgEllipse@@8
+dat_6606663c
 dat_66066644 ??_R1A@?0A@EA@QSvgEllipse@@8
+dat_66066648
+dat_6606664c
+dat_66066650
+dat_66066654
+dat_66066658
+dat_6606665c
 dat_66066668 ??_R4QSvgCircle@@6B@
+dat_6606666c
+dat_66066670
+dat_66066674
+dat_66066678
 dat_66066680 ??_R3QSvgCircle@@8
+dat_66066684
+dat_66066688
+dat_6606668c
 dat_66066694 ??_R2QSvgCircle@@8
+dat_66066698
+dat_6606669c
 dat_660666a4 ??_R1A@?0A@EA@QSvgCircle@@8
+dat_660666a8
+dat_660666ac
+dat_660666b0
+dat_660666b4
+dat_660666b8
+dat_660666bc
 dat_660666c8 ??_R4QSvgImage@@6B@
+dat_660666cc
+dat_660666d0
+dat_660666d4
+dat_660666d8
 dat_660666e0 ??_R3QSvgImage@@8
+dat_660666e4
+dat_660666e8
+dat_660666ec
 dat_660666f4 ??_R2QSvgImage@@8
+dat_660666f8
 dat_66066700 ??_R1A@?0A@EA@QSvgImage@@8
+dat_66066704
+dat_66066708
+dat_6606670c
+dat_66066710
+dat_66066714
+dat_66066718
 dat_66066724 ??_R4QSvgLine@@6B@
+dat_66066728
+dat_6606672c
+dat_66066730
+dat_66066734
 dat_6606673c ??_R3QSvgLine@@8
+dat_66066740
+dat_66066744
+dat_66066748
 dat_66066750 ??_R2QSvgLine@@8
+dat_66066754
 dat_6606675c ??_R1A@?0A@EA@QSvgLine@@8
+dat_66066760
+dat_66066764
+dat_66066768
+dat_6606676c
+dat_66066770
+dat_66066774
 dat_66066780 ??_R4QSvgPath@@6B@
+dat_66066784
+dat_66066788
+dat_6606678c
+dat_66066790
 dat_66066798 ??_R3QSvgPath@@8
+dat_6606679c
+dat_660667a0
+dat_660667a4
 dat_660667ac ??_R2QSvgPath@@8
+dat_660667b0
 dat_660667b8 ??_R1A@?0A@EA@QSvgPath@@8
+dat_660667bc
+dat_660667c0
+dat_660667c4
+dat_660667c8
+dat_660667cc
+dat_660667d0
 dat_660667dc ??_R4QSvgPolygon@@6B@
+dat_660667e0
+dat_660667e4
+dat_660667e8
+dat_660667ec
 dat_660667f4 ??_R3QSvgPolygon@@8
+dat_660667f8
+dat_660667fc
+dat_66066800
 dat_66066808 ??_R2QSvgPolygon@@8
+dat_6606680c
 dat_66066814 ??_R1A@?0A@EA@QSvgPolygon@@8
+dat_66066818
+dat_6606681c
+dat_66066820
+dat_66066824
+dat_66066828
+dat_6606682c
 dat_66066838 ??_R4QSvgPolyline@@6B@
+dat_6606683c
+dat_66066840
+dat_66066844
+dat_66066848
 dat_66066850 ??_R3QSvgPolyline@@8
+dat_66066854
+dat_66066858
+dat_6606685c
 dat_66066864 ??_R2QSvgPolyline@@8
+dat_66066868
 dat_66066870 ??_R1A@?0A@EA@QSvgPolyline@@8
+dat_66066874
+dat_66066878
+dat_6606687c
+dat_66066880
+dat_66066884
+dat_66066888
 dat_66066894 ??_R4QSvgRect@@6B@
+dat_66066898
+dat_6606689c
+dat_660668a0
+dat_660668a4
 dat_660668ac ??_R3QSvgRect@@8
+dat_660668b0
+dat_660668b4
+dat_660668b8
 dat_660668c0 ??_R2QSvgRect@@8
+dat_660668c4
 dat_660668cc ??_R1A@?0A@EA@QSvgRect@@8
+dat_660668d0
+dat_660668d4
+dat_660668d8
+dat_660668dc
+dat_660668e0
+dat_660668e4
 dat_660668f0 ??_R4QSvgTspan@@6B@
+dat_660668f4
+dat_660668f8
+dat_660668fc
+dat_66066900
 dat_66066908 ??_R3QSvgTspan@@8
+dat_6606690c
+dat_66066910
+dat_66066914
 dat_6606691c ??_R2QSvgTspan@@8
+dat_66066920
 dat_66066928 ??_R1A@?0A@EA@QSvgTspan@@8
+dat_6606692c
+dat_66066930
+dat_66066934
+dat_66066938
+dat_6606693c
+dat_66066940
 dat_6606694c ??_R4QSvgText@@6B@
+dat_66066950
+dat_66066954
+dat_66066958
+dat_6606695c
 dat_66066964 ??_R3QSvgText@@8
+dat_66066968
+dat_6606696c
+dat_66066970
 dat_66066978 ??_R2QSvgText@@8
+dat_6606697c
 dat_66066984 ??_R1A@?0A@EA@QSvgText@@8
+dat_66066988
+dat_6606698c
+dat_66066990
+dat_66066994
+dat_66066998
+dat_6606699c
 dat_660669a8 ??_R4QSvgUse@@6B@
+dat_660669ac
+dat_660669b0
+dat_660669b4
+dat_660669b8
 dat_660669c0 ??_R3QSvgUse@@8
+dat_660669c4
+dat_660669c8
+dat_660669cc
 dat_660669d4 ??_R2QSvgUse@@8
+dat_660669d8
 dat_660669e0 ??_R1A@?0A@EA@QSvgUse@@8
+dat_660669e4
+dat_660669e8
+dat_660669ec
+dat_660669f0
+dat_660669f4
+dat_660669f8
 dat_66066a04 ??_R4QSvgTinyDocument@@6B@
+dat_66066a08
+dat_66066a0c
+dat_66066a10
+dat_66066a14
 dat_66066a1c ??_R3QSvgTinyDocument@@8
+dat_66066a20
+dat_66066a24
+dat_66066a28
 dat_66066a30 ??_R2QSvgTinyDocument@@8
+dat_66066a34
+dat_66066a38
 dat_66066a40 ??_R1A@?0A@EA@QSvgTinyDocument@@8
+dat_66066a44
+dat_66066a48
+dat_66066a4c
+dat_66066a50
+dat_66066a54
+dat_66066a58
 dat_66066a64 ??_R1A@?0A@EA@QSvgStructureNode@@8
+dat_66066a68
+dat_66066a6c
+dat_66066a70
+dat_66066a74
+dat_66066a78
+dat_66066a7c
 dat_66066a88 ??_R3QSvgStructureNode@@8
+dat_66066a8c
+dat_66066a90
+dat_66066a94
 dat_66066a9c ??_R2QSvgStructureNode@@8
+dat_66066aa0
 dat_66066aa8 ??_R4QSvgStyleSelector@@6B@
+dat_66066aac
+dat_66066ab0
+dat_66066ab4
+dat_66066ab8
 dat_66066ac0 ??_R3QSvgStyleSelector@@8
+dat_66066ac4
+dat_66066ac8
+dat_66066acc
 dat_66066ad4 ??_R2QSvgStyleSelector@@8
+dat_66066ad8
 dat_66066ae0 ??_R1A@?0A@EA@QSvgStyleSelector@@8
+dat_66066ae4
+dat_66066ae8
+dat_66066aec
+dat_66066af0
+dat_66066af4
+dat_66066af8
 dat_66066b04 ??_R1A@?0A@EA@StyleSelector@QCss@@8
+dat_66066b08
+dat_66066b0c
+dat_66066b10
+dat_66066b14
+dat_66066b18
+dat_66066b1c
 dat_66066b28 ??_R3StyleSelector@QCss@@8
+dat_66066b2c
+dat_66066b30
+dat_66066b34
 dat_66066b3c ??_R2StyleSelector@QCss@@8
 dat_66066b44 ??_R4QSvgDefs@@6B@
+dat_66066b48
+dat_66066b4c
+dat_66066b50
+dat_66066b54
 dat_66066b5c ??_R3QSvgDefs@@8
+dat_66066b60
+dat_66066b64
+dat_66066b68
 dat_66066b70 ??_R2QSvgDefs@@8
+dat_66066b74
+dat_66066b78
 dat_66066b80 ??_R1A@?0A@EA@QSvgDefs@@8
+dat_66066b84
+dat_66066b88
+dat_66066b8c
+dat_66066b90
+dat_66066b94
+dat_66066b98
 dat_66066ba4 ??_R4QSvgStructureNode@@6B@
+dat_66066ba8
+dat_66066bac
+dat_66066bb0
+dat_66066bb4
 dat_66066bbc ??_R4QSvgG@@6B@
+dat_66066bc0
+dat_66066bc4
+dat_66066bc8
+dat_66066bcc
 dat_66066bd4 ??_R3QSvgG@@8
+dat_66066bd8
+dat_66066bdc
+dat_66066be0
 dat_66066be8 ??_R2QSvgG@@8
+dat_66066bec
+dat_66066bf0
 dat_66066bf8 ??_R1A@?0A@EA@QSvgG@@8
+dat_66066bfc
+dat_66066c00
+dat_66066c04
+dat_66066c08
+dat_66066c0c
+dat_66066c10
 dat_66066c1c ??_R4QSvgSwitch@@6B@
+dat_66066c20
+dat_66066c24
+dat_66066c28
+dat_66066c2c
 dat_66066c34 ??_R3QSvgSwitch@@8
+dat_66066c38
+dat_66066c3c
+dat_66066c40
 dat_66066c48 ??_R2QSvgSwitch@@8
+dat_66066c4c
+dat_66066c50
 dat_66066c58 ??_R1A@?0A@EA@QSvgSwitch@@8
+dat_66066c5c
+dat_66066c60
+dat_66066c64
+dat_66066c68
+dat_66066c6c
+dat_66066c70
 dat_66066c7c ??_R1A@?0A@EA@QObject@@8
+dat_66066c80
+dat_66066c84
+dat_66066c88
+dat_66066c8c
+dat_66066c90
+dat_66066c94
 dat_66066ca0 ??_R3QObject@@8
+dat_66066ca4
+dat_66066ca8
+dat_66066cac
 dat_66066cb4 ??_R2QObject@@8
 dat_66066cbc ??_R4QTimer@@6B@
+dat_66066cc0
+dat_66066cc4
+dat_66066cc8
+dat_66066ccc
 dat_66066cd4 ??_R3QTimer@@8
+dat_66066cd8
+dat_66066cdc
+dat_66066ce0
 dat_66066ce8 ??_R2QTimer@@8
+dat_66066cec
 dat_66066cf4 ??_R1A@?0A@EA@QTimer@@8
+dat_66066cf8
+dat_66066cfc
+dat_66066d00
+dat_66066d04
+dat_66066d08
+dat_66066d0c
 dat_66066d18 ??_R4QSvgRendererPrivate@@6B@
+dat_66066d1c
+dat_66066d20
+dat_66066d24
+dat_66066d28
 dat_66066d30 ??_R3QSvgRendererPrivate@@8
+dat_66066d34
+dat_66066d38
+dat_66066d3c
 dat_66066d44 ??_R2QSvgRendererPrivate@@8
+dat_66066d48
+dat_66066d4c
 dat_66066d54 ??_R1A@?0A@EA@QSvgRendererPrivate@@8
+dat_66066d58
+dat_66066d5c
+dat_66066d60
+dat_66066d64
+dat_66066d68
+dat_66066d6c
 dat_66066d78 ??_R1A@?0A@EA@QObjectPrivate@@8
+dat_66066d7c
+dat_66066d80
+dat_66066d84
+dat_66066d88
+dat_66066d8c
+dat_66066d90
 dat_66066d9c ??_R3QObjectPrivate@@8
+dat_66066da0
+dat_66066da4
+dat_66066da8
 dat_66066db0 ??_R2QObjectPrivate@@8
+dat_66066db4
 dat_66066dbc ??_R1A@?0A@EA@QObjectData@@8
+dat_66066dc0
+dat_66066dc4
+dat_66066dc8
+dat_66066dcc
+dat_66066dd0
+dat_66066dd4
 dat_66066de0 ??_R3QObjectData@@8
+dat_66066de4
+dat_66066de8
+dat_66066dec
 dat_66066df4 ??_R2QObjectData@@8
 dat_66066dfc ??_R4QSvgRenderer@@6B@
+dat_66066e00
+dat_66066e04
+dat_66066e08
+dat_66066e0c
 dat_66066e14 ??_R3QSvgRenderer@@8
+dat_66066e18
+dat_66066e1c
+dat_66066e20
 dat_66066e28 ??_R2QSvgRenderer@@8
+dat_66066e2c
 dat_66066e34 ??_R1A@?0A@EA@QSvgRenderer@@8
+dat_66066e38
+dat_66066e3c
+dat_66066e40
+dat_66066e44
+dat_66066e48
+dat_66066e4c
 dat_66066e58 ??_R4QSvgWidgetPrivate@@6B@
+dat_66066e5c
+dat_66066e60
+dat_66066e64
+dat_66066e68
 dat_66066e70 ??_R3QSvgWidgetPrivate@@8
+dat_66066e74
+dat_66066e78
+dat_66066e7c
 dat_66066e84 ??_R2QSvgWidgetPrivate@@8
+dat_66066e88
+dat_66066e8c
+dat_66066e90
 dat_66066e98 ??_R1A@?0A@EA@QSvgWidgetPrivate@@8
+dat_66066e9c
+dat_66066ea0
+dat_66066ea4
+dat_66066ea8
+dat_66066eac
+dat_66066eb0
 dat_66066ebc ??_R1A@?0A@EA@QWidgetPrivate@@8
+dat_66066ec0
+dat_66066ec4
+dat_66066ec8
+dat_66066ecc
+dat_66066ed0
+dat_66066ed4
 dat_66066ee0 ??_R3QWidgetPrivate@@8
+dat_66066ee4
+dat_66066ee8
+dat_66066eec
 dat_66066ef4 ??_R2QWidgetPrivate@@8
+dat_66066ef8
+dat_66066efc
 dat_66066f04 ??_R4QSvgWidget@@6B@
+dat_66066f08
+dat_66066f0c
+dat_66066f10
+dat_66066f14
 dat_66066f1c ??_R3QSvgWidget@@8
+dat_66066f20
+dat_66066f24
+dat_66066f28
 dat_66066f30 ??_R2QSvgWidget@@8
+dat_66066f34
+dat_66066f38
+dat_66066f3c
 dat_66066f44 ??_R1A@?0A@EA@QSvgWidget@@8
+dat_66066f48
+dat_66066f4c
+dat_66066f50
+dat_66066f54
+dat_66066f58
+dat_66066f5c
 dat_66066f68 ??_R1A@?0A@EA@QWidget@@8
+dat_66066f6c
+dat_66066f70
+dat_66066f74
+dat_66066f78
+dat_66066f7c
+dat_66066f80
 dat_66066f8c ??_R3QWidget@@8
+dat_66066f90
+dat_66066f94
+dat_66066f98
 dat_66066fa0 ??_R2QWidget@@8
+dat_66066fa4
+dat_66066fa8
 dat_66066fb0 ??_R17?0A@EA@QPaintDevice@@8
+dat_66066fb4
+dat_66066fb8
+dat_66066fbc
+dat_66066fc0
+dat_66066fc4
+dat_66066fc8
 dat_66066fd4 ??_R3QPaintDevice@@8
+dat_66066fd8
+dat_66066fdc
+dat_66066fe0
 dat_66066fe8 ??_R2QPaintDevice@@8
 dat_66066ff0 ??_R1A@?0A@EA@QPaintDevice@@8
+dat_66066ff4
+dat_66066ff8
+dat_66066ffc
+dat_66067000
+dat_66067004
+dat_66067008
 dat_66067014 ??_R4QSvgWidget@@6B@_0
+dat_66067018
+dat_6606701c
+dat_66067020
+dat_66067024
 dat_6606702c ??_R4QGraphicsSvgItemPrivate@@6B@
+dat_66067030
+dat_66067034
+dat_66067038
+dat_6606703c
 dat_66067044 ??_R3QGraphicsSvgItemPrivate@@8
+dat_66067048
+dat_6606704c
+dat_66067050
 dat_66067058 ??_R2QGraphicsSvgItemPrivate@@8
+dat_6606705c
 dat_66067064 ??_R1A@?0A@EA@QGraphicsSvgItemPrivate@@8
+dat_66067068
+dat_6606706c
+dat_66067070
+dat_66067074
+dat_66067078
+dat_6606707c
 dat_66067088 ??_R1A@?0A@EA@QGraphicsItemPrivate@@8
+dat_6606708c
+dat_66067090
+dat_66067094
+dat_66067098
+dat_6606709c
+dat_660670a0
 dat_660670ac ??_R3QGraphicsItemPrivate@@8
+dat_660670b0
+dat_660670b4
+dat_660670b8
 dat_660670c0 ??_R2QGraphicsItemPrivate@@8
 dat_660670c8 ??_R4QGraphicsSvgItem@@6B@
+dat_660670cc
+dat_660670d0
+dat_660670d4
+dat_660670d8
 dat_660670e0 ??_R3QGraphicsSvgItem@@8
+dat_660670e4
+dat_660670e8
+dat_660670ec
 dat_660670f4 ??_R2QGraphicsSvgItem@@8
+dat_660670f8
+dat_660670fc
+dat_66067100
 dat_66067108 ??_R1A@?0A@EA@QGraphicsSvgItem@@8
+dat_6606710c
+dat_66067110
+dat_66067114
+dat_66067118
+dat_6606711c
+dat_66067120
 dat_6606712c ??_R1A@?0A@EA@QGraphicsObject@@8
+dat_66067130
+dat_66067134
+dat_66067138
+dat_6606713c
+dat_66067140
+dat_66067144
 dat_66067150 ??_R3QGraphicsObject@@8
+dat_66067154
+dat_66067158
+dat_6606715c
 dat_66067164 ??_R2QGraphicsObject@@8
+dat_66067168
+dat_6606716c
 dat_66067174 ??_R17?0A@EA@QGraphicsItem@@8
+dat_66067178
+dat_6606717c
+dat_66067180
+dat_66067184
+dat_66067188
+dat_6606718c
 dat_66067198 ??_R3QGraphicsItem@@8
+dat_6606719c
+dat_660671a0
+dat_660671a4
 dat_660671ac ??_R2QGraphicsItem@@8
 dat_660671b4 ??_R1A@?0A@EA@QGraphicsItem@@8
+dat_660671b8
+dat_660671bc
+dat_660671c0
+dat_660671c4
+dat_660671c8
+dat_660671cc
 dat_660671d8 ??_R4QGraphicsSvgItem@@6B@_0
+dat_660671dc
+dat_660671e0
+dat_660671e4
+dat_660671e8
 dat_660671f0 ??_R4QTextStream@@6B@
+dat_660671f4
+dat_660671f8
+dat_660671fc
+dat_66067200
 dat_66067208 ??_R3QTextStream@@8
+dat_6606720c
+dat_66067210
+dat_66067214
 dat_6606721c ??_R2QTextStream@@8
 dat_66067224 ??_R1A@?0A@EA@QTextStream@@8
+dat_66067228
+dat_6606722c
+dat_66067230
+dat_66067234
+dat_66067238
+dat_6606723c
 dat_66067248 ??_R4QFile@@6B@
+dat_6606724c
+dat_66067250
+dat_66067254
+dat_66067258
 dat_66067260 ??_R3QFile@@8
+dat_66067264
+dat_66067268
+dat_6606726c
 dat_66067274 ??_R2QFile@@8
+dat_66067278
+dat_6606727c
+dat_66067280
 dat_66067288 ??_R1A@?0A@EA@QFile@@8
+dat_6606728c
+dat_66067290
+dat_66067294
+dat_66067298
+dat_6606729c
+dat_660672a0
 dat_660672ac ??_R1A@?0A@EA@QFileDevice@@8
+dat_660672b0
+dat_660672b4
+dat_660672b8
+dat_660672bc
+dat_660672c0
+dat_660672c4
 dat_660672d0 ??_R3QFileDevice@@8
+dat_660672d4
+dat_660672d8
+dat_660672dc
 dat_660672e4 ??_R2QFileDevice@@8
+dat_660672e8
+dat_660672ec
 dat_660672f4 ??_R1A@?0A@EA@QIODevice@@8
+dat_660672f8
+dat_660672fc
+dat_66067300
+dat_66067304
+dat_66067308
+dat_6606730c
 dat_66067318 ??_R3QIODevice@@8
+dat_6606731c
+dat_66067320
+dat_66067324
 dat_6606732c ??_R2QIODevice@@8
+dat_66067330
 dat_66067338 ??_R4QSvgGenerator@@6B@
+dat_6606733c
+dat_66067340
+dat_66067344
+dat_66067348
 dat_66067350 ??_R3QSvgGenerator@@8
+dat_66067354
+dat_66067358
+dat_6606735c
 dat_66067364 ??_R2QSvgGenerator@@8
+dat_66067368
 dat_66067370 ??_R1A@?0A@EA@QSvgGenerator@@8
+dat_66067374
+dat_66067378
+dat_6606737c
+dat_66067380
+dat_66067384
+dat_66067388
 dat_66067394 ??_R4QSvgPaintEnginePrivate@@6B@
+dat_66067398
+dat_6606739c
+dat_660673a0
+dat_660673a4
 dat_660673ac ??_R3QSvgPaintEnginePrivate@@8
+dat_660673b0
+dat_660673b4
+dat_660673b8
 dat_660673c0 ??_R2QSvgPaintEnginePrivate@@8
+dat_660673c4
 dat_660673cc ??_R1A@?0A@EA@QSvgPaintEnginePrivate@@8
+dat_660673d0
+dat_660673d4
+dat_660673d8
+dat_660673dc
+dat_660673e0
+dat_660673e4
 dat_660673f0 ??_R1A@?0A@EA@QPaintEnginePrivate@@8
+dat_660673f4
+dat_660673f8
+dat_660673fc
+dat_66067400
+dat_66067404
+dat_66067408
 dat_66067414 ??_R3QPaintEnginePrivate@@8
+dat_66067418
+dat_6606741c
+dat_66067420
 dat_66067428 ??_R2QPaintEnginePrivate@@8
 dat_66067430 ??_R4QSvgPaintEngine@@6B@
+dat_66067434
+dat_66067438
+dat_6606743c
+dat_66067440
 dat_66067448 ??_R3QSvgPaintEngine@@8
+dat_6606744c
+dat_66067450
+dat_66067454
 dat_6606745c ??_R2QSvgPaintEngine@@8
+dat_66067460
 dat_66067468 ??_R1A@?0A@EA@QSvgPaintEngine@@8
+dat_6606746c
+dat_66067470
+dat_66067474
+dat_66067478
+dat_6606747c
+dat_66067480
 dat_6606748c ??_R1A@?0A@EA@QPaintEngine@@8
+dat_66067490
+dat_66067494
+dat_66067498
+dat_6606749c
+dat_660674a0
+dat_660674a4
 dat_660674b0 ??_R3QPaintEngine@@8
+dat_660674b4
+dat_660674b8
+dat_660674bc
 dat_660674c4 ??_R2QPaintEngine@@8
 dat_660674cc ??_R4error_category@std@@6B@
+dat_660674d0
+dat_660674d4
+dat_660674d8
+dat_660674dc
 dat_660674e4 ??_R3error_category@std@@8
+dat_660674e8
+dat_660674ec
+dat_660674f0
 dat_660674f8 ??_R2error_category@std@@8
 dat_66067500 ??_R1A@?0A@EA@error_category@std@@8
+dat_66067504
+dat_66067508
+dat_6606750c
+dat_66067510
+dat_66067514
+dat_66067518
 dat_66067524 ??_R4_Generic_error_category@std@@6B@
+dat_66067528
+dat_6606752c
+dat_66067530
+dat_66067534
 dat_6606753c ??_R3_Generic_error_category@std@@8
+dat_66067540
+dat_66067544
+dat_66067548
 dat_66067550 ??_R2_Generic_error_category@std@@8
+dat_66067554
 dat_6606755c ??_R1A@?0A@EA@_Generic_error_category@std@@8
+dat_66067560
+dat_66067564
+dat_66067568
+dat_6606756c
+dat_66067570
+dat_66067574
 dat_66067580 ??_R4_Iostream_error_category@std@@6B@
+dat_66067584
+dat_66067588
+dat_6606758c
+dat_66067590
 dat_66067598 ??_R3_Iostream_error_category@std@@8
+dat_6606759c
+dat_660675a0
+dat_660675a4
 dat_660675ac ??_R2_Iostream_error_category@std@@8
+dat_660675b0
+dat_660675b4
 dat_660675bc ??_R1A@?0A@EA@_Iostream_error_category@std@@8
+dat_660675c0
+dat_660675c4
+dat_660675c8
+dat_660675cc
+dat_660675d0
+dat_660675d4
 dat_660675e0 ??_R4_System_error_category@std@@6B@
+dat_660675e4
+dat_660675e8
+dat_660675ec
+dat_660675f0
 dat_660675f8 ??_R3_System_error_category@std@@8
+dat_660675fc
+dat_66067600
+dat_66067604
 dat_6606760c ??_R2_System_error_category@std@@8
+dat_66067610
+dat_66067614
 dat_6606761c ??_R1A@?0A@EA@_System_error_category@std@@8
+dat_66067620
+dat_66067624
+dat_66067628
+dat_6606762c
+dat_66067630
+dat_66067634
 dat_66067640 ??_R4type_info@@6B@
+dat_66067644
+dat_66067648
+dat_6606764c
+dat_66067650
 dat_66067654 ??_R3type_info@@8
+dat_66067658
+dat_6606765c
+dat_66067660
 dat_66067664 ??_R2type_info@@8
 dat_6606766c ??_R1A@?0A@EA@type_info@@8
+dat_66067670
+dat_66067674
+dat_66067678
+dat_6606767c
+dat_66067680
+dat_66067684
 dat_66067840 ___safe_se_handler_table
 dat_66067948 unk_66067948
 dat_66067a48 unk_66067A48
@@ -12918,6 +14299,17 @@ dat_66067d78 stru_66067D78 _EH4_SCOPETABLE
 dat_66067da0 stru_66067DA0 _EH4_SCOPETABLE
 dat_66067dc0 stru_66067DC0 _EH4_SCOPETABLE
 dat_66067de0 stru_66067DE0 _EH4_SCOPETABLE
+dat_66067f20
+dat_66067f24
+dat_66067f28
+dat_66067f2a
+dat_66067f2c
+dat_66067f30
+dat_66067f34
+dat_66067f38
+dat_66067f3c
+dat_66067f40
+dat_66067f44
 dat_66067f48 off_66067F48
 dat_660687dc off_660687DC
 dat_66069070 word_66069070
@@ -13473,144 +14865,316 @@ dat_6606f0a5 aWidthpercentQs
 dat_6606f0cd aXmlclassQsvgno
 dat_66071000 off_66071000 char *
 dat_66071008 off_66071008 char *
+dat_6607100c
+dat_66071010
+dat_66071014
+dat_66071018
+dat_6607101c
+dat_66071020
+dat_66071024
+dat_66071028
+dat_6607102c
+dat_66071030
+dat_66071034
+dat_66071038
+dat_6607103c
+dat_66071040
+dat_66071044
+dat_66071048
+dat_6607104c
 dat_66071060 word_66071060
 dat_66071068 off_66071068 char *
+dat_6607106c
+dat_66071070
+dat_66071074
+dat_66071078
+dat_6607107c
+dat_66071080
+dat_66071084
+dat_66071088
+dat_6607108c
+dat_66071090
+dat_66071094
+dat_66071098
+dat_6607109c
+dat_660710a0
+dat_660710a4
+dat_660710a8
+dat_660710ac
+dat_660710b0
+dat_660710b4
+dat_660710b8
+dat_660710bc
+dat_660710c0
+dat_660710c4
+dat_660710c8
+dat_660710cc
+dat_660710d0
+dat_660710d4
+dat_660710d8
+dat_660710dc
+dat_660710e0
+dat_660710e4
+dat_660710e8
+dat_660710ec
+dat_660710f0
+dat_660710f4
+dat_660710f8
+dat_660710fc
+dat_66071100
+dat_66071104
+dat_66071108
+dat_6607110c
+dat_66071110
+dat_66071114
+dat_66071118
+dat_6607111c
+dat_66071120
+dat_66071124
+dat_66071128
+dat_6607112c
+dat_66071130
+dat_66071134
+dat_66071138
+dat_6607113c
+dat_66071140
+dat_66071144
+dat_66071148
+dat_6607114c
+dat_66071150
+dat_66071154
+dat_66071158
+dat_6607115c
+dat_66071160
+dat_66071164
+dat_66071168
+dat_6607116c
+dat_66071170
+dat_66071174
+dat_66071178
+dat_6607117c
+dat_66071180
+dat_66071184
+dat_66071188
+dat_6607118c
+dat_66071190
+dat_66071194
+dat_66071198
+dat_6607119c
+dat_660711a0
+dat_660711a4
+dat_660711a8
+dat_660711ac
+dat_660711b0
+dat_660711b4
+dat_660711b8
+dat_660711bc
+dat_660711c0
+dat_660711c4
+dat_660711c8
 dat_66071220 ___security_cookie
 dat_66071224 dword_66071224
 dat_66071228 dword_66071228
 dat_66071334 ??_R0?AVQSvgNode@@@8
+dat_66071338
 dat_6607133c aAvqsvgnode
 dat_66071350 ??_R0?AVQSvgFont@@@8
+dat_66071354
 dat_66071358 aAvqsvgfont
 dat_6607136c ??_R0?AVQSvgRefCounted@@@8
+dat_66071370
 dat_66071374 aAvqsvgrefcount
 dat_66071390 ??_R0?AVQSvgStyleProperty@@@8
+dat_66071394
 dat_66071398 aAvqsvgstylepro
 dat_660713b8 ??_R0?AVQSvgFillStyleProperty@@@8
+dat_660713bc
 dat_660713c0 aAvqsvgfillstyl_0
 dat_660713e4 ??_R0?AVQSvgQualityStyle@@@8
+dat_660713e8
 dat_660713ec aAvqsvgqualitys
 dat_6607140c ??_R0?AVQSvgOpacityStyle@@@8
+dat_66071410
 dat_66071414 aAvqsvgopacitys
 dat_66071434 ??_R0?AVQSvgFillStyle@@@8
+dat_66071438
 dat_6607143c aAvqsvgfillstyl
 dat_66071458 ??_R0?AVQSvgViewportFillStyle@@@8
+dat_6607145c
 dat_66071460 aAvqsvgviewport
 dat_66071484 ??_R0?AVQSvgFontStyle@@@8
+dat_66071488
 dat_6607148c aAvqsvgfontstyl
 dat_660714a8 ??_R0?AVQSvgStrokeStyle@@@8
+dat_660714ac
 dat_660714b0 aAvqsvgstrokest
 dat_660714cc ??_R0?AVQSvgSolidColorStyle@@@8
+dat_660714d0
 dat_660714d4 aAvqsvgsolidcol
 dat_660714f4 ??_R0?AVQSvgGradientStyle@@@8
+dat_660714f8
 dat_660714fc aAvqsvggradient
 dat_6607151c ??_R0?AVQSvgTransformStyle@@@8
+dat_66071520
 dat_66071524 aAvqsvgtransfor
 dat_66071544 ??_R0?AVQSvgAnimateTransform@@@8
+dat_66071548
 dat_6607154c aAvqsvganimatet
 dat_66071570 ??_R0?AVQSvgAnimateColor@@@8
+dat_66071574
 dat_66071578 aAvqsvganimatec
 dat_66071598 ??_R0?AVQSvgCompOpStyle@@@8
+dat_6607159c
 dat_660715a0 aAvqsvgcompopst
 dat_660715bc ??_R0?AVQSvgAnimation@@@8
+dat_660715c0
 dat_660715c4 aAvqsvganimatio
 dat_660715e0 ??_R0?AVQSvgArc@@@8
+dat_660715e4
 dat_660715e8 aAvqsvgarc
 dat_660715fc ??_R0?AVQSvgEllipse@@@8
+dat_66071600
 dat_66071604 aAvqsvgellipse
 dat_6607161c ??_R0?AVQSvgCircle@@@8
+dat_66071620
 dat_66071624 aAvqsvgcircle
 dat_6607163c ??_R0?AVQSvgImage@@@8
+dat_66071640
 dat_66071644 aAvqsvgimage
 dat_66071658 ??_R0?AVQSvgLine@@@8
+dat_6607165c
 dat_66071660 aAvqsvgline
 dat_66071674 ??_R0?AVQSvgPath@@@8
+dat_66071678
 dat_6607167c aAvqsvgpath
 dat_66071690 ??_R0?AVQSvgPolygon@@@8
+dat_66071694
 dat_66071698 aAvqsvgpolygon
 dat_660716b0 ??_R0?AVQSvgPolyline@@@8
+dat_660716b4
 dat_660716b8 aAvqsvgpolyline
 dat_660716d0 ??_R0?AVQSvgRect@@@8
+dat_660716d4
 dat_660716d8 aAvqsvgrect
 dat_660716ec ??_R0?AVQSvgTspan@@@8
+dat_660716f0
 dat_660716f4 aAvqsvgtspan
 dat_66071708 ??_R0?AVQSvgText@@@8
+dat_6607170c
 dat_66071710 aAvqsvgtext
 dat_66071724 ??_R0?AVQSvgUse@@@8
+dat_66071728
 dat_6607172c aAvqsvguse
 dat_66071740 ??_R0?AVQSvgTinyDocument@@@8
+dat_66071744
 dat_66071748 aAvqsvgtinydocu
 dat_66071768 ??_R0?AVQSvgStructureNode@@@8
+dat_6607176c
 dat_66071770 aAvqsvgstructur
 dat_66071790 ??_R0?AVQSvgStyleSelector@@@8
+dat_66071794
 dat_66071798 aAvqsvgstylesel
 dat_660717b8 ??_R0?AVStyleSelector@QCss@@@8
+dat_660717bc
 dat_660717c0 aAvstyleselecto
 dat_660717e0 ??_R0?AVQSvgDefs@@@8
+dat_660717e4
 dat_660717e8 aAvqsvgdefs
 dat_660717fc ??_R0?AVQSvgG@@@8
+dat_66071800
 dat_66071804 aAvqsvgg
 dat_66071814 ??_R0?AVQSvgSwitch@@@8
+dat_66071818
 dat_6607181c aAvqsvgswitch
 dat_66071834 ??_R0?AVQObject@@@8
+dat_66071838
 dat_6607183c aAvqobject
 dat_66071850 ??_R0?AVQTimer@@@8
+dat_66071854
 dat_66071858 aAvqtimer
 dat_6607186c ??_R0?AVQSvgRendererPrivate@@@8
+dat_66071870
 dat_66071874 aAvqsvgrenderer_0
 dat_66071894 ??_R0?AVQObjectPrivate@@@8
+dat_66071898
 dat_6607189c aAvqobjectpriva
 dat_660718b8 ??_R0?AVQObjectData@@@8
+dat_660718bc
 dat_660718c0 aAvqobjectdata
 dat_660718d8 ??_R0?AVQSvgRenderer@@@8
+dat_660718dc
 dat_660718e0 aAvqsvgrenderer
 dat_660718f8 ??_R0?AVQSvgWidgetPrivate@@@8
+dat_660718fc
 dat_66071900 aAvqsvgwidgetpr
 dat_66071920 ??_R0?AVQWidgetPrivate@@@8
+dat_66071924
 dat_66071928 aAvqwidgetpriva
 dat_66071944 ??_R0?AVQSvgWidget@@@8
+dat_66071948
 dat_6607194c aAvqsvgwidget
 dat_66071964 ??_R0?AVQWidget@@@8
+dat_66071968
 dat_6607196c aAvqwidget
 dat_66071980 ??_R0?AVQPaintDevice@@@8
+dat_66071984
 dat_66071988 aAvqpaintdevice
 dat_660719a0 ??_R0?AVQGraphicsSvgItemPrivate@@@8
+dat_660719a4
 dat_660719a8 aAvqgraphicssvg_0
 dat_660719d0 ??_R0?AVQGraphicsItemPrivate@@@8
+dat_660719d4
 dat_660719d8 aAvqgraphicsite_0
 dat_660719fc ??_R0?AVQGraphicsSvgItem@@@8
+dat_66071a00
 dat_66071a04 aAvqgraphicssvg
 dat_66071a24 ??_R0?AVQGraphicsObject@@@8
+dat_66071a28
 dat_66071a2c aAvqgraphicsobj
 dat_66071a48 ??_R0?AVQGraphicsItem@@@8
+dat_66071a4c
 dat_66071a50 aAvqgraphicsite
 dat_66071a6c ??_R0?AVQTextStream@@@8
+dat_66071a70
 dat_66071a74 aAvqtextstream
 dat_66071a8c ??_R0?AVQFile@@@8
+dat_66071a90
 dat_66071a94 aAvqfile
 dat_66071aa4 ??_R0?AVQFileDevice@@@8
+dat_66071aa8
 dat_66071aac aAvqfiledevice
 dat_66071ac4 ??_R0?AVQIODevice@@@8
+dat_66071ac8
 dat_66071acc aAvqiodevice
 dat_66071ae0 ??_R0?AVQSvgGenerator@@@8
+dat_66071ae4
 dat_66071ae8 aAvqsvggenerato
 dat_66071b04 ??_R0?AVQSvgPaintEnginePrivate@@@8
+dat_66071b08
 dat_66071b0c aAvqsvgpainteng_0
 dat_66071b30 ??_R0?AVQPaintEnginePrivate@@@8
+dat_66071b34
 dat_66071b38 aAvqpaintengine_0
 dat_66071b58 ??_R0?AVQSvgPaintEngine@@@8
+dat_66071b5c
 dat_66071b60 aAvqsvgpainteng
 dat_66071b7c ??_R0?AVQPaintEngine@@@8
+dat_66071b80
 dat_66071b84 aAvqpaintengine
 dat_66071b9c ??_R0?AVerror_category@std@@@8
+dat_66071ba0
 dat_66071ba4 aAverrorCategor
 dat_66071bc4 ??_R0?AV_Generic_error_category@std@@@8
+dat_66071bc8
 dat_66071bcc aAvGenericError
 dat_66071bf8 ??_R0?AV_Iostream_error_category@std@@@8
+dat_66071bfc
 dat_66071c00 aAvIostreamErro
 dat_66071c2c ??_R0?AV_System_error_category@std@@@8
+dat_66071c30
 dat_66071c34 aAvSystemErrorC
 dat_66071c60 ??_R0?AVtype_info@@@8
+dat_66071c64
 dat_66071c68 aAvtypeInfo
 dat_66071db0 ?staticMetaObject@QSvgRenderer@@2UQMetaObject@@B
 dat_66071db4 dword_66071DB4

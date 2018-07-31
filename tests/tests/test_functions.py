@@ -351,6 +351,15 @@ idc.del_items(ea, idc.DELIT_EXPAND, 0x2c)
 
     def test_data_in_func_to_undef_and_back(self):
         a, b = self.setup_repos()
+        # remove noise at 0x66001000
+        a.run(
+            self.script("""
+ea = 0x66001000
+idaapi.set_name(ea, "")
+"""),
+        )
+        a.check_git(added=["binary", "segment", "segment_chunk", "data"])
+
         ea = 0x66038DB0
         a.run(
             self.script("""
@@ -362,7 +371,7 @@ ida_auto.plan_and_wait(ea, ea+0x1f0)
 """),
             self.save_ea(ea),
         )
-        a.check_git(added=["binary", "segment", "segment_chunk", "function", "stackframe", "data"] +
+        a.check_git(added=["segment_chunk", "function", "stackframe", "data"] +
             ["stackframe_member"] * 7 + ["basic_block"] * 15)
 
         b.run(
