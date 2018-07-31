@@ -40,25 +40,38 @@ ida_bytes.set_cmt(ea, "some comment", 0)
 0x413b9c: data: data strlit ref labl name
 """)
 
-    def test_extra_line_on_unexplored_data(self):
+    def test_extra_line_on_data(self):
         a, b = self.setup_cmder()
         a.run(
             self.script("""
-ea = 0x413B53
+ea = 0x414204
+ida_lines.add_extra_line(ea, True, "some prev line")
+ea = 0x41421C
 ida_lines.add_extra_line(ea, True, "some prev line")
 """),
-            self.save_last_ea(),
+            self.save_ea(0x414204),
+            self.save_ea(0x41421C),
         )
-        a.check_git(added=["binary", "segment", "segment_chunk", "data"])
+        a.check_git(added=["binary", "segment", "segment_chunk"] + ["data"] * 2)
 
         b.run(
-            self.check_last_ea(),
+            self.check_ea(0x414204),
+            self.check_ea(0x41421C),
+            self.script("""
+ea = 0x414204
+ida_lines.del_extra_cmt(ea, ida_lines.E_PREV)
+ea = 0x41421C
+ida_lines.del_extra_cmt(ea, ida_lines.E_PREV)
+"""),
+            self.save_ea(0x414204),
+            self.save_ea(0x41421C),
         )
-        self.check_range(b, 0x413B40, 0x413BA4, """
-0x413b40: data: data byte ref labl
-0x413b53: unexplored: unkn line
-0x413b9c: data: data strlit ref labl name
-""")
+        b.check_git(modified=["segment_chunk", "data"], deleted=["data"])
+
+        a.run(
+            self.check_ea(0x414204),
+            self.check_ea(0x41421C),
+        )
 
     def test_invsign_on_data(self):
         a, b = self.setup_cmder()

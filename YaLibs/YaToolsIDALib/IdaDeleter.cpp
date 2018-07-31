@@ -80,6 +80,8 @@ namespace
     {
         const auto ea    = static_cast<ea_t>(hver.address());
         const auto flags = get_flags(ea);
+        del_extra_cmt(ea, E_PREV);
+        del_extra_cmt(ea, E_NEXT);
         if(is_invsign(ea, flags, 0))
             toggle_sign(ea, 0);
         if(is_bnot(ea, flags, 0))
