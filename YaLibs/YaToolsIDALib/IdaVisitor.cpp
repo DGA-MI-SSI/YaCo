@@ -1213,11 +1213,24 @@ namespace
             LOG(ERROR, "make_data: 0x%" PRIxEA " unable to set invsign to %s", ea, want ? "true" : "false");
     }
 
+    void make_bnot(ea_t ea, int n, flags_t flags, flags_t want_flags)
+    {
+        const auto got  = is_bnot(ea, flags, n);
+        const auto want = is_bnot(ea, want_flags, n);
+        if(got == want)
+            return;
+
+        const auto ok = toggle_bnot(ea, 0);
+        if(!ok)
+            LOG(ERROR, "make_data: 0x%" PRIxEA " unable to set bnot to %s", ea, want ? "true" : "false");
+    }
+
     void make_flags(ea_t ea, const HVersion& version)
     {
         const auto flags        = get_flags(ea);
         const auto want_flags   = version.flags();
         make_sign(ea, 0, flags, want_flags);
+        make_bnot(ea, 0, flags, want_flags);
     }
 
     void make_data(Visitor& visitor, const HVersion& version, ea_t ea)

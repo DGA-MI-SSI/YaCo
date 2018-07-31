@@ -101,3 +101,45 @@ ida_bytes.toggle_sign(ea, 0)
             self.check_ea(0x414204),
             self.check_ea(0x41421C),
         )
+
+    def test_bnot_on_data(self):
+        a, b = self.setup_cmder()
+
+        # IDA does not always send bnot events
+        # abuse create_byte as a workaround
+        a.run(
+            self.script("""
+ea = 0x414204
+ida_bytes.create_byte(ea, 1)
+ida_bytes.toggle_bnot(ea, 0)
+ea = 0x41421C
+ida_bytes.create_byte(ea, 1)
+ida_bytes.toggle_bnot(ea, 0)
+"""),
+            self.save_ea(0x414204),
+            self.save_ea(0x41421C),
+        )
+        a.check_git(added=["binary", "segment", "segment_chunk"] + ["data"] * 2)
+
+        # untoggle bnot
+        b.run(
+            self.check_ea(0x414204),
+            self.check_ea(0x41421C),
+            self.script("""
+ea = 0x414204
+ida_bytes.create_byte(ea, 1)
+ida_bytes.toggle_bnot(ea, 0)
+ea = 0x41421C
+ida_bytes.create_byte(ea, 1)
+ida_bytes.toggle_bnot(ea, 0)
+"""),
+            self.save_ea(0x414204),
+            self.save_ea(0x41421C),
+        )
+        # one data is modified, one data become uninteresting & is deleted
+        b.check_git(modified=["segment_chunk", "data"], deleted=["data"])
+
+        a.run(
+            self.check_ea(0x414204),
+            self.check_ea(0x41421C),
+        )

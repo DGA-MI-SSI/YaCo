@@ -82,6 +82,8 @@ namespace
         const auto flags = get_flags(ea);
         if(is_invsign(ea, flags, 0))
             toggle_sign(ea, 0);
+        if(is_bnot(ea, flags, 0))
+            toggle_bnot(ea, 0);
         const auto ok = del_items(ea, DELIT_EXPAND, static_cast<asize_t>(hver.size()));
         if(!ok)
             LOG(ERROR, "unable to delete data 0x%0" EA_SIZE PRIXEA "\n", ea);
