@@ -77,9 +77,14 @@ idc.set_func_end(ea, ea+0x6C)
         full = None
         golden_filename = "test_get_all_items.700.golden"
         expected_path = os.path.join(os.path.dirname(inspect.getsourcefile(lambda:0)), golden_filename)
+        a, _ = self.setup_repos()
+        if False:
+            got = self.check_range(a, 0x66001000, 0x66073F5C, None)
+            with open(expected_path, "wb") as fw:
+                with open(got, "rb") as fr:
+                    fw.write(fr.read())
         with open(expected_path, "rb") as fh:
             full = fh.read()
-        a, _ = self.setup_repos()
         self.check_range(a, 0x66001000, 0x66073F5C, full)
 
     def test_undefined_data_items(self):

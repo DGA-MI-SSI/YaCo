@@ -321,15 +321,17 @@ class Fixture(unittest.TestCase):
             self.item_range = filename
         return script, callback
 
-    def check_item_range(self, got=""):
-        got = got.lstrip()
+    def check_item_range(self, want):
+        want = want.lstrip()
         filename = self.item_range
-        return self.check_diff("", got)(filename)
+        return self.check_diff("", want)(filename)
 
     def check_range(self, a, start, end, want):
         a.run(
             self.save_item_range(start, end),
         )
+        if not want:
+            return self.item_range
         self.check_item_range(want)
 
     def set_master(self, repo, master):
