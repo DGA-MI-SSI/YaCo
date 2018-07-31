@@ -419,7 +419,7 @@ namespace
         for(const auto p : ev.strucs_)
         {
             // if frame, we need to update parent function
-            if(p.second.func_ea != BADADDR)
+            if(get_func(p.second.func_ea))
                 model.accept_function(visitor, p.second.func_ea);
             if(try_accept_struc(p.first, p.second, *qbuf))
                 model.accept_struct(visitor, p.second.func_ea, p.second.id);
