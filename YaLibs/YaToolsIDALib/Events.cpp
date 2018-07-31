@@ -516,7 +516,7 @@ namespace
         ea = get_item_head(ea);
         const auto got = hash::hash_ea(ea);
         const auto flags = get_flags(ea);
-        if(got != id || !is_data(flags))
+        if(got != id || !ya::need_item(flags))
         {
             model.delete_version(visitor, OBJECT_TYPE_DATA, id);
             model.accept_ea(visitor, ea);

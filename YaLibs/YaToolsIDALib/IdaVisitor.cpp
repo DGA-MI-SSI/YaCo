@@ -1201,11 +1201,31 @@ namespace
             LOG(ERROR, "make_data: 0x%" PRIxEA " unable to set data type 0x%" PRIx64 " size %zd\n", ea, static_cast<uint64_t>(type_flags), size);
     }
 
+    void make_sign(ea_t ea, int n, flags_t flags, flags_t want_flags)
+    {
+        const auto got  = is_invsign(ea, flags, n);
+        const auto want = is_invsign(ea, want_flags, n);
+        if(got == want)
+            return;
+
+        const auto ok = toggle_sign(ea, 0);
+        if(!ok)
+            LOG(ERROR, "make_data: 0x%" PRIxEA " unable to set invsign to %s", ea, want ? "true" : "false");
+    }
+
+    void make_flags(ea_t ea, const HVersion& version)
+    {
+        const auto flags        = get_flags(ea);
+        const auto want_flags   = version.flags();
+        make_sign(ea, 0, flags, want_flags);
+    }
+
     void make_data(Visitor& visitor, const HVersion& version, ea_t ea)
     {
         set_data_type(visitor, version, ea);
         make_name(visitor, version, ea);
         set_type(ea, make_string(version.prototype()));
+        make_flags(ea, version);
     }
 
     bool is_member(const Visitor& visitor, YaToolObjectId parent, YaToolObjectId id)

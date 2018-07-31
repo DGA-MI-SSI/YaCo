@@ -78,8 +78,11 @@ namespace
 
     void delete_data(const HVersion& hver)
     {
-        const auto ea = static_cast<ea_t>(hver.address());
-        const auto ok = del_items(ea, DELIT_EXPAND);
+        const auto ea    = static_cast<ea_t>(hver.address());
+        const auto flags = get_flags(ea);
+        if(is_invsign(ea, flags, 0))
+            toggle_sign(ea, 0);
+        const auto ok = del_items(ea, DELIT_EXPAND, static_cast<asize_t>(hver.size()));
         if(!ok)
             LOG(ERROR, "unable to delete data 0x%0" EA_SIZE PRIXEA "\n", ea);
     }
