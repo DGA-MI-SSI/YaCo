@@ -20,25 +20,38 @@ import runtests
 
 class Fixture(runtests.Fixture):
 
-    def test_cmt_on_unexplored_data(self):
+    def test_cmt_on_data(self):
         a, b = self.setup_cmder()
         a.run(
             self.script("""
-ea = 0x413B53
+ea = 0x414204
+ida_bytes.set_cmt(ea, "some comment", 0)
+ea = 0x41421C
 ida_bytes.set_cmt(ea, "some comment", 0)
 """),
-            self.save_last_ea(),
+            self.save_ea(0x414204),
+            self.save_ea(0x41421C),
         )
-        a.check_git(added=["binary", "segment", "segment_chunk", "data"])
+        a.check_git(added=["binary", "segment", "segment_chunk"] + ["data"] * 2)
 
         b.run(
-            self.check_last_ea(),
+            self.check_ea(0x414204),
+            self.check_ea(0x41421C),
+            self.script("""
+ea = 0x414204
+ida_bytes.set_cmt(ea, "", 0)
+ea = 0x41421C
+ida_bytes.set_cmt(ea, "", 0)
+"""),
+            self.save_ea(0x414204),
+            self.save_ea(0x41421C),
         )
-        self.check_range(b, 0x413B40, 0x413BA4, """
-0x413b40: data: data byte ref labl
-0x413b53: unexplored: unkn comm
-0x413b9c: data: data strlit ref labl name
-""")
+        b.check_git(modified=["segment_chunk", "data"], deleted=["data"])
+
+        a.run(
+            self.check_ea(0x414204),
+            self.check_ea(0x41421C),
+        )
 
     def test_extra_line_on_data(self):
         a, b = self.setup_cmder()
