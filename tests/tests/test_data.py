@@ -169,3 +169,87 @@ ida_bytes.toggle_bnot(ea, 0)
             self.check_ea(0x414204),
             self.check_ea(0x41421C),
         )
+
+    def test_op_type_on_data(self):
+        a, b = self.setup_cmder()
+
+        a.run(
+            self.script("""
+ea = 0x414204
+ida_bytes.op_seg(ea, 0)
+ea = 0x41421C
+ida_bytes.op_dec(ea, 0)
+"""),
+            self.save_ea(0x414204),
+            self.save_ea(0x41421C),
+        )
+        a.check_git(added=["binary", "segment", "segment_chunk"] + ["data"] * 2)
+
+        # remove op types
+        b.run(
+            self.check_ea(0x414204),
+            self.check_ea(0x41421C),
+            self.script("""
+ea = 0x414204
+ida_bytes.clr_op_type(ea, 0)
+ea = 0x41421C
+ida_bytes.clr_op_type(ea, 0)
+"""),
+            self.save_ea(0x414204),
+            self.save_ea(0x41421C),
+        )
+        # one data is modified, one data become uninteresting & is deleted
+        b.check_git(modified=["segment_chunk", "data"], deleted=["data"])
+
+        a.run(
+            self.check_ea(0x414204),
+            self.check_ea(0x41421C),
+        )
+
+    def test_op_offset_on_data(self):
+        a, b = self.setup_cmder()
+
+        # ensure one ea is always "interesting" by setting a name
+        # FIXME we cannot handle a data item which become uninteresting
+        # *before*  it is at least stored once in cache...
+        a.run(
+            self.script("""
+ea = 0x414714
+idaapi.set_name(ea, "somename")
+ida_bytes.clr_op_type(ea, 0)
+ea = 0x414718
+ida_bytes.clr_op_type(ea, 0)
+"""),
+        )
+
+        # add offset op type
+        a.run(
+            self.script("""
+ea = 0x414714
+ida_offset.op_offset(ea, 0, ida_nalt.REF_OFF32)
+ea = 0x414718
+ida_offset.op_offset(ea, 0, ida_nalt.REF_OFF32)
+"""),
+            self.save_ea(0x414714),
+            self.save_ea(0x414718),
+        )
+        a.check_git(modified=["segment_chunk", "data"], added=["data"])
+
+        b.run(
+            self.check_ea(0x414714),
+            self.check_ea(0x414718),
+            self.script("""
+ea = 0x414714
+ida_bytes.clr_op_type(ea, 0)
+ea = 0x414718
+ida_bytes.clr_op_type(ea, 0)
+"""),
+            self.save_ea(0x414714),
+            self.save_ea(0x414718),
+        )
+        b.check_git(modified=["segment_chunk", "data"], deleted=["data"])
+
+        a.run(
+            self.check_ea(0x414714),
+            self.check_ea(0x414718),
+        )

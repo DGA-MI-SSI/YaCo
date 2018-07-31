@@ -1225,12 +1225,26 @@ namespace
             LOG(ERROR, "make_data: 0x%" PRIxEA " unable to set bnot to %s", ea, want ? "true" : "false");
     }
 
+    void make_op_type(ea_t ea, int n, flags_t flags, flags_t want_flags)
+    {
+        const auto got  = is_defarg(flags, n);
+        const auto want = is_defarg(want_flags, n);
+        if(got == want)
+            return;
+
+        const auto mask = n ? MS_1TYPE : MS_0TYPE;
+        const auto ok = set_op_type(ea, want_flags & mask, n);
+        if(!ok)
+            LOG(ERROR, "make_data: 0x%" PRIxEA " unable to set op_type to %s", ea, ya::dump_flags(want_flags & mask).data());
+    }
+
     void make_flags(ea_t ea, const HVersion& version)
     {
         const auto flags        = get_flags(ea);
         const auto want_flags   = version.flags();
         make_sign(ea, 0, flags, want_flags);
         make_bnot(ea, 0, flags, want_flags);
+        make_op_type(ea, 0, flags, want_flags);
     }
 
     void make_data(Visitor& visitor, const HVersion& version, ea_t ea)
