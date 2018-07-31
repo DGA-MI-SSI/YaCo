@@ -566,8 +566,14 @@ namespace
         db->visit_start();
         {
             const auto model = MakeIncrementalIdaModel();
+            if(!ev.strucs_.empty() || !ev.struc_members_.empty())
+                LOG(INFO, "processing %zd:%zd struct events\n", ev.strucs_.size(), ev.struc_members_.size());
             save_structs(ev, *model, *db);
+            if(!ev.enums_.empty() || !ev.enum_members_.empty())
+                LOG(INFO, "processing %zd:%zd enum events\n", ev.enums_.size(), ev.enum_members_.size());
             save_enums(ev, *model, *db);
+            if(!ev.eas_.empty())
+                LOG(INFO, "processing %zd ea events\n", ev.eas_.size());
             save_eas(ev, *model, *db);
         }
         db->visit_end();
