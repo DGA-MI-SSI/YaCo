@@ -26,28 +26,28 @@ class Fixture(runtests.Fixture):
     def test_get_all_items_qt54(self):
         a, _ = self.setup_repos()
         self.check_range(a, 0x66023FE9, 0x66024012, """
-0x66023ff0: data:1
-0x66024004: data:1
+0x66023ff0: data: data dword comm ref name 0:off
+0x66024004: data: data byte comm ref labl
 """)
         self.check_range(a, 0x66001000, 0x6600100F, """
-0x66001005: block:1
-0x6600100a: block:1
+0x66001005: block: code func ref name
+0x6600100a: block: code func ref name
 """)
         self.check_range(a, 0x6600DA80, 0x6600DAEA, """
-0x6600da80: block:1
+0x6600da80: block: code func ref labl
 """)
         self.check_range(a, 0x6605E140, 0x6605E198, """
-0x6605e140: data:0
+0x6605e140: data: data strlit labl name
 """)
         self.check_range(a, 0x6605E1B6, 0x6605E1EB, """
 """)
         self.check_range(a, 0x66066EE8, 0x66066EF4, """
 """)
         self.check_range(a,  0x66071e04, 0x66071e0c, """
-0x66071e09: unexplored:1
+0x66071e09: unexplored: unkn ref labl
 """)
         self.check_range(a, 0x6604F4D0, 0x6604F4F5, """
-0x6604f4d0: block:1
+0x6604f4d0: block: code func ref labl
 """)
         # create a function with undefined data in the middle
         # by concatenating two functions with junk in between
@@ -60,15 +60,15 @@ idc.set_func_end(ea, ea+0x6C)
 """),
         )
         self.check_range(a, 0x6600EB70, 0x6600EBDC, """
-0x6600eb70: block:1
+0x6600eb70: block: code func ref labl
 """)
 
     def test_get_all_items_cmder(self):
         a, _ = self.setup_cmder()
         self.check_range(a, 0x00403070, 0x004035E4, """
-0x403070: block:6
-0x4032d4: data:2
-0x403380: data:1
+0x403070: block: code func ref name
+0x4032d4: data: data dword comm ref name 0:off
+0x403380: data: data dword comm ref name 0:off
 """)
 
 
@@ -90,15 +90,15 @@ idc.set_func_end(ea, ea+0x6C)
     def test_undefined_data_items(self):
         a, b = self.setup_cmder()
         self.check_range(a, 0x0041C2DF, 0x0041C30C, """
-0x41c2e0: data:10
-0x41c2e4: data:1
-0x41c2e8: data:1
-0x41c2ec: data:1
-0x41c2f0: unexplored:1
-0x41c2fc: data:5
-0x41c300: data:2
-0x41c304: data:2
-0x41c308: data:2
+0x41c2e0: data: data dword ref labl
+0x41c2e4: data: data dword ref labl
+0x41c2e8: data: data dword ref labl
+0x41c2ec: data: data dword ref labl
+0x41c2f0: unexplored: unkn ref labl
+0x41c2fc: data: data dword ref labl
+0x41c300: data: data byte ref labl
+0x41c304: data: data dword ref labl
+0x41c308: data: data dword ref labl
 """)
 
         # modify undefined data

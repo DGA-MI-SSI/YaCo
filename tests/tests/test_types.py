@@ -67,11 +67,11 @@ idc.apply_type(ea, pt)
         a, b = self.setup_cmder()
 
         self.check_range(a, 0x41BB98, 0x41BB98+0x20, """
-0x41bb98: data:1
-0x41bb9c: data:17
-0x41bba0: data:9
-0x41bba4: data:1
-0x41bba8: unexplored:2
+0x41bb98: data: data dword ref labl
+0x41bb9c: data: data dword ref labl
+0x41bba0: data: data dword ref labl
+0x41bba4: data: data dword ref labl
+0x41bba8: unexplored: unkn ref labl
 """)
         a.run(
             self.script("""
@@ -105,7 +105,7 @@ idc.apply_type(ea, pt)
             self.check_last_ea(),
         )
         self.check_range(a, 0x41BB98, 0x41BB98+0x20, """
-0x41bb98: data:1
+0x41bb98: data: data struct ref name
 """)
 
     def test_unexplored_glitch(self):
@@ -144,12 +144,12 @@ idc.apply_type(ea, pt)
         )
         a.check_git(added=["struc", "strucmember", "data"], modified=["segment_chunk"], deleted=["data"])
         self.check_range(a, 0x41BBA4, 0x41BBA4+8, """
-0x41bba4: data:1
+0x41bba4: data: data struct ref labl
 """)
 
         b.run(
             self.check_last_ea(),
         )
         self.check_range(b, 0x41BBA4, 0x41BBA4+8, """
-0x41bba4: data:1
+0x41bba4: data: data struct ref labl
 """)
