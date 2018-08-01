@@ -76,37 +76,31 @@ namespace
             LOG(ERROR, "unable to delete func 0x%0" EA_SIZE PRIXEA "\n", ea);
     }
 
-    void delete_data(const HVersion& hver)
+    void reset_ea(ea_t ea, int nmax)
     {
-        const auto ea    = static_cast<ea_t>(hver.address());
         const auto flags = get_flags(ea);
         for(const auto repeatable : {false, true})
             set_cmt(ea, "", repeatable);
         del_extra_cmt(ea, E_PREV);
         del_extra_cmt(ea, E_NEXT);
-        if(is_invsign(ea, flags, 0))
-            toggle_sign(ea, 0);
-        if(is_bnot(ea, flags, 0))
-            toggle_bnot(ea, 0);
-        const auto ok = del_items(ea, DELIT_EXPAND, static_cast<asize_t>(hver.size()));
-        if(!ok)
-            LOG(ERROR, "unable to delete data 0x%0" EA_SIZE PRIXEA "\n", ea);
+        for(int n = 0; n < nmax; ++n)
+        {
+            if(is_invsign(ea, flags, n))
+                toggle_sign(ea, n);
+            if(is_bnot(ea, flags, n))
+                toggle_bnot(ea, n);
+        }
     }
 
-    void delete_code(const HVersion& hver)
+    void delete_chunk(const HVersion& hver, const char* where, int nmax)
     {
-        const auto ea = static_cast<ea_t>(hver.address());
+        const auto ea   = static_cast<ea_t>(hver.address());
+        const auto end  = static_cast<ea_t>(ea + hver.size());
+        for(auto it = ea; it < end; it = get_item_end(it))
+            reset_ea(it, nmax);
         const auto ok = del_items(ea, DELIT_EXPAND, static_cast<asize_t>(hver.size()));
         if(!ok)
-            LOG(ERROR, "unable to delete code 0x%0" EA_SIZE PRIXEA "\n", ea);
-    }
-
-    void delete_block(const HVersion& hver)
-    {
-        const auto ea = static_cast<ea_t>(hver.address());
-        const auto ok = del_items(ea, DELIT_EXPAND, static_cast<asize_t>(hver.size()));
-        if(!ok)
-            LOG(ERROR, "unable to delete basic block 0x%0" EA_SIZE PRIXEA "\n", ea);
+            LOG(ERROR, "unable to delete %s 0x%0" EA_SIZE PRIXEA "\n", where, ea);
     }
 
     void delete_object(const HVersion& hver)
@@ -133,15 +127,15 @@ namespace
                 break;
 
             case OBJECT_TYPE_DATA:
-                delete_data(hver);
+                delete_chunk(hver, "data", 1);
                 break;
 
             case OBJECT_TYPE_CODE:
-                delete_code(hver);
+                delete_chunk(hver, "code", 2);
                 break;
 
             case OBJECT_TYPE_BASIC_BLOCK:
-                delete_block(hver);
+                delete_chunk(hver, "block", 2);
                 break;
         }
     }
