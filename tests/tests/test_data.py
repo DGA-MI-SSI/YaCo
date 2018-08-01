@@ -253,3 +253,35 @@ ida_bytes.clr_op_type(ea, 0)
             self.check_ea(0x414714),
             self.check_ea(0x414718),
         )
+
+    def test_align_data(self):
+        a, b = self.setup_cmder()
+
+        a.run(
+            self.script("""
+ea = 0x41470C
+idaapi.set_name(ea, "somename")
+ea = 0x414CC0
+ida_bytes.create_align(ea, 0x40, 0)
+"""),
+            self.save_last_ea(),
+        )
+        a.check_git(added=["binary", "segment", "segment_chunk", "data", "data"])
+
+        b.run(
+            self.check_last_ea(),
+            self.script("""
+ea = 0x41470C
+ida_bytes.del_items(ea, idc.DELIT_EXPAND, 4)
+ea = 0x414CC0
+ida_bytes.del_items(ea, idc.DELIT_EXPAND, 0x40)
+"""),
+            self.save_ea(0x41470C),
+            self.save_ea(0x414CC0),
+        )
+        b.check_git(modified=["segment_chunk", "data"], deleted=["data"])
+
+        a.run(
+            self.check_ea(0x41470C),
+            self.check_ea(0x414CC0),
+        )

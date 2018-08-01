@@ -158,7 +158,7 @@ def dump_flags(ea):
     flags = idaapi.get_flags(ea)
     reply = []
     for k in type_flags:
-        if (flags & ida_bytes.MS_CLS) == k:
+        if (flags & ida_bytes.MS_CLS) == (k & 0xFFFFFFFF):
             reply.append(type_flags[k])
     if ida_bytes.is_code(flags):
         for k in code_flags:
@@ -166,16 +166,16 @@ def dump_flags(ea):
                 reply.append(code_flags[k])
     if ida_bytes.is_data(flags):
         for k in data_flags:
-            if (flags & ida_bytes.DT_TYPE) == k:
+            if (flags & ida_bytes.DT_TYPE) == (k & 0xFFFFFFFF):
                 reply.append(data_flags[k])
     for k in comm_flags:
         if (flags & ida_bytes.MS_COMM) & k:
             reply.append(comm_flags[k])
     for k in op0_flags:
-        if (flags & ida_bytes.MS_0TYPE) == k:
+        if (flags & ida_bytes.MS_0TYPE) == (k & 0xFFFFFFFF):
             reply.append(op0_flags[k])
     for k in op1_flags:
-        if (flags & ida_bytes.MS_1TYPE) == k:
+        if (flags & ida_bytes.MS_1TYPE) == (k & 0xFFFFFFFF):
             reply.append(op1_flags[k])
     return " ".join(reply)
 

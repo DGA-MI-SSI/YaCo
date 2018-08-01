@@ -1,4 +1,4 @@
-objects: 10435
+objects: 10919
 
 bin: 1
 bin_400000 Cmder.exe
@@ -2689,18 +2689,97 @@ cod_410bdd __rtchsifneg
 cod_410c05 __load_CW
 cod_412346 __alloca_probe_8
 
-dat: 2333
+dat: 2817
+dat_40108b
+dat_401701
+dat_4018ef
+dat_40197d
+dat_401c3b
 dat_402321 $LN33
+dat_4024c1
+dat_402ab3
+dat_402f95
+dat_40306b
+dat_4032d3
 dat_4032d4 jpt_403295
+dat_4032eb
+dat_4032f7
+dat_403309
+dat_403323
+dat_40337f
 dat_403380 jpt_403378
+dat_403397
+dat_4033a5
+dat_4033bb
+dat_4034bd
+dat_4035a7
+dat_4035e4
+dat_403853
 dat_403854 jpt_403815
+dat_40386b
+dat_403877
+dat_403889
+dat_4038a3
+dat_4038ff
 dat_403900 jpt_4038F8
+dat_403917
+dat_403925
+dat_40393b
+dat_403a3d
+dat_403b27
+dat_403d86
+dat_403dc2
+dat_403fb1
+dat_404237
+dat_4049f3
+dat_404a8f
+dat_404cb3
+dat_404f68
+dat_405087
+dat_4050a1
+dat_405449
+dat_40555d
+dat_405569
+dat_4055a9
 dat_4056ac unk_4056AC
+dat_40601d
 dat_406020 jpt_405F81
 dat_406511 jpt_4064F2
+dat_408245
 dat_408a7e ___acrt_initialize_locks
 dat_40a58b ___acrt_uninitialize_stdio
 dat_40a7d6 ___acrt_uninitialize_lowio
+dat_40cfdc
+dat_40d45a
+dat_40ebab
+dat_40ebdd
+dat_40ec46
+dat_40ec89
+dat_40ee5a
+dat_40f02a
+dat_40f30e
+dat_40f34f
+dat_41055f
+dat_4107ed
+dat_4109e7
+dat_410be4
+dat_410d7c
+dat_4112e9
+dat_411f0f
+dat_411f53
+dat_41201a
+dat_4120e5
+dat_412185
+dat_4121ea
+dat_412224
+dat_41230f
+dat_41232f
+dat_41235c
+dat_41237f
+dat_412435
+dat_41246d
+dat_4125a7
+dat_41280e
 dat_413000 RegCreateKeyExW LSTATUS __stdcall sub(HKEY hKey, LPCWSTR lpSubKey, DWORD Reserved, LPWSTR lpClass, DWORD dwOptions, REGSAM samDesired, const LPSECURITY_ATTRIBUTES lpSecurityAttributes, PHKEY phkResult, LPDWORD lpdwDisposition)
 dat_413004 RegDeleteTreeW
 dat_413008 RegSetValueExW LSTATUS __stdcall sub(HKEY hKey, LPCWSTR lpValueName, DWORD Reserved, DWORD dwType, const BYTE *lpData, DWORD cbData)
@@ -2806,10 +2885,12 @@ dat_4131b0
 dat_4131b4 ??_7exception@std@@6B@
 dat_4131b8
 dat_4131bc aUnknownExcepti
+dat_4131ce
 dat_4131d0
 dat_4131d4 ??_7bad_alloc@std@@6B@
 dat_4131d8
 dat_4131dc aBadAllocation
+dat_4131eb
 dat_4131ec
 dat_4131f0 ??_7logic_error@std@@6B@
 dat_4131f4
@@ -2823,22 +2904,27 @@ dat_413214
 dat_413218 ??_7bad_array_new_length@std@@6B@
 dat_41321c
 dat_413220 aBadArrayNewLen
+dat_413235
 dat_413238 off_413238
 dat_41323c unk_41323C
 dat_41325c
 dat_413260 ??_7bad_exception@std@@6B@
 dat_413264
 dat_413268 aBadException
+dat_413276
 dat_413278 lpLibFileName LPCWSTR
 dat_41327c
 dat_413280
 dat_413284 aApiMsWinCoreFi
 dat_4132c0 aApiMsWinCoreSy
+dat_4132fa
 dat_4132fc aKernel32
+dat_41330e
 dat_413310 aApiMs wchar_t
 dat_413320 aExtMs wchar_t
 dat_413330 unk_413330
 dat_413338 aFlsalloc
+dat_413341
 dat_413344 unk_413344
 dat_41334c aFlsfree
 dat_413354 unk_413354
@@ -2949,116 +3035,203 @@ dat_413528
 dat_41352c
 dat_413530
 dat_413534 aBased
+dat_41353d
 dat_413540 aCdecl
 dat_413548 aPascal
+dat_413551
 dat_413554 aStdcall
+dat_41355e
 dat_413560 aThiscall
+dat_41356b
 dat_41356c aFastcall
+dat_413577
 dat_413578 aVectorcall
+dat_413585
 dat_413588 aClrcall
+dat_413592
 dat_413594 aEabi
+dat_41359b
 dat_41359c aPtr64
 dat_4135a4 aRestrict
+dat_4135af
 dat_4135b0 aUnaligned
 dat_4135bc aRestrict_0
 dat_4135c6 unk_4135C6
 dat_4135c8 aNew
+dat_4135cd
 dat_4135d0 aDelete
 dat_4135d8 asc_4135D8
+dat_4135da
 dat_4135dc asc_4135DC
+dat_4135df
 dat_4135e0 asc_4135E0
+dat_4135e3
 dat_4135e4 asc_4135E4
+dat_4135e6
 dat_4135e8 asc_4135E8
+dat_4135eb
 dat_4135ec asc_4135EC
+dat_4135ef
 dat_4135f0 asc_4135F0
+dat_4135f3
 dat_4135f4 aOperator
+dat_4135fd
 dat_413600 asc_413600
+dat_413603
 dat_413604 asc_413604
+dat_413606
 dat_413608 asc_413608
+dat_41360b
 dat_41360c asc_41360C
+dat_41360f
 dat_413610 asc_413610
+dat_413612
 dat_413614 asc_413614
+dat_413616
 dat_413618 asc_413618
+dat_41361a
 dat_41361c asc_41361C
 dat_413620 asc_413620
+dat_413622
 dat_413624 asc_413624
+dat_413626
 dat_413628 asc_413628
+dat_41362a
 dat_41362c asc_41362C
+dat_41362f
 dat_413630 asc_413630
+dat_413632
 dat_413634 asc_413634
+dat_413637
 dat_413638 asc_413638
+dat_41363a
 dat_41363c asc_41363C
+dat_41363f
 dat_413640 asc_413640
+dat_413642
 dat_413644 asc_413644
+dat_413646
 dat_413648 asc_413648
+dat_41364a
 dat_41364c asc_41364C
+dat_41364f
 dat_413650 asc_413650
+dat_413653
 dat_413654 asc_413654
+dat_413657
 dat_413658 asc_413658
+dat_41365b
 dat_41365c asc_41365C
+dat_41365f
 dat_413660 asc_413660
+dat_413663
 dat_413664 asc_413664
+dat_413667
 dat_413668 asc_413668
 dat_41366c asc_41366C
 dat_413670 asc_413670
+dat_413673
 dat_413674 asc_413674
+dat_413677
 dat_413678 asc_413678
+dat_41367b
 dat_41367c aVftable
+dat_413686
 dat_413688 aVbtable
+dat_413692
 dat_413694 aVcall
 dat_41369c aTypeof
+dat_4136a5
 dat_4136a8 aLocalStaticGua
+dat_4136bd
 dat_4136c0 aString
+dat_4136c9
 dat_4136cc aVbaseDestructo
+dat_4136df
 dat_4136e0 aVectorDeleting
+dat_4136fd
 dat_413700 aDefaultConstru
+dat_41371e
 dat_413720 aScalarDeleting
+dat_41373d
 dat_413740 aVectorConstruc
+dat_41375e
 dat_413760 aVectorDestruct
+dat_41377d
 dat_413780 aVectorVbaseCon
 dat_4137a4 aVirtualDisplac
+dat_4137bf
 dat_4137c0 aEhVectorConstr
+dat_4137e1
 dat_4137e4 aEhVectorDestru
 dat_413804 aEhVectorVbaseC
+dat_41382b
 dat_41382c aCopyConstructo
+dat_413847
 dat_413848 aUdtReturning
 dat_413858 aEh
 dat_41385c aRtti
+dat_413862
 dat_413864 aLocalVftable
 dat_413874 aLocalVftableCo
 dat_413898 aNew_0
+dat_41389f
 dat_4138a0 aDelete_0
+dat_4138aa
 dat_4138ac aOmniCallsig
+dat_4138bb
 dat_4138bc aPlacementDelet
+dat_4138d7
 dat_4138d8 aPlacementDelet_0
+dat_4138f5
 dat_4138f8 aManagedVectorC
+dat_41391e
 dat_413920 aManagedVectorD
+dat_413945
 dat_413948 aEhVectorCopyCo
+dat_41396e
 dat_413970 aEhVectorVbaseC_0
 dat_41399c aDynamicInitial
+dat_4139b7
 dat_4139b8 aDynamicAtexitD
+dat_4139d9
 dat_4139dc aVectorCopyCons
+dat_4139ff
 dat_413a00 aVectorVbaseCop
+dat_413a29
 dat_413a2c aManagedVectorC_0
+dat_413a57
 dat_413a58 aLocalStaticThr
 dat_413a74 aOperator_0
+dat_413a81
 dat_413a84 aOperatorCoAwai
+dat_413a96
 dat_413a98 aTypeDescriptor
+dat_413aaa
 dat_413aac aBaseClassDescr
 dat_413ac8 aBaseClassArray
+dat_413adb
 dat_413adc aClassHierarchy
+dat_413af9
 dat_413afc aCompleteObject
+dat_413b16
 dat_413b18 ModuleName const WCHAR
 dat_413b30 ProcName CHAR[]
+dat_413b3f
 dat_413b40 byte_413B40
 dat_413b9c aNull
+dat_413ba3
 dat_413ba4 aNull_0
+dat_413bb2
 dat_413bb8 unk_413BB8
 dat_413c48 dword_413C48
 dat_413c4c dword_413C4C
 dat_413c50 dword_413C50
+dat_413c54
 dat_413c58 off_413C58
+dat_413c5c
 dat_413c60
+dat_413c64
 dat_413c68
 dat_413c6c
 dat_413c70
@@ -3102,22 +3275,33 @@ dat_413d14
 dat_413d18
 dat_413d1c
 dat_413d20 aApiMsWinAppmod
+dat_413d66
 dat_413d68 aApiMsWinCoreDa
 dat_413da8 aApiMsWinCoreFi_0
 dat_413de0 aApiMsWinCoreLo
 dat_413e28 aApiMsWinCoreLo_0
+dat_413e82
 dat_413e88 aApiMsWinCorePr
 dat_413ed4 aApiMsWinCoreSt
 dat_413f10 aApiMsWinCoreSy_0
+dat_413f4e
 dat_413f50 aApiMsWinCoreWi
+dat_413f8a
 dat_413f8c aApiMsWinCoreXs
 dat_413fc8 aApiMsWinRtcore
+dat_414016
 dat_414018 aApiMsWinSecuri
+dat_41406e
 dat_414070 aExtMsWinKernel
+dat_4140c6
 dat_4140c8 aExtMsWinNtuser
+dat_41410e
 dat_414110 aExtMsWinNtuser_0
+dat_41415e
 dat_414160 aAdvapi32
+dat_414172
 dat_414174 aUser32
+dat_414182
 dat_414184 unk_414184
 dat_41418c unk_41418C
 dat_414194 unk_414194
@@ -3125,10 +3309,13 @@ dat_41419c unk_41419C
 dat_4141a4 unk_4141A4
 dat_4141ac aGetcurrentpack
 dat_4141c0 asc_4141C0
+dat_4141c2
 dat_4141c8 unk_4141C8
 dat_4141d0 aLcmapstringex
+dat_4141de
 dat_4141e0 unk_4141E0
 dat_4141e8 aLocalenametolc
+dat_4141f9
 dat_414200 dword_414200
 dat_414204 dword_414204
 dat_414368 unk_414368
@@ -3136,10 +3323,15 @@ dat_41436c unk_41436C
 dat_414370 unk_414370
 dat_414374 unk_414374
 dat_414378 aNanSnan
+dat_414382
 dat_414384 aNanSnan_0
+dat_41438e
 dat_414390 aNanInd
+dat_414399
 dat_41439c aNanInd_0
+dat_4143a5
 dat_4143a8 Src char[]
+dat_4143ae
 dat_4143b0 aSun
 dat_4143b4 aMon
 dat_4143b8 aTue
@@ -3148,12 +3340,18 @@ dat_4143c0 aThu
 dat_4143c4 aFri
 dat_4143c8 aSat
 dat_4143cc aSunday
+dat_4143d3
 dat_4143d4 aMonday
+dat_4143db
 dat_4143dc aTuesday
 dat_4143e4 aWednesday
+dat_4143ee
 dat_4143f0 aThursday
+dat_4143f9
 dat_4143fc aFriday
+dat_414403
 dat_414404 aSaturday
+dat_41440d
 dat_414410 aJan
 dat_414414 aFeb
 dat_414418 aMar
@@ -3168,20 +3366,33 @@ dat_414438 aNov
 dat_41443c aDec
 dat_414440 aJanuary
 dat_414448 aFebruary
+dat_414451
 dat_414454 aMarch
+dat_41445a
 dat_41445c aApril
+dat_414462
 dat_414464 aJune
+dat_414469
 dat_41446c aJuly
+dat_414471
 dat_414474 aAugust
+dat_41447b
 dat_41447c aSeptember
+dat_414486
 dat_414488 aOctober
 dat_414490 aNovember
+dat_414499
 dat_41449c aDecember
+dat_4144a5
 dat_4144a8 aAm
+dat_4144ab
 dat_4144ac aPm
+dat_4144af
 dat_4144b0 aMmDdYy
+dat_4144b9
 dat_4144bc aDdddMmmmDdYyyy
 dat_4144d0 aHhMmSs
+dat_4144d9
 dat_4144dc aSun_0
 dat_4144e4 aMon_0
 dat_4144ec aTue_0
@@ -3190,12 +3401,17 @@ dat_4144fc aThu_0
 dat_414504 aFri_0
 dat_41450c aSat_0
 dat_414514 aSunday_0
+dat_414522
 dat_414524 aMonday_0
+dat_414532
 dat_414534 aTuesday_0
 dat_414544 aWednesday_0
 dat_414558 aThursday_0
+dat_41456a
 dat_41456c aFriday_0
+dat_41457a
 dat_41457c aSaturday_0
+dat_41458e
 dat_414590 aJan_0
 dat_414598 aFeb_0
 dat_4145a0 aMar_0
@@ -3210,21 +3426,32 @@ dat_4145e0 aNov_0
 dat_4145e8 aDec_0
 dat_4145f0 aJanuary_0
 dat_414600 aFebruary_0
+dat_414612
 dat_414614 aMarch_0
 dat_414620 aApril_0
 dat_41462c aJune_0
+dat_414636
 dat_414638 aJuly_0
+dat_414642
 dat_414644 aAugust_0
+dat_414652
 dat_414654 aSeptember_0
 dat_414668 aOctober_0
 dat_414678 aNovember_0
+dat_41468a
 dat_41468c aDecember_0
+dat_41469e
 dat_4146a0 aAm_0
+dat_4146a6
 dat_4146a8 aPm_0
+dat_4146ae
 dat_4146b0 aMmDdYy_0
+dat_4146c2
 dat_4146c4 aDdddMmmmDdYyyy_0
 dat_4146ec aHhMmSs_0
+dat_4146fe
 dat_414700 aEnUs
+dat_41470c
 dat_414710 off_414710
 dat_414714
 dat_414718
@@ -3555,67 +3782,129 @@ dat_4157d4
 dat_4157dc
 dat_4157e4
 dat_4157e8 aAr
+dat_4157ee
 dat_4157f0 aBg
+dat_4157f6
 dat_4157f8 aCa
+dat_4157fe
 dat_415800 aZhChs
+dat_41580e
 dat_415810 aCs
+dat_415816
 dat_415818 aDa
+dat_41581e
 dat_415820 aDe
+dat_415826
 dat_415828 aEl
+dat_41582e
 dat_415830 aEn
+dat_415836
 dat_415838 aEs
+dat_41583e
 dat_415840 aFi
+dat_415846
 dat_415848 aFr
+dat_41584e
 dat_415850 aHe
+dat_415856
 dat_415858 aHu
+dat_41585e
 dat_415860 aIs
+dat_415866
 dat_415868 aIt
+dat_41586e
 dat_415870 aJa
+dat_415876
 dat_415878 aKo
+dat_41587e
 dat_415880 aNl
+dat_415886
 dat_415888 aNo
+dat_41588e
 dat_415890 aPl
+dat_415896
 dat_415898 aPt
+dat_41589e
 dat_4158a0 aRo
+dat_4158a6
 dat_4158a8 aRu
+dat_4158ae
 dat_4158b0 aHr
+dat_4158b6
 dat_4158b8 aSk
+dat_4158be
 dat_4158c0 aSq
+dat_4158c6
 dat_4158c8 aSv
+dat_4158ce
 dat_4158d0 aTh
+dat_4158d6
 dat_4158d8 aTr
+dat_4158de
 dat_4158e0 aUr
+dat_4158e6
 dat_4158e8 aId
+dat_4158ee
 dat_4158f0 aBe
+dat_4158f6
 dat_4158f8 aSl
+dat_4158fe
 dat_415900 aEt
+dat_415906
 dat_415908 aLv
+dat_41590e
 dat_415910 aLt
+dat_415916
 dat_415918 aFa
+dat_41591e
 dat_415920 aVi
+dat_415926
 dat_415928 aHy
+dat_41592e
 dat_415930 aAz
+dat_415936
 dat_415938 aEu
+dat_41593e
 dat_415940 aMk
+dat_415946
 dat_415948 aAf
+dat_41594e
 dat_415950 aKa
+dat_415956
 dat_415958 aFo
+dat_41595e
 dat_415960 aHi
+dat_415966
 dat_415968 aMs
+dat_41596e
 dat_415970 aKk
+dat_415976
 dat_415978 aKy
+dat_41597e
 dat_415980 aSw
+dat_415986
 dat_415988 aUz
+dat_41598e
 dat_415990 aTt
+dat_415996
 dat_415998 aPa
+dat_41599e
 dat_4159a0 aGu
+dat_4159a6
 dat_4159a8 aTa
+dat_4159ae
 dat_4159b0 aTe
+dat_4159b6
 dat_4159b8 aKn
+dat_4159be
 dat_4159c0 aMr
+dat_4159c6
 dat_4159c8 aSa
+dat_4159ce
 dat_4159d0 aMn
+dat_4159d6
 dat_4159d8 aGl
+dat_4159de
 dat_4159e0 aKok
 dat_4159e8 aSyr
 dat_4159f0 aDiv
@@ -3656,6 +3945,7 @@ dat_415b84 aFaIr
 dat_415b90 aViVn
 dat_415b9c aHyAm
 dat_415ba8 aAzAzLatn
+dat_415bbe
 dat_415bc0 aEuEs
 dat_415bcc aMkMk
 dat_415bd8 aTnZa
@@ -3672,6 +3962,7 @@ dat_415c50 aKkKz
 dat_415c5c aKyKg
 dat_415c68 aSwKe
 dat_415c74 aUzUzLatn
+dat_415c8a
 dat_415c8c aTtRu
 dat_415c98 aBnIn
 dat_415ca4 aPaIn
@@ -3686,9 +3977,13 @@ dat_415d04 aMnMn
 dat_415d10 aCyGb
 dat_415d1c aGlEs
 dat_415d28 aKokIn
+dat_415d36
 dat_415d38 aSyrSy
+dat_415d46
 dat_415d48 aDivMv
+dat_415d56
 dat_415d58 aQuzBo
+dat_415d66
 dat_415d68 aNsZa
 dat_415d74 aMiNz
 dat_415d80 aArIq
@@ -3701,12 +3996,16 @@ dat_415dc8 aNlBe
 dat_415dd4 aNnNo
 dat_415de0 aPtPt
 dat_415dec aSrSpLatn
+dat_415e02
 dat_415e04 aSvFi
 dat_415e10 aAzAzCyrl
+dat_415e26
 dat_415e28 aSeSe
 dat_415e34 aMsBn
 dat_415e40 aUzUzCyrl
+dat_415e56
 dat_415e58 aQuzEc
+dat_415e66
 dat_415e68 aArEg
 dat_415e74 aZhHk
 dat_415e80 aDeAt
@@ -3714,8 +4013,10 @@ dat_415e8c aEnAu
 dat_415e98 aEsEs
 dat_415ea4 aFrCa
 dat_415eb0 aSrSpCyrl
+dat_415ec6
 dat_415ec8 aSeFi
 dat_415ed4 aQuzPe
+dat_415ee2
 dat_415ee4 aArLy
 dat_415ef0 aZhSg
 dat_415efc aDeLu
@@ -3724,6 +4025,7 @@ dat_415f14 aEsGt
 dat_415f20 aFrCh
 dat_415f2c aHrBa
 dat_415f38 aSmjNo
+dat_415f46
 dat_415f48 aArDz
 dat_415f54 aZhMo
 dat_415f60 aDeLi
@@ -3731,26 +4033,34 @@ dat_415f6c aEnNz
 dat_415f78 aEsCr
 dat_415f84 aFrLu
 dat_415f90 aBsBaLatn
+dat_415fa6
 dat_415fa8 aSmjSe
+dat_415fb6
 dat_415fb8 aArMa
 dat_415fc4 aEnIe
 dat_415fd0 aEsPa
 dat_415fdc aFrMc
 dat_415fe8 aSrBaLatn
+dat_415ffe
 dat_416000 aSmaNo
+dat_41600e
 dat_416010 aArTn
 dat_41601c aEnZa
 dat_416028 aEsDo
 dat_416034 aSrBaCyrl
+dat_41604a
 dat_41604c aSmaSe
+dat_41605a
 dat_41605c aArOm
 dat_416068 aEnJm
 dat_416074 aEsVe
 dat_416080 aSmsFi
+dat_41608e
 dat_416090 aArYe
 dat_41609c aEnCb
 dat_4160a8 aEsCo
 dat_4160b4 aSmnFi
+dat_4160c2
 dat_4160c4 aArSy
 dat_4160d0 aEnBz
 dat_4160dc aEsPe
@@ -3774,12 +4084,15 @@ dat_4161a8 aEsHn
 dat_4161b4 aEsNi
 dat_4161c0 aEsPr
 dat_4161cc aZhCht
+dat_4161da
 dat_4161dc aSr
+dat_4161e2
 dat_4161e8 off_4161E8
 dat_4161ec dword_4161EC
 dat_4161f0
 dat_4161f8
 dat_416200
+dat_416204
 dat_416208
 dat_416210
 dat_416218
@@ -4022,11 +4335,14 @@ dat_4169b0 aArSy_0
 dat_4169bc aArTn_0
 dat_4169c8 aArYe_0
 dat_4169d4 aAzAzCyrl_0
+dat_4169ea
 dat_4169ec aAzAzLatn_0
+dat_416a02
 dat_416a04 aBeBy_0
 dat_416a10 aBgBg_0
 dat_416a1c aBnIn_0
 dat_416a28 aBsBaLatn_0
+dat_416a3e
 dat_416a40 aCaEs_0
 dat_416a4c aCsCz_0
 dat_416a58 aCyGb_0
@@ -4037,6 +4353,7 @@ dat_416a88 aDeDe_0
 dat_416a94 aDeLi_0
 dat_416aa0 aDeLu_0
 dat_416aac aDivMv_0
+dat_416aba
 dat_416abc aElGr_0
 dat_416ac8 aEnAu_0
 dat_416ad4 aEnBz_0
@@ -4098,6 +4415,7 @@ dat_416d68 aKaGe_0
 dat_416d74 aKkKz_0
 dat_416d80 aKnIn_0
 dat_416d8c aKokIn_0
+dat_416d9a
 dat_416d9c aKoKr_0
 dat_416da8 aKyKg_0
 dat_416db4 aLtLt_0
@@ -4120,8 +4438,11 @@ dat_416e74 aPlPl_0
 dat_416e80 aPtBr_0
 dat_416e8c aPtPt_0
 dat_416e98 aQuzBo_0
+dat_416ea6
 dat_416ea8 aQuzEc_0
+dat_416eb6
 dat_416eb8 aQuzPe_0
+dat_416ec6
 dat_416ec8 aRoRo_0
 dat_416ed4 aRuRu_0
 dat_416ee0 aSaIn_0
@@ -4131,20 +4452,31 @@ dat_416f04 aSeSe_0
 dat_416f10 aSkSk_0
 dat_416f1c aSlSi_0
 dat_416f28 aSmaNo_0
+dat_416f36
 dat_416f38 aSmaSe_0
+dat_416f46
 dat_416f48 aSmjNo_0
+dat_416f56
 dat_416f58 aSmjSe_0
+dat_416f66
 dat_416f68 aSmnFi_0
+dat_416f76
 dat_416f78 aSmsFi_0
+dat_416f86
 dat_416f88 aSqAl_0
 dat_416f94 aSrBaCyrl_0
+dat_416faa
 dat_416fac aSrBaLatn_0
+dat_416fc2
 dat_416fc4 aSrSpCyrl_0
+dat_416fda
 dat_416fdc aSrSpLatn_0
+dat_416ff2
 dat_416ff4 aSvFi_0
 dat_417000 aSvSe_0
 dat_41700c aSwKe_0
 dat_417018 aSyrSy_0
+dat_417026
 dat_417028 aTaIn_0
 dat_417034 aTeIn_0
 dat_417040 aThTh_0
@@ -4154,11 +4486,15 @@ dat_417064 aTtRu_0
 dat_417070 aUkUa_0
 dat_41707c aUrPk_0
 dat_417088 aUzUzCyrl_0
+dat_41709e
 dat_4170a0 aUzUzLatn_0
+dat_4170b6
 dat_4170b8 aViVn_0
 dat_4170c4 aXhZa_0
 dat_4170d0 aZhChs_0
+dat_4170de
 dat_4170e0 aZhCht_0
+dat_4170ee
 dat_4170f0 aZhCn_0
 dat_4170fc aZhHk_0
 dat_417108 aZhMo_0
@@ -4172,17 +4508,25 @@ dat_417a3f byte_417A3F
 dat_417ad4 dword_417AD4
 dat_417afc unk_417AFC
 dat_417b00 a1Inf char[]
+dat_417b06
 dat_417b08 a1Qnan
+dat_417b0f
 dat_417b10 a1Snan
+dat_417b17
 dat_417b18 a1Ind
+dat_417b1e
 dat_417b20 tbyte_417B20
+dat_417b2a
 dat_417b2c tbyte_417B2C
+dat_417b36
 dat_417b40 aLog10
+dat_417b46
 dat_417b50 xmmword_417B50
 dat_417b60 xmmword_417B60
 dat_417b70 xmmword_417B70
 dat_417b80 xmmword_417B80
 dat_417b90 dbl_417B90
+dat_417b98
 dat_417ba0 xmmword_417BA0
 dat_417bb0 xmmword_417BB0
 dat_417bc0 xmmword_417BC0
@@ -4206,6 +4550,7 @@ dat_417cea
 dat_417cee
 dat_417cf2
 dat_417cf6
+dat_417cfa
 dat_417d00 tbyte_417D00
 dat_417d14 tbyte_417D14
 dat_417d1e dbl_417D1E
@@ -4221,35 +4566,54 @@ dat_417d74 dbl_417D74
 dat_417d7c dbl_417D7C
 dat_417d84 unk_417D84
 dat_417d88 aLog10_0
+dat_417d8e
 dat_417d90 aExp
 dat_417d94 aPow
 dat_417d98 aAsin
+dat_417d9d
 dat_417da0 aAcos
+dat_417da5
 dat_417da8 aSqrt
+dat_417dad
 dat_417db0 dbl_417DB0
+dat_417db8
 dat_417dc0 xmmword_417DC0
 dat_4181d0 xmmword_4181D0
 dat_4185e0 dbl_4185E0
 dat_4185e8 aTanh
+dat_4185ed
 dat_4185f0 aAtan
+dat_4185f5
 dat_4185f8 aAtan2
+dat_4185fe
 dat_418600 aSin
 dat_418604 aCos
 dat_418608 aTan
 dat_41860c aCeil
+dat_418611
 dat_418614 aFloor
+dat_41861a
 dat_41861c aFabs
+dat_418621
 dat_418624 aModf
+dat_418629
 dat_41862c aLdexp
+dat_418632
 dat_418634 aCabs
+dat_41863a
 dat_41863c aHypot
+dat_418643
 dat_418644 aFmod
+dat_418649
 dat_41864c aFrexp
+dat_418652
 dat_418654 aY0
 dat_418658 aY1
 dat_41865c aYn
 dat_418660 aLogb
+dat_418666
 dat_418668 aNextafter
+dat_418673
 dat_418678 dword_418678
 dat_41867c off_41867C
 dat_418684
@@ -4281,54 +4645,82 @@ dat_41874c
 dat_418754
 dat_41875c
 dat_418760 aSinh
+dat_418765
 dat_418768 aCosh
+dat_41876d
 dat_418770 dbl_418770
 dat_418778 dbl_418778
 dat_418780 dbl_418780
 dat_418788 FileName const WCHAR
 dat_418798 aUnknownErrorFo
+dat_4187e2
 dat_4187e4 aSFunctionSLine
+dat_418816
 dat_418818 Caption const WCHAR
+dat_418836
 dat_418838 word_418838 const WCHAR
+dat_41883a
 dat_41883c aStart wchar_t
+dat_41884a
 dat_41884c pszFile const WCHAR
+dat_41886c
 dat_418870 aConfigConemuCo const WCHAR
+dat_4188b2
 dat_4188b4 aConfigUserCone const WCHAR
+dat_4188e2
 dat_4188e4 aConfigConemuXm const WCHAR
 dat_418908 aVendorConemuMa const WCHAR
+dat_41894c
 dat_418950 aVendorConemuMa_0
 dat_418998 aVendorConemuMa_1 const WCHAR
+dat_4189dc
 dat_4189e0 aFailedToCopyCo
 dat_418a80 aFailedToCopyCo_0 const WCHAR
 dat_418ae0 aFailedToBackup
+dat_418b4a
 dat_418b4c Name const WCHAR
+dat_418b64
 dat_418b68 aSingleIconSTit
+dat_418bbc
 dat_418bc0 aIconSTitleCmde
 dat_418c04 aSRunS
+dat_418c1e
 dat_418c20 aCmderRoot const WCHAR
+dat_418c36
 dat_418c38 aError const WCHAR
+dat_418c44
 dat_418c48 Text const WCHAR
+dat_418c92
 dat_418c94 aEnvironment
 dat_418ca0 aEnvironment_0
 dat_418cb8 aAll wchar_t
 dat_418cc0 aUser wchar_t
+dat_418cca
 dat_418cd0 aUnrecognizedOp const WCHAR
 dat_418d6c SubKey const WCHAR
+dat_418d8e
 dat_418d90 aGetrootkey
+dat_418da6
 dat_418da8 aSV
+dat_418dbe
 dat_418dc0 aRegistershellm
 dat_418de4 Data const WCHAR
+dat_418dfa
 dat_418dfc ValueName const WCHAR
+dat_418e22
 dat_418e24 aIcon const WCHAR
+dat_418e2e
 dat_418e30 aCommand const WCHAR
 dat_418e40 aUnregistershel
 dat_418e68 aSingle wchar_t
 dat_418e78 aTask wchar_t
 dat_418e84 aRegister wchar_t
 dat_418e98 aDirectoryBackg
+dat_418eda
 dat_418edc aDirectoryShell
 dat_418f08 aUnregister wchar_t
 dat_418f20 aUnrecognizedPa const WCHAR
+dat_41902e
 dat_419030 aStringTooLong char[]
 dat_419040
 dat_419044
@@ -4414,6 +4806,7 @@ dat_4191b4
 dat_4191b8
 dat_4191bc ??_R2bad_alloc@std@@8
 dat_4191c0
+dat_4191c4
 dat_4191c8 ??_R1A@?0A@EA@bad_alloc@std@@8
 dat_4191cc
 dat_4191d0
@@ -4505,6 +4898,7 @@ dat_419334
 dat_419338
 dat_41933c ??_R2bad_exception@std@@8
 dat_419340
+dat_419344
 dat_419348 ??_R1A@?0A@EA@bad_exception@std@@8
 dat_41934c
 dat_419350
@@ -4512,6 +4906,7 @@ dat_419354
 dat_419358
 dat_41935c
 dat_419360
+dat_419364
 dat_419370 ___safe_se_handler_table
 dat_419374
 dat_419378
@@ -4527,6 +4922,7 @@ dat_41939c asc_41939C
 dat_4193a0  GUID
 dat_4193b0
 dat_4193b4
+dat_4193e1
 dat_4193e4 unk_4193E4
 dat_4193f8 aGctl
 dat_4196c0 unk_4196C0
@@ -4601,8 +4997,11 @@ dat_4198c4
 dat_4198c8
 dat_4198cc
 dat_4198d0 stru_4198D0 _EH4_SCOPETABLE
+dat_4198ec
 dat_4198f0 stru_4198F0 _EH4_SCOPETABLE
+dat_41990c
 dat_419910 stru_419910 _EH4_SCOPETABLE
+dat_41992c
 dat_419930 stru_419930 _EH4_SCOPETABLE
 dat_419958 stru_419958 _EH4_SCOPETABLE
 dat_419980 stru_419980 HandlerType
@@ -4624,30 +5023,53 @@ dat_419a1c
 dat_419a20
 dat_419a24
 dat_419a28
+dat_419a2c
 dat_419a30 stru_419A30 _EH4_SCOPETABLE
 dat_419a58 stru_419A58 _EH4_SCOPETABLE
+dat_419a74
 dat_419a78 stru_419A78 _EH4_SCOPETABLE
+dat_419a94
 dat_419a98 stru_419A98 _EH4_SCOPETABLE
+dat_419ab4
 dat_419ab8 stru_419AB8 _EH4_SCOPETABLE
+dat_419ad4
 dat_419ad8 stru_419AD8 _EH4_SCOPETABLE
+dat_419af4
 dat_419af8 stru_419AF8 _EH4_SCOPETABLE
+dat_419b14
 dat_419b18 stru_419B18 _EH4_SCOPETABLE
+dat_419b34
 dat_419b38 stru_419B38 _EH4_SCOPETABLE
+dat_419b54
 dat_419b58 stru_419B58 _EH4_SCOPETABLE
+dat_419b74
 dat_419b78 stru_419B78 _EH4_SCOPETABLE
+dat_419b94
 dat_419b98 stru_419B98 _EH4_SCOPETABLE
+dat_419bb4
 dat_419bb8 stru_419BB8 _EH4_SCOPETABLE
+dat_419bd4
 dat_419bd8 stru_419BD8 _EH4_SCOPETABLE
+dat_419bf4
 dat_419bf8 stru_419BF8 _EH4_SCOPETABLE
+dat_419c14
 dat_419c18 stru_419C18 _EH4_SCOPETABLE
+dat_419c34
 dat_419c38 stru_419C38 _EH4_SCOPETABLE
+dat_419c54
 dat_419c58 stru_419C58 _EH4_SCOPETABLE
+dat_419c74
 dat_419c78 stru_419C78 _EH4_SCOPETABLE
 dat_419ca0 stru_419CA0 _EH4_SCOPETABLE
+dat_419cbc
 dat_419cc0 stru_419CC0 _EH4_SCOPETABLE
+dat_419cdc
 dat_419ce0 stru_419CE0 _EH4_SCOPETABLE
+dat_419cfc
 dat_419d00 stru_419D00 _EH4_SCOPETABLE
+dat_419d1c
 dat_419d20 stru_419D20 _EH4_SCOPETABLE
+dat_419d3c
 dat_419d40 stru_419D40 _EH4_SCOPETABLE
 dat_419d5c __IMPORT_DESCRIPTOR_KERNEL32
 dat_419d60
@@ -4760,98 +5182,141 @@ dat_419f2c
 dat_419f34 word_419F34
 dat_419f46 word_419F46
 dat_419f62 word_419F62
+dat_419f77
 dat_419f78 word_419F78
 dat_419f92 word_419F92
 dat_419fac word_419FAC
 dat_419fba word_419FBA
+dat_419fcb
 dat_419fcc word_419FCC
+dat_419fdb
 dat_419fdc word_419FDC
 dat_419fea word_419FEA
 dat_41a000 word_41A000
 dat_41a00c word_41A00C
+dat_41a01d
 dat_41a01e word_41A01E
 dat_41a02a aKernel32Dll
+dat_41a037
 dat_41a038 word_41A038
 dat_41a046 word_41A046
 dat_41a05c aUser32Dll
+dat_41a067
 dat_41a068 word_41A068
+dat_41a077
 dat_41a078 word_41A078
+dat_41a089
 dat_41a08a word_41A08A
+dat_41a09b
 dat_41a09c word_41A09C
 dat_41a0ae word_41A0AE
 dat_41a0bc aAdvapi32Dll
+dat_41a0c9
 dat_41a0ca word_41A0CA
+dat_41a0df
 dat_41a0e0 aShell32Dll
 dat_41a0ec word_41A0EC
+dat_41a0fb
 dat_41a0fc word_41A0FC
 dat_41a112 word_41A112
 dat_41a124 aShlwapiDll
 dat_41a130 word_41A130
+dat_41a14b
 dat_41a14c word_41A14C
 dat_41a16a word_41A16A
 dat_41a17e word_41A17E
+dat_41a191
 dat_41a192 word_41A192
 dat_41a1ae word_41A1AE
 dat_41a1c8 word_41A1C8
 dat_41a1de word_41A1DE
+dat_41a1f3
 dat_41a1f4 word_41A1F4
 dat_41a20e word_41A20E
 dat_41a224 word_41A224
 dat_41a238 word_41A238
 dat_41a24a word_41A24A
+dat_41a25d
 dat_41a25e word_41A25E
 dat_41a26a word_41A26A
+dat_41a27b
 dat_41a27c word_41A27C
+dat_41a28b
 dat_41a28c word_41A28C
 dat_41a29c word_41A29C
+dat_41a2b3
 dat_41a2b4 word_41A2B4
+dat_41a2cb
 dat_41a2cc word_41A2CC
 dat_41a2e4 word_41A2E4
 dat_41a30c word_41A30C
+dat_41a317
 dat_41a318 word_41A318
 dat_41a326 word_41A326
 dat_41a334 word_41A334
 dat_41a33e word_41A33E
 dat_41a34c word_41A34C
+dat_41a35d
 dat_41a35e word_41A35E
+dat_41a36f
 dat_41a370 word_41A370
 dat_41a37e word_41A37E
+dat_41a393
 dat_41a394 word_41A394
+dat_41a3a3
 dat_41a3a4 word_41A3A4
 dat_41a3b0 word_41A3B0
 dat_41a3c6 word_41A3C6
 dat_41a3dc word_41A3DC
+dat_41a3e5
 dat_41a3e6 word_41A3E6
+dat_41a3f1
 dat_41a3f2 word_41A3F2
 dat_41a3fe word_41A3FE
+dat_41a40d
 dat_41a40e word_41A40E
 dat_41a41c word_41A41C
 dat_41a428 word_41A428
+dat_41a43b
 dat_41a43c word_41A43C
 dat_41a44c word_41A44C
 dat_41a45e word_41A45E
+dat_41a469
 dat_41a46a word_41A46A
 dat_41a476 word_41A476
 dat_41a488 word_41A488
+dat_41a4a1
 dat_41a4a2 word_41A4A2
 dat_41a4bc word_41A4BC
+dat_41a4cb
 dat_41a4cc word_41A4CC
+dat_41a4dd
 dat_41a4de word_41A4DE
+dat_41a4ef
 dat_41a4f0 word_41A4F0
+dat_41a4fb
 dat_41a4fc word_41A4FC
 dat_41a50a word_41A50A
+dat_41a519
 dat_41a51a word_41A51A
+dat_41a52b
 dat_41a52c word_41A52C
+dat_41a53f
 dat_41a540 word_41A540
+dat_41a553
 dat_41a554 word_41A554
 dat_41a564 word_41A564
+dat_41a574
 dat_41b000 ___security_cookie
 dat_41b004 dword_41B004
 dat_41b00c dword_41B00C
 dat_41b010 dword_41B010
+dat_41b014
 dat_41b020 dwTlsIndex DWORD
+dat_41b024
 dat_41b030 unk_41B030
 dat_41b040 byte_41B040
+dat_41b041
 dat_41b044 unk_41B044
 dat_41b048 unk_41B048
 dat_41b04c dword_41B04C DWORD
@@ -4862,6 +5327,7 @@ dat_41b138
 dat_41b148
 dat_41b158
 dat_41b168
+dat_41b16c
 dat_41b180
 dat_41b18c
 dat_41b190
@@ -4899,8 +5365,11 @@ dat_41b72c off_41B72C
 dat_41b730 off_41B730
 dat_41b734 off_41B734
 dat_41b738 dword_41B738
+dat_41b73c
 dat_41b740 dword_41B740
+dat_41b744
 dat_41b750 hObject HANDLE
+dat_41b754
 dat_41b770 ??_R0?AVbad_alloc@std@@@8
 dat_41b774
 dat_41b778 aAvbadAllocStd
@@ -4910,15 +5379,18 @@ dat_41b794 aAvexceptionStd
 dat_41b7a8 ??_R0?AVlogic_error@std@@@8
 dat_41b7ac
 dat_41b7b0 aAvlogicErrorSt
+dat_41b7c6
 dat_41b7c8 ??_R0?AVlength_error@std@@@8
 dat_41b7cc
 dat_41b7d0 aAvlengthErrorS
+dat_41b7e7
 dat_41b7e8 ??_R0?AVtype_info@@@8
 dat_41b7ec
 dat_41b7f0 aAvtypeInfo
 dat_41b800 ??_R0?AVbad_array_new_length@std@@@8
 dat_41b804
 dat_41b808 aAvbadArrayNewL
+dat_41b827
 dat_41b828 ??_R0?AVbad_exception@std@@@8
 dat_41b82c dword_41B82C
 dat_41b830 aAvbadException
@@ -4929,9 +5401,13 @@ dat_41b858 dword_41B858
 dat_41b85c dword_41B85C
 dat_41b898 dword_41B898
 dat_41b924 word_41B924
+dat_41b926
 dat_41b928 word_41B928
+dat_41b92a
 dat_41b92c word_41B92C
+dat_41b92e
 dat_41b930 word_41B930
+dat_41b932
 dat_41b934 dword_41B934
 dat_41b938 dword_41B938
 dat_41b93c dword_41B93C
@@ -4941,6 +5417,7 @@ dat_41b948 dword_41B948
 dat_41b94c dword_41B94C
 dat_41b950 dword_41B950
 dat_41b954 word_41B954
+dat_41b956
 dat_41b958 dword_41B958
 dat_41b95c dword_41B95C
 dat_41b960 word_41B960
@@ -4950,6 +5427,7 @@ dat_41bb6c dword_41BB6C
 dat_41bb78 unk_41BB78
 dat_41bb84 byte_41BB84
 dat_41bb85 byte_41BB85
+dat_41bb86
 dat_41bb88 ListHead union _SLIST_HEADER
 dat_41bb90 unk_41BB90
 dat_41bb98 dword_41BB98
@@ -4966,6 +5444,7 @@ dat_41bc0c dword_41BC0C
 dat_41bc4c unk_41BC4C
 dat_41bc50 dword_41BC50
 dat_41bc54 byte_41BC54
+dat_41bc55
 dat_41bc58 dword_41BC58
 dat_41bc5c dword_41BC5C
 dat_41bc60 dword_41BC60
@@ -4984,6 +5463,7 @@ dat_41be98 unk_41BE98
 dat_41bea0 unk_41BEA0
 dat_41beb0 unk_41BEB0
 dat_41bfe8 dword_41BFE8
+dat_41bfec
 dat_41bff0 unk_41BFF0
 dat_41c040 unk_41C040
 dat_41c0c0 dword_41C0C0
@@ -4993,6 +5473,7 @@ dat_41c0cc dword_41C0CC
 dat_41c0d0 dword_41C0D0 LPVOID
 dat_41c0d4 dword_41C0D4 LPVOID
 dat_41c0d8 dword_41C0D8 struct __crt_locale_data *
+dat_41c0dc
 dat_41c0e0 dword_41C0E0
 dat_41c2e0 dword_41C2E0
 dat_41c2e4 dword_41C2E4
@@ -5001,6 +5482,7 @@ dat_41c2ec dword_41C2EC
 dat_41c2f0 unk_41C2F0
 dat_41c2fc dword_41C2FC
 dat_41c300 byte_41C300
+dat_41c301
 dat_41c304 dword_41C304
 dat_41c308 dword_41C308 LPVOID
 dat_41c30c dword_41C30C LPVOID
@@ -5017,12 +5499,14 @@ dat_41c334 dword_41C334
 dat_41c338 unk_41C338
 dat_41c33c dword_41C33C
 dat_41c340 dword_41C340
+dat_41c344
 dat_41c348 unk_41C348
 dat_41c350 dword_41C350
 dat_41c354 unk_41C354
 dat_41c358 unk_41C358
 dat_41c35c Ptr PVOID
 dat_41c360 dword_41C360
+dat_41c364
 
 bbk: 5437
 bbk_401000

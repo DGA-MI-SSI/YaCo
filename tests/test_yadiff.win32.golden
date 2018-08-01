@@ -487,6 +487,7 @@ collection
 coloncmd
 command_height
 common_channel_read
+common_function
 common_init
 comp_col
 comp_textwidth
@@ -1095,22 +1096,20 @@ f_assert_notequal
 f_bufexists
 f_bufname
 f_bufnr
-f_bufwinid
-f_bufwinnr
 f_byte2line
 f_ch_canread
 f_ch_close
 f_ch_close_in
 f_ch_evalexpr
-f_ch_evalraw
 f_ch_getbufnr
 f_ch_getjob
 f_ch_info
 f_ch_log
 f_ch_logfile
 f_ch_open
+f_ch_read
+f_ch_readraw
 f_ch_sendexpr
-f_ch_sendraw
 f_ch_setoptions
 f_ch_status
 f_changenr
@@ -1142,6 +1141,7 @@ f_extend
 f_feedkeys
 f_filereadable
 f_filewritable
+f_findfile
 f_fnameescape
 f_fnamemodify
 f_foldclosed
@@ -1149,6 +1149,8 @@ f_foldclosedend
 f_foldlevel
 f_foldtext
 f_foldtextresult
+f_funcref
+f_function
 f_garbagecollect
 f_get
 f_getbufinfo
@@ -1158,6 +1160,7 @@ f_getcharsearch
 f_getcmdline
 f_getcmdwintype
 f_getcompletion
+f_getcurpos
 f_getcwd
 f_getfperm
 f_getftime
@@ -1166,6 +1169,7 @@ f_getline
 f_getloclist
 f_getmatches
 f_getpid
+f_getpos
 f_getreg
 f_getregtype
 f_gettabinfo
@@ -1214,9 +1218,13 @@ f_libcallnr
 f_line
 f_lispindent
 f_localtime
+f_maparg
+f_mapcheck
 f_matchaddpos
 f_matcharg
 f_matchdelete
+f_max
+f_min
 f_mkdir
 f_mode
 f_nextnonblank
@@ -3175,4 +3183,4 @@ wvsp_one
 yank_copy_line
 yank_register_mline
 
-symbols: 3176
+symbols: 3184

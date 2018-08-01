@@ -26,6 +26,7 @@ class Fixture(runtests.Fixture):
     def test_get_all_items_qt54(self):
         a, _ = self.setup_repos()
         self.check_range(a, 0x66023FE9, 0x66024012, """
+0x66023fed: data: data align
 0x66023ff0: data: data dword comm ref name 0:off
 0x66024004: data: data byte comm ref labl
 """)
@@ -40,6 +41,7 @@ class Fixture(runtests.Fixture):
 """)
         self.check_range(a, 0x6605E140, 0x6605E198, """
 0x6605e140: data: data strlit labl name
+0x6605e196: data: data align
 """)
         self.check_range(a, 0x6605E1B6, 0x6605E1EB, """
 """)
@@ -72,10 +74,20 @@ idc.set_func_end(ea, ea+0x6C)
         a, _ = self.setup_cmder()
         self.check_range(a, 0x00403070, 0x004035E4, """
 0x403070: block: code func ref name
+0x4032d3: data: data align
 0x4032d4: data: data dword comm ref name 0:off
+0x4032eb: data: data align
+0x4032f7: data: data align
+0x403309: data: data align
+0x403323: data: data align
+0x40337f: data: data align
 0x403380: data: data dword comm ref name 0:off
+0x403397: data: data align
+0x4033a5: data: data align
+0x4033bb: data: data align
+0x4034bd: data: data align
+0x4035a7: data: data align
 """)
-
 
     @unittest.skip("only use manually")
     def test_full_all_items(self):
@@ -102,6 +114,7 @@ idc.set_func_end(ea, ea+0x6C)
 0x41c2f0: unexplored: unkn ref labl
 0x41c2fc: data: data dword ref labl
 0x41c300: data: data byte ref labl
+0x41c301: data: data align
 0x41c304: data: data dword ref labl
 0x41c308: data: data dword ref labl
 """)
