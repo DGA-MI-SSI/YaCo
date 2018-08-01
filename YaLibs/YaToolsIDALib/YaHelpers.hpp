@@ -190,7 +190,7 @@ namespace ya
     range_t get_range_code(ea_t ea, ea_t min, ea_t max);
     std::vector<ea_t> get_all_items(ea_t start, ea_t end);
 
-    static inline bool need_item(flags_t flags)
+    static inline bool is_item(flags_t flags)
     {
         return has_cmt(flags)
             || has_xref(flags)

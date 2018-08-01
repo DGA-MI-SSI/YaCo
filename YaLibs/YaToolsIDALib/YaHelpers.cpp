@@ -492,7 +492,7 @@ namespace ya
         const auto add_ea = [&](ea_t x)
         {
             const auto flags = get_flags(x);
-            if(is_code(flags) || ya::need_item(flags))
+            if(is_code(flags) || ya::is_item(flags))
                 if(allowed.contains(x))
                     items.emplace_back(x);
         };
@@ -500,7 +500,7 @@ namespace ya
         // find all interesting items
         while(ea != BADADDR && ea < end)
         {
-             const auto flags = get_flags(ea);
+            const auto flags = get_flags(ea);
             if(is_code(flags))
             {
                 const auto func = get_func(ea);
