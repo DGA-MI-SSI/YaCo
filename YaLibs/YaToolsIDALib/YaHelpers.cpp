@@ -519,4 +519,16 @@ namespace ya
         dedup(items);
         return items;
     }
+
+    bool is_item(flags_t flags)
+    {
+        return has_cmt(flags)
+            || has_xref(flags)
+            || has_extra_cmts(flags)
+            || has_any_name(flags)
+            || !!(flags & FF_SIGN)
+            || !!(flags & FF_BNOT)
+            || is_defarg0(flags)
+            || is_defarg1(flags);
+    }
 }
