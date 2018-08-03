@@ -49,7 +49,7 @@ python $yatools_directory/YaTools/bin/merge_idb.py $source_dir/source.idb $desti
 
 Install dependencies
 ```
-sudo apt install build-essential git cmake libpython2.7 libpython2.7-dev
+sudo apt install build-essential git cmake python2.7 libpython2.7 libpython2.7-dev
 ```
 
 Configure & build **YaTools**
