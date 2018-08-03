@@ -390,7 +390,7 @@ namespace
     void loader_finished(Hooks& /*hooks*/, va_list args)
     {
         const auto li           = va_arg(args, linput_t*);
-        const auto neflags      = va_arg(args, uint16_t);
+        const auto neflags      = static_cast<uint16_t>(va_arg(args, int));
         const auto filetypename = va_arg(args, const char*);
         LOG_IDB_EVENT("loader_finished: neflags 0x%x filetypename %s", neflags, filetypename);
         UNUSED(li);
@@ -501,6 +501,7 @@ namespace
         const auto id       = va_arg(args, tid_t);
         const auto is_enum  = static_cast<bool>(va_arg(args, int));
         const auto newname  = va_arg(args, const char*);
+        UNUSED(is_enum);
         LOG_IDB_EVENT("renaming_enum: %s:%s", get_name(id).c_str(), newname);
         hooks.events_.touch_enum(id);
     }
@@ -658,6 +659,7 @@ namespace
         const auto sptr         = va_arg(args, struc_t*);
         const auto member_id    = va_arg(args, tid_t);
         const auto offset       = va_arg(args, ea_t);
+        UNUSED(member_id);
         LOG_IDB_EVENT("struc_member_deleted: %s 0x%" PRIXEA, get_name(sptr->id).c_str(), offset);
     }
 
@@ -968,7 +970,7 @@ namespace
         const auto regnum       = va_arg(args, int);
         const auto value        = va_arg(args, sel_t);
         const auto old_value    = va_arg(args, sel_t);
-        const auto tag          = va_arg(args, uchar);
+        const auto tag          = static_cast<uchar>(va_arg(args, int));
         LOG_IDB_EVENT("sgr_changed: 0x%" PRIXEA "-0x%" PRIXEA " regnum %d value 0x%" PRIXEA ":0x%" PRIXEA " tag 0x%x", start_ea, end_ea, regnum, old_value, value, tag);
     }
 
@@ -985,6 +987,7 @@ namespace
         const auto flags = va_arg(args, flags_t);
         const auto tid   = va_arg(args, tid_t);
         const auto len   = va_arg(args, asize_t);
+        UNUSED(tid);
         LOG_IDB_EVENT("make_data: 0x%" PRIXEA " flags 0x%x size 0x%" PRIXEA, ea, flags, len);
         hooks.events_.touch_data(ea);
     }
