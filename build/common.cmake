@@ -343,6 +343,7 @@ function(setup_gcc target)
             "-Wall"
             "-Wextra"
             "-Werror"
+	    "-Wno-format-security"
         )
     endif()
 endfunction()
