@@ -117,34 +117,17 @@ namespace
         std::vector<std::string>        errors_;
     };
 
-    template<typename ...Args>
-    std::string format_string(const char* fmt, const Args... args)
-    {
-        const auto size = std::snprintf(nullptr, 0, fmt, args...);
-        std::vector<char> buffer(size + 1);
-        std::snprintf(&buffer[0], size + 1, fmt, args...);
-        return std::string(&buffer[0], &buffer[size]);
-    }
-
-    template<typename ...Args>
-    std::string format_last_git_error(const char* fmt, const Args... args)
-    {
-        const auto giterr = giterr_last();
-        if(giterr)
-            return format_string((std::string("%s: ") + fmt).data(), giterr->message, args...);
-        return format_string(fmt, args...);
-    }
-
-    template<typename ...Args>
-    void fail_with(Git& git, const char* fmt, const Args... args)
-    {
-        git.errors_.push_back(format_last_git_error(fmt, args...));
-    }
+    #define PUSH_GIT_ERROR(DST, FMT, ...) do {\
+        const auto err_ = giterr_last();\
+        const auto size_ = std::snprintf(nullptr, 0, FMT "%s%s", err_ ? ": " : "", err_ ? err_->message : "", ## __VA_ARGS__);\
+        std::vector<char> buf_(size_ + 1);\
+        std::snprintf(&buf_[0], size_ + 1, FMT "%s%s", err_ ? ": " : "", err_ ? err_->message : "", ## __VA_ARGS__);\
+        (DST).push_back(std::string(&buf_[0], &buf_[size_]));\
+    } while(0)
 
     #define FAIL_WITH(X, GIT, FMT, ...) do {\
-        if(false) printf((FMT), ## __VA_ARGS__);\
-        fail_with((GIT), (FMT), ## __VA_ARGS__);\
-        return X;\
+        PUSH_GIT_ERROR((GIT).errors_, FMT, ## __VA_ARGS__);\
+        return (X);\
     } while(0)
 
     std::unique_ptr<git_signature> make_signature(Git& git)
@@ -166,7 +149,9 @@ namespace
             err = git_repository_open(&ptr_repo, fullpath.string().data());
         if(err != GIT_OK)
         {
-            LOG(ERROR, "%s\n", format_last_git_error("unable to open/init git repository at %s", fullpath.generic_string().data()).data());
+            std::vector<std::string> errors;
+            PUSH_GIT_ERROR(errors, "unable to open/init git repository at %s", fullpath.generic_string().data());
+            LOG(ERROR, "%s\n", errors.front().data());
             return std::nullptr_t();
         }
 

@@ -343,7 +343,7 @@ function(setup_gcc target)
             "-Wall"
             "-Wextra"
             "-Werror"
-	    "-Wno-format-security"
+            "-Wformat-security" # enabled by default on ubuntu so enable it for all
         )
     endif()
 endfunction()
