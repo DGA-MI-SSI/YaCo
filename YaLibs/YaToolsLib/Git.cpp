@@ -119,9 +119,9 @@ namespace
 
     #define PUSH_GIT_ERROR(DST, FMT, ...) do {\
         const auto err_ = giterr_last();\
-        const auto size_ = std::snprintf(nullptr, 0, FMT "%s%s", err_ ? ": " : "", err_ ? err_->message : "", ## __VA_ARGS__);\
+        const auto size_ = std::snprintf(nullptr, 0, FMT "%s%s", ## __VA_ARGS__, err_ ? ": " : "", err_ ? err_->message : "");\
         std::vector<char> buf_(size_ + 1);\
-        std::snprintf(&buf_[0], size_ + 1, FMT "%s%s", err_ ? ": " : "", err_ ? err_->message : "", ## __VA_ARGS__);\
+        std::snprintf(&buf_[0], size_ + 1, FMT "%s%s", ## __VA_ARGS__, err_ ? ": " : "", err_ ? err_->message : "");\
         (DST).push_back(std::string(&buf_[0], &buf_[size_]));\
     } while(0)
 
