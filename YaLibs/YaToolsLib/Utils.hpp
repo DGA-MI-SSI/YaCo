@@ -32,5 +32,6 @@ namespace ver
         NEWER   = 1 << 2,
     };
 
-    ECheck check_yaco(const std::string& repo, const std::string& current);
+    ECheck      check(const std::string& repo, const std::string& current);
+    std::string latest(const std::string& repo, const std::string& current);
 }

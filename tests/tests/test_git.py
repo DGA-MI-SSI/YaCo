@@ -72,3 +72,70 @@ yaco_plugin.start()
         a.run(
             self.check_enum("name_a"),
         )
+
+    def commit_version(self, repo, version):
+        with open(os.path.join(repo.path, "yaco.version"), "wb") as fh:
+            fh.write("%s\n" % version)
+        runtests.sysexec(repo.path, ["git", "add", "yaco.version"])
+        runtests.sysexec(repo.path, ["git", "commit", "-m", "version: force %s" % version])
+
+    def expect_version(self, repo, want):
+        with open(os.path.join(repo.path, "yaco.version"), "rb") as fh:
+            got = fh.read().strip()
+            self.assertEqual(want, got)
+
+    def get_current_version(self):
+        return runtests.sysexec(self.yaco_dir, ["git", "describe", "--long", "--dirty"]).strip()
+
+    def test_git_upgrade_version(self):
+        a, b = self.setup_cmder()
+
+        # force git update with older version
+        self.commit_version(a, "v2.0-0-g00000000")
+        a.run()
+
+        # check version has been upgraded
+        want = self.get_current_version()
+        self.expect_version(a, want)
+
+    def test_git_older_version(self):
+        a, b = self.setup_cmder()
+
+        # force git update with newer version
+        want = "v99.0-0-g00000000"
+        self.commit_version(a, want)
+        a.run()
+
+        # check version has been upgraded
+        self.expect_version(a, want)
+
+    def test_git_conflict_version(self):
+        a, b = self.setup_cmder()
+
+        va, vb = ["v0.0-0-g00000000", "v99.0-0-g00000000"]
+        self.commit_version(a, va)
+        self.commit_version(b, vb)
+
+        # simulate activity
+        a.run(
+            self.script("""
+ea = 0x401C97
+idaapi.set_name(ea, "nonamea")
+"""),
+        )
+        b.run(
+            self.script("""
+ea = 0x401F1F
+idaapi.set_name(ea, "nonameb")
+"""),
+        )
+        a.run(
+            self.script("""
+ea = 0x401006
+idaapi.set_name(ea, "nonamec")
+"""),
+        )
+
+        # we expect latest version to win
+        self.expect_version(a, vb)
+        self.expect_version(b, vb)

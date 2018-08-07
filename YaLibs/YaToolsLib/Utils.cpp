@@ -1,6 +1,7 @@
 #include "Utils.hpp"
 
 #include "YaTypes.hpp"
+#include "git_version.h"
 
 #include <regex>
 
@@ -120,7 +121,7 @@ namespace
 
 namespace ver
 {
-    ECheck check_yaco(const std::string& repo, const std::string& current)
+    ECheck check(const std::string& repo, const std::string& current)
     {
         const auto repo_ver = get_version_api(repo);
         const auto curr_ver = get_version_api(current);
@@ -134,5 +135,18 @@ namespace ver
             return NEWER;
 
         return OK;
+    }
+
+    std::string latest(const std::string& local, const std::string& remote)
+    {
+        const auto echeck = check(local, remote);
+        switch(echeck)
+        {
+            default:
+            case ver::OK:       return remote;
+            case ver::OLDER:    return remote;
+            case ver::NEWER:    return local;
+            case ver::INVALID:  return GIT_VERSION() "\n";
+        }
     }
 }

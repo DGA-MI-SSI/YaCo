@@ -22,6 +22,7 @@
 #include "Yatools.hpp"
 #include "Utils.hpp"
 #include "Helpers.h"
+#include "git_version.h"
 
 #include <ctime>
 #include <libxml/xmlreader.h>
@@ -192,7 +193,13 @@ namespace
 
     bool IDAInteractiveFileConflictResolver(const std::string& local, const std::string& remote, const std::string& filename)
     {
-        if (!std::regex_match(filename, std::regex(".*\\.xml$")))
+        if(fs::path(filename) == "yaco.version")
+        {
+            std::fstream(filename, std::fstream::out) << ver::latest(local, remote);
+            return true;
+        }
+
+        if(!std::regex_match(filename, std::regex(".*\\.xml$")))
             return true;
 
         Merger merger(ObjectVersionMergeStrategy_e::OBJECT_VERSION_MERGE_PROMPT, &merge_attributes_callback);
@@ -244,6 +251,58 @@ namespace
         bool                    include_idb_;
         bool                    is_tracked_;
     };
+
+    fs::path get_version_path()
+    {
+        return fs::path(get_current_idb_path()).replace_filename("yaco.version");
+    }
+
+    bool overwrite_version(IGit& git, const fs::path& path)
+    {
+        std::fstream(path, std::fstream::out) << GIT_VERSION() << std::endl;
+        auto ok = git.add_file(path.filename().generic_string());
+        if(!ok)
+        {
+            LOG(ERROR, "Unable to update %s", path.filename().generic_string().data());
+            return false;
+        }
+
+        ok = git.commit("version: yaco " GIT_VERSION() "\n");
+        if(!ok)
+        {
+            LOG(ERROR, "Unable to commit %s", path.filename().generic_string().data());
+            return false;
+        }
+
+        return true;
+    }
+
+    bool check_git_version(IGit& git)
+    {
+        const auto path = get_version_path();
+        std::string version;
+
+        // read version from file
+        std::fstream(path, std::fstream::in) >> version;
+        const auto check = ver::check(version, GIT_VERSION());
+        switch(check)
+        {
+            case ver::OK:
+                return true;
+
+            default:
+            case ver::OLDER:
+            case ver::INVALID:
+                return overwrite_version(git, path);
+
+            case ver::NEWER:
+                return ask_yn(true,
+                              "Git server version: %s\n"
+                              "Your local version: %s\n"
+                              "Your version is outdated, do you want to continue?",
+                              version.data(), GIT_VERSION()) == ASKBTN_YES;
+        }
+    }
 }
 
 Repository::Repository(const std::string& path)
@@ -260,6 +319,14 @@ Repository::Repository(const std::string& path)
 
     if (is_tracked_)
     {
+        const auto ok = check_git_version(*git_);
+        if(!ok)
+        {
+            git_.reset();
+            LOG(ERROR, "Repo ignored\n");
+            return;
+        }
+
         include_idb_ = git_->is_tracked(get_original_idb_name());
         LOG(INFO, "%s %s\n", include_idb_ ? "tracking" : "ignoring", get_original_idb_name().data());
         LOG(DEBUG, "Repo opened\n");
@@ -280,6 +347,12 @@ Repository::Repository(const std::string& path)
     }
     if (!git_->add_file(gitignore.filename().generic_string()))
         LOG(ERROR, "Unable to add .gitignore\n");
+
+    // add version tag
+    const auto version = get_version_path();
+    std::fstream(version, std::fstream::out) << GIT_VERSION() << std::endl;
+    if(!git_->add_file(version.filename().generic_string()))
+        LOG(ERROR, "Unable to add yaco.version");
 
     // add current IDB to repo if tracking is enabled
     if (include_idb_)

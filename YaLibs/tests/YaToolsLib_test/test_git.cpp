@@ -234,5 +234,5 @@ TEST(yatools, test_check_yaco_version)
         {"v2.1-15-g31d1b83a", "v2.1-15-g1d1b83a3",          ver::OK}, // ok with mismatch, ignore it
     };
     for(const auto& t : tests)
-        EXPECT_EQ(t.expected, ver::check_yaco(t.repo, t.curr));
+        EXPECT_EQ(t.expected, ver::check(t.repo, t.curr));
 }
