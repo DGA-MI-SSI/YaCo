@@ -18,15 +18,14 @@
 #include "Signature.hpp"
 #include "IModelVisitor.hpp"
 #include "YaTypes.hpp"
-#include "Yatools.hpp"
 #include "BinHex.hpp"
+#include "Helpers.h"
+#include "Yatools.hpp"
+
+#include <libxml/xmlreader.h>
 
 #include <algorithm>
-#include <string>
-#include <libxml/xmlreader.h>
-#include <list>
 #include <map>
-#include <unordered_map>
 
 #ifdef _MSC_VER
 #   include <filesystem>
@@ -36,13 +35,10 @@
 
 namespace fs = std::experimental::filesystem;
 
-#define THROW(FMT, ...) do {\
-    YALOG_ERROR(nullptr, (FMT), ## __VA_ARGS__);\
-    throw std::runtime_error("unexpected error");\
-} while(0)
-
-#ifdef _MSC_VER
-#pragma comment(lib, "ws2_32.lib")
+#if 1
+#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("xml", (FMT), ## __VA_ARGS__)
+#else
+#define LOG(...) do {} while(0)
 #endif
 
 namespace
@@ -258,7 +254,7 @@ namespace
                 const auto blob_offset_str = xml_get_prop(child, "offset");
                 if(blob_offset_str.empty())
                 {
-                    YALOG_ERROR(nullptr, "no offset for blob\n");
+                    LOG(ERROR, "missing blob offset\n");
                 }
                 else
                 {
@@ -405,7 +401,7 @@ namespace
                     {
                         uint64_t offset = 0;
                         uint32_t operand = 0;
-                        std::unordered_map<std::string, std::string> attributes;
+                        std::map<std::string, std::string> attributes;
 
                         const auto id_char = xml_get_content(xref->children);
                         const auto object_id = id_from_string(make_string_ref(id_char));
@@ -472,7 +468,10 @@ namespace
 
         const auto otype = get_object_type(object_type.data());
         if(otype == OBJECT_TYPE_UNKNOWN)
-            YALOG_ERROR(nullptr, "bug spotted, object_type %s\n", object_type.data());
+        {
+            LOG(ERROR, "invalid object type %s\n", object_type.data());
+            return;
+        }
 
         bool has_id = false;
         YaToolObjectId id = 0;
@@ -506,13 +505,16 @@ namespace
     void accept_reader(xmlTextReaderPtr reader, IModelVisitor& visitor)
     {
         if(!reader)
-            THROW("could not parse file\n");
-        // move to sigfile
-        if(xmlTextReaderRead(reader) != 1)
-            THROW("could not parse file (1rst xmlTextReaderRead\n");
-        // move to first referenced object
-        if(xmlTextReaderRead(reader) != 1)
-            THROW("could not parse file (2nd xmlTextReaderRead\n");
+        {
+            LOG(ERROR, "invalid xml reader\n");
+            return;
+        }
+        for(int i = 0; i < 2; ++i)
+            if(xmlTextReaderRead(reader) != 1)
+            {
+                LOG(ERROR, "unable to read xml node\n");
+                return;
+            }
         do
         {
             auto current_obj = xmlTextReaderExpand(reader);
@@ -547,39 +549,23 @@ void XmlModelMemory::accept(IModelVisitor& visitor)
 
 void XmlModelPath::accept(IModelVisitor& visitor)
 {
-    try
+    std::error_code ec;
+    const auto root = fs::path(path_);
+    if(!fs::is_directory(root, ec))
     {
-        fs::path root_folder(path_);
-        if (fs::exists(root_folder) && fs::is_directory(root_folder))
-        {
-            for (const auto& sub_folder : gFolders)
-            {
-                fs::path sub_folder_path(root_folder);
-                sub_folder_path /= sub_folder;
-                if (fs::exists(sub_folder_path) && fs::is_directory(sub_folder_path))
-                {
-                    std::list<std::string> files;
-                    for (fs::directory_iterator file(sub_folder_path), end; file != end; file++)
-                    {
-                        fs::path file_path(*file);
-                        files.push_back(file_path.string());
-                    }
-                    files.sort();
-                    for(const auto& file : files)
-                    {
-                        accept_file(file, visitor);
-                    }
-                }
-            }
-        }
-        else
-        {
-            THROW("input folder %s does not exist or is not a directory\n", root_folder.string().data());
-        }
+        LOG(ERROR, "invalid directory %s\n", root.generic_string().data());
+        return;
     }
-    catch (const fs::filesystem_error& ex)
+
+    std::vector<std::string> files;
+    for(const auto& sub_folder : gFolders)
     {
-        YALOG_ERROR(nullptr, "%s\n", ex.what());
+        files.clear();
+        for(fs::directory_iterator it(root / sub_folder, ec), end; !ec && it != end; ++it)
+            files.push_back(it->path().generic_string());
+        std::sort(files.begin(), files.end());
+        for(const auto& file : files)
+            accept_file(file, visitor);
     }
 }
 
@@ -589,6 +575,6 @@ void XMLAllDatabaseModel::accept(IModelVisitor& visitor)
     if(fs::is_directory(folder_))
         XmlModelPath(folder_.string()).accept(visitor);
     else
-        YALOG_ERROR(nullptr, "missing directory %s\n", folder_.string().data());
+        LOG(ERROR, "invalid directory %s\n", folder_.generic_string().data());
     visitor.visit_end();
 }
