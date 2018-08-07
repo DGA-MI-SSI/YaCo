@@ -2,6 +2,16 @@
 
 #include "YaTypes.hpp"
 
+#include <regex>
+
+#ifdef _MSC_VER
+#   include <optional.hpp>
+using namespace nonstd;
+#else
+#   include <experimental/optional>
+using namespace std::experimental;
+#endif
+
 bool remove_substring(std::string& str, const std::string& substr)
 {
     if (substr.empty())
@@ -77,4 +87,52 @@ bool is_default_name(const const_string_ref& value)
         && !is_in_range(str.value[i], 'A', 'F'))
             return false;
     return true;
+}
+
+namespace
+{
+    const std::regex r_yaco_version{"v(\\d+).(\\d+)-(\\d+)-g[a-fA-F0-9]+(:?-dirty)?\\s*(:?\\n)?"};
+
+    optional<int> get_version_api(const std::string& version)
+    {
+        std::smatch match;
+        const auto ok = std::regex_match(version, match, r_yaco_version);
+        if(!ok)
+            return nullopt;
+
+        const auto major = std::stol(match.str(1));
+        if(major < 0 || major > 0xFF)
+            return nullopt;
+
+        const auto minor = std::stol(match.str(2));
+        if(minor < 0 || minor > 0xFF)
+            return nullopt;
+
+        const auto rev = std::stol(match.str(3));
+        if(rev < 0 || rev > 0xFFFF)
+            return nullopt;
+
+        return major * 0x1000000
+             + minor * 0x10000
+             + rev;
+    }
+}
+
+namespace ver
+{
+    ECheck check_yaco(const std::string& repo, const std::string& current)
+    {
+        const auto repo_ver = get_version_api(repo);
+        const auto curr_ver = get_version_api(current);
+        if(!repo_ver || !curr_ver)
+            return INVALID;
+
+        if(repo_ver < curr_ver)
+            return OLDER;
+
+        if(repo_ver > curr_ver)
+            return NEWER;
+
+        return OK;
+    }
 }

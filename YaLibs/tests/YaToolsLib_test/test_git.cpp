@@ -20,6 +20,7 @@
 #include "gtest/gtest.h"
 
 #include <Git.hpp>
+#include "Utils.hpp"
 #include "test_common.hpp"
 
 using namespace testing;
@@ -210,4 +211,28 @@ TEST_F (TestYaGitLib, test_git_rebase)
     const auto result = read_file("b/file3.txt");
     const auto expected = merge_strings(make_string_ref(left), "refs/remotes/origin/master", make_string_ref(right), "third file b") + "\n";
     EXPECT_EQ(expected, result);
+}
+
+TEST(yatools, test_check_yaco_version)
+{
+    const struct
+    {
+        const char  repo[255];
+        const char  curr[255];
+        ver::ECheck expected;
+    } tests[] =
+    {
+        {"v2.1-15-g31d1b83a", "a",                          ver::INVALID},
+        {"v2.1-15-g31d1b83a", "v2.1.15",                    ver::INVALID},
+        {"v2.1-15-g31d1b83a", "v2.1-15",                    ver::INVALID},
+        {"v2.1-15-g31d1b83a", "v2.1-15-z31d1b83a",          ver::INVALID},
+        {"v2.1-15-g31d1b83a", "v2.1-15-g31d1b83g",          ver::INVALID},
+        {"v2.1-15-g31d1b83a", "v2.1-15-g31d1b83a",          ver::OK},
+        {"v2.1-15-g31d1b83a", "v2.1-2-g31d1b83a",           ver::NEWER},
+        {"v2.1-15-g31d1b83a", "v2.1-20-g31d1b83a",          ver::OLDER},
+        {"v2.1-15-g31d1b83a", "v2.1-15-g31d1b83a-dirty",    ver::OK}, // ok but dirty, ignore it
+        {"v2.1-15-g31d1b83a", "v2.1-15-g1d1b83a3",          ver::OK}, // ok with mismatch, ignore it
+    };
+    for(const auto& t : tests)
+        EXPECT_EQ(t.expected, ver::check_yaco(t.repo, t.curr));
 }

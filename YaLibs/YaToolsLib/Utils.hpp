@@ -21,3 +21,16 @@ struct const_string_ref;
 
 bool remove_substring(std::string& str, const std::string& substr);
 bool is_default_name(const const_string_ref& value);
+
+namespace ver
+{
+    enum ECheck
+    {
+        OK,
+        INVALID = 1 << 0,
+        OLDER   = 1 << 1,
+        NEWER   = 1 << 2,
+    };
+
+    ECheck check_yaco(const std::string& repo, const std::string& current);
+}
