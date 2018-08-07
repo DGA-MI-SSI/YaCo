@@ -229,7 +229,6 @@ arabic_maycombine
 arabic_maycombine_0
 arabic_shape
 ask_yesno
-assert_bool
 assert_exception
 assert_fails
 assert_inrange
@@ -487,7 +486,6 @@ collection
 coloncmd
 command_height
 common_channel_read
-common_function
 common_init
 comp_col
 comp_textwidth
@@ -518,7 +516,6 @@ create_timer
 crypt_append_msg
 crypt_blowfish_init
 crypt_check_current_method
-crypt_check_method
 crypt_check_method_0
 crypt_create
 crypt_create_for_writing
@@ -1096,6 +1093,8 @@ f_assert_notequal
 f_bufexists
 f_bufname
 f_bufnr
+f_bufwinid
+f_bufwinnr
 f_byte2line
 f_ch_canread
 f_ch_close
@@ -1107,8 +1106,6 @@ f_ch_info
 f_ch_log
 f_ch_logfile
 f_ch_open
-f_ch_read
-f_ch_readraw
 f_ch_sendexpr
 f_ch_setoptions
 f_ch_status
@@ -1141,6 +1138,7 @@ f_extend
 f_feedkeys
 f_filereadable
 f_filewritable
+f_filter
 f_findfile
 f_fnameescape
 f_fnamemodify
@@ -1149,8 +1147,6 @@ f_foldclosedend
 f_foldlevel
 f_foldtext
 f_foldtextresult
-f_funcref
-f_function
 f_garbagecollect
 f_get
 f_getbufinfo
@@ -1218,8 +1214,7 @@ f_libcallnr
 f_line
 f_lispindent
 f_localtime
-f_maparg
-f_mapcheck
+f_map
 f_matchaddpos
 f_matcharg
 f_matchdelete
@@ -1290,8 +1285,6 @@ f_synIDattr
 f_synIDtrans
 f_synconcealed
 f_synstack
-f_system
-f_systemlist
 f_tabpagebuflist
 f_tabpagewinnr
 f_tagfiles
@@ -3183,4 +3176,4 @@ wvsp_one
 yank_copy_line
 yank_register_mline
 
-symbols: 3184
+symbols: 3177

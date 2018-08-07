@@ -193,7 +193,7 @@ ida_bytes.op_dec(ea, 0)
 ea = 0x414204
 ida_bytes.clr_op_type(ea, 0)
 ea = 0x41421C
-ida_bytes.clr_op_type(ea, 0)
+ida_bytes.del_items(ea, 0, 4)
 """),
             self.save_ea(0x414204),
             self.save_ea(0x41421C),
@@ -218,7 +218,7 @@ ea = 0x414714
 idaapi.set_name(ea, "somename")
 ida_bytes.clr_op_type(ea, 0)
 ea = 0x414718
-ida_bytes.clr_op_type(ea, 0)
+ida_bytes.del_items(ea, 0, 4)
 """),
         )
 
@@ -242,7 +242,7 @@ ida_offset.op_offset(ea, 0, ida_nalt.REF_OFF32)
 ea = 0x414714
 ida_bytes.clr_op_type(ea, 0)
 ea = 0x414718
-ida_bytes.clr_op_type(ea, 0)
+ida_bytes.del_items(ea, 0, 4)
 """),
             self.save_ea(0x414714),
             self.save_ea(0x414718),

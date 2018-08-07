@@ -1,4 +1,4 @@
-objects: 29072
+objects: 29074
 
 bin: 1
 bin_66000000 Qt5Svgd.dll
@@ -11156,7 +11156,7 @@ cod_6604f194
 cod_6604f564
 cod_6604f570
 
-dat: 7235
+dat: 7237
 dat_66001000
 dat_66005321
 dat_66005381
@@ -12409,6 +12409,7 @@ dat_6604f532
 dat_66051a4f
 dat_66051a6f
 dat_66052a9b
+dat_66052c00
 dat_66053000 unk_66053000
 dat_66053104
 dat_66053108
@@ -14542,6 +14543,7 @@ dat_6605fd91 aCurrentframe
 dat_6605fd9e
 dat_6605fda0 asc_6605FDA0
 dat_6605fda2
+dat_6605fdb0
 dat_6605fdb2
 dat_6605ff18 a2repaintneeded
 dat_6605ff29 aQsvgrendererCp_0

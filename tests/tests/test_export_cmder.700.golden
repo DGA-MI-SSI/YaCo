@@ -1,4 +1,4 @@
-objects: 10919
+objects: 11014
 
 bin: 1
 bin_400000 Cmder.exe
@@ -2689,7 +2689,7 @@ cod_410bdd __rtchsifneg
 cod_410c05 __load_CW
 cod_412346 __alloca_probe_8
 
-dat: 2817
+dat: 2912
 dat_40108b
 dat_401701
 dat_4018ef
@@ -2780,6 +2780,7 @@ dat_412435
 dat_41246d
 dat_4125a7
 dat_41280e
+dat_412a00
 dat_413000 RegCreateKeyExW LSTATUS __stdcall sub(HKEY hKey, LPCWSTR lpSubKey, DWORD Reserved, LPWSTR lpClass, DWORD dwOptions, REGSAM samDesired, const LPSECURITY_ATTRIBUTES lpSecurityAttributes, PHKEY phkResult, LPDWORD lpdwDisposition)
 dat_413004 RegDeleteTreeW
 dat_413008 RegSetValueExW LSTATUS __stdcall sub(HKEY hKey, LPCWSTR lpValueName, DWORD Reserved, DWORD dwType, const BYTE *lpData, DWORD cbData)
@@ -3548,6 +3549,7 @@ dat_414890 aZhCn
 dat_41489c aKoKr
 dat_4148a8 aZhTw
 dat_4148ba asc_4148BA
+dat_4148bc
 dat_414bc0 asc_414BC0
 dat_414e40 unk_414E40
 dat_414fc0 unk_414FC0
@@ -4928,8 +4930,12 @@ dat_4193f8 aGctl
 dat_4196c0 unk_4196C0
 dat_4196c8 unk_4196C8
 dat_4196d0 stru_4196D0 UnwindMapEntry
+dat_4196d8  UnwindMapEntry
+dat_4196e0  UnwindMapEntry
+dat_4196e8  UnwindMapEntry
 dat_4196f0 stru_4196F0 FuncInfo
 dat_419714 stru_419714 UnwindMapEntry
+dat_41971c  UnwindMapEntry
 dat_419724 stru_419724 FuncInfo
 dat_419748 stru_419748 UnwindMapEntry
 dat_419750 stru_419750 FuncInfo
@@ -5006,6 +5012,7 @@ dat_419930 stru_419930 _EH4_SCOPETABLE
 dat_419958 stru_419958 _EH4_SCOPETABLE
 dat_419980 stru_419980 HandlerType
 dat_419990 stru_419990 UnwindMapEntry
+dat_419998  UnwindMapEntry
 dat_4199a0 stru_4199A0 TryBlockMapEntry
 dat_4199b4 stru_4199B4 FuncInfo
 dat_4199d8 stru_4199D8 _EH4_SCOPETABLE
@@ -5101,6 +5108,7 @@ dat_419dd8
 dat_419ddc
 dat_419de0
 dat_419de4
+dat_419de8
 dat_419dec off_419DEC
 dat_419df0
 dat_419df4
@@ -5173,139 +5181,226 @@ dat_419efc
 dat_419f00
 dat_419f04
 dat_419f08
+dat_419f0c
 dat_419f10 off_419F10
+dat_419f14
 dat_419f18 off_419F18
 dat_419f1c
 dat_419f20
+dat_419f24
 dat_419f28 off_419F28
 dat_419f2c
+dat_419f30
 dat_419f34 word_419F34
+dat_419f36
 dat_419f46 word_419F46
+dat_419f48
 dat_419f62 word_419F62
+dat_419f64
 dat_419f77
 dat_419f78 word_419F78
+dat_419f7a
 dat_419f92 word_419F92
+dat_419f94
 dat_419fac word_419FAC
+dat_419fae
 dat_419fba word_419FBA
+dat_419fbc
 dat_419fcb
 dat_419fcc word_419FCC
+dat_419fce
 dat_419fdb
 dat_419fdc word_419FDC
+dat_419fde
 dat_419fea word_419FEA
+dat_419fec
 dat_41a000 word_41A000
+dat_41a002
 dat_41a00c word_41A00C
+dat_41a00e
 dat_41a01d
 dat_41a01e word_41A01E
+dat_41a020
 dat_41a02a aKernel32Dll
 dat_41a037
 dat_41a038 word_41A038
+dat_41a03a
 dat_41a046 word_41A046
+dat_41a048
 dat_41a05c aUser32Dll
 dat_41a067
 dat_41a068 word_41A068
+dat_41a06a
 dat_41a077
 dat_41a078 word_41A078
+dat_41a07a
 dat_41a089
 dat_41a08a word_41A08A
+dat_41a08c
 dat_41a09b
 dat_41a09c word_41A09C
+dat_41a09e
 dat_41a0ae word_41A0AE
+dat_41a0b0
 dat_41a0bc aAdvapi32Dll
 dat_41a0c9
 dat_41a0ca word_41A0CA
+dat_41a0cc
 dat_41a0df
 dat_41a0e0 aShell32Dll
 dat_41a0ec word_41A0EC
+dat_41a0ee
 dat_41a0fb
 dat_41a0fc word_41A0FC
+dat_41a0fe
 dat_41a112 word_41A112
+dat_41a114
 dat_41a124 aShlwapiDll
 dat_41a130 word_41A130
+dat_41a132
 dat_41a14b
 dat_41a14c word_41A14C
+dat_41a14e
 dat_41a16a word_41A16A
+dat_41a16c
 dat_41a17e word_41A17E
+dat_41a180
 dat_41a191
 dat_41a192 word_41A192
+dat_41a194
 dat_41a1ae word_41A1AE
+dat_41a1b0
 dat_41a1c8 word_41A1C8
+dat_41a1ca
 dat_41a1de word_41A1DE
+dat_41a1e0
 dat_41a1f3
 dat_41a1f4 word_41A1F4
+dat_41a1f6
 dat_41a20e word_41A20E
+dat_41a210
 dat_41a224 word_41A224
+dat_41a226
 dat_41a238 word_41A238
+dat_41a23a
 dat_41a24a word_41A24A
+dat_41a24c
 dat_41a25d
 dat_41a25e word_41A25E
+dat_41a260
 dat_41a26a word_41A26A
+dat_41a26c
 dat_41a27b
 dat_41a27c word_41A27C
+dat_41a27e
 dat_41a28b
 dat_41a28c word_41A28C
+dat_41a28e
 dat_41a29c word_41A29C
+dat_41a29e
 dat_41a2b3
 dat_41a2b4 word_41A2B4
+dat_41a2b6
 dat_41a2cb
 dat_41a2cc word_41A2CC
+dat_41a2ce
 dat_41a2e4 word_41A2E4
+dat_41a2e6
 dat_41a30c word_41A30C
+dat_41a30e
 dat_41a317
 dat_41a318 word_41A318
+dat_41a31a
 dat_41a326 word_41A326
+dat_41a328
 dat_41a334 word_41A334
+dat_41a336
 dat_41a33e word_41A33E
+dat_41a340
 dat_41a34c word_41A34C
+dat_41a34e
 dat_41a35d
 dat_41a35e word_41A35E
+dat_41a360
 dat_41a36f
 dat_41a370 word_41A370
+dat_41a372
 dat_41a37e word_41A37E
+dat_41a380
 dat_41a393
 dat_41a394 word_41A394
+dat_41a396
 dat_41a3a3
 dat_41a3a4 word_41A3A4
+dat_41a3a6
 dat_41a3b0 word_41A3B0
+dat_41a3b2
 dat_41a3c6 word_41A3C6
+dat_41a3c8
 dat_41a3dc word_41A3DC
+dat_41a3de
 dat_41a3e5
 dat_41a3e6 word_41A3E6
+dat_41a3e8
 dat_41a3f1
 dat_41a3f2 word_41A3F2
+dat_41a3f4
 dat_41a3fe word_41A3FE
+dat_41a400
 dat_41a40d
 dat_41a40e word_41A40E
+dat_41a410
 dat_41a41c word_41A41C
+dat_41a41e
 dat_41a428 word_41A428
+dat_41a42a
 dat_41a43b
 dat_41a43c word_41A43C
+dat_41a43e
 dat_41a44c word_41A44C
+dat_41a44e
 dat_41a45e word_41A45E
+dat_41a460
 dat_41a469
 dat_41a46a word_41A46A
+dat_41a46c
 dat_41a476 word_41A476
+dat_41a478
 dat_41a488 word_41A488
+dat_41a48a
 dat_41a4a1
 dat_41a4a2 word_41A4A2
+dat_41a4a4
 dat_41a4bc word_41A4BC
+dat_41a4be
 dat_41a4cb
 dat_41a4cc word_41A4CC
+dat_41a4ce
 dat_41a4dd
 dat_41a4de word_41A4DE
+dat_41a4e0
 dat_41a4ef
 dat_41a4f0 word_41A4F0
+dat_41a4f2
 dat_41a4fb
 dat_41a4fc word_41A4FC
+dat_41a4fe
 dat_41a50a word_41A50A
+dat_41a50c
 dat_41a519
 dat_41a51a word_41A51A
+dat_41a51c
 dat_41a52b
 dat_41a52c word_41A52C
+dat_41a52e
 dat_41a53f
 dat_41a540 word_41A540
+dat_41a542
 dat_41a553
 dat_41a554 word_41A554
+dat_41a556
 dat_41a564 word_41A564
+dat_41a566
 dat_41a574
 dat_41b000 ___security_cookie
 dat_41b004 dword_41B004

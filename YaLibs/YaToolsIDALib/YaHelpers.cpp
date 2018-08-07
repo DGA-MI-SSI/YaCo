@@ -530,6 +530,6 @@ namespace ya
             || !!(flags & FF_BNOT)
             || is_defarg0(flags)
             || is_defarg1(flags)
-            || is_align(flags);
+            || (is_data(flags) && !is_byte(flags));
     }
 }

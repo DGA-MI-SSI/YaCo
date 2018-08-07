@@ -50,7 +50,7 @@ ida_bytes.del_items(ea+0x1D, 0, 3)
 ida_bytes.create_word(ea+0x1D, 2)
 """),
         )
-        a.check_git(added=["binary", "segment", "segment_chunk", "code", "code"])
+        a.check_git(added=["binary", "segment", "segment_chunk", "code", "code", "data"])
 
         a.run(
             self.script("""
@@ -58,7 +58,7 @@ import yaco_plugin
 yaco_plugin.yaco.sync_and_push_idb()
 """),
         )
-        a.check_git(deleted=["binary", "segment", "segment_chunk", "code", "code"])
+        a.check_git(deleted=["binary", "segment", "segment_chunk", "code", "code", "data"])
 
         b.run_no_sync(
             self.script("""
