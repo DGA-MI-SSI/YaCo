@@ -565,6 +565,10 @@ plop.txt content line 2
             git_oid oid;
             memset(&oid, 0, sizeof oid);
             err = git_rebase_commit(&oid, ptr_rebase, nullptr, make_signature(git).get(), nullptr, nullptr);
+            // skip commit if there is nothing to apply
+            // can happen when rebasing yaco.version changes
+            if(err == GIT_EAPPLIED)
+                continue;
             if(err != GIT_OK)
                 FAIL_WITH(false, git, "unable to pick rebase commit");
         }
