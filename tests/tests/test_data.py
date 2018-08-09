@@ -285,3 +285,37 @@ ida_bytes.del_items(ea, idc.DELIT_EXPAND, 0x40)
             self.check_ea(0x41470C),
             self.check_ea(0x414CC0),
         )
+
+    def test_data_types_only(self):
+        a, b = self.setup_cmder()
+
+        a.run(
+            self.script("""
+ea = 0x415096
+ida_bytes.create_word(ea, 2)
+ea = 0x4150A0
+idc.SetType(ea, "GUID")
+"""),
+            self.save_ea(0x415096),
+            self.save_ea(0x4150A0),
+        )
+        a.check_git(added=["binary", "segment", "segment_chunk", "data", "data"])
+
+        b.run(
+            self.check_ea(0x415096),
+            self.check_ea(0x4150A0),
+            self.script("""
+ea = 0x415096
+ida_bytes.create_byte(ea, 1)
+ea = 0x4150A0
+ida_bytes.del_items(ea, 0, 0x10)
+"""),
+            self.save_ea(0x415096),
+            self.save_ea(0x4150A0),
+        )
+        b.check_git(modified=["segment_chunk"], deleted=["data"] * 2)
+
+        a.run(
+            self.check_ea(0x415096),
+            self.check_ea(0x4150A0),
+        )
