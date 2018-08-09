@@ -547,6 +547,9 @@ namespace
                 LOG(ERROR, "make_segment: 0x%" PRIxEA " unable to set name %s\n", ea, strname.data());
         }
 
+        for(const auto repeat : {false, true})
+            set_segment_cmt(seg, make_string(version.header_comment(repeat)).data(), repeat);
+
         static const const_string_ref read_only_attributes[] =
         {
             g_start_ea,

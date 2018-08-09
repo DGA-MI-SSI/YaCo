@@ -81,3 +81,33 @@ ida_auto.plan_and_wait(ea, idc.find_func_end(ea))
         b.run(
             self.check_last_ea(),
         )
+
+    def test_segment_comments(self):
+        a, b = self.setup_cmder()
+
+        a.run(
+            self.script("""
+ea = 0x401000
+s = ida_segment.getseg(ea)
+ida_segment.set_segment_cmt(s, "first comment", False)
+ida_segment.set_segment_cmt(s, "second comment", True)
+"""),
+            self.save_last_ea(),
+        )
+        a.check_git(added=["binary", "segment", "segment_chunk", "function", "basic_block"])
+
+        b.run(
+            self.check_last_ea(),
+            self.script("""
+ea = 0x401000
+s = ida_segment.getseg(ea)
+ida_segment.set_segment_cmt(s, "", False)
+ida_segment.set_segment_cmt(s, "", True)
+"""),
+            self.save_last_ea(),
+        )
+        b.check_git(modified=["segment"])
+
+        a.run(
+            self.check_last_ea(),
+        )

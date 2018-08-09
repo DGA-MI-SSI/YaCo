@@ -1600,6 +1600,12 @@ namespace
         v.visit_end_xrefs();
 
         accept_segment_attributes(v, seg);
+
+        visit_header_comments(v, *qbuf, [&](qstring& buffer, bool repeat)
+        {
+            return get_segment_cmt(&buffer, seg, repeat);
+        });
+
         finish_object(v);
 
         if(Ctx::is_incremental)
