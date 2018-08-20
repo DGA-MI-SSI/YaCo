@@ -1823,36 +1823,9 @@ namespace
             LOG(ERROR, "make_%s: %s.%s: unable to set member type %s to %" PRIuEA " bytes\n", where, sname->c_str(), name.data(), ya::dump_flags(flags).data(), size);
     }
 
-    struc_t* try_get_struc(const HVersion& version, const char* name)
-    {
-        auto struc = get_struc(get_struc_id(name));
-        if(struc)
-            return struc;
-
-        // when renaming a struct, we delete the previous one
-        // in order to prevent orphan ordinals
-        // we try to retrieve the previous one
-        tinfo_t tif;
-        const auto idati = get_idati();
-        const auto ok = tif.get_numbered_type(idati, static_cast<uint32_t>(version.address()));
-        if(!ok)
-            return nullptr;
-
-        qstring ename;
-        tif.get_type_name(&ename);
-        if(is_autosync(ename.c_str(), tif))
-            return nullptr;
-
-        const auto sid = import_type(idati, -1, ename.c_str());
-        if(sid == BADADDR)
-            return nullptr;
-
-        return get_struc(sid);
-    }
-
     struc_t* get_or_add_struct(const HVersion& version, ea_t ea, const char* name)
     {
-        const auto struc = try_get_struc(version, name);
+        const auto struc = get_struc(get_struc_id(name));
         if(struc)
             return struc;
 
