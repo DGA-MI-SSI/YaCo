@@ -335,6 +335,7 @@ class Fixture(unittest.TestCase):
     def script(self, script):
         self.enums = {}
         self.strucs = {}
+        self.types = {}
         self.eas = {}
         self.last_ea = None
         self.item_range = None
@@ -344,6 +345,11 @@ class Fixture(unittest.TestCase):
             if ea != line:
                 self.last_ea = int(ea, 16)
         return script, None
+
+    def sync(self):
+        return self.script("""
+idc.save_database("")
+""")
 
     def check_diff(self, want_filename, want, filter=None):
         def check(name):
@@ -392,6 +398,13 @@ class Fixture(unittest.TestCase):
                 self.strucs = [filename, self.filter_struc(fh.read())]
         return script, callback
 
+    def save_local_types(self):
+        script = "ya.export_xml_local_types()"
+        def callback(filename):
+            with open(filename, "rb") as fh:
+                self.types = [filename, fh.read()]
+        return script, callback
+
     def check_struc(self, name):
         script = "ya.export_xml_struc('%s')" % name
         filename, want = self.strucs[name]
@@ -401,6 +414,11 @@ class Fixture(unittest.TestCase):
         script = "ya.export_xml_strucs()"
         filename, want = self.strucs
         return script, self.check_diff(filename, want, filter=self.filter_struc)
+
+    def check_local_types(self):
+        script = "ya.export_xml_local_types()"
+        filename, want = self.types
+        return script, self.check_diff(filename, want)
 
     def save_ea(self, ea):
         script = "ya.export_xml(0x%x, %s)" % (ea, ea_defmask)

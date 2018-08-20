@@ -45,3 +45,4 @@ std::string export_xml(ea_t ea, int type_mask);
 std::string export_xml_enum(const std::string& name);
 std::string export_xml_struc(const std::string& name);
 std::string export_xml_strucs();
+std::string export_xml_local_types();

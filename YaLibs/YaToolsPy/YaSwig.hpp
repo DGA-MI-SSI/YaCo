@@ -46,6 +46,7 @@ namespace yaswig
     std::string export_xml_enum(const std::string& name);
     std::string export_xml_struc(const std::string& name);
     std::string export_xml_strucs();
+    std::string export_xml_local_types();
 
     std::string         get_type                    (ea_t ea);
     bool                set_type_at                 (ea_t ea, const std::string& prototype);

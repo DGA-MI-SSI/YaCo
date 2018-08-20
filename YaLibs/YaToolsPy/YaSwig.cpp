@@ -76,6 +76,11 @@ namespace yaswig
         return ::export_xml_strucs();
     }
 
+    std::string export_xml_local_types()
+    {
+        return ::export_xml_local_types();
+    }
+
     std::string get_type(ea_t ea)
     {
         return ya::get_type(ea);

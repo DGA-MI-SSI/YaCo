@@ -1957,3 +1957,37 @@ std::string export_xml_strucs()
     db->visit_end();
     return export_to_xml(*db);
 }
+
+std::string export_xml_local_types()
+{
+    const auto idati = get_idati();
+    qstring name;
+    qstring type;
+    std::set<std::string> names;
+    for(uint32_t i = 1; i < get_ordinal_qty(idati); ++i)
+    {
+        tinfo_t tif;
+        auto ok = tif.get_numbered_type(idati, i);
+        if(!ok)
+            continue;
+
+        ok = tif.print(&name, nullptr, PRTYPE_1LINE);
+        if(!ok)
+            continue;
+
+        std::string reply = name.c_str();
+        // FIXME synchronizing ordinals is currently not supported
+        if(false)
+            reply += " ord=" + std::to_string(i);
+        reply += ": ";
+        ok = tif.print(&type, nullptr, PRTYPE_DEF | PRTYPE_MULTI, 4);
+        if(ok)
+            reply += type.c_str();
+        names.insert(reply);
+    }
+
+    std::string reply;
+    for(const auto& it : names)
+        reply += it + "\n";
+    return reply;
+}
