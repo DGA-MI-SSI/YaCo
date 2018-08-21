@@ -65,23 +65,42 @@ namespace
         EXPECT_TRUE(ok);
     }
 
-    void push_file(IGit& git, const std::string& path, const std::string& name, const std::string& msg, const std::string& content)
+    void delete_file(IGit& git, const std::string& path, const std::string& name, const std::string& msg)
     {
-        commit_file(git, path, name, msg, content);
+        auto ok = git.remove_file(name);
+        EXPECT_TRUE(ok);
+        std::error_code ec;
+        fs::remove(path + name, ec);
+        EXPECT_FALSE(ec);
+        ok = git.commit(msg);
+        EXPECT_TRUE(ok);
+    }
+
+    void push(IGit& git)
+    {
         const auto ok = git.push("master", "origin", "master");
         EXPECT_TRUE(ok);
         git.flush();
     }
 
-    void fetch_rebase(IGit& git, const std::string& remote, const std::string& branch, const std::tuple<std::string, std::string, fs::path>& expected = std::tuple<std::string, std::string, fs::path>())
+    void push_file(IGit& git, const std::string& path, const std::string& name, const std::string& msg, const std::string& content)
+    {
+        commit_file(git, path, name, msg, content);
+        push(git);
+    }
+
+    void fetch_rebase(IGit& git, const std::string& remote, const std::string& branch, const std::set<std::tuple<std::string, std::string, fs::path>>& expected)
     {
         auto ok = git.fetch(remote);
         EXPECT_TRUE(ok);
+        auto got = expected;
+        got.clear();
         ok = git.rebase(remote + "/" + branch, branch, [&](const std::string& left, const std::string& right, const std::string& path)
         {
-            EXPECT_EQ(std::make_tuple(left, right, path), expected);
+            got.insert(std::make_tuple(left, right, path));
             return true;
         });
+        EXPECT_EQ(expected, got);
         EXPECT_TRUE(ok);
     }
 
@@ -184,33 +203,54 @@ TEST_F (TestYaGitLib, test_git_rebase)
     set_user_config(*b);
 
     // empty rebase
-    fetch_rebase(*b, "origin", "master");
+    fetch_rebase(*b, "origin", "master", {});
 
     // rebase with one upstream commit
     push_file(*a, "a/", "file2.txt", "second file", "file2 content");
-    fetch_rebase(*b, "origin", "master");
+    fetch_rebase(*b, "origin", "master", {});
 
     // rebase with multiple commits on both sides
     commit_file(*a, "a/", "file3.txt", "third file", "file3 content");
     push_file(*a, "a/", "file4.txt", "fourth file", "file4 content");
     commit_file(*b, "b/", "file5.txt", "fifth file", "file5 content");
     commit_file(*b, "b/", "file6.txt", "sixth file", "file6 content");
-    fetch_rebase(*b, "origin", "master");
+    fetch_rebase(*b, "origin", "master", {});
     ok = b->push("master", "origin", "master");
     EXPECT_TRUE(ok);
     b->flush();
 
     // rebase with conflicting commits
-    fetch_rebase(*a, "origin", "master");
-    const auto left = "header\nmod a\nfooter\n";
+    fetch_rebase(*a, "origin", "master", {});
+    const auto left = std::string("header\nmod a\nfooter\n");
     push_file(*a, "a/", "file3.txt", "third file a", left);
-    const auto right = "header\nmod b\nfooter\n";
+    const auto right = std::string("header\nmod b\nfooter\n");
     commit_file(*b, "b/", "file3.txt", "third file b", right);
-    fetch_rebase(*b, "origin", "master", std::make_tuple(left, right, "b/file3.txt"));
+    fetch_rebase(*b, "origin", "master", {{left + "\n", right + "\n", "b/file3.txt"}});
 
     const auto result = read_file("b/file3.txt");
     const auto expected = merge_strings(make_string_ref(left), "refs/remotes/origin/master", make_string_ref(right), "third file b") + "\n";
     EXPECT_EQ(expected, result);
+
+    // rebase with delete from one side, update from the other side
+    delete_file(*a, "a/", "file3.txt", "delete");
+    push(*a);
+    commit_file(*b, "b/", "file3.txt", "update", "updating!");
+    fetch_rebase(*b, "origin", "master", {});
+    push(*b);
+
+    // other side
+    fetch_rebase(*a, "origin", "master", {});
+    push_file(*a, "a/", "file2.txt", "updating!", "some content");
+    delete_file(*b, "b/", "file2.txt", "deleting!");
+    fetch_rebase(*b, "origin", "master", {});
+    push(*b);
+
+    // create same file on both sides independently
+    fetch_rebase(*a, "origin", "master", {});
+    push_file(*a, "a/", "file8.txt", "commit a", "aaaa!");
+    commit_file(*b, "b/", "file8.txt", "commit b", "!bbbb");
+    fetch_rebase(*b, "origin", "master", {{"aaaa!\n", "!bbbb\n", "b/file8.txt"}});
+    push(*b);
 }
 
 TEST(yatools, test_check_yaco_version)

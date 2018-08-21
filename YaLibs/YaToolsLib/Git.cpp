@@ -46,6 +46,7 @@ namespace fs = std::experimental::filesystem;
 namespace std
 {
     template<> struct default_delete<git_annotated_commit>        { static const bool marker = true; void operator()(git_annotated_commit*        ptr) { git_annotated_commit_free(ptr); } };
+    template<> struct default_delete<git_blob>                    { static const bool marker = true; void operator()(git_blob*                    ptr) { git_blob_free(ptr); } };
     template<> struct default_delete<git_buf>                     { static const bool marker = true; void operator()(git_buf*                     ptr) { git_buf_free(ptr); } };
     template<> struct default_delete<git_commit>                  { static const bool marker = true; void operator()(git_commit*                  ptr) { git_commit_free(ptr); } };
     template<> struct default_delete<git_config>                  { static const bool marker = true; void operator()(git_config*                  ptr) { git_config_free(ptr); } };
@@ -426,54 +427,48 @@ bool Git::diff_index(const std::string& from, const Git::on_blob_fn& on_blob)
 
 namespace
 {
-    bool handle_conflict(const fs::path& path, const Git::on_conflict_fn& on_conflict)
+    std::string get_entry_data(git_repository* repo, const git_index_entry* entry, bool& found)
     {
-/*
-<<<<<<< refs/remotes/origin/master
-plop.txt content line 0
-plop.txt content line 1b
-=======
-plop.txt content line 1
-plop.txt content line 2
->>>>>>> update plop.txt line 2
-*/
-        std::stringstream first;
-        std::stringstream second;
-        {
-            std::string line;
-            bool has_first = true;
-            bool has_second = true;
-            std::ifstream input(path);
-            while(std::getline(input, line))
-            {
-                if(line.find("<<<<<<<") == 0)
-                {
-                    has_first = true;
-                    has_second = false;
-                    continue;
-                }
-                else if(line.find("=======") == 0)
-                {
-                    has_first = false;
-                    has_second = true;
-                    continue;
-                }
-                else if(line.find(">>>>>>>") == 0)
-                {
-                    has_first = true;
-                    has_second = true;
-                    continue;
-                }
-                else if(line.empty())
-                    continue;
-                if(has_first)
-                    first << line << std::endl;
-                if(has_second)
-                    second << line << std::endl;
-            }
-        }
+        found = false;
+        if(!entry)
+            return std::string();
 
-        return on_conflict(first.str(), second.str(), path.string());
+        git_blob* ptr_blob = nullptr;
+        const auto err = git_blob_lookup(&ptr_blob, repo, &entry->id);
+        if(err != GIT_OK)
+            return std::string();
+
+        const auto blob = make_unique(ptr_blob);
+        const auto data = static_cast<const char*>(git_blob_rawcontent(ptr_blob));
+        const auto size = git_blob_rawsize(ptr_blob);
+        found = true;
+        return std::string(data, size);
+    }
+
+    enum EConflict
+    {
+        GIT_ADD,
+        GIT_DEL,
+        GIT_ABORT,
+    };
+
+    EConflict handle_conflict(git_repository* repo, const git_index_entry* our, const git_index_entry* their, const fs::path& path, const Git::on_conflict_fn& on_conflict)
+    {
+        bool has_local = false;
+        const auto local = get_entry_data(repo, our, has_local);
+        if(!has_local)
+            return GIT_DEL;
+
+        bool has_remote = false;
+        const auto remote = get_entry_data(repo, their, has_remote);
+        if(!has_remote)
+            return GIT_DEL;
+
+        const auto ok = on_conflict(local, remote, path.generic_string());
+        if(!ok)
+            return GIT_ABORT;
+
+        return GIT_ADD;
     }
 
     std::unique_ptr<git_annotated_commit> get_annotated_commit(Git& git, const std::string& name)
@@ -535,11 +530,27 @@ plop.txt content line 2
             if(err == GIT_ITEROVER)
                 return true;
 
-            const auto aborted = !handle_conflict(root / our->path, on_conflict);
-            if(aborted)
+            const auto path = our ? our->path : their ? their->path : nullptr;
+            if(!path)
                 return false;
 
-            git.add_file(our->path);
+            std::error_code ec;
+            const auto eop = handle_conflict(&*git.repo_, our, their, root / path, on_conflict);
+            switch(eop)
+            {
+                case GIT_ADD:
+                    git.add_file(path);
+                    break;
+
+                case GIT_DEL:
+                    fs::remove(root / path, ec);
+                    // remove or add_file discard index!
+                    git.remove_file(path);
+                    break;
+
+                case GIT_ABORT:
+                    return false;
+            }
         }
     }
 
