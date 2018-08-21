@@ -467,7 +467,7 @@ std::string Repository::update_cache()
     {
         LOG(INFO, "Unable to update cache\n");
         // disable auto sync (when closing database)
-        warning("You have errors during rebase. You have to resolve it manually.\nSee git_rebase.log for details.\nThen run save on IDA to complete rebase and update master");
+        warning("You have errors during rebase. You have to resolve it manually.\n");
         return commit;
     }
 
