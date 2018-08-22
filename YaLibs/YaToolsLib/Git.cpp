@@ -261,10 +261,6 @@ bool Git::add_file(const std::string& name)
     if(err != GIT_OK)
         FAIL_WITH(false, *this, "unable to add %s to index", name.data());
 
-    err = git_index_write(&*index_);
-    if(err != GIT_OK)
-        FAIL_WITH(false, *this, "unable to write index");
-
     return true;
 }
 
@@ -276,10 +272,6 @@ bool Git::remove_file(const std::string& name)
     auto err = git_index_remove_bypath(&*index_, name.data());
     if(err != GIT_OK)
         FAIL_WITH(false, *this, "unable to remove %s from index", name.data());
-
-    err = git_index_write(&*index_);
-    if(err != GIT_OK)
-        FAIL_WITH(false, *this, "unable to write index");
 
     return true;
 }
@@ -573,6 +565,10 @@ namespace
             if(!ok)
                 return false;
 
+            err = git_index_write(&*git.index_);
+            if(err != GIT_OK)
+                FAIL_WITH(false, git, "unable to write index");
+
             git_oid oid;
             memset(&oid, 0, sizeof oid);
             err = git_rebase_commit(&oid, ptr_rebase, nullptr, make_signature(git).get(), nullptr, nullptr);
@@ -618,12 +614,16 @@ namespace
         if(!load_index(git))
             return false;
 
+        auto err = git_index_write(&*git.index_);
+        if(err != GIT_OK)
+            FAIL_WITH(false, git, "unable to write index");
+
         const auto sig = make_signature(git);
         git_oid tree_id;
         memset(&tree_id, 0, sizeof tree_id);
-        auto err = git_index_write_tree(&tree_id, &*git.index_);
+        err = git_index_write_tree(&tree_id, &*git.index_);
         if(err != GIT_OK)
-            FAIL_WITH(false, git, "unable to write index");
+            FAIL_WITH(false, git, "unable to write index tree");
 
         git_tree* ptr_tree = nullptr;
         err = git_tree_lookup(&ptr_tree, &*git.repo_, &tree_id);
