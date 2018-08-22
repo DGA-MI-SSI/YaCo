@@ -41,8 +41,7 @@ namespace fs = std::experimental::filesystem;
 
 namespace
 {
-    const size_t        TRUNCATE_COMMIT_MSG_LENGTH = 4000;
-    const int           GIT_PUSH_RETRIES = 3;
+    const size_t        TRUNCATE_COMMIT_MSG_LENGTH = 1000;
     const std::string   default_remote_name = "origin";
 
 
@@ -508,7 +507,12 @@ bool Repository::commit_cache()
             LOG(ERROR, "unable to remove %s from index\n", name.data());
     LOG(INFO, "commit: %zd added %zd updated %zd deleted\n", untracked.size(), modified.size(), deleted.size());
 
-    std::string commit_msg;
+    // add single line prefix because libgit2 like to use commit messages
+    // in filenames during rebases & commit messages can be too long
+    auto commit_msg = "cache: "
+                    + std::to_string(untracked.size()) + " added "
+                    + std::to_string(modified.size())  + " updated "
+                    + std::to_string(deleted.size())   + " deleted\n\n";
     for(const auto& it : comments_)
     {
         commit_msg.append(it);
@@ -521,9 +525,6 @@ bool Repository::commit_cache()
         commit_msg.erase(TRUNCATE_COMMIT_MSG_LENGTH);
         commit_msg += "\n...truncated";
     }
-    if(commit_msg.empty())
-        commit_msg = "unknown changes";
-
     if (!git_->commit(commit_msg))
     {
         LOG(ERROR, "Unable to commit\n");
