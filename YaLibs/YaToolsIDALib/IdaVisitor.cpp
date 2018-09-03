@@ -826,7 +826,10 @@ namespace
     bool try_set_type(ea_t ea, const std::string& value, const T& operand)
     {
         if(value.empty())
-            return false;
+        {
+            del_tinfo(ea);
+            return true;
+        }
 
         const auto tif = try_find_type(ea, value.data());
         if(tif.empty())

@@ -138,3 +138,38 @@ idc.SetType(ea, "int __usercall WinMain@<eax>(HINSTANCE hInstance@<eax>, HINSTAN
         b.run(
             self.check_last_ea(),
         )
+
+    def test_function_prototype(self):
+        a, b = self.setup_cmder()
+        a.run(
+            self.script("""
+ea = 0x401DD6
+idc.SetType(ea, "int __cdecl sub_401DD6(int, int, void *)")
+"""),
+            self.save_last_ea(),
+        )
+        a.check_git(added=["binary", "segment", "segment_chunk", "function", "stackframe", "basic_block"] + ["stackframe_member"] * 3)
+
+        b.run(
+            self.check_last_ea(),
+            self.script("""
+ea = 0x401DD6
+idc.SetType(ea, "bool __cdecl sub_401DD6(int, int, void *)")
+"""),
+            self.save_last_ea(),
+        )
+        b.check_git(modified=["function"])
+
+        a.run(
+            self.check_last_ea(),
+            self.script("""
+ea = 0x401DD6
+idc.SetType(ea, "")
+"""),
+            self.save_last_ea(),
+        )
+        a.check_git(modified=["function"])
+
+        b.run(
+            self.check_last_ea(),
+        )
