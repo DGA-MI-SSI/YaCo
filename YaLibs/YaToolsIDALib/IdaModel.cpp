@@ -138,6 +138,7 @@ namespace
     DECLARE_STRINGER(str_uchar, "%hhd", uchar)
     DECLARE_STRINGER(str_ushort, "%hd", ushort)
     DECLARE_STRINGER(str_bgcolor, "%u", bgcolor_t)
+    DECLARE_STRINGER(str_color, "0x%x", bgcolor_t)
 
 #undef DECLARE_STRINGER
 
@@ -1388,6 +1389,9 @@ namespace
 
         const auto frame = get_frame(func);
         accept_function_xrefs(ctx, v, func->start_ea, frame, flow.blocks);
+
+        char buf[32];
+        v.visit_attribute(g_color, str_color(buf, sizeof buf, func->color));
 
         if(ctx.plugin_)
             ctx.plugin_->accept_function(v, ea);

@@ -399,3 +399,32 @@ ida_auto.auto_wait()
         b.run(
             self.check_last_ea(),
         )
+
+    def test_function_bgcolor(self):
+        a, b = self.setup_cmder()
+        a.run(
+            self.script("""
+ea = 0x401D74
+func = ida_funcs.get_func(ea)
+func.color = 0xFF00FF00
+idaapi.set_name(ea, "") # FIXME force hook notification
+"""),
+            self.save_last_ea(),
+        )
+        a.check_git(added=["binary", "segment", "segment_chunk", "function", "basic_block"])
+
+        b.run(
+            self.check_last_ea(),
+            self.script("""
+ea = 0x401D74
+func = ida_funcs.get_func(ea)
+func.color = 0xFFFFFFFF
+idaapi.set_name(ea, "") # FIXME force hook notification
+"""),
+            self.save_last_ea(),
+        )
+        b.check_git(modified=["function"])
+
+        a.run(
+            self.check_last_ea(),
+        )

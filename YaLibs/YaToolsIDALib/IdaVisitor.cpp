@@ -67,6 +67,7 @@ namespace
     DECLARE_REF(g_stack_lvars, "stack_lvars");
     DECLARE_REF(g_stack_regvars, "stack_regvars");
     DECLARE_REF(g_stack_args, "stack_args");
+    DECLARE_REF(g_color, "color");
     #undef DECLARE_REF
 
     using RefInfos = std::unordered_map<YaToolObjectId, refinfo_t>;
@@ -309,6 +310,7 @@ namespace
     MAKE_TO_TYPE_FUNCTION(to_int,     int,              "%d");
     MAKE_TO_TYPE_FUNCTION(to_sel,     sel_t,            "%" PRIuEA);
     MAKE_TO_TYPE_FUNCTION(to_bgcolor, bgcolor_t,        "%u");
+    MAKE_TO_TYPE_FUNCTION(to_color,   bgcolor_t,        "0x%x");
     MAKE_TO_TYPE_FUNCTION(to_path,    uint32_t,         "0x%08X");
     MAKE_TO_TYPE_FUNCTION(to_xmlea,   ea_t,             "0x%0" EA_SIZE PRIXEA);
 
@@ -931,6 +933,25 @@ namespace
             if(!ok)
                 LOG(ERROR, "make_function: 0x%" PRIxEA " unable to set %s comment to '%s'\n", ea, repeat ? "repeatable" : "non-repeatable", strcmt.data());
         }
+
+        bool updated = false;
+        version.walk_attributes([&](const const_string_ref& key, const const_string_ref& val)
+        {
+            const auto strval = make_string(val);
+            if(key == g_color)
+            {
+                auto color = to_color(strval.data());
+                std::swap(func->color, color);
+                updated |= color != func->color;
+            }
+            return WALK_CONTINUE;
+        });
+        if(!updated)
+            return;
+
+        ok = update_func(func);
+        if(!ok)
+            LOG(ERROR, "make_function: 0x%" PRIxEA " unable to update function\n", ea);
     }
 
     bool begins_with_offset(const std::string& value)
