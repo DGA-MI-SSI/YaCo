@@ -304,12 +304,12 @@ namespace
         return reply;\
     }
 
-    MAKE_TO_TYPE_FUNCTION(to_ea,      ea_t,             "%" PRIuEA);
-    MAKE_TO_TYPE_FUNCTION(to_uchar,   uchar,            "%hhu");
-    MAKE_TO_TYPE_FUNCTION(to_ushort,  ushort,           "%hu");
-    MAKE_TO_TYPE_FUNCTION(to_int,     int,              "%d");
-    MAKE_TO_TYPE_FUNCTION(to_sel,     sel_t,            "%" PRIuEA);
-    MAKE_TO_TYPE_FUNCTION(to_bgcolor, bgcolor_t,        "%u");
+    MAKE_TO_TYPE_FUNCTION(to_ea,      ea_t,             "%" PRIuEA); // FIXME use 0x%x
+    MAKE_TO_TYPE_FUNCTION(to_uchar,   uchar,            "%hhu");     // FIXME use 0x%x
+    MAKE_TO_TYPE_FUNCTION(to_ushort,  ushort,           "%hu");      // FIXME use 0x%x
+    MAKE_TO_TYPE_FUNCTION(to_int,     int,              "%d");       // FIXME use 0x%x
+    MAKE_TO_TYPE_FUNCTION(to_sel,     sel_t,            "%" PRIuEA); // FIXME use 0x%x
+    MAKE_TO_TYPE_FUNCTION(to_bgcolor, bgcolor_t,        "%u");       // FIXME use 0x%x
     MAKE_TO_TYPE_FUNCTION(to_color,   bgcolor_t,        "0x%x");
     MAKE_TO_TYPE_FUNCTION(to_path,    uint32_t,         "0x%08X");
     MAKE_TO_TYPE_FUNCTION(to_xmlea,   ea_t,             "0x%0" EA_SIZE PRIXEA);
