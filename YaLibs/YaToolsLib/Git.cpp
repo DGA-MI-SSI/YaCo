@@ -141,6 +141,35 @@ namespace
         return make_unique(ptr_sig);
     }
 
+    std::unique_ptr<git_config> get_config(Git& git, int (*getter)(git_config**, git_repository*))
+    {
+        git_config* ptr_config = nullptr;
+        auto err = getter(&ptr_config, &*git.repo_);
+        if(err != GIT_OK)
+            FAIL_WITH(std::nullptr_t(), git, "unable to snapshot config");
+
+        return make_unique(ptr_config);
+    }
+
+    std::string config_get_string(Git& git, git_config* cfg, const std::string& name)
+    {
+        const char* buffer = nullptr;
+        const auto err = git_config_get_string(&buffer, cfg, name.data());
+        if(err != GIT_OK)
+            FAIL_WITH(std::string(), git, "unable to read config string %s", name.data());
+
+        return std::string(buffer);
+    }
+
+    bool config_set_string(Git& git, git_config* cfg, const std::string& name, const std::string& value)
+    {
+        const auto err = git_config_set_string(cfg, name.data(), value.data());
+        if (err != GIT_OK)
+            FAIL_WITH(false, git, "unable to set config string %s to %s", name.data(), value.data());
+
+        return true;
+    }
+
     std::shared_ptr<IGit> init(const std::string& path, Git::ECloneMode emode)
     {
         const auto fullpath = fs::absolute(path);
@@ -183,6 +212,9 @@ Git::Git(const std::string& path, std::unique_ptr<git_repository>&& repo)
     : path_(path)
     , repo_(std::move(repo))
 {
+    const auto cfg = get_config(*this, &git_repository_config);
+    ::config_set_string(*this, &*cfg, "core.eol", "lf");
+    ::config_set_string(*this, &*cfg, "core.autocrlf", "input");
 }
 
 bool Git::add_remote(const std::string& name, const std::string& url)
@@ -276,44 +308,16 @@ bool Git::remove_file(const std::string& name)
     return true;
 }
 
-namespace
-{
-    std::unique_ptr<git_config> get_config(Git& git)
-    {
-        git_config* ptr_config = nullptr;
-        auto err = git_repository_config_snapshot(&ptr_config, &*git.repo_);
-        if(err != GIT_OK)
-            FAIL_WITH(std::nullptr_t(), git, "unable to snapshot config");
-
-        return make_unique(ptr_config);
-    }
-}
-
 std::string Git::config_get_string(const std::string& name)
 {
-    const auto config = get_config(*this);
-    if(!config)
-        return std::string();
-
-    const char* buffer = nullptr;
-    const auto err = git_config_get_string(&buffer, &*config, name.data());
-    if(err != GIT_OK)
-        FAIL_WITH(std::string(), *this, "unable to read config string %s", name.data());
-
-    return std::string(buffer);
+    const auto cfg = get_config(*this, &git_repository_config_snapshot);
+    return ::config_get_string(*this, &*cfg, name);
 }
 
 bool Git::config_set_string(const std::string& name, const std::string& value)
 {
-    const auto config = get_config(*this);
-    if(!config)
-        return false;
-
-    const auto err = git_config_set_string(&*config, name.data(), value.data());
-    if (err != GIT_OK)
-        FAIL_WITH(false, *this, "unable to set config string %s to %s", name.data(), value.data());
-
-    return true;
+    const auto cfg = get_config(*this, &git_repository_config);
+    return ::config_set_string(*this, &*cfg, name, value);
 }
 
 namespace
