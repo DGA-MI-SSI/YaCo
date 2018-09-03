@@ -225,7 +225,7 @@ TEST_F (TestYaGitLib, test_git_rebase)
     push_file(*a, "a/", "file3.txt", "third file a", left);
     const auto right = std::string("header\nmod b\nfooter\n");
     commit_file(*b, "b/", "file3.txt", "third file b", right);
-    fetch_rebase(*b, "origin", "master", {{left + "\n", right + "\n", "b/file3.txt"}});
+    fetch_rebase(*b, "origin", "master", {std::make_tuple(left + "\n", right + "\n", "b/file3.txt")});
 
     const auto result = read_file("b/file3.txt");
     const auto expected = merge_strings(make_string_ref(left), "refs/remotes/origin/master", make_string_ref(right), "third file b") + "\n";
