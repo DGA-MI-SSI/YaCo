@@ -128,6 +128,10 @@ namespace ver
         if(!repo_ver || !curr_ver)
             return INVALID;
 
+        const auto change_struc_ids = 0x0202000E;
+        if(curr_ver >= change_struc_ids && repo_ver < change_struc_ids)
+            return INCOMPATIBLE;
+
         if(repo_ver < curr_ver)
             return OLDER;
 
@@ -143,10 +147,11 @@ namespace ver
         switch(echeck)
         {
             default:
-            case ver::OK:       return remote;
-            case ver::OLDER:    return remote;
-            case ver::NEWER:    return local;
-            case ver::INVALID:  return GIT_VERSION() "\n";
+            case ver::OK:           return remote;
+            case ver::OLDER:        return remote;
+            case ver::INCOMPATIBLE: return remote;
+            case ver::NEWER:        return local;
+            case ver::INVALID:      return GIT_VERSION() "\n";
         }
     }
 }

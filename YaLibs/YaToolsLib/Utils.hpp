@@ -27,9 +27,10 @@ namespace ver
     enum ECheck
     {
         OK,
-        INVALID = 1 << 0,
-        OLDER   = 1 << 1,
-        NEWER   = 1 << 2,
+        INVALID         = 1 << 0,
+        OLDER           = 1 << 1,
+        NEWER           = 1 << 2,
+        INCOMPATIBLE    = 1 << 3,
     };
 
     ECheck      check(const std::string& repo, const std::string& current);

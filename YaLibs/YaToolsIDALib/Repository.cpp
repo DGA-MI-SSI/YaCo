@@ -300,6 +300,15 @@ namespace
                               "Your local version: %s\n"
                               "Your version is outdated, do you want to continue?",
                               version.data(), GIT_VERSION()) == ASKBTN_YES;
+
+            case ver::INCOMPATIBLE:
+                warning("Git server version: %s\n"
+                        "Your local version: %s\n"
+                        "Git server version is outdated & incompatible\n"
+                        "Please reset your repository with your version first,\n"
+                        "and update other users to this version\n",
+                        version.data(), GIT_VERSION());
+                return false;
         }
     }
 }

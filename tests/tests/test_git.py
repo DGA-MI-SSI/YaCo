@@ -87,11 +87,14 @@ yaco_plugin.start()
     def get_current_version(self):
         return runtests.sysexec(self.yaco_dir, ["git", "describe", "--long", "--dirty"]).strip()
 
+    # 2.2-14: struc ids now depend on random tag
+    min_valid_version = "v2.2-14-g00000000"
+
     def test_git_upgrade_version(self):
         a, b = self.setup_cmder()
 
         # force git update with older version
-        self.commit_version(a, "v2.0-0-g00000000")
+        self.commit_version(a, self.min_valid_version)
         a.run()
 
         # check version has been upgraded
@@ -112,7 +115,7 @@ yaco_plugin.start()
     def test_git_conflict_version(self):
         a, b = self.setup_cmder()
 
-        va, vb = ["v0.0-0-g00000000", "v99.0-0-g00000000"]
+        va, vb = [self.min_valid_version, "v99.0-0-g00000000"]
         self.commit_version(a, va)
         self.commit_version(b, vb)
 

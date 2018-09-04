@@ -272,6 +272,7 @@ TEST(yatools, test_check_yaco_version)
         {"v2.1-15-g31d1b83a", "v2.1-20-g31d1b83a",          ver::OLDER},
         {"v2.1-15-g31d1b83a", "v2.1-15-g31d1b83a-dirty",    ver::OK}, // ok but dirty, ignore it
         {"v2.1-15-g31d1b83a", "v2.1-15-g1d1b83a3",          ver::OK}, // ok with mismatch, ignore it
+        {"v2.2-13-g31d1b83a", "v2.2-15-g31d1b83a",          ver::INCOMPATIBLE},
     };
     for(const auto& t : tests)
         EXPECT_EQ(t.expected, ver::check(t.repo, t.curr));
