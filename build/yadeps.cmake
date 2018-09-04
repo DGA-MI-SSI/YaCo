@@ -122,7 +122,7 @@ filter_out(files
     "runsuite[.]c$"
     "runtest[.]c$"
     "runxmlconf[.]c$"
-    "test.+[.]c$"
+    "test[^\\\/]+[.]c$"
     "trio[.]c$"
     "xmlcatalog[.]c$"
     "xmllint[.]c$"
