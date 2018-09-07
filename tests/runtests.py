@@ -478,6 +478,8 @@ idc.save_database("")
         os.makedirs(a)
         shutil.copy(os.path.join(indir, target + ".i64"), a)
         sysexec(a, ["git", "init"])
+        sysexec(a, ["git", "config", "user.name", "User A"])
+        sysexec(a, ["git", "config", "user.email", "user.a@mail.com"])
         sysexec(a, ["git", "add", "-A"])
         sysexec(a, ["git", "commit", "-m", "init"])
         sysexec(a, ["git", "clone", "--bare", ".", c])
@@ -488,6 +490,8 @@ import yaco_plugin
 yaco_plugin.start()
 """, target + ".i64")
         shutil.copytree(a, b)
+        sysexec(b, ["git", "config", "user.name", "User B"])
+        sysexec(b, ["git", "config", "user.email", "user.b@mail.com"])
         return ra, rb
 
     def setup_repos(self):
