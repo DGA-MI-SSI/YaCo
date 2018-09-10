@@ -105,6 +105,10 @@ namespace
         if(is_unset(remote))
             return on_merge(local);
 
+        // always select tag from repository on conflicts
+        if(name == "tag")
+            return on_merge(remote);
+
         /* Conflict detected, see what is the strategy */
         switch (m.estrategy_)
         {
@@ -412,7 +416,8 @@ MergeStatus_e Merger::merge_ids(IModelVisitor& visitor_db, const Relation& relat
             }
             else
             {
-                merge_attributes(*this, "attribute", value_ref, make_string_ref(search->second), [&](const const_string_ref& value)
+                const auto key = make_string(key_ref);
+                merge_attributes(*this, key.data(), value_ref, make_string_ref(search->second), [&](const const_string_ref& value)
                 {
                     attributes[make_string(key_ref)] = make_string(value);
                 });

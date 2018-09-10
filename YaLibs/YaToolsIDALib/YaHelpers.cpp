@@ -17,6 +17,7 @@
 #include "Ida.h"
 #include "YaHelpers.hpp"
 #include "Helpers.h"
+#include "Strucs.hpp"
 
 #include "Hash.hpp"
 
@@ -109,7 +110,7 @@ namespace
             return;
 
         const auto subid = get_struc(subtid) ?
-            hash::hash_struc(ya::to_string_ref(subtype)) :
+            strucs::hash(subtid) :
             hash::hash_enum(ya::to_string_ref(subtype));
         if(deps)
             deps->push_back({subid, subtid});

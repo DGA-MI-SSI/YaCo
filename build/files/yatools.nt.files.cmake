@@ -30,6 +30,8 @@ set(_yatools_files
     "../YaLibs/YaToolsLib/Merger.cpp"
     "../YaLibs/YaToolsLib/Merger.hpp"
     "../YaLibs/YaToolsLib/ModelIndex.hpp"
+    "../YaLibs/YaToolsLib/Random.cpp"
+    "../YaLibs/YaToolsLib/Random.hpp"
     "../YaLibs/YaToolsLib/Relation.hpp"
     "../YaLibs/YaToolsLib/Signature.cpp"
     "../YaLibs/YaToolsLib/Signature.hpp"

@@ -20,6 +20,7 @@
 #include "Helpers.h"
 #include "Yatools.hpp"
 #include "YaHelpers.hpp"
+#include "Strucs.hpp"
 
 #include <math.h>
 
@@ -322,10 +323,15 @@ namespace
         if(eid != BADADDR)
             return get_name(eid) + "::" + get_enum_member_name(ea);
 
-        if(!getseg(ea))
-            return qstring();
+        if(getseg(ea))
+            return to_hex(ea);
 
-        return to_hex(ea);
+        qstring buf;
+        const auto n = getnode(ea).get_name(&buf);
+        if(n != -1)
+            return qstring("netnode ") + buf;
+
+        return qstring();
     }
 
     void closebase(Hooks& /*hooks*/, va_list /*args*/)
@@ -585,6 +591,7 @@ namespace
         const auto sptr = va_arg(args, struc_t*);
         LOG_IDB_EVENT("deleting_struc: %s", get_name(sptr->id).c_str());
         hooks.events_.touch_struc(sptr->id);
+        strucs::remove(sptr->id);
     }
 
     void struc_deleted(Hooks& /*hooks*/, va_list args)
@@ -612,8 +619,8 @@ namespace
         const auto oldname  = va_arg(args, const char*);
         const auto newname  = va_arg(args, const char*);
         LOG_IDB_EVENT("renaming_struc: %s:%s", get_name(struc_id).c_str(), newname);
-        UNUSED(oldname);
         hooks.events_.touch_struc(struc_id);
+        strucs::rename(oldname, newname);
     }
 
     void struc_renamed(Hooks& hooks, va_list args)

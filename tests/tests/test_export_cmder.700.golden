@@ -4,10 +4,10 @@ bin: 1
 bin_400000 Cmder.exe
 
 str: 4
-str_33 FuncInfo
-str_36 HandlerType
-str_35 TryBlockMapEntry
-str_34 UnwindMapEntry
+str_0  FuncInfo
+str_0  HandlerType
+str_0  TryBlockMapEntry
+str_0  UnwindMapEntry
 
 stm: 20
 stm_FuncInfo:0  magicNumber

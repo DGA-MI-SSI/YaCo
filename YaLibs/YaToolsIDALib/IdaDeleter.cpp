@@ -21,6 +21,7 @@
 #include "Yatools.hpp"
 #include "Helpers.h"
 #include "YaHelpers.hpp"
+#include "Strucs.hpp"
 
 #define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("ida_deleter", (FMT), ## __VA_ARGS__)
 
@@ -35,6 +36,7 @@ namespace
             LOG(ERROR, "unable to delete missing struc '%s'\n", name.data());
             return;
         }
+        strucs::remove(struc->id);
         const auto ok = del_struc(struc);
         if(!ok)
             LOG(ERROR, "unable to delete struc '%s'\n", name.data());

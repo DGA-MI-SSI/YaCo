@@ -62,7 +62,7 @@ set_tid(ea, 1, "name_b")
 """),
             self.save_last_ea(),
         )
-        b.check_git(modified=["basic_block", "struc"])
+        b.check_git(modified=["basic_block"])
         want = self.eas[self.last_ea]
 
         # apply second struc in second base

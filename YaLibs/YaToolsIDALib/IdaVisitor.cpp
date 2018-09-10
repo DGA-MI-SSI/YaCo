@@ -30,6 +30,7 @@
 #include "FlatBufferModel.hpp"
 #include "Utils.hpp"
 #include "IdaDeleter.hpp"
+#include "Strucs.hpp"
 
 #include <algorithm>
 #include <string>
@@ -115,6 +116,7 @@ namespace
         RefInfos                        refs_;
         Members                         members_;
         TidMap                          tids_;
+        std::map<std::string, tid_t>    tags_; // struc tag to struc id
         std::shared_ptr<IPluginVisitor> plugin_;
         std::vector<uint8_t>            buffer_;
         Pool<qstring>                   qpool_;
@@ -142,6 +144,18 @@ Visitor::Visitor(StackMode smode)
     {
         bookmarks_.push_back({ya::to_string(desc), ea});
     });
+
+    // map struc tags to struc tids
+    for(auto idx = get_first_struc_idx(); idx != BADADDR; idx = get_next_struc_idx(idx))
+    {
+        const auto tid = get_struc_by_idx(idx);
+        const auto struc = get_struc(tid);
+        if(!struc)
+            continue;
+
+        const auto tag = strucs::get_tag(tid);
+        tags_.insert({{tag.data, sizeof tag.data - 1}, tid});
+    }
 }
 
 Visitor::~Visitor()
@@ -1485,11 +1499,12 @@ namespace
         ida_path.reserve(path.types.size());
         for(const auto& it : path.types)
             ida_path.emplace_back(it.tid);
-        auto ok = decode_insn(&insn, static_cast<ea_t>(ea + path.offset));
-        if(!ok)
+        const auto ea_off = static_cast<ea_t>(ea + path.offset);
+        const auto n = decode_insn(&insn, ea_off);
+        if(n <= 0)
             return;
 
-        ok = op_stroff(insn, path.operand, &ida_path[0], static_cast<int>(ida_path.size()), 0);
+        const auto ok = op_stroff(insn, path.operand, &ida_path[0], static_cast<int>(ida_path.size()), 0);
         if(ok)
             return;
 
@@ -1847,9 +1862,21 @@ namespace
             LOG(ERROR, "make_%s: %s.%s: unable to set member type %s to %" PRIuEA " bytes\n", where, sname->c_str(), name.data(), ya::dump_flags(flags).data(), size);
     }
 
-    struc_t* get_or_add_struct(const HVersion& version, ea_t ea, const char* name)
+    struc_t* get_struc_from_tag(const Visitor& visitor, const strucs::Tag& tag)
     {
-        const auto struc = get_struc(get_struc_id(name));
+        if(!*tag.data)
+            return nullptr;
+
+        const auto it = visitor.tags_.find({tag.data, sizeof tag.data - 1});
+        if(it == visitor.tags_.end())
+            return nullptr;
+
+        return get_struc(it->second);
+    }
+
+    struc_t* get_or_add_struct(Visitor& visitor, const HVersion& version, ea_t ea, const strucs::Tag& tag, const char* name)
+    {
+        const auto struc = get_struc_from_tag(visitor, tag);
         if(struc)
             return struc;
 
@@ -1863,17 +1890,33 @@ namespace
         return get_struc(sid);
     }
 
+    bool rename_struc(Visitor& visitor, struc_t* struc, const std::string& name)
+    {
+        const auto old = visitor.qpool_.acquire();
+        ya::wrap(&get_struc_name, *old, struc->id);
+        if(ya::to_string_ref(*old) == make_string_ref(name))
+            return true;
+
+        // remove outdated tag netnode
+        const auto tag = strucs::remove(struc->id);
+        const auto renamed = set_struc_name(struc->id, name.data());
+        strucs::set_tag(struc->id, tag);
+        return renamed;
+    }
+
     void make_struct(Visitor& visitor, const HVersion& version, ea_t ea)
     {
+        const auto tag = strucs::accept(version);
         const auto name = make_string(version.username());
-        const auto struc = get_or_add_struct(version, ea, name.data());
+        const auto struc = get_or_add_struct(visitor, version, ea, tag, name.data());
         if(!struc)
         {
             LOG(ERROR, "make_struct: 0x%" PRIxEA " missing struct %s\n", ea, name.data());
             return;
         }
 
-        if(!set_struc_name(struc->id, name.data()))
+        const auto renamed = rename_struc(visitor, struc, name);
+        if(!renamed)
             LOG(ERROR, "make_struct: 0x%" PRIxEA " unable to set name %s\n", ea, name.data());
 
         const auto id = version.id();

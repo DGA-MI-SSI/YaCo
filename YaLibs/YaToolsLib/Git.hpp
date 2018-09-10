@@ -21,6 +21,23 @@
 #include <string>
 #include <functional>
 
+using on_fixup_fn = std::function<bool(std::string& path, const char* ptr, size_t size)>;
+
+struct IPatcher
+{
+    virtual ~IPatcher() = default;
+
+    virtual void add(const char* path, const char* ptr, size_t size) = 0;
+    virtual void finish(const on_fixup_fn& fixup) = 0;
+};
+
+struct EmptyPatcher
+    : public IPatcher
+{
+    void add(const char* /*path*/, const char* /*ptr*/, size_t /*size*/) override {}
+    void finish(const on_fixup_fn& /*fixup*/) override {}
+};
+
 struct IGit
 {
     virtual ~IGit() = default;
@@ -38,11 +55,11 @@ struct IGit
         CLONE_BARE,
     };
 
-    typedef std::function<int(const char* path, bool added, const void* data, size_t szdata)>           on_blob_fn;
-    typedef std::function<void(const char* src, const char* dst)>                                       on_remote_fn;
-    typedef std::function<void(const char* name)>                                                       on_path_fn;
-    typedef std::function<void(const char* name, const Status& status)>                                 on_status_fn;
-    typedef std::function<bool(const std::string& a, const std::string& b, const std::string& path)>    on_conflict_fn;
+    using on_blob_fn        = std::function<int(const char* path, bool added, const void* data, size_t szdata)>;
+    using on_remote_fn      = std::function<void(const char* src, const char* dst)>;
+    using on_path_fn        = std::function<void(const char* name)>;
+    using on_status_fn      = std::function<void(const char* name, const Status& status)>;
+    using on_conflict_fn    = std::function<bool(const std::string& a, const std::string& b, const std::string& path)>;
 
     virtual bool        add_remote          (const std::string& name, const std::string& url) = 0;
     virtual bool        fetch               (const std::string& name) = 0;
@@ -52,7 +69,7 @@ struct IGit
     virtual std::string config_get_string   (const std::string& name) = 0;
     virtual bool        config_set_string   (const std::string& name, const std::string& value) = 0;
     virtual bool        diff_index          (const std::string& from, const on_blob_fn& on_blob) = 0;
-    virtual bool        rebase              (const std::string& upstreal, const std::string& dst, const on_conflict_fn& on_conflict) = 0;
+    virtual bool        rebase              (const std::string& upstreal, const std::string& dst, IPatcher& patcher, const on_fixup_fn& on_fixup, const on_conflict_fn& on_conflict) = 0;
     virtual bool        commit              (const std::string& message) = 0;
     virtual bool        checkout_head       () = 0;
     virtual bool        is_tracked          (const std::string& name) = 0;

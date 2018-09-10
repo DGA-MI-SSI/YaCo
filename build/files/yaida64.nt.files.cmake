@@ -18,6 +18,8 @@ set(_yaida64_files
     "../YaLibs/YaToolsIDALib/Pool.hpp"
     "../YaLibs/YaToolsIDALib/Repository.cpp"
     "../YaLibs/YaToolsIDALib/Repository.hpp"
+    "../YaLibs/YaToolsIDALib/Strucs.cpp"
+    "../YaLibs/YaToolsIDALib/Strucs.hpp"
     "../YaLibs/YaToolsIDALib/YaCo.cpp"
     "../YaLibs/YaToolsIDALib/YaCo.hpp"
     "../YaLibs/YaToolsIDALib/YaHelpers.cpp"

@@ -27,58 +27,66 @@ eid = idaapi.add_struc(-1, "name_a", False)
 idaapi.set_struc_cmt(eid, "cmt_01", True)
 idaapi.set_struc_cmt(eid, "cmt_02", False)
 """),
-            self.save_struc("name_a"),
+            self.save_strucs(),
         )
         a.check_git(added=["struc"])
+
         b.run(
-            self.check_struc("name_a"),
-            self.script("idaapi.set_struc_name(idaapi.get_struc_id('name_a'), 'name_b')"),
-            self.save_struc("name_a"),
-            self.save_struc("name_b"),
+            self.check_strucs(),
+            self.script("""
+eid = idaapi.get_struc_id("name_a")
+idaapi.set_struc_name(eid, "name_b")
+"""),
+            self.save_strucs(),
         )
-        b.check_git(added=["struc"], deleted=["struc"])
-        self.assertEqual(self.strucs["name_a"][1], "")
-        self.assertNotEqual(self.strucs["name_b"][1], "")
+        b.check_git(modified=["struc"])
+
         a.run(
-            self.check_struc("name_a"),
-            self.check_struc("name_b"),
-            self.script("idaapi.del_struc(idaapi.get_struc(idaapi.get_struc_id('name_b')))"),
-            self.save_struc("name_b"),
+            self.check_strucs(),
+            self.script("""
+idaapi.del_struc(idaapi.get_struc(idaapi.get_struc_id("name_b")))
+idaapi.add_struc(-1, "name_a", False)
+idaapi.add_struc(-1, "name_b", False)
+"""),
+            self.save_strucs(),
         )
-        a.check_git(deleted=["struc"])
-        self.assertEqual(self.strucs["name_b"][1], "")
+        a.check_git(added=["struc"] * 2, deleted=["struc"])
+
+        b.run(
+            self.check_strucs(),
+        )
 
     def test_struc_members(self):
         a, b = self.setup_repos()
         a.run(
             self.script("idc.add_struc_member(idaapi.add_struc(-1, 'name_a', False), 'field_a', 0, idaapi.FF_DATA, -1, 1)"),
-            self.save_struc("name_a"),
+            self.save_strucs(),
         )
         a.check_git(added=["struc", "strucmember"])
+
         b.run(
-            self.check_struc("name_a"),
+            self.check_strucs(),
             self.script("idaapi.set_member_name(idaapi.get_struc(idaapi.get_struc_id('name_a')), 0, 'field_b')"),
-            self.save_struc("name_a"),
+            self.save_strucs(),
         )
         b.check_git(modified=["strucmember"])
+
         a.run(
-            self.check_struc("name_a"),
+            self.check_strucs(),
             self.script("idaapi.set_struc_name(idaapi.get_struc_id('name_a'), 'name_b')"),
-            self.save_struc("name_a"),
-            self.save_struc("name_b"),
+            self.save_strucs(),
         )
-        a.check_git(added=["struc", "strucmember"], deleted=["struc", "strucmember"])
-        self.assertEqual(self.strucs["name_a"][1], "")
-        self.assertNotEqual(self.strucs["name_b"][1], "")
+        a.check_git(modified=["struc"])
+
         b.run(
-            self.check_struc("name_a"),
-            self.check_struc("name_b"),
+            self.check_strucs(),
             self.script("idaapi.del_struc_member(idaapi.get_struc(idaapi.get_struc_id('name_b')), 0)"),
-            self.save_struc("name_b"),
+            self.save_strucs(),
         )
         b.check_git(modified=["struc"], deleted=["strucmember"])
+
         a.run(
-            self.check_struc("name_b"),
+            self.check_strucs(),
         )
 
     def test_sub_strucs(self):
@@ -165,18 +173,40 @@ for ea, n, offset in targets:
         a.check_git(added=["binary", "segment", "segment_chunk", "function", "basic_block"] +
             ["struc"] * 2 + ["strucmember"] * 112)
         self.assertRegexpMatches(self.eas[self.last_ea][1], "path_idx")
+
         b.run(
             self.check_last_ea(),
             self.check_strucs(),
+            self.script(targets + """
+idaapi.set_struc_name(idaapi.get_struc_id("t0"), "t0_bis")
+idaapi.set_struc_name(idaapi.get_struc_id("u0"), "u0_bis")
+"""),
+            self.save_last_ea(),
+            self.save_strucs(),
+        )
+        # some u0 members embed t0 members
+        b.check_git(modified=["struc"] * 2 + ["strucmember"] * 0x10)
+
+        # FIXME workaround IDA bug when member ids are not updated
+        # in struc offset paths when we rename a struc
+        # maybe a missing auto analysis somewhere...
+        a.run(
+            self.empty(),
+        )
+
+        a.run(
+            self.check_strucs(),
+            self.check_last_ea(),
             self.script(targets + """
 for ea, n, offset in targets:
     idaapi.clr_op_type(ea, n)
 """),
             self.save_last_ea(),
         )
-        b.check_git(modified=["basic_block"])
+        a.check_git(modified=["basic_block"])
         self.assertNotRegexpMatches(self.eas[self.last_ea][1], "path_idx")
-        a.run(
+
+        b.run(
             self.check_last_ea(),
         )
 
@@ -224,6 +254,129 @@ idc.set_member_type(sid, 4, idaapi.FF_BYTE | idaapi.FF_DATA, -1, 1)
             self.save_strucs(),
         )
         b.check_git(modified=["struc"], deleted=["strucmember"] * 2)
+        a.run(
+            self.check_strucs(),
+        )
+
+    def test_renamed_strucs_are_still_applied(self):
+        a, b = self.setup_cmder()
+
+        a.run(
+            self.script("""
+sid = idaapi.add_struc(-1, "sa", False)
+idc.add_struc_member(sid, "fa", 0, ida_bytes.byte_flag(), -1, 4)
+idc.add_struc_member(sid, "fb", 4, ida_bytes.word_flag(), -1, 4)
+idc.add_struc_member(sid, "fc", 8, ida_bytes.byte_flag(), -1, 0x14)
+
+sidb = idaapi.add_struc(-1, "embed", True)
+idc.add_struc_member(sidb, "dat", 0, idaapi.struflag(), sid, idaapi.get_struc_size(sid))
+
+def custom_op_stroff(ea, n, path, path_len):
+    insn = ida_ua.insn_t()
+    insn_len = ida_ua.decode_insn(insn, ea)
+    return idaapi.op_stroff(insn, n, path, path_len, 0)
+
+path = idaapi.tid_array(1)
+path[0] = sid
+
+ea = 0x401D8E
+custom_op_stroff(ea+0, 0, path.cast(), 1)
+custom_op_stroff(ea+3, 0, path.cast(), 1)
+ea = 0x401D9B
+custom_op_stroff(ea+0, 1, path.cast(), 1)
+"""),
+            self.save_strucs(),
+            self.save_ea(0x401D8E),
+            self.save_ea(0x401D9B),
+        )
+        a.check_git(added=["binary", "segment", "segment_chunk", "function", "basic_block"] + ["struc"] * 2 + ["strucmember"] * 4)
+
+        b.run(
+            self.check_strucs(),
+            self.check_ea(0x401D8E),
+            self.check_ea(0x401D9B),
+            self.script("""
+sid = idaapi.get_struc_id("sa")
+idaapi.set_struc_name(sid, "another_name")
+"""),
+            self.save_strucs(),
+            self.save_ea(0x401D8E),
+            self.save_ea(0x401D9B),
+        )
+        b.check_git(modified=["struc"])
+
+        a.run(
+            self.check_strucs(),
+            self.check_ea(0x401D8E),
+            self.check_ea(0x401D9B),
+        )
+
+    def test_create_same_struc_independently(self):
+        a, b = self.setup_cmder()
+
+        a.run(
+            self.script("""
+sid = idaapi.add_struc(-1, "somename", False)
+idc.add_struc_member(sid, 'field_a', 0, ida_bytes.dword_flag(), -1, 4)
+"""),
+            # create an arbitrary commit which should stay
+            # as the last commit in history
+            self.sync(),
+            self.script("""
+ea = 0x401E07
+idaapi.set_name(ea, "somesub")
+"""),
+            self.save_strucs(),
+        )
+        a.check_git(added=["binary", "segment", "segment_chunk", "function", "basic_block"])
+        strucs = self.strucs
+
+        # create a conflicting struc
+        # it should be removed from history
+        b.run_no_sync(
+            self.script("""
+sid = idaapi.add_struc(-1, "somename", False)
+idc.add_struc_member(sid, 'field_b', 0, ida_bytes.dword_flag(), -1, 4)
+"""),
+            self.sync(),
+            self.script("""
+ea = 0x401E07
+idaapi.set_name(ea, "anothersub")
+"""),
+        )
+        b.check_git(modified=["basic_block"])
+
+        self.strucs = strucs
+        b.run(
+            self.check_strucs(),
+        )
+        b.check_git(modified=["basic_block"])
+
+    def test_potential_struc_conflict(self):
+        a, b = self.setup_cmder()
+
+        a.run(
+            self.script("""
+sid = idaapi.add_struc(-1, "somename", False)
+"""),
+            # now remove potentially conflicting commit
+            self.sync(),
+            self.script("""
+idaapi.del_struc(idaapi.get_struc(idaapi.get_struc_id("somename")))
+"""),
+        )
+        a.check_git(deleted=["struc"])
+
+        # create a potentially conflicting struc
+        b.run_no_sync(
+            self.script("""
+sid = idaapi.add_struc(-1, "somename", False)
+"""),
+            self.sync(),
+            self.save_strucs(),
+        )
+        b.check_git(added=["struc"])
+
         a.run(
             self.check_strucs(),
         )

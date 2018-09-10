@@ -29,6 +29,7 @@
 #include "IModel.hpp"
 #include "Helpers.h"
 #include "Yatools.hpp"
+#include "Strucs.hpp"
 
 #include <algorithm>
 #include <unordered_set>
@@ -537,29 +538,31 @@ namespace
         if(struc->is_ghost())
             return;
 
-        const auto struc_name = ctx.qpool_.acquire();
-        const auto sid = struc->id;
-        ya::wrap(&get_struc_name, *struc_name, sid);
         const auto id = func ?
             hash::hash_stack(func->start_ea) :
-            hash::hash_struc(ya::to_string_ref(*struc_name));
+            strucs::hash(struc->id);
         const auto type = func ? OBJECT_TYPE_STACKFRAME : OBJECT_TYPE_STRUCT;
         if(ctx.skip_id(id, type))
             return;
 
-        const auto ea = func ? func->start_ea : struc->ordinal;
+        const auto ea = func ? func->start_ea : 0;
         start_object(v, type, id, parent.id, ea);
         const auto size = get_struc_size(struc);
         v.visit_size(size);
+
+        const auto name = ctx.qpool_.acquire();
         if(!func)
-            v.visit_name(ya::to_string_ref(*struc_name), DEFAULT_NAME_FLAGS);
+        {
+            ya::wrap(&get_struc_name, *name, struc->id);
+            v.visit_name(ya::to_string_ref(*name), DEFAULT_NAME_FLAGS);
+        }
         if(struc->is_union())
             v.visit_flags(1); // FIXME constant
 
         const auto qbuf = ctx.qpool_.acquire();
         visit_header_comments(v, *qbuf, [&](qstring& buffer, bool repeated)
         {
-            return get_struc_cmt(&buffer, sid, repeated);
+            return get_struc_cmt(&buffer, struc->id, repeated);
         });
 
         v.visit_start_xrefs();
@@ -593,6 +596,8 @@ namespace
             v.visit_attribute(g_stack_regvars,  int_to_ref(func->frregs));
             v.visit_attribute(g_stack_args,     int_to_ref(func->argsize));
         }
+        if(!func)
+            strucs::visit(v, name->c_str());
 
         finish_object(v);
 
@@ -1147,13 +1152,11 @@ namespace
             return;
 
         const auto tid = pop->path.ids[0];
-        const auto qbuf = ctx.qpool_.acquire();
-        ya::wrap(&get_struc_name, *qbuf, tid);
-        const auto sid = hash::hash_struc(ya::to_string_ref(*qbuf));
-
+        const auto sid = strucs::hash(tid);
         deps->push_back({sid, tid});
         ctx.xrefs_.push_back({ea - root, sid, opidx, 0});
 
+        const auto qbuf = ctx.qpool_.acquire();
         for(int i = 1; i < pop->path.len; ++i)
         {
             const auto mid = pop->path.ids[i];

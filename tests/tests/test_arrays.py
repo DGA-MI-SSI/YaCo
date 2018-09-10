@@ -30,6 +30,7 @@ idaapi.add_struc(-1, "sc", False)
             self.save_strucs(),
         )
         a.check_git(added=["struc"] * 3 + ["strucmember"] * 2)
+
         b.run(
             self.check_strucs(),
             self.script("""
@@ -40,7 +41,8 @@ idc.add_struc_member(sc, "fa", 0, idaapi.FF_STRU | idaapi.FF_DATA, sa, sa_size, 
 """),
             self.save_strucs(),
         )
-        b.check_git(added=["strucmember"], modified=["struc"] * 2)
+        b.check_git(added=["strucmember"], modified=["struc"])
+
         a.run(
             self.check_strucs(),
             self.script("""
@@ -53,7 +55,8 @@ idc.add_struc_member(sc, "fb", sa_size, idaapi.FF_STRU | idaapi.FF_DATA, sb, sb_
 """),
             self.save_strucs(),
         )
-        a.check_git(added=["strucmember"], modified=["struc"] * 2)
+        a.check_git(added=["strucmember"], modified=["struc"])
+
         b.run(
             self.check_strucs(),
         )
@@ -91,7 +94,7 @@ idc.add_struc_member(sc, "field_C", fcb_offset, idaapi.FF_STRU | idaapi.FF_DATA,
 """),
             self.save_strucs(),
         )
-        b.check_git(modified=["struc"] * 3 + ["strucmember"] * 2)
+        b.check_git(modified=["struc"] + ["strucmember"] * 2)
         a.run(
             self.check_strucs(),
         )

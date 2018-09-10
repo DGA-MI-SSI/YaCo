@@ -15,14 +15,10 @@
 
 #include "Git.hpp"
 #include "LibGit.h"
-#include "FileUtils.hpp"
 #include "Helpers.h"
 #include "Yatools.hpp"
 
 #include <fstream>
-#include <sstream>
-#include <string.h>
-#include <vector>
 
 #ifdef _MSC_VER
 #   include <filesystem>
@@ -54,6 +50,7 @@ namespace std
     template<> struct default_delete<git_index_conflict_iterator> { static const bool marker = true; void operator()(git_index_conflict_iterator* ptr) { git_index_conflict_iterator_free(ptr); } };
     template<> struct default_delete<git_index>                   { static const bool marker = true; void operator()(git_index*                   ptr) { git_index_free(ptr); } };
     template<> struct default_delete<git_merge_file_result>       { static const bool marker = true; void operator()(git_merge_file_result*       ptr) { git_merge_file_result_free(ptr); } };
+    template<> struct default_delete<git_object>                  { static const bool marker = true; void operator()(git_object*                  ptr) { git_object_free(ptr); } };
     template<> struct default_delete<git_patch>                   { static const bool marker = true; void operator()(git_patch*                   ptr) { git_patch_free(ptr); } };
     template<> struct default_delete<git_rebase>                  { static const bool marker = true; void operator()(git_rebase*                  ptr) { git_rebase_free(ptr); } };
     template<> struct default_delete<git_reference>               { static const bool marker = true; void operator()(git_reference*               ptr) { git_reference_free(ptr); } };
@@ -66,20 +63,6 @@ namespace std
 
 namespace
 {
-    struct LibGit
-    {
-        LibGit()
-        {
-            git_libgit2_init();
-        }
-
-        ~LibGit()
-        {
-            git_libgit2_shutdown();
-        }
-    };
-    static const LibGit libgit;
-
     template<typename T>
     std::unique_ptr<T> make_unique(T* ptr)
     {
@@ -102,7 +85,7 @@ namespace
         std::string config_get_string   (const std::string& name) override;
         bool        config_set_string   (const std::string& name, const std::string& value) override;
         bool        diff_index          (const std::string& from, const on_blob_fn& on_blob) override;
-        bool        rebase              (const std::string& upstream, const std::string& dst, const on_conflict_fn& on_conflict) override;
+        bool        rebase              (const std::string& upstream, const std::string& dst, IPatcher& patcher, const on_fixup_fn& on_fixup, const on_conflict_fn& on_conflict) override;
         bool        commit              (const std::string& message) override;
         bool        checkout_head       () override;
         bool        is_tracked          (const std::string& name) override;
@@ -273,7 +256,7 @@ namespace
         auto err = git_repository_index(&ptr_index, &*git.repo_);
         if(err != GIT_OK)
             FAIL_WITH(false, git, "unable to get index");
-        
+
         auto index = make_unique(ptr_index);
         err = git_index_read(ptr_index, true);
         if(err != GIT_OK)
@@ -355,6 +338,30 @@ namespace
         return !git_oid_cmp(&oida, &oidb);
     }
 
+    std::unique_ptr<git_commit> get_commit_from_oid(Git& git, const git_oid& oid)
+    {
+        git_commit* ptr_commit = nullptr;
+        const auto err = git_commit_lookup(&ptr_commit, &*git.repo_, &oid);
+        if(err != GIT_OK)
+            FAIL_WITH(std::nullptr_t(), git, "unable to lookup commit");
+
+        return make_unique(ptr_commit);
+    }
+
+    std::unique_ptr<git_tree> get_tree_from_oid(Git& git, const git_oid& oid)
+    {
+        const auto commit = get_commit_from_oid(git, oid);
+        if(!commit)
+            return std::nullptr_t();
+
+        git_tree* ptr_tree = nullptr;
+        const auto err = git_commit_tree(&ptr_tree, &*commit);
+        if(err != GIT_OK)
+            FAIL_WITH(std::nullptr_t(), git, "unable to get commit tree");
+
+        return make_unique(ptr_tree);
+    }
+
     std::unique_ptr<git_tree> get_tree(Git& git, const std::string& target)
     {
         git_oid oid;
@@ -364,18 +371,47 @@ namespace
         if(err != GIT_OK)
             FAIL_WITH(std::nullptr_t(), git, "unknown target %s", target.data());
 
-        git_commit* ptr_commit = nullptr;
-        err = git_commit_lookup(&ptr_commit, &*git.repo_, &oid);
-        if(err != GIT_OK)
-            FAIL_WITH(std::nullptr_t(), git, "unable to lookup commit from %s", target.data());
+        auto tree = get_tree_from_oid(git, oid);
+        if(!tree)
+            FAIL_WITH(std::nullptr_t(), git, "unable to get tree from %s", target.data());
 
-        auto commit = make_unique(ptr_commit);
-        git_tree* ptr_tree = nullptr;
-        err = git_commit_tree(&ptr_tree, ptr_commit);
-        if(err != GIT_OK)
-            FAIL_WITH(std::nullptr_t(), git, "unable to get commit tree from %s", target.data());
+        return tree;
+    }
 
-        return make_unique(ptr_tree);
+    std::unique_ptr<git_blob> get_blob(git_repository* repo, const git_oid& oid)
+    {
+        git_blob* ptr_blob = nullptr;
+        const auto err = git_blob_lookup(&ptr_blob, repo, &oid);
+        if(err != GIT_OK)
+            return std::nullptr_t();
+
+        return make_unique(ptr_blob);
+    }
+
+    template<typename T>
+    bool diff_foreach(Git& git, git_diff* diff, const T& on_blob)
+    {
+        using Payload = struct
+        {
+            git_repository* repo;
+            T               on_blob;
+        };
+        const auto file_cb = [](const git_diff_delta* delta, float /*progress*/, void* vpayload) -> int
+        {
+            if(delta->status == GIT_DELTA_CONFLICTED)
+                return GIT_OK;
+
+            const auto& payload = *static_cast<Payload*>(vpayload);
+            const auto  deleted = delta->status == GIT_DELTA_DELETED;
+            const auto& file    = deleted ? delta->old_file : delta->new_file;
+            return payload.on_blob(file.path, !deleted, file.id);
+        };
+        Payload payload{&*git.repo_, on_blob};
+        const auto err = git_diff_foreach(diff, file_cb, nullptr, nullptr, nullptr, &payload);
+        if(err != GIT_OK)
+            FAIL_WITH(false, git, "unable to iterate diff");
+
+        return true;
     }
 }
 
@@ -386,39 +422,16 @@ bool Git::diff_index(const std::string& from, const Git::on_blob_fn& on_blob)
         return false;
 
     git_diff* ptr_diff = nullptr;
-    auto err = git_diff_tree_to_index(&ptr_diff, &*repo_, &*from_tree, nullptr, nullptr);
+    const auto err = git_diff_tree_to_index(&ptr_diff, &*repo_, &*from_tree, nullptr, nullptr);
     if(err != GIT_OK)
         FAIL_WITH(false, *this, "unable to diff tree to index");
 
     const auto diff = make_unique(ptr_diff);
-    using Payload = struct
+    return diff_foreach(*this, ptr_diff, [&](const char* path, bool added, const git_oid& oid)
     {
-        git_repository* repo;
-        on_blob_fn      on_blob;
-    };
-    const auto file_cb = [](const git_diff_delta* delta, float /*progress*/, void* vpayload)
-    {
-        const auto& payload = *static_cast<Payload*>(vpayload);
-        const auto  deleted = delta->status == GIT_DELTA_DELETED;
-        const auto& file    = deleted ? delta->old_file : delta->new_file;
-
-        git_blob* blob = nullptr;
-        const auto err = git_blob_lookup(&blob, payload.repo, &file.id);
-        if(err != GIT_OK)
-            return 0;
-
-        const auto ptr = git_blob_rawcontent(blob);
-        const auto size = git_blob_rawsize(blob);
-        const auto rpy = payload.on_blob(file.path, !deleted, ptr, size);
-        git_blob_free(blob);
-        return rpy;
-    };
-    Payload payload{&*repo_, on_blob};
-    err = git_diff_foreach(ptr_diff, file_cb, nullptr, nullptr, nullptr, &payload);
-    if(err != GIT_OK)
-        FAIL_WITH(false, *this, "unable to iterate diff index");
-
-    return true;
+        const auto blob = get_blob(&*repo_, oid);
+        return on_blob(path, added, git_blob_rawcontent(&*blob), git_blob_rawsize(&*blob));
+    });
 }
 
 namespace
@@ -429,14 +442,12 @@ namespace
         if(!entry)
             return std::string();
 
-        git_blob* ptr_blob = nullptr;
-        const auto err = git_blob_lookup(&ptr_blob, repo, &entry->id);
-        if(err != GIT_OK)
+        const auto blob = get_blob(repo, entry->id);
+        if(!blob)
             return std::string();
 
-        const auto blob = make_unique(ptr_blob);
-        const auto data = static_cast<const char*>(git_blob_rawcontent(ptr_blob));
-        const auto size = git_blob_rawsize(ptr_blob);
+        const auto data = static_cast<const char*>(git_blob_rawcontent(&*blob));
+        const auto size = git_blob_rawsize(&*blob);
         found = true;
         return std::string(data, size);
     }
@@ -507,9 +518,6 @@ namespace
 
     bool resolve_conflicts(Git& git, const Git::on_conflict_fn& on_conflict)
     {
-        if(!load_index(git))
-            return false;
-
         git_index_conflict_iterator* ptr_iterator = nullptr;
         auto err = git_index_conflict_iterator_new(&ptr_iterator, &*git.index_);
         if(err != GIT_OK)
@@ -550,22 +558,135 @@ namespace
         }
     }
 
-    bool rebase(Git& git, git_rebase* ptr_rebase, const Git::on_conflict_fn& on_conflict)
+    bool fixup_blobs(Git& git, git_diff* ptr_diff, IPatcher& patcher, const on_fixup_fn& on_fixup)
     {
-        git_rebase_operation* operation = nullptr;
+        const auto ok = diff_foreach(git, ptr_diff, [&](const char* path, bool added, const git_oid& oid)
+        {
+            if(!added)
+                return GIT_OK;
+
+            const auto blob = get_blob(&*git.repo_, oid);
+            if(!blob)
+                added = added;
+            const auto ptr  = reinterpret_cast<const char*>(git_blob_rawcontent(&*blob));
+            const auto size = git_blob_rawsize(&*blob);
+            patcher.add(path, ptr, size);
+            return GIT_OK;
+        });
+        if(!ok)
+            FAIL_WITH(false, git, "unable to iterate diff");
+
+        patcher.finish(on_fixup);
+        return true;
+    }
+
+    bool replay_remote_first(Git& git, git_oid& oid, git_rebase* ptr_rebase, IPatcher& patcher, const on_fixup_fn& on_fixup)
+    {
+        if(!on_fixup)
+            return true;
+
+        const auto op = git_rebase_operation_byindex(ptr_rebase, 0);
+        if(!op)
+            return true;
+
+        // find ancestor commit & lookup local & remote trees
+        const auto commit = get_commit_from_oid(git, op->id);
+        git_oid_cpy(&oid, git_commit_parent_id(&*commit, 0));
+        const auto remote = get_oid_from(&*git.repo_, "origin/master");
+        if(!git_oid_cmp(&oid, &remote))
+            return true;
+
+        git_diff* ptr_diff = nullptr;
+        const auto local_tree = get_tree_from_oid(git, oid);
+        git_oid_cpy(&oid, &remote);
+        const auto remote_tree = get_tree_from_oid(git, remote);
+        const auto err = git_diff_tree_to_tree(&ptr_diff, &*git.repo_, &*local_tree, &*remote_tree, nullptr);
+        if(err != GIT_OK)
+            FAIL_WITH(false, git, "unable to diff tree to tree");
+
+        const auto diff = make_unique(ptr_diff);
+        const auto ok = fixup_blobs(git, ptr_diff, patcher, on_fixup);
+        if(!ok)
+            FAIL_WITH(false, git, "unable to fixup patch during replay");
+
+        return true;
+    }
+
+    std::string read_file(const fs::path& path)
+    {
+        std::ifstream ifs(path);
+        std::string line;
+        std::string data;
+        while(std::getline(ifs, line))
+            data += line + "\n";
+        return data;
+    }
+
+    bool fixup_rebase(Git& git, const git_oid& prev_oid, IPatcher& patcher, const on_fixup_fn& on_fixup, const Git::on_conflict_fn& on_conflict)
+    {
+        if(!on_fixup)
+            return true;
+
+        const auto prev = get_tree_from_oid(git, prev_oid);
+        if(!prev)
+            FAIL_WITH(false, git, "unable to get tree from oid");
+
+        const auto root = fs::path(git.path_);
+        git_diff* ptr_diff = nullptr;
+        const auto err = git_diff_tree_to_index(&ptr_diff, &*git.repo_, &*prev, nullptr, nullptr);
+        if(err != GIT_OK)
+            FAIL_WITH(false, git, "unable to diff tree to index");
+
+        const auto diff = make_unique(ptr_diff);
+        const auto ok = fixup_blobs(git, ptr_diff, patcher, [&](const std::string& path, const char* ptr, size_t size)
+        {
+            auto newpath = path;
+            const auto fixup = on_fixup(newpath, ptr, size);
+            if(!fixup)
+                return false;
+
+            const auto their = read_file(root / newpath);
+            on_conflict(std::string(ptr, size), their, newpath);
+            git.add_file(newpath);
+
+            std::error_code ec;
+            fs::remove(root / path, ec);
+            git.remove_file(path);
+            return true;
+        });
+        if(!ok)
+            FAIL_WITH(false, git, "unable to fixup blobs");
+
+        return true;
+    }
+
+    bool rebase(Git& git, git_rebase* ptr_rebase, IPatcher& patcher, const on_fixup_fn& on_fixup, const Git::on_conflict_fn& on_conflict)
+    {
+        // initialize previous oid
+        git_oid prev;
+        replay_remote_first(git, prev, ptr_rebase, patcher, on_fixup);
+
         while(true)
         {
-            auto err = git_rebase_next(&operation, ptr_rebase);
+            git_rebase_operation* op = nullptr;
+            auto err = git_rebase_next(&op, ptr_rebase);
             if(err == GIT_ITEROVER)
                 return true;
 
             if(err != GIT_OK)
                 FAIL_WITH(false, git, "unable to rebase");
 
-            if(operation->type != GIT_REBASE_OPERATION_PICK)
+            if(op->type != GIT_REBASE_OPERATION_PICK)
                 continue;
 
-            const auto ok = resolve_conflicts(git, on_conflict);
+            if(!load_index(git))
+                FAIL_WITH(false, git, "unable to load index");
+
+            auto ok = fixup_rebase(git, prev, patcher, on_fixup, on_conflict);
+            if(!ok)
+                FAIL_WITH(false, git, "error during rebase fixup");
+
+            ok = resolve_conflicts(git, on_conflict);
             if(!ok)
                 return false;
 
@@ -580,13 +701,17 @@ namespace
             // can happen when rebasing yaco.version changes
             if(err == GIT_EAPPLIED)
                 continue;
+
             if(err != GIT_OK)
                 FAIL_WITH(false, git, "unable to pick rebase commit");
+
+            if(!git_oid_iszero(&oid))
+                git_oid_cpy(&prev, &oid);
         }
     }
 }
 
-bool Git::rebase(const std::string& upstream, const std::string& dst, const on_conflict_fn& on_conflict)
+bool Git::rebase(const std::string& upstream, const std::string& dst, IPatcher& patcher, const on_fixup_fn& on_fixup, const on_conflict_fn& on_conflict)
 {
     if(is_equal_oid(&*repo_, upstream.data(), dst.data()))
         return true;
@@ -595,7 +720,7 @@ bool Git::rebase(const std::string& upstream, const std::string& dst, const on_c
     if(!rebase)
         return false;
 
-    const auto ok = ::rebase(*this, &*rebase, on_conflict);
+    const auto ok = ::rebase(*this, &*rebase, patcher, on_fixup, on_conflict);
     if(!ok)
     {
         const auto err = git_rebase_abort(&*rebase);
@@ -653,7 +778,7 @@ namespace
         err = git_commit_lookup(&ptr_commit, &*git.repo_, &parent_id);
         if(err != GIT_OK)
             FAIL_WITH(false, git, "unable to lookup commit");
-        
+
         const auto commit = make_unique(ptr_commit);
         const git_commit* parents[] = { ptr_commit };
         git_oid commit_id;
@@ -697,7 +822,6 @@ std::string Git::get_commit(const std::string& name)
         FAIL_WITH(std::string(), *this, "unable to get reference from %s", name.data());
 
     char oidstr[GIT_OID_HEXSZ+1];
-    memset(oidstr, 0, sizeof oidstr);
     git_oid_nfmt(oidstr, sizeof oidstr, &oid);
     return std::string(oidstr, sizeof oidstr);
 }

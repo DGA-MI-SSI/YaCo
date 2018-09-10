@@ -24,7 +24,6 @@
 #include "Helpers.h"
 #include "git_version.h"
 
-#include <ctime>
 #include <libxml/xmlreader.h>
 #include <regex>
 #include <fstream>
@@ -190,6 +189,8 @@ namespace
         return buffer.c_str();
     }
 
+    const auto r_xml_end = std::regex{".*\\.xml$"};
+
     bool IDAInteractiveFileConflictResolver(const std::string& local, const std::string& remote, const std::string& filename)
     {
         if(fs::path(filename) == "yaco.version")
@@ -198,7 +199,7 @@ namespace
             return true;
         }
 
-        if(!std::regex_match(filename, std::regex(".*\\.xml$")))
+        if(!std::regex_match(filename, r_xml_end))
             return true;
 
         Merger merger(ObjectVersionMergeStrategy_e::OBJECT_VERSION_MERGE_PROMPT, &merge_attributes_callback);
@@ -224,7 +225,7 @@ namespace
         std::string get_cache() override;
         void        add_comment(const std::string& msg) override;
         bool        check_valid_cache_startup() override; // can stop IDA
-        std::string update_cache() override;
+        std::string update_cache(IPatcher& patcher, const on_fixup_fn& on_fixup) override;
         bool        commit_cache() override;
         void        toggle_repo_auto_sync() override;
         void        sync_and_push_original_idb() override;
@@ -440,7 +441,7 @@ bool Repository::check_valid_cache_startup()
     return false;
 }
 
-std::string Repository::update_cache()
+std::string Repository::update_cache(IPatcher& patcher, const on_fixup_fn& on_fixup)
 {
     std::string commit;
     if (!has_remote(default_remote_name))
@@ -471,14 +472,13 @@ std::string Repository::update_cache()
 
     // rebase in master
     LOG(DEBUG, "Rebasing master on %s/master...\n", default_remote_name.data());
-    if (!git_->rebase(default_remote_name + "/master", "master", &IDAInteractiveFileConflictResolver))
+    if (!git_->rebase(default_remote_name + "/master", "master", patcher, on_fixup, &IDAInteractiveFileConflictResolver))
     {
         LOG(INFO, "Unable to update cache\n");
         // disable auto sync (when closing database)
         warning("You have errors during rebase. You have to resolve it manually.\n");
         return commit;
     }
-
     LOG(DEBUG, "Master rebased\n");
 
     const auto now = git_->get_commit("master");
@@ -616,7 +616,10 @@ void Repository::discard_and_pull_idb()
         LOG(ERROR, "Unable to fetch %s\n", default_remote_name.data());
         return;
     }
-    if (!git_->rebase(default_remote_name + "/master", "master", &IDAInteractiveFileConflictResolver))
+
+    EmptyPatcher patcher;
+    const auto ok = git_->rebase(default_remote_name + "/master", "master", patcher, {}, &IDAInteractiveFileConflictResolver);
+    if(!ok)
     {
         LOG(ERROR, "Unable to rebase master from %s/master\n", default_remote_name.data());
         return;

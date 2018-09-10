@@ -23,20 +23,18 @@
 #include "Repository.hpp"
 #include "Helpers.h"
 #include "HVersion.hpp"
-#include "IdaModel.hpp"
 #include "XmlAccept.hpp"
 #include "MemoryModel.hpp"
-#include "IModel.hpp"
 #include "Yatools.hpp"
 #include "XmlVisitor.hpp"
-#include "Utils.hpp"
 #include "IdaVisitor.hpp"
 #include "IModelSink.hpp"
 #include "IdaModel.hpp"
+#include "Strucs.hpp"
+#include "Git.hpp"
 
-#include <chrono>
-#include <map>
 #include <unordered_set>
+#include <regex>
 
 #ifdef _MSC_VER
 #   include <filesystem>
@@ -106,7 +104,7 @@ namespace
         void update             () override;
         void touch              () override;
 
-        IRepository&    repo_;     
+        IRepository&    repo_;
         Pool<qstring>   qpool_;
 
         Eas             eas_;
@@ -252,14 +250,12 @@ namespace
             repo.add_comment(prefix + "updated");
     }
 
-    YaToolObjectId get_struc_stack_id(Events& ev, ea_t struc_id, ea_t func_ea)
+    YaToolObjectId get_struc_stack_id(ea_t struc_id, ea_t func_ea)
     {
         if(func_ea != BADADDR)
             return hash::hash_stack(func_ea);
 
-        const auto name = ev.qpool_.acquire();
-        ya::wrap(&get_struc_name, *name, struc_id);
-        return hash::hash_struc(ya::to_string_ref(*name));
+        return strucs::hash(struc_id);
     }
 
     void add_ea(Events& ev, YaToolObjectId id, YaToolObjectType_e type, ea_t ea)
@@ -303,15 +299,13 @@ namespace
         if(eid != BADADDR)
             return ev.touch_enum(eid);
 
-        LOG(ERROR, "add_ea: invalid ea 0x%" PRIxEA, ea);
+        qstring buf;
+        LOG(ERROR, "add_ea: invalid ea 0x%" PRIxEA ": %s\n", ea, getnode(ea).get_name(&buf) == -1 ? "<unknown>" : buf.c_str());
     }
 
-    void update_struc_member(Events& ev, struc_t* struc, const qstring& name, member_t* m)
+    void update_struc_member(Events& ev, YaToolObjectId parent_id, struc_t* struc, member_t* m)
     {
         const auto func_ea = get_func_by_frame(struc->id);
-        const auto parent_id = func_ea != BADADDR ?
-            hash::hash_stack(func_ea) :
-            hash::hash_struc(ya::to_string_ref(name));
         const auto id = hash::hash_member(parent_id, m->soff);
         ev.struc_members_.emplace(id, StrucMember{parent_id, {struc->id, func_ea}, m->soff});
     }
@@ -346,17 +340,15 @@ namespace
     {
         add_auto_comment(ev.repo_, struc_id);
         const auto func_ea = get_func_by_frame(struc_id);
-        const auto id = get_struc_stack_id(ev, struc_id, func_ea);
+        const auto id = get_struc_stack_id(struc_id, func_ea);
         ev.strucs_.emplace(id, Struc{struc_id, func_ea});
 
         const auto struc = get_struc(struc_id);
         if(!struc)
             return func_ea;
 
-        const auto name = ev.qpool_.acquire();
-        ya::wrap(&::get_struc_name, *name, struc->id);
         for(size_t i = 0; struc && i < struc->memqty; ++i)
-            update_struc_member(ev, struc, *name, &struc->members[i]);
+            update_struc_member(ev, id, struc, &struc->members[i]);
 
         return func_ea;
     }
@@ -401,27 +393,23 @@ void Events::touch_data(ea_t ea)
 
 namespace
 {
-    bool try_accept_struc(YaToolObjectId id, const Struc& struc, qstring& qbuf)
+    bool try_accept_struc(YaToolObjectId id, const Struc& struc)
     {
         if(struc.func_ea != BADADDR)
             return get_func_by_frame(struc.id) == struc.func_ea;
 
-        // on struc renames, as struc_id is still valid, we need to validate its id again
-        ya::wrap(&get_struc_name, qbuf, struc.id);
-        const auto got_id = hash::hash_struc(ya::to_string_ref(qbuf));
-        const auto idx = get_struc_idx(struc.id);
-        return id == got_id && idx != BADADDR;
+        const auto got_id = strucs::hash(struc.id);
+        return id == got_id;
     }
 
     void save_structs(Events& ev, IModelIncremental& model, IModelVisitor& visitor)
     {
-        const auto qbuf = ev.qpool_.acquire();
         for(const auto p : ev.strucs_)
         {
             // if frame, we need to update parent function
             if(get_func(p.second.func_ea))
                 model.accept_function(visitor, p.second.func_ea);
-            if(try_accept_struc(p.first, p.second, *qbuf))
+            if(try_accept_struc(p.first, p.second))
                 model.accept_struct(visitor, p.second.func_ea, p.second.id);
             else if(p.second.func_ea == BADADDR)
                 model.delete_version(visitor, OBJECT_TYPE_STRUCT, p.first);
@@ -431,7 +419,7 @@ namespace
 
         for(const auto p : ev.struc_members_)
         {
-            const auto is_valid_parent = try_accept_struc(p.second.parent_id, p.second.struc, *qbuf);
+            const auto is_valid_parent = try_accept_struc(p.second.parent_id, p.second.struc);
             const auto struc = p.second.struc.func_ea != BADADDR ?
                 get_frame(p.second.struc.func_ea) :
                 get_struc(p.second.struc.id);
@@ -716,13 +704,95 @@ namespace
         return all_updates;
     }
 
+    const auto r_xml_type = std::regex{"^cache[\\/]([^\\/]+)[\\/].+\\.xml$"};
+
+    struct PatchFile
+    {
+        std::string         path;
+        std::string         data;
+        YaToolObjectType_e  type;
+    };
+
+    // we need to order patch files according to type
+    // aka struc before members
+    struct Patcher
+        : public IPatcher
+    {
+        void add(const char* path, const char* ptr, size_t size) override
+        {
+            std::smatch match;
+            const auto strpath = std::string(path);
+            const auto ok = std::regex_match(strpath, match, r_xml_type);
+            if(!ok)
+                return;
+
+            const auto type = get_object_type(match.str(1).data());
+            switch(type)
+            {
+                case OBJECT_TYPE_STRUCT:
+                case OBJECT_TYPE_STRUCT_MEMBER:
+                    break;
+                default:
+                    return;
+            }
+
+            files.push_back({path, std::string(ptr, size), type});
+        }
+
+        void finish(const on_fixup_fn& on_fixup) override
+        {
+            std::sort(files.begin(), files.end(), [](const auto& a, const auto& b)
+            {
+                return std::make_pair(indexed_types[a.type], a.path) < std::make_pair(indexed_types[b.type], b.path);
+            });
+            for(auto& f : files)
+                on_fixup(f.path, f.data.data(), f.data.size());
+            files.clear();
+        }
+
+        std::vector<PatchFile> files;
+    };
+
+    HVersion get_version(const IModel& model)
+    {
+        HVersion reply;
+        model.walk([&](const HVersion& hver)
+        {
+            reply = hver;
+            return WALK_STOP;
+        });
+        return reply;
+    }
+
+    std::string rebase_cache(IRepository& repo)
+    {
+        // potentially fix conflicting struc ids
+        const auto filter = strucs::make_filter();
+        Patcher patcher;
+        return repo.update_cache(patcher, [&](std::string& path, const void* ptr, size_t size)
+        {
+            const auto model = MakeMemoryModel();
+            AcceptXmlMemory(*model, ptr, size);
+            const auto hver = get_version(*model);
+            const auto prev_id = hver.id();
+            const auto next_id = filter->is_valid(hver);
+            if(prev_id == next_id)
+                return false;
+
+            char buf[sizeof next_id * 2 + 1];
+            const auto str = to_hex<NullTerminate>(buf, next_id);
+            path = std::string("cache/") + get_object_type_string(hver.type()) + "/" + str.value + ".xml";
+            return true;
+        });
+    }
+
     void update_from_cache(IModelSink& sink, IRepository& repo)
     {
-        // load updated & deleted models
-        const auto commit = repo.update_cache();
+        const auto commit = rebase_cache(repo);
         if(commit.empty())
             return;
 
+        // load updated & deleted entities
         const auto updated = MakeMemoryModel();
         const auto deleted = MakeMemoryModel();
         updated->visit_start();

@@ -15,6 +15,11 @@
 
 #include "FileUtils.hpp"
 
+#include "YaTypes.hpp"
+#include "BinHex.hpp"
+#include "Helpers.h"
+#include "Random.hpp"
+
 #include <memory>
 
 #include <stdio.h>
@@ -191,41 +196,27 @@ std::shared_ptr<Mmap_ABC> MmapFile(const char* pPath)
     return std::make_shared<Mmap>(pPath);
 }
 
-#ifdef WIN32
-#pragma comment(lib, "rpcrt4.lib")
-#include "rpc.h"
+namespace
+{
+    std::string GenerateUuid()
+    {
+        uint8_t uuid[16];
+        rng::generate(&uuid, sizeof uuid);
+
+        char dat[sizeof uuid * 2];
+        binhex(dat, hexchars_lower, &uuid, sizeof uuid);
+        return std::string(dat, sizeof uuid * 2);
+    }
+}
 
 std::string CreateTemporaryDirectory(const std::string& base)
 {
-    auto path = base + "/";
-    UUID uuid;
-    if(UuidCreate(&uuid) != RPC_S_OK)
-        throw std::runtime_error("unable to create uuid");
-
-    RPC_CSTR str = nullptr;
-    if(UuidToString(&uuid, &str) != RPC_S_OK)
-        throw std::runtime_error("unable to convert uuid to string");
-
-    path += reinterpret_cast<const char*>(str);
-    RpcStringFree(&str);
+    const auto path = fs::path(base) / GenerateUuid();
 
     std::error_code err;
     fs::create_directories(path, err);
     if(err)
         throw std::runtime_error("unable to create directories");
 
-    return path;
+    return path.generic_string();
 }
-#else
-std::string CreateTemporaryDirectory(const std::string& base)
-{
-    std::string strvalue = base + "_XXXXXX";
-    std::vector<char> value;
-    value.resize(strvalue.size() + 1);
-    memcpy(&value[0], strvalue.data(), strvalue.size());
-    const auto ptr = mkdtemp(&value[0]);
-    if(!ptr)
-        throw std::runtime_error("unable to mkdtemp");
-    return ptr;
-}
-#endif

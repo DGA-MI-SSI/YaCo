@@ -19,9 +19,6 @@
 #include "Yatools.hpp"
 
 #include <future>
-#include <mutex>
-#include <thread>
-#include <vector>
 
 #if 1
 #define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("async", (FMT), ## __VA_ARGS__)
@@ -92,7 +89,7 @@ namespace
     struct worker
     {
         using value_type = std::function<void(void)>;
-        
+
         struct item_type
         {
             item_type(const value_type& cmd, std::promise<void>&& promise)
@@ -100,7 +97,7 @@ namespace
                 , promise(std::move(promise))
             {
             }
-            
+
             value_type          cmd;
             std::promise<void>  promise;
         };
@@ -116,7 +113,7 @@ namespace
             queue_.start();
             thread_ = std::thread(&worker::run, this);
         }
-        
+
         void stop()
         {
             queue_.stop();
@@ -161,7 +158,7 @@ namespace
         std::string config_get_string   (const std::string& name) override;
         bool        config_set_string   (const std::string& name, const std::string& value) override;
         bool        diff_index          (const std::string& from, const on_blob_fn& on_blob) override;
-        bool        rebase              (const std::string& upstream, const std::string& dst, const on_conflict_fn& on_conflict) override;
+        bool        rebase              (const std::string& upstream, const std::string& dst, IPatcher& patcher, const on_fixup_fn& on_fixup, const on_conflict_fn& on_conflict) override;
         bool        commit              (const std::string& message) override;
         bool        checkout_head       () override;
         bool        is_tracked          (const std::string& name) override;
@@ -200,7 +197,7 @@ std::shared_ptr<IGit> MakeGitAsync(const std::string& path)
     auto git = MakeGit(path);
     if(!git)
         return std::nullptr_t();
-    
+
     return std::make_shared<GitAsync>(git);
 }
 
@@ -262,10 +259,10 @@ bool GitAsync::diff_index(const std::string& from, const on_blob_fn& on_blob)
     return git_->diff_index(from, on_blob);
 }
 
-bool GitAsync::rebase(const std::string& upstream, const std::string& dst, const on_conflict_fn& on_conflict)
+bool GitAsync::rebase(const std::string& upstream, const std::string& dst, IPatcher& patcher, const on_fixup_fn& on_fixup, const on_conflict_fn& on_conflict)
 {
     const auto flusher = Flusher{*this};
-    return git_->rebase(upstream, dst, on_conflict);
+    return git_->rebase(upstream, dst, patcher, on_fixup, on_conflict);
 }
 
 bool GitAsync::commit(const std::string& message)

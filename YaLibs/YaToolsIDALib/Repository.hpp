@@ -22,16 +22,19 @@
 #include <memory>
 #include <functional>
 
+struct IPatcher;
+
 struct IRepository
 {
     virtual ~IRepository() = default;
 
-    using on_blob_fn = std::function<int(const char*, bool, const void*, size_t)>;
+    using on_blob_fn    = std::function<int(const char*, bool, const void*, size_t)>;
+    using on_fixup_fn   = std::function<bool(std::string&, const void*, size_t)>;
 
     virtual std::string get_cache() = 0;
     virtual void        add_comment(const std::string& msg) = 0;
     virtual bool        check_valid_cache_startup() = 0;
-    virtual std::string update_cache() = 0;
+    virtual std::string update_cache(IPatcher& patcher, const on_fixup_fn& on_fixup) = 0;
     virtual bool        commit_cache() = 0;
     virtual void        toggle_repo_auto_sync() = 0;
     virtual void        sync_and_push_original_idb() = 0;

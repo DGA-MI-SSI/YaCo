@@ -42,6 +42,36 @@ class TestYaGitLib : public TestInTempFolder
 
 namespace
 {
+    struct Patcher
+        : public IPatcher
+    {
+        Patcher()
+            : idx(0)
+        {
+        }
+
+        void add(const char* path, const char* ptr, size_t size)
+        {
+            files.push_back({path, {ptr, size}});
+        }
+
+        void finish(const on_fixup_fn& on_fixup)
+        {
+            for(auto& f : files)
+                on_fixup(f.path, f.data.data(), f.data.size());
+            files.clear();
+            ++idx;
+        }
+
+        using File = struct
+        {
+            std::string path;
+            std::string data;
+        };
+        std::vector<File>   files;
+        size_t              idx;
+    };
+
     void set_user_config(IGit& repo)
     {
         if (repo.config_get_string("user.name") == "")
@@ -89,18 +119,27 @@ namespace
         push(git);
     }
 
-    void fetch_rebase(IGit& git, const std::string& remote, const std::string& branch, const std::set<std::tuple<std::string, std::string, fs::path>>& expected)
+    using fixups_t      = std::multiset<std::tuple<size_t, fs::path, std::string>>;
+    using conflicts_t   = std::multiset<std::tuple<size_t, std::string, std::string, fs::path>>;
+
+    void fetch_rebase(IGit& git, const std::string& remote, const std::string& branch, const fixups_t& expected_fixups, const conflicts_t& expected_conflicts)
     {
         auto ok = git.fetch(remote);
         EXPECT_TRUE(ok);
-        auto got = expected;
-        got.clear();
-        ok = git.rebase(remote + "/" + branch, branch, [&](const std::string& left, const std::string& right, const std::string& path)
+        fixups_t got_fixups;
+        conflicts_t got_conflicts;
+        Patcher patcher;
+        ok = git.rebase(remote + "/" + branch, branch, patcher, [&](std::string& path, const char* data, size_t size)
         {
-            got.insert(std::make_tuple(left, right, path));
+            got_fixups.insert(std::make_tuple(patcher.idx, path, std::string(data, size)));
+            return 0;
+        }, [&](const std::string& left, const std::string& right, const std::string& path)
+        {
+            got_conflicts.insert(std::make_tuple(patcher.idx, left, right, path));
             return true;
         });
-        EXPECT_EQ(expected, got);
+        EXPECT_EQ(expected_fixups, got_fixups);
+        EXPECT_EQ(expected_conflicts, got_conflicts);
         EXPECT_TRUE(ok);
     }
 
@@ -194,7 +233,8 @@ TEST_F (TestYaGitLib, test_git_rebase)
     // create & fill first repo
     const auto a = MakeGitAsync("a");
     set_user_config(*a);
-    push_file(*a, "a/", "file1.txt", "first file", "file1 content");
+    const auto file1 = "file1 content";
+    push_file(*a, "a/", "file1.txt", "first file", file1);
 
     // create second repo
     ok = c->clone("b", IGit::CLONE_FULL);
@@ -203,29 +243,46 @@ TEST_F (TestYaGitLib, test_git_rebase)
     set_user_config(*b);
 
     // empty rebase
-    fetch_rebase(*b, "origin", "master", {});
+    fetch_rebase(*b, "origin", "master", {}, {});
 
     // rebase with one upstream commit
-    push_file(*a, "a/", "file2.txt", "second file", "file2 content");
-    fetch_rebase(*b, "origin", "master", {});
+    const auto file2 = std::string("file2 content");
+    push_file(*a, "a/", "file2.txt", "second file", file2);
+    fetch_rebase(*b, "origin", "master", {}, {});
 
     // rebase with multiple commits on both sides
-    commit_file(*a, "a/", "file3.txt", "third file", "file3 content");
-    push_file(*a, "a/", "file4.txt", "fourth file", "file4 content");
-    commit_file(*b, "b/", "file5.txt", "fifth file", "file5 content");
-    commit_file(*b, "b/", "file6.txt", "sixth file", "file6 content");
-    fetch_rebase(*b, "origin", "master", {});
+    const auto file3 = std::string("file3 content");
+    const auto file4 = std::string("file4 content");
+    const auto file5 = std::string("file5 content");
+    const auto file6 = std::string("file6 content");
+    commit_file(*a, "a/", "file3.txt", "third file", file3);
+    push_file(*a, "a/", "file4.txt", "fourth file",  file4);
+    commit_file(*b, "b/", "file5.txt", "fifth file", file5);
+    commit_file(*b, "b/", "file6.txt", "sixth file", file6);
+    fetch_rebase(*b, "origin", "master",
+    {
+            {0, "file3.txt", file3 + "\n"},
+            {0, "file4.txt", file4 + "\n"},
+            {1, "file5.txt", file5 + "\n"},
+            {2, "file6.txt", file6 + "\n"},
+    }, {});
     ok = b->push("master", "origin", "master");
     EXPECT_TRUE(ok);
     b->flush();
 
     // rebase with conflicting commits
-    fetch_rebase(*a, "origin", "master", {});
+    fetch_rebase(*a, "origin", "master", {}, {});
     const auto left = std::string("header\nmod a\nfooter\n");
     push_file(*a, "a/", "file3.txt", "third file a", left);
     const auto right = std::string("header\nmod b\nfooter\n");
     commit_file(*b, "b/", "file3.txt", "third file b", right);
-    fetch_rebase(*b, "origin", "master", {std::make_tuple(left + "\n", right + "\n", "b/file3.txt")});
+    fetch_rebase(*b, "origin", "master",
+    {
+        {0, "file3.txt", left + "\n"},
+    },
+    {
+        {2, left + "\n", right + "\n", "b/file3.txt"},
+    });
 
     const auto result = read_file("b/file3.txt");
     const auto expected = merge_strings(make_string_ref(left), "refs/remotes/origin/master", make_string_ref(right), "third file b") + "\n";
@@ -235,22 +292,105 @@ TEST_F (TestYaGitLib, test_git_rebase)
     delete_file(*a, "a/", "file3.txt", "delete");
     push(*a);
     commit_file(*b, "b/", "file3.txt", "update", "updating!");
-    fetch_rebase(*b, "origin", "master", {});
+    fetch_rebase(*b, "origin", "master", {}, {});
     push(*b);
 
     // other side
-    fetch_rebase(*a, "origin", "master", {});
-    push_file(*a, "a/", "file2.txt", "updating!", "some content");
+    fetch_rebase(*a, "origin", "master", {}, {});
+    const auto file2_2 = std::string("some content");
+    push_file(*a, "a/", "file2.txt", "updating!", file2_2);
     delete_file(*b, "b/", "file2.txt", "deleting!");
-    fetch_rebase(*b, "origin", "master", {});
+    fetch_rebase(*b, "origin", "master",
+    {
+        {0, "file2.txt", file2_2 + "\n"},
+    }, {});
     push(*b);
 
     // create same file on both sides independently
-    fetch_rebase(*a, "origin", "master", {});
-    push_file(*a, "a/", "file8.txt", "commit a", "aaaa!");
+    fetch_rebase(*a, "origin", "master", {}, {});
+    const auto file8 = std::string("aaaa!");
+    push_file(*a, "a/", "file8.txt", "commit a", file8);
     commit_file(*b, "b/", "file8.txt", "commit b", "!bbbb");
-    fetch_rebase(*b, "origin", "master", {{"aaaa!\n", "!bbbb\n", "b/file8.txt"}});
+    fetch_rebase(*b, "origin", "master",
+    {
+        {0, "file8.txt", file8 + "\n"},
+    },
+    {
+        {2, "aaaa!\n", "!bbbb\n", "b/file8.txt"},
+    });
     push(*b);
+}
+
+TEST_F (TestYaGitLib, test_git_rebase_fixup)
+{
+    // initialize upstream bare repository
+    const auto c = MakeGitBare("c");
+    auto ok = c->clone("a", IGit::CLONE_FULL);
+    EXPECT_TRUE(ok);
+
+    // create & fill first repo
+    const auto a = MakeGitAsync("a");
+    set_user_config(*a);
+    const auto file1 = "file1 content";
+    push_file(*a, "a/", "file1.txt", "first file", file1);
+
+    // create second repo
+    ok = c->clone("b", IGit::CLONE_FULL);
+    EXPECT_TRUE(ok);
+    const auto b = MakeGitAsync("b");
+    set_user_config(*b);
+    fetch_rebase(*b, "origin", "master", {}, {});
+
+    // fixup file_a from a with file_b from b
+    push_file(*a, "a/", "file2.txt",  "a1", "file 2 content");
+    push_file(*a, "a/", "file_a.txt", "a2", "file a content");
+    push_file(*a, "a/", "file3.txt",  "a3", "file 3 content");
+
+    commit_file(*b, "b/", "file4.txt",  "b3", "file 4 content");
+    commit_file(*b, "b/", "file_b.txt", "b4", "file b content");
+    commit_file(*b, "b/", "file5.txt",  "b5", "file 5 content");
+
+    ok = b->fetch("origin");
+    EXPECT_TRUE(ok);
+    b->flush();
+
+    fixups_t fixups;
+    conflicts_t conflicts;
+    Patcher patcher;
+    ok = b->rebase("origin/master", "master", patcher, [&](std::string& path, const char* data, size_t size)
+    {
+        fixups.insert(std::make_tuple(patcher.idx, path, std::string(reinterpret_cast<const char*>(data), size)));
+        if(path != fs::path("file_b.txt"))
+            return false;
+
+        path = "file_a.txt";
+        return true;
+    }, [&](const std::string& left, const std::string& right, const std::string& path)
+    {
+        conflicts.insert(std::make_tuple(patcher.idx, left, right, path));
+        std::fstream(fs::path("b") / path, std::fstream::out) << "z content";
+        return true;
+    });
+    EXPECT_TRUE(ok);
+    const fixups_t expected_fixups =
+    {
+        {0, "file2.txt",  "file 2 content\n"},
+        {0, "file_a.txt", "file a content\n"},
+        {0, "file3.txt",  "file 3 content\n"},
+        {1, "file4.txt",  "file 4 content\n"},
+        {2, "file_b.txt", "file b content\n"},
+        {3, "file5.txt",  "file 5 content\n"},
+    };
+    EXPECT_EQ(expected_fixups, fixups);
+    const conflicts_t expected_conflicts =
+    {
+        {2, "file b content\n", "file a content\n", "file_a.txt"},
+    };
+    EXPECT_EQ(expected_conflicts, conflicts);
+    const auto file_b = read_file("b/file_b.txt");
+    EXPECT_EQ("", file_b);
+    const auto file_a = read_file("b/file_a.txt");
+    EXPECT_EQ("z content\n", file_a);
 }
 
 TEST(yatools, test_check_yaco_version)

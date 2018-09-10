@@ -83,9 +83,9 @@ YaToolObjectId hash::hash_enum_member(YaToolObjectId parent, const const_string_
     return process_hash({parent, x, OBJECT_TYPE_ENUM_MEMBER});
 }
 
-YaToolObjectId hash::hash_struc(const const_string_ref& name)
+YaToolObjectId hash::hash_struc(const const_string_ref& id)
 {
-    const auto x = util::Fingerprint64(name.value, name.size);
+    const auto x = util::Fingerprint64(id.value, id.size);
     return process_hash({0, x, OBJECT_TYPE_STRUCT});
 }
 

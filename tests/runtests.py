@@ -346,6 +346,9 @@ class Fixture(unittest.TestCase):
                 self.last_ea = int(ea, 16)
         return script, None
 
+    def empty(self):
+        return "", None
+
     def sync(self):
         return self.script("""
 idc.save_database("")

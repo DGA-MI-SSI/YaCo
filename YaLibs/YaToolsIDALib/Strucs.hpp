@@ -15,19 +15,34 @@
 
 #pragma once
 
+#include <stddef.h>
+#include <memory>
+
 #include "YaTypes.hpp"
 
-namespace hash
+struct IModelVisitor;
+struct HVersion;
+
+namespace strucs
 {
-    YaToolObjectId  hash_binary         ();
-    YaToolObjectId  hash_segment        (uint64_t ea);
-    YaToolObjectId  hash_segment_chunk  (uint64_t ea);
-    YaToolObjectId  hash_enum           (const const_string_ref& name);
-    YaToolObjectId  hash_enum_member    (YaToolObjectId parent, const const_string_ref& name);
-    YaToolObjectId  hash_struc          (const const_string_ref& id);
-    YaToolObjectId  hash_stack          (uint64_t ea);
-    YaToolObjectId  hash_member         (YaToolObjectId parent, uint64_t offset);
-    YaToolObjectId  hash_function       (uint64_t ea);
-    YaToolObjectId  hash_ea             (uint64_t ea);
-    YaToolObjectId  hash_reference      (uint64_t ea, uint64_t base);
-};
+    struct Tag
+    {
+        char data[32+1];
+    };
+
+    YaToolObjectId  hash    (ea_t id);
+    Tag             get_tag (ea_t id);
+    void            rename  (const char* oldname, const char* newname);
+    Tag             remove  (ea_t id);
+    void            set_tag (ea_t id, const Tag& tag);
+    void            visit   (IModelVisitor& v, const char* name);
+    Tag             accept  (const HVersion& version);
+
+    struct IFilter
+    {
+        virtual ~IFilter() = default;
+
+        virtual YaToolObjectId is_valid(const HVersion& version) = 0;
+    };
+    std::shared_ptr<IFilter> make_filter();
+}
