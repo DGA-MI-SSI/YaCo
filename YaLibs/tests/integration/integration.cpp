@@ -28,6 +28,7 @@
 #include "Yatools.hpp"
 
 #include <functional>
+#include <fstream>
 
 #ifdef _MSC_VER
 #   include <optional.hpp>
@@ -133,6 +134,22 @@ namespace
         fs::path path;
     };
 
+    void to_xml(const IModel& model, const fs::path& path)
+    {
+        std::fstream stream(path, std::fstream::out);
+        stream << "<sigfile>\n";
+        model.walk([&](const HVersion& hver)
+        {
+            std::string output;
+            const auto xml = MakeMemoryXmlVisitor(output);
+            hver.accept(*xml);
+            xml->visit_end();
+            stream << output;
+            return WALK_CONTINUE;
+        });
+        stream << "</sigfile>\n";
+    }
+
     void CheckModelConversions(const char* input)
     {
         const auto expected_model = MakeMultiFlatBufferModel({input});
@@ -152,7 +169,7 @@ namespace
         {
             const TmpDir dir;
             const auto xml = (dir.path / "database.xml").string();
-            expected_model->accept(*MakeFileXmlVisitor({xml}));
+            to_xml(*expected_model, xml);
             const auto db = MakeMemoryModel();
             db->visit_start();
             Listener listener(*db);

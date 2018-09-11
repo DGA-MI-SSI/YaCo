@@ -106,6 +106,8 @@ private:
 struct MemExporter
     : public XmlVisitor_common
 {
+    MemExporter();
+
     void visit_start() override;
     void visit_end() override;
     void visit_deleted(YaToolObjectType_e type, YaToolObjectId id) override;
@@ -114,6 +116,7 @@ struct MemExporter
 
     std::stringstream           stream_;
     std::shared_ptr<xmlBuffer>  buffer_;
+    bool                        sigfile_;
 };
 
 struct FileXmlVisitor
@@ -189,21 +192,6 @@ void XmlVisitor::visit_start()
 
 void XmlVisitor::visit_end()
 {
-}
-
-void MemExporter::visit_start()
-{
-    if(writer_ != nullptr)
-    {
-        throw "could not start visiting reference object, last visit is not ended";
-    }
-    stream_ << "<?xml version=\"1.0\" encoding=\"" << XML_ENCODING << "\"?>\n<sigfile>\n";
-
-}
-
-void MemExporter::visit_end()
-{
-    stream_ << "</sigfile>";
 }
 
 void FileXmlVisitor::visit_end()
@@ -342,12 +330,28 @@ void XmlVisitor::visit_deleted(YaToolObjectType_e type, YaToolObjectId id)
         YALOG_ERROR(nullptr, "warning: unable to delete %s\n", current_xml_file_path_.data());
 }
 
-void MemExporter::visit_start_version(YaToolObjectType_e type, YaToolObjectId id)
+MemExporter::MemExporter()
+    : sigfile_(false)
 {
     buffer_.reset(xmlBufferCreate(), xmlBufferFree);
     writer_.reset(xmlNewTextWriterMemory(buffer_.get(), 0), xmlFreeTextWriter);
     xmlTextWriterSetIndentString(writer_.get(), BAD_CAST INDENT_STRING);
     xmlTextWriterSetIndent(writer_.get(), 1);
+}
+
+void MemExporter::visit_start()
+{
+    xmlTextWriterStartDocument(writer_.get(), NULL, XML_ENCODING, NULL);
+    start_element(*writer_, "sigfile");
+    sigfile_ = true;
+}
+
+void MemExporter::visit_deleted(YaToolObjectType_e /*type*/, YaToolObjectId /*id*/)
+{
+}
+
+void MemExporter::visit_start_version(YaToolObjectType_e type, YaToolObjectId id)
+{
     start_element(*writer_, get_object_type_string(type));
 
     char buf[sizeof id * 2 + 1];
@@ -360,6 +364,12 @@ void MemExporter::visit_end_version()
 {
     end_element(*writer_, "version");
     end_element(*writer_, get_object_type_string(object_type_));
+}
+
+void MemExporter::visit_end()
+{
+    if(sigfile_)
+        end_element(*writer_, "sigfile");
 
     writer_.reset();
     doc_.reset();
@@ -367,10 +377,6 @@ void MemExporter::visit_end_version()
     stream_ << xmlBufferContent(buffer_.get());
     stream_.flush();
     buffer_.reset();
-}
-
-void MemExporter::visit_deleted(YaToolObjectType_e /*type*/, YaToolObjectId /*id*/)
-{
 }
 
 void XmlVisitor_common::visit_parent_id(YaToolObjectId object_id)
