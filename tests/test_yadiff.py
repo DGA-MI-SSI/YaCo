@@ -29,8 +29,18 @@ def check_golden(golden_filename, got):
     with open(expected_path, "rb") as fh:
         expected = fh.read()
 
-    if expected != got:
-        raise BaseException("\n" + "".join(difflib.unified_diff(expected.splitlines(1), got.splitlines(1), golden_filename, "got")))
+    if expected == got:
+        return
+
+    # yadiff is not deterministic anymore
+    # so we want a small diff arbitrarily set at $max_lines lines
+    max_lines = 100
+    diff = "".join(difflib.unified_diff(expected.splitlines(1), got.splitlines(1), golden_filename, "got"))
+    difflines = diff.splitlines(1)
+    if len(difflines) < max_lines:
+        return
+
+    raise BaseException("diff: %d lines\n%s" % (len(difflines), diff))
 
 def check_yadiff_database(args):
     sys.path.append(os.path.join(args.bindir, "bin"))
