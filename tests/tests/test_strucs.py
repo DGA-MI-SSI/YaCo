@@ -89,6 +89,45 @@ idaapi.add_struc(-1, "name_b", False)
             self.check_strucs(),
         )
 
+    def test_struc_member_comments(self):
+        a, b = self.setup_cmder()
+        a.run(
+            self.script("""
+sid = idaapi.add_struc(-1, "name_a", False)
+idc.add_struc_member(sid, "field_a", 0, ida_bytes.dword_flag(), -1, 4)
+idc.add_struc_member(sid, "field_b", 4, ida_bytes.word_flag(), -1, 2)
+"""),
+            # save struc parent first & make sure we properly
+            # support member comment events
+            self.sync(),
+            self.script("""
+sid = idaapi.get_struc_id("name_a")
+idc.set_member_cmt(sid, 0, "cmt 1", False)
+idc.set_member_cmt(sid, 0, "cmt 2", True)
+idc.set_member_cmt(sid, 4, "cmt 3", False)
+idc.set_member_cmt(sid, 4, "cmt 4", True)
+"""),
+            self.save_strucs(),
+        )
+        a.check_git(modified=["strucmember"] * 2)
+
+        b.run(
+            self.check_strucs(),
+            self.script("""
+sid = idaapi.get_struc_id("name_a")
+idc.set_member_cmt(sid, 0, "", False)
+idc.set_member_cmt(sid, 0, "", True)
+idc.set_member_cmt(sid, 4, "", False)
+idc.set_member_cmt(sid, 4, "", True)
+"""),
+            self.save_strucs(),
+        )
+        b.check_git(modified=["strucmember"] * 2)
+
+        a.run(
+            self.check_strucs(),
+        )
+
     def test_sub_strucs(self):
         a, b = self.setup_repos()
         a.run(

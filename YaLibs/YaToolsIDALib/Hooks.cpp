@@ -710,15 +710,28 @@ namespace
 
     void changing_struc_cmt(Hooks& hooks, va_list args)
     {
-        const auto struc_id   = va_arg(args, tid_t);
+        // can be called on struc or member
+        const auto id         = va_arg(args, tid_t);
         const auto repeatable = static_cast<bool>(va_arg(args, int));
         const auto newcmt     = va_arg(args, const char*);
-        const auto oldcmt     = get_struc_cmt(struc_id, repeatable);
-        LOG_IDB_EVENT("changing_struc_cmt: %s %scmt %s:%s", get_name(struc_id).c_str(), repeatable ? "repeatable "  : "", get_struc_cmt(struc_id, repeatable).c_str(), newcmt);
+
+        auto struc = get_struc(id);
+        auto get_cmt = &::get_struc_cmt;
+        if(!struc)
+        {
+            get_member_by_id(id, &struc);
+            get_cmt = &get_member_cmt;
+        }
+        if(!struc)
+            return;
+
+        qstring oldcmt;
+        ya::wrap(get_cmt, oldcmt, id, repeatable);
+        LOG_IDB_EVENT("changing_struc_cmt: %s %scmt %s:%s", get_name(id).c_str(), repeatable ? "repeatable "  : "", oldcmt.c_str(), newcmt);
         if(oldcmt == newcmt)
             return;
 
-        hooks.events_.touch_struc(struc_id);
+        hooks.events_.touch_struc(struc->id);
     }
 
     void struc_cmt_changed(Hooks& /*hooks*/, va_list args)
