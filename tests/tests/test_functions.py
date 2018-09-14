@@ -214,7 +214,7 @@ idaapi.set_name(ea, "new_function_EF30")
             self.save_last_ea(),
         )
         func = ["function", "stackframe"] + ["stackframe_member"] * 2 + ["basic_block"] * 3
-        a.check_git(added=["binary", "segment", "segment_chunk"] + func)
+        a.check_git(added=["binary", "segment", "segment_chunk", "local_type"] + func)
 
         # func to data
         b.run(
@@ -286,7 +286,7 @@ ida_auto.plan_and_wait(ea, idc.find_func_end(ea))
             self.save_last_ea(),
         )
         func = ["function", "stackframe"] + ["stackframe_member"] * 2 + ["basic_block"] * 3
-        b.check_git(added=func, modified=["segment_chunk"], deleted=["data"])
+        b.check_git(added=func + ["local_type"], modified=["segment_chunk"], deleted=["data"])
 
         # func to code
         a.run(
@@ -372,7 +372,7 @@ ida_auto.plan_and_wait(ea, ea+0x1f0)
             self.save_ea(ea),
         )
         a.check_git(added=["segment_chunk", "function", "stackframe", "data"] +
-            ["stackframe_member"] * 7 + ["basic_block"] * 15)
+            ["stackframe_member"] * 7 + ["basic_block"] * 15 + ["local_type"] * 4)
 
         b.run(
             self.check_ea(ea),

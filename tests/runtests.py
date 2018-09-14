@@ -339,7 +339,6 @@ class Fixture(unittest.TestCase):
         self.types = {}
         self.local_types = {}
         self.eas = {}
-        self.last_ea = None
         self.item_range = None
         for line in script.splitlines():
             line = line.strip()

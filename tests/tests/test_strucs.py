@@ -209,7 +209,7 @@ for ea, n, offset in targets:
             self.save_strucs(),
             self.save_last_ea(),
         )
-        a.check_git(added=["binary", "segment", "segment_chunk", "function", "basic_block"] +
+        a.check_git(added=["binary", "segment", "segment_chunk", "function", "basic_block", "local_type"] +
             ["struc"] * 2 + ["strucmember"] * 112)
         self.assertRegexpMatches(self.eas[self.last_ea][1], "path_idx")
 

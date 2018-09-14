@@ -644,10 +644,17 @@ namespace
     template<typename Ctx>
     void accept_dependency(Ctx& ctx, IModelVisitor& v, const ya::Dependency dep)
     {
-        if(get_struc(dep.tid))
-            accept_struct(ctx, v, {}, get_struc(dep.tid), nullptr);
-        else
-            accept_enum(ctx, v, dep.tid);
+        const auto struc = get_struc(dep.tid);
+        if(struc)
+            return accept_struct(ctx, v, {}, struc, nullptr);
+
+        const auto idx = get_enum_idx(dep.tid);
+        if(idx != BADADDR)
+            return accept_enum(ctx, v, dep.tid);
+
+        const auto ord = static_cast<uint32_t>(dep.tid);
+        if(ord > 0 && ord < ya::get_ordinal_qty())
+            return accept_local_type(ctx, v, ord);
     }
 
     template<typename T>
@@ -841,20 +848,38 @@ namespace
         return flags;
     }
 
-    void accept_data_xrefs(IModelVisitor& v, const ya::Deps& deps, ea_t /*ea*/)
+    void try_add_xref_local_type_attribute(IModelVisitor& v, const ya::Dependency& dep, const tinfo_t& tif)
+    {
+        // for local types, add an attribute
+        // containing a simplified prototype
+        // always using in as basic type
+        // but with the correct pointer wrapping
+        if(dep.type != OBJECT_TYPE_LOCAL_TYPE)
+            return;
+
+        tinfo_t basic;
+        auto ok = basic.create_simple_type(BT_INT);
+        if(!ok)
+            return;
+
+        qstring buf;
+        ya::rewrap_tinfo(basic, tif);
+        ok = basic.print(&buf, nullptr, PRTYPE_DEF);
+        if(!ok)
+            return;
+
+        v.visit_xref_attribute(make_string_ref("ref"), ya::to_string_ref(buf));
+    }
+
+    void accept_data_xrefs(IModelVisitor& v, const ya::Deps& deps, const tinfo_t& tif)
     {
         if(deps.size() != 1)
             return;
 
-        const auto& dep = deps.front();
-        if(!get_struc(dep.tid))
-            return;
-
-        if(dep.tid == BADADDR)
-            return;
-
+        const auto xref = deps.front();
         v.visit_start_xrefs();
-        v.visit_start_xref(0, dep.id, DEFAULT_OPERAND);
+        v.visit_start_xref(0, xref.id, DEFAULT_OPERAND);
+        try_add_xref_local_type_attribute(v, xref, tif);
         v.visit_end_xref();
         v.visit_end_xrefs();
     }
@@ -934,7 +959,7 @@ namespace
         v.visit_start_offsets();
         accept_comments(ctx, v, ea, ea, flags);
         v.visit_end_offsets();
-        accept_data_xrefs(v, deps, ea);
+        accept_data_xrefs(v, deps, tif);
         finish_object(v);
         accept_dependencies(ctx, v, deps);
     }
@@ -1166,7 +1191,7 @@ namespace
         const auto qbuf = ctx.qpool_.acquire();
         ya::wrap(&get_enum_name, *qbuf, pop->ec.tid);
         const auto xid = hash::hash_enum(ya::to_string_ref(*qbuf));
-        deps->push_back({xid, pop->ec.tid});
+        deps->emplace_back(OBJECT_TYPE_ENUM, xid, pop->ec.tid);
         ctx.xrefs_.push_back({ea - root, xid, opidx, 0});
     }
 
@@ -1186,7 +1211,7 @@ namespace
 
         const auto tid = pop->path.ids[0];
         const auto sid = strucs::hash(tid);
-        deps->push_back({sid, tid});
+        deps->emplace_back(OBJECT_TYPE_STRUCT, sid, tid);
         ctx.xrefs_.push_back({ea - root, sid, opidx, 0});
 
         const auto qbuf = ctx.qpool_.acquire();

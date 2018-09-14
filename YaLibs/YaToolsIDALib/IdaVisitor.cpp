@@ -1195,6 +1195,49 @@ namespace
         make_views(version, ea);
     }
 
+    bool try_apply_struc_to_data(ea_t ea, size_t size, const Tid& dep)
+    {
+        auto ok = create_struct(ea, static_cast<asize_t>(size), dep.tid);
+        if(ok)
+            return true;
+
+        return create_struct(ea, 0, dep.tid);
+    }
+
+    bool try_apply_local_type_to_data(const HVersion& hver, ea_t ea, const Tid& dep, const XrefAttributes* attrs)
+    {
+        tinfo_t tif;
+        const auto ord = static_cast<uint32_t>(dep.tid);
+        auto ok = tif.get_numbered_type(nullptr, ord);
+        if(!ok)
+            return false;
+
+        std::string ref;
+        hver.walk_xref_attributes(attrs, [&](const const_string_ref& key, const const_string_ref& val)
+        {
+            if(key == make_string_ref("ref"))
+                ref = make_string(val) + ";";
+            return WALK_CONTINUE;
+        });
+        if(ref.empty())
+            return false;
+
+        // our prototype may contain a now obsolete type
+        // but we know the real local type & can rewrap
+        // it properly using the ref attribute
+        // ex: we have id pointing to struct A
+        // prototype is obsolete struct B*[]
+        // ref is int*[]
+        // we can recreate struct A*[]
+        tinfo_t target;
+        ok = parse_decl(&target, nullptr, nullptr, ref.data(), PT_SIL);
+        if(!ok)
+            return false;
+
+        ya::rewrap_tinfo(tif, target);
+        return apply_tinfo(ea, tif, TINFO_DEFINITE);
+    }
+
     void set_data_type(const Visitor& visitor, const HVersion& version, ea_t ea)
     {
         const auto size = std::max(static_cast<offset_t>(1), version.size());
@@ -1224,27 +1267,27 @@ namespace
             return;
         }
 
-        if(is_struct(flags))
+        bool is_xref_applied = false;
+        version.walk_xrefs([&](offset_t /*offset*/, operand_t /*operand*/, YaToolObjectId id, const XrefAttributes* attrs)
         {
-            bool found = false;
-            version.walk_xrefs([&](offset_t /*offset*/, operand_t /*operand*/, YaToolObjectId id, const XrefAttributes* /*attrs*/)
+            const auto fi = visitor.tids_.find(id);
+            if(fi == visitor.tids_.end())
             {
-                const auto fi = visitor.tids_.find(id);
-                if(fi == visitor.tids_.end())
-                    return WALK_CONTINUE;
-
-                auto ok = create_struct(ea, static_cast<asize_t>(size), fi->second.tid);
-                if(!ok)
-                    ok = create_struct(ea, 0, fi->second.tid);
-                if(!ok)
-                    LOG(ERROR, "make_data: 0x%" PRIxEA " unable to set struct %016" PRIx64 "\n", ea, id);
-                found = true;
+                LOG(ERROR, "make_data: 0x%" PRIxEA " invalid xref 0x%llx\n", ea, id);
                 return WALK_CONTINUE;
-            });
-            if(!found)
-                LOG(ERROR, "make_data: 0x%" PRIxEA " unknown struct %016" PRIx64 " %s\n", ea, version.id(), make_string(version.username()).data());
+            }
+
+            is_xref_applied = false;
+            if(fi->second.type == OBJECT_TYPE_STRUCT)
+                is_xref_applied = try_apply_struc_to_data(ea, size, fi->second);
+            else if(fi->second.type == OBJECT_TYPE_LOCAL_TYPE)
+                is_xref_applied = try_apply_local_type_to_data(version, ea, fi->second, attrs);
+            if(!is_xref_applied)
+                LOG(ERROR, "make_data: 0x%" PRIxEA " unable to set %s 0x%llx\n", ea, get_object_type_string(fi->second.type), id);
+            return WALK_CONTINUE;
+        });
+        if(is_xref_applied)
             return;
-        }
 
         if(is_unknown(flags))
           return;
@@ -2036,6 +2079,9 @@ namespace
         const auto renamed = rename_local_type(visitor, tif, name);
         if(!renamed)
             LOG(ERROR, "make_local_type: 0x%d unable to set name %s\n", tif.get_ordinal(), name.data());
+
+        const auto id = version.id();
+        set_tid(visitor, id, tif.get_ordinal(), tif.get_size(), OBJECT_TYPE_LOCAL_TYPE);
     }
 
     void update_version(Visitor& visitor, const HVersion& version)

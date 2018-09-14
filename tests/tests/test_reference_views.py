@@ -31,7 +31,7 @@ idaapi.op_offset(ea+0x17, 1, idaapi.get_default_reftype(ea+0x17), idaapi.BADADDR
             self.save_last_ea(),
         )
         a.check_git(added=["binary", "segment", "segment_chunk", "function",
-            "basic_block", "reference_info", "reference_info"])
+            "basic_block", "local_type", "reference_info", "reference_info"])
         b.run(
             self.check_last_ea(),
             self.script("""

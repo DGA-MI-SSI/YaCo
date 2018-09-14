@@ -90,10 +90,27 @@ namespace
         dst += '>';
     }
 
+    bool try_add_struc_enum(ya::Deps& deps, const qstring& name)
+    {
+        const auto subtid = node2ea(netnode(name.c_str()));
+        if(subtid == BADADDR)
+            return false;
+
+        const auto struc = get_struc(subtid);
+        if(struc)
+            deps.emplace_back(OBJECT_TYPE_STRUCT, strucs::hash(subtid), subtid);
+        else
+            deps.emplace_back(OBJECT_TYPE_ENUM, hash::hash_enum(ya::to_string_ref(name)), subtid);
+        return true;
+    }
+
     void simple_tif_to_string(qstring& dst, ya::TypeToStringMode_e mode, ya::Deps* deps, const tinfo_t& tif, const const_string_ref& name)
     {
         to_string(dst, tif, name.value, nullptr);
         if(mode == ya::NO_HEURISTIC)
+            return;
+
+        if(!deps)
             return;
         
         auto subtif = tif;
@@ -101,19 +118,20 @@ namespace
             continue;
 
         qstring subtype;
-        const auto ok = subtif.get_type_name(&subtype);
+        auto ok = subtif.get_type_name(&subtype);
         if(!ok)
             return;
 
-        const auto subtid = node2ea(netnode(subtype.c_str()));
-        if(subtid == BADADDR)
+        ok = try_add_struc_enum(*deps, subtype);
+        if(ok)
             return;
 
-        const auto subid = get_struc(subtid) ?
-            strucs::hash(subtid) :
-            hash::hash_enum(ya::to_string_ref(subtype));
-        if(deps)
-            deps->push_back({subid, subtid});
+        const auto ord = subtif.get_ordinal();
+        if(!ord)
+            return;
+
+        const auto id = local_types::hash(subtype.c_str(), nullptr);
+        deps->emplace_back(OBJECT_TYPE_LOCAL_TYPE, id, ord);
     }
 
     #define DECLARE_REF(name, value)\
@@ -547,5 +565,48 @@ namespace ya
         netnode node;
         const auto ok = node.create(netnode_testing_mode, sizeof netnode_testing_mode);
         UNUSED(ok);
+    }
+
+    // apply back any pointer or array from src to dst
+    void rewrap_tinfo(tinfo_t& dst, const tinfo_t& src)
+    {
+        auto mutated = src;
+        struct Wrap
+        {
+            int     type; // -1 ptr 0 array N fixed array
+            bool    is_const;
+        };
+        std::vector<Wrap> wraps;
+        while(true)
+        {
+            ptr_type_data_t pi;
+            if(mutated.get_ptr_details(&pi))
+            {
+                wraps.push_back({-1, mutated.is_const()});
+                mutated = pi.obj_type;
+                continue;
+            }
+            array_type_data_t ai;
+            if(mutated.get_array_details(&ai))
+            {
+                wraps.push_back({static_cast<int>(ai.nelems), mutated.is_const()});
+                mutated = ai.elem_type;
+                continue;
+            }
+            break;
+        }
+
+        // rewrap our type with pointer & array
+        for(auto it = wraps.rbegin(); it != wraps.rend(); ++it)
+        {
+            tinfo_t next = dst;
+            if(it->type < 0)
+                next.create_ptr(dst);
+            else
+                next.create_array(it->type);
+            if(it->is_const)
+                next.set_const();
+            dst = next;
+        }
     }
 }

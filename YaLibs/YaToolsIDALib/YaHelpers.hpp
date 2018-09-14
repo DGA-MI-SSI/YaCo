@@ -39,8 +39,15 @@ namespace ya
 {
     struct Dependency
     {
-        YaToolObjectId  id;
-        tid_t           tid;
+        Dependency(YaToolObjectType_e type, YaToolObjectId id, tid_t tid)
+            : type(type)
+            , id(id)
+            , tid(tid)
+        {
+        }
+        YaToolObjectId      id;
+        YaToolObjectType_e  type;
+        tid_t               tid;
     };
     using Deps = std::vector<Dependency>;
 
@@ -54,6 +61,7 @@ namespace ya
     tinfo_t             get_tinfo_from_op(flags_t flags, const opinfo_t* op);
     tinfo_t             get_tinfo(ea_t ea);
     std::string         get_type(ea_t ea);
+    void                rewrap_tinfo(tinfo_t& dst, const tinfo_t& src);
     std::string         dump_flags(flags_t flags);
     const_string_ref    get_default_name(qstring& buffer, ea_t offset, func_t* func);
 

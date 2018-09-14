@@ -161,3 +161,77 @@ idaapi.set_name(ea, "anothersub")
             self.check_local_types(),
         )
         b.check_git(modified=["basic_block"])
+
+    def test_apply_local_type(self):
+        a, b = self.setup_cmder()
+
+        a.run(
+            self.script("""
+tif = ida_typeinf.tinfo_t()
+ida_typeinf.parse_decl(tif, None, "struct { int a; };", 0)
+tif.set_named_type(None, "somename")
+ea = 0x4157C8
+idaapi.set_name(ea, "name")
+idc.SetType(ea, "somename*")
+"""),
+            self.save_local_types(),
+            self.save_last_ea(),
+        )
+        a.check_git(added=["binary", "segment", "segment_chunk", "data", "local_type"])
+
+        b.run(
+            self.check_local_types(),
+            self.check_last_ea(),
+            self.script("""
+tif = ida_typeinf.tinfo_t()
+tif.get_named_type(None, "somename")
+ord = tif.get_ordinal()
+ida_typeinf.del_numbered_type(None, ord)
+idc.set_local_type(ord, "struct anothername { int p[2]; };", 0)
+"""),
+            self.save_local_types(),
+            self.save_last_ea(),
+        )
+        b.check_git(modified=["local_type"])
+
+        a.run(
+            self.check_local_types(),
+            self.check_last_ea(),
+        )
+
+        b.run(
+            self.check_local_types(),
+            self.check_last_ea(),
+        )
+
+    def test_local_type_renames(self):
+        a, b = self.setup_cmder()
+
+        a.run(
+            self.script("""
+tif = ida_typeinf.tinfo_t()
+ida_typeinf.parse_decl(tif, None, "struct { int a; };", 0)
+tif.set_named_type(None, "somename")
+ea = 0x4157C8
+idc.SetType(ea, "somename*")
+"""),
+            self.sync(),
+            self.script("""
+tif = ida_typeinf.tinfo_t()
+tif.get_named_type(None, "somename")
+ord = tif.get_ordinal()
+ida_typeinf.del_numbered_type(None, ord)
+idc.set_local_type(ord, "struct anothername { int p[2]; };", 0)
+"""),
+            self.save_local_types(),
+            self.save_last_ea(),
+        )
+        a.check_git(modified=["local_type"])
+
+        # we check whether we are able to track
+        # local type renames and still apply them
+        # correctly
+        b.run(
+            self.check_local_types(),
+            self.check_last_ea(),
+        )
