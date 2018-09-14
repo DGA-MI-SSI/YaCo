@@ -164,6 +164,7 @@ struct FlatBufferVisitor : public IFlatBufferVisitor
     std::vector<fb::Offset<yadb::Version>>      codes_;
     std::vector<fb::Offset<yadb::Version>>      datas_;
     std::vector<fb::Offset<yadb::Version>>      basic_blocks_;
+    std::vector<fb::Offset<yadb::Version>>      local_types_;
     std::vector<fb::Offset<fb::String>>         strings_;
 
     // version
@@ -276,6 +277,7 @@ namespace
             make_tables(v.fbbuilder_, v.codes_),
             make_tables(v.fbbuilder_, v.datas_),
             make_tables(v.fbbuilder_, v.basic_blocks_),
+            make_tables(v.fbbuilder_, v.local_types_),
             make_tables(v.fbbuilder_, v.strings_)
         ));
         v.is_ready_ = true;
@@ -334,6 +336,7 @@ void FlatBufferVisitor::visit_end_version()
             case OBJECT_TYPE_STACKFRAME:        return &stackframes_;
             case OBJECT_TYPE_STACKFRAME_MEMBER: return &stackframe_members_;
             case OBJECT_TYPE_REFERENCE_INFO:    return &reference_infos_;
+            case OBJECT_TYPE_LOCAL_TYPE:        return &local_types_;
         }
         return nullptr;
     }();

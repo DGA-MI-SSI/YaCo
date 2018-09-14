@@ -29,6 +29,7 @@ struct IEvents
     virtual void touch_code (ea_t ea) = 0;
     virtual void touch_data (ea_t ea) = 0;
     virtual void touch_ea   (ea_t ea) = 0;
+    virtual void touch_types() = 0;
 
     virtual void save               () = 0;
     virtual void update             () = 0;

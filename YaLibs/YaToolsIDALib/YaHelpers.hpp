@@ -191,4 +191,13 @@ namespace ya
     std::vector<ea_t> get_all_items(ea_t start, ea_t end);
 
     bool is_item(flags_t flags);
+
+    inline uint32_t get_ordinal_qty()
+    {
+        const auto max = ::get_ordinal_qty(nullptr);
+        return max == ~0 ? 0 : max;
+    }
+
+    bool is_testing_mode();
+    void enable_testing_mode();
 }

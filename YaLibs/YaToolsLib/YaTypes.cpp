@@ -46,6 +46,7 @@ static const char gObjectTypes[][24] =
     "stackframe",
     "stackframe_member",
     "reference_info",
+    "local_type",
 };
 static_assert(COUNT_OF(gObjectTypes) == OBJECT_TYPE_COUNT, "invalid number of object types");
 
@@ -71,6 +72,7 @@ const YaToolObjectType_e ordered_types[] =
     OBJECT_TYPE_STRUCT_MEMBER,
     OBJECT_TYPE_ENUM,
     OBJECT_TYPE_ENUM_MEMBER,
+    OBJECT_TYPE_LOCAL_TYPE,
     OBJECT_TYPE_SEGMENT,
     OBJECT_TYPE_SEGMENT_CHUNK,
     OBJECT_TYPE_REFERENCE_INFO,

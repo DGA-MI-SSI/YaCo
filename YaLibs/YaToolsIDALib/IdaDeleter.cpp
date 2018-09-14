@@ -42,6 +42,22 @@ namespace
             LOG(ERROR, "unable to delete struc '%s'\n", name.data());
     }
 
+    void delete_local_type(const HVersion& hver)
+    {
+        const auto name = make_string(hver.username());
+        const auto ord = get_type_ordinal(nullptr, name.data());
+        if(ord <= 0)
+        {
+            LOG(ERROR, "unable to delete missing local type '%s'\n", name.data());
+            return;
+        }
+
+        local_types::remove(name.data());
+        const auto ok = del_numbered_type(nullptr, ord);
+        if(!ok)
+            LOG(ERROR, "unable to delete local type '%s'\n", name.data());
+    }
+
     void delete_enum(const HVersion& hver)
     {
         const auto name = make_string(hver.username());
@@ -114,6 +130,10 @@ namespace
 
             case OBJECT_TYPE_STRUCT:
                 delete_struc(hver);
+                break;
+
+            case OBJECT_TYPE_LOCAL_TYPE:
+                delete_local_type(hver);
                 break;
 
             case OBJECT_TYPE_ENUM:

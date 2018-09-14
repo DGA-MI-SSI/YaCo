@@ -23,13 +23,13 @@
 struct IModelVisitor;
 struct HVersion;
 
+struct Tag
+{
+    char data[32+1];
+};
+
 namespace strucs
 {
-    struct Tag
-    {
-        char data[32+1];
-    };
-
     YaToolObjectId  hash    (ea_t id);
     Tag             get_tag (ea_t id);
     void            rename  (const char* oldname, const char* newname);
@@ -45,4 +45,23 @@ namespace strucs
         virtual YaToolObjectId is_valid(const HVersion& version) = 0;
     };
     std::shared_ptr<IFilter> make_filter();
+}
+
+namespace local_types
+{
+    struct Type
+    {
+        tinfo_t tif;
+        qstring name;
+    };
+    bool identify(Type* type, uint32_t ord);
+
+    YaToolObjectId  hash   (uint32_t ord);
+    YaToolObjectId  hash    (const char* name, Tag* tag);
+    Tag             get_tag (const char* name);
+    void            rename  (const char* oldname, const Tag& tag, const char* newname);
+    Tag             remove  (const char* type);
+    void            set_tag (const char* type, const Tag& tag);
+    void            visit   (IModelVisitor& v, const char* name);
+    Tag             accept  (const HVersion& hver);
 }

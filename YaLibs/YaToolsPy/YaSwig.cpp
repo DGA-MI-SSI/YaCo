@@ -81,6 +81,11 @@ namespace yaswig
         return ::export_xml_local_types();
     }
 
+    std::string export_xml_local_type(const std::string& name)
+    {
+        return ::export_xml_local_type(name);
+    }
+
     std::string get_type(ea_t ea)
     {
         return ya::get_type(ea);
@@ -99,5 +104,10 @@ namespace yaswig
     std::vector<ea_t> get_all_items(ea_t start, ea_t end)
     {
         return ya::get_all_items(start, end);
+    }
+
+    void enable_testing_mode()
+    {
+        ya::enable_testing_mode();
     }
 }

@@ -609,6 +609,39 @@ namespace
     }
 
     template<typename Ctx>
+    void accept_local_type(Ctx& ctx, IModelVisitor& v, uint32_t ord)
+    {
+        local_types::Type type;
+        auto ok = local_types::identify(&type, ord);
+        if(!ok)
+            return;
+
+        const auto id = local_types::hash(type.name.c_str(), nullptr);
+        if(ctx.skip_id(id, OBJECT_TYPE_LOCAL_TYPE))
+            return;
+
+        start_object(v, OBJECT_TYPE_LOCAL_TYPE, id, 0, 0);
+
+        const auto size = type.tif.get_size();
+        if(size >= 0)
+            v.visit_size(size);
+
+        const auto name = ctx.qpool_.acquire();
+        ok = type.tif.print(&*name);
+        if(ok)
+            v.visit_name(ya::to_string_ref(*name), DEFAULT_NAME_FLAGS);
+
+        const auto prototype = ctx.qpool_.acquire();
+        ok = type.tif.print(&*prototype, nullptr, PRTYPE_DEF, 0);
+        if(ok)
+            v.visit_prototype(ya::to_string_ref(*prototype));
+
+        LOG(DEBUG, "local_type: name: %s size: %zd type: %s\n", name->c_str(), size, prototype->c_str());
+        local_types::visit(v, type.name.c_str());
+        finish_object(v);
+    }
+
+    template<typename Ctx>
     void accept_dependency(Ctx& ctx, IModelVisitor& v, const ya::Dependency dep)
     {
         if(get_struc(dep.tid))
@@ -1718,11 +1751,12 @@ namespace
         ModelIncremental(int type_mask);
 
         // IModelIncremental accept methods
-        void accept_enum    (IModelVisitor& v, ea_t enum_id) override;
-        void accept_struct  (IModelVisitor& v, ea_t struc_id, ea_t func_ea) override;
-        void accept_function(IModelVisitor& v, ea_t ea) override;
-        void accept_ea      (IModelVisitor& v, ea_t ea) override;
-        void accept_segment (IModelVisitor& v, ea_t ea) override;
+        void accept_enum        (IModelVisitor& v, ea_t enum_id) override;
+        void accept_struct      (IModelVisitor& v, ea_t struc_id, ea_t func_ea) override;
+        void accept_function    (IModelVisitor& v, ea_t ea) override;
+        void accept_ea          (IModelVisitor& v, ea_t ea) override;
+        void accept_segment     (IModelVisitor& v, ea_t ea) override;
+        void accept_local_type  (IModelVisitor& v, uint32_t ord) override;
 
         // IModelIncremental delete methods
         void delete_version (IModelVisitor& v, YaToolObjectType_e type, YaToolObjectId id) override;
@@ -1865,6 +1899,11 @@ void ModelIncremental::accept_segment(IModelVisitor& v, ea_t ea)
     ::accept_segment_chunks(ctx_, v, segment, seg);
 }
 
+void ModelIncremental::accept_local_type(IModelVisitor& v, uint32_t ord)
+{
+    ::accept_local_type(ctx_, v, ord);
+}
+
 void ModelIncremental::delete_version(IModelVisitor& v, YaToolObjectType_e type, YaToolObjectId id)
 {
     v.visit_deleted(type, id);
@@ -1965,16 +2004,15 @@ std::string export_xml_strucs()
     return export_to_xml(*db);
 }
 
-std::string export_xml_local_types()
+std::string export_xml_local_type(const std::string& wantname)
 {
-    const auto idati = get_idati();
     qstring name;
     qstring type;
     std::set<std::string> names;
-    for(uint32_t i = 1; i < get_ordinal_qty(idati); ++i)
+    for(uint32_t ord = 1; ord < ya::get_ordinal_qty(); ++ord)
     {
         tinfo_t tif;
-        auto ok = tif.get_numbered_type(idati, i);
+        auto ok = tif.get_numbered_type(nullptr, ord);
         if(!ok)
             continue;
 
@@ -1983,9 +2021,12 @@ std::string export_xml_local_types()
             continue;
 
         std::string reply = name.c_str();
+        if(!wantname.empty() && wantname != reply)
+            continue;
+
         // FIXME synchronizing ordinals is currently not supported
         if(false)
-            reply += " ord=" + std::to_string(i);
+            reply += " ord=" + std::to_string(ord);
         reply += ": ";
         ok = tif.print(&type, nullptr, PRTYPE_DEF | PRTYPE_MULTI, 4);
         if(ok)
@@ -1997,4 +2038,9 @@ std::string export_xml_local_types()
     for(const auto& it : names)
         reply += it + "\n";
     return reply;
+}
+
+std::string export_xml_local_types()
+{
+    return export_xml_local_type("");
 }

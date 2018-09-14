@@ -276,6 +276,7 @@ namespace
             case OBJECT_TYPE_CODE:              return db.root_->codes();
             case OBJECT_TYPE_REFERENCE_INFO:    return db.root_->reference_infos();
             case OBJECT_TYPE_BASIC_BLOCK:       return db.root_->basic_blocks();
+            case OBJECT_TYPE_LOCAL_TYPE:        return db.root_->local_types();
         }
         return nullptr;
     }

@@ -23,6 +23,7 @@
 #include "Utils.hpp"
 #include "Helpers.h"
 #include "git_version.h"
+#include "YaHelpers.hpp"
 
 #include <libxml/xmlreader.h>
 #include <regex>
@@ -180,6 +181,9 @@ namespace
 {
     std::string merge_attributes_callback(const std::string& message, const std::string& local, const std::string& remote)
     {
+        if(ya::is_testing_mode())
+            return remote;
+
         qstring buffer;
         const auto defval = merge_strings(make_string_ref(local), "local", make_string_ref(remote), "remote");
         const auto ok = ask_text(&buffer, 0, defval.data(), "%s\n", message.data());

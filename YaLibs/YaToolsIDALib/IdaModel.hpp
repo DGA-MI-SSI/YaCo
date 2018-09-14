@@ -33,6 +33,7 @@ struct IModelIncremental
     virtual void accept_segment         (IModelVisitor& v, ea_t ea) = 0;
     virtual void accept_function        (IModelVisitor& v, ea_t ea) = 0;
     virtual void accept_ea              (IModelVisitor& v, ea_t ea) = 0;
+    virtual void accept_local_type      (IModelVisitor& v, uint32_t ord) = 0;
 
     // delete methods
     virtual void delete_version         (IModelVisitor& v, YaToolObjectType_e type, YaToolObjectId id) = 0;
@@ -46,3 +47,4 @@ std::string export_xml_enum(const std::string& name);
 std::string export_xml_struc(const std::string& name);
 std::string export_xml_strucs();
 std::string export_xml_local_types();
+std::string export_xml_local_type(const std::string& name);

@@ -334,9 +334,10 @@ namespace
         return qstring();
     }
 
-    void closebase(Hooks& /*hooks*/, va_list /*args*/)
+    void closebase(Hooks& hooks, va_list /*args*/)
     {
         LOG_IDB_EVENT("closebase");
+        hooks.enabled_ = false;
     }
 
     void savebase(Hooks& hooks, va_list /*args*/)
@@ -368,9 +369,10 @@ namespace
         LOG_IDB_EVENT("determined_main: 0x%" PRIXEA, ea);
     }
 
-    void local_types_changed(Hooks& /*hooks*/, va_list /*args*/)
+    void local_types_changed(Hooks& hooks, va_list /*args*/)
     {
         LOG_IDB_EVENT("local_types_changed");
+        hooks.events_.touch_types();
     }
 
     void extlang_changed(Hooks& /*hooks*/, va_list args)

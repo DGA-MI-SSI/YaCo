@@ -47,9 +47,11 @@ namespace yaswig
     std::string export_xml_struc(const std::string& name);
     std::string export_xml_strucs();
     std::string export_xml_local_types();
+    std::string export_xml_local_type(const std::string& name);
 
     std::string         get_type                    (ea_t ea);
     bool                set_type_at                 (ea_t ea, const std::string& prototype);
     bool                set_struct_member_type_at   (ea_t ea, const std::string& prototype);
     std::vector<ea_t>   get_all_items               (ea_t start, ea_t end);
+    void                enable_testing_mode         ();
 }

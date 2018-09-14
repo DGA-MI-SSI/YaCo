@@ -25,6 +25,7 @@ namespace hash
     YaToolObjectId  hash_enum           (const const_string_ref& name);
     YaToolObjectId  hash_enum_member    (YaToolObjectId parent, const const_string_ref& name);
     YaToolObjectId  hash_struc          (const const_string_ref& id);
+    YaToolObjectId  hash_local_type     (const const_string_ref& id);
     YaToolObjectId  hash_stack          (uint64_t ea);
     YaToolObjectId  hash_member         (YaToolObjectId parent, uint64_t offset);
     YaToolObjectId  hash_function       (uint64_t ea);

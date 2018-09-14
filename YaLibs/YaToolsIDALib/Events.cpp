@@ -80,11 +80,22 @@ namespace
         const_t        mid;
     };
 
+    struct LocalTypeModel
+    {
+        using Types     = std::map<YaToolObjectId, local_types::Type>;
+        using Rename    = struct { qstring name; Tag tag; };
+        using Renames   = std::vector<Rename>;
+
+        Types   ids;
+        Renames renames;
+    };
+
     using Eas           = std::set<Ea>;
     using Structs       = std::map<YaToolObjectId, Struc>;
     using StructMembers = std::map<YaToolObjectId, StrucMember>;
     using Enums         = std::map<YaToolObjectId, enum_t>;
     using EnumMembers   = std::map<YaToolObjectId, EnumMember>;
+    using LocalTypes    = std::map<YaToolObjectId, uint32_t>;
     using Segments      = std::set<ea_t>;
 
     struct Events
@@ -99,6 +110,7 @@ namespace
         void touch_code (ea_t ea) override;
         void touch_data (ea_t ea) override;
         void touch_ea   (ea_t ea) override;
+        void touch_types() override;
 
         void save               () override;
         void update             () override;
@@ -112,13 +124,88 @@ namespace
         StructMembers   struc_members_;
         Enums           enums_;
         EnumMembers     enum_members_;
+        LocalTypes      local_types_;
+        LocalTypeModel  ltypes_;
     };
+
+    void snapshot_local_types(LocalTypeModel& m)
+    {
+        const auto end = ya::get_ordinal_qty();
+        m.ids.clear();
+        m.renames.resize(end);
+        for(uint32_t ord = 1; ord < end; ++ord)
+        {
+            local_types::Type type;
+            const auto ok = local_types::identify(&type, ord);
+            // we do not clear previous name
+            // even if there is no current name
+            // because IDA remove & add name on renaming
+            if(!ok)
+                continue;
+
+            Tag tag;
+            const auto id = local_types::hash(type.name.c_str(), &tag);
+            m.renames[ord] = {type.name, tag};
+            m.ids.emplace(id, type);
+        }
+    }
+
+    void try_rename_local_type(LocalTypeModel& m, uint32_t ord, const qstring& name)
+    {
+        if(ord >= m.renames.size())
+            return;
+
+        const auto old = m.renames[ord];
+        if(old.name.empty() || old.name == name)
+            return;
+
+        LOG(DEBUG, "local_type: renamed from %s to %s\n", old.name.c_str(), name.c_str());
+        local_types::rename(old.name.c_str(), old.tag, name.c_str());
+    }
+
+    template<typename T>
+    void diff_local_types(LocalTypeModel& m, const T& update)
+    {
+        // find deleted, added & renamed types
+        const auto end = ya::get_ordinal_qty();
+        for(uint32_t ord = 1; ord < end; ++ord)
+        {
+            local_types::Type type;
+            const auto ok = local_types::identify(&type, ord);
+            if(!ok)
+                continue;
+
+            try_rename_local_type(m, ord, type.name);
+            const auto id = local_types::hash(type.name.c_str(), nullptr);
+            const auto it = m.ids.find(id);
+            const auto added = it == m.ids.end();
+            const auto equal = !added
+                            && it->second.name == type.name
+                            && it->second.tif.equals_to(type.tif);
+            if(!added)
+                m.ids.erase(it);
+            if(equal)
+                continue;
+
+            LOG(DEBUG, "local_type: 0x%016llx %s %s\n", id, type.name.c_str(), added ? "added" : "updated");
+            update(id, type);
+        }
+
+        // remaining local types have been deleted
+        for(const auto& it : m.ids)
+        {
+            LOG(DEBUG, "local_type: deleted 0x%016llx %s\n", it.first, it.second.name.c_str());
+            update(it.first, it.second);
+            local_types::remove(it.second.name.c_str());
+        }
+    }
 }
 
 Events::Events(IRepository& repo)
     : repo_(repo)
     , qpool_(3)
 {
+    snapshot_local_types(ltypes_);
 }
 
 std::shared_ptr<IEvents> MakeEvents(IRepository& repo)
@@ -391,6 +478,15 @@ void Events::touch_data(ea_t ea)
     add_ea(*this, hash::hash_ea(ea), OBJECT_TYPE_DATA, ea);
 }
 
+void Events::touch_types()
+{
+    diff_local_types(ltypes_, [&](YaToolObjectId id, const local_types::Type& type)
+    {
+        local_types_.emplace(id, type.tif.get_ordinal());
+    });
+    snapshot_local_types(ltypes_);
+}
+
 namespace
 {
     bool try_accept_struc(YaToolObjectId id, const Struc& struc)
@@ -432,6 +528,18 @@ namespace
                 model.delete_version(visitor, OBJECT_TYPE_STRUCT_MEMBER, p.first);
             else
                 model.delete_version(visitor, OBJECT_TYPE_STACKFRAME_MEMBER, p.first);
+        }
+    }
+
+    void save_local_types(Events& ev, IModelIncremental& model, IModelVisitor& visitor)
+    {
+        for(const auto p : ev.local_types_)
+        {
+            const auto got_id = local_types::hash(p.second);
+            if(p.first == got_id)
+                model.accept_local_type(visitor, p.second);
+            else
+                model.delete_version(visitor, OBJECT_TYPE_LOCAL_TYPE, p.first);
         }
     }
 
@@ -560,6 +668,9 @@ namespace
             if(!ev.enums_.empty() || !ev.enum_members_.empty())
                 LOG(INFO, "processing %zd:%zd enum events\n", ev.enums_.size(), ev.enum_members_.size());
             save_enums(ev, *model, *db);
+            if(!ev.local_types_.empty())
+                LOG(INFO, "processing %zd local type events\n", ev.local_types_.size());
+            save_local_types(ev, *model, *db);
             if(!ev.eas_.empty())
                 LOG(INFO, "processing %zd ea events\n", ev.eas_.size());
             save_eas(ev, *model, *db);
@@ -587,6 +698,7 @@ void Events::save()
     struc_members_.clear();
     enums_.clear();
     enum_members_.clear();
+    local_types_.clear();
 }
 
 namespace
@@ -731,6 +843,7 @@ namespace
             {
                 case OBJECT_TYPE_STRUCT:
                 case OBJECT_TYPE_STRUCT_MEMBER:
+                case OBJECT_TYPE_LOCAL_TYPE:
                     break;
                 default:
                     return;
@@ -764,7 +877,9 @@ namespace
         return reply;
     }
 
-    std::string rebase_cache(IRepository& repo)
+    using ObsoletePaths = std::unordered_set<std::string>;
+
+    std::string rebase_cache(IRepository& repo, ObsoletePaths& obsoletes)
     {
         // potentially fix conflicting struc ids
         const auto filter = strucs::make_filter();
@@ -781,43 +896,51 @@ namespace
 
             char buf[sizeof next_id * 2 + 1];
             const auto str = to_hex<NullTerminate>(buf, next_id);
+            obsoletes.insert(path);
             path = std::string("cache/") + get_object_type_string(hver.type()) + "/" + str.value + ".xml";
             return true;
         });
     }
 
-    void update_from_cache(IModelSink& sink, IRepository& repo)
+    bool update_from_cache(IModelSink& sink, IRepository& repo)
     {
-        const auto commit = rebase_cache(repo);
+        ObsoletePaths obsoletes;
+        const auto commit = rebase_cache(repo, obsoletes);
         if(commit.empty())
-            return;
+            return false;
 
         // load updated & deleted entities
         const auto updated = MakeMemoryModel();
         const auto deleted = MakeMemoryModel();
         updated->visit_start();
         deleted->visit_start();
-        repo.diff_index(commit, [&](const char* /*path*/, bool added, const void* ptr, size_t size)
+        repo.diff_index(commit, [&](const char* path, bool added, const void* ptr, size_t size)
         {
+            LOG(DEBUG, "rebase: path %s %s size %zd\n", path, added ? "updated" : "deleted", size);
+            if(obsoletes.count(path))
+                return 0;
             AcceptXmlMemoryChunk(added ? *updated : *deleted, ptr, size);
             return 0;
         });
         deleted->visit_end();
         updated->visit_end();
         if(!updated->size() && !deleted->size())
-            return;
+            return false;
 
         // apply changes on ida
         LOG(INFO, "rebase: %zd updated %zd deleted\n", updated->size(), deleted->size());
         sink.remove(*deleted);
         sink.update(*get_all_updates(repo, *updated, *deleted));
+        return true;
     }
 }
 
 void Events::update()
 {
     // update cache and export modifications to IDA
-    update_from_cache(*MakeIdaSink(), repo_);
+    const auto updated = update_from_cache(*MakeIdaSink(), repo_);
+    if(updated)
+        snapshot_local_types(ltypes_);
     repo_.push();
 
     // Let IDA apply modifications

@@ -89,6 +89,12 @@ YaToolObjectId hash::hash_struc(const const_string_ref& id)
     return process_hash({0, x, OBJECT_TYPE_STRUCT});
 }
 
+YaToolObjectId hash::hash_local_type(const const_string_ref& id)
+{
+    const auto x = util::Fingerprint64(id.value, id.size);
+    return process_hash({0, x, OBJECT_TYPE_LOCAL_TYPE});
+}
+
 YaToolObjectId hash::hash_stack(uint64_t ea)
 {
     return process_hash({0, ea, OBJECT_TYPE_STACKFRAME});

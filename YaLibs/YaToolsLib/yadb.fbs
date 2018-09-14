@@ -118,6 +118,7 @@ table Root {
     codes:              [Version];
     datas:              [Version];
     basic_blocks:       [Version];
+    local_types:        [Version];
     strings:            [string];
 }
 

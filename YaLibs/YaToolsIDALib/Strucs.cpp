@@ -38,29 +38,36 @@ namespace
         return std::string("$yaco_struc_") + struc_name;
     }
 
+    std::string get_local_netnode_name(const char* local_name)
+    {
+        // mandatory $ prefix for user netnodes
+        return std::string("$yaco_local_") + local_name;
+    }
+
     using Reply = struct
     {
-        strucs::Tag     tag;
+        Tag             tag;
         netnode         node;
         YaToolObjectId  id;
     };
 
-    void get_tag_from_node(strucs::Tag& tag, const netnode& node)
+    void get_tag_from_node(Tag& tag, const netnode& node)
     {
         node.valstr(tag.data, sizeof tag.data);
     }
 
-    const_string_ref make_string_ref(const strucs::Tag& tag)
+    const_string_ref make_string_ref(const Tag& tag)
     {
         return {tag.data, sizeof tag.data - 1};
     }
 
-    Reply hash_struc(const char* struc_name)
+    template<std::string(*get_name)(const char*), YaToolObjectId(*hash)(const const_string_ref&)>
+    Reply hash_to_node(const char* struc_name)
     {
-        const auto name = get_struc_netnode_name(struc_name);
+        const auto name = get_name(struc_name);
         netnode node;
         const auto created = node.create(name.data(), name.size());
-        strucs::Tag tag;
+        Tag tag;
         if(created)
         {
             uint8_t rng[sizeof tag.data >> 1];
@@ -72,8 +79,18 @@ namespace
         }
 
         get_tag_from_node(tag, node);
-        const auto id = hash::hash_struc(make_string_ref(tag));
+        const auto id = hash(make_string_ref(tag));
         return {tag, node, id};
+    }
+
+    Reply hash_struc(const char* struc_name)
+    {
+        return hash_to_node<&get_struc_netnode_name, &hash::hash_struc>(struc_name);
+    }
+
+    Reply hash_local(const char* local_name)
+    {
+        return hash_to_node<&get_local_netnode_name, &hash::hash_local_type>(local_name);
     }
 
     Reply hash_with(ea_t id)
@@ -83,16 +100,15 @@ namespace
         return hash_struc(qbuf.c_str());
     }
 
-    void create_node_from(const char* struc_name, const strucs::Tag& tag)
+    void create_node_from(const std::string& name, const Tag& tag)
     {
-        const auto name = get_struc_netnode_name(struc_name);
         netnode node(name.data(), name.size(), true);
         node.set(tag.data, sizeof tag.data - 1);
     }
 
-    strucs::Tag get_tag_from_version(const HVersion& version, bool& ok)
+    Tag get_tag_from_version(const HVersion& version, bool& ok)
     {
-        strucs::Tag tag;
+        Tag tag;
         ok = false;
         version.walk_attributes([&](const const_string_ref& key, const const_string_ref& value)
         {
@@ -136,11 +152,16 @@ namespace strucs
         return r.tag;
     }
 
+    void set_tag_with(const char* name, const Tag& tag)
+    {
+        create_node_from(get_struc_netnode_name(name), tag);
+    }
+
     void set_tag(ea_t id, const Tag& tag)
     {
         qstring qbuf;
         ya::wrap(&get_struc_name, qbuf, id);
-        create_node_from(qbuf.c_str(), tag);
+        set_tag_with(qbuf.c_str(), tag);
     }
 
     void visit(IModelVisitor& v, const char* name)
@@ -154,23 +175,138 @@ namespace strucs
         bool found = false;
         const auto tag = get_tag_from_version(version, found);
         if(found)
-            create_node_from(version.username().value, tag);
+            set_tag_with(version.username().value, tag);
         return tag;
     }
 }
 
 namespace
 {
+    YaToolObjectId hash_with(tinfo_t& tif, qstring& qbuf, Tag& tag, uint32_t ord)
+    {
+        auto ok = tif.get_numbered_type(nullptr, ord);
+        if(!ok)
+            return 0;
+
+        ok = tif.print(&qbuf);
+        if(!ok)
+            return 0;
+
+        const auto r = hash_local(qbuf.c_str());
+        static_assert(sizeof tag.data == sizeof r.tag.data, "tag mismatch");
+        memcpy(tag.data, r.tag.data, sizeof r.tag.data);
+        return r.id;
+    }
+}
+
+namespace local_types
+{
+    bool identify(Type* type, uint32_t ord)
+    {
+        type->tif.clear();
+        type->name.qclear();
+        auto ok = type->tif.get_numbered_type(nullptr, ord);
+        if(!ok)
+            return false;
+
+        ok = type->tif.print(&type->name);
+        if(!ok)
+            return false;
+
+        const auto eid = get_enum(type->name.c_str());
+        if(eid != BADADDR)
+            return false;
+
+        const auto sid = get_struc_id(type->name.c_str());
+        if(sid == BADADDR)
+            return true;
+
+        const auto struc = get_struc(sid);
+        if(!struc)
+            return true;
+
+        return struc->is_ghost();
+    }
+
+    YaToolObjectId hash(const char* name, Tag* tag)
+    {
+        const auto r = hash_local(name);
+        if(tag)
+            memcpy(tag, &r.tag, sizeof *tag);
+        return r.id;
+    }
+
+    YaToolObjectId hash(uint32_t ord)
+    {
+        Type type;
+        const auto ok = identify(&type, ord);
+        if(!ok)
+            return 0;
+
+        return hash(type.name.c_str(), nullptr);
+    }
+
+    Tag get_tag(const char* name)
+    {
+        return hash_local(name).tag;
+    }
+
+    void rename(const char* oldname, const Tag& tag, const char* newname)
+    {
+        if(!oldname)
+            return;
+
+        auto node = hash_local(oldname).node;
+        set_tag(oldname, tag);
+        const auto newnodename = get_local_netnode_name(newname);
+        node.rename(newnodename.data(), newnodename.size());
+    }
+
+    Tag remove(const char* name)
+    {
+        auto r = hash_local(name);
+        r.node.kill();
+        return r.tag;
+    }
+
+    void set_tag(const char* name, const Tag& tag)
+    {
+        create_node_from(get_local_netnode_name(name), tag);
+    }
+
+    void visit(IModelVisitor& v, const char* name)
+    {
+        const auto r = hash_local(name);
+        v.visit_attribute(make_string_ref("tag"), {r.tag.data, sizeof r.tag.data - 1});
+    }
+
+    Tag accept(const HVersion& version)
+    {
+        bool found = false;
+        const auto tag = get_tag_from_version(version, found);
+        if(found)
+            set_tag(make_string(version.username()).data(), tag);
+        return tag;
+    }
+}
+
+namespace
+{
+    using Tags      = std::unordered_map<std::string, std::string>;
+    using Members   = std::unordered_map<YaToolObjectId, YaToolObjectId>;
+
     struct Filter
         : public strucs::IFilter
     {
         YaToolObjectId is_valid(const HVersion& version) override;
 
-        std::unordered_map<std::string, std::string>        tags_;
-        std::unordered_map<YaToolObjectId, YaToolObjectId>  members_;
+        Tags    strucs_;
+        Tags    locals_;
+        Members members_;
     };
 
-    YaToolObjectId check_struc(Filter& f, const HVersion& version)
+    template<YaToolObjectId(*hasher)(const const_string_ref&)>
+    YaToolObjectId check_version(Tags& tags, const HVersion& version)
     {
         const auto old = version.id();
         bool found = false;
@@ -179,20 +315,33 @@ namespace
             return old;
 
         const auto name = make_string(version.username());
-        const auto it = f.tags_.find(name);
+        const auto it = tags.find(name);
         const auto tag = std::string{tag_got.data, sizeof tag_got.data - 1};
-        if(it == f.tags_.end())
+        if(it == tags.end())
         {
-            f.tags_.insert(std::make_pair(name, tag));
+            tags.insert(std::make_pair(name, tag));
             return old;
         }
 
-        const auto cur = hash::hash_struc(::make_string_ref(it->second));
+        const auto cur = hasher(::make_string_ref(it->second));
         if(old == cur)
             return old;
 
-        f.members_.emplace(old, cur);
         return cur;
+    }
+
+    YaToolObjectId check_struc_version(Tags& tags, const HVersion& version)
+    {
+        return check_version<hash::hash_struc>(tags, version);
+    }
+
+    YaToolObjectId check_struc(Filter& f, const HVersion& version)
+    {
+        const auto old = version.id();
+        const auto id = check_struc_version(f.strucs_, version);
+        if(old != id)
+            f.members_.emplace(old, id);
+        return id;
     }
 
     YaToolObjectId check_member(Filter& f, const HVersion& version)
@@ -204,6 +353,11 @@ namespace
             return old;
 
         return hash::hash_member(it->second, version.address());
+    }
+
+    YaToolObjectId check_local_type(Filter& f, const HVersion& version)
+    {
+        return check_version<hash::hash_local_type>(f.locals_, version);
     }
 }
 
@@ -224,6 +378,9 @@ YaToolObjectId Filter::is_valid(const HVersion& version)
 
         case OBJECT_TYPE_STRUCT_MEMBER:
             return check_member(*this, version);
+
+        case OBJECT_TYPE_LOCAL_TYPE:
+            return check_local_type(*this, version);
 
         default:
             return version.id();

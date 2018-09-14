@@ -224,7 +224,7 @@ namespace
         if(struc->ordinal == -1)
             return tif;
 
-        const auto ok = tif.get_numbered_type(get_idati(), struc->ordinal);
+        const auto ok = tif.get_numbered_type(nullptr, struc->ordinal);
         if(!ok)
             tif.clear();
 
@@ -532,5 +532,20 @@ namespace ya
             || is_defarg0(flags)
             || is_defarg1(flags)
             || (is_data(flags) && !is_byte(flags));
+    }
+
+    const char netnode_testing_mode[] = "$yaco_testing_mode";
+
+    bool is_testing_mode()
+    {
+        netnode node(netnode_testing_mode, sizeof netnode_testing_mode, false);
+        return netnode_exist(node);
+    }
+
+    void enable_testing_mode()
+    {
+        netnode node;
+        const auto ok = node.create(netnode_testing_mode, sizeof netnode_testing_mode);
+        UNUSED(ok);
     }
 }

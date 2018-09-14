@@ -229,6 +229,7 @@ class Repo():
 # start
 import yaco_plugin
 yaco_plugin.start()
+ya.enable_testing_mode()
 """
         if sync_first:
             scripts += """
@@ -336,6 +337,7 @@ class Fixture(unittest.TestCase):
         self.enums = {}
         self.strucs = {}
         self.types = {}
+        self.local_types = {}
         self.eas = {}
         self.last_ea = None
         self.item_range = None
@@ -401,6 +403,13 @@ idc.save_database("")
                 self.strucs = [filename, self.filter_struc(fh.read())]
         return script, callback
 
+    def save_local_type(self, name):
+        script = "ya.export_xml_local_type('%s')" % name
+        def callback(filename):
+            with open(filename, "rb") as fh:
+                self.local_types[name] = [filename, fh.read()]
+        return script, callback
+
     def save_local_types(self):
         script = "ya.export_xml_local_types()"
         def callback(filename):
@@ -417,6 +426,11 @@ idc.save_database("")
         script = "ya.export_xml_strucs()"
         filename, want = self.strucs
         return script, self.check_diff(filename, want, filter=self.filter_struc)
+
+    def check_local_type(self, name):
+        script = "ya.export_xml_local_type('%s')" % name
+        filename, want = self.local_types[name]
+        return script, self.check_diff(filename, want)
 
     def check_local_types(self):
         script = "ya.export_xml_local_types()"

@@ -117,6 +117,7 @@ namespace
         Members                         members_;
         TidMap                          tids_;
         std::map<std::string, tid_t>    tags_; // struc tag to struc id
+        std::map<std::string, uint32_t> ords_; // local tag to ordinal
         std::shared_ptr<IPluginVisitor> plugin_;
         std::vector<uint8_t>            buffer_;
         Pool<qstring>                   qpool_;
@@ -155,6 +156,18 @@ Visitor::Visitor(StackMode smode)
 
         const auto tag = strucs::get_tag(tid);
         tags_.insert({{tag.data, sizeof tag.data - 1}, tid});
+    }
+
+    // map local tags to ordinals
+    for(uint32_t ord = 1, end = ya::get_ordinal_qty(); ord < end; ++ord)
+    {
+        local_types::Type type;
+        const auto ok = local_types::identify(&type, ord);
+        if(!ok)
+            continue;
+
+        const auto tag = local_types::get_tag(type.name.c_str());
+        ords_.insert({{tag.data, sizeof tag.data - 1}, type.tif.get_ordinal()});
     }
 }
 
@@ -654,7 +667,7 @@ namespace
             return tif;
 
         tif.clear();
-        ok = tif.get_named_type(get_idati(), value);
+        ok = tif.get_named_type(nullptr, value);
         if(ok)
             return tif;
 
@@ -1315,8 +1328,7 @@ namespace
         // in order to prevent orphan ordinals
         // we try to retrieve the previous one
         tinfo_t tif;
-        const auto idati = get_idati();
-        const auto ok = tif.get_numbered_type(idati, static_cast<uint32_t>(version.address()));
+        const auto ok = tif.get_numbered_type(nullptr, static_cast<uint32_t>(version.address()));
         if(!ok)
             return BADADDR;
 
@@ -1325,7 +1337,7 @@ namespace
         if(is_autosync(ename.c_str(), tif))
             return BADADDR;
 
-        return import_type(idati, -1, ename.c_str());
+        return import_type(nullptr, -1, ename.c_str());
     }
 
     void make_enum(Visitor& visitor, const HVersion& version, ea_t ea)
@@ -1542,6 +1554,7 @@ namespace
                 case OBJECT_TYPE_REFERENCE_INFO:
                 case OBJECT_TYPE_COUNT:
                 case OBJECT_TYPE_STACKFRAME_MEMBER:
+                case OBJECT_TYPE_LOCAL_TYPE:
                     break;
 
                 case OBJECT_TYPE_STRUCT:
@@ -1862,7 +1875,7 @@ namespace
             LOG(ERROR, "make_%s: %s.%s: unable to set member type %s to %" PRIuEA " bytes\n", where, sname->c_str(), name.data(), ya::dump_flags(flags).data(), size);
     }
 
-    struc_t* get_struc_from_tag(const Visitor& visitor, const strucs::Tag& tag)
+    struc_t* get_struc_from_tag(const Visitor& visitor, const Tag& tag)
     {
         if(!*tag.data)
             return nullptr;
@@ -1874,7 +1887,7 @@ namespace
         return get_struc(it->second);
     }
 
-    struc_t* get_or_add_struct(Visitor& visitor, const HVersion& version, ea_t ea, const strucs::Tag& tag, const char* name)
+    struc_t* get_or_add_struct(Visitor& visitor, const HVersion& version, ea_t ea, const Tag& tag, const char* name)
     {
         const auto struc = get_struc_from_tag(visitor, tag);
         if(struc)
@@ -1935,6 +1948,96 @@ namespace
         struc->set_ghost(false);
     }
 
+    uint32_t get_local_type_from_tag(const Visitor& visitor, const Tag& tag)
+    {
+        if(!*tag.data)
+            return 0;
+
+        const auto it = visitor.ords_.find({tag.data, sizeof tag.data - 1});
+        if(it == visitor.ords_.end())
+            return 0;
+
+        return it->second;
+    }
+
+    bool is_same_local_type(Visitor& v, tinfo_t& tif, uint32_t ord, const std::string& name, const const_string_ref& prototype)
+    {
+        auto ok = tif.get_numbered_type(nullptr, ord);
+        if(!ok)
+            return false;
+
+        const auto qbuf = v.qpool_.acquire();
+        ok = tif.print(&*qbuf);
+        if(!ok || ya::to_string_ref(*qbuf) != make_string_ref(name))
+            return false;
+
+        ok = tif.print(&*qbuf, nullptr, PRTYPE_DEF, 0);
+        return ok && ya::to_string_ref(*qbuf) == prototype;
+    }
+
+    tinfo_t get_or_add_local_type(Visitor& v, const HVersion& version, const Tag& tag, const std::string& name)
+    {
+        tinfo_t tif;
+        const auto proto = version.prototype();
+        const auto ord = get_local_type_from_tag(v, tag);
+        if(ord)
+        {
+            const auto ok = is_same_local_type(v, tif, ord, name, proto);
+            if(ok)
+                return tif;
+
+            // something is different, erase & recreate
+            del_numbered_type(nullptr, ord);
+        }
+
+        const auto prototype = make_string(proto) + ";";
+        const auto ok = parse_decl(&tif, nullptr, nullptr, prototype.data(), PT_SIL);
+        if(!ok)
+        {
+            LOG(ERROR, "make_local_type: unable to parse prototype %s\n", prototype.data());
+            return tinfo_t();
+        }
+
+        tinfo_code_t err;
+        if(ord)
+            err = tif.set_numbered_type(nullptr, ord, 0, name.data());
+        else
+            err = tif.set_named_type(nullptr, name.data());
+        if(err != TERR_OK)
+        {
+            LOG(ERROR, "make_local_type: unable to create named type %s (%d)\n", name.data(), err);
+            return tinfo_t();
+        }
+
+        return tif;
+    }
+
+    bool rename_local_type(Visitor& visitor, tinfo_t& tif, const std::string& name)
+    {
+        const auto old = visitor.qpool_.acquire();
+        tif.get_type_name(&*old);
+        if(ya::to_string_ref(*old) == make_string_ref(name))
+            return true;
+
+        const auto tag = local_types::remove(old->c_str());
+        const auto renamed = tif.set_named_type(nullptr, name.data(), NTF_REPLACE);
+        local_types::set_tag(name.data(), tag);
+        return renamed == TERR_OK;
+    }
+
+    void make_local_type(Visitor& visitor, const HVersion& version)
+    {
+        const auto tag = local_types::accept(version);
+        const auto name = make_string(version.username());
+        auto tif = get_or_add_local_type(visitor, version, tag, name);
+        if(tif.empty())
+            return;
+
+        const auto renamed = rename_local_type(visitor, tif, name);
+        if(!renamed)
+            LOG(ERROR, "make_local_type: 0x%d unable to set name %s\n", tif.get_ordinal(), name.data());
+    }
+
     void update_version(Visitor& visitor, const HVersion& version)
     {
         const auto ea = static_cast<ea_t>(version.address());
@@ -1946,7 +2049,11 @@ namespace
                 break;
 
             case OBJECT_TYPE_STRUCT:
-                make_struct(visitor, version, ea);
+                make_struct(visitor, version, ea); // FIXME remove ea
+                break;
+
+            case OBJECT_TYPE_LOCAL_TYPE:
+                make_local_type(visitor, version);
                 break;
 
             case OBJECT_TYPE_STACKFRAME:

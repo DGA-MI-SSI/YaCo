@@ -52,24 +52,6 @@ namespace
     };
     XmlCleanup cleanup;
 
-    static const char gFolders[][20] =
-    {
-        "binary",
-        "struc",
-        "strucmember",
-        "enum",
-        "enum_member",
-        "segment",
-        "segment_chunk",
-        "function",
-        "stackframe",
-        "stackframe_member",
-        "reference_info",
-        "code",
-        "data",
-        "basic_block",
-    };
-
     YaToolObjectId id_from_string(const const_string_ref& txt)
     {
         YaToolObjectId id = 0;
@@ -461,17 +443,13 @@ namespace
         }
     }
 
-    void accept_object(const std::string& object_type, xmlNodePtr node, IModelVisitor& visitor)
+    void accept_object(YaToolObjectType_e type, xmlNodePtr node, IModelVisitor& visitor)
     {
-        if(xmlStrcmp(node->name, BAD_CAST object_type.c_str()))
+        if(type == OBJECT_TYPE_UNKNOWN)
             return;
 
-        const auto otype = get_object_type(object_type.data());
-        if(otype == OBJECT_TYPE_UNKNOWN)
-        {
-            LOG(ERROR, "invalid object type %s\n", object_type.data());
+        if(xmlStrcmp(node->name, BAD_CAST get_object_type_string(type)))
             return;
-        }
 
         bool has_id = false;
         YaToolObjectId id = 0;
@@ -489,7 +467,7 @@ namespace
         if(!has_id)
             return;
 
-        visitor.visit_start_version(otype, id);
+        visitor.visit_start_version(type, id);
         for(auto version_child = node->children; version_child != nullptr; version_child = version_child->next)
             if(xmlStrcasecmp(version_child->name, BAD_CAST "version") == 0)
                 accept_version(version_child, visitor);
@@ -498,8 +476,8 @@ namespace
 
     void accept_node(xmlNodePtr node, IModelVisitor& visitor)
     {
-        for(const auto& object_type : gFolders)
-            accept_object(object_type, node, visitor);
+        for(const auto type : ordered_types)
+            accept_object(type, node, visitor);
     }
 
     void accept_reader(xmlTextReaderPtr reader, IModelVisitor& visitor)
@@ -558,10 +536,10 @@ void XmlModelPath::accept(IModelVisitor& visitor)
     }
 
     std::vector<std::string> files;
-    for(const auto& sub_folder : gFolders)
+    for(const auto type : ordered_types)
     {
         files.clear();
-        for(fs::directory_iterator it(root / sub_folder, ec), end; !ec && it != end; ++it)
+        for(fs::directory_iterator it(root / get_object_type_string(type), ec), end; !ec && it != end; ++it)
             files.push_back(it->path().generic_string());
         std::sort(files.begin(), files.end());
         for(const auto& file : files)
