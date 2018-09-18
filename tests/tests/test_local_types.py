@@ -17,6 +17,21 @@
 
 import runtests
 
+helpers = """
+def create_local_type(name, strtype):
+    tif = ida_typeinf.tinfo_t()
+    ida_typeinf.parse_decl(tif, None, strtype, 0)
+    tif.set_named_type(None, name)
+
+def rename_local_type(oldname, newname):
+    tif = ida_typeinf.tinfo_t()
+    tif.get_named_type(None, oldname)
+    ord = tif.get_ordinal()
+    strtype = tif._print("", ida_typeinf.PRTYPE_DEF)
+    ida_typeinf.parse_decl(tif, None, strtype + ";", 0)
+    tif.set_numbered_type(None, ord, ida_typeinf.NTF_REPLACE, newname)
+"""
+
 class Fixture(runtests.Fixture):
 
     def test_local_type_reload(self):
@@ -83,12 +98,9 @@ for x in xrange(0, 4):
     def test_local_types(self):
         a, b = self.setup_cmder()
         a.run(
-            self.script("""
-tif = ida_typeinf.tinfo_t()
-ida_typeinf.parse_decl(tif, None, "struct { int a; };", 0)
-tif.set_named_type(None, "somename")
-ida_typeinf.parse_decl(tif, None, "struct { int a; };", 0)
-tif.set_named_type(None, "somename_2")
+            self.script(helpers + """
+create_local_type("somename_1", "struct { int a; };")
+create_local_type("somename_2", "struct { int a; };")
 """),
             self.save_local_types(),
         )
@@ -98,7 +110,7 @@ tif.set_named_type(None, "somename_2")
             self.check_local_types(),
             self.script("""
 tif = ida_typeinf.tinfo_t()
-tif.get_named_type(None, "somename")
+tif.get_named_type(None, "somename_1")
 ord = tif.get_ordinal()
 ida_typeinf.del_numbered_type(None, ord)
 idc.set_local_type(ord, "struct anothername { int p[2]; };", 0)
@@ -127,10 +139,8 @@ ida_typeinf.del_numbered_type(None, ord)
         a, b = self.setup_cmder()
 
         a.run(
-            self.script("""
-tif = ida_typeinf.tinfo_t()
-ida_typeinf.parse_decl(tif, None, "struct { int a; };", 0)
-tif.set_named_type(None, "somename")
+            self.script(helpers + """
+create_local_type("somename", "struct { int a; };")
 """),
             self.sync(),
             self.script("""
@@ -143,16 +153,12 @@ idaapi.set_name(ea, "somesub")
         types = self.types
 
         b.run_no_sync(
-            self.script("""
-tif = ida_typeinf.tinfo_t()
-ida_typeinf.parse_decl(tif, None, "struct { char name[256]; };", 0)
-tif.set_named_type(None, "somename")
-"""),
-            self.sync(),
-            self.script("""
+            self.script(helpers + """
+create_local_type("somename", "struct { char name[256]; };")
 ea = 0x401E07
 idaapi.set_name(ea, "anothersub")
 """),
+            self.sync(),
         )
         b.check_git(modified=["basic_block"])
 
@@ -162,66 +168,18 @@ idaapi.set_name(ea, "anothersub")
         )
         b.check_git(modified=["basic_block"])
 
-    def test_apply_local_type(self):
-        a, b = self.setup_cmder()
-
-        a.run(
-            self.script("""
-tif = ida_typeinf.tinfo_t()
-ida_typeinf.parse_decl(tif, None, "struct { int a; };", 0)
-tif.set_named_type(None, "somename")
-ea = 0x4157C8
-idaapi.set_name(ea, "name")
-idc.SetType(ea, "somename*")
-"""),
-            self.save_local_types(),
-            self.save_last_ea(),
-        )
-        a.check_git(added=["binary", "segment", "segment_chunk", "data", "local_type"])
-
-        b.run(
-            self.check_local_types(),
-            self.check_last_ea(),
-            self.script("""
-tif = ida_typeinf.tinfo_t()
-tif.get_named_type(None, "somename")
-ord = tif.get_ordinal()
-ida_typeinf.del_numbered_type(None, ord)
-idc.set_local_type(ord, "struct anothername { int p[2]; };", 0)
-"""),
-            self.save_local_types(),
-            self.save_last_ea(),
-        )
-        b.check_git(modified=["local_type"])
-
-        a.run(
-            self.check_local_types(),
-            self.check_last_ea(),
-        )
-
-        b.run(
-            self.check_local_types(),
-            self.check_last_ea(),
-        )
-
     def test_local_type_renames(self):
         a, b = self.setup_cmder()
 
         a.run(
-            self.script("""
-tif = ida_typeinf.tinfo_t()
-ida_typeinf.parse_decl(tif, None, "struct { int a; };", 0)
-tif.set_named_type(None, "somename")
+            self.script(helpers + """
+create_local_type("somename", "struct { int a; };")
 ea = 0x4157C8
 idc.SetType(ea, "somename*")
 """),
             self.sync(),
-            self.script("""
-tif = ida_typeinf.tinfo_t()
-tif.get_named_type(None, "somename")
-ord = tif.get_ordinal()
-ida_typeinf.del_numbered_type(None, ord)
-idc.set_local_type(ord, "struct anothername { int p[2]; };", 0)
+            self.script(helpers + """
+rename_local_type("somename", "anothername")
 """),
             self.save_local_types(),
             self.save_last_ea(),
@@ -235,17 +193,19 @@ idc.set_local_type(ord, "struct anothername { int p[2]; };", 0)
             self.check_local_types(),
             self.check_last_ea(),
         )
+        a.run(
+            self.check_local_types(),
+            self.check_last_ea(),
+        )
 
     def test_type_rename_on_stack_member(self):
         a, b = self.setup_cmder()
 
         a.run(
-            self.script("""
+            self.script(helpers + """
 ea = 0x40197E
 idaapi.set_name(ea, "")
-tif = ida_typeinf.tinfo_t()
-ida_typeinf.parse_decl(tif, None, "struct { int a; };", 0)
-tif.set_named_type(None, "somelocal")
+create_local_type("somelocal", "struct { int a; };")
 sid = idaapi.add_struc(-1, "sometype", False)
 idc.add_struc_member(sid, "dat", 0, ida_bytes.dword_flag(), -1, 4)
 frame = idaapi.get_frame(ea)
@@ -267,14 +227,8 @@ idc.SetType(idc.get_member_id(frame.id, idc.get_member_offset(frame.id, "var_4")
             self.check_local_types(),
             self.check_strucs(),
             self.check_last_ea(),
-            self.script("""
-# rename local type
-tif = ida_typeinf.tinfo_t()
-tif.get_named_type(None, "somelocal")
-ord = tif.get_ordinal()
-typeof = tif._print("", ida_typeinf.PRTYPE_DEF) + ";"
-ida_typeinf.parse_decl(tif, None, typeof, 0)
-tif.set_numbered_type(None, ord, ida_typeinf.NTF_REPLACE, "anothername")
+            self.script(helpers + """
+rename_local_type("somelocal", "anotherlocal")
 """),
             self.save_local_types(),
             self.save_strucs(),
