@@ -299,7 +299,7 @@ idc.SetType(ea, "GUID")
             self.save_ea(0x415096),
             self.save_ea(0x4150A0),
         )
-        a.check_git(added=["binary", "segment", "segment_chunk", "data", "data"])
+        a.check_git(added=["binary", "segment", "segment_chunk", "data", "data", "local_type"])
 
         b.run(
             self.check_ea(0x415096),

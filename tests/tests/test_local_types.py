@@ -235,3 +235,70 @@ idc.set_local_type(ord, "struct anothername { int p[2]; };", 0)
             self.check_local_types(),
             self.check_last_ea(),
         )
+
+    def test_type_rename_on_stack_member(self):
+        a, b = self.setup_cmder()
+
+        a.run(
+            self.script("""
+ea = 0x40197E
+idaapi.set_name(ea, "")
+tif = ida_typeinf.tinfo_t()
+ida_typeinf.parse_decl(tif, None, "struct { int a; };", 0)
+tif.set_named_type(None, "somelocal")
+sid = idaapi.add_struc(-1, "sometype", False)
+idc.add_struc_member(sid, "dat", 0, ida_bytes.dword_flag(), -1, 4)
+frame = idaapi.get_frame(ea)
+"""), # ignore local type & struc created events
+            self.sync(),
+            self.script("""
+idc.SetType(idc.get_member_id(frame.id, idc.get_member_offset(frame.id, "var_34")), "somelocal[2]")
+idc.SetType(idc.get_member_id(frame.id, idc.get_member_offset(frame.id, "var_20")), "const somelocal*")
+idc.SetType(idc.get_member_id(frame.id, idc.get_member_offset(frame.id, "var_1C")), "sometype[2]")
+idc.SetType(idc.get_member_id(frame.id, idc.get_member_offset(frame.id, "var_4")),  "const sometype*")
+"""),
+            self.save_local_types(),
+            self.save_strucs(),
+            self.save_last_ea(),
+        )
+        a.check_git(added=["stackframe"] + ["stackframe_member"] * 8)
+
+        b.run(
+            self.check_local_types(),
+            self.check_strucs(),
+            self.check_last_ea(),
+            self.script("""
+# rename local type
+tif = ida_typeinf.tinfo_t()
+tif.get_named_type(None, "somelocal")
+ord = tif.get_ordinal()
+typeof = tif._print("", ida_typeinf.PRTYPE_DEF) + ";"
+ida_typeinf.parse_decl(tif, None, typeof, 0)
+tif.set_numbered_type(None, ord, ida_typeinf.NTF_REPLACE, "anothername")
+"""),
+            self.save_local_types(),
+            self.save_strucs(),
+            self.save_last_ea(),
+        )
+        b.check_git(modified=["local_type"] + ["stackframe_member"] * 2)
+
+        a.run(
+            self.check_local_types(),
+            self.check_strucs(),
+            self.check_last_ea(),
+            self.script("""
+# rename struc
+sid = idaapi.get_struc_id("sometype")
+idaapi.set_struc_name(sid, "anothertype")
+"""),
+            self.save_local_types(),
+            self.save_strucs(),
+            self.save_last_ea(),
+        )
+        a.check_git(modified=["struc"])
+
+        b.run(
+            self.check_local_types(),
+            self.check_strucs(),
+            self.check_last_ea(),
+        )

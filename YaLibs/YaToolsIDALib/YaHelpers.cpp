@@ -97,10 +97,12 @@ namespace
             return false;
 
         const auto struc = get_struc(subtid);
-        if(struc)
+        if(!struc)
+            deps.emplace_back(OBJECT_TYPE_ENUM, hash::hash_enum(ya::to_string_ref(name)), subtid);
+        else if(!struc->is_ghost())
             deps.emplace_back(OBJECT_TYPE_STRUCT, strucs::hash(subtid), subtid);
         else
-            deps.emplace_back(OBJECT_TYPE_ENUM, hash::hash_enum(ya::to_string_ref(name)), subtid);
+            return false;
         return true;
     }
 

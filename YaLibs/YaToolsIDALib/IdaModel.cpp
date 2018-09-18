@@ -435,6 +435,42 @@ namespace
         return ya::to_string_ref(qbuf);
     }
 
+    void try_add_xref_local_type_attribute(IModelVisitor& v, const ya::Dependency& dep, const tinfo_t& tif)
+    {
+        // for local types, add an attribute
+        // containing a simplified prototype
+        // always using in as basic type
+        // but with the correct pointer wrapping
+        if(dep.type != OBJECT_TYPE_LOCAL_TYPE)
+            return;
+
+        tinfo_t basic;
+        auto ok = basic.create_simple_type(BT_INT);
+        if(!ok)
+            return;
+
+        qstring buf;
+        ya::rewrap_tinfo(basic, tif);
+        ok = basic.print(&buf, nullptr, PRTYPE_DEF);
+        if(!ok)
+            return;
+
+        v.visit_xref_attribute(make_string_ref("wrap"), ya::to_string_ref(buf));
+    }
+
+    void accept_deps_as_xrefs(IModelVisitor& v, const ya::Deps& deps, const tinfo_t& tif)
+    {
+        if(deps.size() != 1)
+            return;
+
+        const auto xref = deps.front();
+        v.visit_start_xrefs();
+        v.visit_start_xref(0, xref.id, DEFAULT_OPERAND);
+        try_add_xref_local_type_attribute(v, xref, tif);
+        v.visit_end_xref();
+        v.visit_end_xrefs();
+    }
+
     template<typename Ctx>
     void visit_member_type(Ctx& ctx, IModelVisitor& v, ya::Deps& deps, member_t* member)
     {
@@ -456,33 +492,7 @@ namespace
         if(!qbuf->empty())
             v.visit_prototype(ya::to_string_ref(*qbuf));
         v.visit_flags(flags);
-
-        // do not put xrefs on struct pointers else exporter will try to apply the pointed struct
-        // FIXME get rid of ids hidden in prototype comments
-        // add xrefs and use offset = -1 or another mechanism
-        if(mtype.tif.is_ptr())
-            return;
-
-        // FIXME add missing dependencies?
-        const auto size = deps.size();
-        if(size > 1)
-            LOG(WARNING, "accept_struct_member: 0x%" PRIxEA " ignoring %zd dependencies\n", member->id, size);
-
-        if(size != 1)
-            return;
-
-        v.visit_start_xrefs();
-        v.visit_start_xref(0, deps.front().id, 0);
-
-        if(has_op && is_enum0(flags))
-        {
-            const auto seref = op.ec.serial ? to_hex_ref(*qbuf, op.ec.serial) : g_empty;
-            if(seref.size)
-                v.visit_xref_attribute(g_serial, seref);
-        }
-
-        v.visit_end_xref();
-        v.visit_end_xrefs();
+        accept_deps_as_xrefs(v, deps, mtype.tif);
     }
 
     // forward declaration due to circular dependency on structs & struct members
@@ -848,42 +858,6 @@ namespace
         return flags;
     }
 
-    void try_add_xref_local_type_attribute(IModelVisitor& v, const ya::Dependency& dep, const tinfo_t& tif)
-    {
-        // for local types, add an attribute
-        // containing a simplified prototype
-        // always using in as basic type
-        // but with the correct pointer wrapping
-        if(dep.type != OBJECT_TYPE_LOCAL_TYPE)
-            return;
-
-        tinfo_t basic;
-        auto ok = basic.create_simple_type(BT_INT);
-        if(!ok)
-            return;
-
-        qstring buf;
-        ya::rewrap_tinfo(basic, tif);
-        ok = basic.print(&buf, nullptr, PRTYPE_DEF);
-        if(!ok)
-            return;
-
-        v.visit_xref_attribute(make_string_ref("ref"), ya::to_string_ref(buf));
-    }
-
-    void accept_data_xrefs(IModelVisitor& v, const ya::Deps& deps, const tinfo_t& tif)
-    {
-        if(deps.size() != 1)
-            return;
-
-        const auto xref = deps.front();
-        v.visit_start_xrefs();
-        v.visit_start_xref(0, xref.id, DEFAULT_OPERAND);
-        try_add_xref_local_type_attribute(v, xref, tif);
-        v.visit_end_xref();
-        v.visit_end_xrefs();
-    }
-
     enum NamePolicy_e
     {
         BasicBlockNamePolicy,
@@ -959,7 +933,7 @@ namespace
         v.visit_start_offsets();
         accept_comments(ctx, v, ea, ea, flags);
         v.visit_end_offsets();
-        accept_data_xrefs(v, deps, tif);
+        accept_deps_as_xrefs(v, deps, tif);
         finish_object(v);
         accept_dependencies(ctx, v, deps);
     }

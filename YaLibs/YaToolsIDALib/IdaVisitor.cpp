@@ -1215,7 +1215,7 @@ namespace
         std::string ref;
         hver.walk_xref_attributes(attrs, [&](const const_string_ref& key, const const_string_ref& val)
         {
-            if(key == make_string_ref("ref"))
+            if(key == make_string_ref("wrap"))
                 ref = make_string(val) + ";";
             return WALK_CONTINUE;
         });
