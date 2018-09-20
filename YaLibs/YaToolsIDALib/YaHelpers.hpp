@@ -40,8 +40,8 @@ namespace ya
     struct Dependency
     {
         Dependency(YaToolObjectType_e type, YaToolObjectId id, tid_t tid)
-            : type(type)
-            , id(id)
+            : id(id)
+            , type(type)
             , tid(tid)
         {
         }
@@ -203,7 +203,7 @@ namespace ya
     inline uint32_t get_ordinal_qty()
     {
         const auto max = ::get_ordinal_qty(nullptr);
-        return max == ~0 ? 0 : max;
+        return max == ~0U ? 0 : max;
     }
 
     bool is_testing_mode();

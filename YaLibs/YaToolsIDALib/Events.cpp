@@ -187,14 +187,14 @@ namespace
             if(equal)
                 continue;
 
-            LOG(DEBUG, "local_type: 0x%016llx %s %s\n", id, type.name.c_str(), added ? "added" : "updated");
+            LOG(DEBUG, "local_type: 0x%016" PRIx64 " %s %s\n", id, type.name.c_str(), added ? "added" : "updated");
             update(id, type);
         }
 
         // remaining local types have been deleted
         for(const auto& it : m.ids)
         {
-            LOG(DEBUG, "local_type: deleted 0x%016llx %s\n", it.first, it.second.name.c_str());
+            LOG(DEBUG, "local_type: deleted 0x%016" PRIx64 " %s\n", it.first, it.second.name.c_str());
             update(it.first, it.second);
             local_types::remove(it.second.name.c_str());
         }

@@ -1273,7 +1273,7 @@ namespace
             const auto fi = visitor.tids_.find(id);
             if(fi == visitor.tids_.end())
             {
-                LOG(ERROR, "make_data: 0x%" PRIxEA " invalid xref 0x%llx\n", ea, id);
+                LOG(ERROR, "make_data: 0x%" PRIxEA " invalid xref 0x%" PRIx64 "\n", ea, id);
                 return WALK_CONTINUE;
             }
 
@@ -1283,7 +1283,7 @@ namespace
             else if(fi->second.type == OBJECT_TYPE_LOCAL_TYPE)
                 is_xref_applied = try_apply_local_type_to_data(version, ea, fi->second, attrs);
             if(!is_xref_applied)
-                LOG(ERROR, "make_data: 0x%" PRIxEA " unable to set %s 0x%llx\n", ea, get_object_type_string(fi->second.type), id);
+                LOG(ERROR, "make_data: 0x%" PRIxEA " unable to set %s 0x%" PRIx64 "\n", ea, get_object_type_string(fi->second.type), id);
             return WALK_CONTINUE;
         });
         if(is_xref_applied)

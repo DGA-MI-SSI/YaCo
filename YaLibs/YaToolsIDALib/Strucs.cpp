@@ -180,25 +180,6 @@ namespace strucs
     }
 }
 
-namespace
-{
-    YaToolObjectId hash_with(tinfo_t& tif, qstring& qbuf, Tag& tag, uint32_t ord)
-    {
-        auto ok = tif.get_numbered_type(nullptr, ord);
-        if(!ok)
-            return 0;
-
-        ok = tif.print(&qbuf);
-        if(!ok)
-            return 0;
-
-        const auto r = hash_local(qbuf.c_str());
-        static_assert(sizeof tag.data == sizeof r.tag.data, "tag mismatch");
-        memcpy(tag.data, r.tag.data, sizeof r.tag.data);
-        return r.id;
-    }
-}
-
 namespace local_types
 {
     bool identify(Type* type, uint32_t ord)
