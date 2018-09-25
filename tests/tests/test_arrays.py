@@ -27,24 +27,24 @@ idc.add_struc_member(idaapi.add_struc(-1, "sa", False), "fa", 0, idaapi.FF_DATA,
 idc.add_struc_member(idaapi.add_struc(-1, "sb", False), "fb", 0, idaapi.FF_DATA, -1, 5)
 idaapi.add_struc(-1, "sc", False)
 """),
-            self.save_strucs(),
+            self.save_types(),
         )
         a.check_git(added=["struc"] * 3 + ["strucmember"] * 2)
 
         b.run(
-            self.check_strucs(),
+            self.check_types(),
             self.script("""
 sa = idc.get_struc_id("sa")
 sc = idc.get_struc_id("sc")
 sa_size = idaapi.get_struc_size(sa) * 3
 idc.add_struc_member(sc, "fa", 0, idaapi.FF_STRU | idaapi.FF_DATA, sa, sa_size, -1)
 """),
-            self.save_strucs(),
+            self.save_types(),
         )
         b.check_git(added=["strucmember"], modified=["struc"])
 
         a.run(
-            self.check_strucs(),
+            self.check_types(),
             self.script("""
 sa = idc.get_struc_id("sa")
 sb = idc.get_struc_id("sb")
@@ -53,12 +53,12 @@ sa_size = idaapi.get_struc_size(sa) * 3
 sb_size = idaapi.get_struc_size(sb) * 5
 idc.add_struc_member(sc, "fb", sa_size, idaapi.FF_STRU | idaapi.FF_DATA, sb, sb_size, -1)
 """),
-            self.save_strucs(),
+            self.save_types(),
         )
         a.check_git(added=["strucmember"], modified=["struc"])
 
         b.run(
-            self.check_strucs(),
+            self.check_types(),
         )
 
     def test_struc_array_hole(self):
@@ -75,11 +75,11 @@ sb_size = idaapi.get_struc_size(sb) * 5
 idc.add_struc_member(sc, "field_0", 0, idaapi.FF_STRU | idaapi.FF_DATA, sa, sa_size, -1)
 idc.add_struc_member(sc, "field_C", sa_size, idaapi.FF_STRU | idaapi.FF_DATA, sb, sb_size, -1)
 """),
-            self.save_strucs(),
+            self.save_types(),
         )
         a.check_git(added=["struc"] * 3 + ["strucmember"] * 4)
         b.run(
-            self.check_strucs(),
+            self.check_types(),
             self.script("""
 sa = idc.get_struc_id("sa")
 sb = idc.get_struc_id("sb")
@@ -92,9 +92,9 @@ fcb_offset = idaapi.get_struc_size(sa) * 3
 idaapi.del_struc_member(idaapi.get_struc(sc), fcb_offset)
 idc.add_struc_member(sc, "field_C", fcb_offset, idaapi.FF_STRU | idaapi.FF_DATA, sb, sb_size, -1)
 """),
-            self.save_strucs(),
+            self.save_types(),
         )
         b.check_git(modified=["struc"] + ["strucmember"] * 2)
         a.run(
-            self.check_strucs(),
+            self.check_types(),
         )

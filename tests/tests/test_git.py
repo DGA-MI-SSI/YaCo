@@ -65,12 +65,12 @@ yaco_plugin.start()
         # check changes are properly propagated
         e.run(
             self.script("idaapi.add_enum(idaapi.BADADDR, 'name_a', idaapi.hexflag())"),
-            self.save_enum("name_a"),
+            self.save_types(),
         )
         e.check_git(added=["enum"])
 
         a.run(
-            self.check_enum("name_a"),
+            self.check_types(),
         )
 
     def commit_version(self, repo, version):

@@ -41,7 +41,7 @@ eidb = idaapi.add_struc(-1, "name_b", False)
 idc.add_struc_member(eidb, "b_top", 0, idaapi.FF_DATA, -1, 8)
 idc.add_struc_member(eidb, "b_bot", 8, idaapi.FF_DATA, -1, 4)
 """),
-            self.save_strucs(),
+            self.save_types(),
         )
 
         # apply first struc in first base
@@ -55,7 +55,7 @@ def set_tid(ea, n, name):
 
 """
         b.run(
-            self.check_strucs(),
+            self.check_types(),
             self.script(set_tid + """
 ea = 0x6602A7B8
 set_tid(ea, 1, "name_b")

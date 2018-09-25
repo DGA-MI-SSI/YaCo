@@ -170,11 +170,11 @@ for offset, count, field_type, string_type, comment, repeatable in create_field:
     if comment is not None:
         idc.set_member_cmt(sid, offset, comment, repeatable)
 """),
-            self.save_strucs()
+            self.save_types()
         )
         a.check_git(added=["struc"] * 19 + ["strucmember"] * 19)
         b.run(
-            self.check_strucs(),
+            self.check_types(),
         )
 
     def test_field_prototypes(self):
@@ -192,11 +192,11 @@ for field_type, name, proto in set_field_prototype:
     mid = idc.get_member_id(sid, 0)
     idc.SetType(mid, proto)
 """),
-            self.save_strucs(),
+            self.save_types(),
         )
         a.check_git(added=["struc", "strucmember"] * 3)
         b.run(
-            self.check_strucs(),
+            self.check_types(),
         )
 
     def test_complex_struc(self):
@@ -207,12 +207,11 @@ sid0 = idaapi.add_struc(-1, "top", False)
 sid1 = idaapi.add_struc(-1, "complex_bot_struc", False)
 create_complex(sid0, sid1)
 """),
-            self.save_strucs(),
+            self.save_types(),
         )
         a.check_git(["struc"] * 2 + ["strucmember"] * 16)
-        self.assertRegexpMatches(self.strucs[1], "complex_bot_struc")
         b.run(
-            self.check_strucs(),
+            self.check_types(),
             self.script(constants + complex_constants + """
 ea = 0x6601EF30
 frame = idaapi.get_frame(ea)
@@ -254,11 +253,11 @@ idc.SetType(mid, "complex_bot_stack*")
 idaapi.set_member_name(frame, offset, "zorg")
 """),
             self.save_last_ea(),
-            self.save_strucs(),
+            self.save_types(),
         )
         b.run(
             self.check_last_ea(),
-            self.check_strucs(),
+            self.check_types(),
             self.script("""
 ea = 0x6601EF30
 frame = idaapi.get_frame(ea)
@@ -266,10 +265,10 @@ offset = idc.get_first_member(frame.id)
 idaapi.set_member_name(frame, offset, "new_name")
 """),
             self.save_last_ea(),
-            self.save_strucs(),
+            self.save_types(),
         )
         b.check_git(modified=["stackframe_member"])
         a.run(
             self.check_last_ea(),
-            self.check_strucs(),
+            self.check_types(),
         )

@@ -27,6 +27,20 @@
 
 namespace
 {
+    void delete_local_type_from(int32_t ord, const char* name)
+    {
+        if(ord <= 0)
+        {
+            LOG(ERROR, "unable to delete missing local type '%s'\n", name);
+            return;
+        }
+
+        local_types::remove(name);
+        const auto ok = del_numbered_type(nullptr, ord);
+        if(!ok)
+            LOG(ERROR, "unable to delete local type '%s'\n", name);
+    }
+
     void delete_struc(const HVersion& hver)
     {
         const auto name = make_string(hver.username());
@@ -36,26 +50,19 @@ namespace
             LOG(ERROR, "unable to delete missing struc '%s'\n", name.data());
             return;
         }
+        const auto ord = struc->ordinal;
         strucs::remove(struc->id);
         const auto ok = del_struc(struc);
         if(!ok)
             LOG(ERROR, "unable to delete struc '%s'\n", name.data());
+        delete_local_type_from(ord, name.data());
     }
 
     void delete_local_type(const HVersion& hver)
     {
         const auto name = make_string(hver.username());
         const auto ord = get_type_ordinal(nullptr, name.data());
-        if(ord <= 0)
-        {
-            LOG(ERROR, "unable to delete missing local type '%s'\n", name.data());
-            return;
-        }
-
-        local_types::remove(name.data());
-        const auto ok = del_numbered_type(nullptr, ord);
-        if(!ok)
-            LOG(ERROR, "unable to delete local type '%s'\n", name.data());
+        delete_local_type_from(ord, name.data());
     }
 
     void delete_enum(const HVersion& hver)
@@ -63,9 +70,14 @@ namespace
         const auto name = make_string(hver.username());
         const auto eid = get_enum(name.data());
         if(eid == BADADDR)
+        {
             LOG(ERROR, "unable to delete missing enum '%s'\n", name.data());
-        else
-            del_enum(eid);
+            return;
+        }
+
+        const auto ord = get_enum_type_ordinal(eid);
+        del_enum(eid);
+        delete_local_type_from(ord, name.data());
     }
 
     void delete_enum_member(const HVersion& hver)

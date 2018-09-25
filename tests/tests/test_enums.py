@@ -24,56 +24,48 @@ class Fixture(runtests.Fixture):
         a, b = self.setup_repos()
         a.run(
             self.script("idaapi.add_enum(idaapi.BADADDR, 'name_a', idaapi.hexflag())"),
-            self.save_enum("name_a"),
+            self.save_types(),
         )
         a.check_git(added=["enum"])
         b.run(
-            self.check_enum("name_a"),
+            self.check_types(),
             self.script("idaapi.set_enum_name(idaapi.get_enum('name_a'), 'name_b')"),
-            self.save_enum("name_a"),
-            self.save_enum("name_b"),
+            self.save_types(),
         )
         b.check_git(added=["enum"], deleted=["enum"])
-        self.assertEqual(self.enums["name_a"][1], "")
         a.run(
-            self.check_enum("name_a"),
-            self.check_enum("name_b"),
+            self.check_types(),
             self.script("idaapi.del_enum(idaapi.get_enum('name_b'))"),
-            self.save_enum("name_b"),
         )
         a.check_git(deleted=["enum"])
-        self.assertEqual(self.enums["name_b"][1], "")
 
     def test_enum_members(self):
         a, b = self.setup_repos()
         a.run(
             self.script("idaapi.add_enum_member(idaapi.add_enum(idaapi.BADADDR, 'name_a', idaapi.hexflag()), 'field_a', 0, -1)"),
-            self.save_enum("name_a"),
+            self.save_types(),
         )
         a.check_git(added=["enum", "enum_member"])
         b.run(
-            self.check_enum("name_a"),
+            self.check_types(),
             self.script("idaapi.set_enum_member_name(idaapi.get_enum_member_by_name('field_a'), 'field_b')"),
-            self.save_enum("name_a"),
+            self.save_types(),
         )
         b.check_git(modified=["enum"], added=["enum_member"], deleted=["enum_member"])
         a.run(
-            self.check_enum("name_a"),
+            self.check_types(),
             self.script("idaapi.set_enum_name(idaapi.get_enum('name_a'), 'name_b')"),
-            self.save_enum("name_a"),
-            self.save_enum("name_b"),
+            self.save_types(),
         )
         a.check_git(added=["enum", "enum_member"], deleted=["enum", "enum_member"])
-        self.assertEqual(self.enums["name_a"][1], "")
         b.run(
-            self.check_enum("name_a"),
-            self.check_enum("name_b"),
+            self.check_types(),
             self.script("idaapi.del_enum_member(idaapi.get_enum('name_b'), 0, 0, -1)"),
-            self.save_enum("name_b"),
+            self.save_types(),
         )
         b.check_git(deleted=["enum_member"], modified=["enum"])
         a.run(
-            self.check_enum("name_b"),
+            self.check_types(),
         )
 
     def test_enum_types(self):
@@ -122,25 +114,12 @@ for (flags, bits, bitfield, ea, operand, fields) in enums:
             set_enum_member_cmt(cid, get_cmt(), rpt)
     idaapi.op_enum(ea, operand, eid, 0)
 """),
-            self.save_enum("enum_0"),
-            self.save_enum("enum_1"),
-            self.save_enum("enum_2"),
-            self.save_enum("enum_3"),
-            self.save_enum("enum_4"),
+            self.save_types(),
             self.save_last_ea()
         )
-        self.assertNotEqual(self.enums["enum_0"][1], "")
-        self.assertNotEqual(self.enums["enum_1"][1], "")
-        self.assertNotEqual(self.enums["enum_2"][1], "")
-        self.assertNotEqual(self.enums["enum_3"][1], "")
-        self.assertNotEqual(self.enums["enum_4"][1], "")
         b.run(
             self.check_last_ea(),
-            self.check_enum("enum_0"),
-            self.check_enum("enum_1"),
-            self.check_enum("enum_2"),
-            self.check_enum("enum_3"),
-            self.check_enum("enum_4"),
+            self.check_types(),
             self.script(constants +  """
 for (flags, bits, bitfield, ea, operand, fields) in enums:
     idaapi.clr_op_type(ea, operand)
@@ -171,70 +150,57 @@ for (flags, bits, bitfield, ea, operand, fields) in enums:
     eid = idaapi.get_enum(name)
     idaapi.del_enum(eid)
 """),
-            self.save_enum("enum_0"),
-            self.save_enum("enum_1"),
-            self.save_enum("enum_2"),
-            self.save_enum("enum_3"),
-            self.save_enum("enum_4"),
+            self.save_types(),
             self.save_last_ea(),
         )
         b.check_git(deleted=["enum"] * 5 + ["enum_member"] * 15)
-        self.assertMultiLineEqual(self.enums["enum_0"][1], "")
-        self.assertMultiLineEqual(self.enums["enum_1"][1], "")
-        self.assertMultiLineEqual(self.enums["enum_2"][1], "")
-        self.assertMultiLineEqual(self.enums["enum_3"][1], "")
-        self.assertMultiLineEqual(self.enums["enum_4"][1], "")
         a.run(
             self.check_last_ea(),
-            self.check_enum("enum_0"),
-            self.check_enum("enum_1"),
-            self.check_enum("enum_2"),
-            self.check_enum("enum_3"),
-            self.check_enum("enum_4"),
+            self.check_types(),
         )
 
     def test_enum_bf(self):
         a, b = self.setup_repos()
         a.run(
             self.script("idaapi.add_enum(idaapi.BADADDR, 'name_a', idaapi.hexflag())"),
-            self.save_enum("name_a"),
+            self.save_types(),
         )
         a.check_git(added=["enum"])
         b.run(
-            self.check_enum("name_a"),
+            self.check_types(),
             self.script("idaapi.set_enum_bf(idaapi.get_enum('name_a'), True)"),
-            self.save_enum("name_a"),
+            self.save_types(),
         )
         b.check_git(modified=["enum"])
         a.run(
-            self.check_enum("name_a"),
+            self.check_types(),
             self.script("idaapi.set_enum_bf(idaapi.get_enum('name_a'), False)"),
-            self.save_enum("name_a"),
+            self.save_types(),
         )
         a.check_git(modified=["enum"])
         b.run(
-            self.check_enum("name_a"),
+            self.check_types(),
         )
 
     def test_enum_cmt(self):
         a, b = self.setup_repos()
         a.run(
             self.script("idaapi.add_enum(idaapi.BADADDR, 'name_a', idaapi.hexflag())"),
-            self.save_enum("name_a"),
+            self.save_types(),
         )
         a.check_git(added=["enum"])
         b.run(
-            self.check_enum("name_a"),
+            self.check_types(),
             self.script("idaapi.set_enum_cmt(idaapi.get_enum('name_a'), 'some_comment', False)"),
-            self.save_enum("name_a"),
+            self.save_types(),
         )
         b.check_git(modified=["enum"])
         a.run(
-            self.check_enum("name_a"),
+            self.check_types(),
             self.script("idaapi.set_enum_cmt(idaapi.get_enum('name_a'), '', False)"),
-            self.save_enum("name_a"),
+            self.save_types(),
         )
         a.check_git(modified=["enum"])
         b.run(
-            self.check_enum("name_a"),
+            self.check_types(),
         )

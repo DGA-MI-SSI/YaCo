@@ -36,14 +36,14 @@ ea = 0x4161E8
 pt = idc.parse_decl("sa[228]", 0)
 idc.apply_type(ea, pt)
 """),
-            self.save_strucs(),
+            self.save_types(),
             self.save_last_ea(),
         )
         a.check_git(added=["binary", "segment", "segment_chunk", "data", "struc", "strucmember", "strucmember"])
 
         b.run(
             self.check_last_ea(),
-            self.check_strucs(),
+            self.check_types(),
         )
         b.check_git(added=["binary", "segment", "segment_chunk", "data", "struc", "strucmember", "strucmember"])
 

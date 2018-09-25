@@ -40,12 +40,12 @@ class Fixture(runtests.Fixture):
             self.script("""
 ida_typeinf.import_type(ida_typeinf.get_idati(), -1, "OSVERSIONINFO")
 """),
-            self.save_local_types(),
+            self.save_types(),
         )
         a.check_git(added=["local_type"] * 4)
 
         a.run(
-            self.check_local_types(),
+            self.check_types(),
         )
 
     def test_struc_renames_with_imports(self):
@@ -57,13 +57,8 @@ for x in xrange(0, 4):
     idaapi.add_struc(-1, "struc_a_%d" % x, False)
 ida_typeinf.import_type(ida_typeinf.get_idati(), -1, "OSVERSIONINFO")
 """),
-            self.save_local_type("CHAR"),
-            self.save_local_type("OSVERSIONINFO"),
-            self.save_local_type("OSVERSIONINFOA"),
-            self.save_local_type("_OSVERSIONINFOA"),
         )
         a.check_git(added=["struc"] * 4 + ["local_type"] * 4)
-        local_types = self.local_types
 
         b.run_no_sync(
             self.script("""
@@ -72,27 +67,19 @@ for x in xrange(0, 4):
     idaapi.add_struc(-1, "struc_b_%d" % x, False)
 """),
             self.sync(),
-            self.save_local_types(),
-            self.save_strucs(),
+            self.save_types(),
         )
         b.check_git(added=["struc"] * 4)
 
-        self.local_types = local_types
+        self.assertRegexpMatches(self.types[1], "CHAR")
+        self.assertRegexpMatches(self.types[1], "OSVERSIONINFO")
+        self.assertRegexpMatches(self.types[1], "OSVERSIONINFOA")
+        self.assertRegexpMatches(self.types[1], "_OSVERSIONINFOA")
         a.run(
-            self.check_local_type("CHAR"),
-            self.check_local_type("OSVERSIONINFO"),
-            self.check_local_type("OSVERSIONINFOA"),
-            self.check_local_type("_OSVERSIONINFOA"),
-            self.check_local_types(),
-            self.check_strucs(),
+            self.check_types(),
         )
         b.run(
-            self.check_local_type("CHAR"),
-            self.check_local_type("OSVERSIONINFO"),
-            self.check_local_type("OSVERSIONINFOA"),
-            self.check_local_type("_OSVERSIONINFOA"),
-            self.check_local_types(),
-            self.check_strucs(),
+            self.check_types(),
         )
 
     def test_local_types(self):
@@ -102,12 +89,12 @@ for x in xrange(0, 4):
 create_local_type("somename_1", "struct { int a; };")
 create_local_type("somename_2", "struct { int a; };")
 """),
-            self.save_local_types(),
+            self.save_types(),
         )
         a.check_git(added=["local_type"] * 2)
 
         b.run(
-            self.check_local_types(),
+            self.check_types(),
             self.script("""
 tif = ida_typeinf.tinfo_t()
 tif.get_named_type(None, "somename_1")
@@ -115,24 +102,24 @@ ord = tif.get_ordinal()
 ida_typeinf.del_numbered_type(None, ord)
 idc.set_local_type(ord, "struct anothername { int p[2]; };", 0)
 """),
-            self.save_local_types(),
+            self.save_types(),
         )
         b.check_git(modified=["local_type"])
 
         a.run(
-            self.check_local_types(),
+            self.check_types(),
             self.script("""
 tif = ida_typeinf.tinfo_t()
 tif.get_named_type(None, "anothername")
 ord = tif.get_ordinal()
 ida_typeinf.del_numbered_type(None, ord)
 """),
-            self.save_local_types(),
+            self.save_types(),
         )
         a.check_git(deleted=["local_type"])
 
         b.run(
-            self.check_local_types(),
+            self.check_types(),
         )
 
     def test_conflicting_local_types(self):
@@ -147,7 +134,7 @@ create_local_type("somename", "struct { int a; };")
 ea = 0x401E07
 idaapi.set_name(ea, "somesub")
 """),
-            self.save_local_types(),
+            self.save_types(),
         )
         a.check_git(added=["binary", "segment", "segment_chunk", "function", "basic_block"])
         types = self.types
@@ -164,7 +151,7 @@ idaapi.set_name(ea, "anothersub")
 
         self.types = types
         b.run(
-            self.check_local_types(),
+            self.check_types(),
         )
         b.check_git(modified=["basic_block"])
 
@@ -181,7 +168,7 @@ idc.SetType(ea, "somename*")
             self.script(helpers + """
 rename_local_type("somename", "anothername")
 """),
-            self.save_local_types(),
+            self.save_types(),
             self.save_last_ea(),
         )
         a.check_git(modified=["local_type"])
@@ -190,11 +177,11 @@ rename_local_type("somename", "anothername")
         # local type renames and still apply them
         # correctly
         b.run(
-            self.check_local_types(),
+            self.check_types(),
             self.check_last_ea(),
         )
         a.run(
-            self.check_local_types(),
+            self.check_types(),
             self.check_last_ea(),
         )
 
@@ -217,42 +204,36 @@ idc.SetType(idc.get_member_id(frame.id, idc.get_member_offset(frame.id, "var_20"
 idc.SetType(idc.get_member_id(frame.id, idc.get_member_offset(frame.id, "var_1C")), "sometype[2]")
 idc.SetType(idc.get_member_id(frame.id, idc.get_member_offset(frame.id, "var_4")),  "const sometype*")
 """),
-            self.save_local_types(),
-            self.save_strucs(),
+            self.save_types(),
             self.save_last_ea(),
         )
         a.check_git(added=["stackframe"] + ["stackframe_member"] * 8)
 
         b.run(
-            self.check_local_types(),
-            self.check_strucs(),
+            self.check_types(),
             self.check_last_ea(),
             self.script(helpers + """
 rename_local_type("somelocal", "anotherlocal")
 """),
-            self.save_local_types(),
-            self.save_strucs(),
+            self.save_types(),
             self.save_last_ea(),
         )
         b.check_git(modified=["local_type"] + ["stackframe_member"] * 2)
 
         a.run(
-            self.check_local_types(),
-            self.check_strucs(),
+            self.check_types(),
             self.check_last_ea(),
             self.script("""
 # rename struc
 sid = idaapi.get_struc_id("sometype")
 idaapi.set_struc_name(sid, "anothertype")
 """),
-            self.save_local_types(),
-            self.save_strucs(),
+            self.save_types(),
             self.save_last_ea(),
         )
         a.check_git(modified=["struc"])
 
         b.run(
-            self.check_local_types(),
-            self.check_strucs(),
+            self.check_types(),
             self.check_last_ea(),
         )

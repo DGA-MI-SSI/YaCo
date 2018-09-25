@@ -334,10 +334,7 @@ class Fixture(unittest.TestCase):
         return self.counter - 1
 
     def script(self, script):
-        self.enums = {}
-        self.strucs = {}
         self.types = {}
-        self.local_types = {}
         self.eas = {}
         self.item_range = None
         for line in script.splitlines():
@@ -366,73 +363,15 @@ idc.save_database("")
                 self.fail("\n" + "".join(difflib.unified_diff(want.splitlines(1), data.splitlines(1), want_filename, name)))
         return check
 
-    def filter_enum(self, d):
-        # enum ordinals are unstable & depend on insertion order
-        d = re.sub("address>[A-F0-9]+", "address>", d)
-        return d
-
-    def save_enum(self, name):
-        script = "ya.export_xml_enum('%s')" % name
-        def callback(filename):
-            with open(filename, "rb") as fh:
-                self.enums[name] = [filename, self.filter_enum(fh.read())]
-        return script, callback
-
-    def check_enum(self, name):
-        script = "ya.export_xml_enum('%s')" % name
-        filename, want = self.enums[name]
-        return script, self.check_diff(filename, want, filter=self.filter_enum)
-
-    def filter_struc(self, d):
-        # struc ordinals are unstable & depend on insertion order
-        d = re.sub("address>[A-F0-9]+", "address>", d)
-        return d
-
-    def save_struc(self, name):
-        script = "ya.export_xml_struc('%s')" % name
-        def callback(filename):
-            with open(filename, "rb") as fh:
-                self.strucs[name] = [filename, self.filter_struc(fh.read())]
-        return script, callback
-
-    def save_strucs(self):
-        script = "ya.export_xml_strucs()"
-        def callback(filename):
-            with open(filename, "rb") as fh:
-                self.strucs = [filename, self.filter_struc(fh.read())]
-        return script, callback
-
-    def save_local_type(self, name):
-        script = "ya.export_xml_local_type('%s')" % name
-        def callback(filename):
-            with open(filename, "rb") as fh:
-                self.local_types[name] = [filename, fh.read()]
-        return script, callback
-
-    def save_local_types(self):
-        script = "ya.export_xml_local_types()"
+    def save_types(self):
+        script = "ya.export_xml_types()"
         def callback(filename):
             with open(filename, "rb") as fh:
                 self.types = [filename, fh.read()]
         return script, callback
 
-    def check_struc(self, name):
-        script = "ya.export_xml_struc('%s')" % name
-        filename, want = self.strucs[name]
-        return script, self.check_diff(filename, want, filter=self.filter_struc)
-
-    def check_strucs(self):
-        script = "ya.export_xml_strucs()"
-        filename, want = self.strucs
-        return script, self.check_diff(filename, want, filter=self.filter_struc)
-
-    def check_local_type(self, name):
-        script = "ya.export_xml_local_type('%s')" % name
-        filename, want = self.local_types[name]
-        return script, self.check_diff(filename, want)
-
-    def check_local_types(self):
-        script = "ya.export_xml_local_types()"
+    def check_types(self):
+        script = "ya.export_xml_types()"
         filename, want = self.types
         return script, self.check_diff(filename, want)
 

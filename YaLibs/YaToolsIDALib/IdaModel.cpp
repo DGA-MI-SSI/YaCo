@@ -291,8 +291,7 @@ namespace
         if(ctx.skip_id(id, OBJECT_TYPE_ENUM))
             return;
 
-        const auto idx = get_enum_type_ordinal(eid);
-        start_object(v, OBJECT_TYPE_ENUM, id, 0, idx);
+        start_object(v, OBJECT_TYPE_ENUM, id, 0, 0);
         v.visit_size(get_enum_width(eid));
         v.visit_name(ya::to_string_ref(*enum_name), DEFAULT_NAME_FLAGS);
         const auto flags = get_enum_flag(eid);
@@ -323,11 +322,20 @@ namespace
             accept_enum_member(ctx, v, {id, 0}, it);
     }
 
+    template<typename T>
+    void walk_enums(const T& operand)
+    {
+        for(size_t i = 0, end = get_enum_qty(); i < end; ++i)
+            operand(getn_enum(i));
+    }
+
     template<typename Ctx>
     void accept_enums(Ctx& ctx, IModelVisitor& v)
     {
-        for(size_t i = 0, end = get_enum_qty(); i < end; ++i)
-            accept_enum(ctx, v, getn_enum(i));
+        walk_enums([&](enum_t eid)
+        {
+            accept_enum(ctx, v, eid);
+        });
     }
 
     struct MemberType
@@ -1949,32 +1957,6 @@ std::string export_xml(ea_t ea, int type_mask)
     return export_to_xml(*db);
 }
 
-std::string export_xml_enum(const std::string& name)
-{
-    const auto eid = get_enum(name.data());
-    if(eid == BADADDR)
-        return std::string();
-
-    const auto db = MakeMemoryModel();
-    db->visit_start();
-    ModelIncremental(~0).accept_enum(*db, eid);
-    db->visit_end();
-    return export_to_xml(*db);
-}
-
-std::string export_xml_struc(const std::string& name)
-{
-    const auto sid = get_struc_id(name.data());
-    if(sid == BADADDR)
-        return std::string();
-
-    const auto db = MakeMemoryModel();
-    db->visit_start();
-    ModelIncremental(~0).accept_struct(*db, BADADDR, sid);
-    db->visit_end();
-    return export_to_xml(*db);
-}
-
 namespace
 {
     std::vector<struc_t*> get_ordered_strucs()
@@ -1990,56 +1972,63 @@ namespace
         });
         return strucs;
     }
+
+    std::vector<enum_t> get_ordered_enums()
+    {
+        std::vector<enum_t> enums;
+        walk_enums([&](enum_t eid)
+        {
+            enums.push_back(eid);
+        });
+        std::sort(enums.begin(), enums.end(), [](enum_t a, enum_t b)
+        {
+            return get_enum_name(a) < get_enum_name(b);
+        });
+        return enums;
+    }
+
+    std::string export_xml_local_types()
+    {
+        qstring name;
+        qstring type;
+        std::set<std::string> names;
+        for(uint32_t ord = 1; ord < ya::get_ordinal_qty(); ++ord)
+        {
+            tinfo_t tif;
+            auto ok = tif.get_numbered_type(nullptr, ord);
+            if(!ok)
+                continue;
+
+            ok = tif.print(&name, nullptr, PRTYPE_1LINE);
+            if(!ok)
+                continue;
+
+            std::string reply = name.c_str();
+
+            reply += ": ";
+            ok = tif.print(&type, nullptr, PRTYPE_DEF | PRTYPE_MULTI, 4);
+            if(ok)
+                reply += type.c_str();
+            names.insert(reply);
+        }
+
+        std::string reply;
+        for(const auto& it : names)
+            reply += it + "\n";
+        return reply;
+    }
 }
 
-std::string export_xml_strucs()
+std::string export_xml_types()
 {
+    const auto local_types = export_xml_local_types();
     const auto db = MakeMemoryModel();
     db->visit_start();
     ModelIncremental inc(~0);
-    for(const auto s : get_ordered_strucs())
-        inc.accept_struct(*db, BADADDR, s->id);
+    for(const auto struc : get_ordered_strucs())
+        inc.accept_struct(*db, BADADDR, struc->id);
+    for(const auto eid : get_ordered_enums())
+        inc.accept_enum(*db, eid);
     db->visit_end();
-    return export_to_xml(*db);
-}
-
-std::string export_xml_local_type(const std::string& wantname)
-{
-    qstring name;
-    qstring type;
-    std::set<std::string> names;
-    for(uint32_t ord = 1; ord < ya::get_ordinal_qty(); ++ord)
-    {
-        tinfo_t tif;
-        auto ok = tif.get_numbered_type(nullptr, ord);
-        if(!ok)
-            continue;
-
-        ok = tif.print(&name, nullptr, PRTYPE_1LINE);
-        if(!ok)
-            continue;
-
-        std::string reply = name.c_str();
-        if(!wantname.empty() && wantname != reply)
-            continue;
-
-        // FIXME synchronizing ordinals is currently not supported
-        if(false)
-            reply += " ord=" + std::to_string(ord);
-        reply += ": ";
-        ok = tif.print(&type, nullptr, PRTYPE_DEF | PRTYPE_MULTI, 4);
-        if(ok)
-            reply += type.c_str();
-        names.insert(reply);
-    }
-
-    std::string reply;
-    for(const auto& it : names)
-        reply += it + "\n";
-    return reply;
-}
-
-std::string export_xml_local_types()
-{
-    return export_xml_local_type("");
+    return local_types + export_to_xml(*db);
 }

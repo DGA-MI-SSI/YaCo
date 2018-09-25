@@ -61,29 +61,9 @@ namespace yaswig
         return ::export_xml(ea, type_mask);
     }
     
-    std::string export_xml_enum(const std::string& name)
+    std::string export_xml_types()
     {
-        return ::export_xml_enum(name);
-    }
-    
-    std::string export_xml_struc(const std::string& name)
-    {
-        return ::export_xml_struc(name);
-    }
-    
-    std::string export_xml_strucs()
-    {
-        return ::export_xml_strucs();
-    }
-
-    std::string export_xml_local_types()
-    {
-        return ::export_xml_local_types();
-    }
-
-    std::string export_xml_local_type(const std::string& name)
-    {
-        return ::export_xml_local_type(name);
+        return ::export_xml_types();
     }
 
     std::string get_type(ea_t ea)
