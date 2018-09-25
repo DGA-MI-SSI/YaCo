@@ -23,10 +23,7 @@
 struct IModelVisitor;
 struct HVersion;
 
-struct Tag
-{
-    char data[32+1];
-};
+using Tag = std::string;
 
 namespace strucs
 {

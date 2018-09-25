@@ -59,12 +59,9 @@ namespace
 
     void get_tag_from_node(Tag& tag, const netnode& node)
     {
-        node.valstr(tag.data, sizeof tag.data);
-    }
-
-    const_string_ref make_string_ref(const Tag& tag)
-    {
-        return {tag.data, sizeof tag.data - 1};
+        char buf[64];
+        const auto n = node.valstr(buf, sizeof buf);
+        tag.assign(buf, std::max(n, static_cast<ssize_t>(0)));
     }
 
     template<std::string(*get_nodename)(const char*), YaToolObjectId(*hash)(const const_string_ref&)>
@@ -73,17 +70,18 @@ namespace
         const auto nodename = get_nodename(name);
         netnode node;
         const auto created = node.create(nodename.data(), nodename.size());
-        Tag tag;
         if(created)
         {
-            uint8_t rng[sizeof tag.data >> 1];
+            uint8_t rng[16];
+            char    buf[32];
             // generate a random value which we will assign & track
             // on our input struct
             rng::generate(&rng, sizeof rng);
-            binhex(tag.data, hexchars_upper, &rng, sizeof rng);
-            node.set(tag.data, sizeof tag.data - 1);
+            binhex(buf, hexchars_upper, &rng, sizeof rng);
+            node.set(buf, sizeof buf);
         }
 
+        Tag tag;
         get_tag_from_node(tag, node);
         const auto id = hash(make_string_ref(tag));
         return {tag, node, id};
@@ -121,7 +119,7 @@ namespace
     void create_node_from(const std::string& name, const Tag& tag)
     {
         netnode node(name.data(), name.size(), true);
-        node.set(tag.data, sizeof tag.data - 1);
+        node.set(tag.data(), tag.size());
     }
 
     Tag get_tag_from_version(const HVersion& version, bool& ok)
@@ -133,7 +131,7 @@ namespace
             if(key != ::make_string_ref("tag"))
                 return WALK_CONTINUE;
 
-            memcpy(tag.data, value.value, std::min(sizeof tag.data - 1, value.size));
+            tag = make_string(value);
             ok = true;
             return WALK_CONTINUE;
         });
@@ -193,7 +191,7 @@ namespace strucs
     void visit(IModelVisitor& v, const char* name)
     {
         const auto tag = hash_struc(name).tag;
-        v.visit_attribute(make_string_ref("tag"), {tag.data, sizeof tag.data - 1});
+        v.visit_attribute(make_string_ref("tag"), make_string_ref(tag));
     }
 
     Tag accept(const HVersion& version)
@@ -245,7 +243,7 @@ namespace enums
     void visit(IModelVisitor& v, const char* name)
     {
         const auto tag = hash_enum(name).tag;
-        v.visit_attribute(make_string_ref("tag"), {tag.data, sizeof tag.data - 1});
+        v.visit_attribute(make_string_ref("tag"), make_string_ref(tag));
     }
 
     Tag accept(const HVersion& version)
@@ -330,8 +328,8 @@ namespace local_types
 
     void visit(IModelVisitor& v, const Type& type)
     {
-        const auto r = hash_local(type.name.c_str());
-        v.visit_attribute(make_string_ref("tag"), {r.tag.data, sizeof r.tag.data - 1});
+        const auto tag = hash_local(type.name.c_str()).tag;
+        v.visit_attribute(make_string_ref("tag"), make_string_ref(tag));
     }
 
     Tag accept(const HVersion& version)
@@ -365,13 +363,12 @@ namespace
     {
         const auto old = version.id();
         bool found = false;
-        const auto tag_got = get_tag_from_version(version, found);
+        const auto tag = get_tag_from_version(version, found);
         if(!found)
             return old;
 
         const auto name = make_string(version.username());
         const auto it = tags.find(name);
-        const auto tag = std::string{tag_got.data, sizeof tag_got.data - 1};
         if(it == tags.end())
         {
             tags.insert(std::make_pair(name, tag));

@@ -151,7 +151,7 @@ Visitor::Visitor(StackMode smode)
     {
         const auto tid = get_struc_by_idx(idx);
         const auto tag = strucs::get_tag(tid);
-        tags_.insert({{tag.data, sizeof tag.data - 1}, tid});
+        tags_.insert({tag, tid});
     }
 
     // map enum tags to struc tids
@@ -159,7 +159,7 @@ Visitor::Visitor(StackMode smode)
     {
         const auto eid = getn_enum(i);
         const auto tag = enums::get_tag(eid);
-        tags_.insert({{tag.data, sizeof tag.data - 1}, eid});
+        tags_.insert({tag, eid});
     }
 
     // map local tags to ordinals
@@ -171,7 +171,7 @@ Visitor::Visitor(StackMode smode)
             continue;
 
         const auto tag = local_types::get_tag(type.name.c_str());
-        ords_.insert({{tag.data, sizeof tag.data - 1}, type.tif.get_ordinal()});
+        ords_.insert({tag, type.tif.get_ordinal()});
     }
 }
 
@@ -1367,10 +1367,10 @@ namespace
 
     enum_t get_enum_from_tag(Visitor& visitor, const Tag& tag)
     {
-        if(!*tag.data)
+        if(tag.empty())
             return BADADDR;
 
-        const auto it = visitor.tags_.find({tag.data, sizeof tag.data - 1});
+        const auto it = visitor.tags_.find(tag);
         if(it == visitor.tags_.end())
             return BADADDR;
 
@@ -1941,10 +1941,10 @@ namespace
 
     struc_t* get_struc_from_tag(const Visitor& visitor, const Tag& tag)
     {
-        if(!*tag.data)
+        if(tag.empty())
             return nullptr;
 
-        const auto it = visitor.tags_.find({tag.data, sizeof tag.data - 1});
+        const auto it = visitor.tags_.find(tag);
         if(it == visitor.tags_.end())
             return nullptr;
 
@@ -2023,10 +2023,10 @@ namespace
 
     uint32_t get_local_type_from_tag(const Visitor& visitor, const Tag& tag)
     {
-        if(!*tag.data)
+        if(tag.empty())
             return 0;
 
-        const auto it = visitor.ords_.find({tag.data, sizeof tag.data - 1});
+        const auto it = visitor.ords_.find(tag);
         if(it == visitor.ords_.end())
             return 0;
 
