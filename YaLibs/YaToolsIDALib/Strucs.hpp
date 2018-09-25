@@ -47,21 +47,33 @@ namespace strucs
     std::shared_ptr<IFilter> make_filter();
 }
 
+namespace enums
+{
+    YaToolObjectId  hash    (enum_t id);
+    Tag             get_tag (enum_t id);
+    void            rename  (const char* oldname, const char* newname);
+    Tag             remove  (enum_t id);
+    void            set_tag (enum_t id, const Tag& tag);
+    void            visit   (IModelVisitor& v, const char* name);
+    Tag             accept  (const HVersion& version);
+}
+
 namespace local_types
 {
     struct Type
     {
         tinfo_t tif;
         qstring name;
+        bool    ghost;
     };
     bool identify(Type* type, uint32_t ord);
 
-    YaToolObjectId  hash   (uint32_t ord);
-    YaToolObjectId  hash    (const char* name, Tag* tag);
+    YaToolObjectId  hash    (uint32_t ord);
+    YaToolObjectId  hash    (const char* name);
     Tag             get_tag (const char* name);
-    void            rename  (const char* oldname, const Tag& tag, const char* newname);
+    void            rename  (const char* oldname, const char* newname);
     Tag             remove  (const char* type);
     void            set_tag (const char* type, const Tag& tag);
-    void            visit   (IModelVisitor& v, const char* name);
+    void            visit   (IModelVisitor& v, const Type& type);
     Tag             accept  (const HVersion& hver);
 }

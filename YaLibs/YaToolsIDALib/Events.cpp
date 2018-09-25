@@ -83,8 +83,7 @@ namespace
     struct LocalTypeModel
     {
         using Types     = std::map<YaToolObjectId, local_types::Type>;
-        using Rename    = struct { qstring name; Tag tag; };
-        using Renames   = std::vector<Rename>;
+        using Renames   = std::vector<qstring>;
 
         Types   ids;
         Renames renames;
@@ -143,9 +142,8 @@ namespace
             if(!ok)
                 continue;
 
-            Tag tag;
-            const auto id = local_types::hash(type.name.c_str(), &tag);
-            m.renames[ord] = {type.name, tag};
+            const auto id = local_types::hash(type.name.c_str());
+            m.renames[ord] = type.name;
             m.ids.emplace(id, type);
         }
     }
@@ -156,11 +154,11 @@ namespace
             return;
 
         const auto old = m.renames[ord];
-        if(old.name.empty() || old.name == name)
+        if(old.empty() || old == name)
             return;
 
-        LOG(DEBUG, "local_type: renamed from %s to %s\n", old.name.c_str(), name.c_str());
-        local_types::rename(old.name.c_str(), old.tag, name.c_str());
+        LOG(DEBUG, "local_type: renamed from %s to %s\n", old.c_str(), name.c_str());
+        local_types::rename(old.c_str(), name.c_str());
     }
 
     template<typename T>
@@ -176,7 +174,7 @@ namespace
                 continue;
 
             try_rename_local_type(m, ord, type.name);
-            const auto id = local_types::hash(type.name.c_str(), nullptr);
+            const auto id = local_types::hash(type.name.c_str());
             const auto it = m.ids.find(id);
             const auto added = it == m.ids.end();
             const auto equal = !added
@@ -188,7 +186,8 @@ namespace
                 continue;
 
             LOG(DEBUG, "local_type: 0x%016" PRIx64 " %s %s\n", id, type.name.c_str(), added ? "added" : "updated");
-            update(id, type);
+            if(type.ghost)
+                update(id, type);
         }
 
         // remaining local types have been deleted
@@ -412,9 +411,7 @@ namespace
         if(parent_id != BADADDR)
             enum_id = parent_id;
 
-        const auto name = ev.qpool_.acquire();
-        ya::wrap(&::get_enum_name, *name, enum_id);
-        const auto id = hash::hash_enum(ya::to_string_ref(*name));
+        const auto id = enums::hash(enum_id);
         ev.enums_.emplace(id, enum_id);
         ya::walk_enum_members(enum_id, [&](const_t cid, uval_t /*value*/, uchar /*serial*/, bmask_t /*bmask*/)
         {
@@ -545,23 +542,21 @@ namespace
 
     void save_enums(Events& ev, IModelIncremental& model, IModelVisitor& visitor)
     {
-        const auto qbuf = ev.qpool_.acquire();
         for(const auto p : ev.enums_)
         {
             // on renames, as enum_id is still valid, we need to validate its id again
-            ya::wrap(&get_enum_name, *qbuf, p.second);
-            const auto id = hash::hash_enum(ya::to_string_ref(*qbuf));
+            const auto id = enums::hash(p.second);
             const auto idx = get_enum_idx(p.second);
             if(idx == BADADDR || id != p.first)
                 model.delete_version(visitor, OBJECT_TYPE_ENUM, p.first);
             else
                 model.accept_enum(visitor, p.second);
         }
+        const auto qbuf = ev.qpool_.acquire();
         for(const auto p : ev.enum_members_)
         {
             // on renames, we need to check both ids
-            ya::wrap(&get_enum_name, *qbuf, p.second.eid);
-            const auto parent_id = hash::hash_enum(ya::to_string_ref(*qbuf));
+            const auto parent_id = enums::hash(p.second.eid);
             ya::wrap(&::get_enum_member_name, *qbuf, p.second.mid);
             const auto id = hash::hash_enum_member(parent_id, ya::to_string_ref(*qbuf));
             const auto parent = get_enum_member_enum(p.second.mid);
@@ -655,6 +650,9 @@ namespace
 
     void save(Events& ev)
     {
+        LOG(DEBUG, "Updating local types...\n");
+        ev.touch_types();
+
         LOG(DEBUG, "Saving cache...\n");
         const auto time_start = std::chrono::system_clock::now();
 
@@ -844,6 +842,8 @@ namespace
                 case OBJECT_TYPE_STRUCT:
                 case OBJECT_TYPE_STRUCT_MEMBER:
                 case OBJECT_TYPE_LOCAL_TYPE:
+                case OBJECT_TYPE_ENUM:
+                case OBJECT_TYPE_ENUM_MEMBER:
                     break;
                 default:
                     return;

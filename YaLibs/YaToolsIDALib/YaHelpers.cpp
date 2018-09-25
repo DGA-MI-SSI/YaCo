@@ -98,7 +98,7 @@ namespace
 
         const auto struc = get_struc(subtid);
         if(!struc)
-            deps.emplace_back(OBJECT_TYPE_ENUM, hash::hash_enum(ya::to_string_ref(name)), subtid);
+            deps.emplace_back(OBJECT_TYPE_ENUM, enums::hash(subtid), subtid);
         else if(!struc->is_ghost())
             deps.emplace_back(OBJECT_TYPE_STRUCT, strucs::hash(subtid), subtid);
         else
@@ -132,7 +132,7 @@ namespace
         if(!ord)
             return;
 
-        const auto id = local_types::hash(subtype.c_str(), nullptr);
+        const auto id = local_types::hash(subtype.c_str());
         deps->emplace_back(OBJECT_TYPE_LOCAL_TYPE, id, ord);
     }
 

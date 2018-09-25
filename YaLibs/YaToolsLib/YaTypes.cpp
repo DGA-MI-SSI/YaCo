@@ -68,11 +68,11 @@ const char* get_object_type_string(YaToolObjectType_e object_type)
 const YaToolObjectType_e ordered_types[] =
 {
     OBJECT_TYPE_BINARY,
+    OBJECT_TYPE_LOCAL_TYPE,
     OBJECT_TYPE_STRUCT,
     OBJECT_TYPE_STRUCT_MEMBER,
     OBJECT_TYPE_ENUM,
     OBJECT_TYPE_ENUM_MEMBER,
-    OBJECT_TYPE_LOCAL_TYPE,
     OBJECT_TYPE_SEGMENT,
     OBJECT_TYPE_SEGMENT_CHUNK,
     OBJECT_TYPE_REFERENCE_INFO,

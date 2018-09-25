@@ -150,12 +150,16 @@ Visitor::Visitor(StackMode smode)
     for(auto idx = get_first_struc_idx(); idx != BADADDR; idx = get_next_struc_idx(idx))
     {
         const auto tid = get_struc_by_idx(idx);
-        const auto struc = get_struc(tid);
-        if(!struc)
-            continue;
-
         const auto tag = strucs::get_tag(tid);
         tags_.insert({{tag.data, sizeof tag.data - 1}, tid});
+    }
+
+    // map enum tags to struc tids
+    for(size_t i = 0, end = get_enum_qty(); i < end; ++i)
+    {
+        const auto eid = getn_enum(i);
+        const auto tag = enums::get_tag(eid);
+        tags_.insert({{tag.data, sizeof tag.data - 1}, eid});
     }
 
     // map local tags to ordinals
@@ -1361,43 +1365,59 @@ namespace
         return false;
     }
 
-    enum_t try_get_enum(const HVersion& version, const std::string& name)
+    enum_t get_enum_from_tag(Visitor& visitor, const Tag& tag)
     {
-        auto eid = get_enum(name.data());
+        if(!*tag.data)
+            return BADADDR;
+
+        const auto it = visitor.tags_.find({tag.data, sizeof tag.data - 1});
+        if(it == visitor.tags_.end())
+            return BADADDR;
+
+        const auto idx = get_enum_idx(it->second);
+        if(idx == BADADDR)
+            return BADADDR;
+
+        return it->second;
+    }
+
+    enum_t get_or_add_enum(Visitor& visitor, uint32_t flags, const Tag& tag, const char* name)
+    {
+        const auto eid = get_enum_from_tag(visitor, tag);
         if(eid != BADADDR)
             return eid;
 
-        // when renaming an enum, we delete the previous one
-        // in order to prevent orphan ordinals
-        // we try to retrieve the previous one
-        tinfo_t tif;
-        const auto ok = tif.get_numbered_type(nullptr, static_cast<uint32_t>(version.address()));
-        if(!ok)
-            return BADADDR;
+        return add_enum(~0u, name, flags);
+    }
 
-        qstring ename;
-        tif.get_type_name(&ename);
-        if(is_autosync(ename.c_str(), tif))
-            return BADADDR;
+    bool rename_enum(Visitor& visitor, enum_t eid, const std::string& name)
+    {
+        const auto old = visitor.qpool_.acquire();
+        ya::wrap(&get_enum_name, *old, eid);
+        if(ya::to_string_ref(*old) == make_string_ref(name))
+            return true;
 
-        return import_type(nullptr, -1, ename.c_str());
+        // remove outdated tag netnode
+        const auto tag = enums::remove(eid);
+        const auto renamed = set_enum_name(eid, name.data());
+        enums::set_tag(eid, tag);
+        return renamed;
     }
 
     void make_enum(Visitor& visitor, const HVersion& version, ea_t ea)
     {
-        const auto id = version.id();
-        const auto flags = version.flags();
+        const auto tag = enums::accept(version);
         const auto name = make_string(version.username());
-        auto eid = try_get_enum(version, name);
-        if(eid == BADADDR)
-            eid = add_enum(~0u, name.data(), flags & ~0x1);
+        const auto flags = version.flags();
+        const auto eid = get_or_add_enum(visitor, flags & ~0x1, tag, name.data());
         if(eid == BADADDR)
         {
-            LOG(ERROR, "make_enum: 0x%" PRIxEA " unable to create enum", ea);
+            LOG(ERROR, "make_enum: 0x%" PRIxEA " unable to create enum %s flags %x\n", ea, name.data(), flags);
             return;
         }
 
-        if(!set_enum_name(eid, name.data()))
+        const auto renamed = rename_enum(visitor, eid, name);
+        if(!renamed)
             LOG(ERROR, "make_enum: 0x%" PRIxEA " unable to set name %s\n", ea, name.data());
 
         if(!set_enum_bf(eid, flags & 0x1))
@@ -1416,6 +1436,7 @@ namespace
         }
 
         // remember our childs
+        const auto id = version.id();
         version.walk_xrefs([&](offset_t /*offset*/, operand_t /*operand*/, YaToolObjectId xref_id, const XrefAttributes* /*attrs*/)
         {
             visitor.members_.emplace(id, xref_id);
@@ -1943,6 +1964,7 @@ namespace
             LOG(ERROR, "make_struct: 0x%" PRIxEA " unable to add struct\n", ea);
             return nullptr;
         }
+
         return get_struc(sid);
     }
 
@@ -1988,6 +2010,14 @@ namespace
         }
 
         clear_struct_fields(visitor, "struct_fields", version, struc->id);
+
+        version.walk_attributes([&](const const_string_ref& key, const const_string_ref& attr)
+        {
+            if(key == make_string_ref("align"))
+                struc->set_alignment(to_int(make_string(attr).data()));
+            return WALK_CONTINUE;
+        });
+
         struc->set_ghost(false);
     }
 

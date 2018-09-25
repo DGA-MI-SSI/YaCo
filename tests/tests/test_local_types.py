@@ -168,6 +168,11 @@ idc.SetType(ea, "somename*")
             self.script(helpers + """
 rename_local_type("somename", "anothername")
 """),
+            # renames are catched only before saving
+            # so we will miss local type rename if
+            # we export type before saving
+            # fix it by saving manually
+            self.sync(),
             self.save_types(),
             self.save_last_ea(),
         )
@@ -215,6 +220,7 @@ idc.SetType(idc.get_member_id(frame.id, idc.get_member_offset(frame.id, "var_4")
             self.script(helpers + """
 rename_local_type("somelocal", "anotherlocal")
 """),
+            self.sync(),
             self.save_types(),
             self.save_last_ea(),
         )
@@ -228,6 +234,7 @@ rename_local_type("somelocal", "anotherlocal")
 sid = idaapi.get_struc_id("sometype")
 idaapi.set_struc_name(sid, "anothertype")
 """),
+            self.sync(),
             self.save_types(),
             self.save_last_ea(),
         )
@@ -236,4 +243,35 @@ idaapi.set_struc_name(sid, "anothertype")
         b.run(
             self.check_types(),
             self.check_last_ea(),
+        )
+
+    def test_local_type_upgrades(self):
+        a, b = self.setup_cmder()
+
+        a.run(
+            self.script(helpers + """
+create_local_type("somelocal", "struct { int a; };")
+create_local_type("anotherlocal", "enum { enum_x = 0xB, };")
+"""),
+            self.save_types(),
+        )
+        a.check_git(added=["local_type"] * 2)
+
+        b.run(
+            self.check_types(),
+            self.script("""
+ida_typeinf.import_type(ida_typeinf.get_idati(), -1, "somelocal")
+idaapi.set_member_name(idaapi.get_struc(idaapi.get_struc_id("somelocal")), 0, "somefield")
+ida_typeinf.import_type(ida_typeinf.get_idati(), -1, "anotherlocal")
+idaapi.set_enum_member_name(idaapi.get_enum_member_by_name("enum_x"), "enum_y")
+"""),
+            self.save_types(),
+        )
+        b.check_git(added=["struc", "strucmember", "enum", "enum_member"])
+
+        a.run(
+            self.check_types(),
+        )
+        b.run(
+            self.check_types(),
         )

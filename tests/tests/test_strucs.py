@@ -37,6 +37,7 @@ idaapi.set_struc_cmt(eid, "cmt_02", False)
 eid = idaapi.get_struc_id("name_a")
 idaapi.set_struc_name(eid, "name_b")
 """),
+            self.sync(),
             self.save_types(),
         )
         b.check_git(modified=["struc"])
@@ -367,7 +368,8 @@ idaapi.set_name(ea, "somesub")
 """),
             self.save_types(),
         )
-        a.check_git(added=["binary", "segment", "segment_chunk", "function", "basic_block"])
+        defgit = ["binary", "segment", "segment_chunk", "function", "basic_block"]
+        a.check_git(added=defgit)
         types = self.types
 
         # create a conflicting struc
@@ -378,18 +380,14 @@ sid = idaapi.add_struc(-1, "somename", False)
 idc.add_struc_member(sid, 'field_b', 0, ida_bytes.dword_flag(), -1, 4)
 """),
             self.sync(),
-            self.script("""
-ea = 0x401E07
-idaapi.set_name(ea, "anothersub")
-"""),
         )
-        b.check_git(modified=["basic_block"])
+        b.check_git(added=defgit)
 
         self.types = types
         b.run(
             self.check_types(),
         )
-        b.check_git(modified=["basic_block"])
+        b.check_git(added=defgit)
 
     def test_potential_struc_conflict(self):
         a, b = self.setup_cmder()

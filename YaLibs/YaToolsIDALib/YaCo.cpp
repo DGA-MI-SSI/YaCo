@@ -208,6 +208,7 @@ void YaCo::initial_load()
     const auto mem = MakeMemoryModel();
     AcceptXmlCache(*mem, repo_->get_cache());
     MakeIdaSink()->update(*mem);
+    events_->touch_types();
 
     const auto time_end = std::chrono::system_clock::now();
     const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(time_end - time_start).count();

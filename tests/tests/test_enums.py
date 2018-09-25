@@ -32,12 +32,16 @@ class Fixture(runtests.Fixture):
             self.script("idaapi.set_enum_name(idaapi.get_enum('name_a'), 'name_b')"),
             self.save_types(),
         )
-        b.check_git(added=["enum"], deleted=["enum"])
+        b.check_git(modified=["enum"])
         a.run(
             self.check_types(),
             self.script("idaapi.del_enum(idaapi.get_enum('name_b'))"),
+            self.save_types(),
         )
         a.check_git(deleted=["enum"])
+        b.run(
+            self.check_types(),
+        )
 
     def test_enum_members(self):
         a, b = self.setup_repos()
@@ -57,7 +61,7 @@ class Fixture(runtests.Fixture):
             self.script("idaapi.set_enum_name(idaapi.get_enum('name_a'), 'name_b')"),
             self.save_types(),
         )
-        a.check_git(added=["enum", "enum_member"], deleted=["enum", "enum_member"])
+        a.check_git(modified=["enum"])
         b.run(
             self.check_types(),
             self.script("idaapi.del_enum_member(idaapi.get_enum('name_b'), 0, 0, -1)"),
@@ -202,5 +206,114 @@ for (flags, bits, bitfield, ea, operand, fields) in enums:
         )
         a.check_git(modified=["enum"])
         b.run(
+            self.check_types(),
+        )
+
+    def test_renamed_enums_are_still_applied(self):
+        a, b = self.setup_cmder()
+
+        a.run(
+            self.script("""
+eid = idaapi.add_enum(idaapi.BADADDR, "somename", idaapi.hexflag())
+idaapi.add_enum_member(eid, "somevalue", 0x8)
+idaapi.add_enum_member(eid, "anothervalue", 0x18)
+"""),
+            self.sync(),
+            self.script("""
+eid = idaapi.get_enum("somename")
+ea = 0x40199D
+idaapi.op_enum(ea, 0, eid, 0)
+ea = 0x4019BE
+idaapi.op_enum(ea, 1, eid, 0)
+"""),
+            self.save_types(),
+            self.save_ea(0x40199D),
+            self.save_ea(0x4019BE),
+        )
+        a.check_git(added=["binary", "segment", "segment_chunk", "function"] + ["basic_block"] * 2)
+
+        b.run(
+            self.check_types(),
+            self.check_ea(0x40199D),
+            self.check_ea(0x4019BE),
+            self.script("""
+idaapi.set_enum_name(idaapi.get_enum("somename"), "anothername")
+"""),
+            self.save_types(),
+            self.save_ea(0x40199D),
+            self.save_ea(0x4019BE),
+        )
+        b.check_git(modified=["enum"])
+
+        a.run(
+            self.check_types(),
+            self.check_ea(0x40199D),
+            self.check_ea(0x4019BE),
+        )
+
+    def test_create_same_enum_independently(self):
+        a, b = self.setup_cmder()
+
+        a.run(
+            self.script("""
+eid = idaapi.add_enum(idaapi.BADADDR, "somename", idaapi.hexflag())
+idaapi.add_enum_member(eid, "somevalue", 0x4)
+"""),
+            # create an arbitrary commit which should stay
+            # as the last commit in history
+            self.sync(),
+            self.script("""
+ea = 0x401E07
+idaapi.set_name(ea, "somesub")
+"""),
+            self.save_types(),
+        )
+        defgit = ["binary", "segment", "segment_chunk", "function", "basic_block"]
+        a.check_git(added=defgit)
+        types = self.types
+
+        # create a conflicting enum
+        # it should be removed from history
+        b.run_no_sync(
+            self.script("""
+eid = idaapi.add_enum(idaapi.BADADDR, "somename", idaapi.hexflag())
+idaapi.add_enum_member(eid, "somevalue", 0x4)
+"""),
+            self.sync(),
+        )
+        b.check_git(added=defgit)
+
+        self.types = types
+        b.run(
+            self.check_types(),
+        )
+        b.check_git(added=defgit)
+
+    def test_potential_enum_conflict(self):
+        a, b = self.setup_cmder()
+
+        a.run(
+            self.script("""
+idaapi.add_enum(idaapi.BADADDR, "someenum", idaapi.hexflag())
+"""),
+            # now remove potentially conflicting commit
+            self.sync(),
+            self.script("""
+idaapi.del_enum(idaapi.get_enum("someenum"))
+"""),
+        )
+        a.check_git(deleted=["enum"])
+
+        # create a potentially conflicting enum
+        b.run_no_sync(
+            self.script("""
+idaapi.add_enum(idaapi.BADADDR, "someenum", idaapi.hexflag())
+"""),
+            self.sync(),
+            self.save_types(),
+        )
+        b.check_git(added=["enum"])
+
+        a.run(
             self.check_types(),
         )

@@ -38,6 +38,12 @@ namespace
         return std::string("$yaco_struc_") + struc_name;
     }
 
+    std::string get_enum_netnode_name(const char* enum_name)
+    {
+        // mandatory $ prefix for user netnodes
+        return std::string("$yaco_enum_") + enum_name;
+    }
+
     std::string get_local_netnode_name(const char* local_name)
     {
         // mandatory $ prefix for user netnodes
@@ -61,12 +67,12 @@ namespace
         return {tag.data, sizeof tag.data - 1};
     }
 
-    template<std::string(*get_name)(const char*), YaToolObjectId(*hash)(const const_string_ref&)>
-    Reply hash_to_node(const char* struc_name)
+    template<std::string(*get_nodename)(const char*), YaToolObjectId(*hash)(const const_string_ref&)>
+    Reply hash_to_node(const char* name)
     {
-        const auto name = get_name(struc_name);
+        const auto nodename = get_nodename(name);
         netnode node;
-        const auto created = node.create(name.data(), name.size());
+        const auto created = node.create(nodename.data(), nodename.size());
         Tag tag;
         if(created)
         {
@@ -88,16 +94,28 @@ namespace
         return hash_to_node<&get_struc_netnode_name, &hash::hash_struc>(struc_name);
     }
 
+    Reply hash_enum(const char* enum_name)
+    {
+        return hash_to_node<&get_enum_netnode_name, &hash::hash_enum>(enum_name);
+    }
+
     Reply hash_local(const char* local_name)
     {
         return hash_to_node<&get_local_netnode_name, &hash::hash_local_type>(local_name);
     }
 
-    Reply hash_with(ea_t id)
+    Reply hash_with_struc(ea_t id)
     {
         qstring qbuf;
         ya::wrap(&get_struc_name, qbuf, id);
         return hash_struc(qbuf.c_str());
+    }
+
+    Reply hash_with_enum(enum_t id)
+    {
+        qstring qbuf;
+        ya::wrap(&get_enum_name, qbuf, id);
+        return hash_enum(qbuf.c_str());
     }
 
     void create_node_from(const std::string& name, const Tag& tag)
@@ -121,33 +139,41 @@ namespace
         });
         return tag;
     }
+
+    template<Reply (*hash)(const char*), std::string (*get_name)(const char*)>
+    void rename_with(const char* oldname, const char* newname)
+    {
+        if(!oldname)
+            return;
+
+        auto node = hash(oldname).node;
+        const auto newnodename = get_name(newname);
+        netnode next(newnodename.data(), newnodename.size(), false);
+        next.kill();
+        node.rename(newnodename.data(), newnodename.size());
+    }
 }
 
 namespace strucs
 {
     YaToolObjectId hash(ea_t id)
     {
-        return hash_with(id).id;
+        return hash_with_struc(id).id;
     }
 
     Tag get_tag(ea_t id)
     {
-        return hash_with(id).tag;
+        return hash_with_struc(id).tag;
     }
 
     void rename(const char* oldname, const char* newname)
     {
-        if(!oldname)
-            return;
-
-        auto node = hash_struc(oldname).node;
-        const auto newnodename = get_struc_netnode_name(newname);
-        node.rename(newnodename.data(), newnodename.size());
+        rename_with<&hash_struc, &get_struc_netnode_name>(oldname, newname);
     }
 
     Tag remove(ea_t id)
     {
-        auto r = hash_with(id);
+        auto r = hash_with_struc(id);
         r.node.kill();
         return r.tag;
     }
@@ -180,6 +206,58 @@ namespace strucs
     }
 }
 
+namespace enums
+{
+    YaToolObjectId hash(enum_t id)
+    {
+        return hash_with_enum(id).id;
+    }
+
+    Tag get_tag(enum_t id)
+    {
+        return hash_with_enum(id).tag;
+    }
+
+    void rename(const char* oldname, const char* newname)
+    {
+        rename_with<&hash_enum, &get_enum_netnode_name>(oldname, newname);
+    }
+
+    Tag remove(enum_t id)
+    {
+        auto r = hash_with_enum(id);
+        r.node.kill();
+        return r.tag;
+    }
+
+    void set_tag_with(const char* name, const Tag& tag)
+    {
+        create_node_from(get_enum_netnode_name(name), tag);
+    }
+
+    void set_tag(enum_t id, const Tag& tag)
+    {
+        qstring qbuf;
+        ya::wrap(&get_enum_name, qbuf, id);
+        set_tag_with(qbuf.c_str(), tag);
+    }
+
+    void visit(IModelVisitor& v, const char* name)
+    {
+        const auto tag = hash_enum(name).tag;
+        v.visit_attribute(make_string_ref("tag"), {tag.data, sizeof tag.data - 1});
+    }
+
+    Tag accept(const HVersion& version)
+    {
+        bool found = false;
+        const auto tag = get_tag_from_version(version, found);
+        if(found)
+            set_tag_with(version.username().value, tag);
+        return tag;
+    }
+}
+
 namespace local_types
 {
     bool identify(Type* type, uint32_t ord)
@@ -195,26 +273,27 @@ namespace local_types
             return false;
 
         const auto eid = get_enum(type->name.c_str());
+        type->ghost = eid == BADADDR;
         if(eid != BADADDR)
-            return false;
+            return true;
 
         const auto sid = get_struc_id(type->name.c_str());
+        type->ghost = sid == BADADDR;
         if(sid == BADADDR)
             return true;
 
         const auto struc = get_struc(sid);
+        type->ghost = !!struc;
         if(!struc)
             return true;
 
-        return struc->is_ghost();
+        type->ghost = struc->is_ghost();
+        return true;
     }
 
-    YaToolObjectId hash(const char* name, Tag* tag)
+    YaToolObjectId hash(const char* name)
     {
-        const auto r = hash_local(name);
-        if(tag)
-            memcpy(tag, &r.tag, sizeof *tag);
-        return r.id;
+        return hash_local(name).id;
     }
 
     YaToolObjectId hash(uint32_t ord)
@@ -224,7 +303,7 @@ namespace local_types
         if(!ok)
             return 0;
 
-        return hash(type.name.c_str(), nullptr);
+        return hash(type.name.c_str());
     }
 
     Tag get_tag(const char* name)
@@ -232,15 +311,9 @@ namespace local_types
         return hash_local(name).tag;
     }
 
-    void rename(const char* oldname, const Tag& tag, const char* newname)
+    void rename(const char* oldname, const char* newname)
     {
-        if(!oldname)
-            return;
-
-        auto node = hash_local(oldname).node;
-        set_tag(oldname, tag);
-        const auto newnodename = get_local_netnode_name(newname);
-        node.rename(newnodename.data(), newnodename.size());
+        rename_with<&hash_local, &get_local_netnode_name>(oldname, newname);
     }
 
     Tag remove(const char* name)
@@ -255,9 +328,9 @@ namespace local_types
         create_node_from(get_local_netnode_name(name), tag);
     }
 
-    void visit(IModelVisitor& v, const char* name)
+    void visit(IModelVisitor& v, const Type& type)
     {
-        const auto r = hash_local(name);
+        const auto r = hash_local(type.name.c_str());
         v.visit_attribute(make_string_ref("tag"), {r.tag.data, sizeof r.tag.data - 1});
     }
 
@@ -282,6 +355,7 @@ namespace
         YaToolObjectId is_valid(const HVersion& version) override;
 
         Tags    strucs_;
+        Tags    enums_;
         Tags    locals_;
         Members members_;
     };
@@ -316,10 +390,24 @@ namespace
         return check_version<hash::hash_struc>(tags, version);
     }
 
+    YaToolObjectId check_enum_version(Tags& tags, const HVersion& version)
+    {
+        return check_version<hash::hash_enum>(tags, version);
+    }
+
     YaToolObjectId check_struc(Filter& f, const HVersion& version)
     {
         const auto old = version.id();
         const auto id = check_struc_version(f.strucs_, version);
+        if(old != id)
+            f.members_.emplace(old, id);
+        return id;
+    }
+
+    YaToolObjectId check_enum(Filter& f, const HVersion& version)
+    {
+        const auto old = version.id();
+        const auto id = check_enum_version(f.enums_, version);
         if(old != id)
             f.members_.emplace(old, id);
         return id;
@@ -334,6 +422,17 @@ namespace
             return old;
 
         return hash::hash_member(it->second, version.address());
+    }
+
+    YaToolObjectId check_enum_member(Filter& f, const HVersion& version)
+    {
+        const auto old = version.id();
+        const auto parent = version.parent_id();
+        const auto it = f.members_.find(parent);
+        if(it == f.members_.end())
+            return old;
+
+        return hash::hash_enum_member(it->second, version.username());
     }
 
     YaToolObjectId check_local_type(Filter& f, const HVersion& version)
@@ -359,6 +458,12 @@ YaToolObjectId Filter::is_valid(const HVersion& version)
 
         case OBJECT_TYPE_STRUCT_MEMBER:
             return check_member(*this, version);
+
+        case OBJECT_TYPE_ENUM:
+            return check_enum(*this, version);
+
+        case OBJECT_TYPE_ENUM_MEMBER:
+            return check_enum_member(*this, version);
 
         case OBJECT_TYPE_LOCAL_TYPE:
             return check_local_type(*this, version);

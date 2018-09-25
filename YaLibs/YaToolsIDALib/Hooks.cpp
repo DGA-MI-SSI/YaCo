@@ -369,10 +369,9 @@ namespace
         LOG_IDB_EVENT("determined_main: 0x%" PRIXEA, ea);
     }
 
-    void local_types_changed(Hooks& hooks, va_list /*args*/)
+    void local_types_changed(Hooks& /*hooks*/, va_list /*args*/)
     {
         LOG_IDB_EVENT("local_types_changed");
-        hooks.events_.touch_types();
     }
 
     void extlang_changed(Hooks& /*hooks*/, va_list args)
@@ -502,6 +501,7 @@ namespace
     {
         const auto id = va_arg(args, enum_t);
         LOG_IDB_EVENT("enum_deleted: %s", get_name(id).c_str());
+        enums::remove(id);
     }
 
     void renaming_enum(Hooks& hooks, va_list args)
@@ -509,16 +509,20 @@ namespace
         const auto id       = va_arg(args, tid_t);
         const auto is_enum  = static_cast<bool>(va_arg(args, int));
         const auto newname  = va_arg(args, const char*);
-        UNUSED(is_enum);
         LOG_IDB_EVENT("renaming_enum: %s:%s", get_name(id).c_str(), newname);
         hooks.events_.touch_enum(id);
+        if(!is_enum)
+            return;
+
+        qstring old;
+        ya::wrap(&get_enum_name, old, id);
+        enums::rename(old.c_str(), newname);
     }
 
-    void enum_renamed(Hooks& hooks, va_list args)
+    void enum_renamed(Hooks& /*hooks*/, va_list args)
     {
         const auto id = va_arg(args, tid_t);
         LOG_IDB_EVENT("enum_renamed: %s", get_name(id).c_str());
-        hooks.events_.touch_enum(id);
     }
 
     void changing_enum_bf(Hooks& hooks, va_list args)

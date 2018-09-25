@@ -140,6 +140,7 @@ namespace
     DECLARE_STRINGER(str_ushort, "%hd", ushort)
     DECLARE_STRINGER(str_bgcolor, "%u", bgcolor_t)
     DECLARE_STRINGER(str_color, "0x%x", bgcolor_t)
+    DECLARE_STRINGER(str_int, "%d", int)
 
 #undef DECLARE_STRINGER
 
@@ -285,14 +286,14 @@ namespace
         if(is_ghost_enum(eid))
             return;
 
-        const auto enum_name = ctx.qpool_.acquire();
-        ya::wrap(&get_enum_name, *enum_name, eid);
-        const auto id = hash::hash_enum(ya::to_string_ref(*enum_name));
+        const auto id = enums::hash(eid);
         if(ctx.skip_id(id, OBJECT_TYPE_ENUM))
             return;
 
         start_object(v, OBJECT_TYPE_ENUM, id, 0, 0);
         v.visit_size(get_enum_width(eid));
+        const auto enum_name = ctx.qpool_.acquire();
+        ya::wrap(&get_enum_name, *enum_name, eid);
         v.visit_name(ya::to_string_ref(*enum_name), DEFAULT_NAME_FLAGS);
         const auto flags = get_enum_flag(eid);
         const auto bitfield = static_cast<flags_t>(!!is_bf(eid));
@@ -315,7 +316,7 @@ namespace
             members.push_back({member_id, const_id, value, bmask});
         });
         v.visit_end_xrefs();
-
+        enums::visit(v, enum_name->c_str());
         finish_object(v);
 
         for(const auto& it : members)
@@ -602,9 +603,9 @@ namespace
         v.visit_end_xrefs();
 
         // add custom frame attributes
+        char buf[64];
         if(func)
         {
-            char buf[64];
             const auto int_to_ref = [&](uint64_t value)
             {
                 const auto n = snprintf(buf, sizeof buf, "0x%0" EA_SIZE PRIXEA, (ea_t) value);
@@ -614,6 +615,7 @@ namespace
             v.visit_attribute(g_stack_regvars,  int_to_ref(func->frregs));
             v.visit_attribute(g_stack_args,     int_to_ref(func->argsize));
         }
+        v.visit_attribute(make_string_ref("align"), str_int(buf, sizeof buf, struc->get_alignment()));
         if(!func)
             strucs::visit(v, name->c_str());
 
@@ -634,7 +636,7 @@ namespace
         if(!ok)
             return;
 
-        const auto id = local_types::hash(type.name.c_str(), nullptr);
+        const auto id = local_types::hash(type.name.c_str());
         if(ctx.skip_id(id, OBJECT_TYPE_LOCAL_TYPE))
             return;
 
@@ -655,7 +657,7 @@ namespace
             v.visit_prototype(ya::to_string_ref(*prototype));
 
         LOG(DEBUG, "local_type: name: %s size: %zd type: %s\n", name->c_str(), size, prototype->c_str());
-        local_types::visit(v, type.name.c_str());
+        local_types::visit(v, type);
         finish_object(v);
     }
 
@@ -1170,10 +1172,16 @@ namespace
         if(!ok)
             return;
 
-        const auto qbuf = ctx.qpool_.acquire();
-        ya::wrap(&get_enum_name, *qbuf, pop->ec.tid);
-        const auto xid = hash::hash_enum(ya::to_string_ref(*qbuf));
-        deps->emplace_back(OBJECT_TYPE_ENUM, xid, pop->ec.tid);
+        const auto eid = pop->ec.tid;
+        if(eid == BADADDR)
+            return;
+
+        const auto idx = get_enum_idx(eid);
+        if(idx == BADADDR)
+            return;
+
+        const auto xid = enums::hash(eid);
+        deps->emplace_back(OBJECT_TYPE_ENUM, xid, eid);
         ctx.xrefs_.push_back({ea - root, xid, opidx, 0});
     }
 
@@ -1992,7 +2000,8 @@ namespace
         qstring name;
         qstring type;
         std::set<std::string> names;
-        for(uint32_t ord = 1; ord < ya::get_ordinal_qty(); ++ord)
+        const auto end = ya::get_ordinal_qty();
+        for(uint32_t ord = 1; ord < end; ++ord)
         {
             tinfo_t tif;
             auto ok = tif.get_numbered_type(nullptr, ord);
@@ -2004,7 +2013,6 @@ namespace
                 continue;
 
             std::string reply = name.c_str();
-
             reply += ": ";
             ok = tif.print(&type, nullptr, PRTYPE_DEF | PRTYPE_MULTI, 4);
             if(ok)
@@ -2012,7 +2020,7 @@ namespace
             names.insert(reply);
         }
 
-        std::string reply;
+        std::string reply = "ordinals: " + std::to_string(end) + "\n";
         for(const auto& it : names)
             reply += it + "\n";
         return reply;

@@ -55,7 +55,6 @@ namespace
         const auto ok = del_struc(struc);
         if(!ok)
             LOG(ERROR, "unable to delete struc '%s'\n", name.data());
-        delete_local_type_from(ord, name.data());
     }
 
     void delete_local_type(const HVersion& hver)
@@ -76,8 +75,8 @@ namespace
         }
 
         const auto ord = get_enum_type_ordinal(eid);
+        enums::remove(eid);
         del_enum(eid);
-        delete_local_type_from(ord, name.data());
     }
 
     void delete_enum_member(const HVersion& hver)
