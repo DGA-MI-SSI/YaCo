@@ -1383,7 +1383,11 @@ namespace
 
     enum_t get_or_add_enum(Visitor& visitor, uint32_t flags, const Tag& tag, const char* name)
     {
-        const auto eid = get_enum_from_tag(visitor, tag);
+        auto eid = get_enum_from_tag(visitor, tag);
+        if(eid != BADADDR)
+            return eid;
+
+        eid = get_enum(name);
         if(eid != BADADDR)
             return eid;
 
@@ -1957,8 +1961,12 @@ namespace
         if(struc)
             return struc;
 
+        auto sid = get_struc_id(name);
+        if(sid != BADADDR)
+            return get_struc(sid);
+
         const auto is_union = !!(version.flags() & 1); // fixme use constant
-        const auto sid = add_struc(BADADDR, name, is_union);
+        sid = add_struc(BADADDR, name, is_union);
         if(sid == BADADDR)
         {
             LOG(ERROR, "make_struct: 0x%" PRIxEA " unable to add struct\n", ea);
