@@ -88,7 +88,8 @@ yaco_plugin.start()
         return runtests.sysexec(self.yaco_dir, ["git", "describe", "--long", "--dirty"]).strip()
 
     # 2.2-14: struc ids now depend on random tag
-    min_valid_version = "v2.2-14-g00000000"
+    # 2.5: enum ids now depend on random tag
+    min_valid_version = "v2.5-g00000000"
 
     def test_git_upgrade_version(self):
         a, b = self.setup_cmder()

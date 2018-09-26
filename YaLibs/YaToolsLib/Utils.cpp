@@ -129,7 +129,11 @@ namespace ver
             return INVALID;
 
         const auto change_struc_ids = 0x0202000E;
+        const auto change_enum_ids  = 0x02050000;
         if(curr_ver >= change_struc_ids && repo_ver < change_struc_ids)
+            return INCOMPATIBLE;
+
+        if(curr_ver >= change_enum_ids && repo_ver < change_enum_ids)
             return INCOMPATIBLE;
 
         if(repo_ver < curr_ver)
