@@ -50,7 +50,6 @@ namespace
             LOG(ERROR, "unable to delete missing struc '%s'\n", name.data());
             return;
         }
-        const auto ord = struc->ordinal;
         strucs::remove(struc->id);
         const auto ok = del_struc(struc);
         if(!ok)
@@ -74,7 +73,6 @@ namespace
             return;
         }
 
-        const auto ord = get_enum_type_ordinal(eid);
         enums::remove(eid);
         del_enum(eid);
     }
