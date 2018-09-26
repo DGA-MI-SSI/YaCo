@@ -2106,10 +2106,23 @@ namespace
         return renamed == TERR_OK;
     }
 
+    bool skip_full_type(const std::string& name)
+    {
+        const auto eid = get_enum(name.data());
+        if(eid != BADADDR)
+            return true;
+
+        const auto sid = get_struc_id(name.data());
+        return sid != BADADDR;
+    }
+
     void make_local_type(Visitor& visitor, const HVersion& version)
     {
-        const auto tag = local_types::accept(version);
         const auto name = make_string(version.username());
+        if(skip_full_type(name))
+            return;
+
+        const auto tag = local_types::accept(version);
         auto tif = get_or_add_local_type(visitor, version, tag, name);
         if(tif.empty())
             return;
