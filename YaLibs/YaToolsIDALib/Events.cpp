@@ -148,23 +148,31 @@ namespace
         }
     }
 
-    void try_rename_local_type(LocalTypeModel& m, uint32_t ord, const qstring& name)
+    using Rename = struct
+    {
+        qstring old;
+        qstring name;
+    };
+    using Renames = std::vector<Rename>;
+
+    const qstring& try_rename_local_type(Renames& r, LocalTypeModel& m, uint32_t ord, const qstring& name)
     {
         if(ord >= m.renames.size())
-            return;
+            return name;
 
-        const auto old = m.renames[ord];
+        const auto& old = m.renames[ord];
         if(old.empty() || old == name)
-            return;
+            return name;
 
-        LOG(DEBUG, "local_type: renamed from %s to %s\n", old.c_str(), name.c_str());
-        local_types::rename(old.c_str(), name.c_str());
+        r.push_back({old, name});
+        return old;
     }
 
     template<typename T>
     void diff_local_types(LocalTypeModel& m, const T& update)
     {
         // find deleted, added & renamed types
+        Renames renames;
         const auto end = ya::get_ordinal_qty();
         for(uint32_t ord = 1; ord < end; ++ord)
         {
@@ -173,12 +181,12 @@ namespace
             if(!ok)
                 continue;
 
-            try_rename_local_type(m, ord, type.name);
-            const auto id = local_types::hash(type.name.c_str());
+            const auto name = try_rename_local_type(renames, m, ord, type.name);
+            const auto id = local_types::hash(name.c_str());
             const auto it = m.ids.find(id);
             const auto added = it == m.ids.end();
             const auto equal = !added
-                            && it->second.name == type.name
+                            && it->second.name == type.name // we need to check latest name
                             && it->second.tif.equals_to(type.tif);
             if(!added)
                 m.ids.erase(it);
@@ -196,6 +204,14 @@ namespace
             LOG(DEBUG, "local_type: deleted 0x%016" PRIx64 " %s\n", it.first, it.second.name.c_str());
             update(it.first, it.second);
             local_types::remove(it.second.name.c_str());
+        }
+
+        // we need to apply renames *after* deletions
+        // or we can delete our freshly renamed type
+        for(const auto& r : renames)
+        {
+            LOG(DEBUG, "local_type: renamed from %s to %s\n", r.old.c_str(), r.name.c_str());
+            local_types::rename(r.old.c_str(), r.name.c_str());
         }
     }
 }

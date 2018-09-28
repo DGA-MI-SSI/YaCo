@@ -30,6 +30,12 @@ def rename_local_type(oldname, newname):
     strtype = tif._print("", ida_typeinf.PRTYPE_DEF)
     ida_typeinf.parse_decl(tif, None, strtype + ";", 0)
     tif.set_numbered_type(None, ord, ida_typeinf.NTF_REPLACE, newname)
+
+def delete_local_type(name):
+    tif = ida_typeinf.tinfo_t()
+    tif.get_named_type(None, name)
+    ord = tif.get_ordinal()
+    ida_typeinf.del_numbered_type(None, ord)
 """
 
 class Fixture(runtests.Fixture):
@@ -273,5 +279,59 @@ idaapi.set_enum_member_name(idaapi.get_enum_member_by_name("enum_x"), "enum_y")
             self.check_types(),
         )
         b.run(
+            self.check_types(),
+        )
+
+    def test_local_type_rename_conflict(self):
+        a, b = self.setup_cmder()
+
+        a.run(
+            self.script(helpers + """
+create_local_type("somelocal", "struct { int a; };")
+sid = idaapi.add_struc(-1, "sometype", False)
+idc.add_struc_member(sid, "dat", 0, ida_bytes.dword_flag(), -1, 4)
+"""),
+            self.save_types(),
+        )
+        a.check_git(added=["local_type", "struc", "strucmember"])
+
+        b.run(
+            self.check_types(),
+            self.script(helpers + """
+delete_local_type("somelocal")
+sid = idaapi.get_struc_id("sometype")
+idaapi.set_struc_name(sid, "somelocal")
+"""),
+            self.save_types(),
+        )
+        b.check_git(deleted=["local_type"], modified=["struc"])
+
+        a.run(
+            self.check_types(),
+        )
+
+    def test_local_types_missing_rename(self):
+        a, b = self.setup_cmder()
+
+        a.run(
+            self.script(helpers + """
+create_local_type("somelocal", "struct { int a; };")
+create_local_type("anotherlocal", "struct { int b; };")
+"""),
+            self.save_types(),
+        )
+        a.check_git(added=["local_type"] * 2)
+
+        b.run(
+            self.check_types(),
+            self.script(helpers + """
+delete_local_type("somelocal")
+rename_local_type("anotherlocal", "somelocal")
+"""),
+            self.save_types(),
+        )
+        b.check_git(deleted=["local_type"], modified=["local_type"])
+
+        a.run(
             self.check_types(),
         )
