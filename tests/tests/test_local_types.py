@@ -335,3 +335,29 @@ rename_local_type("anotherlocal", "somelocal")
         a.run(
             self.check_types(),
         )
+
+    def test_local_type_overwrite(self):
+        a, b = self.setup_cmder()
+
+        a.run(
+            self.script(helpers + """
+create_local_type("a", "struct { int a; };")
+"""),
+        )
+        a.check_git(added=["local_type"])
+
+        b.run(
+            self.script(helpers + """
+sid = idaapi.add_struc(-1, "b", False)
+idc.add_struc_member(sid, "dat", 0, ida_bytes.dword_flag(), -1, 4)
+delete_local_type("a")
+idaapi.set_struc_name(sid, "a")
+"""),
+            self.save_types(),
+        )
+        b.check_git(added=["struc", "strucmember"])
+
+        self.types[1] = self.types[1].replace("ordinals: 78", "ordinals: 77") # FIXME
+        a.run(
+            self.check_types(),
+        )
