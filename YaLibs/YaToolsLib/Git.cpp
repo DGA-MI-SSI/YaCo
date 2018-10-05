@@ -884,9 +884,9 @@ bool Git::status(const std::string& path, const on_status_fn& on_status)
     {
         Payload& p = *static_cast<Payload*>(payload);
         Git::Status status;
-        status.deleted      = flags & GIT_STATUS_WT_DELETED;
-        status.modified     = flags & GIT_STATUS_WT_MODIFIED;
-        status.untracked    = flags & (GIT_STATUS_WT_NEW | GIT_STATUS_IGNORED);
+        status.deleted      = (flags & GIT_STATUS_WT_DELETED ) != 0;
+        status.modified     = (flags & GIT_STATUS_WT_MODIFIED) != 0;
+        status.untracked    = (flags & (GIT_STATUS_WT_NEW | GIT_STATUS_IGNORED)) != 0;
         p.on_status(path, status);
         return 0;
     };
