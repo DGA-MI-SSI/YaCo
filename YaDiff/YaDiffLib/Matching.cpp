@@ -411,8 +411,8 @@ public:
     		else
     		{
 				//Check if we have another strong relation : in this case, we should downgrade it to weak
-				std::set<relation_idx_t> other_relations_v1 = GetAllRelationsDB1(relation.version1_, RELATION_TYPE_STRONG_MATCH);
-				std::set<relation_idx_t> other_relations_v2 = GetAllRelationsDB2(relation.version2_, RELATION_TYPE_STRONG_MATCH);
+				other_relations_v1 = GetAllRelationsDB1(relation.version1_, RELATION_TYPE_STRONG_MATCH);
+				other_relations_v2 = GetAllRelationsDB2(relation.version2_, RELATION_TYPE_STRONG_MATCH);
 				if(other_relations_v1.size() > 1 || other_relations_v2.size() > 1)
 				{
 					std::set<relation_idx_t> all_others;
