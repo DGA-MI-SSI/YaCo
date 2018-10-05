@@ -13,9 +13,7 @@ import uuid
 import shutil
 import traceback
 import collections
-import lzma
-from _lzma import PRESET_EXTREME
-from posix import unlink
+from os import unlink
 from multiprocessing import Queue
 
 IDLE_PRIORITY_CLASS = 0x00000040
@@ -303,6 +301,11 @@ def create_vector_file(ctx, options, yadb, vector_file_path, vect_compress):
     return vector_file_path
 
 def compress_vector_file(ctx, vector_file_path, vect_compress=None):
+    """ Compress vector files (that have a low entropy) with lzma algo
+    """
+    import lzma
+    from _lzma import PRESET_EXTREME
+
     if not os.path.exists(vector_file_path):
         return None
     
