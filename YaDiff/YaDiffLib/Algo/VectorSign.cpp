@@ -231,7 +231,7 @@ void VectorSignAlgo::GetAllFunctionRelation(const yadiff::OnAddRelationFn& outpu
     for (const auto& it : vectorGroups1)
     {
         // distance to closest
-        double          closestDistance = std::numeric_limits<double>::max();
+        yadiff::vector_value          closestDistance = std::numeric_limits<yadiff::vector_value>::max();
         YaToolObjectId  closestId       = 0;
         auto&           fctSign         = vectorSignDatabase1.functionSignatureMap[it.first];
 
@@ -336,8 +336,8 @@ bool VectorSignAlgo::ControlFlowGraphHorizontalWalk(const HVersion& fctVersion, 
 
     // TODO Get height min
     function_data.cfg.height = *std::max_element(height_vector.begin(), height_vector.end()) + 1;
-    double height_mean = static_cast<double>(function_data.cfg.height) / height_vector.size();
-    function_data.cfg.height_disp =  yadiff::GetVariance(height_vector, height_mean);
+    yadiff::vector_value height_mean = static_cast<yadiff::vector_value>(function_data.cfg.height) / height_vector.size();
+    function_data.cfg.height_disp =  yadiff::GetVariance_Int(height_vector, height_mean);
 
 
     // Get the max width  and the mean width
@@ -350,8 +350,8 @@ bool VectorSignAlgo::ControlFlowGraphHorizontalWalk(const HVersion& fctVersion, 
     }
 
     // Get the width dispersion
-    double meanWidth        = static_cast<double>(summedWidth) / equiLevelMap.size();
-    double summedWidthDisp = 0;
+    yadiff::vector_value meanWidth        = static_cast<yadiff::vector_value>(summedWidth) / equiLevelMap.size();
+    yadiff::vector_value summedWidthDisp = 0;
     for (const auto& it : equiLevelMap )
     {
         summedWidthDisp += std::pow(it.second.size() - meanWidth, 2);
@@ -471,7 +471,7 @@ void VectorSignAlgo::SetFunctionFields(const HVersion& fctVersion, FunctionSigna
      }); // End crfunction xRefs loop
 
     // Calculate size_disp
-    double mean_size = function_data.cfg.size / function_data.cfg.bb_nb;
+    yadiff::vector_value mean_size = static_cast<yadiff::vector_value>(function_data.cfg.size) / function_data.cfg.bb_nb;
     for (int i : bbSizeVector)
         function_data.cfg.size_disp += std::pow(i - mean_size, 2);
     function_data.cfg.size_disp /= function_data.cfg.bb_nb;
@@ -628,7 +628,7 @@ void VectorSignAlgo::PrintFunctionSignature(std::ostream& dst, const FunctionSig
     }
     else
     {
-        for (double d : functionSignature.concatenated_vector)
+        for (yadiff::vector_value d : functionSignature.concatenated_vector)
         {
             dst << d << ",";
         }
@@ -712,7 +712,7 @@ void ConcatenateFamilly(FunctionSignature_t& function_signature,
     for (const yadiff::Vector col_vector : matrix_col)
     {
         median.push_back(yadiff::GetMedian(col_vector));
-        double coordinate_mean = yadiff::GetMean(col_vector);
+        yadiff::vector_value coordinate_mean = yadiff::GetMean(col_vector);
         mean.push_back(coordinate_mean);
         disp.push_back(yadiff::GetVariance(col_vector, coordinate_mean));
     }

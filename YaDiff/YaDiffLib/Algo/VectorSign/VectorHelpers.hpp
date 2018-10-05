@@ -14,10 +14,10 @@ namespace yadiff
 {
 
 Vector GetCentralMomentByte(const Vector& byteVector, size_t size);
-double GetMedian(const Vector& doubleVector);
-double GetMean(const Vector& doubleVector);
-double GetVariance(const Vector& doubleVector, double mean);
-double GetVariance(const std::vector<int>& doubleVector, double mean);
+vector_value GetMedian(const Vector& doubleVector);
+vector_value GetMean(const Vector& doubleVector);
+vector_value GetVariance(const Vector& doubleVector, vector_value mean);
+vector_value GetVariance_Int(const std::vector<int>& doubleVector, vector_value mean);
 
 
 } // End namespace yadiff

@@ -9,7 +9,7 @@ namespace yadiff
 {
 
 /*@brief :  Get a distribution central moment (like in physics)
-* @param :  <doubleVector>   Ordered vector : the weight (number of instruction) at each instruction offset.
+* @param :  <ByteVector>     Ordered vector : the weight (number of instruction) at each instruction offset.
 *           <size>           Size of the output.
 * @return:  Central moment list
 * @remark:  Mean is the instruction offset, starts at 0
@@ -17,6 +17,7 @@ namespace yadiff
 Vector GetCentralMomentByte(const Vector& byteVector, size_t size)
 {
     Vector res = Vector(size);
+    vector_value f_half = static_cast<vector_value>(0.5);
 
     // -1: Check input
     if (byteVector.empty())
@@ -38,7 +39,7 @@ Vector GetCentralMomentByte(const Vector& byteVector, size_t size)
     // 1: Get Mean
     for (size_t i = 0; i < byteVector.size(); i++)
     {
-        res[1] += byteVector[i] * (i + 0.5);
+        res[1] += byteVector[i] * (i + f_half);
     }
     res[1] /= res[0];
 
@@ -47,7 +48,8 @@ Vector GetCentralMomentByte(const Vector& byteVector, size_t size)
     {
         for (size_t moment = 2; moment < size; moment++)
         {
-            res[moment] += byteVector[i] * pow((i + 0.5) - res[1], moment);
+            res[moment] += byteVector[i] * static_cast<vector_value>(
+                pow((i + f_half) - res[1], moment));
         }
     }
 
@@ -58,8 +60,8 @@ Vector GetCentralMomentByte(const Vector& byteVector, size_t size)
         res[moment] /= res[0];
 
         // 3.2: Root
-        double sign = 1 - 2 * std::signbit(res[moment]);
-        res[moment] = sign * pow(sign * res[moment], 1. / moment);
+        vector_value sign = static_cast<vector_value>(1 - 2 * std::signbit(res[moment]));
+        res[moment] = sign * static_cast<vector_value>(pow(sign * res[moment], 1. / moment));
     }
 
     // 4 : Normalize all for a 1 length vector
@@ -72,7 +74,7 @@ Vector GetCentralMomentByte(const Vector& byteVector, size_t size)
 }
 
 //
-double GetMean(const Vector& doubleVector)
+vector_value GetMean(const Vector& doubleVector)
 {
     // Check
     if (doubleVector.empty())
@@ -80,12 +82,12 @@ double GetMean(const Vector& doubleVector)
         return DEFAULT_DOUBLE;
     }
 
-    double sum = std::accumulate(doubleVector.begin(), doubleVector.end(), 0.0);
+    vector_value sum = static_cast<vector_value>(std::accumulate(doubleVector.begin(), doubleVector.end(), 0.0));
     return sum / doubleVector.size();
 }
 
 //
-double GetVariance(const Vector& doubleVector, double mean)
+vector_value GetVariance(const Vector& doubleVector, vector_value mean)
 {
     // Check
     if (doubleVector.empty())
@@ -93,15 +95,15 @@ double GetVariance(const Vector& doubleVector, double mean)
         return DEFAULT_DOUBLE;
     }
 
-    double res = 0;
-    std::for_each(doubleVector.begin(), doubleVector.end(), [&](const double d) {
+    vector_value res = 0;
+    std::for_each(doubleVector.begin(), doubleVector.end(), [&](const vector_value d) {
         res += (d - mean) * (d - mean);
     });
     return sqrt(res / doubleVector.size());
 }
 
 // TODO template function to mutualize
-double GetVariance(const std::vector<int>& doubleVector, double mean)
+vector_value GetVariance_Int(const std::vector<int>& doubleVector, vector_value mean)
 {
     // Check
     if (doubleVector.empty())
@@ -109,15 +111,15 @@ double GetVariance(const std::vector<int>& doubleVector, double mean)
         return DEFAULT_DOUBLE;
     }
 
-    double res = 0;
-    std::for_each(doubleVector.begin(), doubleVector.end(), [&](const double d) {
-        res += (d - mean) * (d - mean);
+    vector_value res = 0;
+    std::for_each(doubleVector.begin(), doubleVector.end(), [&](const int d) {
+        res += static_cast<vector_value>( (d - mean) * (d - mean));
     });
     return sqrt(res / doubleVector.size());
 }
 
 //
-double GetMedian(const Vector& doubleVector)
+vector_value GetMedian(const Vector& doubleVector)
 {
     // Check
     if (doubleVector.empty())

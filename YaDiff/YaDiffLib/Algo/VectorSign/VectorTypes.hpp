@@ -36,11 +36,11 @@ struct FunctionControlFlowGraphData_t
     int back_edge_nb;                   // 6 Number of edges visiting a yet visited location in the horizontal walk
     int diamond_nb;                     // 7 Number of edges going to bb visited at this same horizontal level (distance to root). Like hybridization in bio.
     int size;                           // 8 Size of the function (in bytes)
-    double size_disp;                   // 9 Size dispersion = Variance of the size distribution of my BB in byte (it is a square)
+    vector_value size_disp;                   // 9 Size dispersion = Variance of the size distribution of my BB in byte (it is a square)
     int height;                         // 10 Number (maximum without going back) of BB to cross from fct entry to fct ret.
-    double height_disp;                 // 11 Height dispersion, Variance of the distance to ret of my BB set (not a square)
+    vector_value height_disp;                 // 11 Height dispersion, Variance of the distance to ret of my BB set (not a square)
     int width;                          // 12 Number (maximum) of BB at the same distance from the BB entry.
-    double width_disp;                  // 13 Variance of the graph width, average on all dist_to_root levels.*
+    vector_value width_disp;                  // 13 Variance of the graph width, average on all dist_to_root levels.*
     int flat_len;                       // 14 TODO Len (in instruction number) of the flatten vector (~ Min inst number from top to bottom)
 };
 #define FunctionControlFlowGraphData_FIELD_COUNT 14
@@ -63,13 +63,13 @@ struct FunctionCallGraphData_t
 struct InstructionData_t
 {
     // TODO get the main frequencies (fft) per inst.
-    int    total;                       // 1 Total number of inst
-    double mean_per_bb;                 // 2 The mean number of instruction
-    double variance_per_bb;             // 3 The dispersion around the mean number of instruction per bb
-    double offset_mean_per_inst;        // 4 The mean offset of inst
-    double offset_variance_per_inst;    // 5 The mean disp of inst
-    double offset_skew_per_inst;        // 6
-    double offset_kurt_per_inst;        // 7
+    int    total;                             // 1 Total number of inst
+    vector_value mean_per_bb;                 // 2 The mean number of instruction
+    vector_value variance_per_bb;             // 3 The dispersion around the mean number of instruction per bb
+    vector_value offset_mean_per_inst;        // 4 The mean offset of inst
+    vector_value offset_variance_per_inst;    // 5 The mean disp of inst
+    vector_value offset_skew_per_inst;        // 6
+    vector_value offset_kurt_per_inst;        // 7
 };
 #define InstructionData_FIELD_COUNT 7
 

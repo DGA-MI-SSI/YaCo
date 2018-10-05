@@ -143,7 +143,7 @@ std::vector<yadiff::vector_value> FlattenFuction(const std::map<int, std::vector
             const std::vector<bool>& bbBoolVect = dis.GetBBVect(bbId);
             for (size_t i = 0; i < bbBoolVect.size(); i++)
             {
-                const double vd = (double) bbBoolVect[i];
+                const yadiff::vector_value vd = static_cast<yadiff::vector_value>(bbBoolVect[i]);
                 if (last_index + i >= res.size())
                 {
                     res.insert(res.begin() + last_index + i, vd);
@@ -242,8 +242,8 @@ void yadiff::SetDisassemblyFields(
 
         // Set the per BB statistic fieds.
         instruction_data.total = std::accumulate(fctInstVect.begin(), fctInstVect.end(), 0);
-        instruction_data.mean_per_bb = instruction_data.total / function_data.cfg.bb_nb;
-        instruction_data.variance_per_bb = GetVariance(fctInstVect, instruction_data.mean_per_bb);
+        instruction_data.mean_per_bb = static_cast<yadiff::vector_value>(instruction_data.total) / function_data.cfg.bb_nb;
+        instruction_data.variance_per_bb = GetVariance_Int(fctInstVect, instruction_data.mean_per_bb);
 
         // Set the per (min) distance (in inst) to root statistic fields
         const auto flattenFunctionInst = FlattenFuction(equiLevelMap,  disassStruct);
