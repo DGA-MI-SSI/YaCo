@@ -46,10 +46,10 @@ def remove_dir(dirname):
 
 def sysexec(cwd, *args):
     if False:
-        print cwd + ": " + " ".join(*args)
+        print(cwd + ": " + " ".join(*args))
     output = subprocess.check_output(*args, cwd=cwd, stderr=subprocess.STDOUT, shell=False)
     if False:
-        print output
+        print(output)
     return output
 
 ida_start = """
@@ -475,7 +475,7 @@ def get_tests(args, cur_dir):
         for f in s:
             for test in f:
                 if args.list:
-                    print test.id()
+                    print(test.id())
                 if test.id().endswith(args.filter):
                     tests.addTest(test)
     return tests
