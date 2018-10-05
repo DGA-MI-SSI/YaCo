@@ -227,7 +227,7 @@ void MergeToCache(YaDiff& differ, const Configuration& config, const std::string
         {
         	if(relation.type_ == RELATION_TYPE_NONE || relation.type_ == RELATION_TYPE_ALTERNATIVE_FROM_N || relation.type_ == RELATION_TYPE_ALTERNATIVE_TO_N)
         		continue;
-        	snprintf(buff, 1023, "rel: 0x%016lX to 0x%016lX, type=%d, objtype=%d, names=[%32s,%32s]",
+        	snprintf(buff, 1023, "rel: 0x%016zu to 0x%016zu, type=%d, objtype=%d, names=[%32s,%32s]",
         			relation.version1_.address(),
 					relation.version2_.address(),
 					relation.type_,
