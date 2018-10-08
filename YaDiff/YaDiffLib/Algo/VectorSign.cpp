@@ -437,8 +437,6 @@ void VectorSignAlgo::SetFunctionFields(const HVersion& fctVersion, FunctionSigna
         // For all son of BB
         fctSonVersion.walk_xrefs_from([&](offset_t /*offset*/, operand_t /*operand*/, const HVersion& bbSonVersion)
         {
-            // TODO remove me
-            printf("Object type is %d\n", bbSonVersion.type());
             // This basic block calls
             if (bbSonVersion.type() == OBJECT_TYPE_FUNCTION)
             {
