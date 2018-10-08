@@ -1206,12 +1206,21 @@ namespace
             const auto xflags = get_flags(xb.to);
             // xref.to must point to a segment because ida also put internal struc ids as xb.to
             // FIXME maybe we could use to struct ids here instead of accept_insn_xrefs
-            const auto is_valid = getseg(xb.to) && (!is_code(xflags) || is_func(xflags));
             //const auto dump = ya::dump_flags(xflags);
+
+            const bool is_valid = getseg(xb.to) && (!is_code(xflags) || is_func(xflags));
             if(!is_valid)
                 continue;
-            const auto xref = Xref{ea - root, hash::hash_ea(ya::get_range_item(xb.to).start_ea), DEFAULT_OPERAND, 0};
-            ctx.xrefs_.push_back(xref);
+            // If xref to a function : keep ref to the functionId
+            if (is_func(xflags)) {
+                const auto xref = Xref{ ea - root, hash::hash_function(ya::get_range_item(xb.to).start_ea), DEFAULT_OPERAND, 0 };
+                ctx.xrefs_.push_back(xref);
+            }
+            // Else : keep ref to the eaId (meaning the bbId)
+            else {
+                const auto xref = Xref{ ea - root, hash::hash_ea(ya::get_range_item(xb.to).start_ea), DEFAULT_OPERAND, 0 };
+                ctx.xrefs_.push_back(xref);
+            }
         }
     }
 
