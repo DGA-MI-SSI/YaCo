@@ -291,7 +291,7 @@ def create_vector_file(ctx, options, yadb, vector_file_path, vect_compress):
     
     vect_cmd_line = [ctx.yadbtovector, yadb, vector_file_path]
     logging.info("running %s" % " ".join(vect_cmd_line))
-    subprocess.Popen(vect_cmd_line, stdout=subprocess.DEVNULL).wait()
+    subprocess.Popen(vect_cmd_line).wait()
     if not os.path.isfile(vector_file_path):
         logging.error("unable to export vectors into %s" % vector_file_path)
         if options.delete_failed_fb:
