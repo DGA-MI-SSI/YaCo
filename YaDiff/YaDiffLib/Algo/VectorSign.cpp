@@ -73,8 +73,8 @@ struct FunctionSignature_t
     std::vector <YaToolObjectId>                children;       // The pointers to the children functions
     std::map<int, std::vector<YaToolObjectId>>  equiLevelMap;   // for joining BBs
     yadiff::FunctionData_t                      function_data;
-    yadiff::Vector                         vector;
-    yadiff::Vector                         concatenated_vector;
+    yadiff::Vector                              vector;
+    yadiff::Vector                              concatenated_vector;
 };
 
 // Basic Block Map
@@ -365,6 +365,14 @@ bool VectorSignAlgo::ControlFlowGraphHorizontalWalk(const HVersion& fctVersion, 
     return true;
 }
 
+
+/*
+:brief:   Set all the function fields (for one given function)
+:param:   :fctVersion:  Version of the function to mesure 
+          :fsMap:       Map containing all the function signatures
+:return:  update fsMap
+:remark:
+*/
 void VectorSignAlgo::SetFunctionFields(const HVersion& fctVersion, FunctionSignatureMap_t& fsMap)
 {
     const auto           functionId                = fctVersion.id();
@@ -429,6 +437,8 @@ void VectorSignAlgo::SetFunctionFields(const HVersion& fctVersion, FunctionSigna
         // For all son of BB
         fctSonVersion.walk_xrefs_from([&](offset_t /*offset*/, operand_t /*operand*/, const HVersion& bbSonVersion)
         {
+            // TODO remove me
+            printf("Object type is %d\n", bbSonVersion.type());
             // This basic block calls
             if (bbSonVersion.type() == OBJECT_TYPE_FUNCTION)
             {
@@ -464,7 +474,8 @@ void VectorSignAlgo::SetFunctionFields(const HVersion& fctVersion, FunctionSigna
                     bHasBBOneBBSon = true;
             }
             return WALK_CONTINUE;
-        }); // End of BB son  xRef
+        }); // End of BB son xRef
+        // If it is a return bb (leaf), inc ret_nb
         if (bDoBBRet)
             function_data.cfg.ret_nb++;
         return WALK_CONTINUE;
@@ -686,6 +697,12 @@ yadiff::Matrix InvertMatrix(yadiff::Matrix matrix_line)
     return matrix_col;
 }
 
+
+/*
+:brief:   Append to function_signature the central moments of matrix columns
+:param:   
+:return:  in function_signature.concatenated_vector (push)
+*/
 void ConcatenateFamilly(FunctionSignature_t& function_signature,
     yadiff::Matrix& matrix_line)
 {
@@ -726,6 +743,14 @@ void ConcatenateFamilly(FunctionSignature_t& function_signature,
         disp.begin(), disp.end());
 }
 
+
+/*
+:brief:   Concatenate me, caller, called internal vectors to the representation vector
+              for all functions
+:param:   functionSignatureMap : a map with all the function signature structures
+:return:  concatenated vector in functionSignatureMap
+:remark:  Calls ConcatenateFamilly
+*/
 void VectorSignAlgo::CreateConcatenatedVector(FunctionSignatureMap_t& functionSignatureMap)
 {
     // Get all vector
@@ -777,7 +802,7 @@ void VectorSignAlgo::CreateConcatenatedVector(FunctionSignatureMap_t& functionSi
         {
 			// 2: Child
 			// 2.1: Get matrix
-			matrix_line = std::vector<yadiff::Vector>();
+            yadiff::Matrix matrix_line = std::vector<yadiff::Vector>();
 			for (auto& child_id : function_signature.children)
 			{
 				yadiff::Vector child_vector = functionSignatureMap[child_id].vector;
@@ -790,6 +815,9 @@ void VectorSignAlgo::CreateConcatenatedVector(FunctionSignatureMap_t& functionSi
 }
 
 
+/*
+:brief:   Create the header string with the column names
+*/
 void VectorSignAlgo::CreateConcatenatedString(std::vector<std::string>* concatenated_string)
 {
     yadiff::FunctionData_t null_function_data;
@@ -810,10 +838,9 @@ void VectorSignAlgo::CreateConcatenatedString(std::vector<std::string>* concaten
 }
 
 
-
-
-
-
+/*
+:brief:   
+*/
 void VectorSignAlgo::CreateFunctionSignatureMap(FunctionSignatureMap_t& functionSignatureMap, const IModel& db, const yadiff::AlgoCfg& config)
 {
     yadiff::BinaryInfo_t binary_info = yadiff::BinaryInfo_t(db, config);

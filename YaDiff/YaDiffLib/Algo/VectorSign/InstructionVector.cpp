@@ -23,9 +23,17 @@ TODO : get the Arch and the mode in database.
 #include <functional>
 #include <memory>
 
+// TODO namespace yadiff
 namespace
 {
-// used locally to remember my work thourght all lopps.
+
+
+/*
+:brief:
+:param:
+:return:
+:remark:  used locally to remember my work thourght all lopps.
+*/
 struct FunctionDisassembled_T
 {
     FunctionDisassembled_T(yadiff::InstructionType_e instructionType)
@@ -84,7 +92,7 @@ std::string PrintPrettyInsn(const std::vector<cs_insn>& instructions)
 /*@brief :  Disassemble a array of byte
 * @param :  <code_int_array> pointer to the buffer containing the executable bytes
 *           <size>           size fo this buffer
-*            <addr>             address of the first byte offset (like 400000 in IDA)
+*           <addr>           address of the first byte offset (like 400000 in IDA)
 * @return:  insn_array : array of instruction
 * @remark:  The uint8_t_array is a perfect input structure here
 */
@@ -129,6 +137,13 @@ std::vector<cs_insn> Disass(const uint8_t* data, size_t size, const yadiff::Bina
 //
 //
 //typedef std::map<int, std::vector<YaToolObjectId>> Pouet_T;
+/*
+:brief:   Flatten the control flow graph of a function (tree to vect)
+:param:   :equiLevelMap: map : number -> all nodes at distance number from the root
+          :dis:          representation of the dissassembled function
+:return:  vector (TODO comment)
+:remark:  
+*/
 std::vector<yadiff::vector_value> FlattenFuction(const std::map<int, std::vector<YaToolObjectId>>& equiLevelMap, const FunctionDisassembled_T& dis)
 {
     std::vector<yadiff::vector_value> res;
@@ -167,13 +182,12 @@ std::vector<yadiff::vector_value> FlattenFuction(const std::map<int, std::vector
 } // End namespace null &&  begin of exported functions
 
 
-
-
-
-
-
-
-// Entry point
+/*
+:brief:  
+:param:   
+:return: 
+:remark: 
+*/
 void yadiff::SetDisassemblyFields(
     yadiff::FunctionData_t& function_data,
     const HVersion& fctVersion,
