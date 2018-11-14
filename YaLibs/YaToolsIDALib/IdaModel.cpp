@@ -1610,7 +1610,8 @@ namespace
     void accept_segment_attributes(IModelVisitor& v, const segment_t* seg)
     {
         char buf[32];
-        v.visit_attribute(g_seg_attributes[SEG_ATTR_BASE], str_ea(buf, sizeof buf, get_segm_base(seg)));
+        const auto base = get_segm_base(seg) >> 4; // see #52
+        v.visit_attribute(g_seg_attributes[SEG_ATTR_BASE], str_ea(buf, sizeof buf, base));
         v.visit_attribute(g_seg_attributes[SEG_ATTR_COMB], str_uchar(buf, sizeof buf, seg->comb));
         if(seg->color != DEFCOLOR)
             v.visit_attribute(g_seg_attributes[SEG_ATTR_COLOR], str_bgcolor(buf, sizeof buf, seg->color));
