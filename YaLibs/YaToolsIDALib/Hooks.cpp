@@ -306,7 +306,7 @@ namespace
         const auto func_ea = get_func_by_frame(ea);
         if(func_ea != BADADDR)
             return qstring("frame ") + get_func_name(func_ea);
-        
+
         auto struc = get_struc(ea);
         if(struc)
             return qstring("struc ") + get_struc_name(struc->id);
@@ -1057,7 +1057,7 @@ namespace
         LOG_IDB_EVENT("changing_cmt: %s %scmt %s:%s", get_name(ea).c_str(), repeatable ? "repeatable " : "", cmt.c_str(), newcmt);
         if(cmt == newcmt)
             return;
-        
+
         hooks.events_.touch_ea(ea);
     }
 
@@ -1222,6 +1222,10 @@ namespace
             case idb_event::event_code_t::changing_range_cmt:       changing_range_cmt(*hooks, args); break;
             case idb_event::event_code_t::range_cmt_changed:        range_cmt_changed(*hooks, args); break;
             case idb_event::event_code_t::extra_cmt_changed:        extra_cmt_changed(*hooks, args); break;
+            case idb_event::event_code_t::item_color_changed:       break;
+            case idb_event::event_code_t::callee_addr_changed:      break;
+            case idb_event::event_code_t::bookmark_changed:         break;
+            case idb_event::event_code_t::sgr_deleted:              break;
         }
         return 0;
     }
