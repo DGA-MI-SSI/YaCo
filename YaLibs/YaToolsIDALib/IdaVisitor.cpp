@@ -1183,7 +1183,7 @@ namespace
             len = create_insn(it, nullptr);
             if(len)
                 continue;
-             
+
             LOG(ERROR, "make_insn: 0x%" PRIxEA " unable to create instruction at 0x%" PRIxEA "\n", ea, it);
             return;
         }
@@ -1199,9 +1199,24 @@ namespace
         make_views(version, ea);
     }
 
+    /* TODO: A day, create _one_ struct then array */
     bool try_apply_struc_to_data(ea_t ea, size_t size, const Tid& dep)
     {
-        auto ok = create_struct(ea, static_cast<asize_t>(size), dep.tid);
+        ea_t current_ea = ea;
+        int counter = 1;
+        auto ok = false;
+
+        if ( (size != dep.size) && (size % dep.size == 0) )
+        {
+            counter = size / dep.size;
+            do {
+                ok = create_struct(current_ea, static_cast<asize_t>(dep.size), dep.tid);
+                current_ea = current_ea + dep.size;
+            } while (ok && --counter!=0);
+        } else {
+            ok = create_struct(current_ea, static_cast<asize_t>(size), dep.tid);
+        }
+
         if(ok)
             return true;
 
