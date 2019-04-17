@@ -104,6 +104,7 @@ namespace
         return to_hex<LowerCase | RemovePadding>(buf, x);
     }
 
+    // 
     template<size_t szdst>
     const_string_ref str_crc32(char (&buf)[szdst], uint32_t x)
     {
@@ -1425,12 +1426,13 @@ namespace
     {
         const auto item = ya::get_range_code(ea, 0, ~0U);
         ea = item.start_ea;
-        if(ea == BADADDR)
-            return;
 
+        // Return if bad
+        if (ea == BADADDR) { return; }
+
+        // Return if skip
         const auto id = hash::hash_ea(ea);
-        if(ctx.skip_id(id, OBJECT_TYPE_CODE))
-            return;
+        if (ctx.skip_id(id, OBJECT_TYPE_CODE)) { return; }
 
         start_object(v, OBJECT_TYPE_CODE, id, parent.id, ea);
         v.visit_size(item.size());
@@ -1557,12 +1559,13 @@ namespace
     {
         const auto flags = get_flags(ea);
         const auto func = get_func(ea);
-        if(func && is_code(flags))
+        if (func && is_code(flags)) {
             accept_function(ctx, v, parent, func, ea);
-        else if(is_code(flags))
+        } else if (is_code(flags)) {
             accept_code(ctx, v, parent, ea);
-        else
+        } else {
             accept_data(ctx, v, parent, ea);
+        }
     }
 }
 
@@ -1959,8 +1962,7 @@ void ModelIncremental::accept_ea(IModelVisitor& v, ea_t ea)
 {
     // owner function may not belong to the same segment chunk as ea
     const auto func = get_func(ea);
-    if(func)
-        return accept_function(v, ea);
+    if (func) { return accept_function(v, ea); }
 
     const auto seg = getseg(ea);
     if(!seg)

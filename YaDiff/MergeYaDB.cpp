@@ -7,8 +7,8 @@
 #include "FlatBufferModel.hpp"
 
 #include <iostream>
-
 using namespace std;
+
 
 #if 0
 #define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("yadiff", (FMT), ## __VA_ARGS__)
@@ -16,6 +16,7 @@ using namespace std;
 #define LOG(...) do {} while(0)
 #endif
 
+// Define usage
 void usage(char* argv[])
 {
     std::cerr << argv[0] << ": <config.xml> <ref_db.yadb> <new_db.yadb> <yadiff.yadb>" << std::endl;
@@ -27,8 +28,8 @@ void usage(char* argv[])
 
 int main(int argc, char** argv)
 {
-    if (argc != 5)
-    {
+    // Check in
+    if (argc != 5) {
         usage(argv);
         return -1;
     }
@@ -39,7 +40,11 @@ int main(int argc, char** argv)
 
     // Init log
     globals::InitFileLogger(*globals::Get().logger, stdout);
+
+    // Work
     const auto config = Configuration(argv[1]);
     yadiff::YaDiff(config).MergeCacheFiles(argv[2], argv[3], argv[4]);
+
+    // Bye
     return 0;
 }

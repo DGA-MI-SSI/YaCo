@@ -7,3 +7,4 @@ gmon.out
 out/
 testdata/
 tmp*
+build/CMakeFiles/

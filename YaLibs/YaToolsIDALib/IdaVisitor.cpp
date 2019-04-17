@@ -137,8 +137,9 @@ Visitor::Visitor(StackMode smode)
     inf.set_auto_enabled(false);
 
     static_assert(sizeof ARM_txt <= sizeof inf.procname, "procname size mismatch");
-    if(!memcmp(inf.procname, ARM_txt, sizeof ARM_txt))
+    if (!memcmp(inf.procname, ARM_txt, sizeof ARM_txt)) {
         plugin_ = MakeArmPluginVisitor();
+    }
 
     const auto qbuf = qpool_.acquire();
     ya::walk_bookmarks([&](int, ea_t ea, const auto&, const qstring& desc)
@@ -167,8 +168,7 @@ Visitor::Visitor(StackMode smode)
     {
         local_types::Type type;
         const auto ok = local_types::identify(&type, ord);
-        if(!ok)
-            continue;
+        if (!ok) { continue; }
 
         const auto tag = local_types::get_tag(type.name.c_str());
         ords_.insert({tag, type.tif.get_ordinal()});
@@ -189,22 +189,26 @@ namespace
         const auto qbuf = visitor.qpool_.acquire();
         ya::wrap(&get_ea_name, *qbuf, ea, 0, (getname_info_t*) NULL);
         const auto ok = set_name(ea, "");
-        if(!ok)
+        if (!ok) {
             LOG(DEBUG, "make_name: 0x%" PRIxEA " unable to reset name\n", ea);
+        }
 
-        if(!name.size || is_default_name(name))
-        {
+        if(!name.size || is_default_name(name)) {
             LOG(DEBUG, "make_name: 0x%" PRIxEA " resetting name %s\n", ea, strname.data());
             return;
         }
 
+        // Get flags
         auto flags = version.username_flags();
-        if(!flags)
+        if (!flags) {
             flags = SN_CHECK;
-        const auto ok_ = set_name(ea, strname.data(), flags | SN_NOWARN);
-        if(ok_)
-            return;
+        }
 
+        // Set name with flags
+        const auto ok_ = set_name(ea, strname.data(), flags | SN_NOWARN);
+        if (ok_) { return; }
+
+        // Set name without flags if failed
         LOG(WARNING, "make_name: 0x%" PRIxEA " unable to set name flags 0x%08x '%s'\n", ea, flags, strname.data());
         set_name(ea, qbuf->c_str(), SN_CHECK | SN_NOWARN);
     }
@@ -215,22 +219,21 @@ namespace
         ya::walk_bookmarks([&](int i, ea_t locea, const auto& loc, const qstring& desc)
         {
             LOG(DEBUG, "add_bookmark: 0x%" PRIxEA " found bookmark[%d]\n", ea, i);
-            if(locea != ea)
-                return;
+            if (locea != ea) { return; }
 
-            if(ya::to_string_ref(desc) == title)
-                return;
+            if (ya::to_string_ref(desc) == title) { return; }
 
             LOG(DEBUG, "add_bookmark: 0x%" PRIxEA " bookmark[%d] = %s\n", ea, i, title.value);
             bookmarks_t::mark(loc, i, title.value, title.value, nullptr);
         });
-        // FIXME add to bookmarks_ ?
+        // FIXME add to bookmarks_ ? (TODO)
     }
 
     void clear_extra_comment(ea_t ea, int from)
     {
-        for(int i = get_first_free_extra_cmtidx(ea, from) - 1; i >= from; i--)
+        for (int i = get_first_free_extra_cmtidx(ea, from) - 1; i >= from; i--) {
             del_extra_cmt(ea, i);
+        }
     }
 
     bool try_delete_comment(CommentType_e comment_type, ea_t ea)
@@ -270,8 +273,9 @@ namespace
     void delete_comment(CommentType_e comment_type, ea_t ea)
     {
         const auto ok = try_delete_comment(comment_type, ea);
-        if(!ok)
+        if (!ok) {
             LOG(ERROR, "delete_comment: 0x%" PRIXEA " unable to delete %s comment\n", ea, get_comment_type_string(comment_type));
+        }
     }
 
     void make_extra_comment(ea_t ea, const std::string& comment, int from)
@@ -280,8 +284,9 @@ namespace
 
         std::stringstream istream(comment);
         std::string line;
-        while(std::getline(istream, line))
+        while (std::getline(istream, line)) {
             update_extra_cmt(ea, from++, line.data());
+        }
     }
 
     void make_comments(Visitor& visitor, const HVersion& version, ea_t ea)
@@ -345,14 +350,17 @@ namespace
     MAKE_TO_TYPE_FUNCTION(to_path,    uint32_t,         "0x%08X");
     MAKE_TO_TYPE_FUNCTION(to_xmlea,   ea_t,             "0x%0" EA_SIZE PRIXEA);
 
+    // Check if ea--end is the extremity of a segment
     segment_t* check_segment(ea_t ea, ea_t end)
     {
         const auto segment = getseg(ea);
-        if(!segment)
+        if (!segment) {
             return nullptr;
+        }
 
-        if(segment->start_ea != ea || segment->end_ea != end)
+        if (segment->start_ea != ea || segment->end_ea != end) {
             return nullptr;
+        }
 
         return segment;
     }
@@ -1053,8 +1061,9 @@ namespace
         {
             const auto dash = view.find('-');
             auto op_type = REF_OFF32;
-            if(dash != std::string::npos)
-                op_type = get_offset_type(&view.data()[dash+1]);
+            if (dash != std::string::npos) {
+                op_type = get_offset_type(&view.data()[dash + 1]);
+            }
             refinfo_t ri;
             ri.init(op_type);
             return !!op_offset_ex(ea, operand, &ri);
@@ -1516,13 +1525,15 @@ namespace
 
     void set_reference_info(RefInfos& refs, ea_t ea, offset_t offset, operand_t operand, YaToolObjectId id)
     {
+        // Get, Check in
         const auto it_ref = refs.find(id);
-        if(it_ref == refs.end())
-            return;
+        if (it_ref == refs.end()) { return; }
         const auto& ref = it_ref->second;
+
         const auto ok = op_offset_ex(static_cast<ea_t>(ea + offset), operand, &ref);
-        if(!ok)
+        if (!ok) {
             LOG(ERROR, "make_basic_block: 0x%" PRIxEA " unable to set reference info %" PRIxEA ":%x at offset %" PRId64 " operand %d\n", ea, ref.base, ref.flags, offset, operand);
+        }
     }
 
     struct PathItem
@@ -1572,8 +1583,9 @@ namespace
     void set_path(Path& path, ea_t ea)
     {
         insn_t insn;
-        if(path.types.empty())
-            return;
+
+        // Return if empty path
+        if (path.types.empty()) { return; }
 
         std::sort(path.types.begin(), path.types.end(), [](const auto& a, const auto b)
         {
@@ -1586,19 +1598,18 @@ namespace
             ida_path.emplace_back(it.tid);
         const auto ea_off = static_cast<ea_t>(ea + path.offset);
         const auto n = decode_insn(&insn, ea_off);
-        if(n <= 0)
-            return;
+        if (n <= 0) { return; }
 
         const auto ok = op_stroff(insn, path.operand, &ida_path[0], static_cast<int>(ida_path.size()), 0);
-        if(ok)
-            return;
+        if (ok) { return; }
 
         std::string pathstr;
         bool first = true;
         for(const auto tid : ida_path)
         {
-            if(!first)
+            if (!first) {
                 pathstr += ":";
+            }
             pathstr += std::to_string(tid);
         }
         LOG(ERROR, "make_basic_block: 0x%" PRIxEA " unable to set path %s at offset %" PRId64 " operand %d\n", ea, pathstr.data(), path.offset, path.operand);
@@ -1646,21 +1657,23 @@ namespace
             }
             return WALK_CONTINUE;
         });
-        for(auto& path : paths)
+        for (auto& path : paths) {
             set_path(path, ea);
+        }
     }
 
     void clear_struct_fields(Visitor& visitor, const char* where, const HVersion& version, ea_t struct_id)
     {
         begin_type_updating(UTP_STRUCT);
 
+        // Get info
         const auto size = version.size();
         const auto struc = get_struc(struct_id);
         const auto last_offset = get_struc_last_offset(struc);
         const auto func_ea = get_func_by_frame(struct_id);
         const auto func = get_func(func_ea);
 
-        // get existing members
+        // Get existing members
         std::set<offset_t> fields;
         const auto vid = version.id();
         version.walk_xrefs([&](offset_t offset, operand_t /*operand*/, YaToolObjectId xid, const XrefAttributes* /*attrs*/)
@@ -1670,15 +1683,14 @@ namespace
             return WALK_CONTINUE;
         });
 
-        // create missing members first & prevent deleting all members
+        // Create missing members first & prevent deleting all members
         std::set<offset_t> new_fields;
         qstring member_name;
         for(const auto offset : fields)
         {
             const auto aoff = static_cast<asize_t>(offset);
             auto member = get_member(struc, aoff);
-            if(member && member->soff < offset)
-            {
+            if(member && member->soff < offset) {
                 set_member_type(struc, member->soff, byte_flag(), nullptr, 1);
                 member = get_member(struc, aoff);
             }
@@ -2000,29 +2012,34 @@ namespace
 
     void make_struct(Visitor& visitor, const HVersion& version, ea_t ea)
     {
+        // Get struct object
         const auto tag = strucs::accept(version);
         const auto name = make_string(version.username());
         const auto struc = get_or_add_struct(visitor, version, ea, tag, name.data());
-        if(!struc)
-        {
+        if(!struc) {
             LOG(ERROR, "make_struct: 0x%" PRIxEA " missing struct %s\n", ea, name.data());
             return;
         }
 
+        // Name struct
         const auto renamed = rename_struc(visitor, struc, name);
-        if(!renamed)
+        if (!renamed) {
             LOG(ERROR, "make_struct: 0x%" PRIxEA " unable to set name %s\n", ea, name.data());
+        }
 
+        // Set struct id
         const auto id = version.id();
         set_tid(visitor, id, struc->id, version.size(), OBJECT_TYPE_STRUCT);
 
+        // Propaate comment
         for(const auto repeat : {false, true})
         {
             const auto cmt = version.header_comment(repeat);
             const auto strcmt = make_string(cmt);
             const auto ok = set_struc_cmt(struc->id, strcmt.data(), repeat);
-            if(!ok)
+            if (!ok) {
                 LOG(ERROR, "make_struct: 0x%" PRIxEA " unable to set %s comment to '%s'\n", ea, repeat ? "repeatable" : "non-repeatable", strcmt.data());
+            }
         }
 
         clear_struct_fields(visitor, "struct_fields", version, struc->id);
@@ -2225,6 +2242,7 @@ namespace
     }
 }
 
+// Update version (TODO rename update_version)
 void Visitor::update(const IModel& model)
 {
     model.walk([&](const HVersion& hver)
@@ -2234,16 +2252,19 @@ void Visitor::update(const IModel& model)
     });
 }
 
+// Alias
 void Visitor::remove(const IModel& model)
 {
     delete_from_model(model);
 }
 
+// Alias
 bool set_type_at(ea_t ea, const std::string& prototype)
 {
     return set_type(ea, prototype);
 }
 
+// Alias
 bool set_struct_member_type_at(ea_t ea, const std::string& prototype)
 {
     return set_struct_member_type(ea, prototype);
