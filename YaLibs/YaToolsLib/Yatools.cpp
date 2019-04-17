@@ -69,3 +69,6 @@ bool globals::InitFileLogger(logger::ILogger& logger, FILE* handle)
     });
     return true;
 }
+
+// String of executable launching me (YaDiff, YaCo)
+std::string globals::s_command;

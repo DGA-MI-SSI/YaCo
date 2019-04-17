@@ -1640,7 +1640,10 @@ namespace
                     set_enum_operand(ea, offset, operand, key.tid);
                     break;
             }
-            set_reference_info(visitor.refs_, ea, offset, operand, xref_id);
+            // Propagate offsets for YaCo : its are not the same for YaDiff
+            if (0 != globals::s_command.find("yadiff")) {
+                set_reference_info(visitor.refs_, ea, offset, operand, xref_id);
+            }
             return WALK_CONTINUE;
         });
         for(auto& path : paths)

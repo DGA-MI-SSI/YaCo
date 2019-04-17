@@ -33,6 +33,11 @@ int main(int argc, char** argv)
         return -1;
     }
 
+    // Save command to discriminate
+    char l_command[] = "yadiff-mergeyadb";
+    globals::s_command.copy(l_command, sizeof(l_command));
+
+    // Init log
     globals::InitFileLogger(*globals::Get().logger, stdout);
     const auto config = Configuration(argv[1]);
     yadiff::YaDiff(config).MergeCacheFiles(argv[2], argv[3], argv[4]);

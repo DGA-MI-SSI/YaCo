@@ -3,12 +3,16 @@
 #include <FlatBufferModel.hpp>
 #include <Algo/Algo.hpp>
 
-
-#include <string.h>
+#include <string>
 #include <memory>
 
 int main(int argc, char** argv)
 {
+    // Save command to discriminate
+    char l_command[] = "yadiff-yadbtovector";
+    globals::s_command.copy(l_command, sizeof(l_command));
+
+    // Init log
     globals::InitFileLogger(*globals::Get().logger, stdout);
 
     if (argc < 3)
