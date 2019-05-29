@@ -15,6 +15,7 @@
 
 namespace yadiff {
 
+// Create diffing algorithm object
 std::shared_ptr<IDiffAlgo> MakeDiffAlgo(const AlgoCfg& config) {
     switch(config.Algo) {
 

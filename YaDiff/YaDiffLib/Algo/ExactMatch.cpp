@@ -102,7 +102,7 @@ bool ExactMatchAlgo::Analyse(const OnAddRelationFn& output, const RelationWalker
             }
 
             relation.version2_ = remote_object_version;
-            LOG(INFO, "associate %zx (%s) <-> %zx (%s)\n", relation.version1_.address(), relation.version1_.username().value, relation.version2_.address(), relation.version2_.username().value);
+            LOG(DEBUG, "ExactMatch.cpp: associate %zx (%s) <-> %zx (%s)\n", relation.version1_.address(), relation.version1_.username().value, relation.version2_.address(), relation.version2_.username().value);
             output(relation, false);
 
             exactMatchInitial++;
@@ -113,7 +113,7 @@ bool ExactMatchAlgo::Analyse(const OnAddRelationFn& output, const RelationWalker
 
 
         if (i % 10000 == 0) {
-            LOG(INFO, "%d/%d objects version exactly matched\n", exactMatchInitial, i);
+            LOG(INFO, "ExactMatch.cpp: %d/%d objects version exactly matched\n", exactMatchInitial, i);
         }
         return WALK_CONTINUE;
     });

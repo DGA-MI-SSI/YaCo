@@ -310,11 +310,11 @@ bool XRefMatchAlgo::Prepare(const IModel& db1, const IModel& db2)
         pDb2_Stripped = m2;
         pDb1_= pDb1_Stripped.get();
         pDb2_= pDb2_Stripped.get();
-        LOG(INFO, "StripBasicBlocks DB 1\n");
+        LOG(DEBUG, "StripBasicBlocks DB 1\n");
         StripBasicBlocks(*m1, db1);
-        LOG(INFO, "StripBasicBlocks DB 2\n");
+        LOG(DEBUG, "StripBasicBlocks DB 2\n");
         StripBasicBlocks(*m2, db2);
-        LOG(INFO, "StripBasicBlocks Finished\n");
+        LOG(DEBUG, "StripBasicBlocks Finished\n");
     }
 
     return true;
@@ -371,7 +371,7 @@ bool XRefMatchAlgo::Analyse(const yadiff::OnAddRelationFn& output, const yadiff:
             }
             break;
         case RELATION_TYPE_STRONG_MATCH:
-            // LOG(INFO, "Got Strong match relation\n");
+            // LOG(DEBUG, "Got Strong match relation\n");
             break;
         case RELATION_TYPE_EXACT_MATCH:
             break;
@@ -384,7 +384,7 @@ bool XRefMatchAlgo::Analyse(const yadiff::OnAddRelationFn& output, const yadiff:
 
         Relation tmp = relation;
         tmp.flags_ |= this_algo_flag;
-        LOG(INFO, "CXMAF: FLAG 0x%016zu <-> 0x%016zu  (%s <-> %s)\n", relation.version1_.address(), relation.version2_.address(), relation.version1_.username().value, relation.version2_.username().value);
+        LOG(DEBUG, "XRefLatch(F).cpp: FLAG 0x%016zu <-> 0x%016zu  (%s <-> %s)\n", relation.version1_.address(), relation.version2_.address(), relation.version1_.username().value, relation.version2_.username().value);
         output(tmp, true);
 
         // Diregard BB sons (center on Fct sons)
@@ -485,8 +485,8 @@ bool XRefMatchAlgo::Analyse(const yadiff::OnAddRelationFn& output, const yadiff:
                     new_relation.mask_algos_flags = true;
                     new_relation.version1_ = local1_db_to_outer_db(*LocalXrefObjectVersionSet.begin());
                     new_relation.version2_ = local2_db_to_outer_db(*RemoteXrefObjectVersionSet.begin());
-                    LOG(INFO, "CXMA1: from 0x%016llx <-> 0x%016llx  (%s <-> %s)\n", version1_.address(), version2_.address(), version1_.username().value, version2_.username().value);
-                    LOG(INFO, "CXMA1: --> associate 0x%016llx <-> 0x%016llx  (%s <-> %s)\n", new_relation.version1_.address(), new_relation.version2_.address(), new_relation.version1_.username().value, new_relation.version2_.username().value);
+                    LOG(DEBUG, "XRefMatch.cpp: from 0x%016llx <-> 0x%016llx  (%s <-> %s)\n", version1_.address(), version2_.address(), version1_.username().value, version2_.username().value);
+                    LOG(DEBUG, "XRefMatch.cpp: --> associate 0x%016llx <-> 0x%016llx  (%s <-> %s)\n", new_relation.version1_.address(), new_relation.version2_.address(), new_relation.version1_.username().value, new_relation.version2_.username().value);
                     output(new_relation, false);
                 }
                 else
@@ -525,8 +525,8 @@ bool XRefMatchAlgo::Analyse(const yadiff::OnAddRelationFn& output, const yadiff:
 //                }
                 new_relation.version1_ = local1_db_to_outer_db(diff_version1);
                 new_relation.version2_ = local2_db_to_outer_db(diff_version2);
-                LOG(INFO, "CXMA2: from 0x%016llx <-> 0x%016llx  (%s <-> %s)\n", version1_.address(), version2_.address(), version1_.username().value, version2_.username().value);
-                LOG(INFO, "CXMA2: --> associate 0x%016llx <-> 0x%016llx  (%s <-> %s)\n", new_relation.version1_.address(), new_relation.version2_.address(), new_relation.version1_.username().value, new_relation.version2_.username().value);
+                LOG(DEBUG, "XRefMatch(2).cpp: from 0x%016llx <-> 0x%016llx  (%s <-> %s)\n", version1_.address(), version2_.address(), version1_.username().value, version2_.username().value);
+                LOG(DEBUG, "XRefMatch(2).cpp: --> associate 0x%016llx <-> 0x%016llx  (%s <-> %s)\n", new_relation.version1_.address(), new_relation.version2_.address(), new_relation.version1_.username().value, new_relation.version2_.username().value);
                 output(new_relation, false);
 
                 /* try to propagate diff relations to parent only for basic blocks */
@@ -562,14 +562,14 @@ bool XRefMatchAlgo::Analyse(const yadiff::OnAddRelationFn& output, const yadiff:
                 {
                     if(version1_parent_count==1 && version2_parent_count==1)
                     {
-                        LOG(INFO, "CXMA3: from 0x%016llx <-> 0x%016llx  (%s <-> %s)\n", version1_.address(), version2_.address(), version1_.username().value, version2_.username().value);
-                        LOG(INFO, "CXMA3: --> associate 0x%016llx <-> 0x%016llx  (%s <-> %s)\n", new_relation.version1_.address(), new_relation.version2_.address(), new_relation.version1_.username().value, new_relation.version2_.username().value);
+                        LOG(DEBUG, "XRefLatch(3).cpp: from 0x%016llx <-> 0x%016llx  (%s <-> %s)\n", version1_.address(), version2_.address(), version1_.username().value, version2_.username().value);
+                        LOG(DEBUG, "XRefLatch(3).cpp: --> associate 0x%016llx <-> 0x%016llx  (%s <-> %s)\n", new_relation.version1_.address(), new_relation.version2_.address(), new_relation.version1_.username().value, new_relation.version2_.username().value);
                         output(new_relation, false);
                     }
                     else
                     {
-                        LOG(INFO, "CXMA3: from 0x%016llx <-> 0x%016llx  (%s <-> %s)\n", version1_.address(), version2_.address(), version1_.username().value, version2_.username().value);
-                        LOG(INFO, "CXMA3: --> Multiple parents\n");
+                        LOG(DEBUG, "XRefLatch(3).cpp: from 0x%016llx <-> 0x%016llx  (%s <-> %s)\n", version1_.address(), version2_.address(), version1_.username().value, version2_.username().value);
+                        LOG(DEBUG, "XRefLatch(3).cpp: --> Multiple parents\n");
                     }
                 }
             }

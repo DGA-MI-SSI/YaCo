@@ -69,8 +69,7 @@ public:
 		auto v2_addr = (dest.version2_.model_ != nullptr)?dest.version2_.address() : 0;
 		auto v1_id   = (dest.version1_.model_ != nullptr)?dest.version1_.id()      : 0;
 		auto v2_id   = (dest.version2_.model_ != nullptr)?dest.version2_.id()      : 0;
-        // TODO log to a file
-    	LOG(INFO, "Merging relations 0x%016zu <-> 0x%016zu id[0x%016zu<->0x%016zu] old_type=%d, new_type=%d, src_type=%d, old_flags=0x%02X, new_flags=0x%02X, src_flags=0x%02X\n"
+    	LOG(DEBUG, "Matching.cpp : Merging relations 0x%016zu <-> 0x%016zu id[0x%016zu<->0x%016zu] old_type=%d, new_type=%d, src_type=%d, old_flags=0x%02X, new_flags=0x%02X, src_flags=0x%02X\n"
     			,v1_addr
     			,v2_addr
     			,v1_id
@@ -151,7 +150,7 @@ public:
 		auto v2_addr = (dest.version2_.model_ != nullptr)?dest.version2_.address() : 0;
 		auto v1_id   = (dest.version1_.model_ != nullptr)?dest.version1_.id()      : 0;
 		auto v2_id   = (dest.version2_.model_ != nullptr)?dest.version2_.id()      : 0;
-		LOG(INFO, "Merging relations flags 0x%016zu <-> 0x%016zu id[0x%016zu<->0x%016zu] old_type=%d, new_type=%d, src_type=%d, old_flags=0x%02X, new_flags=0x%02X, src_flags=0x%02X\n"
+		LOG(DEBUG, "Matching.cpp : Merging relations flags 0x%016zu <-> 0x%016zu id[0x%016zu<->0x%016zu] old_type=%d, new_type=%d, src_type=%d, old_flags=0x%02X, new_flags=0x%02X, src_flags=0x%02X\n"
 				,v1_addr
 				,v2_addr
 				,v1_id
@@ -176,7 +175,7 @@ public:
     {
     	if(relation.type_ != with_type)
     	{
-    		LOG(INFO, "DestroyRelation with 0x%016zu <--> 0x%016zu id[0x%016zu<->0x%016zu], type=%d\n",
+    		LOG(DEBUG, "Matching.cpp: DestroyRelation with 0x%016zu <--> 0x%016zu id[0x%016zu<->0x%016zu], type=%d\n",
     				relation.version1_.address(),
 					relation.version2_.address(),
     				relation.version1_.id(),
@@ -215,9 +214,8 @@ public:
 		}
     }
 
-    relation_idx_t AddRelation(Relation& relation)
-    {
-    	LOG(INFO, "AddRelation with 0x%016zu <--> 0x%016zu id[0x%016zu<->0x%016zu], type=%d, objtype=%d/%d\n",
+    relation_idx_t AddRelation(Relation& relation) {
+    	LOG(DEBUG, "Matching.cpp : AddRelation with 0x%016zu <--> 0x%016zu id[0x%016zu<->0x%016zu], type=%d, objtype=%d/%d\n",
     			relation.version1_.address(),
 				relation.version2_.address(),
     			relation.version1_.id(),
@@ -298,7 +296,7 @@ public:
 			return true;
     	}
 
-		LOG(INFO, "Updating relation with 0x%016zu <--> 0x%016zu, type=%d\n", pRelation.version1_.address(), pRelation.version2_.address(), pRelation.type_);
+		LOG(DEBUG, "Updating relation with 0x%016zu <--> 0x%016zu, type=%d\n", pRelation.version1_.address(), pRelation.version2_.address(), pRelation.type_);
 
     	Relation relation = pRelation;
 
@@ -375,7 +373,7 @@ public:
     				Relation& conflicting = relations_[idx];
     				if(conflicting.version2_ != relation.version2_)
     				{
-    					LOG(INFO, "Discarding relation with 0x%016zu <--> 0x%016zu, type=%d\n", conflicting.version1_.address(), conflicting.version2_.address(), conflicting.type_);
+    					LOG(DEBUG, "Discarding relation with 0x%016zu <--> 0x%016zu, type=%d\n", conflicting.version1_.address(), conflicting.version2_.address(), conflicting.type_);
     					discard = true;
     					break;
     				}
@@ -388,7 +386,7 @@ public:
     				Relation& conflicting = relations_[idx];
     				if(conflicting.version1_ != relation.version1_)
     				{
-    					LOG(INFO, "Discarding relation with 0x%016zu <--> 0x%016zu, type=%d\n", conflicting.version1_.address(), conflicting.version2_.address(), conflicting.type_);
+    					LOG(DEBUG, "Discarding relation with 0x%016zu <--> 0x%016zu, type=%d\n", conflicting.version1_.address(), conflicting.version2_.address(), conflicting.type_);
     					discard = true;
     					break;
     				}
@@ -411,14 +409,14 @@ public:
 					for(relation_idx_t conflicting_idx : all_others)
 					{
 						Relation& conclicting = relations_[conflicting_idx];
-						LOG(INFO, "Downgrading relation with 0x%016zu <--> 0x%016zu, type=%d\n", conclicting.version1_.address(), conclicting.version2_.address(), conclicting.type_);
+						LOG(DEBUG, "Matching.cpp : Downgrading relation with 0x%016zu <--> 0x%016zu, type=%d\n", conclicting.version1_.address(), conclicting.version2_.address(), conclicting.type_);
 						MaskAlgoFlags(conclicting);
 						conclicting.type_ = RELATION_TYPE_WEAK_MATCH;
 					}
 				}
 				else
 				{
-					LOG(INFO, "marking as resolved 0x%016zu <--> 0x%016zu\n", pRelation.version1_.address(), pRelation.version2_.address());
+					LOG(DEBUG, "MatchingMcpp : Marking as resolved 0x%016zu <--> 0x%016zu\n", pRelation.version1_.address(), pRelation.version2_.address());
 					//Strong match disqualifies every other relations implying v1 or v2
 					DestroyOtherRelations(relation.version1_, relation.version2_);
 					relation_resolved_db1.insert(pRelation.version1_.id());

@@ -122,4 +122,4 @@ namespace yadiff
     };
 
     std::shared_ptr<IDiffAlgo> MakeDiffAlgo(const AlgoCfg& config);
-}
+} // End yadiff::
