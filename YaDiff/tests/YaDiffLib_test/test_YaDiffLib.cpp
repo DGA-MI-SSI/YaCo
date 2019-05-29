@@ -31,7 +31,6 @@
 
 namespace fs = std::experimental::filesystem;
 
-#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("xref", (FMT), ## __VA_ARGS__)
 
 namespace
 {

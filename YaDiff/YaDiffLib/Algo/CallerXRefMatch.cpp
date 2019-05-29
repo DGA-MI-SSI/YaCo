@@ -10,14 +10,8 @@
 #include <map>
 #include <set>
 
-#if 0
-#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("caller", (FMT), ## __VA_ARGS__)
-#else
-#define LOG(...) do {} while(0)
-#endif
 
-namespace
-{
+namespace {
 class CallerXRefMatchAlgo: public yadiff::IDiffAlgo
 {
 public:
@@ -44,7 +38,7 @@ private:
     const yadiff::AlgoCfg config_;
 };
 
-}
+} // End ::
 
 const char* CallerXRefMatchAlgo::GetName() const{
     return "CallerXRefMatchAlgo";
@@ -174,8 +168,8 @@ bool CallerXRefMatchAlgo::Analyse(const yadiff::OnAddRelationFn& output, const y
                     new_relation.type_ = RELATION_TYPE_EXACT_MATCH;
                     new_relation.version1_ = *LocalXrefObjectVersionSet.begin();
                     new_relation.version2_ = *RemoteXrefObjectVersionSet.begin();
-                    LOG(INFO, "CXMA: from %lx(%s) <-> %lx(%s)\n", relation.version1_.address(), relation.version1_.username().value, relation.version2_.address(), relation.version2_.username().value);
-                    LOG(INFO, "CXMA: --> associate %lx(%s) <-> %lx(%s)\n", new_relation.version1_.address(), new_relation.version1_.username().value, new_relation.version2_.address(), new_relation.version2_.username().value);
+                    LOG(INFO, "CXMA: from %zx (%s) <-> %zx (%s)\n", relation.version1_.address(), relation.version1_.username().value, relation.version2_.address(), relation.version2_.username().value);
+                    LOG(INFO, "CXMA: --> associate %zx (%s) <-> %zx (%s)\n", new_relation.version1_.address(), new_relation.version1_.username().value, new_relation.version2_.address(), new_relation.version2_.username().value);
                     output(new_relation, false);
                 }
                 else
@@ -202,8 +196,8 @@ bool CallerXRefMatchAlgo::Analyse(const yadiff::OnAddRelationFn& output, const y
                 new_relation.type_ = RELATION_TYPE_DIFF;
                 new_relation.version1_ = diff_version1;
                 new_relation.version2_ = diff_version2;
-                LOG(INFO, "CXMA: from %lx(%s) <-> %lx(%s)\n", relation.version1_.address(), relation.version1_.username().value, relation.version2_.address(), relation.version2_.username().value);
-                LOG(INFO, "CXMA: --> associate %lx(%s) <-> %lx(%s)\n", new_relation.version1_.address(), new_relation.version1_.username().value, new_relation.version2_.address(), new_relation.version2_.username().value);
+                LOG(INFO, "CXMA: from %zx (%s) <-> %zx(%s)\n", relation.version1_.address(), relation.version1_.username().value, relation.version2_.address(), relation.version2_.username().value);
+                LOG(INFO, "CXMA: --> associate %zx (%s) <-> %zx (%s)\n", new_relation.version1_.address(), new_relation.version1_.username().value, new_relation.version2_.address(), new_relation.version2_.username().value);
                 output(new_relation, false);
 
                 /* try to propagate diff relations to parent only for basic blocks */
@@ -228,8 +222,8 @@ bool CallerXRefMatchAlgo::Analyse(const yadiff::OnAddRelationFn& output, const y
 
                 if (nullptr != diff_parent1 && nullptr != diff_parent2)
                 {
-                    LOG(INFO, "CXMA: from %lx(%s) <-> %lx(%s)\n", relation.version1_.address(), relation.version1_.username().value, relation.version2_.address(), relation.version2_.username().value);
-                    LOG(INFO, "CXMA: --> associate %lx(%s) <-> %lx(%s)\n", new_relation.version1_.address(), new_relation.version1_.username().value, new_relation.version2_.address(), new_relation.version2_.username().value);
+                    LOG(INFO, "CXMA: from %zx(%s) <-> %zx(%s)\n", relation.version1_.address(), relation.version1_.username().value, relation.version2_.address(), relation.version2_.username().value);
+                    LOG(INFO, "CXMA: --> associate %zx(%s) <-> %zx(%s)\n", new_relation.version1_.address(), new_relation.version1_.username().value, new_relation.version2_.address(), new_relation.version2_.username().value);
                     output(new_relation, false);
                 }
             }

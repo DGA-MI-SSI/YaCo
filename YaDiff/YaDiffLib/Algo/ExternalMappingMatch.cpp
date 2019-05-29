@@ -23,12 +23,10 @@
 using namespace std;
 using namespace std::experimental;
 
-#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("external", (FMT), ## __VA_ARGS__)
 
 using json = nlohmann::json;
 
-namespace yadiff
-{
+namespace yadiff {
   struct ExternalMappingEntry
   {
       offset_t      src;
@@ -192,4 +190,4 @@ bool ExternalMappingMatchAlgo::Analyse(const OnAddRelationFn& output, const Rela
 
     return true;
 }
-}
+} // End yadiff::

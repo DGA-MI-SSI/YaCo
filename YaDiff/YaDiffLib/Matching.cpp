@@ -13,12 +13,6 @@
 #include <unordered_map>
 #include <libxml/xmlreader.h>
 
-#if 1
-#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("yadiff", (FMT), ## __VA_ARGS__)
-#else
-#define LOG(...) do {} while(0)
-#endif
-
 namespace yadiff
 {
     static const std::string SECTION_NAME = "Matching";
@@ -30,7 +24,7 @@ namespace yadiff
 class YaDiffRelationContainer
 {
 public:
-//    std::unordered_map<uint64_t, uint32_t> relation_map_;
+    // std::unordered_map<uint64_t, uint32_t> relation_map_;
     std::vector<Relation> relations_;
     typedef int32_t relation_idx_t;
 #define RELATION_IDX_NONE ((relation_idx_t)-1)
@@ -46,33 +40,28 @@ public:
     {
     	auto old_flags = dest.flags_;
     	auto old_type = dest.type_;
-        if(dest.type_ == RELATION_TYPE_DIFF && src.type_ == RELATION_TYPE_STRONG_MATCH)
-        {
+
+        if(dest.type_ == RELATION_TYPE_DIFF && src.type_ == RELATION_TYPE_STRONG_MATCH) {
         	dest.type_ = RELATION_TYPE_STRONG_MATCH;
         }
-        if(dest.type_ == RELATION_TYPE_WEAK_MATCH && (src.type_ == RELATION_TYPE_DIFF || src.type_ == RELATION_TYPE_STRONG_MATCH))
-        {
+
+        if(dest.type_ == RELATION_TYPE_WEAK_MATCH
+            && (src.type_ == RELATION_TYPE_DIFF || src.type_ == RELATION_TYPE_STRONG_MATCH)) {
         	dest.type_ = src.type_;
         }
 
     	//Apply mask on flags only in the case where there has been an improvement on relation type
         bool mask_flags = true;
-        if(dest.type_ == RELATION_TYPE_STRONG_MATCH && (src.type_ == RELATION_TYPE_WEAK_MATCH || src.type_ == RELATION_TYPE_DIFF))
-        {
+        if(dest.type_ == RELATION_TYPE_STRONG_MATCH
+            && (src.type_ == RELATION_TYPE_WEAK_MATCH || src.type_ == RELATION_TYPE_DIFF)) {
         	mask_flags = false;
         }
-        if(dest.type_ == RELATION_TYPE_DIFF && (src.type_ == RELATION_TYPE_WEAK_MATCH))
-        {
+        if(dest.type_ == RELATION_TYPE_DIFF && (src.type_ == RELATION_TYPE_WEAK_MATCH)) {
         	mask_flags = false;
         }
 
-        if(mask_flags)
-        {
-        	if(src.mask_algos_flags)
-        	{
-//        		LOG(INFO, "Masking flags");
+        if(mask_flags && src.mask_algos_flags) {
         		dest.flags_ &= ~(AF_ALL_ALGOS_DONE);
-        	}
         }
 		dest.flags_ |= src.flags_;
 
@@ -80,6 +69,7 @@ public:
 		auto v2_addr = (dest.version2_.model_ != nullptr)?dest.version2_.address() : 0;
 		auto v1_id   = (dest.version1_.model_ != nullptr)?dest.version1_.id()      : 0;
 		auto v2_id   = (dest.version2_.model_ != nullptr)?dest.version2_.id()      : 0;
+        // TODO log to a file
     	LOG(INFO, "Merging relations 0x%016zu <-> 0x%016zu id[0x%016zu<->0x%016zu] old_type=%d, new_type=%d, src_type=%d, old_flags=0x%02X, new_flags=0x%02X, src_flags=0x%02X\n"
     			,v1_addr
     			,v2_addr
@@ -902,4 +892,4 @@ bool Matching::Analyse(std::vector<Relation>& output)
     return true;
 }
 
-} //end namespace
+} // End yadiff::

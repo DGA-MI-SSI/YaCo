@@ -32,13 +32,7 @@
 #define FUNC_LIB        0x00000004     ///< Library function
 #endif
 
-#if 0
-#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("yadiff", (FMT), ## __VA_ARGS__)
-#else
-#define LOG(...) do {} while(0)
-#endif
-namespace
-{
+namespace {
 
 /* BB SIGN,
     The minimum info I need to store for each BB to be able to get new data
@@ -140,7 +134,7 @@ private:
     VectorSignDatabase             vectorSignDatabase2;
     const yadiff::AlgoCfg&         config_;
 };
-}
+} // End ::
 
 std::shared_ptr<yadiff::IDiffAlgo> yadiff::MakeVectorSignAlgo(const yadiff::AlgoCfg& config)
 {
@@ -778,7 +772,7 @@ void VectorSignAlgo::CreateConcatenatedVector(FunctionSignatureMap_t& functionSi
     {
         FunctionSignature_t& function_signature = it.second;
         
-        LOG(INFO, "Creating concatenated vector for function %s with %lu children and %lu parents\n", function_signature.name.value, function_signature.children.size(), function_signature.parents.size());
+        LOG(INFO, "Creating concatenated vector for function %s with %zu children and %zu parents\n", function_signature.name.value, function_signature.children.size(), function_signature.parents.size());
 
         // 0: Me
         function_signature.concatenated_vector = function_signature.vector;
@@ -854,8 +848,9 @@ void VectorSignAlgo::CreateFunctionSignatureMap(FunctionSignatureMap_t& function
     // 2/ Fill
     db.walk([&](const HVersion& fctVersion)
     {
-        if (fctVersion.type() != OBJECT_TYPE_FUNCTION)
+        if (fctVersion.type() != OBJECT_TYPE_FUNCTION) {
             return WALK_CONTINUE;
+        }
 
         // TODO Log function
         // 2.1/ Set the internal fields (global)
@@ -863,9 +858,8 @@ void VectorSignAlgo::CreateFunctionSignatureMap(FunctionSignatureMap_t& function
 
         // 2.2/ Walk horizontally the control flow.
         const auto firstBBId  = functionSignatureMap[fctVersion.id()].firstBBId;
-        if (firstBBId == 0x0)
-        {
-            LOG(WARNING, "WARN addr:%" PRIxEA "\n", fctVersion.address());
+        if (firstBBId == 0x0) {
+            LOG(WARNING, "WARN addr: %zx\n", fctVersion.address());
             return WALK_CONTINUE;
         }
         

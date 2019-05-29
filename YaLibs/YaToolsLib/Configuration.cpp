@@ -7,7 +7,6 @@
 #include <string.h>
 #include <libxml/xmlreader.h>
 
-#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("cfg", (FMT), ## __VA_ARGS__)
 
 Configuration::~Configuration()
 {

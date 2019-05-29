@@ -31,11 +31,6 @@ using namespace std::experimental;
 
 using json = nlohmann::json;
 
-#if 1
-#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("yadiff", (FMT), ## __VA_ARGS__)
-#else
-#define LOG(...) do {} while(0)
-#endif
 
 namespace {
 

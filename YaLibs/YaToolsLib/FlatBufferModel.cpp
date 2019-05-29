@@ -32,12 +32,6 @@ namespace fb = flatbuffers;
 
 #include <chrono>
 
-#if 0
-#define HAS_FLATBUFFER_LOGGING
-#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("flatbuffer", (FMT), ## __VA_ARGS__)
-#else
-#define LOG(...) do {} while(0)
-#endif
 
 namespace
 {
@@ -189,7 +183,7 @@ const_string_ref make_string_ref_from(const fb::String* value)
         return gEmptyRef;
     return const_string_ref{value->data(), value->size()};
 }
-}
+} // End ::
 
 std::shared_ptr<IModel> MakeFlatBufferModel(const std::shared_ptr<Mmap_ABC>& mmap)
 {

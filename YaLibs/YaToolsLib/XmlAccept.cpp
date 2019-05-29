@@ -35,11 +35,6 @@
 
 namespace fs = std::experimental::filesystem;
 
-#if 1
-#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("xml", (FMT), ## __VA_ARGS__)
-#else
-#define LOG(...) do {} while(0)
-#endif
 
 namespace
 {
@@ -129,7 +124,7 @@ namespace
 
         const fs::path folder_;
     };
-}
+} // End ::
 
 void AcceptXmlCache(IModelVisitor& visitor, const std::string& folder)
 {

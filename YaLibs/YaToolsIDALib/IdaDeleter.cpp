@@ -23,7 +23,6 @@
 #include "YaHelpers.hpp"
 #include "Strucs.hpp"
 
-#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("ida_deleter", (FMT), ## __VA_ARGS__)
 
 namespace
 {

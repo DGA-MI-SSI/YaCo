@@ -35,8 +35,6 @@
 #   include <experimental/filesystem>
 #endif
 
-#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("repo", (FMT), ## __VA_ARGS__)
-
 namespace fs = std::experimental::filesystem;
 
 namespace

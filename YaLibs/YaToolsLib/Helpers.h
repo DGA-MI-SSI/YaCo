@@ -26,3 +26,10 @@
 
 #define STATIC_ASSERT_POD(X) static_assert(std::is_pod<X>::value, # X " must be a POD structure")
 #define STATIC_ASSERT_SIZEOF(X,Y) static_assert(sizeof(X) == (Y), # X " must have sizeof " # Y)
+
+// TODO add log in a file
+#if 1
+#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("yadiff", (FMT), ## __VA_ARGS__)
+#else
+#define LOG(...) do {} while(0)
+#endif

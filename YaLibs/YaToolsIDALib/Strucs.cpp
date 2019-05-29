@@ -28,7 +28,6 @@
 
 #include <unordered_map>
 
-#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("strucs", (FMT), ## __VA_ARGS__)
 
 namespace
 {

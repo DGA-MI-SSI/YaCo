@@ -24,7 +24,6 @@
 
 #include <math.h>
 
-#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("hooks", (FMT), ## __VA_ARGS__)
 
 // Log macro used for events logging
 #define LOG_IDP_EVENT(format, ...) do { if(LOG_IDP_EVENTS) LOG(INFO, "idp: " format "\n", ## __VA_ARGS__); } while(0)

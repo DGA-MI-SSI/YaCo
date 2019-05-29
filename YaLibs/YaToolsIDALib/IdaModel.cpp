@@ -42,8 +42,6 @@ extern "C"
     #include <zlib.h>
 }
 
-#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("ida_model", (FMT), ## __VA_ARGS__)
-
 void pool_item_clear(qstring& item)
 {
     item.qclear();

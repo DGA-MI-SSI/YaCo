@@ -14,7 +14,6 @@
 
 using namespace std;
 
-#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("propagate", (FMT), ## __VA_ARGS__)
 
 namespace yadiff
 {

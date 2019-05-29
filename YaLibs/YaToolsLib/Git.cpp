@@ -28,11 +28,6 @@
 
 namespace fs = std::experimental::filesystem;
 
-#if 1
-#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("git", (FMT), ## __VA_ARGS__)
-#else
-#define LOG(...) do {} while(0)
-#endif
 
 #include "Bench.h"
 
@@ -59,7 +54,7 @@ namespace std
     template<> struct default_delete<git_signature>               { static const bool marker = true; void operator()(git_signature*               ptr) { git_signature_free(ptr); } };
     template<> struct default_delete<git_strarray>                { static const bool marker = true; void operator()(git_strarray*                ptr) { git_strarray_free(ptr); } };
     template<> struct default_delete<git_tree>                    { static const bool marker = true; void operator()(git_tree*                    ptr) { git_tree_free(ptr); } };
-}
+} // End ::
 
 namespace
 {

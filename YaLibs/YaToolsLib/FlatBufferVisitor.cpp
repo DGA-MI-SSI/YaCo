@@ -43,14 +43,8 @@
 
 namespace fb = flatbuffers;
 
-#if 0
-#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("fb_export", (FMT), ## __VA_ARGS__)
-#else
-#define LOG(...) do {} while(0)
-#endif
 
-namespace
-{
+namespace {
 static yadb::CommentType get_comment_type(CommentType_e value)
 {
     switch(value)
@@ -191,7 +185,7 @@ struct FlatBufferVisitor : public IFlatBufferVisitor
 
     bool is_ready_;
 };
-}
+} // End ::
 
 std::shared_ptr<IFlatBufferVisitor> MakeFlatBufferVisitor()
 {

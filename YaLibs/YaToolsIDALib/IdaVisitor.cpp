@@ -50,7 +50,6 @@ using namespace nonstd;
 using namespace std::experimental;
 #endif
 
-#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("import", (FMT), ## __VA_ARGS__)
 
 namespace
 {

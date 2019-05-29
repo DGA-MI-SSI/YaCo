@@ -15,14 +15,8 @@
 #include <chrono>
 #include <thread>
 
-#if 1
-#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("xref", (FMT), ## __VA_ARGS__)
-#else
-#define LOG(LEVEL, FMT, ...) do {} while(0)
-#endif
 
-namespace yadiff
-{
+namespace yadiff {
 #define ASSOCIATE_DATA 1
 
 class XRefOffsetOrderMatchAlgo: public IDiffAlgo
@@ -176,4 +170,4 @@ bool XRefOffsetOrderMatchAlgo::Analyse(const OnAddRelationFn& output, const Rela
     return true;
 }
 
-}
+} // End yadiff::

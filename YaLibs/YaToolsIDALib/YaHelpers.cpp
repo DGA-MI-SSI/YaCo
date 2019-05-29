@@ -23,7 +23,6 @@
 
 #include <algorithm>
 
-#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("ya", (FMT), ## __VA_ARGS__)
 
 namespace
 {

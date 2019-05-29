@@ -12,14 +12,8 @@
 #include <chrono>
 #include <thread>
 
-#if 0
-#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("xref", (FMT), ## __VA_ARGS__)
-#else
-#define LOG(LEVEL, FMT, ...) do {} while(0)
-#endif
 
-namespace yadiff
-{
+namespace yadiff {
 #define ASSOCIATE_DATA 1
 
 class XRefOffsetMatchAlgo: public IDiffAlgo
@@ -130,7 +124,7 @@ bool XRefOffsetMatchAlgo::Analyse(const OnAddRelationFn& output, const RelationW
                 if (local_version.match(remote_version))
                 {
                     LOG(INFO, "XROMA: from %llx(%s) <-> %llx(%s)\n", relation.version1_.address(), relation.version1_.username().value, relation.version2_.address(), relation.version2_.username().value);
-                    LOG(INFO, "XROMA: --> associate %llx(%s) <-> %llx(%s)", localVer.address(), localVer.username().value, remoteVer.address(), remoteVer.username().value);
+                    LOG(INFO, "XROMA: --> associate %llx(%s) <-> %llx(%s)", local_version.address(), local_version.username().value, remote_version.address(), remote_version.username().value);
                     new_relation.version1_ = local_version;
                     new_relation.version2_ = remote_version;
                     output(new_relation, false);
@@ -141,7 +135,7 @@ bool XRefOffsetMatchAlgo::Analyse(const OnAddRelationFn& output, const RelationW
                     if(!local_version.has_signatures() && !remote_version.has_signatures())
                     {
                         LOG(INFO, "XROMA DATA: from %llx(%s) <-> %llx(%s)\n", relation.version1_.address(), relation.version1_.username().value, relation.version2_.address(), relation.version2_.username().value);
-                        LOG(INFO, "XROMA DATA: --> associate %llx(%s) <-> %llx(%s)", localVer.address(), localVer.username().value, remoteVer.address(), remoteVer.username().value);
+                        LOG(INFO, "XROMA DATA: --> associate %llx(%s) <-> %llx(%s)", local_version.address(), local_version.username().value, remote_version.address(), remote_version.username().value);
                         new_relation.version1_ = local_version;
                         new_relation.version2_ = remote_version;
                         output(new_relation, false);
@@ -157,4 +151,4 @@ bool XRefOffsetMatchAlgo::Analyse(const OnAddRelationFn& output, const RelationW
     return true;
 }
 
-}
+} // End yadiff::

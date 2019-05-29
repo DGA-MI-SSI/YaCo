@@ -25,14 +25,8 @@
 #include <assert.h>
 #include <functional>
 
-#if 0
-#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("std", (FMT), ## __VA_ARGS__)
-#else
-#define LOG(...) do {} while(0)
-#endif
 
-namespace
-{
+namespace {
 struct StdUsername
 {
     StdUsername(const std::string& value, uint32_t flags)
@@ -394,7 +388,7 @@ struct Model
     std::vector<const StdVersion*>  ordered_;
     ModelIndex                      index_;
 };
-}
+} // End ::
 
 Model::Model()
     : view_versions_    (*this)
