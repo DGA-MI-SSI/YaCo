@@ -35,8 +35,7 @@ int main(int argc, char** argv)
     }
 
     // Save command to discriminate
-    char l_command[] = "yadiff-mergeyadb";
-    globals::s_command.copy(l_command, sizeof(l_command));
+    globals::s_command = "yadiff-mergeyadb";
 
     // Init log
     globals::InitFileLogger(*globals::Get().logger, stdout);

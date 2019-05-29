@@ -6,11 +6,12 @@
 #include <string>
 #include <memory>
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
+    // Hi
+    
+
     // Save command to discriminate
-    char l_command[] = "yadiff-yadbtovector";
-    globals::s_command.copy(l_command, sizeof(l_command));
+    globals::s_command = "yadiff-yadbtovector";
 
     // Init log
     globals::InitFileLogger(*globals::Get().logger, stdout);
@@ -30,7 +31,11 @@ int main(int argc, char** argv)
     cfg.VectorSign.mapDestination = argv[2];
     cfg.VectorSign.concatenate_children = true;
     cfg.VectorSign.concatenate_parents = true;
+    std::shared_ptr<yadiff::IDiffAlgo> p_algo = yadiff::MakeDiffAlgo(cfg);
 
     // Algowork
-    yadiff::MakeDiffAlgo(cfg)->Prepare(*db1, *db1);
+    p_algo->Prepare(*db1, *db1);
+
+    // Bye
+    return 0;
 }
