@@ -10,10 +10,8 @@
 #include <memory>
 #include <stdexcept>
 
-const char* yadiff::InstTypeToString(yadiff::InstructionType_e inst_type)
-{
-    switch(inst_type)
-    {
+const char* yadiff::InstTypeToString(yadiff::InstructionType_e inst_type) {
+    switch(inst_type) {
         case yadiff::INST_TYPE_ANY:         return "ANY";
         case yadiff::INST_TYPE_READ:        return "READ";
         case yadiff::INST_TYPE_WRITE:       return "WRITE";
@@ -34,11 +32,9 @@ const char* yadiff::InstTypeToString(yadiff::InstructionType_e inst_type)
     throw std::runtime_error("unsupported instruction type");
 }
 
-std::shared_ptr<yadiff::IArch> yadiff::MakeArch(cs_arch architecture, cs_mode register_size)
-{
+std::shared_ptr<yadiff::IArch> yadiff::MakeArch(cs_arch architecture, cs_mode register_size) {
     UNUSED(register_size);
-    switch (architecture)
-    {
+    switch (architecture) {
         case CS_ARCH_X86:      return MakeX86Arch();
         case CS_ARCH_ARM:      return MakeArmArch();
         case CS_ARCH_ARM64:    return MakeArmArch();

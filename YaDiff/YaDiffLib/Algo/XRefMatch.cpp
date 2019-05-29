@@ -37,10 +37,9 @@ using json = nlohmann::json;
 #define LOG(...) do {} while(0)
 #endif
 
-namespace
-{
-class XRefMatchAlgo: public yadiff::IDiffAlgo
-{
+namespace {
+
+class XRefMatchAlgo: public yadiff::IDiffAlgo {
 public:
     virtual ~XRefMatchAlgo(){}
 
@@ -73,176 +72,178 @@ private:
     HVersion outer2_db_to_local_db(HVersion version);
 };
 
-}
+} // End ::
 
 const char* XRefMatchAlgo::GetName() const{
-    if(config_.XRefMatch.StripBasicBlocks)
-    {
-    	if(config_.XRefMatch.XrefDirectionMode == yadiff::XREF_DIRECTION_CALLER)
-    		return "XRefMatchAlgo_NOBB_Caller";
-    	if(config_.XRefMatch.XrefDirectionMode == yadiff::XREF_DIRECTION_CALLEE)
-    		return "XRefMatchAlgo_NOBB_Callee";
+    if(config_.XRefMatch.StripBasicBlocks) {
+        if (config_.XRefMatch.XrefDirectionMode == yadiff::XREF_DIRECTION_CALLER) {
+            return "XRefMatchAlgo_NOBB_Caller";
+        }
+        if (config_.XRefMatch.XrefDirectionMode == yadiff::XREF_DIRECTION_CALLEE) {
+            return "XRefMatchAlgo_NOBB_Callee";
+        }
     }
-    else
-    {
-    	if(config_.XRefMatch.XrefDirectionMode == yadiff::XREF_DIRECTION_CALLER)
-    		return "XRefMatchAlgo_BB_Caller";
-    	if(config_.XRefMatch.XrefDirectionMode == yadiff::XREF_DIRECTION_CALLEE)
-    		return "XRefMatchAlgo_BB_Callee";
+    else {
+        if (config_.XRefMatch.XrefDirectionMode == yadiff::XREF_DIRECTION_CALLER) {
+            return "XRefMatchAlgo_BB_Caller";
+        }
+        if (config_.XRefMatch.XrefDirectionMode == yadiff::XREF_DIRECTION_CALLEE) {
+            return "XRefMatchAlgo_BB_Callee";
+        }
     }
     return "XRefMatchAlgo_error";
 }
 
-namespace yadiff
-{
-std::shared_ptr<IDiffAlgo> MakeXRefMatchAlgo(const AlgoCfg& config)
-{
+
+namespace yadiff {
+
+std::shared_ptr<IDiffAlgo> MakeXRefMatchAlgo(const AlgoCfg& config) {
     return std::make_shared<XRefMatchAlgo>(config);
 }
-}
+} // End yadiff::
 
 XRefMatchAlgo::XRefMatchAlgo(const yadiff::AlgoCfg& config):
                 pDb1_(nullptr),
                 pDb2_(nullptr),
-		        pDb1Src(nullptr),
-		        pDb2Src(nullptr),
-        config_(config)
-{
+                pDb1Src(nullptr),
+                pDb2Src(nullptr),
+                config_(config) {
+    // Welcome in the void
 }
 
-namespace
-{
+namespace {
 void StripBasicBlocks(IModelVisitor& visitor, const IModel& model)
 {
     visitor.visit_start();
     model.walk([&](const HVersion& version)
     {
-        if (version.type() == OBJECT_TYPE_BASIC_BLOCK)
-        {
+        if (version.type() == OBJECT_TYPE_BASIC_BLOCK) {
             return WALK_CONTINUE;
         }
-		if (version.type() != OBJECT_TYPE_FUNCTION)
-		{
-			version.accept(visitor);
-			return WALK_CONTINUE;
-		}
+        if (version.type() != OBJECT_TYPE_FUNCTION) {
+            version.accept(visitor);
+            return WALK_CONTINUE;
+        }
 
-		YaToolObjectId firstbb_id = 0;
-   		version.walk_xrefs([&](offset_t offset, operand_t /*base_operand*/, YaToolObjectId base_id, const XrefAttributes* /*base_hattr*/)
-		{
-   			const auto& refed_obj = model.get(base_id);
-   			if(refed_obj.type() == OBJECT_TYPE_BASIC_BLOCK && (version.address() == refed_obj.address() || offset == 0))
-			{
-   				firstbb_id = base_id;
-   				return WALK_STOP;
-			}
-   			return WALK_CONTINUE;
-		});
+        YaToolObjectId firstbb_id = 0;
+           version.walk_xrefs([&](offset_t offset, operand_t /*base_operand*/, YaToolObjectId base_id, const XrefAttributes* /*base_hattr*/)
+        {
+               const auto& refed_obj = model.get(base_id);
+               if(refed_obj.type() == OBJECT_TYPE_BASIC_BLOCK && (version.address() == refed_obj.address() || offset == 0))
+            {
+                   firstbb_id = base_id;
+                   return WALK_STOP;
+            }
+               return WALK_CONTINUE;
+        });
 
-   		const auto& firstbb = model.get(firstbb_id);
+           const auto& firstbb = model.get(firstbb_id);
 
         visitor.visit_start_version(version.type(), version.id());
         visitor.visit_size(version.size());
         visitor.visit_parent_id(version.parent_id());
         visitor.visit_address(version.address());
 
-        if(firstbb.username().size > 0)
+        if (firstbb.username().size > 0) {
             visitor.visit_name(firstbb.username(), firstbb.username_flags());
+        }
 
-        if(version.prototype().size > 0)
+        if (version.prototype().size > 0) {
             visitor.visit_prototype(version.prototype());
+        }
 
         visitor.visit_flags(version.flags());
 
         const auto string_type = version.string_type();
-        if(string_type != UINT8_MAX)
+        if (string_type != UINT8_MAX) {
             visitor.visit_string_type(string_type);
+        }
 
         // signatures
         visitor.visit_start_signatures();
 
-        version.walk_signatures([&](const HSignature& sig)
-        {
+        version.walk_signatures([&](const HSignature& sig) {
             const auto& s = sig.get();
             visitor.visit_signature(s.method, s.algo, make_string_ref(s.buffer));
             return WALK_CONTINUE;
         });
         visitor.visit_end_signatures();
 
-        if(version.header_comment(true).size > 0)
+        if (version.header_comment(true).size > 0) {
             visitor.visit_header_comment(true, version.header_comment(true));
+        }
 
-        if(version.header_comment(false).size > 0)
+        if (version.header_comment(false).size > 0) {
             visitor.visit_header_comment(false, version.header_comment(false));
+        }
 
         // offsets
-        if(version.has_comments() || version.has_value_views() || version.has_register_views() || version.has_hidden_areas())
-        {
+        if(version.has_comments() || version.has_value_views() || version.has_register_views() || version.has_hidden_areas()) {
             visitor.visit_start_offsets();
             version.walk_comments([&](offset_t offset, CommentType_e this_type, const const_string_ref& this_comment)
-			{
-				visitor.visit_offset_comments(offset, this_type, this_comment);
-				return WALK_CONTINUE;
-			});
+            {
+                visitor.visit_offset_comments(offset, this_type, this_comment);
+                return WALK_CONTINUE;
+            });
             version.walk_value_views([&](offset_t offset, operand_t operand, const const_string_ref& value)
-			{
-				visitor.visit_offset_valueview(offset, operand, value);
-				return WALK_CONTINUE;
-			});
+            {
+                visitor.visit_offset_valueview(offset, operand, value);
+                return WALK_CONTINUE;
+            });
             version.walk_register_views([&](offset_t offset, offset_t end, const const_string_ref& name, const const_string_ref& newname)
-			{
-				visitor.visit_offset_registerview(offset, end, name, newname);
-				return WALK_CONTINUE;
-			});
+            {
+                visitor.visit_offset_registerview(offset, end, name, newname);
+                return WALK_CONTINUE;
+            });
             version.walk_hidden_areas([&](offset_t offset, offset_t offset_end, const const_string_ref& value)
-			{
-				visitor.visit_offset_hiddenarea(offset, offset_end, value);
-				return WALK_CONTINUE;
-			});
+            {
+                visitor.visit_offset_hiddenarea(offset, offset_end, value);
+                return WALK_CONTINUE;
+            });
             visitor.visit_end_offsets();
         }
 
-        // xrefs
+        // For all Xrefs:
         visitor.visit_start_xrefs();
-   		version.walk_xrefs([&](offset_t base_offset, operand_t base_operand, YaToolObjectId base_id, const XrefAttributes* base_hattr)
-		{
-   			const auto& refed_obj = model.get(base_id);
-   			if(refed_obj.type() != OBJECT_TYPE_BASIC_BLOCK)
-			{
-   	            visitor.visit_start_xref(base_offset, base_id, base_operand);
-   	            version.walk_xref_attributes(base_hattr, [&](const const_string_ref& key, const const_string_ref& value)
-   	            {
-   	            	visitor.visit_xref_attribute(key, value);
-   	            	return WALK_CONTINUE;
-   	            });
+           version.walk_xrefs([&](offset_t base_offset, operand_t base_operand, YaToolObjectId base_id, const XrefAttributes* base_hattr) {
 
-   	            visitor.visit_end_xref();
-   	            return WALK_CONTINUE;
-			}
+               // Get object
+               const auto& refed_obj = model.get(base_id);
 
-   			//For basic blocks : walk their xrefs and propagate them to this function object
-   			refed_obj.walk_xrefs([&](offset_t offset, operand_t operand, YaToolObjectId id, const XrefAttributes* hattr)
-			{
-   				const auto& refed_obj_by_bb = model.get(id);
-   				if(refed_obj_by_bb.model_ == nullptr)
-   					return WALK_CONTINUE;
+               // If BB: 
+               if(refed_obj.type() != OBJECT_TYPE_BASIC_BLOCK) {
+                   visitor.visit_start_xref(base_offset, base_id, base_operand);
+                   version.walk_xref_attributes(base_hattr, [&](const const_string_ref& key, const const_string_ref& value) {
+                       visitor.visit_xref_attribute(key, value);
+                       return WALK_CONTINUE;
+                   });
 
-   				if(refed_obj_by_bb.type() == OBJECT_TYPE_BASIC_BLOCK)
-   				{
-   					id = refed_obj_by_bb.parent_id();
-   					if(id == version.id())
-   						return WALK_CONTINUE;
-   				}
+                   visitor.visit_end_xref();
+                   return WALK_CONTINUE;
+               }
 
-				visitor.visit_start_xref(base_offset + offset, id, operand);
-				version.walk_xref_attributes(hattr, [&](const const_string_ref& key, const const_string_ref& value)
-				{
-					visitor.visit_xref_attribute(key, value);
-					return WALK_CONTINUE;
-				});
-				visitor.visit_end_xref();
-   				return WALK_CONTINUE;
-			});
+               // For basic blocks : walk their xrefs and propagate them to this function object
+               refed_obj.walk_xrefs([&](offset_t offset, operand_t operand, YaToolObjectId id, const XrefAttributes* hattr) {
+                   const auto& refed_obj_by_bb = model.get(id);
+                   if(refed_obj_by_bb.model_ == nullptr) {
+                       return WALK_CONTINUE;
+                   }
+
+                   if(refed_obj_by_bb.type() == OBJECT_TYPE_BASIC_BLOCK) {
+                       id = refed_obj_by_bb.parent_id();
+                       if (id == version.id()) {
+                           return WALK_CONTINUE;
+                       }
+                   }
+
+               visitor.visit_start_xref(base_offset + offset, id, operand);
+               version.walk_xref_attributes(hattr, [&](const const_string_ref& key, const const_string_ref& value) {
+                    visitor.visit_xref_attribute(key, value);
+                    return WALK_CONTINUE;
+               });
+               visitor.visit_end_xref();
+               return WALK_CONTINUE;
+            });
 
             return WALK_CONTINUE;
         });
@@ -250,17 +251,17 @@ void StripBasicBlocks(IModelVisitor& visitor, const IModel& model)
 
         // attributes
         version.walk_attributes([&](const const_string_ref& key, const const_string_ref& val)
-		{
-        	visitor.visit_attribute(key, val);
-			return WALK_CONTINUE;
-		});
+        {
+            visitor.visit_attribute(key, val);
+            return WALK_CONTINUE;
+        });
 
         // blobs
         version.walk_blobs([&](offset_t offset, const void* data, size_t len)
-		{
-        	visitor.visit_blob(offset, data, len);
-			return WALK_CONTINUE;
-		});
+        {
+            visitor.visit_blob(offset, data, len);
+            return WALK_CONTINUE;
+        });
 
         visitor.visit_end_version();
 
@@ -271,76 +272,84 @@ void StripBasicBlocks(IModelVisitor& visitor, const IModel& model)
 }
 HVersion XRefMatchAlgo::local1_db_to_outer_db(HVersion version)
 {
-	if(pDb1_ == pDb1Src)
-		return version;
-	return pDb1Src->get(version.id());
+    if(pDb1_ == pDb1Src) {
+        return version;
+    }
+    return pDb1Src->get(version.id());
 }
 HVersion XRefMatchAlgo::local2_db_to_outer_db(HVersion version)
 {
-	if(pDb2_ == pDb2Src)
-		return version;
-	return pDb2Src->get(version.id());
+    if(pDb2_ == pDb2Src) {
+        return version;
+    }
+    return pDb2Src->get(version.id());
 }
 HVersion XRefMatchAlgo::outer1_db_to_local_db(HVersion version)
 {
-	if(pDb1_ == pDb1Src)
-		return version;
-	return pDb1_->get(version.id());
+    if(pDb1_ == pDb1Src) {
+        return version;
+    }
+    return pDb1_->get(version.id());
 }
 HVersion XRefMatchAlgo::outer2_db_to_local_db(HVersion version)
 {
-	if(pDb2_ == pDb2Src)
-		return version;
-	return pDb2_->get(version.id());
+    if(pDb2_ == pDb2Src) {
+        return version;
+    }
+    return pDb2_->get(version.id());
 }
 
 bool XRefMatchAlgo::Prepare(const IModel& db1, const IModel& db2)
 {
-	pDb1Src = &db1;
-	pDb2Src = &db2;
+    pDb1Src = &db1;
+    pDb2Src = &db2;
     pDb1_ = &db1;
     pDb2_ = &db2;
 
 
     if (config_.XRefMatch.StripBasicBlocks)
     {
-    	std::shared_ptr<IModelAndVisitor> m1 = MakeMemoryModel();
-    	std::shared_ptr<IModelAndVisitor> m2 = MakeMemoryModel();
-    	pDb1_Stripped = m1;
-    	pDb2_Stripped = m2;
-    	pDb1_= pDb1_Stripped.get();
-    	pDb2_= pDb2_Stripped.get();
-    	LOG(INFO, "StripBasicBlocks DB 1\n");
-    	StripBasicBlocks(*m1, db1);
-    	LOG(INFO, "StripBasicBlocks DB 2\n");
-    	StripBasicBlocks(*m2, db2);
-    	LOG(INFO, "StripBasicBlocks Finished\n");
+        std::shared_ptr<IModelAndVisitor> m1 = MakeMemoryModel();
+        std::shared_ptr<IModelAndVisitor> m2 = MakeMemoryModel();
+        pDb1_Stripped = m1;
+        pDb2_Stripped = m2;
+        pDb1_= pDb1_Stripped.get();
+        pDb2_= pDb2_Stripped.get();
+        LOG(INFO, "StripBasicBlocks DB 1\n");
+        StripBasicBlocks(*m1, db1);
+        LOG(INFO, "StripBasicBlocks DB 2\n");
+        StripBasicBlocks(*m2, db2);
+        LOG(INFO, "StripBasicBlocks Finished\n");
     }
 
     return true;
 }
 
-bool XRefMatchAlgo::Analyse(const yadiff::OnAddRelationFn& output, const yadiff::RelationWalkerfn& input)
-{
-    if(pDb1_ == nullptr)
+bool XRefMatchAlgo::Analyse(const yadiff::OnAddRelationFn& output, const yadiff::RelationWalkerfn& input) {
+
+    // Check In
+    if(nullptr == pDb1_ || nullptr == pDb2_) {
         return false;
-    if(pDb2_ == nullptr)
-        return false;
+    }
 
     uint32_t this_algo_flag;
     if(config_.XRefMatch.StripBasicBlocks)
     {
-    	if(config_.XRefMatch.XrefDirectionMode == yadiff::XREF_DIRECTION_CALLER)
-    		this_algo_flag = yadiff::AF_CALLER_NOBB_XREF_DONE;
-    	if(config_.XRefMatch.XrefDirectionMode == yadiff::XREF_DIRECTION_CALLEE)
-    		this_algo_flag = yadiff::AF_CALLEE_NOBB_XREF_DONE;
+        if(config_.XRefMatch.XrefDirectionMode == yadiff::XREF_DIRECTION_CALLER) {
+            this_algo_flag = yadiff::AF_CALLER_NOBB_XREF_DONE;
+        }
+        if(config_.XRefMatch.XrefDirectionMode == yadiff::XREF_DIRECTION_CALLEE) {
+            this_algo_flag = yadiff::AF_CALLEE_NOBB_XREF_DONE;
+        }
     }
     else
     {
-    	if(config_.XRefMatch.XrefDirectionMode == yadiff::XREF_DIRECTION_CALLER)
-    		this_algo_flag = yadiff::AF_CALLER_XREF_DONE;
-    	if(config_.XRefMatch.XrefDirectionMode == yadiff::XREF_DIRECTION_CALLEE)
-    		this_algo_flag = yadiff::AF_CALLEE_XREF_DONE;
+        if(config_.XRefMatch.XrefDirectionMode == yadiff::XREF_DIRECTION_CALLER) {
+            this_algo_flag = yadiff::AF_CALLER_XREF_DONE;
+        }
+        if(config_.XRefMatch.XrefDirectionMode == yadiff::XREF_DIRECTION_CALLEE) {
+            this_algo_flag = yadiff::AF_CALLEE_XREF_DONE;
+        }
     }
     struct sig_association_s
     {
@@ -353,42 +362,44 @@ bool XRefMatchAlgo::Analyse(const yadiff::OnAddRelationFn& output, const yadiff:
     };
     typedef std::map<YaToolObjectType_e, sig_map_t> sigs_container_t;
 
-    // iterate over all previously computed relation
+    // Iterate over all previously computed relation
     input([&](const Relation& relation){
-        if(relation.flags_ & this_algo_flag)
+        if(relation.flags_ & this_algo_flag) {
             return true;
+        }
 
         switch (relation.type_)
         {
         case RELATION_TYPE_DIFF:
-            if (config_.XRefMatch.TrustDiffingRelations == yadiff::DO_NOT_TRUST_DIFFING_RELATIONS)
-            {
+            if (config_.XRefMatch.TrustDiffingRelations == yadiff::DO_NOT_TRUST_DIFFING_RELATIONS) {
                 return true;
             }
             break;
         case RELATION_TYPE_STRONG_MATCH:
-//        	LOG(INFO, "Got Strong match relation\n");
-        	break;
+            // LOG(INFO, "Got Strong match relation\n");
+            break;
         case RELATION_TYPE_EXACT_MATCH:
             break;
         default:
             return true;
             break;
         }
-    	const auto& version1_ = outer1_db_to_local_db(relation.version1_);
-    	const auto& version2_ = outer2_db_to_local_db(relation.version2_);
+        const auto& version1_ = outer1_db_to_local_db(relation.version1_);
+        const auto& version2_ = outer2_db_to_local_db(relation.version2_);
 
         Relation tmp = relation;
         tmp.flags_ |= this_algo_flag;
         LOG(INFO, "CXMAF: FLAG 0x%016zu <-> 0x%016zu  (%s <-> %s)\n", relation.version1_.address(), relation.version2_.address(), relation.version1_.username().value, relation.version2_.username().value);
         output(tmp, true);
 
-        if(config_.XRefMatch.StripBasicBlocks)
-        {
-        	if(relation.version1_.type() == OBJECT_TYPE_BASIC_BLOCK || relation.version2_.type() == OBJECT_TYPE_BASIC_BLOCK)
-        		return true;
-//        	if(relation.version1_.type() != OBJECT_TYPE_FUNCTION || relation.version2_.type() != OBJECT_TYPE_FUNCTION)
-//        		return true;
+        // Diregard BB sons (center on Fct sons)
+        if(config_.XRefMatch.StripBasicBlocks) {
+            if(relation.version1_.type() == OBJECT_TYPE_BASIC_BLOCK
+                || relation.version2_.type() == OBJECT_TYPE_BASIC_BLOCK) {
+                return true;
+            }
+            // if(relation.version1_.type() != OBJECT_TYPE_FUNCTION || relation.version2_.type() != OBJECT_TYPE_FUNCTION)
+            //     return true;
         }
 
         sigs_container_t                sigs_container;
@@ -474,7 +485,7 @@ bool XRefMatchAlgo::Analyse(const yadiff::OnAddRelationFn& output, const yadiff:
 //                    HVersion remoteXrefObjectVersion = *RemoteXrefObjectVersionSet.begin();
 
                     // add relation ???
-                	Relation new_relation;
+                    Relation new_relation;
                     new_relation.type_ = RELATION_TYPE_EXACT_MATCH;
                     new_relation.mask_algos_flags = true;
                     new_relation.version1_ = local1_db_to_outer_db(*LocalXrefObjectVersionSet.begin());
@@ -506,14 +517,16 @@ bool XRefMatchAlgo::Analyse(const yadiff::OnAddRelationFn& output, const yadiff:
 
                 Relation new_relation;
                 new_relation.mask_algos_flags = true;
-                if(diff_version1.type() == OBJECT_TYPE_FUNCTION && diff_version2.type() == OBJECT_TYPE_FUNCTION)
-                	new_relation.type_ = config_.XRefMatch.FunctionDiffType;
-                else
-                	new_relation.type_ = RELATION_TYPE_DIFF;
+                if (diff_version1.type() == OBJECT_TYPE_FUNCTION && diff_version2.type() == OBJECT_TYPE_FUNCTION) {
+                    new_relation.type_ = config_.XRefMatch.FunctionDiffType;
+                }
+                else {
+                    new_relation.type_ = RELATION_TYPE_DIFF;
+                }
 
 //                if(diff_version1.type() == OBJECT_TYPE_FUNCTION && diff_version1.address()==0x000000000001D826)
 //                {
-//                	printf("relation diff : 0x%016lX --> 0x%016lX\n", diff_version1.address(), diff_version2.address());
+//                    printf("relation diff : 0x%016lX --> 0x%016lX\n", diff_version1.address(), diff_version2.address());
 //                }
                 new_relation.version1_ = local1_db_to_outer_db(diff_version1);
                 new_relation.version2_ = local2_db_to_outer_db(diff_version2);
@@ -522,8 +535,7 @@ bool XRefMatchAlgo::Analyse(const yadiff::OnAddRelationFn& output, const yadiff:
                 output(new_relation, false);
 
                 /* try to propagate diff relations to parent only for basic blocks */
-                if (OBJECT_TYPE_BASIC_BLOCK != object_type)
-                {
+                if (OBJECT_TYPE_BASIC_BLOCK != object_type) {
                     continue;
                 }
 
@@ -531,9 +543,10 @@ bool XRefMatchAlgo::Analyse(const yadiff::OnAddRelationFn& output, const yadiff:
                 uint32_t version2_parent_count = 0;
                 diff_version1.walk_xrefs_to([&](const HVersion& local_version)
                 {
-                	if(local_version.type() != OBJECT_TYPE_FUNCTION)
-                		return WALK_CONTINUE;
-                	version1_parent_count++;
+                    if(local_version.type() != OBJECT_TYPE_FUNCTION) {
+                        return WALK_CONTINUE;
+                    }
+                    version1_parent_count++;
                     diff_parent1 = &local_version;
                     new_relation.version1_ = local1_db_to_outer_db(local_version);
                     return WALK_CONTINUE;
@@ -541,9 +554,10 @@ bool XRefMatchAlgo::Analyse(const yadiff::OnAddRelationFn& output, const yadiff:
 
                 diff_version2.walk_xrefs_to([&](const HVersion& local_version)
                 {
-                	if(local_version.type() != OBJECT_TYPE_FUNCTION)
-                		return WALK_CONTINUE;
-                	version2_parent_count++;
+                    if (local_version.type() != OBJECT_TYPE_FUNCTION) {
+                        return WALK_CONTINUE;
+                    }
+                    version2_parent_count++;
                     diff_parent2 = &local_version;
                     new_relation.version2_ = local2_db_to_outer_db(local_version);
                     return WALK_CONTINUE;
@@ -551,17 +565,17 @@ bool XRefMatchAlgo::Analyse(const yadiff::OnAddRelationFn& output, const yadiff:
 
                 if (nullptr != diff_parent1 && nullptr != diff_parent2)
                 {
-                	if(version1_parent_count==1 && version2_parent_count==1)
-                	{
-						LOG(INFO, "CXMA3: from 0x%016llx <-> 0x%016llx  (%s <-> %s)\n", version1_.address(), version2_.address(), version1_.username().value, version2_.username().value);
-						LOG(INFO, "CXMA3: --> associate 0x%016llx <-> 0x%016llx  (%s <-> %s)\n", new_relation.version1_.address(), new_relation.version2_.address(), new_relation.version1_.username().value, new_relation.version2_.username().value);
-						output(new_relation, false);
-                	}
-                	else
-                	{
-						LOG(INFO, "CXMA3: from 0x%016llx <-> 0x%016llx  (%s <-> %s)\n", version1_.address(), version2_.address(), version1_.username().value, version2_.username().value);
-						LOG(INFO, "CXMA3: --> Multiple parents\n");
-                	}
+                    if(version1_parent_count==1 && version2_parent_count==1)
+                    {
+                        LOG(INFO, "CXMA3: from 0x%016llx <-> 0x%016llx  (%s <-> %s)\n", version1_.address(), version2_.address(), version1_.username().value, version2_.username().value);
+                        LOG(INFO, "CXMA3: --> associate 0x%016llx <-> 0x%016llx  (%s <-> %s)\n", new_relation.version1_.address(), new_relation.version2_.address(), new_relation.version1_.username().value, new_relation.version2_.username().value);
+                        output(new_relation, false);
+                    }
+                    else
+                    {
+                        LOG(INFO, "CXMA3: from 0x%016llx <-> 0x%016llx  (%s <-> %s)\n", version1_.address(), version2_.address(), version1_.username().value, version2_.username().value);
+                        LOG(INFO, "CXMA3: --> Multiple parents\n");
+                    }
                 }
             }
 
@@ -574,14 +588,14 @@ bool XRefMatchAlgo::Analyse(const yadiff::OnAddRelationFn& output, const yadiff:
                 new_relation.version1_ = local1_db_to_outer_db(diff_version1);
                 for(const auto& v2: RemoteDiffsObjectVersion)
                 {
-					new_relation.version2_ = local2_db_to_outer_db(v2);
-					output(new_relation, false);
+                    new_relation.version2_ = local2_db_to_outer_db(v2);
+                    output(new_relation, false);
                 }
 
 //                for(const auto& diff_version2 : RemoteDiffsObjectVersion)
 //                {
-//                	new_relation.version2_ = local2_db_to_outer_db(diff_version2);
-//                	output(new_relation);
+//                    new_relation.version2_ = local2_db_to_outer_db(diff_version2);
+//                    output(new_relation);
 //                }
             }
 
@@ -594,8 +608,8 @@ bool XRefMatchAlgo::Analyse(const yadiff::OnAddRelationFn& output, const yadiff:
                 new_relation.version2_ = local2_db_to_outer_db(diff_version2);
                 for(const auto& v1: LocalDiffsObjectVersion)
                 {
-                	new_relation.version1_ = local1_db_to_outer_db(v1);
-                	output(new_relation, false);
+                    new_relation.version1_ = local1_db_to_outer_db(v1);
+                    output(new_relation, false);
                 }
             }
 
@@ -606,4 +620,3 @@ bool XRefMatchAlgo::Analyse(const yadiff::OnAddRelationFn& output, const yadiff:
 
     return true;
 }
-

@@ -107,14 +107,14 @@ bool XRefOffsetOrderMatchAlgo::Analyse(const OnAddRelationFn& output, const Rela
         if(relation.flags_ & AF_XREF_OFFSET_ORDER_DONE)
             return true;
 
-    	switch(relation.type_)
-    	{
-//    	case RELATION_TYPE_DIFF:
-    	case RELATION_TYPE_STRONG_MATCH:
-    		break;
-    	default:
-    		return true;
-    	}
+        switch(relation.type_)
+        {
+//        case RELATION_TYPE_DIFF:
+        case RELATION_TYPE_STRONG_MATCH:
+            break;
+        default:
+            return true;
+        }
         // set relation as treated
         Relation tmp = relation;
         tmp.flags_ |= AF_XREF_OFFSET_ORDER_DONE;
@@ -127,49 +127,49 @@ bool XRefOffsetOrderMatchAlgo::Analyse(const OnAddRelationFn& output, const Rela
         std::map<YaToolObjectType_e,std::vector<HVersion>> all_xrefs_v2;
         relation.version1_.walk_xrefs_from([&](offset_t /*local_offset*/, operand_t /*local_operand*/, const HVersion& local_version)
         {
-        	all_xrefs_v1[local_version.type()].push_back(local_version);
-        	return WALK_CONTINUE;
+            all_xrefs_v1[local_version.type()].push_back(local_version);
+            return WALK_CONTINUE;
         });
-		relation.version2_.walk_xrefs_from([&](offset_t /*remote_offset*/, operand_t /*remote_operand*/, const HVersion& remote_version)
-		{
-        	all_xrefs_v2[remote_version.type()].push_back(remote_version);
-			return WALK_CONTINUE;
+        relation.version2_.walk_xrefs_from([&](offset_t /*remote_offset*/, operand_t /*remote_operand*/, const HVersion& remote_version)
+        {
+            all_xrefs_v2[remote_version.type()].push_back(remote_version);
+            return WALK_CONTINUE;
         });
 
-		for(const auto& xref_by_types : all_xrefs_v1)
-		{
-			auto object_type = xref_by_types.first;
-			const auto& xrefs_v1 = xref_by_types.second;
-        	switch(object_type)
-        	{
-        	case OBJECT_TYPE_FUNCTION:
-        	case OBJECT_TYPE_DATA:
-        	case OBJECT_TYPE_CODE:
-        		break;
-        	default:
-        		continue;
-        	}
-        	const auto& xrefs_v2 = all_xrefs_v2[object_type];
+        for(const auto& xref_by_types : all_xrefs_v1)
+        {
+            auto object_type = xref_by_types.first;
+            const auto& xrefs_v1 = xref_by_types.second;
+            switch(object_type)
+            {
+            case OBJECT_TYPE_FUNCTION:
+            case OBJECT_TYPE_DATA:
+            case OBJECT_TYPE_CODE:
+                break;
+            default:
+                continue;
+            }
+            const auto& xrefs_v2 = all_xrefs_v2[object_type];
 
-    		if(xrefs_v1.size() != xrefs_v2.size())
-    			continue;
+            if(xrefs_v1.size() != xrefs_v2.size())
+                continue;
 
-    		for(unsigned int i=0; i<xrefs_v1.size(); i++)
-    		{
-    			HVersion version1_ = xrefs_v1[i];
-    			HVersion version2_ = xrefs_v2[i];
+            for(unsigned int i=0; i<xrefs_v1.size(); i++)
+            {
+                HVersion version1_ = xrefs_v1[i];
+                HVersion version2_ = xrefs_v2[i];
 
-    		    Relation new_relation;
-    		    new_relation.version1_ = version1_;
-    		    new_relation.version2_ = version2_;
-    		    new_relation.type_ = RELATION_TYPE_WEAK_MATCH;
-    		    new_relation.flags_ = 0;
-    		    new_relation.mask_algos_flags = true;
+                Relation new_relation;
+                new_relation.version1_ = version1_;
+                new_relation.version2_ = version2_;
+                new_relation.type_ = RELATION_TYPE_WEAK_MATCH;
+                new_relation.flags_ = 0;
+                new_relation.mask_algos_flags = true;
                 LOG(INFO, "CXORDERMA: from 0x%016llx <-> 0x%016llx  (%s <-> %s)\n", relation.version1_.address(), relation.version2_.address(), relation.version1_.username().value, relation.version2_.username().value);
                 LOG(INFO, "CXORDERMA: --> associate 0x%016llx <-> 0x%016llx  (%s <-> %s)\n", new_relation.version1_.address(), new_relation.version2_.address(), new_relation.version1_.username().value, new_relation.version2_.username().value);
-    		    output(new_relation, false);
-    		}
-		}
+                output(new_relation, false);
+            }
+        }
 
         return true;
     });

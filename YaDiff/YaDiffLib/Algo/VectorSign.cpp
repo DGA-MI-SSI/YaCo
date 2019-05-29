@@ -197,17 +197,17 @@ bool VectorSignAlgo::Analyse(const yadiff::OnAddRelationFn& output, const yadiff
 
 void VectorSignAlgo::BuildVectors(const IModel& db1, const yadiff::OnVectorFn& output)
 {
-	UNUSED(db1);
-	UNUSED(output);
-	vectorSignDatabase1.pDb = &db1;
-	CreateFunctionSignatureMap(vectorSignDatabase1.functionSignatureMap, db1, config_);
+    UNUSED(db1);
+    UNUSED(output);
+    vectorSignDatabase1.pDb = &db1;
+    CreateFunctionSignatureMap(vectorSignDatabase1.functionSignatureMap, db1, config_);
     for (const auto& it : vectorSignDatabase1.functionSignatureMap)
     {
-		if (it.second.name.value != nullptr)
-		{
-			yadiff::FunctionVector vect = {db1.get(it.second.fctId), it.second.concatenated_vector};
-			output(vect);
-		}
+        if (it.second.name.value != nullptr)
+        {
+            yadiff::FunctionVector vect = {db1.get(it.second.fctId), it.second.concatenated_vector};
+            output(vect);
+        }
     }
 }
 
@@ -661,10 +661,10 @@ void VectorSignAlgo::PrintFunctionSignatureMap(const FunctionSignatureMap_t& fun
 
     for (const auto& it : functionSignatureMap)
     {
-		if (it.second.name.value != nullptr)
-		{
-			PrintFunctionSignature(output, it.second, false, NULL);
-		}
+        if (it.second.name.value != nullptr)
+        {
+            PrintFunctionSignature(output, it.second, false, NULL);
+        }
     }
 }
 
@@ -757,20 +757,20 @@ void VectorSignAlgo::CreateConcatenatedVector(FunctionSignatureMap_t& functionSi
         FunctionSignature_t& function_signature = it.second;
         function_signature.vector = FunctionData2Vector(function_signature.function_data, NULL, "");
     }
-	LOG(INFO, "Creating concatenated vector for all functions\n");
+    LOG(INFO, "Creating concatenated vector for all functions\n");
 
-	//TODO : replace these with a "simple" matricial product
-	/*
-	 * We have 6 products to do : childer, parents, children of parents, children of children, parents of parents, parents of children
-	 * 
-	 * Input :
-	 *   -NxM matrice of M coordinates for N function
-	 *   -6xNxN vector : weights for each functions : loop over the 6 above categories, and
-	 * 	               increment the weights
-	 * output :
-	 *   -MxNx6 : additionnal coordinates, we just have to divide the result by the sum of the weights in order to get the mean
-	 * 
-	 */
+    //TODO : replace these with a "simple" matricial product
+    /*
+     * We have 6 products to do : childer, parents, children of parents, children of children, parents of parents, parents of children
+     * 
+     * Input :
+     *   -NxM matrice of M coordinates for N function
+     *   -6xNxN vector : weights for each functions : loop over the 6 above categories, and
+     *                    increment the weights
+     * output :
+     *   -MxNx6 : additionnal coordinates, we just have to divide the result by the sum of the weights in order to get the mean
+     * 
+     */
 
 
     // For all function
@@ -785,29 +785,29 @@ void VectorSignAlgo::CreateConcatenatedVector(FunctionSignatureMap_t& functionSi
 
         if(config_.VectorSign.concatenate_parents)
         {
-			// 1: Father
-			// 1.1: Get matrix
-			yadiff::Matrix matrix_line = std::vector<yadiff::Vector>();
-			for (auto& parent_id : function_signature.parents)
-			{
-				yadiff::Vector parent_vector = functionSignatureMap[parent_id].vector;
-				matrix_line.push_back(parent_vector);
-			}
-			// 1.2 Conc
-			ConcatenateFamilly(function_signature, matrix_line);
+            // 1: Father
+            // 1.1: Get matrix
+            yadiff::Matrix matrix_line = std::vector<yadiff::Vector>();
+            for (auto& parent_id : function_signature.parents)
+            {
+                yadiff::Vector parent_vector = functionSignatureMap[parent_id].vector;
+                matrix_line.push_back(parent_vector);
+            }
+            // 1.2 Conc
+            ConcatenateFamilly(function_signature, matrix_line);
         }
         if(config_.VectorSign.concatenate_children)
         {
-			// 2: Child
-			// 2.1: Get matrix
+            // 2: Child
+            // 2.1: Get matrix
             yadiff::Matrix matrix_line = std::vector<yadiff::Vector>();
-			for (auto& child_id : function_signature.children)
-			{
-				yadiff::Vector child_vector = functionSignatureMap[child_id].vector;
-				matrix_line.push_back(child_vector);
-			}
-			// 2.2 Conc
-			ConcatenateFamilly(function_signature, matrix_line);
+            for (auto& child_id : function_signature.children)
+            {
+                yadiff::Vector child_vector = functionSignatureMap[child_id].vector;
+                matrix_line.push_back(child_vector);
+            }
+            // 2.2 Conc
+            ConcatenateFamilly(function_signature, matrix_line);
         }
     }
 }
@@ -823,16 +823,16 @@ void VectorSignAlgo::CreateConcatenatedString(std::vector<std::string>* concaten
     FunctionData2Vector(null_function_data, concatenated_string, "");
     if(config_.VectorSign.concatenate_parents)
     {
-		FunctionData2Vector(null_function_data, concatenated_string, "father_median_");
-		FunctionData2Vector(null_function_data, concatenated_string, "father_mean_");
-		FunctionData2Vector(null_function_data, concatenated_string, "father_disp_");
+        FunctionData2Vector(null_function_data, concatenated_string, "father_median_");
+        FunctionData2Vector(null_function_data, concatenated_string, "father_mean_");
+        FunctionData2Vector(null_function_data, concatenated_string, "father_disp_");
     }
-	if(config_.VectorSign.concatenate_children)
-	{
-		FunctionData2Vector(null_function_data, concatenated_string, "child_median_");
-		FunctionData2Vector(null_function_data, concatenated_string, "child_mean_");
-		FunctionData2Vector(null_function_data, concatenated_string, "child_disp_");
-	}
+    if(config_.VectorSign.concatenate_children)
+    {
+        FunctionData2Vector(null_function_data, concatenated_string, "child_median_");
+        FunctionData2Vector(null_function_data, concatenated_string, "child_mean_");
+        FunctionData2Vector(null_function_data, concatenated_string, "child_disp_");
+    }
 }
 
 
@@ -865,9 +865,9 @@ void VectorSignAlgo::CreateFunctionSignatureMap(FunctionSignatureMap_t& function
         const auto firstBBId  = functionSignatureMap[fctVersion.id()].firstBBId;
         if (firstBBId == 0x0)
         {
-			LOG(WARNING, "WARN addr:%" PRIxEA "\n", fctVersion.address());
-			return WALK_CONTINUE;
-		}
+            LOG(WARNING, "WARN addr:%" PRIxEA "\n", fctVersion.address());
+            return WALK_CONTINUE;
+        }
         
         ControlFlowGraphHorizontalWalk(fctVersion, db.get(firstBBId), functionSignatureMap);
 

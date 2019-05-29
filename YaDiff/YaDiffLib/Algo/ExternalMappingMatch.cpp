@@ -91,15 +91,15 @@ bool ExternalMappingMatchAlgo::Prepare(const IModel& db1, const IModel& db2)
 
     if(config_.ExternalMappingMatch.MappingFilePath.size() == 0)
     {
-    	LOG(ERROR, "json file not specified\n");
-		return false;
+        LOG(ERROR, "json file not specified\n");
+        return false;
     }
     // load JSON mapping
     if(!filesystem::exists(filesystem::path(config_.ExternalMappingMatch.MappingFilePath)))
-	{
-		LOG(ERROR, "json file %s does not exist\n", config_.ExternalMappingMatch.MappingFilePath.c_str());
-		return false;
-	}
+    {
+        LOG(ERROR, "json file %s does not exist\n", config_.ExternalMappingMatch.MappingFilePath.c_str());
+        return false;
+    }
     std::ifstream file(config_.ExternalMappingMatch.MappingFilePath);
     json data = json::parse(file);
     for(auto it = data.begin(); it != data.end(); ++it)

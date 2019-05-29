@@ -2,7 +2,6 @@
 
 #include "IArch.hpp"
 
-namespace yadiff
-{
+namespace yadiff {
     std::shared_ptr<IArch> MakeMipsArch();
 }

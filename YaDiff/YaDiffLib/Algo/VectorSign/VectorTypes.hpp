@@ -26,8 +26,7 @@ typedef std::vector<Vector> Matrix;
 
 
 //
-struct FunctionControlFlowGraphData_t
-{
+struct FunctionControlFlowGraphData_t {
     int bb_nb;                          // 1 Number of Basic Blocks -1 for undefined (do not forget to increase that)
     int edge_nb;                        // 2 Number of edges
     int ret_nb;                         // 3 Number of return BB (or exit points)
@@ -105,7 +104,7 @@ struct Concatenated_t
     TypeStat_t                          child;
 };
 
-	
+
 #define FORMAT_MAX_SIZE   256
 class BinaryInfo_t
 {

@@ -9,9 +9,7 @@
 #include "VectorTypes.hpp"
 
 
-namespace yadiff
-
-{
+namespace yadiff {
 
 Vector GetCentralMomentByte(const Vector& byteVector, size_t size);
 vector_value GetMedian(const Vector& doubleVector);

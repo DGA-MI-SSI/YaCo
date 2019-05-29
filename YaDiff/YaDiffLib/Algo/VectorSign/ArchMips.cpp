@@ -16,84 +16,84 @@ namespace
 typedef std::map<mips_insn, std::vector<yadiff::InstructionType_e>> InsMap_t;
 
 
-struct MipsArch : public yadiff::IArch
-{
+struct MipsArch : public yadiff::IArch {
     MipsArch();
     bool IsInstructionType(const cs_insn&, yadiff::InstructionType_e) const override;
     bool CheckMap(mips_insn instructionId, yadiff::InstructionType_e instructionTypeA) const;
 
     InsMap_t insmap;
 };
-}
+} // End empty namespace
 
-bool MipsArch::CheckMap(mips_insn instructionId, yadiff::InstructionType_e instructionTypeA) const
-{
+
+bool MipsArch::CheckMap(mips_insn instructionId, yadiff::InstructionType_e instructionTypeA) const {
     const auto it = insmap.find(instructionId);
-    if (it == insmap.end())
+    if (it == insmap.end()) {
         return false;
-    for (const auto instructionType : it->second)
-        if (instructionType == instructionTypeA)
+    }
+    for (const auto instructionType : it->second) {
+        if (instructionType == instructionTypeA) {
             return true;
+        }
+    }
     return false;
 }
 
-MipsArch::MipsArch()
-{
+
+MipsArch::MipsArch() {
     // Read
-    static const mips_insn readList[] =
-    {
+    static const mips_insn readList[] = {
         MIPS_INS_LB, MIPS_INS_LBU, MIPS_INS_LH, MIPS_INS_LHU, MIPS_INS_LL, MIPS_INS_LW, MIPS_INS_LWL, MIPS_INS_LWR,
     };
-    for (mips_insn i : readList)
+    for (mips_insn i : readList) {
         insmap[i].push_back(yadiff::INST_TYPE_READ);
+    }
 
     // Write
-    static const mips_insn writeList[] =
-    {
+    static const mips_insn writeList[] = {
         MIPS_INS_SB, MIPS_INS_SC, MIPS_INS_SH, MIPS_INS_SW, MIPS_INS_SWL, MIPS_INS_SWR,
-
     };
-    for (mips_insn i : writeList)
+    for (mips_insn i : writeList) {
         insmap[i].push_back(yadiff::INST_TYPE_WRITE);
+    }
 
     // Arithmetic
-    static const mips_insn arithmeticList[] =
-    {
+    static const mips_insn arithmeticList[] = {
         MIPS_INS_ADD, MIPS_INS_ADDI, MIPS_INS_ADDIU, MIPS_INS_ADDU, MIPS_INS_CLO, MIPS_INS_CLZ, MIPS_INS_DIV,
         MIPS_INS_DIVU, MIPS_INS_MADD, MIPS_INS_MADDU, MIPS_INS_MSUB, MIPS_INS_MSUBU, MIPS_INS_MUL, MIPS_INS_MULT,
         MIPS_INS_MULTU, MIPS_INS_SEB, MIPS_INS_SEH, MIPS_INS_SLT, MIPS_INS_SLTI, MIPS_INS_SLTIU, MIPS_INS_SLTU,
         MIPS_INS_SUB, MIPS_INS_SUBU,
     };
-    for (mips_insn i : arithmeticList)
+    for (mips_insn i : arithmeticList) {
         insmap[i].push_back(yadiff::INST_TYPE_ARITHMETIC);
+    }
 
     // LOgical
-    static const mips_insn logicalList[] =
-    {
+    static const mips_insn logicalList[] = {
         MIPS_INS_AND, MIPS_INS_ANDI, MIPS_INS_LUI, MIPS_INS_NOR, MIPS_INS_OR, MIPS_INS_ORI, MIPS_INS_XOR, MIPS_INS_XORI,
     };
-    for (mips_insn i : logicalList)
+    for (mips_insn i : logicalList) {
         insmap[i].push_back(yadiff::INST_TYPE_LOGICAL);
+    }
 
     // Shift
-    static const mips_insn shiftList[] =
-    {
+    static const mips_insn shiftList[] = {
         MIPS_INS_ROTR, MIPS_INS_ROTRV, MIPS_INS_SLL, MIPS_INS_SLLV, MIPS_INS_SRA, MIPS_INS_SRAV, MIPS_INS_SRL, MIPS_INS_SRLV,
     };
-    for (mips_insn i : shiftList)
+    for (mips_insn i : shiftList) {
         insmap[i].push_back(yadiff::INST_TYPE_SHIFT);
+    }
 
     // Move (reg 2 reg)
-    static const mips_insn movList[] =
-    {
+    static const mips_insn movList[] = {
         MIPS_INS_MFHI, MIPS_INS_MFLO, MIPS_INS_MOVF, MIPS_INS_MOVN, MIPS_INS_MOVT, MIPS_INS_MOVZ, MIPS_INS_MTHI, MIPS_INS_MTLO,
     };
-    for (mips_insn i : movList)
+    for (mips_insn i : movList) {
         insmap[i].push_back(yadiff::INST_TYPE_MOV);
+    }
 
     // FPU
-    static const mips_insn fpuList[] =
-    {
+    static const mips_insn fpuList[] = {
         // arith
         // MIPS_INS_REC, MIPS_INS_RSQRT,
         MIPS_INS_ABS, MIPS_INS_ADD, MIPS_INS_DIV, MIPS_INS_MADD, MIPS_INS_MSUB, MIPS_INS_MUL, MIPS_INS_NEG, MIPS_INS_NMADD,
@@ -117,23 +117,21 @@ MipsArch::MipsArch()
         // obsolete
         MIPS_INS_BC1FL, MIPS_INS_BC1TL,
     };
-    for (mips_insn i : fpuList)
+    for (mips_insn i : fpuList) {
         insmap[i].push_back(yadiff::INST_TYPE_FLOAT);
+    }
 
     // Conditional
-    static const mips_insn condList[] =
-    {
+    static const mips_insn condList[] = {
         MIPS_INS_BEQ, MIPS_INS_BGEZ, MIPS_INS_BGEZAL, MIPS_INS_BGTZ, MIPS_INS_BLEZ, MIPS_INS_BLTZ,
         MIPS_INS_BLTZAL, MIPS_INS_BNE,
     };
-    for (mips_insn i : condList)
+    for (mips_insn i : condList) {
         insmap[i].push_back(yadiff::INST_TYPE_CONDITIONAL);
-
-
+    }
 }
 
-bool MipsArch::IsInstructionType(const cs_insn& instruction, yadiff::InstructionType_e type) const
-{
+bool MipsArch::IsInstructionType(const cs_insn& instruction, yadiff::InstructionType_e type) const {
     const cs_detail* detail = instruction.detail;
     const mips_insn insn_id = static_cast<mips_insn>(instruction.id);
     bool res;
@@ -141,8 +139,7 @@ bool MipsArch::IsInstructionType(const cs_insn& instruction, yadiff::Instruction
     UNUSED(insn_id);
 
 
-    switch (type)
-    { 
+    switch (type) { 
     // OK
     case yadiff::INST_TYPE_ANY:
         return true;
@@ -164,9 +161,11 @@ bool MipsArch::IsInstructionType(const cs_insn& instruction, yadiff::Instruction
 
     // OK
     case yadiff::INST_TYPE_CALL:
-        for (auto i : instruction.detail->groups)
-            if (i == CS_GRP_CALL)
+        for (auto i : instruction.detail->groups) {
+            if (i == CS_GRP_CALL) {
                 return true;
+            }
+        }
         return false;
 
     // NO
@@ -221,14 +220,13 @@ bool MipsArch::IsInstructionType(const cs_insn& instruction, yadiff::Instruction
     case yadiff::INST_TYPE_COUNT:
         return true;
 
-	break;
+    break;
     }
 
     return false;
 }
 
-std::shared_ptr<yadiff::IArch> yadiff::MakeMipsArch()
-{
+std::shared_ptr<yadiff::IArch> yadiff::MakeMipsArch() {
     return std::make_shared<MipsArch>();
 }
 

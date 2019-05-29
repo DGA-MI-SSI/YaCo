@@ -24,8 +24,7 @@ TODO : get the Arch and the mode in database.
 #include <memory>
 
 // TODO namespace yadiff
-namespace
-{
+namespace {
 
 
 /*
@@ -34,19 +33,14 @@ namespace
 :return:
 :remark:  used locally to remember my work thourght all lopps.
 */
-struct FunctionDisassembled_T
-{
+struct FunctionDisassembled_T {
     FunctionDisassembled_T(yadiff::InstructionType_e instructionType)
-        : instruction_type(instructionType)
-    {
+        : instruction_type(instructionType) {
     }
 
-    void UpdateBBFields(const YaToolObjectId& bb_id, const std::vector<cs_insn>& bbInstructions, yadiff::IArch& iarch)
-    {
+    void UpdateBBFields(const YaToolObjectId& bb_id, const std::vector<cs_insn>& bbInstructions, yadiff::IArch& iarch) {
         std::vector<bool> res;
-
         res.reserve(bbInstructions.size());
-
         for (const auto& insn : bbInstructions) {
             res.push_back(iarch.IsInstructionType(insn, instruction_type));
         }
@@ -54,13 +48,14 @@ struct FunctionDisassembled_T
     }
 
 
-    std::vector<bool> GetBBVect(const YaToolObjectId& bb_id) const
-    {
+    std::vector<bool> GetBBVect(const YaToolObjectId& bb_id) const {
         // TODO bug fix for function with man's spreading (function that are father than their "size"
-        if (bbFields.find(bb_id) != bbFields.end())
+        if (bbFields.find(bb_id) != bbFields.end()) {
             return bbFields.at(bb_id);
-        else
+        }
+        else {
             return std::vector<bool>();
+        }
     }
 
 
@@ -96,10 +91,8 @@ std::string PrintPrettyInsn(const std::vector<cs_insn>& instructions)
 * @return:  insn_array : array of instruction
 * @remark:  The uint8_t_array is a perfect input structure here
 */
-std::vector<cs_insn> Disass(const uint8_t* data, size_t size, const yadiff::BinaryInfo_t& binary_info)
-{
-    if (binary_info.cs_error_val != CS_ERR_OK)
-    {
+std::vector<cs_insn> Disass(const uint8_t* data, size_t size, const yadiff::BinaryInfo_t& binary_info) {
+    if (binary_info.cs_error_val != CS_ERR_OK) {
         return  std::vector<cs_insn>();
     }
 
@@ -144,33 +137,26 @@ std::vector<cs_insn> Disass(const uint8_t* data, size_t size, const yadiff::Bina
 :return:  vector (TODO comment)
 :remark:  
 */
-std::vector<yadiff::vector_value> FlattenFuction(const std::map<int, std::vector<YaToolObjectId>>& equiLevelMap, const FunctionDisassembled_T& dis)
-{
+std::vector<yadiff::vector_value> FlattenFuction(const std::map<int, std::vector<YaToolObjectId>>& equiLevelMap, const FunctionDisassembled_T& dis) {
     std::vector<yadiff::vector_value> res;
     size_t last_index = 0; 
 
     // For all distance to root (in BB);
-    for (const auto& it : equiLevelMap)
-    {
+    for (const auto& it : equiLevelMap) {
         const auto& bbIds = it.second;
-        for (const auto& bbId : bbIds)
-        {
+        for (const auto& bbId : bbIds) {
             const std::vector<bool>& bbBoolVect = dis.GetBBVect(bbId);
-            for (size_t i = 0; i < bbBoolVect.size(); i++)
-            {
+            for (size_t i = 0; i < bbBoolVect.size(); i++) {
                 const yadiff::vector_value vd = static_cast<yadiff::vector_value>(bbBoolVect[i]);
-                if (last_index + i >= res.size())
-                {
+                if (last_index + i >= res.size()) {
                     res.insert(res.begin() + last_index + i, vd);
                 }
-                else
-                {
+                else {
                     res[last_index + i] += vd;
                 }
             }
         }
-        if(res.size() > 0)
-        {
+        if(res.size() > 0) {
             last_index = res.size() - 1;
         }
     }
@@ -183,7 +169,7 @@ std::vector<yadiff::vector_value> FlattenFuction(const std::map<int, std::vector
 
 
 /*
-:brief:  
+:brief:   Disassemble all function and set the disassmbly stucture field
 :param:   
 :return: 
 :remark: 
@@ -192,62 +178,57 @@ void yadiff::SetDisassemblyFields(
     yadiff::FunctionData_t& function_data,
     const HVersion& fctVersion,
     const std::map<int, std::vector<YaToolObjectId>>& equiLevelMap,
-    BinaryInfo_t& binary_info)
-{
-    std::map<YaToolObjectId, offset_t>      bbIdMap;
+    BinaryInfo_t& binary_info) {
 
+    std::vector<FunctionDisassembled_T> a_disassembled_vector;
 
-    std::vector<FunctionDisassembled_T> structVector;
-    for (int i = 0; i < INST_TYPE_COUNT; i++)
-    { 
-        structVector.push_back(FunctionDisassembled_T((yadiff::InstructionType_e) i));
-    }  
+    for (int i = 0; i < INST_TYPE_COUNT; i++) { 
+        a_disassembled_vector.push_back(FunctionDisassembled_T((yadiff::InstructionType_e) i));
+    }
 
     // For all BB, fill the structures 
-    fctVersion.walk_xrefs_from([&](offset_t /*offset2*/, operand_t /*operand2*/, const HVersion& bbVersion)
-    {
-        if (bbVersion.type() != OBJECT_TYPE_BASIC_BLOCK)
+    fctVersion.walk_xrefs_from([&](offset_t /*offset2*/, operand_t /*operand2*/, const HVersion& bbVersion) {
+
+        if (bbVersion.type() != OBJECT_TYPE_BASIC_BLOCK) {
             return WALK_CONTINUE;
+        }
 
         // 1.1 Disassemble blob
         size_t bbAddr = static_cast<size_t>(bbVersion.address() - binary_info.text_address);
         size_t bbSize = static_cast<size_t>(bbVersion.size());
         if(bbAddr > binary_info.blob.size())
-		{
+        {
+            // TODO I should not go here anyway
 
-		}
+        }
         else
-		{
-			const uint8_t* bbBlob = &(binary_info.blob[bbAddr]);
-			const auto bbInstructions = Disass(bbBlob, bbSize, binary_info);
+        {
+            const uint8_t* bbBlob = &(binary_info.blob[bbAddr]);
+            const auto bbInstructions = Disass(bbBlob, bbSize, binary_info);
 
-			// 1.15 Increment inst number
-			function_data.cfg.inst_nb += static_cast<int>(bbInstructions.size());
+            // 1.15 Increment inst number
+            function_data.cfg.inst_nb += static_cast<int>(bbInstructions.size());
 
-			// 1.2 For all callback store bb is_instruction as a map
-			for (FunctionDisassembled_T& disassStruct : structVector)
-				disassStruct.UpdateBBFields(bbVersion.id(), bbInstructions, *(binary_info.iarch_ptr));
-		}
+            // 1.2 For all callback store bb is_instruction as a map
+            for (FunctionDisassembled_T& disassStruct : a_disassembled_vector)
+                disassStruct.UpdateBBFields(bbVersion.id(), bbInstructions, *(binary_info.iarch_ptr));
+        }
         return WALK_CONTINUE;
     }); // end for all bbVersion
 
 
     // For all inst type
-    for (int i = 0; i < INST_TYPE_COUNT; i++)
-    {
+    for (int i = 0; i < INST_TYPE_COUNT; i++) {
         std::vector<int> fctInstVect;
-        auto& disassStruct = structVector[i];
+        auto& disassStruct = a_disassembled_vector[i];
         auto& instruction_data = function_data.insts[i];
 
         // Create vector on BB coordinates : for all BB 
-        for (const auto& it : disassStruct.bbFields)
-        {
+        for (const auto& it : disassStruct.bbFields) {
             int number_of_inst = 0;
             auto& bbBoolVect = it.second;
-            for (bool b : bbBoolVect)
-            {
-                if (b)
-                {
+            for (bool b : bbBoolVect) {
+                if (b) {
                     number_of_inst++;
                 }
             }
@@ -263,7 +244,7 @@ void yadiff::SetDisassemblyFields(
         const auto flattenFunctionInst = FlattenFuction(equiLevelMap,  disassStruct);
         function_data.cfg.flat_len = static_cast<int>(flattenFunctionInst.size());
 
-        // Set central moemnts
+        // Set central moments
         const auto centralMoments = GetCentralMomentByte(flattenFunctionInst, 5);
         instruction_data.offset_mean_per_inst = centralMoments[1];
         instruction_data.offset_variance_per_inst = centralMoments[2];

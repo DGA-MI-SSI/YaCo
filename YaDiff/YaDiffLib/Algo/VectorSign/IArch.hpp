@@ -4,15 +4,12 @@
 #include <functional>
 
 
-
 namespace std { template<typename T> class shared_ptr; }
 
-namespace yadiff
-{
+namespace yadiff {
 
-//
-enum InstructionType_e
-{
+// Instruction type enum
+enum InstructionType_e {
     INST_TYPE_ANY,                      // Any instruction tyep (always returns true)
     INST_TYPE_READ,                     // Memory from RAM to CPU
     INST_TYPE_WRITE,                    // Memory from CPU to RAM
@@ -33,8 +30,7 @@ enum InstructionType_e
 
 const char* InstTypeToString(InstructionType_e inst_type);
 
-struct IArch
-{
+struct IArch {
     virtual ~IArch() {}
     virtual bool IsInstructionType(const cs_insn&, InstructionType_e) const = 0;
 };
