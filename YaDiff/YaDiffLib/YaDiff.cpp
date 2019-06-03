@@ -34,37 +34,49 @@
 namespace yadiff {
 static const std::string SECTION_NAME = "Yadiff";
 
+// Ctor<void>
 YaDiff::YaDiff(const Configuration& config)
-    : config_(config)
-{
+    : config_(config) { }
 
-}
 
-bool WriteFBFile(const std::string& dest, const IFlatBufferVisitor& exporter)
-{
-    auto houtput = fopen(dest.c_str(), "wb");
-    if(!houtput)
-    {
+// Dump yafb (Yet Another Flat Buffer)
+bool WriteFBFile(const std::string& dest, const IFlatBufferVisitor& exporter) {
+    // Open file && Check
+    FILE* houtput = fopen(dest.c_str(), "wb");
+    if(!houtput) {
         LOG(ERROR, "could not open %s\n", dest.c_str());
         return false;
     }
+
+    // Write buffer -> file
     const auto buffer = exporter.GetBuffer();
     const auto size = fwrite(buffer.value, buffer.size, 1, houtput);
+
+    // Close && Ret
     const auto err = fclose(houtput);
     return !err && size == 1;
 }
 
-bool YaDiff::MergeDatabases(const IModel& db1, const IModel& db2, std::vector<Relation>& output)
-{
+
+// Merge in RAM
+bool YaDiff::MergeDatabases(const IModel& db1, const IModel& db2, std::vector<Relation>& output) {
+    // 1. Create algo (i.e. Get weapon)
     auto matcher = MakeMatching(config_);
+
+    // 2. Prepare algo (i.e. Load weapon)
     matcher->Prepare(db1, db2);
 
+    // 3. Analyse with algo (i.e. Shoot weapon)
     matcher->Analyse(output);
+
+    // Return (i.e. Show off with weapon)
     return true;
 }
 
-namespace
-{
+
+
+// Helper to merge yadb
+namespace {
 void MergeToCache(YaDiff& differ, const Configuration& config, const std::string& db1, const std::string& db2, const std::vector<std::string>& caches)
 {
     LOG(INFO, "Loading databases\n");
@@ -110,8 +122,9 @@ void MergeToCache(YaDiff& differ, const Configuration& config, const std::string
         auto exporter = MakeFlatBufferVisitor();
         propagater.PropagateToDB(*exporter, *ref_model, *new_model, [&](const yadiff::OnRelationFn& on_relation)
         {
-            for(const auto& relation : relations)
+            for(const auto& relation : relations) {
                 on_relation(relation);
+            }
         });
         
         LOG(INFO, "Writing cache %s\n", cache.data());
@@ -141,12 +154,13 @@ void MergeToCache(YaDiff& differ, const Configuration& config, const std::string
                 ignore_relation = true;
                 break;
             }
-            if(ignore_relation) continue;
+            if(ignore_relation) { continue; }
 
-            if(first)
+            if(first) {
                 first = false;
-            else
+            } else {
                 output << "\t," << std::endl;
+            }
             output << "\t{" << std::endl;
             output << "\t\t\"src\": " << relation.version1_.address() << "," << std::endl;
             output << "\t\t\"dst\": " << relation.version2_.address() << "," << std::endl;
@@ -210,16 +224,19 @@ void MergeToCache(YaDiff& differ, const Configuration& config, const std::string
     if (!config.GetOption("Propagate", "ExportMatchesTxt").empty())
     //if(filesystem::exists(filesystem::path(config.IsOptionTrue(""))))
     {
+        // Open matchifle
         const auto matchfile = config.GetOption("Propagate", "ExportMatchesTxt");
         LOG(WARNING, "Exporting to : %s\n", matchfile.c_str());
         std::ofstream output;
         output.open(matchfile);
-        char buff[1024];
 
         for(const auto& relation : relations)
         {
-            if(relation.type_ == RELATION_TYPE_NONE || relation.type_ == RELATION_TYPE_ALTERNATIVE_FROM_N || relation.type_ == RELATION_TYPE_ALTERNATIVE_TO_N)
-                continue;
+            // Check relation type
+            if(relation.type_ == RELATION_TYPE_NONE || relation.type_ == RELATION_TYPE_ALTERNATIVE_FROM_N || relation.type_ == RELATION_TYPE_ALTERNATIVE_TO_N) { continue; }
+
+            // Log
+            char buff[1024];
             snprintf(buff, 1023, "rel: 0x%016zu to 0x%016zu, type=%d, objtype=%d, names=[%32s,%32s]",
                     relation.version1_.address(),
                     relation.version2_.address(),
@@ -228,6 +245,7 @@ void MergeToCache(YaDiff& differ, const Configuration& config, const std::string
                     relation.version1_.username().value,
                     relation.version2_.username().value
                     );
+            // To match_file
             output << buff << std::endl;
         }
         output << "\t]" << std::endl;
@@ -236,8 +254,10 @@ void MergeToCache(YaDiff& differ, const Configuration& config, const std::string
     }
     LOG(INFO, "Merge done\n");
 }
-}
+} // End ::
 
+
+// Merge yadb file : 2 exported function
 bool YaDiff::MergeCacheFiles(const std::string& ref_db, const std::string& new_db, const std::string& new_cache, const std::string& ref_cache)
 {
     MergeToCache(*this, config_, ref_db, new_db, {ref_cache, new_cache});
