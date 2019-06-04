@@ -872,7 +872,14 @@ namespace
         return flags;
     }
 
-    void accept_data_xrefs(IModelVisitor& v, const ya::Deps& deps, ea_t /*ea*/)
+
+    // Ignore gcc -Wunused-function
+    #ifdef __GNUC__
+    #define UNUSED_VARIABLE __attribute__((unused))
+    #else
+    #define UNUSED_VARIABLE
+    #endif
+    void UNUSED_VARIABLE accept_data_xrefs(IModelVisitor& v, const ya::Deps& deps, ea_t /*ea*/)
     {
         if(deps.size() != 1)
             return;
