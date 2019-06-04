@@ -34,9 +34,9 @@
 #include <algorithm>
 #include <unordered_set>
 
+// Extract crc32 of function's blobs (with git2/deps/zlib)
 extern "C"
 {
-    // ugly, we extract crc32 function from git2/deps/zlib
     typedef int64_t git_off_t;
     #define INCLUDE_common_h__
     #include <zlib.h>
@@ -56,9 +56,9 @@ namespace
     const int SEGMENT_CHUNK_MAX_SIZE = 0x10000;
     const int MAX_BLOB_TAG_LEN = 0x1000;
 
-#define DECLARE_REF(name, value)\
-    const char name ## _txt[] = value;\
-    const const_string_ref name = {name ## _txt, sizeof name ## _txt - 1};
+    #define DECLARE_REF(name, value)\
+        const char name ## _txt[] = value;\
+        const const_string_ref name = {name ## _txt, sizeof name ## _txt - 1};
 
     DECLARE_REF(g_empty, "");
     DECLARE_REF(g_stack_lvars, "stack_lvars");
@@ -96,13 +96,14 @@ namespace
 
 #undef DECLARE_REF
 
+    // Convert : s_ascii -> s_hex
     template<size_t szdst, typename T>
     const_string_ref str_hex(char (&buf)[szdst], T x)
     {
         return to_hex<LowerCase | RemovePadding>(buf, x);
     }
 
-    // 
+    // Convert : s_ascii -> s_hex_crc32
     template<size_t szdst>
     const_string_ref str_crc32(char (&buf)[szdst], uint32_t x)
     {
@@ -126,12 +127,14 @@ namespace
         return to_hex<HexaPrefix | RemovePadding>(buf, path_idx);
     }
 
-#define DECLARE_STRINGER(NAME, FMT, VALUE_TYPE)\
+    // MACRO : Convert : s_ascii -> s_formatted_stringed
+    #define DECLARE_STRINGER(NAME, FMT, VALUE_TYPE)\
     const_string_ref NAME(char* buf, size_t szbuf, VALUE_TYPE value)\
     {\
         const auto n = snprintf(buf, szbuf, (FMT), value);\
-        if(n <= 0)\
+        if(n <= 0) {\
             return {nullptr, 0};\
+        }\
         return {buf, static_cast<size_t>(n)};\
     }
     DECLARE_STRINGER(str_ea, "%" PRIuEA, ea_t);
@@ -141,7 +144,7 @@ namespace
     DECLARE_STRINGER(str_color, "0x%x", bgcolor_t)
     DECLARE_STRINGER(str_int, "%d", int)
 
-#undef DECLARE_STRINGER
+    #undef DECLARE_STRINGER
 
     struct Crcs
     {
@@ -170,6 +173,7 @@ namespace
     };
     using Bookmarks = std::vector<Bookmark>;
 
+    // Declare Reference info object
     struct RefInfo
     {
         YaToolObjectId  id;
@@ -180,16 +184,17 @@ namespace
     };
     using RefInfos = std::vector<RefInfo>;
 
+    // Compare by offset then operator id
     bool operator<(const RefInfo& a, const RefInfo& b)
     {
         return std::make_tuple(a.offset, a.opidx) < std::make_tuple(b.offset, b.opidx);
     }
-
     bool operator==(const RefInfo& a, const RefInfo& b)
     {
         return std::make_tuple(a.offset, a.opidx, a.flags, a.base) == std::make_tuple(b.offset, b.opidx, b.flags, b.base);
     }
 
+    // Declare Reference crossed object
     struct Xref
     {
         offset_t        offset;
@@ -199,11 +204,11 @@ namespace
     };
     using Xrefs = std::vector<Xref>;
 
+    // Operator compare with offset
     bool operator<(const Xref& a, const Xref& b)
     {
         return std::make_tuple(a.offset, a.operand, a.path_idx, a.id) < std::make_tuple(b.offset, b.operand, b.path_idx, b.id);
     }
-
     bool operator==(const Xref& a, const Xref& b)
     {
         return std::make_tuple(a.offset, a.operand, a.id, a.path_idx) == std::make_tuple(b.offset, b.operand, b.id, b.path_idx);
@@ -233,33 +238,38 @@ namespace
         std::shared_ptr<IPluginModel>   plugin_;
     };
 
+    // Convert  integer : 64 bits <- 32|64 
     offset_t offset_from_ea(ea_t offset)
     {
         // FIXME sign-extend to 64-bits because offset_t is unsigned...
-        return sizeof offset == 4 ? int64_t(int32_t(offset)) : offset;
+        return sizeof(offset) == 4 ? int64_t(int32_t(offset)) : offset;
     }
 
+    // Visistor init
     void start_object(IModelVisitor& v, YaToolObjectType_e type, YaToolObjectId id, YaToolObjectId parent, ea_t ea)
     {
         v.visit_start_version(type, id);
-        if(parent)
+        if (parent) {
             v.visit_parent_id(parent);
+        }
         v.visit_address(offset_from_ea(ea));
     }
 
+    // Visitor end
     void finish_object(IModelVisitor& v)
     {
         v.visit_end_version();
     }
 
+    //Try to work on comments
     template<typename T>
     void visit_header_comments(IModelVisitor& v, qstring& buffer, const T& read)
     {
-        for(const auto rpt : {false, true})
-        {
+        for(const auto rpt : {false, true}) {
             const auto n = read(buffer, rpt);
-            if(n > 0)
+            if (n > 0) {
                 v.visit_header_comment(rpt, ya::to_string_ref(buffer));
+            }
         }
     }
 
@@ -346,22 +356,20 @@ namespace
 
     MemberType fixup_member_type(member_t* member, const MemberType& type)
     {
+        // Get
         const auto member_size = get_member_size(member);
         const auto type_size = type.tif.get_size();
-        if(member_size == type_size)
-            return type;
 
-        if(!type_size)
-            return type;
-
-        if(member_size % type_size)
-            return type;
+        // Check in
+        if (member_size == type_size
+            || !type_size
+            || member_size % type_size ) {
+            return type; }
 
         tinfo_t tif;
         // workaround IDA bug where member type is an array but tinfo contain a single type only
         const auto ok = tif.create_array(type.tif, static_cast<uint32_t>(member_size / type_size));
-        if(!ok)
-            return type;
+        if (!ok) { return type; }
 
         return {tif, true};
     }
@@ -370,16 +378,13 @@ namespace
     {
         tinfo_t tif;
         auto ok = get_member_tinfo(&tif, member);
-        if(ok)
-            return fixup_member_type(member, {tif, false});
+        if (ok) { return fixup_member_type(member, { tif, false }); }
 
         tif = ya::get_tinfo_from_op(member->flag, pop);
-        if(!tif.empty())
-            return fixup_member_type(member, {tif, true});
+        if (!tif.empty()) { return fixup_member_type(member, { tif, true }); }
 
         const auto guess = guess_tinfo(&tif, member->id);
-        if(guess == GUESS_FUNC_OK)
-            return fixup_member_type(member, {tif, true});
+        if (guess == GUESS_FUNC_OK) { return fixup_member_type(member, { tif, true }); }
 
         return {tinfo_t(), true};
     }
