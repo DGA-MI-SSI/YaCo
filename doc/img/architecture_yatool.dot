@@ -1,0 +1,145 @@
+/*
+dot -Tpng architecture_yatool.dot -o architecture_yatool.png
+*/
+
+digraph G {
+
+compound = true
+label = "YaTool dependency architecture"
+node [shape=box, width=2]
+
+// Libs
+
+swig          [color=darkseagreen1, style=filled
+    label = <Swig
+    <br/><font point-size="10" color="deeppink">Communication with python
+    <br align="left"/>
+    </font>>,
+    ]
+
+ida          [color=darkseagreen1, style=filled
+    label = <Ida
+    <br/><font point-size="10" color="deeppink">IDA API
+    <br align="left"/>
+    </font>>,
+    ]
+
+libxml          [color=darkseagreen1, style=filled
+    label = <LibXml
+    <br/><font point-size="10" color="deeppink">Xml file &lt;=&gt; Database buffer
+    <br align="left"/>
+    </font>>,
+    ]
+
+flatbuffer          [color=darkseagreen1, style=filled
+    label = <Ida
+    <br/><font point-size="10" color="deeppink">Flat file &lt;=&gt; Database buffer
+    <br align="left"/>
+    </font>>,
+    ]
+
+farmhash          [color=darkseagreen1, style=filled
+    label = <Farmhash
+    <br/><font point-size="10" color="deeppink">Fast hash for signatures
+    <br align="left"/>
+    </font>>,
+    ]
+
+ida          [color=darkseagreen1, style=filled
+    label = <Ida
+    <br/><font point-size="10" color="deeppink">IDA API
+    <br align="left"/>
+    </font>>,
+    ]
+
+ssh2          [color=darkseagreen1, style=filled
+    label = <Ssh2
+    <br/><font point-size="10" color="deeppink">Connect between different computer
+    <br align="left"/>
+    </font>>,
+    ]
+
+capstone          [color=darkseagreen1, style=filled
+    label = <Captone
+    <br/><font point-size="10" color="deeppink">Disassemble and categorize instruction
+    <br align="left"/>
+    </font>>,
+    ]
+
+subgraph clustergit{
+    
+shape = rectangle
+label = <LibGit
+<br/><font point-size="10" color="deeppink">Synchronize 2 different xml
+<br align="left"/>
+</font>>
+labelloc=t
+
+iconv        [color=darkseagreen1, style=filled]
+charset      [color=darkseagreen1, style=filled]
+zlib         [color=darkseagreen1, style=filled]
+regex        [color=darkseagreen1, style=filled]
+httpparser   [color=darkseagreen1, style=filled, label="http-parser"]
+winhttp      [color=darkseagreen1, style=filled]
+
+
+iconv->charset
+zlib->regex
+httpparser->winhttp [style=invis]
+
+
+} // End of git
+
+
+
+// Local code
+
+
+yaidaswig      [label = <YaToolsPy
+    <br/><font point-size="10" color="darkgreen">YaIdaSwig project @build/yatools.cmake
+    <br align="left"/>
+    </font>>,
+    shape=triangle]
+
+yadiff         [label = <YaDiff
+    <br/><font point-size="10" color="darkgreen">YaDiffLib project @YaDiff/YaDiffLib
+    <br align="left"/>
+    </font>>,
+    ]
+
+yatools         [label = <YaTools
+    <br/><font point-size="10" color="darkgreen">Yatools project container
+    <br align="left"/>Some private code is @YaLibs\YaToolsLib or YaToolsPy
+    <br align="left"/>
+    </font>>,
+    ]
+
+yaida         [label = <YaIda
+    <br/><font point-size="10" color="darkgreen">YaIda project @YaLibs/YaToolsIDALib
+    <br align="left"/>It contains IdaModel.cpp and aims to communiate with IDA
+    <br align="left"/>
+    </font>>,
+    ]
+
+
+
+
+
+yaidaswig->swig
+yaidaswig->yadiff
+yaidaswig->yatools
+
+yadiff->capstone
+yadiff->yatools
+
+yatools->yaida
+yatools->swig
+yatools->libxml
+yatools->flatbuffer
+yatools->ssh2
+yatools->farmhash
+regex->yatools [ltail=clustergit, dir=back]
+
+yaida->ida
+
+}

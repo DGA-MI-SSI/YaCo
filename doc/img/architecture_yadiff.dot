@@ -1,0 +1,81 @@
+/*
+dot -Tpng architecture_yadiff.dot -o architecture_yadiff.png
+*/
+
+digraph G {
+
+label="YaDiff source code architecture"
+fontsize=30
+node [shape=box, width=2]
+
+
+merge_yadb      [label = <MergeYadb.cpp
+    <br/><font point-size="10" color="darkgreen">Entry_point.exe
+    <br align="left"/>In:  new_file_raw, old_file_with_symbols
+    <br align="left"/>Out: new_file_with_symbols
+    <br align="left"/>
+    </font>>,
+    shape=triangle]
+
+yadiff          [label = <YaDiff.cpp
+    <br/><font point-size="10" color="darkgreen">Make flatbuffers
+    <br align="left"/>Match flatbuffers
+    <br align="left"/>
+    </font>>,
+    ]
+
+matching        [label = <Matching.cpp
+    <br/><font point-size="10" color="darkgreen">Load algos
+    <br align="left"/>Orchestrate algos
+    <br align="left"/>
+    </font>>,
+    ]
+
+ialgo           [label = <IAlgo.cpp
+    <br/><font point-size="10" color="darkgreen">Matching algorithm interface
+    <br align="left"/>
+    </font>>,
+    ]
+
+vectorsign      [label = <VectorSign.cpp
+    <br/><font point-size="10" color="darkgreen">Function -&gt; Vector
+    <br align="left"/>+ Ia -&gt; file mapping
+    <br align="left"/>
+    </font>>,
+    ]
+
+xrefoffsetmatch [label = <XRefOffsetMatch.cpp
+    <br/><font point-size="10" color="darkgreen">Two functions called
+    <br align="left"/>By the same functions, at same offset
+    <br align="left"/>Match
+    <br align="left"/>
+    </font>>,
+    ]
+
+iarch           [label = <IArch.cpp
+    <br/><font point-size="10" color="darkgreen">Architecture interface
+    <br align="left"/>
+    </font>>,
+    ]
+
+arch_x86        [label = <ArchX86.cpp
+    <br/><font point-size="10" color="darkgreen">Disassemle x86
+    <br align="left"/>And map instructions
+    <br align="left"/>
+    </font>>,
+    ]
+
+arch_arm        [label = <ArchArm.cpp
+    <br/><font point-size="10" color="darkgreen">Disassemble Arm
+    <br align="left"/>And map instructions
+    <br align="left"/>
+    </font>>,
+    ]
+
+merge_yadb->yadiff->matching->ialgo->vectorsign->iarch->arch_x86
+
+ialgo->xrefoffsetmatch
+iarch->arch_arm
+
+
+}
