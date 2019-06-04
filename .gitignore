@@ -8,3 +8,7 @@ out/
 testdata/
 tmp*
 build/CMakeFiles/
+
+# For doc
+*.png
+*.svg
