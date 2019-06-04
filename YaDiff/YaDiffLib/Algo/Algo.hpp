@@ -67,10 +67,13 @@ namespace yadiff
         RelationType_e			FunctionDiffType;
     };
 
+
     struct VectorSignCfg
     {
         const char* mapDestination;
+        // Do I Concatenate mean parents vector to the function vector
         bool 		concatenate_children = false;
+        // ... children ...
         bool 		concatenate_parents = false;
     };
     struct ExternalMappingMatchCfg
@@ -80,6 +83,7 @@ namespace yadiff
         int         RelationConfidence = 0;
     };
 
+    // Configuration container for YaDiff (merge of all conf)
     struct AlgoCfg
     {
         Algo_e                  Algo;

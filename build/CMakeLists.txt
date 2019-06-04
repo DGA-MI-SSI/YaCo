@@ -6,7 +6,7 @@ enable_testing()
 include(common.cmake)
 
 if(NOT "${ARCH}" STREQUAL "x64")
-    message(FATAL_ERROR "unsupported arch ${ARCH}")
+  message(FATAL_ERROR "Unsupported arch ${ARCH}: support only x64")
 endif()
 
 get_filename_component(root_dir     ${CMAKE_CURRENT_SOURCE_DIR}/..  ABSOLUTE)

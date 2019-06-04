@@ -79,10 +79,12 @@ bool YaDiff::MergeDatabases(const IModel& db1, const IModel& db2, std::vector<Re
 namespace {
 void MergeToCache(YaDiff& differ, const Configuration& config, const std::string& db1, const std::string& db2, const std::vector<std::string>& caches)
 {
+    // Generate models
     LOG(INFO, "Loading databases\n");
     const auto ref_model = MakeFlatBufferModel(db1);
     const auto new_model = MakeFlatBufferModel(db2);
 
+    // Merge models
     LOG(INFO, "Merging databases\n");
     std::vector<Relation> relations;
     differ.MergeDatabases(*ref_model, *new_model, relations);
@@ -90,12 +92,13 @@ void MergeToCache(YaDiff& differ, const Configuration& config, const std::string
     std::map<RelationType_e,int> counter;
     for(const auto& rel : relations)
     {
-        if(     rel.type_ != RELATION_TYPE_NONE &&
-                (
-                (rel.type_ != RELATION_TYPE_ALTERNATIVE_FROM_N && rel.version1_.type() == OBJECT_TYPE_FUNCTION)
-                || (rel.type_ != RELATION_TYPE_ALTERNATIVE_TO_N && rel.version2_.type() == OBJECT_TYPE_FUNCTION)
+        if(rel.type_ != RELATION_TYPE_NONE
+            &&  ( (rel.type_ != RELATION_TYPE_ALTERNATIVE_FROM_N
+                    && rel.version1_.type() == OBJECT_TYPE_FUNCTION)
+                || (rel.type_ != RELATION_TYPE_ALTERNATIVE_TO_N
+                    && rel.version2_.type() == OBJECT_TYPE_FUNCTION)
                 )
-                )
+            )
         {
             counter[rel.type_] += 1;
         }
@@ -233,7 +236,10 @@ void MergeToCache(YaDiff& differ, const Configuration& config, const std::string
         for(const auto& relation : relations)
         {
             // Check relation type
-            if(relation.type_ == RELATION_TYPE_NONE || relation.type_ == RELATION_TYPE_ALTERNATIVE_FROM_N || relation.type_ == RELATION_TYPE_ALTERNATIVE_TO_N) { continue; }
+            if(relation.type_ == RELATION_TYPE_NONE
+                || relation.type_ == RELATION_TYPE_ALTERNATIVE_FROM_N
+                || relation.type_ == RELATION_TYPE_ALTERNATIVE_TO_N) {
+                continue; }
 
             // Log
             char buff[1024];
