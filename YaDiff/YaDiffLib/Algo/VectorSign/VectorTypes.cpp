@@ -60,6 +60,8 @@ yadiff::Vector FunctionData2Vector(const FunctionData_t& function_data,
     TryPush(s_vector, s_base + "width_disp");
     res.push_back(static_cast<vector_value>(function_data.cfg.flat_len));         // 14
     TryPush(s_vector, s_base + "flat_len");
+    res.push_back(static_cast<vector_value>(function_data.cfg.first_bloc_size));  // 15
+    TryPush(s_vector, s_base + "first_bloc_size");
 
     // Call Graph
     res.push_back(static_cast<vector_value>(function_data.cg.in_degree));         // 1

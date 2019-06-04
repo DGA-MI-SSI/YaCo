@@ -414,6 +414,8 @@ void VectorSignAlgo::SetFunctionFields(const HVersion& fctVersion, FunctionSigna
                 functionSignature.name.size   = 7;
                 functionSignature.name.value  = "noName";
             }
+            // Store the first BB size (used for comparing)
+            function_data.cfg.first_bloc_size = (int) fctSonVersion.size();
         }
 
         // Increase BB number
