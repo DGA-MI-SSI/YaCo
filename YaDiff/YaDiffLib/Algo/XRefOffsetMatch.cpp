@@ -123,8 +123,8 @@ bool XRefOffsetMatchAlgo::Analyse(const OnAddRelationFn& output, const RelationW
 
                 if (local_version.match(remote_version))
                 {
-                    LOG(DEBUG, "XRefOffsetMatch.cpp: from %llx(%s) <-> %llx(%s)\n", relation.version1_.address(), relation.version1_.username().value, relation.version2_.address(), relation.version2_.username().value);
-                    LOG(DEBUG, "XRefOffsetMatch.cpp: --> associate %llx(%s) <-> %llx(%s)", local_version.address(), local_version.username().value, remote_version.address(), remote_version.username().value);
+                    LOG(DEBUG, "XRefOffsetMatch.cpp: from %zx(%s) <-> %zx(%s)\n", relation.version1_.address(), relation.version1_.username().value, relation.version2_.address(), relation.version2_.username().value);
+                    LOG(DEBUG, "XRefOffsetMatch.cpp: --> associate %zx(%s) <-> %zx(%s)", local_version.address(), local_version.username().value, remote_version.address(), remote_version.username().value);
                     new_relation.version1_ = local_version;
                     new_relation.version2_ = remote_version;
                     output(new_relation, false);
@@ -134,8 +134,8 @@ bool XRefOffsetMatchAlgo::Analyse(const OnAddRelationFn& output, const RelationW
 #if ASSOCIATE_DATA
                     if(!local_version.has_signatures() && !remote_version.has_signatures())
                     {
-                        LOG(DEBUG, "XRefOffsetMatch.cpp DATA: from %llx(%s) <-> %llx(%s)\n", relation.version1_.address(), relation.version1_.username().value, relation.version2_.address(), relation.version2_.username().value);
-                        LOG(DEBUG, "XRefOffsetMatch.cpp DATA: --> associate %llx(%s) <-> %llx(%s)", local_version.address(), local_version.username().value, remote_version.address(), remote_version.username().value);
+                        LOG(DEBUG, "XRefOffsetMatch.cpp DATA: from %zx(%s) <-> %zx(%s)\n", relation.version1_.address(), relation.version1_.username().value, relation.version2_.address(), relation.version2_.username().value);
+                        LOG(DEBUG, "XRefOffsetMatch.cpp DATA: --> associate %zx(%s) <-> %zx(%s)", local_version.address(), local_version.username().value, remote_version.address(), remote_version.username().value);
                         new_relation.version1_ = local_version;
                         new_relation.version2_ = remote_version;
                         output(new_relation, false);

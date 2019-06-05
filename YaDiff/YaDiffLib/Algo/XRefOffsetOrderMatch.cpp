@@ -159,8 +159,8 @@ bool XRefOffsetOrderMatchAlgo::Analyse(const OnAddRelationFn& output, const Rela
                 new_relation.type_ = RELATION_TYPE_WEAK_MATCH;
                 new_relation.flags_ = 0;
                 new_relation.mask_algos_flags = true;
-                LOG(INFO, "CXORDERMA: from 0x%016llx <-> 0x%016llx  (%s <-> %s)\n", relation.version1_.address(), relation.version2_.address(), relation.version1_.username().value, relation.version2_.username().value);
-                LOG(INFO, "CXORDERMA: --> associate 0x%016llx <-> 0x%016llx  (%s <-> %s)\n", new_relation.version1_.address(), new_relation.version2_.address(), new_relation.version1_.username().value, new_relation.version2_.username().value);
+                LOG(INFO, "CXORDERMA: from 0x%016zx <-> 0x%016zx  (%s <-> %s)\n", relation.version1_.address(), relation.version2_.address(), relation.version1_.username().value, relation.version2_.username().value);
+                LOG(INFO, "CXORDERMA: --> associate 0x%016zx <-> 0x%016zx  (%s <-> %s)\n", new_relation.version1_.address(), new_relation.version2_.address(), new_relation.version1_.username().value, new_relation.version2_.username().value);
                 output(new_relation, false);
             }
         }

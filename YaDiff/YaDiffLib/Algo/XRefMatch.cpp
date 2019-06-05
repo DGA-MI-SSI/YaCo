@@ -485,8 +485,8 @@ bool XRefMatchAlgo::Analyse(const yadiff::OnAddRelationFn& output, const yadiff:
                     new_relation.mask_algos_flags = true;
                     new_relation.version1_ = local1_db_to_outer_db(*LocalXrefObjectVersionSet.begin());
                     new_relation.version2_ = local2_db_to_outer_db(*RemoteXrefObjectVersionSet.begin());
-                    LOG(DEBUG, "XRefMatch.cpp: from 0x%016llx <-> 0x%016llx  (%s <-> %s)\n", version1_.address(), version2_.address(), version1_.username().value, version2_.username().value);
-                    LOG(DEBUG, "XRefMatch.cpp: --> associate 0x%016llx <-> 0x%016llx  (%s <-> %s)\n", new_relation.version1_.address(), new_relation.version2_.address(), new_relation.version1_.username().value, new_relation.version2_.username().value);
+                    LOG(DEBUG, "XRefMatch.cpp: from 0x%016zx <-> 0x%016zx  (%s <-> %s)\n", version1_.address(), version2_.address(), version1_.username().value, version2_.username().value);
+                    LOG(DEBUG, "XRefMatch.cpp: --> associate 0x%016zx <-> 0x%016zx  (%s <-> %s)\n", new_relation.version1_.address(), new_relation.version2_.address(), new_relation.version1_.username().value, new_relation.version2_.username().value);
                     output(new_relation, false);
                 }
                 else
@@ -525,8 +525,8 @@ bool XRefMatchAlgo::Analyse(const yadiff::OnAddRelationFn& output, const yadiff:
 //                }
                 new_relation.version1_ = local1_db_to_outer_db(diff_version1);
                 new_relation.version2_ = local2_db_to_outer_db(diff_version2);
-                LOG(DEBUG, "XRefMatch(2).cpp: from 0x%016llx <-> 0x%016llx  (%s <-> %s)\n", version1_.address(), version2_.address(), version1_.username().value, version2_.username().value);
-                LOG(DEBUG, "XRefMatch(2).cpp: --> associate 0x%016llx <-> 0x%016llx  (%s <-> %s)\n", new_relation.version1_.address(), new_relation.version2_.address(), new_relation.version1_.username().value, new_relation.version2_.username().value);
+                LOG(DEBUG, "XRefMatch(2).cpp: from 0x%016zx <-> 0x%016zx  (%s <-> %s)\n", version1_.address(), version2_.address(), version1_.username().value, version2_.username().value);
+                LOG(DEBUG, "XRefMatch(2).cpp: --> associate 0x%016zx <-> 0x%016zx  (%s <-> %s)\n", new_relation.version1_.address(), new_relation.version2_.address(), new_relation.version1_.username().value, new_relation.version2_.username().value);
                 output(new_relation, false);
 
                 /* try to propagate diff relations to parent only for basic blocks */
@@ -562,13 +562,13 @@ bool XRefMatchAlgo::Analyse(const yadiff::OnAddRelationFn& output, const yadiff:
                 {
                     if(version1_parent_count==1 && version2_parent_count==1)
                     {
-                        LOG(DEBUG, "XRefLatch(3).cpp: from 0x%016llx <-> 0x%016llx  (%s <-> %s)\n", version1_.address(), version2_.address(), version1_.username().value, version2_.username().value);
-                        LOG(DEBUG, "XRefLatch(3).cpp: --> associate 0x%016llx <-> 0x%016llx  (%s <-> %s)\n", new_relation.version1_.address(), new_relation.version2_.address(), new_relation.version1_.username().value, new_relation.version2_.username().value);
+                        LOG(DEBUG, "XRefLatch(3).cpp: from 0x%016zx <-> 0x%016zx  (%s <-> %s)\n", version1_.address(), version2_.address(), version1_.username().value, version2_.username().value);
+                        LOG(DEBUG, "XRefLatch(3).cpp: --> associate 0x%016zx <-> 0x%016zx  (%s <-> %s)\n", new_relation.version1_.address(), new_relation.version2_.address(), new_relation.version1_.username().value, new_relation.version2_.username().value);
                         output(new_relation, false);
                     }
                     else
                     {
-                        LOG(DEBUG, "XRefLatch(3).cpp: from 0x%016llx <-> 0x%016llx  (%s <-> %s)\n", version1_.address(), version2_.address(), version1_.username().value, version2_.username().value);
+                        LOG(DEBUG, "XRefLatch(3).cpp: from 0x%016zx <-> 0x%016zx  (%s <-> %s)\n", version1_.address(), version2_.address(), version1_.username().value, version2_.username().value);
                         LOG(DEBUG, "XRefLatch(3).cpp: --> Multiple parents\n");
                     }
                 }
