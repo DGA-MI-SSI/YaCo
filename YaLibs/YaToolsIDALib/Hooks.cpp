@@ -1222,10 +1222,10 @@ namespace
             case idb_event::event_code_t::range_cmt_changed:        range_cmt_changed(*hooks, args); break;
             case idb_event::event_code_t::extra_cmt_changed:        extra_cmt_changed(*hooks, args); break;
 #if IDA_SDK_VERSION >= 720
-            case idb_event::event_code_t::item_color_changed:       LOG_IDB_EVENT("[YaTools] item_color_changed: not implemented"); break;
-            case idb_event::event_code_t::callee_addr_changed:      LOG_IDB_EVENT("[YaTools] callee_addr_changed: not implemented"); break;
-            case idb_event::event_code_t::bookmark_changed:         LOG_IDB_EVENT("[YaTools] bookmark_changed: not implemented"); break;
-            case idb_event::event_code_t::sgr_deleted:              LOG_IDB_EVENT("[YaTools] sgr_deleted: not implemented"); break;
+            case idb_event::event_code_t::item_color_changed:       LOG_IDB_EVENT("[YaTools/TODO] item_color_changed: not implemented"); break;
+            case idb_event::event_code_t::callee_addr_changed:      LOG_IDB_EVENT("[YaTools/TODO] callee_addr_changed: not implemented"); break;
+            case idb_event::event_code_t::bookmark_changed:         LOG_IDB_EVENT("[YaTools/TODO] bookmark_changed: not implemented"); break;
+            case idb_event::event_code_t::sgr_deleted:              LOG_IDB_EVENT("[YaTools/TODO] sgr_deleted: not implemented"); break;
 #endif
         }
         return 0;
