@@ -362,10 +362,10 @@ bool VectorSignAlgo::ControlFlowGraphHorizontalWalk(const HVersion& fctVersion, 
 
 /*
 :brief:   Set all the function fields (for one given function)
-:param:   :fctVersion:  Version of the function to mesure 
+:param:   :fctVersion:  Version of the function to mesure
           :fsMap:       Map containing all the function signatures
 :return:  update fsMap
-:remark:
+:remark:  TODO shouldn't I be the only one here ?
 */
 void VectorSignAlgo::SetFunctionFields(const HVersion& fctVersion, FunctionSignatureMap_t& fsMap)
 {
@@ -396,19 +396,26 @@ void VectorSignAlgo::SetFunctionFields(const HVersion& fctVersion, FunctionSigna
     }
 
 
-    // For all BB
+    // For all function xref (BB string)
     fctVersion.walk_xrefs_from([&](offset_t /*offset*/, operand_t /*operand*/, const HVersion& fctSonVersion)
     {
-        if (fctSonVersion.type() != OBJECT_TYPE_BASIC_BLOCK)
+        // If string
+        if (fctSonVersion.type() == OBJECT_TYPE_DATA) {
+            // TODO string characters histogram
             return WALK_CONTINUE;
+        }
 
-        // If first bb
-        // Set the first BB
-        // Set function Name that is wirtten in its first BB
+        // Check in : return if not BB
+        if (fctSonVersion.type() != OBJECT_TYPE_BASIC_BLOCK) { return WALK_CONTINUE; }
+
+        // If first BB
         if (fctVersion.address() == fctSonVersion.address())
         {
+            // Set the first BB
             functionSignature.firstBBId       = fctSonVersion.id();
+            // Set function Name that is written in its first BB
             functionSignature.name            = fctSonVersion.username();
+            // Give noName if no name (logical no ?)
             if (functionSignature.name.size == 0 || functionSignature.name.value == NULL)
             {
                 functionSignature.name.size   = 7;
@@ -612,16 +619,18 @@ void VectorSignAlgo::PrintFunctionSignature(std::ostream& dst, const FunctionSig
 {
 
     // 0: Name of the function
-    if (is_first_line)
+    if (is_first_line) {
         dst << "#Name: ";
-    else
+    } else {
         dst << functionSignature.name.value << ": ";
+    }
 
     // 0.1 Addr of the function
-    if (is_first_line)
+    if (is_first_line) {
         dst << "addr, ";
-    else
+    } else {
         dst << "0x" << std::hex << functionSignature.addr << ", ";
+    }
 
     // 2: Global Scalars
     if (is_first_line)
@@ -694,7 +703,7 @@ yadiff::Matrix InvertMatrix(yadiff::Matrix matrix_line)
 
 /*
 :brief:   Append to function_signature the central moments of matrix columns
-:param:   
+:param:
 :return:  in function_signature.concatenated_vector (push)
 */
 void ConcatenateFamilly(FunctionSignature_t& function_signature,
@@ -758,14 +767,14 @@ void VectorSignAlgo::CreateConcatenatedVector(FunctionSignatureMap_t& functionSi
     //TODO : replace these with a "simple" matricial product
     /*
      * We have 6 products to do : childer, parents, children of parents, children of children, parents of parents, parents of children
-     * 
+     *
      * Input :
      *   -NxM matrice of M coordinates for N function
      *   -6xNxN vector : weights for each functions : loop over the 6 above categories, and
      *                    increment the weights
      * output :
      *   -MxNx6 : additionnal coordinates, we just have to divide the result by the sum of the weights in order to get the mean
-     * 
+     *
      */
 
 
@@ -773,7 +782,7 @@ void VectorSignAlgo::CreateConcatenatedVector(FunctionSignatureMap_t& functionSi
     for (auto& it: functionSignatureMap)
     {
         FunctionSignature_t& function_signature = it.second;
-        
+
         LOG(INFO, "Creating concatenated vector for function %s with %zu children and %zu parents\n", function_signature.name.value, function_signature.children.size(), function_signature.parents.size());
 
         // 0: Me
@@ -833,7 +842,7 @@ void VectorSignAlgo::CreateConcatenatedString(std::vector<std::string>* concaten
 
 
 /*
-:brief:   
+:brief:
 */
 void VectorSignAlgo::CreateFunctionSignatureMap(FunctionSignatureMap_t& functionSignatureMap, const IModel& db, const yadiff::AlgoCfg& config)
 {
@@ -864,7 +873,7 @@ void VectorSignAlgo::CreateFunctionSignatureMap(FunctionSignatureMap_t& function
             LOG(WARNING, "WARN addr: %zx\n", fctVersion.address());
             return WALK_CONTINUE;
         }
-        
+
         ControlFlowGraphHorizontalWalk(fctVersion, db.get(firstBBId), functionSignatureMap);
 
         // 2.3/ Set the disassembly fields (semantic)
