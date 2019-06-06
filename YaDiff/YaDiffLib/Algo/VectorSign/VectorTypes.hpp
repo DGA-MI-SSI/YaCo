@@ -74,8 +74,11 @@ struct CharacterHistogramData_t
     int minus;              // 40 -
     int equal;              // 41 =
     int null;               // 42 \0
+    int space;              // 43 ' '
+    int dot;                // 44 .
+    int coma;               // 45 ,
 };
-#define CharacterHistogramData_FIELD_COUNT 42
+#define CharacterHistogramData_FIELD_COUNT 45
 
 
 //

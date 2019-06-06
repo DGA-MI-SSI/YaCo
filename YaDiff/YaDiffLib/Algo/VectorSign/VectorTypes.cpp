@@ -11,6 +11,7 @@
 
 #include <assert.h>
 #include <memory>
+#include <vector>
 
 
 namespace yadiff {
@@ -272,8 +273,7 @@ std::vector<uint8_t> GetBlob(size_t data_begin, size_t data_len, yadiff::BinaryI
                 // Start of chunk > end_of_string
                 || chunkVersion.address() > data_begin + data_len
                 // End of chunk < start_of_string
-                ||  chunkVersion.address() + chunkVersion.size() < data_begin )
-                {
+                ||  chunkVersion.address() + chunkVersion.size() < data_begin ) {
                 return WALK_CONTINUE;
             }
             
@@ -286,7 +286,7 @@ std::vector<uint8_t> GetBlob(size_t data_begin, size_t data_len, yadiff::BinaryI
                 // Next if blob_addr + len < start_of_string
                 if (blob_addr + len < data_begin) { return WALK_CONTINUE; }
                 // Last if blob_addr > end_of_string
-                if (blob_addr < data_begin + data_len) { return WALK_STOP; }
+                if (blob_addr > data_begin + data_len) { return WALK_STOP; }
 
                 // Calculate offset of string to retrieve
                 size_t o_start = data_begin - blob_addr;
@@ -295,7 +295,7 @@ std::vector<uint8_t> GetBlob(size_t data_begin, size_t data_len, yadiff::BinaryI
                 if (o_stop > len) { o_stop = len; }
 
                 // Append good slice fo blob
-                const uint8_t* pi8Data = (const uint8_t*)data;
+                const uint8_t* pi8Data = (const uint8_t*) data;
                 std::vector<uint8_t> vector_to_append = std::vector<uint8_t>(pi8Data + o_start, pi8Data + o_stop);
                 res.insert(res.end(), vector_to_append.begin(), vector_to_append.end());
 
@@ -309,6 +309,8 @@ std::vector<uint8_t> GetBlob(size_t data_begin, size_t data_len, yadiff::BinaryI
     return res;
 }
 
+
+//
 void SetBlobText(yadiff::BinaryInfo_t& binary_info, const IModel& db) {
     // Create response vector
     std::vector<uint8_t> vector_1000;
@@ -329,8 +331,6 @@ void SetBlobText(yadiff::BinaryInfo_t& binary_info, const IModel& db) {
             if (chunkVersion.type() != OBJECT_TYPE_SEGMENT_CHUNK) {
                 return WALK_CONTINUE;
             }
-
-            //res.reserve(chunkVersion.get_size());
             chunkVersion.walk_blobs([&](offset_t offset, const void* data, size_t len) {
                 UNUSED(offset);
                 const uint8_t* pi8Data = (const uint8_t*)data;
@@ -342,6 +342,9 @@ void SetBlobText(yadiff::BinaryInfo_t& binary_info, const IModel& db) {
         });
         return WALK_CONTINUE;
     });
+
+    // Return: blob text has been setted
+    return;
 }
 
 
@@ -357,6 +360,7 @@ BinaryInfo_t::BinaryInfo_t(const IModel& db, const yadiff::AlgoCfg& /*config*/)
 {
     // 1: Get architecture, base_addr from database
     db.walk([&](const HVersion& binaryVersion) {
+        // Check if binary
         if (binaryVersion.type() != OBJECT_TYPE_BINARY) {
             return WALK_CONTINUE;
         }

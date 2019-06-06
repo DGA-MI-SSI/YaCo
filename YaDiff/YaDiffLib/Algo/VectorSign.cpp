@@ -252,7 +252,6 @@ void VectorSignAlgo::GetAllFunctionRelation(const yadiff::OnAddRelationFn& outpu
     } // End for all vectors in db1
 }
 
-#include <iostream>
 // I create a equilevelMap, now I must use it. // Todo (Out, In)
 bool VectorSignAlgo::ControlFlowGraphHorizontalWalk(const HVersion& fctVersion, const HVersion& firstBBVersion, FunctionSignatureMap_t& functionSignatureMap)
 {
@@ -348,7 +347,7 @@ bool VectorSignAlgo::ControlFlowGraphHorizontalWalk(const HVersion& fctVersion, 
     // Get the width dispersion
     yadiff::vector_value meanWidth        = static_cast<yadiff::vector_value>(summedWidth) / equiLevelMap.size();
     yadiff::vector_value summedWidthDisp = 0;
-    for (const auto& it : equiLevelMap )
+    for (const auto& it : equiLevelMap)
     {
         summedWidthDisp += std::pow(it.second.size() - meanWidth, 2);
     }
@@ -396,35 +395,9 @@ void VectorSignAlgo::SetFunctionFields(const HVersion& fctVersion, FunctionSigna
         }
     }
 
-    LOG(INFO, "TOREM : setFunctionFields\n");
-
     // For all function xref (BB string)
     fctVersion.walk_xrefs_from([&](offset_t /*offset*/, operand_t /*operand*/, const HVersion& fctSonVersion)
     {
-        // If string
-        if (fctSonVersion.type() == OBJECT_TYPE_DATA)
-        {
-            LOG(INFO, "TOREM : I am set functio nchar hist");
-            // Get string address and size
-            size_t data_address = static_cast<size_t>(fctSonVersion.address());
-            size_t data_size = static_cast<size_t>(fctSonVersion.size());
-
-            std::vector<uint8_t> v_stg = GetBlob(data_address, data_size, binary_info, db);
-            // TOREM log
-            char TODO[0X100];
-            int i = 0;
-            for (uint8_t i_char : v_stg) {
-                TODO[i++] = i_char;
-                if (i == 0x100) { break; }
-            }
-            LOG(INFO, "Vector is %s", TODO);
-
-
-            
-            // TODO string characters histogram
-            return WALK_CONTINUE;
-        }
-
         // Check in : return if not BB
         if (fctSonVersion.type() != OBJECT_TYPE_BASIC_BLOCK) { return WALK_CONTINUE; }
 
@@ -496,6 +469,187 @@ void VectorSignAlgo::SetFunctionFields(const HVersion& fctVersion, FunctionSigna
                     bHasBBOneBBSon = true;
                 }
             }
+            // If Data (i.e. string)
+            else if (bbSonVersion.type() == OBJECT_TYPE_DATA)
+            {
+                // Get string address and size
+                size_t data_address = static_cast<size_t>(bbSonVersion.address());
+                size_t data_size = static_cast<size_t>(bbSonVersion.size());
+
+                // Retrieve string from blob@YaDb
+                std::vector<uint8_t> v_stg = GetBlob(data_address, data_size, binary_info, db);
+
+                // Increase Characters histogram label <- string
+                for (char current_char : v_stg) {
+                    switch (current_char) {
+                    case 'a':
+                    case 'A':
+                        function_data.char_hist.alphabet[0]++;
+                        break;
+                    case 'b':
+                    case 'B':
+                        function_data.char_hist.alphabet[1]++;
+                        break;
+                    case 'c':
+                    case 'C':
+                        function_data.char_hist.alphabet[2]++;
+                        break;
+                    case 'd':
+                    case 'D':
+                        function_data.char_hist.alphabet[3]++;
+                        break;
+                    case 'e':
+                    case 'E':
+                        function_data.char_hist.alphabet[4]++;
+                        break;
+                    case 'f':
+                    case 'F':
+                        function_data.char_hist.alphabet[5]++;
+                        break;
+                    case 'g':
+                    case 'G':
+                        function_data.char_hist.alphabet[6]++;
+                        break;
+                    case 'h':
+                    case 'H':
+                        function_data.char_hist.alphabet[7]++;
+                        break;
+                    case 'i':
+                    case 'I':
+                        function_data.char_hist.alphabet[8]++;
+                        break;
+                    case 'j':
+                    case 'J':
+                        function_data.char_hist.alphabet[9]++;
+                        break;
+                    case 'k':
+                    case 'K':
+                        function_data.char_hist.alphabet[10]++;
+                        break;
+                    case 'l':
+                    case 'L':
+                        function_data.char_hist.alphabet[11]++;
+                        break;
+                    case 'm':
+                    case 'M':
+                        function_data.char_hist.alphabet[12]++;
+                        break;
+                    case 'n':
+                    case 'N':
+                        function_data.char_hist.alphabet[13]++;
+                        break;
+                    case 'o':
+                    case 'O':
+                        function_data.char_hist.alphabet[14]++;
+                        break;
+                    case 'p':
+                    case 'P':
+                        function_data.char_hist.alphabet[15]++;
+                        break;
+                    case 'q':
+                    case 'Q':
+                        function_data.char_hist.alphabet[16]++;
+                        break;
+                    case 'r':
+                    case 'R':
+                        function_data.char_hist.alphabet[17]++;
+                        break;
+                    case 's':
+                    case 'S':
+                        function_data.char_hist.alphabet[18]++;
+                        break;
+                    case 't':
+                    case 'T':
+                        function_data.char_hist.alphabet[19]++;
+                        break;
+                    case 'u':
+                    case 'U':
+                        function_data.char_hist.alphabet[20]++;
+                        break;
+                    case 'v':
+                    case 'V':
+                        function_data.char_hist.alphabet[21]++;
+                        break;
+                    case 'w':
+                    case 'W':
+                        function_data.char_hist.alphabet[22]++;
+                        break;
+                    case 'x':
+                    case 'X':
+                        function_data.char_hist.alphabet[23]++;
+                        break;
+                    case 'y':
+                    case 'Y':
+                        function_data.char_hist.alphabet[24]++;
+                        break;
+                    case 'z':
+                    case 'Z':
+                        function_data.char_hist.alphabet[25]++;
+                        break;
+                    case '0':
+                        function_data.char_hist.digit[0]++;
+                        break;
+                    case '1':
+                        function_data.char_hist.digit[1]++;
+                        break;
+                    case '2':
+                        function_data.char_hist.digit[2]++;
+                        break;
+                    case '3':
+                        function_data.char_hist.digit[3]++;
+                        break;
+                    case '4':
+                        function_data.char_hist.digit[4]++;
+                        break;
+                    case '5':
+                        function_data.char_hist.digit[5]++;
+                        break;
+                    case '6':
+                        function_data.char_hist.digit[6]++;
+                        break;
+                    case '7':
+                        function_data.char_hist.digit[7]++;
+                        break;
+                    case '8':
+                        function_data.char_hist.digit[8]++;
+                        break;
+                    case '9':
+                        function_data.char_hist.digit[9]++;
+                        break;
+                    case '/':
+                        function_data.char_hist.slash;
+                        break;
+                    case '%':
+                        function_data.char_hist.percent;
+                        break;
+                    case '+':
+                        function_data.char_hist.plus;
+                        break;
+                    case '-':
+                        function_data.char_hist.minus;
+                        break;
+                    case '=':
+                        function_data.char_hist.equal;
+                        break;
+                    case 0:
+                        function_data.char_hist.null;
+                        break;
+                    case ' ':
+                        function_data.char_hist.space;
+                        break;
+                    case '.':
+                        function_data.char_hist.dot;
+                        break;
+                    case ',':
+                        function_data.char_hist.coma;
+                        break;
+                    }
+                }
+
+
+                return WALK_CONTINUE;
+            }
+
             return WALK_CONTINUE;
         }); // End of BB son xRef
         // If it is a return bb (leaf), inc ret_nb
