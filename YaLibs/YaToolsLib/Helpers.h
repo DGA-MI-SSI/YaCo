@@ -33,3 +33,7 @@
 #else
 #define LOG(...) do {} while(0)
 #endif
+
+#define DECLARE_REF(name, value)\
+    const char name ## _txt[] = value;\
+    const const_string_ref name = {name ## _txt, sizeof name ## _txt - 1};

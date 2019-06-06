@@ -251,12 +251,6 @@ yadiff::Vector Concatenated2Vector(const Concatenated_t& concatenated) {
     return res;
 }
 
-#define DECLARE_REF(name, value)\
-    const char name ## _txt[] = value;\
-    const const_string_ref name = {name ## _txt, sizeof name ## _txt - 1};
-DECLARE_REF(g_format, "format");
-
-
 
 // Helper : TODO put me at my place
 std::vector<uint8_t> GetBlob(size_t data_begin, size_t data_len, yadiff::BinaryInfo_t& binary_info, const IModel& db) {
@@ -369,6 +363,7 @@ BinaryInfo_t::BinaryInfo_t(const IModel& db, const yadiff::AlgoCfg& /*config*/)
 
         base_address = binaryVersion.address();
         binaryVersion.walk_attributes([&](const const_string_ref& key, const const_string_ref& val) {
+            DECLARE_REF(g_format, "format");
             if (!(key == g_format)) {
                 return WALK_CONTINUE;
             }
