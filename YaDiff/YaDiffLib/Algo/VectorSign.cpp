@@ -104,7 +104,7 @@ struct VectorSignAlgo : public yadiff::IVectorSigner
 
 
     // Calculate the function parameters, used for signing it (BB nb, edge nb, call nb, ret nb ..)
-    void SetFunctionFields(const HVersion& fctVersion, FunctionSignatureMap_t& fsMap);
+    void SetFunctionFields(const HVersion& fctVersion, FunctionSignatureMap_t& fsMap, yadiff::BinaryInfo_t binary_info, const IModel& db);
 
     // The Main prepare function, create a signature for all function and store it in a map (now global)
     void CreateFunctionSignatureMap(FunctionSignatureMap_t& functionSignatureMap, const IModel& db, const yadiff::AlgoCfg& config);
@@ -206,8 +206,7 @@ void VectorSignAlgo::BuildVectors(const IModel& db1, const yadiff::OnVectorFn& o
 }
 
 
-
-
+// Retieve hVersion <- oId
 void VectorSignAlgo::LookupVersionFormId(HVersion& hObjectVersion, const YaToolObjectId& yaToolObjectId, const IModel& db)
 {
     hObjectVersion = db.get(yaToolObjectId);
@@ -236,15 +235,14 @@ void VectorSignAlgo::GetAllFunctionRelation(const yadiff::OnAddRelationFn& outpu
             auto it2 = fctGroup2.find(groupId);
 
             // If nobody in db2 group, forget it
-            if (it2 == fctGroup2.end())
-                continue;
+            if (it2 == fctGroup2.end()) { continue; }
 
             // TODO vectorSign not existing so I commented. Put all that in distance.
+            // TODO get IA: Me -> filemapping
             // yadiff::GetClosestVectorIdNaive(closestId, closestDistance, fctSign.vectorSign, it2->second, vectorSignDatabase1.vectSet);
         }
 
-        if (closestId == 0)
-            continue;
+        if (closestId == 0) { continue; }
         UNUSED(closestDistance);
 
         LookupVersionFormId(relation.version1_, fctSign.fctId, *vectorSignDatabase1.pDb);
@@ -269,8 +267,9 @@ bool VectorSignAlgo::ControlFlowGraphHorizontalWalk(const HVersion& fctVersion, 
     // 1/ Init basicBlocksMap for all BB set dist to root = infinity
     fctVersion.walk_xrefs_from([&](offset_t /*offset*/, operand_t /*operand*/, const HVersion& fctSonVersion)
     {
-        if (fctSonVersion.type() == OBJECT_TYPE_BASIC_BLOCK)
+        if (fctSonVersion.type() == OBJECT_TYPE_BASIC_BLOCK) {
             bbsMap[fctSonVersion.id()].dist_to_root = std::numeric_limits<int>::max();
+        }
         return WALK_CONTINUE;
     });
 
@@ -299,21 +298,24 @@ bool VectorSignAlgo::ControlFlowGraphHorizontalWalk(const HVersion& fctVersion, 
         // For all called (children) Basic_block
         bbVersion.walk_xrefs_from([&](offset_t /*offset*/, operand_t /*operand*/, const HVersion& bbSonVersion)
         {
-            if (bbSonVersion.type() != OBJECT_TYPE_BASIC_BLOCK)
+            if (bbSonVersion.type() != OBJECT_TYPE_BASIC_BLOCK) {
                 return WALK_CONTINUE;
+            }
 
             // Forget far jumpers.
             if (bbSonVersion.address() < fctVersion.address()
-             || bbSonVersion.address() > fctVersion.address() + fctVersion.size())
+             || bbSonVersion.address() > fctVersion.address() + fctVersion.size()) {
                 return WALK_CONTINUE;
+            }
 
             int& iSonDistToRoot = bbsMap[bbSonVersion.id()].dist_to_root;
             if (iSonDistToRoot != std::numeric_limits<int>::max())
             {
-                if (iSonDistToRoot == iFatherDistToRoot + 1)
+                if (iSonDistToRoot == iFatherDistToRoot + 1) {
                     function_data.cfg.diamond_nb++;
-                else
+                } else {
                     function_data.cfg.back_edge_nb++;
+                }
                 return WALK_CONTINUE;
             }
 
@@ -323,8 +325,8 @@ bool VectorSignAlgo::ControlFlowGraphHorizontalWalk(const HVersion& fctVersion, 
             return WALK_CONTINUE;
         });
 
-        if (bDoBBRet)
-            height_vector.push_back(iFatherDistToRoot);
+        // Push heigh if return node
+        if (bDoBBRet) { height_vector.push_back(iFatherDistToRoot); }
     }
 
 
@@ -367,7 +369,7 @@ bool VectorSignAlgo::ControlFlowGraphHorizontalWalk(const HVersion& fctVersion, 
 :return:  update fsMap
 :remark:  TODO shouldn't I be the only one here ?
 */
-void VectorSignAlgo::SetFunctionFields(const HVersion& fctVersion, FunctionSignatureMap_t& fsMap)
+void VectorSignAlgo::SetFunctionFields(const HVersion& fctVersion, FunctionSignatureMap_t& fsMap, yadiff::BinaryInfo_t binary_info, const IModel& db)
 {
     const auto           functionId                = fctVersion.id();
     auto&                functionSignature         = fsMap[functionId];
@@ -382,10 +384,9 @@ void VectorSignAlgo::SetFunctionFields(const HVersion& fctVersion, FunctionSigna
 
     // Init Argument number
     std::string prototype(fctVersion.prototype().value, fctVersion.prototype().size);
-    if (prototype == "")
+    if (prototype == "") {
         function_data.cg.arg_nb = DEFAULT_DOUBLE;
-    else
-    {
+    } else {
         function_data.cg.arg_nb = 1;
         size_t npos = prototype.find(',', 0);
         while (npos != prototype.npos)
@@ -395,6 +396,7 @@ void VectorSignAlgo::SetFunctionFields(const HVersion& fctVersion, FunctionSigna
         }
     }
 
+    LOG(INFO, "TOREM : setFunctionFields\n");
 
     // For all function xref (BB string)
     fctVersion.walk_xrefs_from([&](offset_t /*offset*/, operand_t /*operand*/, const HVersion& fctSonVersion)
@@ -456,8 +458,9 @@ void VectorSignAlgo::SetFunctionFields(const HVersion& fctVersion, FunctionSigna
                 childFunctionSign.parents.push_back(functionId);
 
                 // Check if it is a library function (imported)
-                if (bbSonVersion.flags() & FUNC_LIB)
+                if (bbSonVersion.flags() & FUNC_LIB) {
                     function_data.cg.lib_nb++;
+                }
             }
             // This basic block Jmp or Jcc to an other.
             else if (bbSonVersion.type() == OBJECT_TYPE_BASIC_BLOCK)
@@ -469,23 +472,26 @@ void VectorSignAlgo::SetFunctionFields(const HVersion& fctVersion, FunctionSigna
                 bDoBBRet = false;
 
                 // If it has one son yet, it is a JCC.
-                if (bHasBBOneBBSon)
+                if (bHasBBOneBBSon) {
                     function_data.cfg.jcc_nb++;
-                else
+                } else {
                     bHasBBOneBBSon = true;
+                }
             }
             return WALK_CONTINUE;
         }); // End of BB son xRef
         // If it is a return bb (leaf), inc ret_nb
-        if (bDoBBRet)
+        if (bDoBBRet) {
             function_data.cfg.ret_nb++;
+        }
         return WALK_CONTINUE;
-     }); // End crfunction xRefs loop
+    }); // End crfunction xRefs loop
 
     // Calculate size_disp
     yadiff::vector_value mean_size = static_cast<yadiff::vector_value>(function_data.cfg.size) / function_data.cfg.bb_nb;
-    for (int i : bbSizeVector)
+    for (int i : bbSizeVector) {
         function_data.cfg.size_disp += std::pow(i - mean_size, 2);
+    }
     function_data.cfg.size_disp /= function_data.cfg.bb_nb;
 }
 
@@ -574,14 +580,16 @@ void VectorSignAlgo::CalculateAllFunctionDistanceToRoot(FunctionSignatureMap_t& 
         // For all BB
         crFctVersion.walk_xrefs_from([&](offset_t /*offset*/, operand_t /*operand*/, const HVersion& fctSonVersion)
         {
-            if (fctSonVersion.type() != OBJECT_TYPE_BASIC_BLOCK)
+            if (fctSonVersion.type() != OBJECT_TYPE_BASIC_BLOCK) {
                 return WALK_CONTINUE;
+            }
 
             // For all called (children) function
             fctSonVersion.walk_xrefs_from([&](offset_t /*offset*/, operand_t /*operand*/, const HVersion& bbSonVersion)
             {
-                if (bbSonVersion.type() != OBJECT_TYPE_FUNCTION)
+                if (bbSonVersion.type() != OBJECT_TYPE_FUNCTION) {
                     return WALK_CONTINUE;
+                }
 
                 const auto  child_id            = bbSonVersion.id();
                 auto&       childFunctionSign   = functionSignatureMap[child_id];
@@ -842,7 +850,8 @@ void VectorSignAlgo::CreateConcatenatedString(std::vector<std::string>* concaten
 
 
 /*
-:brief:
+:brief:  Sign all function
+:return: functionSignatureMap : map : id -> vector_sign 
 */
 void VectorSignAlgo::CreateFunctionSignatureMap(FunctionSignatureMap_t& functionSignatureMap, const IModel& db, const yadiff::AlgoCfg& config)
 {
@@ -865,7 +874,7 @@ void VectorSignAlgo::CreateFunctionSignatureMap(FunctionSignatureMap_t& function
 
         // TODO Log function
         // 2.1/ Set the internal fields (global)
-        SetFunctionFields(fctVersion, functionSignatureMap);
+        SetFunctionFields(fctVersion, functionSignatureMap, binary_info, db);
 
         // 2.2/ Walk horizontally the control flow.
         const auto firstBBId  = functionSignatureMap[fctVersion.id()].firstBBId;
@@ -881,7 +890,7 @@ void VectorSignAlgo::CreateFunctionSignatureMap(FunctionSignatureMap_t& function
         auto& functionSignature = functionSignatureMap[fctVersion.id()];
         LOG(INFO, "Treating function : %08x called: %s\n",
             static_cast<unsigned int>(functionSignature.addr), functionSignature.name.value);
-        SetDisassemblyFields(functionSignature.function_data, fctVersion, functionSignature.equiLevelMap, binary_info);
+        //SetDisassemblyFields(functionSignature.function_data, fctVersion, functionSignature.equiLevelMap, binary_info);
 
         return WALK_CONTINUE;
     });

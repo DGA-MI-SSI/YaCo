@@ -64,10 +64,18 @@ struct FunctionCallGraphData_t
 
 
 // Count number of letter
-struct StringReferedData_t
+struct CharacterHistogramData_t
 {
-
+    int alphabet[26];       // 1-26 a..z
+    int digit[10];          // 27-36 0..9
+    int slash;              // 37 /
+    int percent;            // 38 %
+    int plus;               // 39 +
+    int minus;              // 40 -
+    int equal;              // 41 =
+    int null;               // 42 \0
 };
+#define CharacterHistogramData_FIELD_COUNT 42
 
 
 //
@@ -90,6 +98,7 @@ struct FunctionData_t
 {
     FunctionControlFlowGraphData_t      cfg;
     FunctionCallGraphData_t             cg;
+    CharacterHistogramData_t            char_hist;
     InstructionData_t                   insts[INST_TYPE_COUNT];
 };
 
@@ -144,5 +153,6 @@ public:
 yadiff::Vector FunctionData2Vector(const FunctionData_t& function_data,
     std::vector<std::string>* s_vector, std::string s_base);
 
+std::vector<uint8_t> GetBlob(size_t data_begin, size_t data_len, yadiff::BinaryInfo_t& binary_info, const IModel& db);
 
 } // End of namespace yadiff

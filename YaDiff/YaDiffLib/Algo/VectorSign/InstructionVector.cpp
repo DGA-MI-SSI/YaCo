@@ -210,8 +210,9 @@ void yadiff::SetDisassemblyFields(
             function_data.cfg.inst_nb += static_cast<int>(bbInstructions.size());
 
             // 1.2 For all callback store bb is_instruction as a map
-            for (FunctionDisassembled_T& disassStruct : a_disassembled_vector)
+            for (FunctionDisassembled_T& disassStruct : a_disassembled_vector) {
                 disassStruct.UpdateBBFields(bbVersion.id(), bbInstructions, *(binary_info.iarch_ptr));
+            }
         }
         return WALK_CONTINUE;
     }); // end for all bbVersion
