@@ -29,8 +29,8 @@ int main(int argc, char** argv) {
     yadiff::AlgoCfg cfg;
     cfg.Algo = yadiff::ALGO_VECTOR_SIGN;
     cfg.VectorSign.mapDestination = argv[2];
-    cfg.VectorSign.concatenate_children = true;
-    cfg.VectorSign.concatenate_parents = true;
+    cfg.VectorSign.concatenate_children = false;
+    cfg.VectorSign.concatenate_parents = false;
     std::shared_ptr<yadiff::IDiffAlgo> p_algo = yadiff::MakeDiffAlgo(cfg);
 
     // Algowork
