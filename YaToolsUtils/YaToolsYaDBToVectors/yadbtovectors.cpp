@@ -8,6 +8,7 @@
 
 int main(int argc, char** argv) {
     // Hi
+    fprintf(stdout, "YaDb2Vectors: Starting\n");
     
 
     // Save command to discriminate
@@ -37,5 +38,6 @@ int main(int argc, char** argv) {
     p_algo->Prepare(*db1, *db1);
 
     // Bye
+    fprintf(stdout, "YaDb2Vectors: Finished\n");
     return 0;
 }
