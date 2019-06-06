@@ -104,7 +104,7 @@ struct VectorSignAlgo : public yadiff::IVectorSigner
 
 
     // Calculate the function parameters, used for signing it (BB nb, edge nb, call nb, ret nb ..)
-    void SetFunctionFields(const HVersion& fctVersion, FunctionSignatureMap_t& fsMap, yadiff::BinaryInfo_t binary_info, const IModel& db);
+    void SetFunctionFields(const HVersion& fctVersion, FunctionSignatureMap_t& fsMap, yadiff::BinaryInfo_t& binary_info, const IModel& db);
 
     // The Main prepare function, create a signature for all function and store it in a map (now global)
     void CreateFunctionSignatureMap(FunctionSignatureMap_t& functionSignatureMap, const IModel& db, const yadiff::AlgoCfg& config);
@@ -369,7 +369,7 @@ bool VectorSignAlgo::ControlFlowGraphHorizontalWalk(const HVersion& fctVersion, 
 :return:  update fsMap
 :remark:  TODO shouldn't I be the only one here ?
 */
-void VectorSignAlgo::SetFunctionFields(const HVersion& fctVersion, FunctionSignatureMap_t& fsMap, yadiff::BinaryInfo_t binary_info, const IModel& db)
+void VectorSignAlgo::SetFunctionFields(const HVersion& fctVersion, FunctionSignatureMap_t& fsMap, yadiff::BinaryInfo_t& binary_info, const IModel& db)
 {
     const auto           functionId                = fctVersion.id();
     auto&                functionSignature         = fsMap[functionId];
@@ -402,7 +402,25 @@ void VectorSignAlgo::SetFunctionFields(const HVersion& fctVersion, FunctionSigna
     fctVersion.walk_xrefs_from([&](offset_t /*offset*/, operand_t /*operand*/, const HVersion& fctSonVersion)
     {
         // If string
-        if (fctSonVersion.type() == OBJECT_TYPE_DATA) {
+        if (fctSonVersion.type() == OBJECT_TYPE_DATA)
+        {
+            LOG(INFO, "TOREM : I am set functio nchar hist");
+            // Get string address and size
+            size_t data_address = static_cast<size_t>(fctSonVersion.address());
+            size_t data_size = static_cast<size_t>(fctSonVersion.size());
+
+            std::vector<uint8_t> v_stg = GetBlob(data_address, data_size, binary_info, db);
+            // TOREM log
+            char TODO[0X100];
+            int i = 0;
+            for (uint8_t i_char : v_stg) {
+                TODO[i++] = i_char;
+                if (i == 0x100) { break; }
+            }
+            LOG(INFO, "Vector is %s", TODO);
+
+
+            
             // TODO string characters histogram
             return WALK_CONTINUE;
         }
@@ -493,6 +511,8 @@ void VectorSignAlgo::SetFunctionFields(const HVersion& fctVersion, FunctionSigna
         function_data.cfg.size_disp += std::pow(i - mean_size, 2);
     }
     function_data.cfg.size_disp /= function_data.cfg.bb_nb;
+
+    return;
 }
 
 
@@ -860,12 +880,15 @@ void VectorSignAlgo::CreateFunctionSignatureMap(FunctionSignatureMap_t& function
     // 1/ Create : For all functions : Create an entry in the signatureMap
     db.walk([&](const HVersion& fctVersion)
     {
-        if (fctVersion.type() == OBJECT_TYPE_FUNCTION)
+        // Add entry
+        if (fctVersion.type() == OBJECT_TYPE_FUNCTION) {
             functionSignatureMap[fctVersion.id()] = FunctionSignature_t();
+        }
+        // Next function
         return WALK_CONTINUE;
     });
 
-    // 2/ Fill
+    // 2/ Fill : For all function : Work
     db.walk([&](const HVersion& fctVersion)
     {
         if (fctVersion.type() != OBJECT_TYPE_FUNCTION) {
@@ -877,20 +900,20 @@ void VectorSignAlgo::CreateFunctionSignatureMap(FunctionSignatureMap_t& function
         SetFunctionFields(fctVersion, functionSignatureMap, binary_info, db);
 
         // 2.2/ Walk horizontally the control flow.
-        const auto firstBBId  = functionSignatureMap[fctVersion.id()].firstBBId;
+        const YaToolObjectId firstBBId  = functionSignatureMap[fctVersion.id()].firstBBId;
         if (firstBBId == 0x0) {
             LOG(WARNING, "WARN addr: %zx\n", fctVersion.address());
             return WALK_CONTINUE;
         }
-
-        ControlFlowGraphHorizontalWalk(fctVersion, db.get(firstBBId), functionSignatureMap);
+        const HVersion& firstBBVersion = db.get(firstBBId);
+        ControlFlowGraphHorizontalWalk(fctVersion, firstBBVersion, functionSignatureMap);
 
         // 2.3/ Set the disassembly fields (semantic)
         // TODO remove functionSignature from here
         auto& functionSignature = functionSignatureMap[fctVersion.id()];
         LOG(INFO, "Treating function : %08x called: %s\n",
             static_cast<unsigned int>(functionSignature.addr), functionSignature.name.value);
-        //SetDisassemblyFields(functionSignature.function_data, fctVersion, functionSignature.equiLevelMap, binary_info);
+        SetDisassemblyFields(functionSignature.function_data, fctVersion, functionSignature.equiLevelMap, binary_info);
 
         return WALK_CONTINUE;
     });
