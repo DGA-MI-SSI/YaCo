@@ -134,6 +134,10 @@ You have a git repository, on github or equivalent
   * Open file_local.idb with IDA & check YaCo is properly starting
   * Save the file once & check whether YaCo is able to fetch, rebase & push on the git server
 
+## More
+
+* __Developer__ : you can read the [Readme for developers](./doc/developer.md)
+
 ## Contributors
 
   * Benoît Amiaux
