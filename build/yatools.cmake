@@ -79,15 +79,16 @@ target_link_libraries(yatools PUBLIC
     ssh2
 )
 
-# export yatools dependencies
+# Export/Copy yatools dependencies
 set(deploy_dir $<$<CONFIG:Debug>:${bin_d_dir}>$<$<CONFIG:RelWithDebInfo>:${bin_dir}>$<$<CONFIG:Release>:${bin_dir}>)
 make_deploy_dir(${bin_d_dir}/.. YaCo ${ya_dir}/YaCo)
 make_deploy_dir(${bin_dir}/.. YaCo ${ya_dir}/YaCo)
 add_custom_command(TARGET yatools POST_BUILD
     # make sure deploy_dir exists
     COMMAND ${CMAKE_COMMAND} -E make_directory ${deploy_dir}
-    # yaco library
+    # yadiff libraries
     COMMAND ${CMAKE_COMMAND} -E copy ${ya_dir}/YaDiff/merge_idb.py ${deploy_dir}
+    COMMAND ${CMAKE_COMMAND} -E copy ${ya_dir}/YaToolsUtils/YaToolsBinToVect/bintovect.py ${deploy_dir}
     # ida plugins
     COMMAND ${CMAKE_COMMAND} -E copy ${ya_dir}/YaCo/yaco_plugin.py ${deploy_dir}/../..
     # flatbuffers bindings
