@@ -21,15 +21,15 @@ int main(int argc, char** argv) {
     if (argc < 3) {
         fprintf(stderr, "Bad arguments\n"
                         "Usage :\n"
-                        "yadbtovectors <flatbuffer> <target_file>\n");
+                        "yadbtovectors <target_out_file.vect> <flatbuffer_in_file.yadb>\n");
         exit(-1);
     }
 
     // Init algo
-    const auto db1 = MakeFlatBufferModel(argv[1]);
+    const auto db1 = MakeFlatBufferModel(argv[2]);
     yadiff::AlgoCfg cfg;
     cfg.Algo = yadiff::ALGO_VECTOR_SIGN;
-    cfg.VectorSign.mapDestination = argv[2];
+    cfg.VectorSign.mapDestination = argv[1];
     cfg.VectorSign.concatenate_children = false;
     cfg.VectorSign.concatenate_parents = false;
     std::shared_ptr<yadiff::IDiffAlgo> p_algo = yadiff::MakeDiffAlgo(cfg);
