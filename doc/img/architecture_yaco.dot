@@ -1,0 +1,7 @@
+/*
+dot -Tsvg architecture_yaco.dot -o architecture_yaco.svg
+*/
+
+digraph G {
+
+}

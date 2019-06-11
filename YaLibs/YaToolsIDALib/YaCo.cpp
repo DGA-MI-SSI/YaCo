@@ -211,8 +211,9 @@ void YaCo::initial_load()
 
     const auto time_end = std::chrono::system_clock::now();
     const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(time_end - time_start).count();
-    if(elapsed)
+    if(elapsed) {
         LOG(INFO, "cache: imported in %d seconds\n", static_cast<int>(elapsed));
+    }
 }
 
 void YaCo::toggle_auto_rebase_push()
@@ -222,6 +223,7 @@ void YaCo::toggle_auto_rebase_push()
 
 void YaCo::sync_and_push_idb(IdaMode mode)
 {
+    // Ask user
     const int answer = ask_buttons(
         "Yes", "No", "", mode == IDA_INTERACTIVE ? ASKBTN_NO : ASKBTN_YES,
         "TITLE YaCo Force Push\n"
@@ -231,8 +233,9 @@ void YaCo::sync_and_push_idb(IdaMode mode)
         "You are going to force push your IDB. Other YaCo users will need to stop working & force pull.\n"
         "Do you really want to force push?"
     );
-    if (answer != ASKBTN_YES)
-        return;
+
+    // Check user response
+    if (answer != ASKBTN_YES) { return; }
 
     hooks_->unhook();
     repo_->sync_and_push_original_idb();
@@ -243,13 +246,15 @@ void YaCo::sync_and_push_idb(IdaMode mode)
 
 void YaCo::discard_and_pull_idb(IdaMode mode)
 {
+    // Ask user
     const int answer = ask_yn(
         mode == IDA_INTERACTIVE ? ASKBTN_NO : ASKBTN_YES,
         "All your local changes will be lost!\n"
         "Do you really want to proceed ?"
     );
-    if (answer != ASKBTN_YES)
-        return;
+
+    // Check user response
+    if (answer != ASKBTN_YES) { return; }
 
     hooks_->unhook();
     repo_->discard_and_pull_idb();
@@ -261,8 +266,11 @@ void YaCo::discard_and_pull_idb(IdaMode mode)
 
 std::shared_ptr<IYaCo> MakeYaCo()
 {
+    // Get idb path / idb file
     auto idb_path = get_current_idb_path();
     remove_file_extension(idb_path);
+
+    // Log version
     auto& logger = *globals::Get().logger;
     globals::InitIdbLogger(logger, idb_path.generic_string().data());
     logger.Delegate([](size_t prefix, const char* message)
@@ -270,9 +278,13 @@ std::shared_ptr<IYaCo> MakeYaCo()
         msg("%s", &message[prefix + 1]);
     });
     LOG(INFO, "version %s\n", GitVersion);
-    const auto ptr = std::make_shared<YaCo>();
-    if(!ptr->loaded_)
-        return std::nullptr_t();
 
+    // Get YaCo shared object & Return Null if error
+    const auto ptr = std::make_shared<YaCo>();
+    if(!ptr->loaded_) {
+        return std::nullptr_t();
+    }
+
+    // Return YaCobject
     return ptr;
 }

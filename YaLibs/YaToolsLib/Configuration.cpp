@@ -19,9 +19,11 @@ Configuration::Configuration(const std::string& filename):
 
 static std::string xml_get_prop(xmlNode* node, const char* name)
 {
+    // Get xml properties
     const auto value = xmlGetProp(node, BAD_CAST name);
-    if(!value)
-        return std::string();
+    if(!value) { return std::string(); }
+
+    // Alloc / Copy / Free
     std::string reply{(char*) value};
     xmlFree(value);
     return reply;
@@ -32,17 +34,14 @@ xmlNodePtr GetSection(std::shared_ptr<xmlTextReader> reader, const std::string& 
     do
     {
         auto current_obj = xmlTextReaderExpand(reader.get());
-        if(xmlNodeIsText(current_obj)) {
-            continue;
-        }
-        if (nullptr == current_obj)
-        {
-            return nullptr;
-        }
-        if(xmlStrcasecmp(current_obj->name, BAD_CAST section.c_str()) == 0)
-        {
-            return current_obj;
-        }
+        // Check
+        if(xmlNodeIsText(current_obj)) { continue; }
+
+        // Check
+        if (nullptr == current_obj) { return nullptr; }
+
+        // Check
+        if(xmlStrcasecmp(current_obj->name, BAD_CAST section.c_str()) == 0) { return current_obj; }
     }while (xmlTextReaderNext(reader.get()) == 1);
     return nullptr;
 }
