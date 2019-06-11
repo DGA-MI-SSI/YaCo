@@ -219,7 +219,7 @@ struct StdVersion
 
     void clear()
     {
-        // clear vectors but keep their capacities
+        // Clear vectors but keep their capacities
         attributes.clear();
         blobs.clear();
         comments.clear();
@@ -228,13 +228,13 @@ struct StdVersion
         hiddenareas.clear();
         xrefs.clear();
 
-        // clear strings but keep their capacities
+        // Clear strings but keep their capacities
         username.value.clear();
         prototype.clear();
         header_comment_repeatable.clear();
         header_comment_nonrepeatable.clear();
 
-        // reset every scalars
+        // Reset every scalars
         id = 0;
         idx = UINT32_MAX;
         parent = 0;
@@ -379,6 +379,7 @@ struct Model
     void        walk_uniques    (const OnSignatureFn& fnWalk) const override;
     void        walk_matching   (const HVersion& object, size_t min_size, const OnVersionFn& fnWalk) const override;
 
+    // Member variables
     ViewVersions                    view_versions_;
     ViewSignatures                  view_signatures_;
     StdVersion                      current_;
@@ -396,6 +397,7 @@ Model::Model()
 {
 }
 
+// Create Model
 std::shared_ptr<IModelAndVisitor> MakeMemoryModel()
 {
     return std::make_shared<Model>();
@@ -535,16 +537,20 @@ void finish_index(Model& db)
         add_sig(db.index_, sigmap, make_string_ref(sig.value), sig_id++);
     finish_sigs(db.index_, sigmap);
 }
-}
+} // End ::
 
+
+// End visit
 void Model::visit_end()
 {
+    // Stop visit children
     finish_index(*this);
 
-    // sort objects by type
+    // Sort objects by type
     ordered_.reserve(versions_.size());
-    for(const auto& it : versions_)
+    for(const auto& it : versions_) {
         ordered_.emplace_back(&it);
+    }
     std::sort(ordered_.begin(), ordered_.end(), [](const auto& a, const auto& b)
     {
         return std::make_pair(indexed_types[a->type], a->id) < std::make_pair(indexed_types[b->type], b->id);
@@ -744,12 +750,12 @@ void Model::walk_matching(const HVersion& remoteVersion, size_t min_size, const 
         {
             const auto version_id = signatures_[sig.idx].idx;
             const auto& version = versions_[version_id];
-            if(version.size != remoteVersion.size())
+            if(version.size != remoteVersion.size()
+                || (!is_unique_sig(index_, sig.key) && version.size < min_size)
+                || fnWalk({&view_versions_, version_id}) != WALK_STOP 
+                ) {
                 return WALK_CONTINUE;
-            if(!is_unique_sig(index_, sig.key) && version.size < min_size)
-                return WALK_CONTINUE;
-            if(fnWalk({&view_versions_, version_id}) != WALK_STOP)
-                return WALK_CONTINUE;
+            }
             stop_current_iteration = WALK_STOP;
             return stop_current_iteration;
         });
@@ -767,8 +773,9 @@ void Model::walk_uniques(const OnSignatureFn& fnWalk) const
 
 HVersion Model::get(YaToolObjectId id) const
 {
-    if(const auto idx = find_index(index_, id))
+    if(const auto idx = find_index(index_, id)) {
         return{&view_versions_, *idx};
+    }
     return{nullptr, 0};
 }
 
@@ -863,8 +870,9 @@ void ViewVersions::walk_xrefs_from(VersionIndex idx, const OnXrefFromFn& fnWalk)
     ::walk_xrefs(db_, db_.versions_[idx], [&](const StdXref& xref)
     {
         const auto ref = db_.get(xref.id);
-        if(!ref.is_valid())
+        if(!ref.is_valid()) {
             return WALK_CONTINUE;
+        }
         return fnWalk(xref.offset, xref.operand, ref);
     });
 }
@@ -879,37 +887,47 @@ void ViewVersions::walk_xrefs_to(VersionIndex idx, const OnVersionFn& fnWalk) co
 
 void ViewVersions::walk_blobs(VersionIndex idx, const OnBlobFn& fnWalk) const
 {
-    for(const auto& blob : db_.versions_[idx].blobs)
-        if(fnWalk(blob.offset, &blob.data[0], blob.data.size()) != WALK_CONTINUE)
+    for(const auto& blob : db_.versions_[idx].blobs) {
+        if(fnWalk(blob.offset, &blob.data[0], blob.data.size()) != WALK_CONTINUE) {
             return;
+        }
+    }
 }
 
 void ViewVersions::walk_comments(VersionIndex idx, const OnCommentFn& fnWalk) const
 {
-    for(const auto& comment : db_.versions_[idx].comments)
-        if(fnWalk(comment.offset, comment.type, make_string_ref(comment.value)) != WALK_CONTINUE)
+    for(const auto& comment : db_.versions_[idx].comments) {
+        if(fnWalk(comment.offset, comment.type, make_string_ref(comment.value)) != WALK_CONTINUE) {
             return;
+        }
+    }
 }
 
 void ViewVersions::walk_value_views(VersionIndex idx, const OnValueViewFn& fnWalk) const
 {
-    for(const auto& view : db_.versions_[idx].valueviews)
-        if(fnWalk(view.offset, view.operand, make_string_ref(view.value)) != WALK_CONTINUE)
+    for(const auto& view : db_.versions_[idx].valueviews) {
+        if(fnWalk(view.offset, view.operand, make_string_ref(view.value)) != WALK_CONTINUE) {
             return;
+        }
+    }
 }
 
 void ViewVersions::walk_register_views(VersionIndex idx, const OnRegisterViewFn& fnWalk) const
 {
-    for(const auto& view : db_.versions_[idx].registerviews)
-        if(fnWalk(view.offset, view.end_offset, make_string_ref(view.name), make_string_ref(view.new_name)) != WALK_CONTINUE)
+    for(const auto& view : db_.versions_[idx].registerviews) {
+        if(fnWalk(view.offset, view.end_offset, make_string_ref(view.name), make_string_ref(view.new_name)) != WALK_CONTINUE) {
             return;
+        }
+    }
 }
 
 void ViewVersions::walk_hidden_areas(VersionIndex idx, const OnHiddenAreaFn& fnWalk) const
 {
-    for(const auto& hidden : db_.versions_[idx].hiddenareas)
-        if(fnWalk(hidden.offset, hidden.area_size, make_string_ref(hidden.value)) != WALK_CONTINUE)
+    for(const auto& hidden : db_.versions_[idx].hiddenareas) {
+        if(fnWalk(hidden.offset, hidden.area_size, make_string_ref(hidden.value)) != WALK_CONTINUE) {
             return;
+        }
+    }
 }
 
 void ViewVersions::walk_xrefs(VersionIndex idx, const OnXrefFn& fnWalk) const
@@ -923,16 +941,20 @@ void ViewVersions::walk_xrefs(VersionIndex idx, const OnXrefFn& fnWalk) const
 void ViewVersions::walk_xref_attributes(VersionIndex, const XrefAttributes* hattr, const OnAttributeFn& fnWalk) const
 {
     const StdXref* xref = reinterpret_cast<const StdXref*>(hattr);
-    for(const auto& attr : xref->attributes)
-        if(fnWalk(make_string_ref(attr.key), make_string_ref(attr.value)) != WALK_CONTINUE)
+    for(const auto& attr : xref->attributes) {
+        if(fnWalk(make_string_ref(attr.key), make_string_ref(attr.value)) != WALK_CONTINUE) {
             return;
+        }
+    }
 }
 
 void ViewVersions::walk_attributes(VersionIndex idx, const OnAttributeFn& fnWalk) const
 {
-    for(const auto& attr : db_.versions_[idx].attributes)
-        if(fnWalk(make_string_ref(attr.key), make_string_ref(attr.value)) != WALK_CONTINUE)
+    for(const auto& attr : db_.versions_[idx].attributes) {
+        if(fnWalk(make_string_ref(attr.key), make_string_ref(attr.value)) != WALK_CONTINUE) {
             return;
+        }
+    }
 }
 
 Signature ViewSignatures::get(HSignature_id_t id) const

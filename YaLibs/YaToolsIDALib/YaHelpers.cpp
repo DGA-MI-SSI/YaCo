@@ -43,7 +43,6 @@ namespace
 
     const struct { cm_t cc; const_string_ref name; } cc_names[] =
     {
-#define DECL_CC_NAME(VALUE, NAME) {VALUE, {NAME, sizeof NAME - 1}},
         DECL_CC_NAME(CM_CC_CDECL,       "__cdecl")
         DECL_CC_NAME(CM_CC_STDCALL,     "__stdcall")
         DECL_CC_NAME(CM_CC_PASCAL,      "__pascal")
@@ -52,7 +51,6 @@ namespace
         DECL_CC_NAME(CM_CC_SPECIAL,     "__usercall")
         DECL_CC_NAME(CM_CC_SPECIALE,    "__usercall")
         DECL_CC_NAME(CM_CC_SPECIALP,    "__usercall")
-#undef DECL_CC_NAME
     };
     const const_string_ref empty_string = {nullptr, 0};
 
@@ -135,14 +133,10 @@ namespace
         deps->emplace_back(OBJECT_TYPE_LOCAL_TYPE, id, ord);
     }
 
-    #define DECLARE_REF(name, value)\
-    const char name ## _txt[] = value;\
-    const const_string_ref name = {name ## _txt, sizeof name ## _txt - 1};
     DECLARE_REF(hidden_suffix, "__hidden");
     DECLARE_REF(return_ptr_suffix, "__return_ptr");
     DECLARE_REF(struct_ptr_suffix, "__struct_ptr");
     DECLARE_REF(default_function_name, "sub");
-#undef DECLARE_REF
 
     const qstring comma_separator = ", ";
     const qstring ellipsis_argument = ", ...";

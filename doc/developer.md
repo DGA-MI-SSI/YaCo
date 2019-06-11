@@ -26,6 +26,8 @@
 ├───YaCo                                | YaCo python files
 ├───YaDiff                              | YaDiff cpp files
 │   ├───tests                           |     tests
+│   ├───merge_idb.py                    |     exe: idb1_new <- idb2_old : symbol propagation
+│   ├───MergeYaDb.cpp                   |     exe: yadb1_new <- yadb2_old
 │   └───YaDiffLib                       |     code (algo orchestator)
 │       └───Algo                        |     algo container
 ├───YaLibs                              | Library used

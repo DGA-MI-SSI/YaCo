@@ -574,6 +574,7 @@ ProgressLogger<T> MakeProgressLogger(size_t max, const T& now)
     return ProgressLogger<T>(max, now);
 }
 
+// MACRO: for logging
 #ifdef HAS_FLATBUFFER_LOGGING
 #define DECLARE_PROGRESS_LOGGER(SIZE) auto progress = MakeProgressLogger(SIZE, std::chrono::high_resolution_clock::now())
 #define UPDATE_PROGRESS_LOGGER(TYPE) progress.Update(TYPE)

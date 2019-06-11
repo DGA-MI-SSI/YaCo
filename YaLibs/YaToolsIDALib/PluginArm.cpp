@@ -13,6 +13,8 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#include "Helpers.h"
+
 #include "YaTypes.hpp"
 #include "Ida.h"
 #include "Plugins.hpp"
@@ -24,13 +26,12 @@
 #include <functional>
 #include <memory>
 
-#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("arm", (FMT), ## __VA_ARGS__)
-
 namespace
 {
     struct ArmModel
         : public IPluginModel
     {
+        // Ctor
         ArmModel();
 
         // IPluginModel methods
@@ -40,20 +41,19 @@ namespace
         const int thumb_segment_register;
     };
 
-#define DECLARE_REF(name, value)\
-    const char name ## _txt[] = value;\
-    const const_string_ref name = {name ## _txt, sizeof name ## _txt - 1};
+    // Declare g_tumb_mode global strings
     DECLARE_REF(g_thumb_mode_flag, "thumb_mode_flag");
     DECLARE_REF(g_thumb_flag, "thumb_flag");
-#undef DECLARE_REF
 
     void accept_ea(IModelVisitor& v, ea_t ea, int thumb_segment_register)
     {
+        // Return if thumb 
         char buf[100];
         const auto thumb_flag = get_sreg(ea, thumb_segment_register);
         const auto n = snprintf(buf, sizeof buf, "%" PRIdEA, thumb_flag);
-        if(n > 0)
-            v.visit_attribute(g_thumb_mode_flag, {buf, static_cast<size_t>(n)});
+        if(n <=  0) { return; }
+        // Else visit flag
+        v.visit_attribute(g_thumb_mode_flag, {buf, static_cast<size_t>(n)});
     }
 }
 
@@ -107,28 +107,33 @@ ArmVisitor::ArmVisitor()
 
 namespace
 {
+    // Manage thumb flag 
     void make_ea(const HVersion& version, ea_t ea, int thumb_segment_register)
     {
         std::string strthumb_flag;
         version.walk_attributes([&](const const_string_ref& key, const const_string_ref& val)
         {
-            if(!(key == g_thumb_flag))
+            // Continue if current node is flag
+            if(!(key == g_thumb_flag)) {
                 return WALK_CONTINUE;
+            }
+            // Else get string
             strthumb_flag = make_string(val);
             return WALK_STOP;
         });
-        if(strthumb_flag.empty())
-            return;
+        // Return if flag == 0
+        if(strthumb_flag.empty()) { return; }
 
+        // Scan flag string & Check
         sel_t thumb_flag = 0;
         const auto n = sscanf(strthumb_flag.data(), "%" PRIdEA, &thumb_flag);
-        if(n != 1)
-            return;
+        if(n != 1) { return; }
 
+        // Get ea flag & Check
         const auto current_thumb_flag = get_sreg(ea, thumb_segment_register);
-        if(current_thumb_flag == thumb_flag)
-            return;
+        if(current_thumb_flag == thumb_flag) { return; }
 
+        // Set thumb as far as you can
         const auto end = static_cast<ea_t>(ea + version.size());
         set_sreg_at_next_code(ea, end, thumb_segment_register, thumb_flag);
     }

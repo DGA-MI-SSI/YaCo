@@ -53,9 +53,7 @@ using namespace std::experimental;
 
 namespace
 {
-    #define DECLARE_REF(name, value)\
-        const char name ## _txt[] = value;\
-        const const_string_ref name = {name ## _txt, sizeof name ## _txt - 1};
+    // Declare key strings
     DECLARE_REF(g_empty, "");
     DECLARE_REF(g_start_ea, "start_ea");
     DECLARE_REF(g_end_ea, "end_ea");
