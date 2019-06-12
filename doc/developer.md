@@ -8,7 +8,8 @@
 ### Definitions
 
 * __Flatbuffer__ : flat dumping/buffering of dynamique (i.e. in RAM) structures
-* __Visitor__: Some recursive structure crawler/parser
+* __Visitor__: Some recursive structure crawler/parser. It calls a callback (called operand) for each (xref/function/bb/ea) found on objectId
+* __Acceptor__: Visit with a `f_put_in_database` callback
 
 ### Architecture
 

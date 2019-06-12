@@ -1899,6 +1899,8 @@ namespace
         return current;
     }
 
+
+    // Accept : Main worker
     template<typename Ctx>
     void accept(Ctx& ctx, IModelVisitor& v)
     {
