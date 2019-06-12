@@ -10,6 +10,8 @@
 * __Flatbuffer__ : flat dumping/buffering of dynamique (i.e. in RAM) structures
 * __Visitor__: Some recursive structure crawler/parser. It calls a callback (called operand) for each (xref/function/bb/ea) found on objectId
 * __Acceptor__: Visit with a `f_put_in_database` callback
+* __ObjectId__ : Unique hash (integer) representing ida object (basic bloc, effective address) for easy indexing and retrieval
+* __ObjectVersion__ : 
 
 ### Architecture
 
@@ -35,7 +37,7 @@
 │   ├───tests                           |     Test 
 │   ├───YaToolsIDALib                   |     Code to communicate with IDA
 │   ├───YaToolsLib                      |     YaCo code is here
-│   │   ├───Events.cpp                  |         TODO : isn't it where declare events and generate them ?
+│   │   ├───Events.cpp                  |         Implement event callbacks
 │   │   ├───Hash.cpp                    |         Wraps some hashing primitives <- farmhash.h
 │   │   ├───Hooks.cpp                   |         Bind callbacks (named) to addactions (in Ida.h)
 │   │   ├───Ida.h                       |         Declare Idaapi (include other ida headers)

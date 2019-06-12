@@ -35,6 +35,12 @@
 #   include <experimental/filesystem>
 #endif
 
+
+/********************************************************************************
+    1/         Implement Helpers
+********************************************************************************/
+
+
 namespace fs = std::experimental::filesystem;
 
 namespace
@@ -43,15 +49,19 @@ namespace
     const std::string   default_remote_name = "origin";
 
 
+    // Check Xml file validity
     bool is_valid_xml_file(const std::string& filename)
     {
         std::shared_ptr<xmlTextReader> reader(xmlReaderForFile(filename.c_str(), NULL, 0), &xmlFreeTextReader);
         int ret = 1;
-        while (ret == 1)
+        while (ret == 1) {
             ret = xmlTextReaderRead(reader.get());
+        }
         return ret != -1;
     }
 
+
+    // Append suffix to string
     void add_filename_suffix(std::string& file_path, const std::string& suffix)
     {
         const std::string file_extension = fs::path(file_path).extension().string();
@@ -60,6 +70,8 @@ namespace
         file_path += file_extension;
     }
 
+
+    // Remove suffix from string
     bool remove_filename_suffix(std::string& file_path, const std::string& suffix)
     {
         // only remove the suffix from the filename even if it appear in the extention
@@ -70,11 +82,15 @@ namespace
         return removed;
     }
 
+
+    // Get idb path
     std::string get_current_idb_path()
     {
         return fs::path(get_path(PATH_TYPE_IDB)).generic_string();
     }
 
+
+    // Get idb path
     std::string get_original_idb_path()
     {
         std::string original_idb_path = get_current_idb_path();
@@ -82,11 +98,15 @@ namespace
         return original_idb_path;
     }
 
+
+    // Get idb name
     std::string get_current_idb_name()
     {
         return fs::path(get_current_idb_path()).filename().string();
     }
 
+
+    // Get idb name
     std::string get_original_idb_name()
     {
         std::string original_idb_name = get_current_idb_name();
@@ -94,17 +114,23 @@ namespace
         return original_idb_name;
     }
 
+
+    // Copy toto.idb -> toto_bkp_2019____.idb
     bool backup_file(const std::string& file_path)
     {
+        // Create date string
         const std::time_t now = std::time(nullptr);
         std::string date = std::ctime(&now);
         date = date.substr(0, date.size() - 1); //remove final \n from ctime
         std::replace(date.begin(), date.end(), ' ', '_');
         std::replace(date.begin(), date.end(), ':', '_');
+
+        // Create path string
         const std::string suffix = "_bkp_" + date;
         std::string backup_file_path = file_path;
         add_filename_suffix(backup_file_path, suffix);
 
+        // Cp current backup
         std::error_code ec;
         fs::copy_file(file_path, backup_file_path, ec);
         if (ec)
@@ -113,33 +139,46 @@ namespace
             return false;
         }
 
+        // Bye
         LOG(INFO, "Created backup %s\n", backup_file_path.c_str());
         return true;
     }
 
+
+    // Backup
     bool backup_current_idb()
     {
         LOG(INFO, "Backup of current IDB\n");
         return backup_file(get_current_idb_path());
     }
 
+
+    // Backup
     bool backup_original_idb()
     {
         LOG(INFO, "Backup of original IDB\n");
         return backup_file(get_original_idb_path());
     }
 
+
+    // Remove IDA junk
     void remove_ida_temporary_files(const std::string& idb_path)
     {
+        // Slice string end
         std::string idb_no_ext = idb_path;
         remove_substring(idb_no_ext, fs::path(idb_path).extension().string());
 
+        // For all possible extension (ext)
         std::error_code ec;
         const char extensions_to_delete[][6] = { ".id0", ".id1", ".id2", ".nam", ".til" };
-        for (const char* ext : extensions_to_delete)
+        for (const char* ext : extensions_to_delete) {
+            // Remove file.ext
             fs::remove(fs::path(idb_no_ext + ext), ec);
+        }
     }
 
+
+    // 
     bool copy_original_idb_to_current_file()
     {
         const std::string current_idb_path = get_current_idb_path();
@@ -157,6 +196,8 @@ namespace
         return true;
     }
 
+
+    //
     bool copy_current_idb_to_original_file()
     {
         const std::string current_idb_path = get_current_idb_path();
@@ -173,26 +214,23 @@ namespace
         LOG(INFO, "Copied current IDB to original IDB\n");
         return true;
     }
-}
 
-namespace
-{
+
     std::string merge_attributes_callback(const std::string& message, const std::string& local, const std::string& remote)
     {
-        if(ya::is_testing_mode())
-            return remote;
+        if(ya::is_testing_mode()) { return remote; }
 
         qstring buffer;
         const auto defval = merge_strings(make_string_ref(local), "local", make_string_ref(remote), "remote");
         const auto ok = ask_text(&buffer, 0, defval.data(), "%s\n", message.data());
-        if(!ok)
-            return local;
+        if(!ok) { return local; }
 
         return buffer.c_str();
     }
 
-    const auto r_xml_end = std::regex{".*\\.xml$"};
 
+
+    //
     bool IDAInteractiveFileConflictResolver(const std::string& local, const std::string& remote, const std::string& filename)
     {
         if(fs::path(filename) == "yaco.version")
@@ -201,13 +239,16 @@ namespace
             return true;
         }
 
-        if(!std::regex_match(filename, r_xml_end))
+        const auto r_xml_end = std::regex{".*\\.xml$"};
+        if(!std::regex_match(filename, r_xml_end)) {
             return true;
+        }
 
         Merger merger(ObjectVersionMergeStrategy_e::OBJECT_VERSION_MERGE_PROMPT, &merge_attributes_callback);
         const auto err = merger.merge_files(local, remote, filename);
-        if (err == MergeStatus_e::OBJECT_MERGE_STATUS_NOT_UPDATED)
+        if (err == MergeStatus_e::OBJECT_MERGE_STATUS_NOT_UPDATED) {
             warning("Auto merge failed, please edit manually %s then continue\n", filename.data());
+        }
 
         if (!is_valid_xml_file(filename))
         {
@@ -218,6 +259,8 @@ namespace
         return true;
     }
 
+
+    // Class I use
     struct Repository
         : public IRepository
     {
@@ -314,19 +357,29 @@ namespace
                 return false;
         }
     }
-}
 
+} // End ::
+
+
+/********************************************************************************
+2/         Repository functions
+********************************************************************************/
+
+
+// Ctor repository
 Repository::Repository(const std::string& path)
     : repo_auto_sync_(true)
     , include_idb_(false)
     , is_tracked_(is_git_directory(path))
 {
+    // Make git repo & Check
     git_ = MakeGitAsync(path);
-    if(!git_)
-        return;
+    if(!git_) { return; }
 
-    if (!ensure_git_globals())
+    // Check git
+    if (!ensure_git_globals()) {
         LOG(ERROR, "Unable to ensure git globals\n");
+    }
 
     if (is_tracked_)
     {
@@ -348,35 +401,47 @@ Repository::Repository(const std::string& path)
     LOG(INFO, "%s %s\n", include_idb_ ? "tracking" : "ignoring", get_original_idb_name().data());
     LOG(INFO, "Repo created\n");
 
-    // add .gitignore to repo
+    // Add .gitignore to repo
     const auto gitignore = fs::path(get_current_idb_path()).replace_filename(".gitignore");
     {
         std::fstream f(gitignore, std::fstream::out);
-        if (!include_idb_)
+        if (!include_idb_) {
             f << get_current_idb_name();
+        }
         f << std::endl;
     }
-    if (!git_->add_file(gitignore.filename().generic_string()))
+    if (!git_->add_file(gitignore.filename().generic_string())) {
         LOG(ERROR, "Unable to add .gitignore\n");
+    }
 
-    // add version tag
+    // Add version tag
     const auto version = get_version_path();
     std::fstream(version, std::fstream::out) << GIT_VERSION() << std::endl;
-    if(!git_->add_file(version.filename().generic_string()))
+    if(!git_->add_file(version.filename().generic_string())) {
         LOG(ERROR, "Unable to add yaco.version");
+    }
 
-    // add current IDB to repo if tracking is enabled
-    if (include_idb_)
-        if (!git_->add_file(get_current_idb_name()))
+    // Add current IDB to repo if tracking is enabled
+    if (include_idb_) {
+        if (!git_->add_file(get_current_idb_name())) {
             LOG(ERROR, "Unable to add IDB\n");
+        }
+    }
 
-    if (!git_->commit("Initial commit\n"))
+    // Commit first
+    if (!git_->commit("Initial commit\n")) {
         LOG(ERROR, "Unable to commit IDB\n");
+    }
 
+    // Get remote
     ask_for_remote();
+
+    // Push
     push();
 }
 
+
+// Add comment
 void Repository::add_comment(const std::string& msg)
 {
     comments_.insert(msg);
@@ -384,22 +449,24 @@ void Repository::add_comment(const std::string& msg)
 
 bool Repository::check_valid_cache_startup()
 {
+    // Check in
     LOG(DEBUG, "Validating cache...\n");
-    if(!git_)
-        return false;
+    if(!git_) { return false; }
 
     if (has_remote(default_remote_name))
     {
         const std::string master_commit = git_->get_commit("master");
         const std::string origin_master_commit = git_->get_commit(default_remote_name + "/master");
-        if (master_commit.empty() || origin_master_commit.empty() || master_commit != origin_master_commit)
+        if (master_commit.empty() || origin_master_commit.empty() || master_commit != origin_master_commit) {
             LOG(WARNING, "Master and %s/master does not point to same commit, please update your master\n", default_remote_name.data());
+        }
     }
 
     std::error_code ec;
     fs::create_directory(get_cache(), ec);
-    if (ec)
+    if (ec) {
         LOG(WARNING, "Cache directory creation failed, error: %s\n", ec.message().c_str());
+    }
 
     const fs::path current_idb_path = get_current_idb_path();
     const std::string idb_extension = current_idb_path.extension().string();
@@ -446,10 +513,11 @@ bool Repository::check_valid_cache_startup()
 std::string Repository::update_cache(IPatcher& patcher, const on_fixup_fn& on_fixup)
 {
     std::string commit;
-    if (!has_remote(default_remote_name))
+    if (!has_remote(default_remote_name)) {
         return commit;
+    }
 
-    // check if files has been modified in background
+    // Check if files has been modified in background
     ask_to_checkout_modified_files();
 
     if (!repo_auto_sync_)
@@ -459,7 +527,7 @@ std::string Repository::update_cache(IPatcher& patcher, const on_fixup_fn& on_fi
     }
 
     LOG(DEBUG, "Updating cache...\n");
-    // get master commit
+    // Get master commit
     commit = git_->get_commit("master");
     if (commit.empty())
     {
@@ -468,16 +536,16 @@ std::string Repository::update_cache(IPatcher& patcher, const on_fixup_fn& on_fi
     }
     LOG(DEBUG, "Current master: %s\n", commit.c_str());
 
-    // fetch remote
+    // Fetch remote
     git_->fetch(default_remote_name);
     LOG(DEBUG, "Fetched %s/master: %s\n", default_remote_name.data(), git_->get_commit(default_remote_name + "/master").data());
 
-    // rebase in master
+    // Rebase in master
     LOG(DEBUG, "Rebasing master on %s/master...\n", default_remote_name.data());
     if (!git_->rebase(default_remote_name + "/master", "master", patcher, on_fixup, &IDAInteractiveFileConflictResolver))
     {
         LOG(INFO, "Unable to update cache\n");
-        // disable auto sync (when closing database)
+        // Disable auto sync (when closing database)
         warning("You have errors during rebase. You have to resolve it manually.\n");
         return commit;
     }
@@ -491,34 +559,46 @@ bool Repository::commit_cache()
 {
     LOG(DEBUG, "Committing changes...\n");
 
+    // Add
     std::set<std::string> untracked, modified, deleted;
     git_->status(get_cache() + "/", [&](const char* name, const IGit::Status& status)
     {
-        if(status.untracked)
+        if(status.untracked) {
             untracked.insert(name);
-        if(status.modified)
+        }
+        if(status.modified) {
             modified.insert(name);
-        if(status.deleted)
+        }
+        if(status.deleted) {
             deleted.insert(name);
+        }
     });
-    if(untracked.empty() && modified.empty() && deleted.empty())
+
+    if (untracked.empty() && modified.empty() && deleted.empty())
     {
         LOG(DEBUG, "No changes to commit\n");
         return true;
     }
 
-    for(const auto name : untracked)
-        if(!git_->add_file(name))
+    for (const auto name : untracked) {
+        if (!git_->add_file(name)) {
             LOG(ERROR, "unable to add %s to index\n", name.data());
-    for(const auto name : modified)
-        if(!git_->add_file(name))
+        }
+    }
+    for (const auto name : modified) {
+        if (!git_->add_file(name)) {
             LOG(ERROR, "unable to add %s to index\n", name.data());
-    for(const auto name : deleted)
-        if(!git_->remove_file(name))
+        }
+    }
+    for (const auto name : deleted) {
+        if (!git_->remove_file(name)) {
             LOG(ERROR, "unable to remove %s from index\n", name.data());
+        }
+    }
     LOG(INFO, "commit: %zd added %zd updated %zd deleted\n", untracked.size(), modified.size(), deleted.size());
 
-    // add single line prefix because libgit2 like to use commit messages
+    // Prepare commit messsage
+    // Add single line prefix because libgit2 like to use commit messages
     // in filenames during rebases & commit messages can be too long
     auto commit_msg = "cache: "
                     + std::to_string(untracked.size()) + " added "
@@ -536,6 +616,8 @@ bool Repository::commit_cache()
         commit_msg.erase(TRUNCATE_COMMIT_MSG_LENGTH);
         commit_msg += "\n...truncated";
     }
+
+    // Commit
     if (!git_->commit(commit_msg))
     {
         LOG(ERROR, "Unable to commit\n");
@@ -546,73 +628,81 @@ bool Repository::commit_cache()
     return true;
 }
 
+
+// Toggle setting.automatic_synchronisation
 void Repository::toggle_repo_auto_sync()
 {
     repo_auto_sync_ = !repo_auto_sync_;
-    if (repo_auto_sync_)
+    if (repo_auto_sync_) {
         LOG(INFO, "Auto rebase/push enabled\n");
-    else
+    } else {
         LOG(INFO, "Auto rebase/push disabled\n");
+    }
 }
 
+
+// Commit & Push
 void Repository::sync_and_push_original_idb()
 {
     backup_original_idb();
 
-    // sync original idb to current idb
+    // Sync original idb to current idb
     if (!copy_current_idb_to_original_file())
     {
         LOG(ERROR, "Unable to sync original idb to current idb\n");
         return;
     }
 
-    // remove xml cache files
+    // Remove xml cache files
     for (const auto& file_path : fs::recursive_directory_iterator(get_cache()))
     {
         std::error_code ec;
         const bool is_regular_file = fs::is_regular_file(file_path.path(), ec);
-        if (!is_regular_file)
-            continue;
+        if (!is_regular_file) { continue; }
 
-        // git remove xml
+        // Git remove xml
         if (!git_->remove_file(file_path.path().generic_string()))
         {
             LOG(ERROR, "Unable to remove %s for index\n", file_path.path().generic_string().c_str());
             return;
         }
 
-        // filesystem remove xml
+        // Filesystem remove xml
         fs::remove(file_path.path(), ec);
-        if (ec)
+        if (ec) {
             LOG(ERROR, "Unable to remove %s from filesystem, error: %s\n", file_path.path().generic_string().c_str(), ec.message().c_str());
+        }
     }
 
-    // git add original idb file
+    // Git add original idb file
     if (include_idb_ && !git_->add_file(get_original_idb_name()))
     {
         LOG(ERROR, "Unable to add original idb file to index\n");
         return;
     }
 
-    // git commit
+    // Git commit
     if (!git_->commit("YaCo force push"))
     {
         LOG(ERROR, "Unable to commit\n");
         return;
     }
 
+    // Git push
     push();
 }
 
+
+// Checkout -- & Pull
 void Repository::discard_and_pull_idb()
 {
     backup_current_idb();
     backup_original_idb();
 
-    // delete all modified objects
+    // Delete all modified objects
     git_->checkout_head();
 
-    // get synced original idb
+    // Get synced original idb
     if (!git_->fetch(default_remote_name))
     {
         LOG(ERROR, "Unable to fetch %s\n", default_remote_name.data());
@@ -627,9 +717,10 @@ void Repository::discard_and_pull_idb()
         return;
     }
 
-    // sync current idb to original idb
-    if (!copy_original_idb_to_current_file())
+    // Sync current idb to original idb
+    if (!copy_original_idb_to_current_file()) {
         LOG(ERROR, "Unable to sync current idb to original idb\n");
+    }
 }
 
 void Repository::ask_to_checkout_modified_files()
@@ -640,8 +731,8 @@ void Repository::ask_to_checkout_modified_files()
     const std::string original_idb_name = get_original_idb_name();
     git_->status("", [&](const char* path, const IGit::Status& status)
     {
-        if(!status.modified)
-            return;
+        // Work not if useless
+        if(!status.modified) { return; }
 
         if(original_idb_name == path)
         {
@@ -656,8 +747,9 @@ void Repository::ask_to_checkout_modified_files()
 
     if (modified.empty())
     {
-        if (idb_modified)
+        if (idb_modified) {
             git_->checkout_head(); // checkout silently
+        }
         return;
     }
 
@@ -672,39 +764,48 @@ void Repository::ask_to_checkout_modified_files()
     repo_auto_sync_ = false;
 }
 
+
+//
 bool Repository::ask_for_idb_tracking()
 {
     return ask_yn(true, "Should the IDB be tracked?") == ASKBTN_YES;
 }
 
+
+// Ask user to specify remote location
 void Repository::ask_for_remote()
 {
+    // Ack url & Check
     qstring tmp = "ssh://username@repository_path/";
-    if (!ask_str(&tmp, 0, "Specify remote:"))
-        return;
+    if (!ask_str(&tmp, 0, "Specify remote:")) { return; }
 
+    // Add url -> remote
     const std::string url = tmp.c_str();
     const auto ok = git_->add_remote(default_remote_name, url);
-    if(!ok)
-        return;
+    if(!ok) { return; }
 
-    // FIXME add http/https to regex ? ("^((ssh)|(https?))://.*")
-    if (std::regex_match(url, std::regex("^ssh://.*")))
+    // Check url validity : starts with ssh, https?
+    if (std::regex_match(url, std::regex("^(ssh|https?)://.*"))) {
         return;
+    }
 
+    // Check url existance : return if true
     const fs::path path = url;
-    if (fs::exists(path))
-        return;
+    if (fs::exists(path)) { return; }
 
-    if (ask_yn(true, "The target directory doesn't exist, do you want to create it ?") != ASKBTN_YES)
+    // Ask to create url
+    if (ask_yn(true, "The target directory doesn't exist, do you want to create it ?") != ASKBTN_YES) {
         return;
+    }
 
+    // Create directory @url
     if (!fs::create_directories(path))
     {
         LOG(WARNING, "Directory %s creation failed\n", url.c_str());
         return;
     }
 
+    // Make git bare @directory
     const auto git = MakeGitBare(url);
     if(!git)
     {
@@ -712,11 +813,12 @@ void Repository::ask_for_remote()
     }
 }
 
+
+// Ask user for git config
 bool Repository::ask_and_set_git_config_entry(const std::string& config_entry, const std::string& default_value)
 {
     const auto current_value = git_->config_get_string(config_entry);
-    if(!current_value.empty())
-        return true;
+    if(!current_value.empty()) { return true; }
 
     qstring value;
     do
@@ -728,6 +830,8 @@ bool Repository::ask_and_set_git_config_entry(const std::string& config_entry, c
     return git_->config_set_string(config_entry, value.c_str());
 }
 
+
+// Ensure git needed global setted (user.name  and user.email)
 bool Repository::ensure_git_globals()
 {
     if (!ask_and_set_git_config_entry("user.name", "username"))
@@ -745,6 +849,8 @@ bool Repository::ensure_git_globals()
     return true;
 }
 
+
+// Check if has remote
 bool Repository::has_remote(const std::string& remote)
 {
     bool found = false;
@@ -755,34 +861,45 @@ bool Repository::has_remote(const std::string& remote)
     return ok && found;
 }
 
+
+// Git diff
 void Repository::diff_index(const std::string& from, const on_blob_fn& on_blob) const
 {
     git_->diff_index(from, on_blob);
 }
 
+
+// Check if is tracked
 bool Repository::idb_is_tracked()
 {
     return include_idb_;
 }
 
+
+// Get cache string
 std::string Repository::get_cache()
 {
     return "cache";
 }
 
+
+// Git push
 void Repository::push()
 {
-    if(!has_remote(default_remote_name))
-        return;
+    if(!has_remote(default_remote_name)) { return; }
 
     git_->push("master", default_remote_name, "master");
 }
 
+
+// Git flush
 void Repository::touch()
 {
     git_->flush();
 }
 
+
+// Create & Return object
 std::shared_ptr<IRepository> MakeRepository(const std::string& path)
 {
     return std::make_shared<Repository>(path);

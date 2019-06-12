@@ -17,8 +17,10 @@
 
 #include <memory>
 
+// Declare implicit structure (to avoid including Repository.hpp)
 struct IRepository;
 
+// Interface for ida events callbacks
 struct IEvents
 {
     virtual ~IEvents() = default;
@@ -36,4 +38,5 @@ struct IEvents
     virtual void touch              () = 0;
 };
 
+// Create & Return event object (shared_ptr)
 std::shared_ptr<IEvents> MakeEvents(IRepository& repo);
