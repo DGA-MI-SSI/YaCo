@@ -15,11 +15,16 @@
 
 #pragma once
 
-#include "IModelVisitor.hpp"
+#include "Helpers.h"                        // Util MACRO
+#include "IModelVisitor.hpp"                // Interface I implement
+
+#include <flatbuffers/flatbuffers.h>        // fb::Offset type
+// #include <yadb_generated.h>                 // CommentType_Anterior
 
 #include <memory>
 #include <vector>
 #include <string>
+
 
 struct ExportedBuffer
 {
@@ -38,3 +43,9 @@ struct IFlatBufferVisitor
 std::shared_ptr<IFlatBufferVisitor> MakeFlatBufferVisitor();
 
 bool merge_xmls_to_yadb(const std::string& dest, const std::vector<std::string>& sources);
+
+
+/*********************************************************************************
+*************************** NON EXPORTED STUFF ***********************************
+*********************************************************************************/
+

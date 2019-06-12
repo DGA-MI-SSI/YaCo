@@ -60,3 +60,12 @@ const_string_ref NAME(char* buf, size_t szbuf, VALUE_TYPE value)\
 #else
 #define UNUSED_VARIABLE
 #endif
+
+
+// Assert condition for test validation (used in ExporterValidatorVisitor.cpp)
+#define validator_assert(CONDITION, FMT, ...) do {\
+    if(CONDITION) break;\
+    YALOG_ERROR(nullptr, " " FMT, ## __VA_ARGS__);\
+    exit(-1);\
+} while(0)
+

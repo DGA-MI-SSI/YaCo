@@ -13,8 +13,6 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "FlatBufferVisitor.hpp"
-
 #include "IModelVisitor.hpp"
 #include "Signature.hpp"
 #include "FlatBufferModel.hpp"
@@ -32,6 +30,8 @@
 #include <set>
 #include <type_traits>
 
+#include "FlatBufferVisitor.hpp"
+
 #ifdef _MSC_VER
 #   include <optional.hpp>
     using namespace nonstd;
@@ -40,11 +40,8 @@
     using namespace std::experimental;
 #endif
 
-
 namespace fb = flatbuffers;
 
-
-namespace {
 
 // Lookup comment type : repeateable|bookmark : seems pretty useless ... (TOSEE)
 static yadb::CommentType get_comment_type(CommentType_e value)
@@ -93,7 +90,7 @@ static yadb::SignatureMethod get_signature_method(SignatureMethod_e value)
     return yadb::SignatureMethod_Unknown;
 }
 
-// TODO I thiunk this should go to mutualize with IdaModel
+// TODO I think this should go to mutualize with IdaModel
 struct Xref
 {
     YaToolObjectId  id;
@@ -112,38 +109,7 @@ struct FlatBufferVisitor : public IFlatBufferVisitor
     FlatBufferVisitor(VisitorMode mode);
 
     // IModelVisitor interface so I have to override
-    // TODO : must I predeclare them ??
-    void visit_start() override;
-    void visit_end() override;
-    void visit_start_version(YaToolObjectType_e type, YaToolObjectId id) override;
-    void visit_deleted(YaToolObjectType_e type, YaToolObjectId id) override;
-    void visit_end_version() override;
-    void visit_parent_id(YaToolObjectId object_id) override;
-    void visit_address(offset_t address) override;
-    void visit_name(const const_string_ref& name, int flags) override;
-    void visit_size(offset_t size) override;
-    void visit_start_signatures() override;
-    void visit_signature(SignatureMethod_e method, SignatureAlgo_e algo, const const_string_ref& hex) override;
-    void visit_end_signatures() override;
-    void visit_prototype(const const_string_ref& prototype) override;
-    void visit_string_type(int str_type) override;
-    void visit_header_comment(bool repeatable, const const_string_ref& comment) override;
-    void visit_start_offsets() override;
-    void visit_end_offsets() override;
-    void visit_offset_comments(offset_t offset, CommentType_e comment_type, const const_string_ref& comment) override;
-    void visit_offset_valueview(offset_t offset, operand_t operand, const const_string_ref& view_value) override;
-    void visit_offset_registerview(offset_t offset, offset_t end_offset, const const_string_ref& register_name, const const_string_ref& register_new_name) override;
-    void visit_offset_hiddenarea(offset_t offset, offset_t area_size, const const_string_ref& hidden_area_value) override;
-    void visit_start_xrefs() override;
-    void visit_end_xrefs() override;
-    void visit_start_xref(offset_t offset, YaToolObjectId offset_value, operand_t operand) override;
-    void visit_end_xref() override;
-    void visit_xref_attribute(const const_string_ref& attribute_key, const const_string_ref& attribute_value) override;
-    void visit_segments_start() override;
-    void visit_segments_end() override;
-    void visit_attribute(const const_string_ref& attr_name, const const_string_ref& attr_value) override;
-    void visit_blob(offset_t offset, const void* blob, size_t len) override;
-    void visit_flags(flags_t flags) override;
+    DECLARE_VISITOR_INTERFACE_METHODS
 
     ExportedBuffer GetBuffer() const override;
 
@@ -192,13 +158,13 @@ struct FlatBufferVisitor : public IFlatBufferVisitor
 
     bool is_ready_;
 };
-} // End ::
 
 // Ctor : make shared
 std::shared_ptr<IFlatBufferVisitor> MakeFlatBufferVisitor()
 {
     return std::make_shared<FlatBufferVisitor>(STANDARD);
 }
+
 
 // Init : nothing
 FlatBufferVisitor::FlatBufferVisitor(VisitorMode mode)
@@ -208,6 +174,7 @@ FlatBufferVisitor::FlatBufferVisitor(VisitorMode mode)
     , is_ready_(false)
 {
 }
+
 
 // Indexify string and put in database
 static uint32_t index_string(FlatBufferVisitor& db, const const_string_ref& ref)
@@ -224,6 +191,7 @@ static uint32_t index_string(FlatBufferVisitor& db, const const_string_ref& ref)
     // Return ref to me
     return static_cast<uint32_t>(db.strings_.size() - 1);
 }
+
 
 // Retrieve string <- ref
 static uint32_t make_string(FlatBufferVisitor& db, optional<std::string>& ref)
@@ -244,6 +212,7 @@ static T make_optional(optional<T>& value)
     value = nullopt;
     return reply;
 }
+
 
 // Create Vectors of structures <- include/flatbuffers.h
 template<typename T>
@@ -603,6 +572,7 @@ void FlatBufferVisitor::visit_blob(offset_t offset, const void* blob, size_t len
 }
 
 namespace {
+    // Class: memory map with buffer value/size Getter
     struct ExportedMmap : public Mmap_ABC
     {
         ExportedMmap(const std::shared_ptr<IFlatBufferVisitor>& exporter)

@@ -13,83 +13,15 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <stdint.h>
-#include "ExporterValidatorVisitor.hpp"
 
 #include "IModelVisitor.hpp"
 #include "Yatools.hpp"
 #include "Helpers.h"
 
+#include <stdint.h>
 #include <memory>
 
-#define validator_assert(CONDITION, FMT, ...) do {\
-    if(CONDITION) break;\
-    YALOG_ERROR(nullptr, " " FMT, ## __VA_ARGS__);\
-    exit(-1);\
-} while(0)
-
-namespace
-{
-const offset_t UNKNOWN_ADDR = ~static_cast<offset_t>(0);
-
-enum VisitorState_e
-{
-    VISIT_STARTED,
-    VISIT_OBJECT_VERSION,
-    VISIT_SIGNATURES,
-    VISIT_OFFSETS,
-    VISIT_XREFS,
-    VISIT_XREF,
-    VISIT_MATCHING_SYSTEMS,
-    VISIT_MATCHING_SYSTEM,
-};
-
-const int MAX_VISIT_DEPTH = 256;
-
-class ExporterValidatorVisitor
-    : public IModelVisitor
-{
-public:
-    ExporterValidatorVisitor();
-    ~ExporterValidatorVisitor() override;
-    void visit_start() override;
-    void visit_end() override;
-    void visit_start_version(YaToolObjectType_e type, YaToolObjectId id) override;
-    void visit_deleted(YaToolObjectType_e type, YaToolObjectId id) override;
-    void visit_end_version() override;
-    void visit_parent_id(YaToolObjectId object_id) override;
-    void visit_address(offset_t address) override;
-    void visit_name(const const_string_ref& name, int flags) override;
-    void visit_size(offset_t size) override;
-    void visit_start_signatures() override;
-    void visit_signature(SignatureMethod_e method, SignatureAlgo_e algo, const const_string_ref& hex) override;
-    void visit_end_signatures() override;
-    void visit_prototype(const const_string_ref& prototype) override;
-    void visit_string_type(int str_type) override;
-    void visit_header_comment(bool repeatable, const const_string_ref& comment) override;
-    void visit_start_offsets() override;
-    void visit_end_offsets() override;
-    void visit_offset_comments(offset_t offset, CommentType_e comment_type, const const_string_ref& comment) override;
-    void visit_offset_valueview(offset_t offset, operand_t operand, const const_string_ref& view_value) override;
-    void visit_offset_registerview(offset_t offset, offset_t end_offset, const const_string_ref& register_name, const const_string_ref& register_new_name) override;
-    void visit_offset_hiddenarea(offset_t offset, offset_t area_size, const const_string_ref& hidden_area_value) override;
-    void visit_start_xrefs() override;
-    void visit_end_xrefs() override;
-    void visit_start_xref(offset_t offset, YaToolObjectId offset_value, operand_t operand) override;
-    void visit_end_xref() override;
-    void visit_xref_attribute(const const_string_ref& attribute_key, const const_string_ref& attribute_value) override;
-    void visit_segments_start() override;
-    void visit_segments_end() override;
-    void visit_attribute(const const_string_ref& attr_name, const const_string_ref& attr_value) override;
-    void visit_blob(offset_t offset, const void* blob, size_t len) override;
-    void visit_flags(flags_t flags) override;
-
-private:
-    VisitorState_e state[MAX_VISIT_DEPTH];
-    int current_state_depth;
-    offset_t last_offset_ea;
-};
-}
+#include "ExporterValidatorVisitor.hpp"
 
 std::shared_ptr<IModelVisitor> MakeExporterValidatorVisitor()
 {
