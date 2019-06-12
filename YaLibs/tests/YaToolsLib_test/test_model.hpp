@@ -63,17 +63,21 @@ void expect_eq(T& values, const T& expected)
         for(const auto& value : expected)
         {
             const auto it = values.find(value);
-            if(it != values.end())
+            if(it != values.end()) {
                 values.erase(it);
-            else
+            } else {
                 missing_entries.insert(value);
+            }
         }
-        for(const auto& value : values)
+        for(const auto& value : values) {
             invalid_entries.insert(value);
-        for(const auto& value : invalid_entries)
+        }
+        for(const auto& value : invalid_entries) {
             fprintf(stderr, "invalid %s\n", ::testing::PrintToString(value).data());
-        for(const auto& value : missing_entries)
+        }
+        for(const auto& value : missing_entries) {
             fprintf(stderr, "missing %s\n", ::testing::PrintToString(value).data());
+        }
         EXPECT_EQ(0u, invalid_entries.size());
         EXPECT_EQ(0u, missing_entries.size());
     }
@@ -96,4 +100,5 @@ std::string str(const HVersion& hver)
 {
     return get_object_type_string(hver.type()) + std::string("_") + str(hver.id());
 }
-}
+
+} // End ::

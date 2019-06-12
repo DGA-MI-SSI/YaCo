@@ -73,7 +73,7 @@
 * Fct epilogue and startup
 * Entropy
 * Fct type : local, statically linked, dynamically linked
-* Stirngs : number contains, hash of them
+* Strings : number contains, hash of them
 * Nb of references to data
 * The 10 first immediates like `mov ax, 'a'` : keep only the low bytes
 * Register flow graph, API call graph, structural flow (?) (SIGMA)
