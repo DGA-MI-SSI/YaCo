@@ -13,12 +13,12 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <YaTypes.hpp>
 #include "Ida.h"
 
 #include "IdaModel.hpp"
 #include "IModelVisitor.hpp"
 #include "Hash.hpp"
+#include "YaTypes.hpp"
 #include "YaHelpers.hpp"
 #include "Pool.hpp"
 #include "Plugins.hpp"
@@ -89,8 +89,6 @@ namespace
     DECLARE_REF(g_type, "type");
     DECLARE_REF(g_color, "color");
     DECLARE_REF(g_format, "format");
-
-#undef DECLARE_REF
 
     // Convert : s_ascii -> s_hex
     template<size_t szdst, typename T>
@@ -178,14 +176,16 @@ namespace
         return std::make_tuple(a.offset, a.opidx, a.flags, a.base) == std::make_tuple(b.offset, b.opidx, b.flags, b.base);
     }
 
-    // Declare Reference crossed object
+    // TODO remove
     struct Xref
     {
-        offset_t        offset;
         YaToolObjectId  id;
+        offset_t        offset;
         operand_t       operand;
         int             path_idx;
     };
+
+    // Declare Xrefs
     using Xrefs = std::vector<Xref>;
 
     // Operator compare with offset
@@ -233,10 +233,15 @@ namespace
     // Visistor init
     void start_object(IModelVisitor& v, YaToolObjectType_e type, YaToolObjectId id, YaToolObjectId parent, ea_t ea)
     {
+        // Start
         v.visit_start_version(type, id);
+
+        // Visit parent if can
         if (parent) {
             v.visit_parent_id(parent);
         }
+
+        // Visit current EA
         v.visit_address(offset_from_ea(ea));
     }
 
@@ -258,6 +263,7 @@ namespace
         }
     }
 
+
     // Accept Enum
     template<typename Ctx>
     void accept_enum_member(Ctx& ctx, IModelVisitor& v, const Parent& parent, const EnumMember& em)
@@ -275,6 +281,7 @@ namespace
         });
         finish_object(v);
     }
+
 
     template<typename Ctx>
     void accept_enum(Ctx& ctx, IModelVisitor& v, enum_t eid)
@@ -324,6 +331,7 @@ namespace
         }
     }
 
+
     template<typename T>
     void walk_enums(const T& operand)
     {
@@ -331,6 +339,7 @@ namespace
             operand(getn_enum(i));
         }
     }
+
 
     template<typename Ctx>
     void accept_enums(Ctx& ctx, IModelVisitor& v)
@@ -341,11 +350,13 @@ namespace
         });
     }
 
+
     struct MemberType
     {
         tinfo_t tif;
         bool    guess;
     };
+
 
     MemberType fixup_member_type(member_t* member, const MemberType& type)
     {
@@ -382,6 +393,8 @@ namespace
         return {tinfo_t(), true};
     }
 
+
+    // Check if member type is trivial
     bool is_trivial_member_type(const MemberType& mtype)
     {
         // Get tif <- mtype
@@ -403,6 +416,7 @@ namespace
         // True if is_arithmetic
         return tif.is_arithmetic();
     }
+
 
     bool is_default_member(qstring& buffer, struc_t* struc, member_t* member, const_string_ref member_name)
     {
@@ -435,6 +449,7 @@ namespace
         return is_trivial_member_type(mtype);
     }
 
+
     const_string_ref to_hex_ref(qstring& qbuf, uint64_t value)
     {
         char buf[2 + sizeof value * 2];
@@ -443,6 +458,7 @@ namespace
         qbuf.append(str.value, str.size);
         return ya::to_string_ref(qbuf);
     }
+
 
     void try_add_xref_local_type_attribute(IModelVisitor& v, const ya::Dependency& dep, const tinfo_t& tif)
     {

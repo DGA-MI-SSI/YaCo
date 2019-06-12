@@ -73,3 +73,10 @@ enum CommentType_e
     COMMENT_BOOKMARK,
     COMMENT_COUNT,
 };
+
+// Used in FlatBufferVisitor.cpp
+enum VisitorMode_e
+{
+    STANDARD,
+    SKIP_START_END,
+};

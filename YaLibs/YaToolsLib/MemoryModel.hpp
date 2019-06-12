@@ -30,3 +30,5 @@ struct IModelAndVisitor
 };
 
 std::shared_ptr<IModelAndVisitor> MakeMemoryModel();
+
+

@@ -66,7 +66,6 @@ namespace
     DECLARE_REF(g_stack_regvars, "stack_regvars");
     DECLARE_REF(g_stack_args, "stack_args");
     DECLARE_REF(g_color, "color");
-    #undef DECLARE_REF
 
     using RefInfos = std::unordered_map<YaToolObjectId, refinfo_t>;
 

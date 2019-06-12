@@ -13,6 +13,7 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#include "YaTypes.hpp"
 #include "IModelVisitor.hpp"
 #include "Signature.hpp"
 #include "FlatBufferModel.hpp"
@@ -90,23 +91,11 @@ static yadb::SignatureMethod get_signature_method(SignatureMethod_e value)
     return yadb::SignatureMethod_Unknown;
 }
 
-// TODO I think this should go to mutualize with IdaModel
-struct Xref
-{
-    YaToolObjectId  id;
-    offset_t        offset;
-    operand_t       operand;
-};
 
-enum VisitorMode
-{
-    STANDARD,
-    SKIP_START_END,
-};
 
 struct FlatBufferVisitor : public IFlatBufferVisitor
 {
-    FlatBufferVisitor(VisitorMode mode);
+    FlatBufferVisitor(VisitorMode_e mode);
 
     // IModelVisitor interface so I have to override
     DECLARE_VISITOR_INTERFACE_METHODS
@@ -167,7 +156,7 @@ std::shared_ptr<IFlatBufferVisitor> MakeFlatBufferVisitor()
 
 
 // Init : nothing
-FlatBufferVisitor::FlatBufferVisitor(VisitorMode mode)
+FlatBufferVisitor::FlatBufferVisitor(VisitorMode_e mode)
     : skip_start_end_(mode == SKIP_START_END)
     , object_type_(OBJECT_TYPE_UNKNOWN)
     , object_id_(0)
@@ -496,7 +485,7 @@ void FlatBufferVisitor::visit_start_xrefs()
 // Visit : Xref start : Init xref_
 void FlatBufferVisitor::visit_start_xref(offset_t offset, YaToolObjectId id, operand_t operand)
 {
-    xref_ = Xref{id, offset, operand};
+    xref_ = Xref{id, offset, operand, 0};
 }
 
 // Visit : Attribute : Append

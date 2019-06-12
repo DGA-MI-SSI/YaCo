@@ -48,6 +48,14 @@ const char*         get_object_type_string(YaToolObjectType_e object_type);
 extern const YaToolObjectType_e  ordered_types[OBJECT_TYPE_COUNT];
 extern const std::vector<size_t> indexed_types;
 
+typedef struct _Xref
+{
+    YaToolObjectId  id;
+    offset_t        offset;
+    operand_t       operand;
+    int             path_idx;
+} Xref, *PXref;
+
 namespace std
 {
     template<>
