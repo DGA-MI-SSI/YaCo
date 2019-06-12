@@ -125,7 +125,16 @@ public:
     MockDatabase(){}
     virtual ~MockDatabase(){}
 
-    DECLARE_OBJECT_MODEL_INTERFACE_METHODS
+    // Define empty acceptors/walkers
+    void        accept(IModelVisitor&) override {};
+    void        walk(const OnVersionFn&) const override {};
+    size_t      size() const override { return 0; };
+    HVersion    get(YaToolObjectId) const override { return HVersion{ nullptr, 0 }; };
+    bool        has(YaToolObjectId) const override { return false; };
+    size_t      size_matching(const HSignature&) const override { return 0; };
+    void        walk_matching(const HSignature&, const OnVersionFn&) const override {};
+    void        walk_uniques(const OnSignatureFn&) const override {};
+    void        walk_matching(const HVersion&, size_t, const OnVersionFn&) const override {};
 };
 }
 

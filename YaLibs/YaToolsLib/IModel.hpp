@@ -40,6 +40,7 @@ struct IVersions
     typedef std::function<ContinueWalking_e(offset_t, operand_t, YaToolObjectId, const XrefAttributes*)> OnXrefFn;
     typedef std::function<ContinueWalking_e(const const_string_ref&, const const_string_ref&)> OnAttributeFn;
 
+    // Declare main worker
     virtual void                accept(VersionIndex idx, IModelVisitor& visitor) const = 0;
 
     // Declare object fields : to be filled for basicbloc, functions, ea ...
@@ -133,12 +134,12 @@ struct IModel
 
 
 #define DECLARE_OBJECT_MODEL_INTERFACE_METHODS \
-    void        accept          (IModelVisitor&) override {}; \
-    void        walk            (const OnVersionFn&) const override {}; \
-    size_t      size            () const override { return 0; }; \
-    HVersion    get             (YaToolObjectId) const override { return HVersion{nullptr, 0}; }; \
-    bool        has             (YaToolObjectId) const override { return false; }; \
-    size_t      size_matching   (const HSignature&) const override { return 0; }; \
-    void        walk_matching   (const HSignature&, const OnVersionFn&) const override {}; \
-    void        walk_uniques    (const OnSignatureFn&) const override {}; \
-    void        walk_matching   (const HVersion&, size_t, const OnVersionFn&) const override {};
+    void                accept          (IModelVisitor& visitor) override; \
+    void                walk            (const OnVersionFn& fnWalk) const override; \
+    size_t              size            () const override; \
+    size_t              size_matching   (const HSignature& hash) const override; \
+    void                walk_matching   (const HSignature& hash, const OnVersionFn& fnWalk) const override; \
+    HVersion            get             (YaToolObjectId id) const override; \
+    bool                has             (YaToolObjectId id) const override; \
+    void                walk_uniques    (const OnSignatureFn& fnWalk) const override; \
+    void                walk_matching   (const HVersion& object, size_t min_size, const OnVersionFn& fnWalk) const override;

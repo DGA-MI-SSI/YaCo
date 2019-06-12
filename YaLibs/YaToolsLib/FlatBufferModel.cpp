@@ -15,6 +15,7 @@
 
 #include "FlatBufferModel.hpp"
 
+#include "IModel.hpp"
 #include "HVersion.hpp"
 #include "IModelVisitor.hpp"
 #include "FileUtils.hpp"
@@ -131,15 +132,7 @@ struct FlatBufferModel : public IModel
     void setup();
 
     // IModel methods
-    void                accept          (IModelVisitor& visitor) override;
-    void                walk            (const OnVersionFn& fnWalk) const override;
-    size_t              size            () const override;
-    size_t              size_matching   (const HSignature& hash) const override;
-    void                walk_matching   (const HSignature& hash, const OnVersionFn& fnWalk) const override;
-    HVersion            get             (YaToolObjectId id) const override;
-    bool                has             (YaToolObjectId id) const override;
-    void                walk_uniques    (const OnSignatureFn& fnWalk) const override;
-    void                walk_matching   (const HVersion& object, size_t min_size, const OnVersionFn& fnWalk) const override;
+    DECLARE_OBJECT_MODEL_INTERFACE_METHODS
 
     std::shared_ptr<Mmap_ABC>   buffer_;
     const yadb::Root*           root_;
