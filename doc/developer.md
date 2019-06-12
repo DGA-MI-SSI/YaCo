@@ -7,7 +7,7 @@
 
 ### Definitions
 
-* __Flatbuffer__ : flat dumping/buffering of dynamique (i.e. in RAM) structures
+* __Flatbuffer__ : Flat dumping/buffering of dynamique (i.e. in RAM) structures
 * __Visitor__: Some recursive structure crawler/parser. It calls a callback (called operand) for each (xref/function/bb/ea) found on objectId
 * __Acceptor__: Visit with a `f_put_in_database` callback
 * __ObjectId__ : Unique hash (integer) representing ida object (basic bloc, effective address) for easy indexing and retrieval
@@ -15,7 +15,9 @@
 
 ### Architecture
 
-[See diagram here](./img/architecture_yatool.svg)
+[File diagram here](./img/architecture_yatool.svg)
+
+[Dynamic diagram here](./img/dynamic_yatool.jpg)
 
 ### Filesystem
 
