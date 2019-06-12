@@ -257,6 +257,8 @@ yadiff::Vector Concatenated2Vector(const Concatenated_t& concatenated) {
 std::vector<uint8_t> GetBlob(size_t data_begin, size_t data_len, yadiff::BinaryInfo_t& binary_info, const IModel& db) {
     std::vector<uint8_t> res;
 
+    UNUSED(binary_info);
+
     // Foreach Xref
     db.walk([&](const HVersion& segmentVersion) {
         // Check if it is the good segment
@@ -290,7 +292,7 @@ std::vector<uint8_t> GetBlob(size_t data_begin, size_t data_len, yadiff::BinaryI
 
                 // Calculate offset of string to retrieve
                 size_t o_start = data_begin - blob_addr;
-                if (o_start < 0) { o_start = 0; }
+                if (data_begin < blob_addr) { o_start = 0; }
                 size_t o_stop = data_begin + data_len - blob_addr;
                 if (o_stop > len) { o_stop = len; }
 

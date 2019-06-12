@@ -77,7 +77,7 @@ struct CharacterHistogramData_t
     int space;              // 43 ' '
     int dot;                // 44 .
     int coma;               // 45 ,
-    int backslash;          // 46 \\
+    int backslash;          // 46 backslash
 };
 #define CharacterHistogramData_FIELD_COUNT 46
 
