@@ -29,6 +29,7 @@ import unittest
 
 
 def get_ida_dir():
+    """ Get environment variable "IDA_DIR" """
     try:
         return os.path.abspath(os.environ['IDA_DIR'])
     except KeyError:

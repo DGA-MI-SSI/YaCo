@@ -25,7 +25,7 @@
 ├───deps                                | Dependencies library statically included
 ├───doc                                 | Documentation (here I am)
 ├───out                                 | Configuration (Visual Sutio) output folder
-├───tests                               | Binaries to test (bin)
+├───tests                               | Test script container
 ├───YaCo                                | YaCo python files
 ├───YaDiff                              | YaDiff cpp files
 │   ├───tests                           |     tests
@@ -52,7 +52,7 @@
 │   │   ├───YaCo.cpp                    |         Implement main synchronization routine
 │   │   └───YaHelpers.cpp               |         Helpers for YaTools : ea -> strings for example
 │   └───YaToolsPy                       |     YaCo code used to be here, now swig (python <-> cpp)
-└───YaToolsUtils                        | Utility code (entry points)
+└───YaToolsUtils                        | Utility code (entry points) -> executable
     ├───YaToolsBasicBlockStripper       |     Strip Basic Bloc
     ├───YaToolsBinToVect                |     Bin -> Txt (containting function signatures as vectors)
     ├───YaToolsCacheMerger              |     1yadb + 2yadb -> yadb_merged
