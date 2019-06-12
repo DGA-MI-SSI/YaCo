@@ -103,33 +103,9 @@ struct ViewVersions : public IVersions
     {
     }
 
-    // IVersions methods
-    void                accept(VersionIndex version_id, IModelVisitor& visitor) const override;
+    // IVersion methods
+    DECLARE_OBJECT_VERSION_INTERFACE_METHODS
 
-    YaToolObjectId      id              (VersionIndex idx) const override;
-    YaToolObjectId      parent_id       (VersionIndex idx) const override;
-    offset_t            size            (VersionIndex idx) const override;
-    YaToolObjectType_e  type            (VersionIndex idx) const override;
-    offset_t            address         (VersionIndex idx) const override;
-    const_string_ref    username        (VersionIndex idx) const override;
-    int                 username_flags  (VersionIndex idx) const override;
-    const_string_ref    prototype       (VersionIndex idx) const override;
-    flags_t             flags           (VersionIndex idx) const override;
-    int                 string_type     (VersionIndex idx) const override;
-    const_string_ref    header_comment  (VersionIndex idx, bool repeatable) const override;
-    bool                has_signature   (VersionIndex idx) const override;
-
-    void                walk_signatures         (VersionIndex idx, const OnSignatureFn& fnWalk) const override;
-    void                walk_xrefs_from         (VersionIndex idx, const OnXrefFromFn& fnWalk) const override;
-    void                walk_xrefs_to           (VersionIndex idx, const OnVersionFn& fnWalk) const override;
-    void                walk_blobs              (VersionIndex idx, const OnBlobFn& fnWalk) const override;
-    void                walk_comments           (VersionIndex idx, const OnCommentFn& fnWalk) const override;
-    void                walk_value_views        (VersionIndex idx, const OnValueViewFn& fnWalk) const override;
-    void                walk_register_views     (VersionIndex idx, const OnRegisterViewFn& fnWalk) const override;
-    void                walk_hidden_areas       (VersionIndex idx, const OnHiddenAreaFn& fnWalk) const override;
-    void                walk_xrefs              (VersionIndex idx, const OnXrefFn& fnWalk) const override;
-    void                walk_xref_attributes    (VersionIndex idx, const XrefAttributes* hattr, const OnAttributeFn& fnWalk) const override;
-    void                walk_attributes         (VersionIndex idx, const OnAttributeFn& fnWalk) const override;
 
     FlatBufferModel&    db_;
 };
