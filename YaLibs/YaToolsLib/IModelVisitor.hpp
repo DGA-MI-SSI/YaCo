@@ -91,3 +91,4 @@ struct IModelVisitor
     void visit_attribute(const const_string_ref& attr_name, const const_string_ref& attr_value) override; \
     void visit_blob(offset_t offset, const void* blob, size_t len) override; \
     void visit_flags(flags_t flags) override;
+
