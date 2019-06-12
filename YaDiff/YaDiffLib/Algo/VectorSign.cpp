@@ -617,31 +617,34 @@ void VectorSignAlgo::SetFunctionFields(const HVersion& fctVersion, FunctionSigna
                         function_data.char_hist.digit[9]++;
                         break;
                     case '/':
-                        function_data.char_hist.slash;
+                        function_data.char_hist.slash++;
                         break;
                     case '%':
-                        function_data.char_hist.percent;
+                        function_data.char_hist.percent++;
                         break;
                     case '+':
-                        function_data.char_hist.plus;
+                        function_data.char_hist.plus++;
                         break;
                     case '-':
-                        function_data.char_hist.minus;
+                        function_data.char_hist.minus++;
                         break;
                     case '=':
-                        function_data.char_hist.equal;
+                        function_data.char_hist.equal++;
                         break;
                     case 0:
-                        function_data.char_hist.null;
+                        function_data.char_hist.null++;
                         break;
                     case ' ':
-                        function_data.char_hist.space;
+                        function_data.char_hist.space++;
                         break;
                     case '.':
-                        function_data.char_hist.dot;
+                        function_data.char_hist.dot++;
                         break;
                     case ',':
-                        function_data.char_hist.coma;
+                        function_data.char_hist.coma++;
+                        break;
+                    case '\\':
+                        function_data.char_hist.backslash++;
                         break;
                     }
                 }
