@@ -794,8 +794,9 @@ void VectorSignAlgo::CalculateAllFunctionDistanceToRoot(FunctionSignatureMap_t& 
     for (auto& it : functionSignatureMap)
     {
         auto& crFunctionSign = it.second;
-        if (crFunctionSign.function_data.cg.dist_to_root == 0xFFFF)
+        if (crFunctionSign.function_data.cg.dist_to_root == 0xFFFF) {
             crFunctionSign.function_data.cg.dist_to_root = DEFAULT_DOUBLE;
+        }
     }
 }
 

@@ -29,12 +29,7 @@
 ├───out                                 | Configuration (Visual Sutio) output folder
 ├───tests                               | Test script container
 ├───YaCo                                | YaCo python files
-├───YaDiff                              | YaDiff cpp files
-│   ├───tests                           |     tests
-│   ├───merge_idb.py                    |     exe: idb1_new <- idb2_old : symbol propagation
-│   ├───MergeYaDb.cpp                   |     exe: yadb1_new <- yadb2_old
-│   └───YaDiffLib                       |     code (algo orchestator)
-│       └───Algo                        |     algo container
+├───YaDiff                              | YaDiff cpp files : see in YaDiff section
 ├───YaLibs                              | Library used
 │   ├───tests                           |     Test 
 │   ├───YaToolsIDALib                   |     Code to communicate with IDA
@@ -76,6 +71,17 @@ Yet Another DIFFing software.
 
 Takes as input 2 idbs: idb_new and idb_old.  
 Fills the idb_new with symbols from idb_old.
+
+
+```
+YaDiff                              | YaDiff cpp files
+├───tests                           |     tests
+├───merge_idb.py                    |     exe: idb1_new <- idb2_old : symbol propagation
+├───MergeYaDb.cpp                   |     exe: yadb1_new <- yadb2_old
+└───YaDiffLib                       |     code (algo orchestator)
+    └───Algo                        |     algo container
+		├───ExactMatch              | Signature must match between obj1 and obj2     
+```
 
 ### Architecture
 
