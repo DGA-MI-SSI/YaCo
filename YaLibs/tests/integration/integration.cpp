@@ -185,7 +185,7 @@ namespace
 
     const char qt54svg[]        = "../../testdata/qt54_svg/database/database.yadb";
     const char qt54svg_no_pdb[] = "../../testdata/qt54_svg_no_pdb/database/database.yadb";
-}
+} // End ::
 
 int main(int argc, char* argv[])
 {
