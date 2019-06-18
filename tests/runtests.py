@@ -126,6 +126,7 @@ class Repo():
                 # sync first
                 idc.save_database("")
                 """)
+        # Fill scirpt and call check(name)
         todo = []
         for (script, check) in args:
             if check == None:

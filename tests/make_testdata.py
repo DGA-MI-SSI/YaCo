@@ -15,6 +15,10 @@
 
 #!/bin/python
 
+""" Helper to make a directory of testdata,
+    called as subprocess by different tests
+"""
+
 import argparse
 import logging
 import os
@@ -62,9 +66,15 @@ def try_rmtree(path):
 def main():
     logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)s %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
     ctx = Ctx()
+
+    # New directory
     try_rmtree(ctx.outdir)
     indir, dll = os.path.split(ctx.srcdir)
-    shutil.copytree(indir, ctx.outdir)
+    try:
+        shutil.copytree(indir, ctx.outdir)
+    except FileExistsError:
+        print("Warning make_testdata: file", ctx.outdir, "exists", "Cannot copy from", ctx.srcdir)
+
     if ctx.no_pdb:
         pdb = re.sub("\.dll", ".pdb", dll)
         os.remove(os.path.join(ctx.outdir, pdb))
