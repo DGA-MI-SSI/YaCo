@@ -62,7 +62,7 @@ def check_yadiff_database(args):
             continue
         got.append(line)
     got.sort()
-    got = "\n".join(got) + "\n\nsymbols: %d\n" % len(got)
+    got = "\n".join(got.) + "\n\nsymbols: %d\n" % len(got)
     check_golden("test_yadiff." + sys.platform.lower() + ".golden", got)
 
 def main():

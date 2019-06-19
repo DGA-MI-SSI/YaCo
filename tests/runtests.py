@@ -144,6 +144,12 @@ class Repo():
         target = self.target + ("_local.i64" if use_yaco else ".i64")
         self.run_script(scripts, target)
         for (check, name) in todo:
+            # TODO remove
+            from inspect import getsource
+            s_code = getsource(check)
+            dbgprint("CODE :\n", s_code)
+            dbgprint("Name :\n", name)
+            # Not remove
             check(name)
 
     def run(self, *args):
@@ -260,14 +266,22 @@ class Fixture(unittest.TestCase):
         return self.script("idc.save_database('')")
 
     def check_diff(self, want_filename, want, filter=None):
+        """ Get Closure checker """
         def check(name):
+            # Get in <- Closure and arg
             data = None
             with open(name, "rb") as fh:
                 data = fh.read()
                 if filter:
                     data = filter(data)
-            if data != want:
-                self.fail("\n" + "".join(difflib.unified_diff(want.splitlines(1), data.splitlines(1), want_filename, name)))
+
+            # Stringify
+            s_data = data.decode()
+            s_want = want.decode()
+
+            # Fail if differs
+            if s_data != s_want:
+                self.fail("\n" + "".join(difflib.unified_diff(s_want.splitlines(1), s_data.splitlines(1), want_filename, name)))
         return check
 
     def save_types(self):
