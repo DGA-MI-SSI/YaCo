@@ -27,26 +27,27 @@ import sys
 import tempfile
 import unittest
 import runtests
-from collections.abc import Iterable
+# from collections.abc import Iterable
 from textwrap import dedent
 
 
 # Globals
-## YaTools path string
+#     YaTools path string
 current_dir = os.path.abspath(os.path.join(__file__, ".."))
-## Mask for ea
+#     Mask for ea
 ea_defmask = "(~0 & ~(1 << ya.OBJECT_TYPE_STRUCT) & ~(1 << ya.OBJECT_TYPE_ENUM)) & ~(1 << ya.OBJECT_TYPE_SEGMENT_CHUNK)"
-## Command at IDA start
+#     Command at IDA start
 with open(os.path.join(current_dir, "inc_runtests_ida_start.py"), 'r') as f_in:
     ida_start = f_in.read()
-## Command at IDA end
+#     Command at IDA end
 ida_end = "\nidc.save_database('') ; idc.qexit(0)"
 
 
 def dbgprint(*args):
     """ Help : print if debug """
     b_debug = True
-    if b_debug : print(*args)
+    if b_debug:
+        print(args)
 
 
 def get_ida_dir():
@@ -135,7 +136,7 @@ class Repo():
         # Fill scirpt and call check(name)
         todo = []
         for (script, check) in args:
-            if check == None:
+            if check is None:
                 scripts += script
                 continue
             fd, fname = tempfile.mkstemp(dir=self.path, prefix="data_%02d_" % self.ctx.idx(), suffix=".xml")
@@ -173,10 +174,13 @@ class Repo():
     def check_git(self, added=None, modified=None, deleted=None):
         """ Check YaGit file versus argument dictionnary """
         # Fill default if needed
-        if not added: added = []
-        if not modified: modified = []
-        if not deleted: deleted = []
-        want_state = {"added":added, "modified":modified, "deleted":deleted}
+        if not added:
+            added = []
+        if not modified:
+            modified = []
+        if not deleted:
+            deleted = []
+        want_state = {"added": added, "modified": modified, "deleted": deleted}
         got_added, got_modified, got_deleted = [], [], []
 
         # Git diff
@@ -213,7 +217,7 @@ class Repo():
 
         # Parse git diff
         for line in files:
-            # Pass if empty 
+            # Pass if empty
             if not len(line): continue
 
             # Add simple
@@ -229,7 +233,7 @@ class Repo():
             x.sort()
 
         # Compare want_state and got_state
-        got_state = {"added":got_added, "modified":got_modified, "deleted":got_deleted}
+        got_state = {"added": got_added, "modified": got_modified, "deleted": got_deleted}
         self.ctx.assertEqual(want_state, got_state)
 
 
@@ -275,7 +279,7 @@ class Fixture(unittest.TestCase):
         return self.script("idc.save_database('')")
 
     def check_diff(self, want_filename, want, filter=None):
-        """ Get Closure checker """
+        """ Return Closure checker """
         def check(name):
             # Get in <- Closure and arg
             data = None
@@ -290,40 +294,55 @@ class Fixture(unittest.TestCase):
 
             # Fail if differs
             if s_data != s_want:
-                self.fail("\n" + "".join(difflib.unified_diff(s_want.splitlines(1), s_data.splitlines(1), want_filename, name)))
+                self.fail("\n" + "".join(
+                    difflib.unified_diff(s_want.splitlines(1),
+                                         s_data.splitlines(1), want_filename, name)))
         return check
 
+
     def save_types(self):
+        """ Export types : enums and Structs """
         script = "ya.export_xml_types()"
+
         def callback(filename):
             with open(filename, "rb") as fh:
                 self.types = [filename, fh.read()]
         return script, callback
+
 
     def check_types(self):
         script = "ya.export_xml_types()"
         filename, want = self.types
         return script, self.check_diff(filename, want)
 
+
     def save_ea(self, ea):
         script = "ya.export_xml(0x%x, %s)" % (ea, ea_defmask)
+
         def callback(filename):
             with open(filename, "rb") as fh:
                 self.eas[ea] = [filename, fh.read()]
         return script, callback
 
+
     def save_last_ea(self):
+        """ Save last value of ea (cursor) """
+        print("tin_save_last_ea:", "0x%x" % self.last_ea)
         self.assertIsNotNone(self.last_ea)
         return self.save_ea(self.last_ea)
 
+
     def check_last_ea(self):
+        """ Check xml ea is self.last_ea """
         self.assertIsNotNone(self.last_ea)
         return self.check_ea(self.last_ea)
+
 
     def check_ea(self, ea):
         script = "ya.export_xml(0x%x, %s)" % (ea, ea_defmask)
         filename, want = self.eas[ea]
         return script, self.check_diff(filename, want)
+
 
     def save_item_range(self, start, end):
         script = "export_range(0x%x, 0x%x)" % (start, end)
@@ -423,7 +442,7 @@ def get_tests(args):
     for s in unittest.defaultTestLoader.discover(os.path.join(current_dir, "tests")):
         for f in s:
             # Check if ready to fight
-            if not isinstance(f, Iterable): break 
+            # if not isinstance(f, Iterable): break
 
             # Append test to list
             for test in f:

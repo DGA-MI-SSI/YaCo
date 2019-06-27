@@ -95,9 +95,11 @@ CommentType_e get_comment_type(const char* comment_type);
 
 const char* get_comment_type_string(CommentType_e comment_type);
 
-/*
- * light string reference
- */
+
+
+
+// 3. String Reference (ligth)
+
 struct const_string_ref
 {
     const char* value;

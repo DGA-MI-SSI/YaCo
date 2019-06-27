@@ -1434,18 +1434,31 @@ namespace
     template<typename Ctx>
     void accept_xrefs(Ctx& ctx, IModelVisitor& v)
     {
+        // Shit stack
         char hexabuf[2 + sizeof(uint32_t) * 2];
         ya::dedup(ctx.xrefs_);
+
+        // Open <xrefs>
         v.visit_start_xrefs();
-        for(const auto& it : ctx.xrefs_)
-        {
-            v.visit_start_xref(it.offset, it.id, it.operand);
-            if(it.path_idx) {
-                v.visit_xref_attribute(g_path_idx, str_hexpath(hexabuf, it.path_idx));
+
+        // For all xrefs visited
+        for(Xref& xref : ctx.xrefs_) {
+            // Open <xref>
+            v.visit_start_xref(xref.offset, xref.id, xref.operand);
+
+            // Visit xref attributes
+            if(xref.path_idx) {
+                v.visit_xref_attribute(g_path_idx, str_hexpath(hexabuf, xref.path_idx));
             }
+
+            // Close <xref>
             v.visit_end_xref();
         }
+
+        // Close </xrefs>
         v.visit_end_xrefs();
+
+        // Delete cache
         ctx.xrefs_.clear();
     }
 
@@ -1476,7 +1489,10 @@ namespace
         const auto id = hash::hash_ea(ea);
         if (ctx.skip_id(id, OBJECT_TYPE_CODE)) { return; }
 
+        // Open <code>
         start_object(v, OBJECT_TYPE_CODE, id, parent.id, ea);
+
+        // Get size
         v.visit_size(item.size());
         const auto flags = get_flags(ea);
         accept_name(ctx, v, ea, flags, BasicBlockNamePolicy);
@@ -1485,7 +1501,10 @@ namespace
         accept_offsets(ctx, v, &deps, ea, item.end_ea);
         accept_xrefs(ctx, v);
 
+        // Close <code>
         finish_object(v);
+
+        // Accept friends
         accept_reference_infos(ctx, v);
         accept_dependencies(ctx, v, deps);
     }
@@ -1495,17 +1514,25 @@ namespace
     template<typename Ctx>
     void accept_block(Ctx& ctx, IModelVisitor& v, const Parent& parent, range_t block)
     {
+        // Get start_ea & id
         const auto ea = block.start_ea;
-        const auto id = hash::hash_ea(ea);
+        YaToolObjectId id = hash::hash_ea(ea);
+
+        // Return if object is not a basic block
         if(ctx.skip_id(id, OBJECT_TYPE_BASIC_BLOCK)) {
             return;
         }
 
+        // Open bb tag (with its id)
         start_object(v, OBJECT_TYPE_BASIC_BLOCK, id, parent.id, ea);
+
+        // Get size
         v.visit_size(block.size());
 
+        // Get name
         accept_name(ctx, v, ea, get_flags(ea), BasicBlockNamePolicy);
 
+        // Get BB CRC32
         // FIXME maybe reuse crc computed from accept_function
         v.visit_start_signatures();
         Crcs crcs = {};
@@ -1513,14 +1540,21 @@ namespace
         accept_signature(ctx, v, crcs);
         v.visit_end_signatures();
 
+        // Accept all offsets (inst)
         ya::Deps deps;
         accept_offsets(ctx, v, &deps, block.start_ea, block.end_ea);
+
+        // Accept Xrefs
         accept_xrefs(ctx, v);
 
         if(ctx.plugin_) {
             ctx.plugin_->accept_block(v, ea);
         }
+
+        // Close tag
         finish_object(v);
+
+        // Accept 
         accept_reference_infos(ctx, v);
         accept_dependencies(ctx, v, deps);
     }
@@ -1539,7 +1573,9 @@ namespace
             get_crcs(ctx, "accept_functions", &crcs, ea, block);
         }
 
+        // Open <function>
         start_object(v, OBJECT_TYPE_FUNCTION, id, parent.id, ea);
+
         // as we may have data inside functions, function size
         // is not only the sum of basic block sizes
         v.visit_size(func->size());
@@ -1553,6 +1589,7 @@ namespace
         }
         v.visit_flags(func->flags);
 
+        // Get signatures
         v.visit_start_signatures();
         accept_signature(ctx, v, crcs);
         v.visit_end_signatures();
@@ -1571,8 +1608,11 @@ namespace
         if(ctx.plugin_) {
             ctx.plugin_->accept_function(v, ea);
         }
+
+        // Close </function>
         finish_object(v);
 
+        // Visit friends
         accept_dependencies(ctx, v, deps);
         if(Ctx::is_incremental) { return; }
 

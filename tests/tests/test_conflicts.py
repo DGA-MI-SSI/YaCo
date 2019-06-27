@@ -79,7 +79,7 @@ class Fixture(runtests.Fixture):
         )
         b.check_git(modified=["basic_block"])
         want = self.eas[self.last_ea]
-        print("tin_want_TODO :", want, "\nlast ea:", self.last_ea)
+        print("tin_want_TODO :", want, "\nlast ea: %s", self.last_ea)
 
         # Apply second struc in second base
         a.run_no_sync(

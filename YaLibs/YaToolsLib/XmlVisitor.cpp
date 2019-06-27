@@ -559,19 +559,29 @@ void XmlVisitor_common::visit_attribute(const const_string_ref& attr_name, const
 void XmlVisitor_common::visit_start_xref(offset_t offset, YaToolObjectId offset_value, operand_t operand)
 {
     char offbuf[2 + sizeof offset * 2 + 1];
+    // Start xref elt
     start_element(*writer_, "xref");
-    add_attribute(*writer_, "offset", to_hex<NullTerminate | HexaPrefix>(offbuf, offset).value);
-    if(operand)
-        add_attribute(*writer_, "operand", to_hex<NullTerminate | HexaPrefix>(offbuf, static_cast<offset_t>(operand)).value);
 
-    // keep this value until we can write it (all attributes must be set before)
+    // Add offset attribute
+    add_attribute(*writer_, "offset", to_hex<NullTerminate | HexaPrefix>(offbuf, offset).value);
+    
+    // Add operand attribute not curently exported cause Tests fails
+    if (operand) {
+        add_attribute(*writer_, "operand",
+            to_hex<NullTerminate | HexaPrefix>(offbuf, static_cast<offset_t>(operand)).value);
+    }
+
+    // NBte: Keep this value until we can write it (all attributes must be set before)
     char buf[sizeof offset_value * 2];
     tmp_value_ = make_string(to_hex(buf, offset_value));
 }
 
 void XmlVisitor_common::visit_end_xref()
 {
+    // Dump
     write_string(*writer_, tmp_value_.data());
+
+    // Close
     end_element(*writer_, "xref");
 }
 

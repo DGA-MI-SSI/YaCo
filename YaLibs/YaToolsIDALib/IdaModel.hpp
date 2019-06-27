@@ -27,7 +27,7 @@ struct IModelIncremental
 {
     virtual ~IModelIncremental() {}
 
-    // accept methods
+    // Accept methods
     virtual void accept_enum            (IModelVisitor& v, ea_t enum_id) = 0;
     virtual void accept_struct          (IModelVisitor& v, ea_t func_ea, ea_t struct_id) = 0;
     virtual void accept_segment         (IModelVisitor& v, ea_t ea) = 0;
@@ -35,7 +35,7 @@ struct IModelIncremental
     virtual void accept_ea              (IModelVisitor& v, ea_t ea) = 0;
     virtual void accept_local_type      (IModelVisitor& v, uint32_t ord) = 0;
 
-    // delete methods
+    // Delete methods
     virtual void delete_version         (IModelVisitor& v, YaToolObjectType_e type, YaToolObjectId id) = 0;
 };
 

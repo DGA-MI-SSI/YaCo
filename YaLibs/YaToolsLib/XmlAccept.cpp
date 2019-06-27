@@ -440,8 +440,10 @@ namespace
 
     void accept_object(YaToolObjectType_e type, xmlNodePtr node, IModelVisitor& visitor)
     {
-        if(type == OBJECT_TYPE_UNKNOWN)
+        // Check if known type
+        if (type == OBJECT_TYPE_UNKNOWN) {
             return;
+        }
 
         if(xmlStrcmp(node->name, BAD_CAST get_object_type_string(type)))
             return;
@@ -471,30 +473,37 @@ namespace
 
     void accept_node(xmlNodePtr node, IModelVisitor& visitor)
     {
-        for(const auto type : ordered_types)
+        for (const auto type : ordered_types) {
             accept_object(type, node, visitor);
+        }
     }
 
     void accept_reader(xmlTextReaderPtr reader, IModelVisitor& visitor)
     {
+        // Check in != NULL
         if(!reader)
         {
             LOG(ERROR, "invalid xml reader\n");
             return;
         }
-        for(int i = 0; i < 2; ++i)
-            if(xmlTextReaderRead(reader) != 1)
+
+        // Check all file readable
+        for (int i = 0; i < 2; ++i) {
+            if (xmlTextReaderRead(reader) != 1)
             {
                 LOG(ERROR, "unable to read xml node\n");
                 return;
             }
+        }
         do
         {
             auto current_obj = xmlTextReaderExpand(reader);
-            if(xmlNodeIsText(current_obj))
+            if (xmlNodeIsText(current_obj)) {
                 continue;
-            if(current_obj == nullptr)
+            }
+            if (current_obj == nullptr) {
                 return;
+            }
             accept_node(current_obj, visitor);
         } while(xmlTextReaderNext(reader) == 1);
     }
@@ -509,8 +518,9 @@ namespace
 void XmlModelFiles::accept(IModelVisitor& visitor)
 {
     visitor.visit_start();
-    for(const auto& filename: files_)
+    for (const auto& filename : files_) {
         accept_file(filename, visitor);
+    }
     visitor.visit_end();
 }
 
