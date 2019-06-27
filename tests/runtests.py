@@ -348,18 +348,21 @@ class Fixture(unittest.TestCase):
         sysexec(repo, ["git", "remote", "add", "origin", master])
         sysexec(repo, ["git", "fetch", "origin"])
 
-    # Set two linked repos
     def setup_repos_with(self, indir, target):
-        try:
-            os.makedirs(self.out_dir)
-        except:
-            pass
+        """ Set two linked repos """
+        # Create output directory if can
+        try: os.makedirs(self.out_dir)
+        except: pass
+
+        # Create temporary directories
         work_dir = tempfile.mkdtemp(prefix='repo_', dir=self.out_dir)
         self.dirs.append(work_dir)
         indir = os.path.join(self.tests_dir, "..", "testdata", indir)
         a = os.path.abspath(os.path.join(work_dir, "a"))
         b = os.path.abspath(os.path.join(work_dir, "b"))
         c = os.path.abspath(os.path.join(work_dir, "c"))
+
+        # Git init @a
         os.makedirs(a)
         shutil.copy(os.path.join(indir, target + ".i64"), a)
         sysexec(a, ["git", "init"])
@@ -368,14 +371,24 @@ class Fixture(unittest.TestCase):
         sysexec(a, ["git", "add", "-A"])
         sysexec(a, ["git", "commit", "-m", "init"])
         sysexec(a, ["git", "clone", "--bare", ".", c])
+
         self.set_master(a, c)
         ra, rb = Repo(self, a, target), Repo(self, b, target)
+
+        # Start YaCo @a
+        print("tin_target: ", target)
         ra.run_script(
                 "import yaco_plugin; yaco_plugin.start()",
                 target + ".i64")
+
+        # Copy @a -> @b
         shutil.copytree(a, b)
+
+        # Config @b
         sysexec(b, ["git", "config", "user.name", "User B"])
         sysexec(b, ["git", "config", "user.email", "user.b@mail.com"])
+
+        # Return ra, rb
         return ra, rb
 
     def setup_repos(self):

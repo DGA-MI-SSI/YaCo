@@ -83,7 +83,7 @@ class YaCoPlugin(idaapi.plugin_t):
                 WARNING : but your database doesn't match a YaCo project.
                 WARNING : YaCo is disabled !
                 *******************************************************
-                """)
+                """))
             return idaapi.PLUGIN_OK
 
         return idaapi.PLUGIN_KEEP
