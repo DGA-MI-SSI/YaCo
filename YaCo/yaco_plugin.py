@@ -19,10 +19,15 @@ import inspect
 import os
 import sys
 import traceback
+from textwrap import dedent
 
+
+# Define global
 yaco = None
 
+
 def start():
+    """ Fill global """
     global yaco
     if idc.__EA64__:
         import YaToolsPy64 as ya
@@ -33,11 +38,13 @@ def start():
 
 
 def close():
+    """ Delete global """
     global yaco
     yaco = None
 
 
 def is_enabled():
+    """ Get global status """
     opts = idaapi.get_plugin_options("yaco")
     return not opts or "disable_plugin" not in opts.split(':')
 
@@ -70,13 +77,13 @@ class YaCoPlugin(idaapi.plugin_t):
             return idaapi.PLUGIN_KEEP
 
         if "_local." not in input_filename and os.path.exists(".git"):
-            print("""
-*******************************************************
-WARNING : You have opened a database in a git project,
-WARNING : but your database doesn't match a YaCo project.
-WARNING : YaCo is disabled !
-*******************************************************
-""")
+            print(dedent("""
+                *******************************************************
+                WARNING : You have opened a database in a git project,
+                WARNING : but your database doesn't match a YaCo project.
+                WARNING : YaCo is disabled !
+                *******************************************************
+                """)
             return idaapi.PLUGIN_OK
 
         return idaapi.PLUGIN_KEEP

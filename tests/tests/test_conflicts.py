@@ -29,7 +29,7 @@ class Fixture(runtests.Fixture):
     def test_conflict_applied_struc(self):
         a, b = self.setup_repos()
 
-        # Create two structs with similar layout
+        # Create two structs with similar layout & Save -> Sync
         a.run(
             self.script(dedent("""
                 # Touch target basic block
@@ -50,15 +50,24 @@ class Fixture(runtests.Fixture):
         )
 
         # Declare function set_structure_id
+        ##
+        ##    ea -> addr
+        ##    n  -> number of operand
         set_tid = dedent("""
             def set_tid(ea, n, name):
+                # Create structure array
+                ##    & Fill it with my named structure
                 path = idaapi.tid_array(1)
                 path[0] = idc.get_struc_id(name)
+
+                # Create inst structure (swig object)
                 insn = ida_ua.insn_t()
+
+                # Decode instruction @ ea
                 insn_len = ida_ua.decode_insn(insn, ea)
                 idaapi.op_stroff(insn, n, path.cast(), 1, 0)
-
             """)
+
         # Apply first struc in first base
         b.run(
             self.check_types(),
@@ -70,6 +79,7 @@ class Fixture(runtests.Fixture):
         )
         b.check_git(modified=["basic_block"])
         want = self.eas[self.last_ea]
+        print("tin_want_TODO :", want, "\nlast ea:", self.last_ea)
 
         # Apply second struc in second base
         a.run_no_sync(
@@ -91,6 +101,7 @@ class Fixture(runtests.Fixture):
             self.save_last_ea(),
         )
         got = self.eas[self.last_ea]
+        print("tin_got_TODO :", got)
 
         # Check that I want what I got
         if want[1] != got[1]:
