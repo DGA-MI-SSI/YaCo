@@ -48,6 +48,11 @@ const char*         get_object_type_string(YaToolObjectType_e object_type);
 extern const YaToolObjectType_e  ordered_types[OBJECT_TYPE_COUNT];
 extern const std::vector<size_t> indexed_types;
 
+
+
+// 1. Xref
+
+// Declare Xref structure
 typedef struct _Xref
 {
     YaToolObjectId  id;
@@ -55,6 +60,24 @@ typedef struct _Xref
     operand_t       operand;
     int             path_idx;
 } Xref, *PXref;
+
+// Overload <> compare with offset
+inline bool operator<(const Xref& a, const Xref& b)
+{
+    return std::make_tuple(a.offset, a.operand, a.path_idx, a.id) < std::make_tuple(b.offset, b.operand, b.path_idx, b.id);
+}
+// Overload ==
+inline bool operator==(const Xref& a, const Xref& b)
+{
+    return std::make_tuple(a.offset, a.operand, a.id, a.path_idx) == std::make_tuple(b.offset, b.operand, b.id, b.path_idx);
+}
+
+// Declare Xrefs as multiple Xrefs
+using Xrefs = std::vector<Xref>;
+
+
+
+// 2.
 
 namespace std
 {

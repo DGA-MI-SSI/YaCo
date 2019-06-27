@@ -156,14 +156,14 @@ namespace
     using Bookmarks = std::vector<Bookmark>;
 
     // Declare Reference info object
-    struct RefInfo
+    typedef struct _RefInfo
     {
         YaToolObjectId  id;
         ea_t            offset;
         int             opidx;
         flags_t         flags;
         ea_t            base;
-    };
+    } RefInfo, *PRefInfo;
     using RefInfos = std::vector<RefInfo>;
 
     // Compare by offset then operator id
@@ -174,28 +174,6 @@ namespace
     bool operator==(const RefInfo& a, const RefInfo& b)
     {
         return std::make_tuple(a.offset, a.opidx, a.flags, a.base) == std::make_tuple(b.offset, b.opidx, b.flags, b.base);
-    }
-
-    // TODO remove
-    struct Xref
-    {
-        YaToolObjectId  id;
-        offset_t        offset;
-        operand_t       operand;
-        int             path_idx;
-    };
-
-    // Declare Xrefs
-    using Xrefs = std::vector<Xref>;
-
-    // Operator compare with offset
-    bool operator<(const Xref& a, const Xref& b)
-    {
-        return std::make_tuple(a.offset, a.operand, a.path_idx, a.id) < std::make_tuple(b.offset, b.operand, b.path_idx, b.id);
-    }
-    bool operator==(const Xref& a, const Xref& b)
-    {
-        return std::make_tuple(a.offset, a.operand, a.id, a.path_idx) == std::make_tuple(b.offset, b.operand, b.id, b.path_idx);
     }
 
     template<typename Parent>

@@ -65,8 +65,8 @@ def remove_dir(dirname):
         os.chmod(name, stat.S_IWRITE)
         os.remove(name)
 
-    # Remove anyway
-    shutil.rmtree(dirname, onerror=del_rw)
+    # Remove anyway TODO uncomment
+    # shutil.rmtree(dirname, onerror=del_rw)
 
 
 def sysexec(cwd, *args):
@@ -114,18 +114,24 @@ class Repo():
         self.ctx.assertEqual(err, None, "%s" % err)
 
     def run_with(self, use_yaco, sync_first, *args):
+        # Declare scritp in IDA
         scripts = ""
+
+        # Load YaCo in script if want
         if use_yaco:
             scripts += dedent("""
                 # start
                 import yaco_plugin
                 yaco_plugin.start()
                 ya.enable_testing_mode() """)
+
+        # Synchronize db if want
         if sync_first:
             scripts += dedent("""
                 # sync first
                 idc.save_database("")
                 """)
+
         # Fill scirpt and call check(name)
         todo = []
         for (script, check) in args:
@@ -143,6 +149,8 @@ class Repo():
 
         target = self.target + ("_local.i64" if use_yaco else ".i64")
         self.run_script(scripts, target)
+
+        # Call all check scripts
         for (check, name) in todo:
             # TODO remove
             from inspect import getsource
@@ -151,6 +159,7 @@ class Repo():
             dbgprint("Name :\n", name)
             # Not remove
             check(name)
+
 
     def run(self, *args):
         return self.run_with(True, True, *args)

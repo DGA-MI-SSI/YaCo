@@ -36,10 +36,11 @@ bool globals::InitIdbLogger(logger::ILogger& logger, const char* basename)
     const auto make_file_delegate = [](const std::string& filename, const char* mode) -> logger::delegate_fn_t
     {
         const auto hfile = fopen(filename.data(), mode);
-        if(!hfile)
+        if (!hfile) {
             return logger::delegate_fn_t{};
+        }
 
-        // capture file handle by copy into the delegate
+        // Capture file handle by copy into the delegate
         const auto smart = std::shared_ptr<FILE>(hfile, &fclose);
         return [=](size_t /*prefix*/, const char* message)
         {
@@ -48,12 +49,14 @@ bool globals::InitIdbLogger(logger::ILogger& logger, const char* basename)
         };
     };
     const auto current = make_file_delegate(strname + ".log", "wb");
-    if(!current)
+    if (!current) {
         return false;
+    }
 
     const auto all = make_file_delegate(strname + ".all.log", "ab");
-    if(!all)
+    if (!all) {
         return false;
+    }
 
     logger.Delegate(current);
     logger.Delegate(all);

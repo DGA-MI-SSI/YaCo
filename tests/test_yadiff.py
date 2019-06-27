@@ -5,19 +5,29 @@ import os
 import subprocess
 import sys
 
+
 def sysexec(cwd, *args):
     if True:
         print(cwd + ": " + " ".join(*args))
     subprocess.check_call(*args, stderr=subprocess.STDOUT, shell=False)
 
+
 def generate_yadiff_idb(args):
-    root_dir = os.path.abspath(os.path.join(inspect.getsourcefile(lambda: 0), "..", ".."))
+    """ Yadiff : dst.idb <- src.idb """
+    # Get path
+    source_path = inspect.getsourcefile(lambda: 0)
+    root_dir = os.path.abspath(os.path.join(source_path, "..", ".."))
     os.environ["YATOOLS_DIR"] = args.bindir
     script = os.path.abspath(os.path.join(root_dir, "YaDiff", "merge_idb.py"))
+
+    # Execute merge_idb
     sysexec("", [args.python, script, args.src, args.dst])
 
+
 def check_golden(golden_filename, got):
-    expected_path = os.path.join(os.path.dirname(inspect.getsourcefile(lambda:0)), golden_filename)
+    """ Check if dst.idb has been filled as expected """
+    expected_path = os.path.join(os.path.dirname(
+        inspect.getsourcefile(lambda:0)), golden_filename)
 
     # Enable to update golden file
     if False:
@@ -26,11 +36,21 @@ def check_golden(golden_filename, got):
 
     # Read expected values
     expected = None
-    with open(expected_path, "rb") as fh:
+    with open(expected_path, "r") as fh:
         expected = fh.read()
 
+    # Sort the expected values
+    print("Expected path : " + expected_path)
+    a_expected = expected.split("\n")
+    a_expected.sort()
+    expected = "\n".join(a_expected)
+
+    # Return if same string
     if expected == got:
         return
+
+    print("tin_Expected : " + expected)
+    print("tin_Got : " + got)
 
     # Get number of line diff
     ## yadiff is not deterministic anymore
@@ -38,17 +58,22 @@ def check_golden(golden_filename, got):
     max_lines = 100
     diff = "".join(difflib.unified_diff(expected.splitlines(1), got.splitlines(1), golden_filename, "got"))
     difflines = diff.splitlines(1)
+
+    # Return if not many lines differs
     if len(difflines) < max_lines:
         return
 
-    raise BaseException("diff: %d lines\n%s" % (len(difflines), diff))
+    # Raise exception if here
+    raise BaseException("diff: %d lines, hereafter the diff:\n%s" % (len(difflines), diff))
+
 
 def check_yadiff_database(args):
+    """ Check_golden wrapper """
     sys.path.append(os.path.join(args.bindir, "bin"))
     print(os.path.join(args.bindir, "bin"))
     import yadb.Root
     data = None
-    with open(os.path.abspath(os.path.join(args.dst, "..", "yadiff.yadb")), "rb") as fh:
+    with open(os.path.abspath(os.path.join(args.dst, "..", "yadiff.yadb")), "r") as fh:
         data = bytearray(fh.read())
     root = yadb.Root.Root.GetRootAsRoot(data, 0)
     got = []
@@ -61,9 +86,14 @@ def check_yadiff_database(args):
         if not len(line):
             continue
         got.append(line)
+    # Sort
     got.sort()
-    got = "\n".join(got.) + "\n\nsymbols: %d\n" % len(got)
+    # Stringify
+    got = [x.decode() for x in got]
+    got = "\n".join(got) + "\n\nsymbols: %d\n" % len(got)
+    # Check
     check_golden("test_yadiff." + sys.platform.lower() + ".golden", got)
+
 
 def main():
     """ Main test for YaDiff """
