@@ -27,7 +27,6 @@ import sys
 import tempfile
 import unittest
 import runtests
-# from collections.abc import Iterable
 from textwrap import dedent
 
 
@@ -442,7 +441,7 @@ def get_tests(args):
     for s in unittest.defaultTestLoader.discover(os.path.join(current_dir, "tests")):
         for f in s:
             # Check if ready to fight
-            # if not isinstance(f, Iterable): break
+            if isinstance(f, unittest.loader._FailedTest): break
 
             # Append test to list
             for test in f:
