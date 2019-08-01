@@ -1,8 +1,11 @@
 <yadiff>
 	<Matching>
 		<option XRefOffsetMatch="true"/>
-		<option CallerXRefMatch="true"/>
-		<option CallerXRefMatch_TrustDiffingRelations="true"/>
+        
+        <option XRefMatch="true"/>
+        <option XRefMatch_TrustDiffingRelations="true"/>
+        <option XRefMatch_XrefDirectionMode="caller"/>
+        
 		<option DoAnalyzeUntilAlgoReturn0="true"/>
 		<option DoAnalyzeUntilAnalyzeReturn0="true"/>
 	</Matching>

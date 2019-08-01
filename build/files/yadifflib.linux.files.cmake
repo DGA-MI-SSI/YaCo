@@ -28,6 +28,8 @@ set(_yadifflib_files
     "../YaDiff/YaDiffLib/Algo/VectorSign/VectorHelpers.hpp"
     "../YaDiff/YaDiffLib/Algo/VectorSign/VectorTypes.cpp"
     "../YaDiff/YaDiffLib/Algo/VectorSign/VectorTypes.hpp"
+    "../YaDiff/YaDiffLib/Algo/XRefMatch.cpp"
+    "../YaDiff/YaDiffLib/Algo/XRefMatch.hpp"
     "../YaDiff/YaDiffLib/Algo/XRefOffsetMatch.cpp"
     "../YaDiff/YaDiffLib/Algo/XRefOffsetMatch.hpp"
     "../YaDiff/YaDiffLib/Algo/json.hpp"

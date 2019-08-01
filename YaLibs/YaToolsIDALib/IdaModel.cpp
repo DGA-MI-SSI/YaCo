@@ -868,6 +868,70 @@ namespace
         return flags;
     }
 
+    void accept_data_xrefs(IModelVisitor& v, const ya::Deps& deps, ea_t /*ea*/)
+    {
+        if(deps.size() != 1)
+            return;
+
+        /*
+         * Here, we should eventually get the struct type and add Xrefs to field values.
+         * Example :
+.data.rel.ro:00000000003984A0 svcudp_op       xp_ops <offset svcudp_recv, offset svcudp_stat, offset svcudp_getargs,\
+.data.rel.ro:00000000003984A0                                         ; DATA XREF: __GI_svcudp_bufcreate+E3↑o
+.data.rel.ro:00000000003984A0                         offset svcudp_reply, offset svcudp_freeargs, \
+.data.rel.ro:00000000003984A0                         offset svcudp_destroy>
+
+			Python>hex(idaapi.get_full_flags(ScreenEA()))
+			0x60005500
+			Python>hex(idaapi.FF_STRU)
+			0x60000000
+			Python>idaapi.is_struct(GetFlags(ScreenEA()))
+			True
+			Python>get_item_size(ScreenEA())
+			48
+			Python>ti = idaapi.tinfo_t()
+			Python>idaapi.get_tinfo(ti, ScreenEA())
+			True
+			Python>ti.get_type_name()
+			xp_ops
+			Python>til = ti.get_til()
+			Python>ti.get_size()
+			48
+			Python>ti.is_struct()
+			True
+			Python>"0x%08X" % (idaapi.get_first_dref_from(ScreenEA()))
+			0x00116060
+			Python>"0x%08X" % (idaapi.get_next_dref_from(ScreenEA(), 0x00116060))
+			0x00116070
+			Python>"0x%08X" % (idaapi.get_next_dref_from(ScreenEA(), 0x00116070))
+			0x00116090
+			Python>"0x%08X" % (idaapi.get_next_dref_from(ScreenEA(), 0x00116090))
+			0x001160B0
+			Python>"0x%08X" % (idaapi.get_next_dref_from(ScreenEA(), 0x00116090))
+			0x001160B0
+			Python>"0x%08X" % (idaapi.get_next_dref_from(ScreenEA(), 0x001160B0))
+			0x00116100
+			Python>nn = idaapi.netnode("xp_ops")
+			Python>nn.index()
+			18374686479671633656
+			Python>str = idaapi.node2ea(nn.index())
+			Python>get_struc_name(str)
+			xp_ops
+         */
+
+        const auto& dep = deps.front();
+        if(!get_struc(dep.tid))
+            return;
+
+        if(dep.tid == BADADDR)
+            return;
+
+        v.visit_start_xrefs();
+        v.visit_start_xref(0, dep.id, DEFAULT_OPERAND);
+        v.visit_end_xref();
+        v.visit_end_xrefs();
+    }
+
     enum NamePolicy_e
     {
         BasicBlockNamePolicy,
@@ -1157,11 +1221,11 @@ namespace
         if(!func)
             return;
 
-        const auto next = prev_not_tail(end);
-        for(auto ea = get_first_cref_from(next); ea != BADADDR; ea = get_next_cref_from(next, ea))
+        const auto last_insn = prev_not_tail(end);
+        for(auto ea = get_first_cref_from(last_insn); ea != BADADDR; ea = get_next_cref_from(last_insn, ea))
         {
             const auto id = hash::hash_ea(ea);
-            ctx.xrefs_.push_back({ea - start, id, DEFAULT_OPERAND, 0});
+            ctx.xrefs_.push_back({last_insn - start, id, DEFAULT_OPERAND, 0});
         }
     }
 

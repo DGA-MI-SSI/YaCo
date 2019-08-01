@@ -30,54 +30,54 @@ void TryPush(std::vector<std::string>* s_vector, std::string string)
     }
 }
 
-std::vector<double> FunctionData2Vector(const FunctionData_t& function_data,
+yadiff::Vector FunctionData2Vector(const FunctionData_t& function_data,
     std::vector<std::string>* s_vector, std::string s_base)
 {
-    std::vector<double> res = std::vector<double>();
+    yadiff::Vector res = yadiff::Vector();
 
 
     // Control Flow Graph
-    res.push_back(static_cast<double>(function_data.cfg.bb_nb));            // 1
+    res.push_back(static_cast<vector_value>(function_data.cfg.bb_nb));            // 1
     TryPush(s_vector, s_base + "bb_nb");
-    res.push_back(static_cast<double>(function_data.cfg.edge_nb));          // 2
+    res.push_back(static_cast<vector_value>(function_data.cfg.edge_nb));          // 2
     TryPush(s_vector, s_base + "edge_nb");
-    res.push_back(static_cast<double>(function_data.cfg.ret_nb));           // 3
+    res.push_back(static_cast<vector_value>(function_data.cfg.ret_nb));           // 3
     TryPush(s_vector, s_base + "ret_nb");
-    res.push_back(static_cast<double>(function_data.cfg.inst_nb));          // 4
+    res.push_back(static_cast<vector_value>(function_data.cfg.inst_nb));          // 4
 	TryPush(s_vector, s_base + "inst_nb");
-    res.push_back(static_cast<double>(function_data.cfg.jcc_nb));           // 5
+    res.push_back(static_cast<vector_value>(function_data.cfg.jcc_nb));           // 5
 	TryPush(s_vector, s_base + "jcc_nb");
-    res.push_back(static_cast<double>(function_data.cfg.back_edge_nb));     // 6
+    res.push_back(static_cast<vector_value>(function_data.cfg.back_edge_nb));     // 6
 	TryPush(s_vector, s_base + "back_edge_nb");
-    res.push_back(static_cast<double>(function_data.cfg.diamond_nb));       // 7
+    res.push_back(static_cast<vector_value>(function_data.cfg.diamond_nb));       // 7
 	TryPush(s_vector, s_base + "diamond_nb");
-    res.push_back(static_cast<double>(function_data.cfg.size));             // 8
+    res.push_back(static_cast<vector_value>(function_data.cfg.size));             // 8
 	TryPush(s_vector, s_base + "size");
-    res.push_back(static_cast<double>(function_data.cfg.size_disp));        // 9
+    res.push_back(static_cast<vector_value>(function_data.cfg.size_disp));        // 9
 	TryPush(s_vector, s_base + "size_disp");
-    res.push_back(static_cast<double>(function_data.cfg.height));           // 10
+    res.push_back(static_cast<vector_value>(function_data.cfg.height));           // 10
 	TryPush(s_vector, s_base + "height");
-    res.push_back(static_cast<double>(function_data.cfg.height_disp));      // 11
+    res.push_back(static_cast<vector_value>(function_data.cfg.height_disp));      // 11
 	TryPush(s_vector, s_base + "height_disp");
-    res.push_back(static_cast<double>(function_data.cfg.width));            // 12
+    res.push_back(static_cast<vector_value>(function_data.cfg.width));            // 12
 	TryPush(s_vector, s_base + "width");
-    res.push_back(static_cast<double>(function_data.cfg.width_disp));       // 13
+    res.push_back(static_cast<vector_value>(function_data.cfg.width_disp));       // 13
 	TryPush(s_vector, s_base + "width_disp");
-    res.push_back(static_cast<double>(function_data.cfg.flat_len));         // 14
+    res.push_back(static_cast<vector_value>(function_data.cfg.flat_len));         // 14
 	TryPush(s_vector, s_base + "flat_len");
 
     // Call Graph
-    res.push_back(static_cast<double>(function_data.cg.in_degree));         // 1
+    res.push_back(static_cast<vector_value>(function_data.cg.in_degree));         // 1
 	TryPush(s_vector, s_base + "in_degree");
-    res.push_back(static_cast<double>(function_data.cg.out_degree));        // 2
+    res.push_back(static_cast<vector_value>(function_data.cg.out_degree));        // 2
 	TryPush(s_vector, s_base + "out_degree");
-    res.push_back(static_cast<double>(function_data.cg.dist_to_root));      // 3
+    res.push_back(static_cast<vector_value>(function_data.cg.dist_to_root));      // 3
 	TryPush(s_vector, s_base + "dist_to_root");
-    res.push_back(static_cast<double>(function_data.cg.dist_to_leave));     // 4
+    res.push_back(static_cast<vector_value>(function_data.cg.dist_to_leave));     // 4
 	TryPush(s_vector, s_base + "dist_to_leave");
-    res.push_back(static_cast<double>(function_data.cg.arg_nb));            // 5
+    res.push_back(static_cast<vector_value>(function_data.cg.arg_nb));            // 5
 	TryPush(s_vector, s_base + "arg_nb");
-    res.push_back(static_cast<double>(function_data.cg.lib_nb));            // 6
+    res.push_back(static_cast<vector_value>(function_data.cg.lib_nb));            // 6
 	TryPush(s_vector, s_base + "lib_nb");
 
     // Instruction Distribution
@@ -85,19 +85,19 @@ std::vector<double> FunctionData2Vector(const FunctionData_t& function_data,
     {
         InstructionType_e inst_type = static_cast<InstructionType_e>(i);
         InstructionData_t instruction_data = function_data.insts[(InstructionType_e)i];
-        res.push_back(static_cast<double>(instruction_data.total));
+        res.push_back(static_cast<vector_value>(instruction_data.total));
 		TryPush(s_vector, s_base + "inst_" + InstTypeToString(inst_type) + "_total");
-        res.push_back(static_cast<double>(instruction_data.mean_per_bb));
+        res.push_back(static_cast<vector_value>(instruction_data.mean_per_bb));
 		TryPush(s_vector, s_base + "inst_" + InstTypeToString(inst_type) + "_mean_per_bb");
-        res.push_back(static_cast<double>(instruction_data.variance_per_bb));
+        res.push_back(static_cast<vector_value>(instruction_data.variance_per_bb));
 		TryPush(s_vector, s_base + "inst_" + InstTypeToString(inst_type) + "_variance_per_bb");
-        res.push_back(static_cast<double>(instruction_data.offset_mean_per_inst));
+        res.push_back(static_cast<vector_value>(instruction_data.offset_mean_per_inst));
 		TryPush(s_vector, s_base + "inst_" + InstTypeToString(inst_type) + "_offset_mean_per_inst");
-        res.push_back(static_cast<double>(instruction_data.offset_variance_per_inst));
+        res.push_back(static_cast<vector_value>(instruction_data.offset_variance_per_inst));
 		TryPush(s_vector, s_base + "inst_" + InstTypeToString(inst_type) + "_offset_variance_per_inst");
-        res.push_back(static_cast<double>(instruction_data.offset_skew_per_inst));
+        res.push_back(static_cast<vector_value>(instruction_data.offset_skew_per_inst));
 		TryPush(s_vector, s_base + "inst_" + InstTypeToString(inst_type) + "_offset_skew_per_inst");
-        res.push_back(static_cast<double>(instruction_data.offset_kurt_per_inst));
+        res.push_back(static_cast<vector_value>(instruction_data.offset_kurt_per_inst));
 		TryPush(s_vector, s_base + "inst_" + InstTypeToString(inst_type) + "_offset_kurt_per_inst");
     }
 
@@ -113,14 +113,14 @@ std::vector<double> FunctionData2Vector(const FunctionData_t& function_data,
 
 
 // TODO reseve
-inline std::vector<double> StatFunction2Vector(const StatFunction_t& stat_function)
+inline yadiff::Vector StatFunction2Vector(const StatFunction_t& stat_function)
 {
-    std::vector<double> res = std::vector<double>();
+    yadiff::Vector res = yadiff::Vector();
 
     // TODO remove that 
-    std::vector<double> a = FunctionData2Vector(stat_function.mean, NULL, "");
-    std::vector<double> b = FunctionData2Vector(stat_function.median, NULL, "");
-    std::vector<double> c = FunctionData2Vector(stat_function.disp, NULL, "");
+    yadiff::Vector a = FunctionData2Vector(stat_function.mean, NULL, "");
+    yadiff::Vector b = FunctionData2Vector(stat_function.median, NULL, "");
+    yadiff::Vector c = FunctionData2Vector(stat_function.disp, NULL, "");
     
     res.insert(res.begin(), a.begin(), a.end());
     res.insert(res.begin(), b.begin(), b.end());
@@ -129,12 +129,12 @@ inline std::vector<double> StatFunction2Vector(const StatFunction_t& stat_functi
 }
 
 
-inline std::vector<double> TypeStat2Vector(const TypeStat_t& type_stat)
+inline yadiff::Vector TypeStat2Vector(const TypeStat_t& type_stat)
 {
-    std::vector<double> res = std::vector<double>();
+    yadiff::Vector res = yadiff::Vector();
 
-    std::vector<double> a = StatFunction2Vector(type_stat.not_ponderated);
-    std::vector<double> b = StatFunction2Vector(type_stat.ponderated);
+    yadiff::Vector a = StatFunction2Vector(type_stat.not_ponderated);
+    yadiff::Vector b = StatFunction2Vector(type_stat.ponderated);
 
     res.insert(res.begin(), a.begin(), a.end());
     res.insert(res.begin(), b.begin(), b.end());
@@ -143,14 +143,14 @@ inline std::vector<double> TypeStat2Vector(const TypeStat_t& type_stat)
 }
 
 
-std::vector<double> Concatenated2Vector(const Concatenated_t& concatenated)
+yadiff::Vector Concatenated2Vector(const Concatenated_t& concatenated)
 {
-    std::vector<double> res = std::vector<double>();
+    yadiff::Vector res = yadiff::Vector();
 
     // TODO remove that too
-    std::vector<double> me = FunctionData2Vector(concatenated.me, NULL, "");
-    std::vector<double> a = TypeStat2Vector(concatenated.father);
-    std::vector<double> b = TypeStat2Vector(concatenated.child);
+    yadiff::Vector me = FunctionData2Vector(concatenated.me, NULL, "");
+    yadiff::Vector a = TypeStat2Vector(concatenated.father);
+    yadiff::Vector b = TypeStat2Vector(concatenated.child);
     
     res.insert(res.begin(), me.begin(), me.end());
     res.insert(res.begin(), a.begin(), a.end());
@@ -177,7 +177,7 @@ void SetBlobText(yadiff::BinaryInfo_t& binary_info, const IModel& db)
             return WALK_CONTINUE;
 
         std::string segmentName = make_string(segmentVersion.username());
-        if (segmentName.find(".text") == std::string::npos)
+        if (segmentName != std::string(".text"))
             return WALK_CONTINUE;
 
         binary_info.text_address = segmentVersion.address();

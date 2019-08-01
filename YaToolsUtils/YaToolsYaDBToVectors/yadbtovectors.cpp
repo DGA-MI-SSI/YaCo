@@ -21,8 +21,11 @@ int main(int argc, char** argv)
 
     const auto db1 = MakeFlatBufferModel(argv[1]);
     yadiff::AlgoCfg cfg;
-    memset(&cfg, 0, sizeof cfg);
     cfg.Algo = yadiff::ALGO_VECTOR_SIGN;
     cfg.VectorSign.mapDestination = argv[2];
+
+    cfg.VectorSign.concatenate_children = true;
+    cfg.VectorSign.concatenate_parents = true;
+
     yadiff::MakeDiffAlgo(cfg)->Prepare(*db1, *db1);
 }

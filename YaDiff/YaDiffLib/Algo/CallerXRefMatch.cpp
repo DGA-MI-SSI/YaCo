@@ -34,7 +34,7 @@ public:
      * uses previously registered signature databases and input version relations
      * to compute a new version relation vector
      */
-    bool Analyse(const yadiff::OnRelationFn& output, const yadiff::RelationWalkerfn& input) override;
+    bool Analyse(const yadiff::OnAddRelationFn& output, const yadiff::RelationWalkerfn& input) override;
 
     const char* GetName() const override;
 
@@ -73,7 +73,7 @@ bool CallerXRefMatchAlgo::Prepare(const IModel& db1, const IModel& db2)
     return true;
 }
 
-bool CallerXRefMatchAlgo::Analyse(const yadiff::OnRelationFn& output, const yadiff::RelationWalkerfn& input)
+bool CallerXRefMatchAlgo::Analyse(const yadiff::OnAddRelationFn& output, const yadiff::RelationWalkerfn& input)
 {
     if(pDb1_ == nullptr)
         return false;
@@ -92,21 +92,13 @@ bool CallerXRefMatchAlgo::Analyse(const yadiff::OnRelationFn& output, const yadi
     typedef std::map<YaToolObjectType_e, sig_map_t> sigs_container_t;
 
     Relation new_relation;
-    memset(&new_relation, 0, sizeof new_relation);
-    new_relation.confidence_ = RELATION_CONFIDENCE_MAX;
     new_relation.type_ = RELATION_TYPE_EXACT_MATCH;
-    new_relation.direction_ = RELATION_DIRECTION_BOTH;
 
 
     // iterate over all previously computed relation
     input([&](const Relation& relation){
         if(relation.flags_ & yadiff::AF_CALLER_XREF_DONE)
             return true;
-
-        if (relation.confidence_ != RELATION_CONFIDENCE_MAX)
-        {
-            return true;
-        }
 
         switch (relation.type_)
         {
@@ -117,6 +109,7 @@ bool CallerXRefMatchAlgo::Analyse(const yadiff::OnRelationFn& output, const yadi
             }
             break;
         case RELATION_TYPE_EXACT_MATCH:
+        case RELATION_TYPE_STRONG_MATCH:
             break;
         default:
             return true;
@@ -126,7 +119,7 @@ bool CallerXRefMatchAlgo::Analyse(const yadiff::OnRelationFn& output, const yadi
         // set relation as treated
         Relation tmp = relation;
         tmp.flags_ |= yadiff::AF_CALLER_XREF_DONE;
-        output(tmp);
+        output(tmp, true);
         sigs_container_t                sigs_container;
 
         /************ construct signature maps ****************************************/
@@ -178,14 +171,12 @@ bool CallerXRefMatchAlgo::Analyse(const yadiff::OnRelationFn& output, const yadi
 //                    HVersion remoteXrefObjectVersion = *RemoteXrefObjectVersionSet.begin();
 
                     // add relation ???
-                    new_relation.confidence_ = RELATION_CONFIDENCE_MAX;
                     new_relation.type_ = RELATION_TYPE_EXACT_MATCH;
-                    new_relation.direction_ = RELATION_DIRECTION_BOTH;
                     new_relation.version1_ = *LocalXrefObjectVersionSet.begin();
                     new_relation.version2_ = *RemoteXrefObjectVersionSet.begin();
                     LOG(INFO, "CXMA: from %lx(%s) <-> %lx(%s)\n", relation.version1_.address(), relation.version1_.username().value, relation.version2_.address(), relation.version2_.username().value);
                     LOG(INFO, "CXMA: --> associate %lx(%s) <-> %lx(%s)\n", new_relation.version1_.address(), new_relation.version1_.username().value, new_relation.version2_.address(), new_relation.version2_.username().value);
-                    output(new_relation);
+                    output(new_relation, false);
                 }
                 else
                 {
@@ -208,14 +199,12 @@ bool CallerXRefMatchAlgo::Analyse(const yadiff::OnRelationFn& output, const yadi
                 const HVersion*             diff_parent1 = nullptr;
                 const HVersion*             diff_parent2 = nullptr;
 
-                new_relation.confidence_ = RELATION_CONFIDENCE_MAX;
                 new_relation.type_ = RELATION_TYPE_DIFF;
-                new_relation.direction_ = RELATION_DIRECTION_BOTH;
                 new_relation.version1_ = diff_version1;
                 new_relation.version2_ = diff_version2;
                 LOG(INFO, "CXMA: from %lx(%s) <-> %lx(%s)\n", relation.version1_.address(), relation.version1_.username().value, relation.version2_.address(), relation.version2_.username().value);
                 LOG(INFO, "CXMA: --> associate %lx(%s) <-> %lx(%s)\n", new_relation.version1_.address(), new_relation.version1_.username().value, new_relation.version2_.address(), new_relation.version2_.username().value);
-                output(new_relation);
+                output(new_relation, false);
 
                 /* try to propagate diff relations to parent only for basic blocks */
                 if (OBJECT_TYPE_BASIC_BLOCK != object_type)
@@ -241,7 +230,7 @@ bool CallerXRefMatchAlgo::Analyse(const yadiff::OnRelationFn& output, const yadi
                 {
                     LOG(INFO, "CXMA: from %lx(%s) <-> %lx(%s)\n", relation.version1_.address(), relation.version1_.username().value, relation.version2_.address(), relation.version2_.username().value);
                     LOG(INFO, "CXMA: --> associate %lx(%s) <-> %lx(%s)\n", new_relation.version1_.address(), new_relation.version1_.username().value, new_relation.version2_.address(), new_relation.version2_.username().value);
-                    output(new_relation);
+                    output(new_relation, false);
                 }
             }
 

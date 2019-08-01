@@ -129,9 +129,9 @@ std::vector<cs_insn> Disass(const uint8_t* data, size_t size, const yadiff::Bina
 //
 //
 //typedef std::map<int, std::vector<YaToolObjectId>> Pouet_T;
-std::vector<double> FlattenFuction(const std::map<int, std::vector<YaToolObjectId>>& equiLevelMap, const FunctionDisassembled_T& dis)
+std::vector<yadiff::vector_value> FlattenFuction(const std::map<int, std::vector<YaToolObjectId>>& equiLevelMap, const FunctionDisassembled_T& dis)
 {
-    std::vector<double> res;
+    std::vector<yadiff::vector_value> res;
     size_t last_index = 0; 
 
     // For all distance to root (in BB);
@@ -198,15 +198,22 @@ void yadiff::SetDisassemblyFields(
         // 1.1 Disassemble blob
         size_t bbAddr = static_cast<size_t>(bbVersion.address() - binary_info.text_address);
         size_t bbSize = static_cast<size_t>(bbVersion.size());
-        const uint8_t* bbBlob = &(binary_info.blob[bbAddr]);
-        const auto bbInstructions = Disass(bbBlob, bbSize, binary_info);
+        if(bbAddr > binary_info.blob.size())
+		{
 
-        // 1.15 Increment inst number
-        function_data.cfg.inst_nb += static_cast<int>(bbInstructions.size());
+		}
+        else
+		{
+			const uint8_t* bbBlob = &(binary_info.blob[bbAddr]);
+			const auto bbInstructions = Disass(bbBlob, bbSize, binary_info);
 
-        // 1.2 For all callback store bb is_instruction as a map
-        for (FunctionDisassembled_T& disassStruct : structVector)
-            disassStruct.UpdateBBFields(bbVersion.id(), bbInstructions, *(binary_info.iarch_ptr));
+			// 1.15 Increment inst number
+			function_data.cfg.inst_nb += static_cast<int>(bbInstructions.size());
+
+			// 1.2 For all callback store bb is_instruction as a map
+			for (FunctionDisassembled_T& disassStruct : structVector)
+				disassStruct.UpdateBBFields(bbVersion.id(), bbInstructions, *(binary_info.iarch_ptr));
+		}
         return WALK_CONTINUE;
     }); // end for all bbVersion
 

@@ -15,6 +15,7 @@
 
 #pragma once
 
+#include <set>
 #include "YaTypes.hpp"
 #include "HVersion.hpp"
 
@@ -30,9 +31,27 @@ enum RelationType_e
      */
     RELATION_TYPE_EXACT_MATCH,
     /**
+     * The functions are diffing, but some algorithm helped us and told us that this is a strong match
+     */
+    RELATION_TYPE_STRONG_MATCH,
+    /**
+     * Some algorithm thinks these objects might be the same.
+     * We should rely on another algorithm before taking it for sure.
+     */
+    RELATION_TYPE_ALTERNATIVE_SOLVED,
+    /**
+     * Some algorithm thinks these objects might be the same.
+     * We should rely on another algorithm before taking it for sure.
+     */
+    RELATION_TYPE_WEAK_MATCH,
+    /**
      * The function are different
      */
     RELATION_TYPE_DIFF,
+    /**
+     * The functions has no link
+     */
+    RELATION_TYPE_REJECTED,
     /**
      * The function are different, but the difference doesn't impact the signature : one of the call changed
      * This means that one of the call changed to a function that has an exact match in the local base, different to that of
@@ -47,6 +66,10 @@ enum RelationType_e
      * This function is one of several possible function that correspond to the pointed function
      */
     RELATION_TYPE_ALTERNATIVE_FROM_N,
+    /**
+     * Both binary have several matches for this relation
+     */
+    RELATION_TYPE_ALTERNATIVE,
     /**
      * Function have many parameters in common (basic block number, in/out call number, ret number ..)
      * Matched with the Algo "VectorSign"
@@ -83,7 +106,11 @@ struct Relation
     HVersion                version1_;
     HVersion                version2_;
     RelationType_e          type_;
-    RelationConfidence_T    confidence_;
-    RelationDirection_e     direction_;
-    uint32_t                flags_;
+//    RelationConfidence_T    confidence_;
+//    RelationDirection_e     direction_;
+    uint32_t                flags_ = 0;
+//    uint32_t                masked_flags_ = 0;
+    bool					mask_algos_flags = false;
+//    std::set<HVersion>		alternate_version_1;
+//    std::set<HVersion>		alternate_version_2;
 };

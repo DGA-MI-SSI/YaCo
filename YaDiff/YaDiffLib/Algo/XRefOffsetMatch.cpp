@@ -37,7 +37,7 @@ public:
      * uses previously registered signature databases and input version relations
      * to compute a new version relation vector
      */
-    bool Analyse(const OnRelationFn& output, const RelationWalkerfn& input) override;
+    bool Analyse(const OnAddRelationFn& output, const RelationWalkerfn& input) override;
     const char* GetName() const override;
 
 private:
@@ -69,7 +69,7 @@ bool XRefOffsetMatchAlgo::Prepare(const IModel& db1, const IModel& db2)
     return true;
 }
 
-bool XRefOffsetMatchAlgo::Analyse(const OnRelationFn& output, const RelationWalkerfn& input)
+bool XRefOffsetMatchAlgo::Analyse(const OnAddRelationFn& output, const RelationWalkerfn& input)
 {
     /**
      * *If offsets are available:
@@ -98,10 +98,8 @@ bool XRefOffsetMatchAlgo::Analyse(const OnRelationFn& output, const RelationWalk
         return false;
 
     Relation new_relation;
-    memset(&new_relation, 0, sizeof new_relation);
-    new_relation.confidence_ = RELATION_CONFIDENCE_MAX;
     new_relation.type_ = RELATION_TYPE_EXACT_MATCH;
-    new_relation.direction_ = RELATION_DIRECTION_BOTH;
+    new_relation.mask_algos_flags = true;
 
     // iterate over all previously computed relation
     input([&](const Relation& relation)
@@ -113,10 +111,8 @@ bool XRefOffsetMatchAlgo::Analyse(const OnRelationFn& output, const RelationWalk
         // set relation as treated
         Relation tmp = relation;
         tmp.flags_ |= AF_XREF_OFFSET_DONE;
-        output(tmp);
+        output(tmp, true);
         // use exact match only
-        if(relation.type_ != RELATION_TYPE_EXACT_MATCH)
-            return true;
         if(!relation.version1_.has_xrefs())
             return true;
         // for each xref from obj1
@@ -137,7 +133,7 @@ bool XRefOffsetMatchAlgo::Analyse(const OnRelationFn& output, const RelationWalk
                     LOG(INFO, "XROMA: --> associate %llx(%s) <-> %llx(%s)", localVer.address(), localVer.username().value, remoteVer.address(), remoteVer.username().value);
                     new_relation.version1_ = local_version;
                     new_relation.version2_ = remote_version;
-                    output(new_relation);
+                    output(new_relation, false);
                 }
                 else
                 {
@@ -148,7 +144,7 @@ bool XRefOffsetMatchAlgo::Analyse(const OnRelationFn& output, const RelationWalk
                         LOG(INFO, "XROMA DATA: --> associate %llx(%s) <-> %llx(%s)", localVer.address(), localVer.username().value, remoteVer.address(), remoteVer.username().value);
                         new_relation.version1_ = local_version;
                         new_relation.version2_ = remote_version;
-                        output(new_relation);
+                        output(new_relation, false);
                     }
 #endif
                 }

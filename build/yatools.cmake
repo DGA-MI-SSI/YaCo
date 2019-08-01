@@ -152,6 +152,9 @@ add_tool(yacachemerger YaToolsUtils/YaToolsCacheMerger)
 # yadbtovector
 add_tool(yadbtovector YaToolsUtils/YaToolsYaDBToVectors yadifflib)
 
+# basicblockstripper
+add_tool(basicblockstripper YaToolsUtils/YaToolsBasicBlockStripper)
+
 # swig modules
 function(add_swig_mod target name)
     add_swig_module(${target} yatools ${ARGN})

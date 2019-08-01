@@ -9,16 +9,33 @@
 #include "FlatBufferModel.hpp"
 #include "FlatBufferVisitor.hpp"
 #include "VersionRelation.hpp"
-
+#include "HVersion.hpp"
 
 #include <vector>
+#include <map>
 #include <memory>
+#ifdef _MSC_VER
+#   include <filesystem>
+#else
+#   include <experimental/filesystem>
+#endif
 
+#include <sstream>
+#include <cstdlib>
+#include <cmath>
+#include <queue>
+#include <fstream>
+#include <memory>
+#include <iostream>
+
+#include <numeric>
 #if 0
 #define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("yadiff", (FMT), ## __VA_ARGS__)
 #else
 #define LOG(...) do {} while(0)
 #endif
+
+
 
 namespace yadiff
 {
@@ -65,6 +82,34 @@ void MergeToCache(YaDiff& differ, const Configuration& config, const std::string
     std::vector<Relation> relations;
     differ.MergeDatabases(*ref_model, *new_model, relations);
     
+    std::map<RelationType_e,int> counter;
+    for(const auto& rel : relations)
+    {
+    	if(     rel.type_ != RELATION_TYPE_NONE &&
+    			(
+    			(rel.type_ != RELATION_TYPE_ALTERNATIVE_FROM_N && rel.version1_.type() == OBJECT_TYPE_FUNCTION)
+    			|| (rel.type_ != RELATION_TYPE_ALTERNATIVE_TO_N && rel.version2_.type() == OBJECT_TYPE_FUNCTION)
+				)
+				)
+    	{
+    		counter[rel.type_] += 1;
+    	}
+    }
+    LOG(INFO, "Found exact/strong/diff/weak/untrust/alt/alt_slvd/alt_to_n/alt_from_n function relations : %d/%d/%d/%d/%d/%d/%d/%d/%d = %d, total = %d, correct_total = %d\n",
+    		counter[RELATION_TYPE_EXACT_MATCH],
+    		counter[RELATION_TYPE_STRONG_MATCH],
+    		counter[RELATION_TYPE_DIFF],
+    		counter[RELATION_TYPE_WEAK_MATCH],
+    		counter[RELATION_TYPE_UNTRUSTABLE],
+    		counter[RELATION_TYPE_ALTERNATIVE],
+    		counter[RELATION_TYPE_ALTERNATIVE_SOLVED],
+			counter[RELATION_TYPE_ALTERNATIVE_TO_N],
+			counter[RELATION_TYPE_ALTERNATIVE_FROM_N],
+			counter[RELATION_TYPE_DIFF] + counter[RELATION_TYPE_STRONG_MATCH] + counter[RELATION_TYPE_EXACT_MATCH] + counter[RELATION_TYPE_UNTRUSTABLE],
+			std::accumulate(counter.begin(), counter.end(), 0, [](int val, const auto& p) { return val+p.second;}),
+			counter[RELATION_TYPE_DIFF] + counter[RELATION_TYPE_STRONG_MATCH] + counter[RELATION_TYPE_EXACT_MATCH]
+			);
+
     Propagate propagater(config, nullptr);
     for(const auto& cache : caches)
     {
@@ -79,6 +124,123 @@ void MergeToCache(YaDiff& differ, const Configuration& config, const std::string
         LOG(INFO, "Writing cache %s\n", cache.data());
         WriteFBFile(cache, *exporter);
     }
+    if (!config.GetOption("Propagate", "ExportMatchesJSON").empty())
+	{
+        const auto matchfile = config.GetOption("Propagate", "ExportMatchesJSON");
+    	LOG(WARNING, "Exporting to : %s\n", matchfile.c_str());
+        std::ofstream output;
+        output.open(matchfile);
+        output << "[" << std::endl;
+        bool first = true;
+        for(const auto& relation : relations)
+        {
+//        	printf("rel: 0x%016lX to 0x%016lX\n",
+//        	        			relation.version1_.address(),
+//        						relation.version2_.address());
+        	bool ignore_relation = false;
+            switch (relation.type_)
+            {
+            case RELATION_TYPE_DIFF:
+            case RELATION_TYPE_EXACT_MATCH:
+            case RELATION_TYPE_STRONG_MATCH:
+            	break;
+            default:
+            	ignore_relation = true;
+                break;
+            }
+            if(ignore_relation) continue;
+
+        	if(first)
+        		first = false;
+        	else
+        		output << "\t," << std::endl;
+        	output << "\t{" << std::endl;
+            output << "\t\t\"src\": " << relation.version1_.address() << "," << std::endl;
+        	output << "\t\t\"dst\": " << relation.version2_.address() << "," << std::endl;
+        	output << "\t\t\"comment\": \"\"" << std::endl;
+        	output << "\t}" << std::endl;
+        }
+        output << "]" << std::endl;
+
+	}
+
+    if (!config.GetOption("Propagate", "ExportMatchesJSONALL").empty())
+	{
+        const auto matchfile = config.GetOption("Propagate", "ExportMatchesJSONALL");
+    	LOG(WARNING, "Exporting to : %s\n", matchfile.c_str());
+        std::ofstream output;
+        output.open(matchfile);
+        output << "[" << std::endl;
+        bool first = true;
+        for(const auto& relation : relations)
+        {
+        	bool ignore_relation = false;
+            switch (relation.type_)
+            {
+            case RELATION_TYPE_DIFF:
+            case RELATION_TYPE_EXACT_MATCH:
+            case RELATION_TYPE_STRONG_MATCH:
+            case RELATION_TYPE_UNTRUSTABLE:
+            	break;
+            default:
+            	ignore_relation = true;
+                break;
+            }
+            if(ignore_relation) continue;
+
+        	if(first)
+        		first = false;
+        	else
+        		output << "\t," << std::endl;
+        	output << "\t{" << std::endl;
+        	if(relation.type_ == RELATION_TYPE_UNTRUSTABLE)
+        	{
+        		output << "\t\t\"src\": ";
+        		output << "[";
+        		output << "]" << std::endl;
+        		output << "\t\t\"dst\": ";
+        		output << "[";
+        		output << "]" << std::endl;
+        	}
+        	else
+        	{
+				output << "\t\t\"src\": " << relation.version1_.address() << "," << std::endl;
+				output << "\t\t\"dst\": " << relation.version2_.address() << "," << std::endl;
+        	}
+        	output << "\t\t\"comment\": \"\"" << std::endl;
+        	output << "\t}" << std::endl;
+        }
+        output << "]" << std::endl;
+
+	}
+
+    if (!config.GetOption("Propagate", "ExportMatchesTxt").empty())
+    //if(filesystem::exists(filesystem::path(config.IsOptionTrue(""))))
+	{
+        const auto matchfile = config.GetOption("Propagate", "ExportMatchesTxt");
+    	LOG(WARNING, "Exporting to : %s\n", matchfile.c_str());
+        std::ofstream output;
+        output.open(matchfile);
+        char buff[1024];
+
+        for(const auto& relation : relations)
+        {
+        	if(relation.type_ == RELATION_TYPE_NONE || relation.type_ == RELATION_TYPE_ALTERNATIVE_FROM_N || relation.type_ == RELATION_TYPE_ALTERNATIVE_TO_N)
+        		continue;
+        	snprintf(buff, 1023, "rel: 0x%016lX to 0x%016lX, type=%d, objtype=%d, names=[%32s,%32s]",
+        			relation.version1_.address(),
+					relation.version2_.address(),
+					relation.type_,
+					relation.version1_.type(),
+        			relation.version1_.username().value,
+					relation.version2_.username().value
+        			);
+        	output << buff << std::endl;
+        }
+        output << "\t]" << std::endl;
+        output << "}" << std::endl;
+
+	}
     LOG(INFO, "Merge done\n");
 }
 }

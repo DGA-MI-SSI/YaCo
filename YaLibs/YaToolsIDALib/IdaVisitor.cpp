@@ -936,15 +936,20 @@ namespace
         return get_func(ea);
     }
 
-    void make_function(const HVersion& version, ea_t ea)
+    void make_function(Visitor& visitor, const HVersion& version, ea_t ea)
     {
         const auto func = add_function(ea, version);
         if(!func)
         {
             LOG(ERROR, "make_function: 0x%" PRIxEA " unable to add function\n", ea);
             return;
-        }
 
+        }
+        if(version.username().size > 0)
+        {
+        	make_name(visitor, version, ea);
+
+        }
         const auto flags = version.flags();
         if(flags)
             if(!set_function_flags(func, flags))
@@ -2175,7 +2180,7 @@ namespace
             case OBJECT_TYPE_FUNCTION:
                 if(visitor.plugin_)
                     visitor.plugin_->make_function_enter(version, ea);
-                make_function(version, ea);
+                make_function(visitor, version, ea);
                 if(visitor.plugin_)
                     visitor.plugin_->make_function_exit(version, ea);
                 break;

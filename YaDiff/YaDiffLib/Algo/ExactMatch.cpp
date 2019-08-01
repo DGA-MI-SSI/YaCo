@@ -34,7 +34,7 @@ public:
      * uses previously registered signature databases and input version relations
      * to compute a new version relation vector
      */
-    bool Analyse(const OnRelationFn& output, const RelationWalkerfn& input) override;
+    bool Analyse(const OnAddRelationFn& output, const RelationWalkerfn& input) override;
 
     const char* GetName() const override;
 private:
@@ -70,7 +70,7 @@ bool ExactMatchAlgo::Prepare(const IModel& db1, const IModel& db2)
     return true;
 }
 
-bool ExactMatchAlgo::Analyse(const OnRelationFn& output, const RelationWalkerfn& input)
+bool ExactMatchAlgo::Analyse(const OnAddRelationFn& output, const RelationWalkerfn& input)
 {
     UNUSED(input);
     int i = 0;
@@ -83,10 +83,7 @@ bool ExactMatchAlgo::Analyse(const OnRelationFn& output, const RelationWalkerfn&
         return false;
 
     Relation relation;
-    memset(&relation, 0, sizeof relation);
-    relation.confidence_ = RELATION_CONFIDENCE_MAX;
     relation.type_ = RELATION_TYPE_EXACT_MATCH;
-    relation.direction_ = RELATION_DIRECTION_BOTH;
 
     LOG(DEBUG, "matching %zd objects version to %zd objects version\n", pDb1_->num_objects(), pDb2_->num_objects());
 
@@ -111,7 +108,7 @@ bool ExactMatchAlgo::Analyse(const OnRelationFn& output, const RelationWalkerfn&
 
             relation.version2_ = remote_object_version;
             LOG(INFO, "associate %lx(%s) <-> %lx(%s)\n", relation.version1_.address(), relation.version1_.username().value, relation.version2_.address(), relation.version2_.username().value);
-            output(relation);
+            output(relation, false);
 
             exactMatchInitial++;
 

@@ -17,9 +17,11 @@
 namespace yadiff
 {
 
+typedef float vector_value;
+
 #define DEFAULT_DOUBLE -1
 
-typedef std::vector<double> Vector;
+typedef std::vector<vector_value> Vector;
 typedef std::vector<Vector> Matrix;
 
 
@@ -39,7 +41,7 @@ struct FunctionControlFlowGraphData_t
     double height_disp;                 // 11 Height dispersion, Variance of the distance to ret of my BB set (not a square)
     int width;                          // 12 Number (maximum) of BB at the same distance from the BB entry.
     double width_disp;                  // 13 Variance of the graph width, average on all dist_to_root levels.*
-    int flat_len;                       // 14 TODO Len (in instruction number) of the flatten vector (~ Min inst number from top to bottom°)
+    int flat_len;                       // 14 TODO Len (in instruction number) of the flatten vector (~ Min inst number from top to bottom)
 };
 #define FunctionControlFlowGraphData_FIELD_COUNT 14
 
@@ -125,7 +127,7 @@ public:
 
 
 
-std::vector<double> FunctionData2Vector(const FunctionData_t& function_data,
+yadiff::Vector FunctionData2Vector(const FunctionData_t& function_data,
     std::vector<std::string>* s_vector, std::string s_base);
 
 

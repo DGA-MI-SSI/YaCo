@@ -73,8 +73,8 @@ struct FunctionSignature_t
     std::vector <YaToolObjectId>                children;       // The pointers to the children functions
     std::map<int, std::vector<YaToolObjectId>>  equiLevelMap;   // for joining BBs
     yadiff::FunctionData_t                      function_data;
-    std::vector<double>                         vector;
-    std::vector<double>                         concatenated_vector;
+    yadiff::Vector                         vector;
+    yadiff::Vector                         concatenated_vector;
 };
 
 // Basic Block Map
@@ -96,13 +96,14 @@ struct VectorSignDatabase
 
 
 
-struct VectorSignAlgo : public yadiff::IDiffAlgo
+struct VectorSignAlgo : public yadiff::IVectorSigner
 {
     VectorSignAlgo(const yadiff::AlgoCfg& config);
 
     bool Prepare(const IModel& db1, const IModel& db2) override;
-    bool Analyse(const yadiff::OnRelationFn& output, const yadiff::RelationWalkerfn& input) override;
+    bool Analyse(const yadiff::OnAddRelationFn& output, const yadiff::RelationWalkerfn& input) override;
     const char* GetName() const override;
+    void BuildVectors(const IModel& db1, const yadiff::OnVectorFn& output) override;
 
     // Get width and height of the fctVersion, store in the map
     bool ControlFlowGraphHorizontalWalk(const HVersion& fctVersion, const HVersion& firstBBVersion, FunctionSignatureMap_t& functionSignatureMap);
@@ -114,6 +115,8 @@ struct VectorSignAlgo : public yadiff::IDiffAlgo
     // The Main prepare function, create a signature for all function and store it in a map (now global)
     void CreateFunctionSignatureMap(FunctionSignatureMap_t& functionSignatureMap, const IModel& db, const yadiff::AlgoCfg& config);
 
+    void CreateConcatenatedString(std::vector<std::string>* concatenated_string);
+    void CreateConcatenatedVector(FunctionSignatureMap_t& functionSignatureMap);
     // TODO
     // void MakeGroups(FunctionSignatureMap_t fsMap, VectorTree_t fctGroup);
 
@@ -128,7 +131,7 @@ struct VectorSignAlgo : public yadiff::IDiffAlgo
     void PrintFunctionSignatureMap(const FunctionSignatureMap_t& functionSignatureMap);
 
     // TODO must return something, see YaDiff relations currently, just printing them
-    void GetAllFunctionRelation(const yadiff::OnRelationFn& output, const yadiff::VectorGroups_t& vectorGroups1, const yadiff::VectorTree_t& fctGroup2);
+    void GetAllFunctionRelation(const yadiff::OnAddRelationFn& output, const yadiff::VectorGroups_t& vectorGroups1, const yadiff::VectorTree_t& fctGroup2);
 
     void LookupVersionFormId(HVersion& hObjectVersion, const YaToolObjectId& yaToolObjectId, const IModel& db);
 
@@ -140,6 +143,11 @@ private:
 }
 
 std::shared_ptr<yadiff::IDiffAlgo> yadiff::MakeVectorSignAlgo(const yadiff::AlgoCfg& config)
+{
+    return std::make_shared<VectorSignAlgo>(config);
+}
+
+std::shared_ptr<yadiff::IVectorSigner> yadiff::MakeVectorBuilder(const yadiff::AlgoCfg& config)
 {
     return std::make_shared<VectorSignAlgo>(config);
 }
@@ -177,7 +185,7 @@ bool VectorSignAlgo::Prepare(const IModel& db1, const IModel& db2)
 }
 
 
-bool VectorSignAlgo::Analyse(const yadiff::OnRelationFn& output, const yadiff::RelationWalkerfn& input)
+bool VectorSignAlgo::Analyse(const yadiff::OnAddRelationFn& output, const yadiff::RelationWalkerfn& input)
 {
     UNUSED(input);
     LOG(INFO, "Analyse\n");
@@ -187,7 +195,21 @@ bool VectorSignAlgo::Analyse(const yadiff::OnRelationFn& output, const yadiff::R
     return true;
 }
 
-
+void VectorSignAlgo::BuildVectors(const IModel& db1, const yadiff::OnVectorFn& output)
+{
+	UNUSED(db1);
+	UNUSED(output);
+	vectorSignDatabase1.pDb = &db1;
+	CreateFunctionSignatureMap(vectorSignDatabase1.functionSignatureMap, db1, config_);
+    for (const auto& it : vectorSignDatabase1.functionSignatureMap)
+    {
+		if (it.second.name.value != nullptr)
+		{
+			yadiff::FunctionVector vect = {db1.get(it.second.fctId), it.second.concatenated_vector};
+			output(vect);
+		}
+    }
+}
 
 
 
@@ -198,13 +220,11 @@ void VectorSignAlgo::LookupVersionFormId(HVersion& hObjectVersion, const YaToolO
 }
 
 // Currently just print, with one database.
-void VectorSignAlgo::GetAllFunctionRelation(const yadiff::OnRelationFn& output, const yadiff::VectorGroups_t& vectorGroups1, const yadiff::VectorTree_t& fctGroup2)
+void VectorSignAlgo::GetAllFunctionRelation(const yadiff::OnAddRelationFn& output, const yadiff::VectorGroups_t& vectorGroups1, const yadiff::VectorTree_t& fctGroup2)
 {
     Relation relation;
     memset(&relation, 0, sizeof relation);
-    relation.confidence_ = RELATION_CONFIDENCE_MIN;
     relation.type_       = RELATION_TYPE_VECTOR_SIGN;
-    relation.direction_  = RELATION_DIRECTION_BOTH;
 
 
     // For all vectors in db1
@@ -231,19 +251,11 @@ void VectorSignAlgo::GetAllFunctionRelation(const yadiff::OnRelationFn& output, 
 
         if (closestId == 0)
             continue;
-
-        if (closestDistance == 0)
-        {
-            relation.confidence_ = RELATION_CONFIDENCE_MAX;
-        }
-        else if (closestDistance <= 2)
-        {
-            relation.confidence_ = RELATION_CONFIDENCE_MIN;
-        }
+        UNUSED(closestDistance);
 
         LookupVersionFormId(relation.version1_, fctSign.fctId, *vectorSignDatabase1.pDb);
         LookupVersionFormId(relation.version2_, closestId    , *vectorSignDatabase2.pDb);
-        output(relation);
+        output(relation, false);
 
     } // End for all vectors in db1
 }
@@ -674,7 +686,6 @@ yadiff::Matrix InvertMatrix(yadiff::Matrix matrix_line)
     return matrix_col;
 }
 
-
 void ConcatenateFamilly(FunctionSignature_t& function_signature,
     yadiff::Matrix& matrix_line)
 {
@@ -687,11 +698,11 @@ void ConcatenateFamilly(FunctionSignature_t& function_signature,
         matrix_line.push_back(yadiff::Vector(size, 0));
     }
 
-    std::vector<double> mean = std::vector<double>();
+    yadiff::Vector mean = yadiff::Vector();
     mean.reserve(size);
-    std::vector<double> median = std::vector<double>();
+    yadiff::Vector median = yadiff::Vector();
     median.reserve(size);
-    std::vector<double> disp = std::vector<double>();
+    yadiff::Vector disp = yadiff::Vector();
     disp.reserve(size);
 
     // 1.2: Invert matrix
@@ -715,8 +726,7 @@ void ConcatenateFamilly(FunctionSignature_t& function_signature,
         disp.begin(), disp.end());
 }
 
-
-void CreateConcatenatedVector(FunctionSignatureMap_t& functionSignatureMap)
+void VectorSignAlgo::CreateConcatenatedVector(FunctionSignatureMap_t& functionSignatureMap)
 {
     // Get all vector
     for (auto& it : functionSignatureMap)
@@ -750,43 +760,53 @@ void CreateConcatenatedVector(FunctionSignatureMap_t& functionSignatureMap)
         // 0: Me
         function_signature.concatenated_vector = function_signature.vector;
 
-        // 1: Father
-        // 1.1: Get matrix
-        yadiff::Matrix matrix_line = std::vector<std::vector<double>>();
-        for (auto& parent_id : function_signature.parents)
+        if(config_.VectorSign.concatenate_parents)
         {
-            std::vector<double> parent_vector = functionSignatureMap[parent_id].vector;
-            matrix_line.push_back(parent_vector);
+			// 1: Father
+			// 1.1: Get matrix
+			yadiff::Matrix matrix_line = std::vector<yadiff::Vector>();
+			for (auto& parent_id : function_signature.parents)
+			{
+				yadiff::Vector parent_vector = functionSignatureMap[parent_id].vector;
+				matrix_line.push_back(parent_vector);
+			}
+			// 1.2 Conc
+			ConcatenateFamilly(function_signature, matrix_line);
         }
-        // 1.2 Conc
-        ConcatenateFamilly(function_signature, matrix_line);
-
-        // 2: Child
-        // 2.1: Get matrix
-        matrix_line = std::vector<std::vector<double>>();
-        for (auto& child_id : function_signature.children)
+        if(config_.VectorSign.concatenate_children)
         {
-            std::vector<double> child_vector = functionSignatureMap[child_id].vector;
-            matrix_line.push_back(child_vector);
+			// 2: Child
+			// 2.1: Get matrix
+			matrix_line = std::vector<yadiff::Vector>();
+			for (auto& child_id : function_signature.children)
+			{
+				yadiff::Vector child_vector = functionSignatureMap[child_id].vector;
+				matrix_line.push_back(child_vector);
+			}
+			// 2.2 Conc
+			ConcatenateFamilly(function_signature, matrix_line);
         }
-        // 2.2 Conc
-        ConcatenateFamilly(function_signature, matrix_line);
-
     }
 }
 
 
-void CreateConcatenatedString(std::vector<std::string>* concatenated_string)
+void VectorSignAlgo::CreateConcatenatedString(std::vector<std::string>* concatenated_string)
 {
     yadiff::FunctionData_t null_function_data;
 
     FunctionData2Vector(null_function_data, concatenated_string, "");
-    FunctionData2Vector(null_function_data, concatenated_string, "father_median_");
-    FunctionData2Vector(null_function_data, concatenated_string, "father_mean_");
-    FunctionData2Vector(null_function_data, concatenated_string, "father_disp_");
-    FunctionData2Vector(null_function_data, concatenated_string, "child_median_");
-    FunctionData2Vector(null_function_data, concatenated_string, "child_mean_");
-    FunctionData2Vector(null_function_data, concatenated_string, "child_disp_");
+    if(config_.VectorSign.concatenate_parents)
+    {
+		FunctionData2Vector(null_function_data, concatenated_string, "father_median_");
+		FunctionData2Vector(null_function_data, concatenated_string, "father_mean_");
+		FunctionData2Vector(null_function_data, concatenated_string, "father_disp_");
+    }
+	if(config_.VectorSign.concatenate_children)
+	{
+		FunctionData2Vector(null_function_data, concatenated_string, "child_median_");
+		FunctionData2Vector(null_function_data, concatenated_string, "child_mean_");
+		FunctionData2Vector(null_function_data, concatenated_string, "child_disp_");
+	}
 }
 
 
