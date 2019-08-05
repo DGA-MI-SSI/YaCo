@@ -26,3 +26,46 @@
 
 #define STATIC_ASSERT_POD(X) static_assert(std::is_pod<X>::value, # X " must be a POD structure")
 #define STATIC_ASSERT_SIZEOF(X,Y) static_assert(sizeof(X) == (Y), # X " must have sizeof " # Y)
+
+// TODO add log in a file
+#if 1
+#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("yadiff", (FMT), ## __VA_ARGS__)
+#else
+#define LOG(...) do {} while(0)
+#endif
+
+// "value" -> s_value
+#define DECLARE_REF(name, value)\
+    const char name ## _txt[] = value;\
+    const const_string_ref name = {name ## _txt, sizeof name ## _txt - 1};
+
+
+// Convert : s_ascii -> s_formatted_stringed
+#define DECLARE_STRINGER(NAME, FMT, VALUE_TYPE)\
+const_string_ref NAME(char* buf, size_t szbuf, VALUE_TYPE value)\
+{\
+    const auto n = snprintf(buf, szbuf, (FMT), value);\
+    if(n <= 0) {\
+        return {nullptr, 0};\
+    }\
+    return {buf, static_cast<size_t>(n)};\
+}
+
+
+#define DECL_CC_NAME(VALUE, NAME) {VALUE, {NAME, sizeof NAME - 1}},
+
+// Ignore gcc -Wunused-function
+#ifdef __GNUC__
+#define UNUSED_VARIABLE __attribute__((unused))
+#else
+#define UNUSED_VARIABLE
+#endif
+
+
+// Assert condition for test validation (used in ExporterValidatorVisitor.cpp)
+#define validator_assert(CONDITION, FMT, ...) do {\
+    if(CONDITION) break;\
+    YALOG_ERROR(nullptr, " " FMT, ## __VA_ARGS__);\
+    exit(-1);\
+} while(0)
+

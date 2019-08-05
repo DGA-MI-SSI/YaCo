@@ -13,48 +13,68 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import argparse
-import os
-import subprocess
-import zipfile
+from argparse import ArgumentParser
+from os import walk
+from os.path import dirname, realpath, relpath, abspath, splitext, join
+from subprocess import check_output, STDOUT, CalledProcessError
+from zipfile import ZipFile, ZIP_DEFLATED
+from shutil import copytree, rmtree
 
 def procexec(cwd, *args):
+    """ Execute args at current wroking dir """
     try:
-        output = subprocess.check_output(" ".join(args), cwd=cwd, stderr=subprocess.STDOUT, shell=True)
+        output = check_output(" ".join(args), cwd=cwd, stderr=STDOUT, shell=True)
         output = output.strip()
         return output, None
-    except subprocess.CalledProcessError as e:
+    except CalledProcessError as e:
         return None, e.output.decode().strip()
 
 def walkdir(path, callback, *exts):
-    for root, dirs, files in os.walk(path, followlinks=True):
+    """ Execute callback for all dir in `find pat` """
+    for root, dirs, files in walk(path, followlinks=True):
         for fi in files:
-            _, ext = os.path.splitext(fi)
+            _, ext = splitext(fi)
             if ext in exts:
                 continue
-            callback(os.path.join(root, fi))
+            callback(join(root, fi))
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("bindir", type=os.path.abspath, help="binary directory")
-    parser.add_argument("outdir", type=os.path.abspath, help="output directory")
+    """ Create package (release) """
+    # Parse args
+    parser = ArgumentParser()
+    parser.add_argument("bindir", type=abspath, help="binary directory")
+    parser.add_argument("outdir", type=abspath, help="output directory")
     parser.add_argument("platform", type=str, help="package platform")
     parser.add_argument("--git",  type=str, default="git", help="optional git executable")
-    opts = parser.parse_args()
-    tag, err = procexec(opts.bindir, opts.git, "describe", "--tags", "--long", "--dirty")
+    args = parser.parse_args()
+
+    # Get git tag
+    tag, err = procexec(args.bindir, args.git, "describe", "--tags", "--long", "--dirty")
     if err:
         raise Exception(err)
     tag = tag.decode()
     if not tag:
-        raise Exception("missing tag on git %s" % opts.bindir)
-    name = "yatools-%s-%s" % (opts.platform, tag)
+        raise Exception("missing tag on git %s" % args.bindir)
+
+    # Get, Print name out
+    name = "yatools-%s-%s" % (args.platform, tag)
     print("packaging %s.zip" % name)
-    with zipfile.ZipFile(os.path.join(opts.outdir, name + ".zip"), "w", zipfile.ZIP_DEFLATED) as fh:
+
+    # Copy Yaco
+    s_dir = dirname(realpath(__file__))
+    s_from = realpath(s_dir + "/../YaCo")
+    s_to = realpath(args.bindir + '/Yatools/YaCo')
+    print('copying : ' + s_from + ' -> ' + s_to)
+    rmtree(s_to)
+    copytree(s_from, s_to)
+
+    # Zip
+    with ZipFile(join(args.outdir, name + ".zip"), "w", ZIP_DEFLATED) as fh:
         def callback(path):
-            dst = os.path.join(name, os.path.relpath(path, opts.bindir))
+            dst = join(name, relpath(path, args.bindir))
             print(dst)
             fh.write(path, dst)
-        walkdir(opts.bindir, callback, ".pyc")
+        walkdir(args.bindir, callback, ".pyc")
 
 if __name__ == "__main__":
     main()

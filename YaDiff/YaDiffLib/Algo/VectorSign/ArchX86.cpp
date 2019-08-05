@@ -10,12 +10,10 @@
 
 // Must init
 
-namespace
-{
+namespace {
 typedef std::map<x86_insn, std::vector<yadiff::InstructionType_e>> InsMap_t;
 
-struct X86Arch : public yadiff::IArch
-{
+struct X86Arch : public yadiff::IArch {
     X86Arch();
 
     bool IsInstructionType(const cs_insn&, yadiff::InstructionType_e) const override;
@@ -25,12 +23,10 @@ private:
 
     InsMap_t insmap;
 };
-}
+} // End of empty namespace
 
-X86Arch::X86Arch()
-{
-    static const x86_insn fpuList[] =
-    {
+X86Arch::X86Arch() {
+    static const x86_insn fpuList[] = {
         // Data Transfer
         X86_INS_FLD, X86_INS_FST, X86_INS_FSTP, X86_INS_FILD, X86_INS_FIST, X86_INS_FISTP, X86_INS_FISTTP, X86_INS_FBLD,
         X86_INS_FBSTP, X86_INS_FXCH, X86_INS_FCMOVE, X86_INS_FCMOVNE, X86_INS_FCMOVB, X86_INS_FCMOVBE, X86_INS_FCMOVNB,
@@ -54,63 +50,66 @@ X86Arch::X86Arch()
         X86_INS_FINCSTP, X86_INS_FDECSTP, X86_INS_FFREE, X86_INS_FNINIT, X86_INS_FNCLEX, X86_INS_FNSTCW, X86_INS_FLDCW, X86_INS_FNSTENV,
         X86_INS_FLDENV, X86_INS_FNSAVE, X86_INS_FRSTOR, X86_INS_FNSTSW, X86_INS_WAIT, X86_INS_FNOP
     };
-    for(x86_insn i : fpuList)
+    for(x86_insn i : fpuList) {
         insmap[i].push_back(yadiff::INST_TYPE_SHIFT);
+    }
 
     // Data transfer TODO remove push pop .. Spek with void.
     // TODO add the other instruction (after / in intel doc)
-    static const x86_insn movList[] =
-    {
+    static const x86_insn movList[] = {
         // Missing (CMOVC, CMOVNC, PUSHA, POPA);
         // I removed dataX86_INS_XCHG, X86_INS_BSWAP, X86_INS_XADD, X86_INS_CMPXCHG, X86_INS_CMPXCHG8B, X86_INS_PUSH, X86_INS_POP
         X86_INS_MOV, X86_INS_CMOVE, X86_INS_CMOVNE, X86_INS_CMOVA, X86_INS_CMOVAE, X86_INS_CMOVB, X86_INS_CMOVBE, X86_INS_CMOVG, X86_INS_CMOVGE,
         X86_INS_CMOVL, X86_INS_CMOVLE, X86_INS_CMOVO, X86_INS_CMOVNO, X86_INS_CMOVS, X86_INS_CMOVNS, X86_INS_CMOVP, X86_INS_CMOVNP
     };
-    for(x86_insn i : movList)
+    for(x86_insn i : movList) {
         insmap[i].push_back(yadiff::INST_TYPE_MOV);
+    }
 
-    static const x86_insn arithmeticList[] =
-    {
+    static const x86_insn arithmeticList[] = {
         // Just removed CMP
         X86_INS_ADD, X86_INS_ADC, X86_INS_SUB, X86_INS_SBB, X86_INS_IMUL, X86_INS_MUL, X86_INS_IDIV, X86_INS_DIV, X86_INS_INC, X86_INS_DEC, X86_INS_NEG
     };
-    for(x86_insn i : arithmeticList)
+    for(x86_insn i : arithmeticList) {
         insmap[i].push_back(yadiff::INST_TYPE_ARITHMETIC);
+    }
 
-    static const x86_insn logicalList[] =
-    {
+    static const x86_insn logicalList[] = {
         // Yes just 4 like Ninja Turtles.
         X86_INS_AND, X86_INS_OR, X86_INS_XOR, X86_INS_NOT
     };
-    for(x86_insn i : logicalList)
+    for(x86_insn i : logicalList) {
         insmap[i].push_back(yadiff::INST_TYPE_LOGICAL);
+    }
 
-    static const x86_insn shiftList[] =
-    {
+    static const x86_insn shiftList[] = {
         X86_INS_SAR, X86_INS_SHR, X86_INS_SAL, X86_INS_SHL, X86_INS_SHRD, X86_INS_SHLD, X86_INS_ROR, X86_INS_ROL, X86_INS_RCR, X86_INS_RCL
     };
-    for(x86_insn i : shiftList)
+    for(x86_insn i : shiftList) {
         insmap[i].push_back(yadiff::INST_TYPE_SHIFT);
+    }
 }
 
-bool X86Arch::CheckMap(x86_insn instructionId, yadiff::InstructionType_e instructionTypeA) const
-{
+
+bool X86Arch::CheckMap(x86_insn instructionId, yadiff::InstructionType_e instructionTypeA) const {
     const auto it = insmap.find(instructionId);
-    if(it == insmap.end())
+    if(it == insmap.end()) {
         return false;
-    for(const auto instructionType : it->second)
-        if(instructionType == instructionTypeA)
+    }
+    for(const auto instructionType : it->second) {
+        if(instructionType == instructionTypeA) {
             return true;
+        }
+    }
     return false;
 }
 
-bool X86Arch::IsInstructionType(const cs_insn& instruction, yadiff::InstructionType_e type) const
-{
+
+bool X86Arch::IsInstructionType(const cs_insn& instruction, yadiff::InstructionType_e type) const {
     const cs_detail* detail = instruction.detail;
     const x86_insn insn_id = static_cast<x86_insn>(instruction.id);
 
-    switch (type)
-    {
+    switch (type) {
     case yadiff::INST_TYPE_ANY:
         return true;
 
@@ -130,9 +129,11 @@ bool X86Arch::IsInstructionType(const cs_insn& instruction, yadiff::InstructionT
 
 
     case yadiff::INST_TYPE_CALL:
-        for (auto i : instruction.detail->groups)
-            if (i == CS_GRP_CALL)
+        for (auto i : instruction.detail->groups) {
+            if (i == CS_GRP_CALL) {
                 return true;
+            }
+        }
         return false;
 
 
@@ -149,9 +150,11 @@ bool X86Arch::IsInstructionType(const cs_insn& instruction, yadiff::InstructionT
 
 
     case yadiff::INST_TYPE_CONDITIONAL:
-        for (uint8_t i = 0; i < instruction.detail->regs_read_count; i++)
-            if (instruction.detail->regs_read[i] == X86_REG_EFLAGS)
+        for (uint8_t i = 0; i < instruction.detail->regs_read_count; i++) {
+            if (instruction.detail->regs_read[i] == X86_REG_EFLAGS) {
                 return true;
+            }
+        }
         return false;
 
 
@@ -187,21 +190,20 @@ bool X86Arch::IsInstructionType(const cs_insn& instruction, yadiff::InstructionT
 
     case yadiff::INST_TYPE_REG_MOVE:
         // Is mov with 2 operand regs
-        if (!IsInstructionType(instruction, yadiff::INST_TYPE_MOV))
+        if (!IsInstructionType(instruction, yadiff::INST_TYPE_MOV)) {
             return false;
+        }
         return instruction.detail->x86.op_count == 2
             && instruction.detail->x86.operands[0].type == X86_OP_REG
             && instruction.detail->x86.operands[1].type == X86_OP_REG;
 
     case yadiff::INST_TYPE_COUNT:
-	break;
+    break;
     }
 
     return false;
 }
 
-std::shared_ptr<yadiff::IArch> yadiff::MakeX86Arch()
-{
+std::shared_ptr<yadiff::IArch> yadiff::MakeX86Arch() {
     return std::make_shared<X86Arch>();
 }
-

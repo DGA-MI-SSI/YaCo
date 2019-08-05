@@ -75,22 +75,19 @@ Mmap::Mmap(const char* pPath)
     HANDLE hMap;
     void*  pView;
 
-    // open file
+    // Open file
     hFile = CreateFile(pPath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
-    if(hFile == INVALID_HANDLE_VALUE)
-        return;
+    if(hFile == INVALID_HANDLE_VALUE) { return; }
     File.reset(hFile, &TryCloseHandle);
 
-    // create file mapping
+    // Create file mapping
     hMap = CreateFileMapping(hFile, NULL, PAGE_READONLY, 0, 0, nullptr);
-    if(!hMap)
-        return;
+    if(!hMap) { return; }
     Mapping.reset(hMap, &TryCloseHandle);
 
-    // create map view
+    // Create map view
     pView = MapViewOfFile(hMap, FILE_MAP_READ, 0, 0, 0);
-    if(!pView)
-        return;
+    if(!pView) { return; }
     View.reset(pView, &TryUnmapViewOfFile);
 }
 
@@ -102,8 +99,7 @@ const void* Mmap::Get() const
 size_t Mmap::GetSize() const
 {
     LARGE_INTEGER Size;
-    if(!GetFileSizeEx(File.get(), &Size))
-        return 0;
+    if(!GetFileSizeEx(File.get(), &Size)) { return 0; }
     return static_cast<size_t>(Size.QuadPart);
 }
 
@@ -215,8 +211,9 @@ std::string CreateTemporaryDirectory(const std::string& base)
 
     std::error_code err;
     fs::create_directories(path, err);
-    if(err)
+    if(err) {
         throw std::runtime_error("unable to create directories");
+    }
 
     return path.generic_string();
 }

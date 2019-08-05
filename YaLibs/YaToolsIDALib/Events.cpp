@@ -42,7 +42,12 @@
 #   include <experimental/filesystem>
 #endif
 
-#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("events", (FMT), ## __VA_ARGS__)
+
+
+/********************************************************************************
+0/         Define objects
+********************************************************************************/
+
 
 namespace fs = std::experimental::filesystem;
 
@@ -139,8 +144,7 @@ namespace
             // we do not clear previous name
             // even if there is no current name
             // because IDA remove & add name on renaming
-            if(!ok)
-                continue;
+            if(!ok) { continue; }
 
             const auto id = local_types::hash(type.name.c_str());
             m.renames[ord] = type.name;
@@ -157,12 +161,11 @@ namespace
 
     const qstring& try_rename_local_type(Renames& r, LocalTypeModel& m, uint32_t ord, const qstring& name)
     {
-        if(ord >= m.renames.size())
-            return name;
+        // Return if ordinal too high
+        if(ord >= m.renames.size()) { return name; }
 
-        const auto& old = m.renames[ord];
-        if(old.empty() || old == name)
-            return name;
+        const qstring& old = m.renames[ord];
+        if(old.empty() || old == name) { return name; }
 
         r.push_back({old, name});
         return old;
@@ -178,8 +181,7 @@ namespace
         {
             local_types::Type type;
             const auto ok = local_types::identify(&type, ord);
-            if(!ok)
-                continue;
+            if(!ok) { continue; }
 
             const auto name = try_rename_local_type(renames, m, ord, type.name);
             const auto id = local_types::hash(name.c_str());
@@ -188,14 +190,11 @@ namespace
             const auto equal = !added
                             && it->second.name == type.name // we need to check latest name
                             && it->second.tif.equals_to(type.tif);
-            if(!added)
-                m.ids.erase(it);
-            if(equal)
-                continue;
+            if(!added) { m.ids.erase(it); }
+            if(equal) { continue; }
 
             LOG(DEBUG, "local_type: 0x%016" PRIx64 " %s %s\n", id, type.name.c_str(), added ? "added" : "updated");
-            if(type.ghost)
-                update(id, type);
+            if(type.ghost) { update(id, type); }
         }
 
         // remaining local types have been deleted
@@ -216,17 +215,11 @@ namespace
     }
 }
 
-Events::Events(IRepository& repo)
-    : repo_(repo)
-    , qpool_(3)
-{
-    snapshot_local_types(ltypes_);
-}
 
-std::shared_ptr<IEvents> MakeEvents(IRepository& repo)
-{
-    return std::make_shared<Events>(repo);
-}
+/********************************************************************************
+    1/         Implement Helpers
+********************************************************************************/
+
 
 namespace
 {
@@ -254,13 +247,15 @@ namespace
 
     std::string make_struc_prefix(struc_t* struc)
     {
-        if(struc->props & SF_FRAME)
+        if(struc->props & SF_FRAME) {
             return make_frame_prefix(struc);
+        }
 
         qstring name;
         get_struc_name(&name, struc->id);
-        if(name.empty())
+        if(name.empty()) {
             return std::string();
+        }
 
         return std::string("struc ") + name.c_str() + ": ";
     }
@@ -270,28 +265,33 @@ namespace
         qstring name;
         get_member_name(&name, member->id);
         auto prefix = make_frame_prefix(frame);
-        if(prefix.empty() || name.empty())
+        if(prefix.empty() || name.empty()) {
             return prefix;
+        }
 
-        while(name[0] == ' ')
+        while(name[0] == ' ') {
             name.remove(0, 1);
+        }
         prefix.resize(prefix.size() - 1); // remove last ' '
         return prefix + "." + name.c_str() + " ";
     }
 
     std::string make_member_prefix(struc_t* struc, member_t* member)
     {
-        if(struc->props & SF_FRAME)
+        if(struc->props & SF_FRAME) {
             return make_stackmember_prefix(struc, member);
+        }
 
         qstring name;
         get_member_name(&name, member->id);
         auto prefix = make_struc_prefix(struc);
-        if(prefix.empty() || name.empty())
+        if(prefix.empty() || name.empty()) {
             return prefix;
+        }
 
-        while(name[0] == ' ')
+        while(name[0] == ' ') {
             name.remove(0, 1);
+        }
         prefix.resize(prefix.size() - 2); // remove last ": "
         return prefix + "." + name.c_str() + ": ";
     }
@@ -300,8 +300,9 @@ namespace
     {
         qstring name;
         get_enum_name(&name, eid);
-        if(name.empty())
+        if(name.empty()) {
             return std::string();
+        }
 
         return std::string("enum ") + name.c_str() + ": ";
     }
@@ -311,8 +312,9 @@ namespace
         qstring name;
         get_enum_member_name(&name, mid);
         auto prefix = make_enum_prefix(eid);
-        if(prefix.empty() || name.empty())
+        if(prefix.empty() || name.empty()) {
             return std::string();
+        }
 
         prefix.resize(prefix.size() - 2); // remove last ": "
         return prefix + "." + name.c_str() + ": ";
@@ -320,27 +322,22 @@ namespace
 
     std::string make_comment_prefix(ea_t ea)
     {
-        if(ea == BADADDR)
-            return std::string();
+        // Check in
+        if(ea == BADADDR) { return std::string(); }
 
         auto struc = get_struc(ea);
-        if(struc)
-            return make_struc_prefix(struc);
+        if(struc) { return make_struc_prefix(struc); }
 
         const auto member = get_member_by_id(ea, &struc);
-        if(member)
-            return make_member_prefix(struc, member);
+        if(member) { return make_member_prefix(struc, member); }
 
         const auto idx = get_enum_idx(ea);
-        if(idx != BADADDR)
-            return make_enum_prefix(ea);
+        if(idx != BADADDR) { return make_enum_prefix(ea); }
 
         const auto eid = get_enum_member_enum(ea);
-        if(eid != BADADDR)
-            return make_enum_member_prefix(eid, ea);
+        if(eid != BADADDR) { return make_enum_member_prefix(eid, ea); }
 
-        if(!getseg(ea))
-            return std::string();
+        if(!getseg(ea)) { return std::string(); }
 
         return to_hex(ea) + ": ";
     }
@@ -348,25 +345,32 @@ namespace
     void add_auto_comment(IRepository& repo, ea_t ea)
     {
         const auto prefix = make_comment_prefix(ea);
-        if(!prefix.empty())
+        if(!prefix.empty()) {
             repo.add_comment(prefix + "updated");
+        }
     }
 
     YaToolObjectId get_struc_stack_id(ea_t struc_id, ea_t func_ea)
     {
-        if(func_ea != BADADDR)
+        if(func_ea != BADADDR) {
             return hash::hash_stack(func_ea);
+        }
 
         return strucs::hash(struc_id);
     }
 
+
+    //
     void add_ea(Events& ev, YaToolObjectId id, YaToolObjectType_e type, ea_t ea)
     {
         const bool inserted = ev.eas_.emplace(Ea{id, type, ea}).second;
-        if(inserted)
+        if(inserted) {
             add_auto_comment(ev.repo_, ea);
+        }
     }
 
+
+    // Add effective address event
     void add_ea(Events& ev, ea_t ea)
     {
         const auto flags = get_flags(ea);
@@ -375,31 +379,37 @@ namespace
             // we must be careful to compute func id with func start ea
             // but ea may point to the middle of any basic block
             const auto func = get_func(ea);
-            if(func)
+            if(func) {
                 add_ea(ev, hash::hash_function(func->start_ea), OBJECT_TYPE_FUNCTION, func->start_ea);
+            }
             ea = ya::get_range_item(ea).start_ea;
             add_ea(ev, hash::hash_ea(ea), func ? OBJECT_TYPE_BASIC_BLOCK : OBJECT_TYPE_CODE, ea);
             return;
         }
         const auto seg = getseg(ea);
-        if(seg)
+        if(seg) {
             return add_ea(ev, hash::hash_ea(ea), OBJECT_TYPE_DATA, ea);
+        }
 
         auto struc = get_struc(ea);
-        if(struc)
+        if(struc) {
             return ev.touch_struc(struc->id);
+        }
 
         const auto member = get_member_by_id(ea, &struc);
-        if(member)
+        if(member) {
             return ev.touch_struc(struc->id);
+        }
 
         const auto idx = get_enum_idx(ea);
-        if(idx != BADADDR)
+        if(idx != BADADDR) {
             return ev.touch_enum(ea);
+        }
 
         const auto eid = get_enum_member_enum(ea);
-        if(eid != BADADDR)
+        if(eid != BADADDR) {
             return ev.touch_enum(eid);
+        }
 
         qstring buf;
         LOG(ERROR, "add_ea: invalid ea 0x%" PRIxEA ": %s\n", ea, getnode(ea).get_name(&buf) == -1 ? "<unknown>" : buf.c_str());
@@ -422,10 +432,9 @@ namespace
 
     void update_enum(Events& ev, enum_t enum_id)
     {
-        // check first whether enum_id is actually a member id
+        // Check first whether enum_id is actually a member id
         const auto parent_id = get_enum_member_enum(enum_id);
-        if(parent_id != BADADDR)
-            enum_id = parent_id;
+        if(parent_id != BADADDR) { enum_id = parent_id; }
 
         const auto id = enums::hash(enum_id);
         ev.enums_.emplace(id, enum_id);
@@ -443,69 +452,24 @@ namespace
         const auto id = get_struc_stack_id(struc_id, func_ea);
         ev.strucs_.emplace(id, Struc{struc_id, func_ea});
 
+        // Get struct & Check
         const auto struc = get_struc(struc_id);
-        if(!struc)
-            return func_ea;
+        if(!struc) { return func_ea; }
 
-        for(size_t i = 0; struc && i < struc->memqty; ++i)
+        // For each member of struct
+        for(size_t i = 0; struc && i < struc->memqty; ++i) {
+            // Update it
             update_struc_member(ev, id, struc, &struc->members[i]);
+        }
 
         return func_ea;
     }
-}
 
-void Events::touch_struc(tid_t struc_id)
-{
-    const auto func_ea = update_struc(*this, struc_id);
-    if(func_ea != BADADDR)
-        touch_func(func_ea);
-}
-
-void Events::touch_enum(enum_t enum_id)
-{
-    const auto parent_id = get_enum_member_enum(enum_id);
-    add_auto_comment(repo_, enum_id);
-    if(parent_id != BADADDR)
-        enum_id = parent_id;
-    update_enum(*this, enum_id);
-}
-
-void Events::touch_ea(ea_t ea)
-{
-    add_ea(*this, ea);
-}
-
-void Events::touch_func(ea_t ea)
-{
-    add_ea(*this, ea);
-}
-
-void Events::touch_code(ea_t ea)
-{
-    ea = ya::get_range_code(ea, 0, ~0U).start_ea;
-    add_ea(*this, hash::hash_ea(ea), OBJECT_TYPE_CODE, ea);
-}
-
-void Events::touch_data(ea_t ea)
-{
-    add_ea(*this, hash::hash_ea(ea), OBJECT_TYPE_DATA, ea);
-}
-
-void Events::touch_types()
-{
-    diff_local_types(ltypes_, [&](YaToolObjectId id, const local_types::Type& type)
-    {
-        local_types_.emplace(id, type.tif.get_ordinal());
-    });
-    snapshot_local_types(ltypes_);
-}
-
-namespace
-{
     bool try_accept_struc(YaToolObjectId id, const Struc& struc)
     {
-        if(struc.func_ea != BADADDR)
+        if (struc.func_ea != BADADDR) {
             return get_func_by_frame(struc.id) == struc.func_ea;
+        }
 
         const auto got_id = strucs::hash(struc.id);
         return id == got_id;
@@ -513,20 +477,24 @@ namespace
 
     void save_structs(Events& ev, IModelIncremental& model, IModelVisitor& visitor)
     {
-        for(const auto p : ev.strucs_)
+        for (const auto p : ev.strucs_)
         {
             // if frame, we need to update parent function
-            if(get_func(p.second.func_ea))
+            if (get_func(p.second.func_ea)) {
                 model.accept_function(visitor, p.second.func_ea);
-            if(try_accept_struc(p.first, p.second))
+            }
+            if (try_accept_struc(p.first, p.second)) {
                 model.accept_struct(visitor, p.second.func_ea, p.second.id);
-            else if(p.second.func_ea == BADADDR)
+            }
+            else if (p.second.func_ea == BADADDR) {
                 model.delete_version(visitor, OBJECT_TYPE_STRUCT, p.first);
-            else
+            }
+            else {
                 model.delete_version(visitor, OBJECT_TYPE_STACKFRAME, p.first);
+            }
         }
 
-        for(const auto p : ev.struc_members_)
+        for (const auto p : ev.struc_members_)
         {
             const auto is_valid_parent = try_accept_struc(p.second.parent_id, p.second.struc);
             const auto struc = p.second.struc.func_ea != BADADDR ?
@@ -535,51 +503,57 @@ namespace
             const auto member = get_member(struc, p.second.offset);
             const auto id = hash::hash_member(p.second.parent_id, member ? member->soff : -1);
             const auto is_valid_member = p.first == id;
-            if(is_valid_parent && is_valid_member)
+            if (is_valid_parent && is_valid_member) {
                 model.accept_struct(visitor, p.second.struc.func_ea, p.second.struc.id);
-            else if(p.second.struc.func_ea == BADADDR)
+            }
+            else if (p.second.struc.func_ea == BADADDR) {
                 model.delete_version(visitor, OBJECT_TYPE_STRUCT_MEMBER, p.first);
-            else
+            }
+            else {
                 model.delete_version(visitor, OBJECT_TYPE_STACKFRAME_MEMBER, p.first);
+            }
         }
     }
 
     void save_local_types(Events& ev, IModelIncremental& model, IModelVisitor& visitor)
     {
-        for(const auto p : ev.local_types_)
+        for (const auto p : ev.local_types_)
         {
             const auto got_id = local_types::hash(p.second);
-            if(p.first == got_id)
+            if (p.first == got_id) {
                 model.accept_local_type(visitor, p.second);
-            else
+            } else {
                 model.delete_version(visitor, OBJECT_TYPE_LOCAL_TYPE, p.first);
+            }
         }
     }
 
     void save_enums(Events& ev, IModelIncremental& model, IModelVisitor& visitor)
     {
-        for(const auto p : ev.enums_)
+        for (const auto p : ev.enums_)
         {
             // on renames, as enum_id is still valid, we need to validate its id again
             const auto id = enums::hash(p.second);
             const auto idx = get_enum_idx(p.second);
-            if(idx == BADADDR || id != p.first)
+            if (idx == BADADDR || id != p.first) {
                 model.delete_version(visitor, OBJECT_TYPE_ENUM, p.first);
-            else
+            } else {
                 model.accept_enum(visitor, p.second);
+            }
         }
         const auto qbuf = ev.qpool_.acquire();
-        for(const auto p : ev.enum_members_)
+        for (const auto p : ev.enum_members_)
         {
             // on renames, we need to check both ids
             const auto parent_id = enums::hash(p.second.eid);
             ya::wrap(&::get_enum_member_name, *qbuf, p.second.mid);
             const auto id = hash::hash_enum_member(parent_id, ya::to_string_ref(*qbuf));
             const auto parent = get_enum_member_enum(p.second.mid);
-            if(parent == BADADDR || id != p.first || parent_id != p.second.parent_id)
+            if (parent == BADADDR || id != p.first || parent_id != p.second.parent_id) {
                 model.delete_version(visitor, OBJECT_TYPE_ENUM_MEMBER, p.first);
-            else
+            } else {
                 model.accept_enum(visitor, p.second.eid);
+            }
         }
     }
 
@@ -587,7 +561,7 @@ namespace
     {
         const auto got = hash::hash_function(ea);
         const auto func = get_func(ea);
-        if(got != id || !func)
+        if (got != id || !func)
         {
             model.delete_version(visitor, OBJECT_TYPE_FUNCTION, id);
             model.accept_ea(visitor, ea);
@@ -605,7 +579,7 @@ namespace
         const auto got = hash::hash_ea(ea);
         const auto flags = get_flags(ea);
         const auto is_code_not_func = is_code(flags) && !get_func(ea);
-        if(got != id || !is_code_not_func)
+        if (got != id || !is_code_not_func)
         {
             model.delete_version(visitor, OBJECT_TYPE_CODE, id);
             model.accept_ea(visitor, ea);
@@ -623,7 +597,7 @@ namespace
         ea = get_item_head(ea);
         const auto got = hash::hash_ea(ea);
         const auto flags = get_flags(ea);
-        if(got != id || !ya::is_item(flags))
+        if (got != id || !ya::is_item(flags))
         {
             model.delete_version(visitor, OBJECT_TYPE_DATA, id);
             model.accept_ea(visitor, ea);
@@ -639,7 +613,7 @@ namespace
     {
         const auto got = hash::hash_ea(ea);
         const auto func = get_func(ea);
-        if(got != id || !func)
+        if (got != id || !func)
         {
             model.delete_version(visitor, OBJECT_TYPE_BASIC_BLOCK, id);
             model.accept_ea(visitor, ea);
@@ -653,70 +627,67 @@ namespace
 
     void save_eas(Events& ev, IModelIncremental& model, IModelVisitor& visitor)
     {
-        for(const auto p : ev.eas_)
-            switch(p.type)
+        for (const auto p : ev.eas_)
+            switch (p.type)
             {
-                case OBJECT_TYPE_FUNCTION:      save_func(model, visitor, p.id, p.ea); break;
-                case OBJECT_TYPE_CODE:          save_code(model, visitor, p.id, p.ea); break;
-                case OBJECT_TYPE_DATA:          save_data(model, visitor, p.id, p.ea); break;
-                case OBJECT_TYPE_BASIC_BLOCK:   save_block(model, visitor, p.id, p.ea); break;
-                default:                        assert(false); break;
+            case OBJECT_TYPE_FUNCTION:      save_func(model, visitor, p.id, p.ea); break;
+            case OBJECT_TYPE_CODE:          save_code(model, visitor, p.id, p.ea); break;
+            case OBJECT_TYPE_DATA:          save_data(model, visitor, p.id, p.ea); break;
+            case OBJECT_TYPE_BASIC_BLOCK:   save_block(model, visitor, p.id, p.ea); break;
+            default:                        assert(false); break;
             }
     }
 
+    // Help : Save event
     void save(Events& ev)
     {
         LOG(DEBUG, "Updating local types...\n");
         ev.touch_types();
 
+        // Start chronometer
         LOG(DEBUG, "Saving cache...\n");
         const auto time_start = std::chrono::system_clock::now();
 
+        // Create database (initially void)
         const auto db = MakeMemoryModel();
+
+        // Start visit
         db->visit_start();
         {
             const auto model = MakeIncrementalIdaModel();
-            if(!ev.strucs_.empty() || !ev.struc_members_.empty())
+            if (!ev.strucs_.empty() || !ev.struc_members_.empty()) {
                 LOG(INFO, "processing %zd:%zd struct events\n", ev.strucs_.size(), ev.struc_members_.size());
+            }
             save_structs(ev, *model, *db);
-            if(!ev.enums_.empty() || !ev.enum_members_.empty())
+            if (!ev.enums_.empty() || !ev.enum_members_.empty()) {
                 LOG(INFO, "processing %zd:%zd enum events\n", ev.enums_.size(), ev.enum_members_.size());
+            }
             save_enums(ev, *model, *db);
-            if(!ev.local_types_.empty())
+            if (!ev.local_types_.empty()) {
                 LOG(INFO, "processing %zd local type events\n", ev.local_types_.size());
+            }
             save_local_types(ev, *model, *db);
-            if(!ev.eas_.empty())
+            if (!ev.eas_.empty()) {
                 LOG(INFO, "processing %zd ea events\n", ev.eas_.size());
+            }
             save_eas(ev, *model, *db);
         }
+
+        // End visit
         db->visit_end();
+
+        // Fill with cache -> YaCo
         db->accept(*MakeXmlVisitor(ev.repo_.get_cache()));
 
+        // Stop chronometer
         const auto time_end = std::chrono::system_clock::now();
         const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(time_end - time_start).count();
-        if(elapsed)
+        if (elapsed) {
             LOG(INFO, "cache: exported in %d seconds\n", static_cast<int>(elapsed));
+        }
     }
-}
 
-void Events::save()
-{
-    ::save(*this);
-    if(!repo_.commit_cache())
-    {
-        LOG(WARNING, "An error occurred during YaCo commit\n");
-        warning("An error occured during YaCo commit: please relaunch IDA");
-    }
-    eas_.clear();
-    strucs_.clear();
-    struc_members_.clear();
-    enums_.clear();
-    enum_members_.clear();
-    local_types_.clear();
-}
-
-namespace
-{
+    // Help class
     struct DepCtx
     {
         DepCtx(const IModel& model, IModelVisitor& visitor)
@@ -730,7 +701,7 @@ namespace
         std::unordered_set<YaToolObjectId>  seen;
     };
 
-    // will add id to model on first insertion
+    // Help : Will add id to model on first insertion
     bool try_add_id(DepCtx& ctx, YaToolObjectId id, const HVersion& hver)
     {
         // remember which ids have been seen already
@@ -740,6 +711,7 @@ namespace
         return inserted;
     }
 
+    // Help : stupid class
     enum DepsMode
     {
         SKIP_DEPENDENCIES,
@@ -757,21 +729,19 @@ namespace
     void add_id_and_dependencies(DepCtx& ctx, YaToolObjectId id, DepsMode mode)
     {
         const auto hver = ctx.model.get(id);
-        if(!hver.is_valid())
-            return;
+        if(!hver.is_valid()) { return; }
 
         const auto ok = try_add_id(ctx, id, hver);
         // due to dependencies, we may visit an id twice and first with
         // SKIP_DEPENDENCIES, this is bad because we won't visit this
         // id xrefs, so if we have seen this id already, only skip it
         // if it's a side effect
-        if(!ok && mode == SKIP_DEPENDENCIES)
-            return;
+        if(!ok && mode == SKIP_DEPENDENCIES) { return; }
 
         // add parent id & its dependencies
         add_id_and_dependencies(ctx, hver.parent_id(), SKIP_DEPENDENCIES);
-        if(mode != USE_DEPENDENCIES && !must_add_dependencies(hver.type()))
-            return;
+        if(mode != USE_DEPENDENCIES && !must_add_dependencies(hver.type())) { return; }
+
         hver.walk_xrefs([&](offset_t, operand_t, auto xref_id, auto)
         {
             // add xref id & its dependencies
@@ -780,22 +750,30 @@ namespace
         });
     }
 
+
+    // Help
     void add_missing_parents_from_deletions(DepCtx& deps, const IModel& deleted)
     {
-        if(!deleted.size())
-            return;
+        if(!deleted.size()) { return; }
 
         deps.model.walk([&](const HVersion& hver)
         {
-            if(!must_add_dependencies(hver.type()))
-                return WALK_CONTINUE;
+            // Check in
+            if(!must_add_dependencies(hver.type())) { return WALK_CONTINUE; }
+
+            // For all xref
             const auto id = hver.id();
             hver.walk_xrefs([&](offset_t, operand_t, YaToolObjectId xref_id, const XrefAttributes*)
             {
-                if(deleted.has(xref_id))
+                // If xref is to be deleted
+                if(deleted.has(xref_id)) {
+                    // Add it
                     add_id_and_dependencies(deps, id, USE_DEPENDENCIES);
+                }
                 return WALK_CONTINUE;
             });
+
+            // Keep on
             return WALK_CONTINUE;
         });
     }
@@ -849,8 +827,7 @@ namespace
             std::smatch match;
             const auto strpath = std::string(path);
             const auto ok = std::regex_match(strpath, match, r_xml_type);
-            if(!ok)
-                return;
+            if(!ok) { return; }
 
             const auto type = get_object_type(match.str(1).data());
             switch(type)
@@ -907,8 +884,7 @@ namespace
             const auto hver = get_version(*model);
             const auto prev_id = hver.id();
             const auto next_id = filter->is_valid(hver);
-            if(prev_id == next_id)
-                return false;
+            if(prev_id == next_id) { return false; }
 
             char buf[sizeof next_id * 2 + 1];
             const auto str = to_hex<NullTerminate>(buf, next_id);
@@ -922,8 +898,7 @@ namespace
     {
         ObsoletePaths obsoletes;
         const auto commit = rebase_cache(repo, obsoletes);
-        if(commit.empty())
-            return false;
+        if(commit.empty()) { return false; }
 
         // load updated & deleted entities
         const auto updated = MakeMemoryModel();
@@ -933,15 +908,14 @@ namespace
         repo.diff_index(commit, [&](const char* path, bool added, const void* ptr, size_t size)
         {
             LOG(DEBUG, "rebase: path %s %s size %zd\n", path, added ? "updated" : "deleted", size);
-            if(obsoletes.count(path))
-                return 0;
+            if(obsoletes.count(path)) { return 0; }
+
             AcceptXmlMemoryChunk(added ? *updated : *deleted, ptr, size);
             return 0;
         });
         deleted->visit_end();
         updated->visit_end();
-        if(!updated->size() && !deleted->size())
-            return false;
+        if(!updated->size() && !deleted->size()) { return false; }
 
         // apply changes on ida
         LOG(INFO, "rebase: %zd updated %zd deleted\n", updated->size(), deleted->size());
@@ -949,14 +923,118 @@ namespace
         sink.update(*get_all_updates(repo, *updated, *deleted));
         return true;
     }
+
+} // End ::
+
+
+/********************************************************************************
+    2/         Implement event callback : now that helpers are implmented
+********************************************************************************/
+
+
+// Ctor (Events)
+Events::Events(IRepository& repo)
+    : repo_(repo)
+    , qpool_(3)
+{
+    snapshot_local_types(ltypes_);
 }
 
+
+// Create shared object (and retrun shr_ptr to it)
+std::shared_ptr<IEvents> MakeEvents(IRepository& repo)
+{
+    return std::make_shared<Events>(repo);
+}
+
+
+// Touch structure, user did something on my struct
+void Events::touch_struc(tid_t struc_id)
+{
+    const auto func_ea = update_struc(*this, struc_id);
+    if(func_ea != BADADDR) {
+        touch_func(func_ea);
+    }
+}
+
+
+//
+void Events::touch_enum(enum_t enum_id)
+{
+    const auto parent_id = get_enum_member_enum(enum_id);
+    add_auto_comment(repo_, enum_id);
+    if(parent_id != BADADDR) {
+        enum_id = parent_id;
+    }
+    update_enum(*this, enum_id);
+}
+
+
+//
+void Events::touch_ea(ea_t ea)
+{
+    add_ea(*this, ea);
+}
+
+
+//
+void Events::touch_func(ea_t ea)
+{
+    add_ea(*this, ea);
+}
+
+
+//
+void Events::touch_code(ea_t ea)
+{
+    ea = ya::get_range_code(ea, 0, ~0U).start_ea;
+    add_ea(*this, hash::hash_ea(ea), OBJECT_TYPE_CODE, ea);
+}
+
+
+//
+void Events::touch_data(ea_t ea)
+{
+    add_ea(*this, hash::hash_ea(ea), OBJECT_TYPE_DATA, ea);
+}
+
+
+//
+void Events::touch_types()
+{
+    diff_local_types(ltypes_, [&](YaToolObjectId id, const local_types::Type& type)
+    {
+        local_types_.emplace(id, type.tif.get_ordinal());
+    });
+    snapshot_local_types(ltypes_);
+}
+
+
+// Save events -> Helper.save
+void Events::save()
+{
+    ::save(*this);
+    if(!repo_.commit_cache())
+    {
+        LOG(WARNING, "An error occurred during YaCo commit\n");
+        warning("An error occured during YaCo commit: please relaunch IDA");
+    }
+    eas_.clear();
+    strucs_.clear();
+    struc_members_.clear();
+    enums_.clear();
+    enum_members_.clear();
+    local_types_.clear();
+}
+
+
+// Update events
 void Events::update()
 {
     // update cache and export modifications to IDA
     const auto updated = update_from_cache(*MakeIdaSink(), repo_);
-    if(updated)
-        snapshot_local_types(ltypes_);
+    if(updated) { snapshot_local_types(ltypes_); }
+
     repo_.push();
 
     // Let IDA apply modifications
@@ -968,8 +1046,9 @@ void Events::update()
     refresh_idaview_anyway();
     const auto time_end = std::chrono::system_clock::now();
     const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(time_end - time_start).count();
-    if(elapsed)
+    if(elapsed) {
         LOG(INFO, "ida: analyzed in %d seconds\n", static_cast<int>(elapsed));
+    }
 }
 
 void Events::touch()

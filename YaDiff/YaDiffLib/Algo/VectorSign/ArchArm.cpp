@@ -10,12 +10,10 @@
 
 // Must init
 
-namespace
-{
+namespace {
 typedef std::map<arm_insn, std::vector<yadiff::InstructionType_e>> InsMap_t;
 
-struct ArmArch : public yadiff::IArch
-{
+struct ArmArch : public yadiff::IArch {
     ArmArch();
 
     bool IsInstructionType(const cs_insn&, yadiff::InstructionType_e) const override;
@@ -27,31 +25,30 @@ private:
 };
 }
 
-ArmArch::ArmArch()
-{
+ArmArch::ArmArch() {
    
 }
 
 #if 0
-bool ArmArch::CheckMap(arm_insn instructionId, yadiff::InstructionType_e instructionTypeA) const
-{
+bool ArmArch::CheckMap(arm_insn instructionId, yadiff::InstructionType_e instructionTypeA) const {
     const auto it = insmap.find(instructionId);
-    if(it == insmap.end())
+    if (it == insmap.end()) {
         return false;
-    for(const auto instructionType : it->second)
-        if(instructionType == instructionTypeA)
+    }
+    for (const auto instructionType : it->second) {
+        if (instructionType == instructionTypeA) {
             return true;
+        }
+    }
     return false;
 }
 #endif 
 
-bool ArmArch::IsInstructionType(const cs_insn& instruction, yadiff::InstructionType_e type) const
-{
+bool ArmArch::IsInstructionType(const cs_insn& instruction, yadiff::InstructionType_e type) const {
     const cs_detail* detail = instruction.detail;
     const arm_insn insn_id = static_cast<arm_insn>(instruction.id);
 
-    switch (type)
-    { 
+    switch (type) { 
     // OK
     case yadiff::INST_TYPE_ANY:
         return true;
@@ -72,23 +69,21 @@ bool ArmArch::IsInstructionType(const cs_insn& instruction, yadiff::InstructionT
 
     // OK 
     case yadiff::INST_TYPE_CALL:
-        for (auto i : instruction.detail->groups)
-        {
-            if (i == CS_GRP_CALL)
+        for (auto i : instruction.detail->groups) {
+            if (i == CS_GRP_CALL) {
                 return true;
+            }
         }
         return false;
 
     // NO
     case yadiff::INST_TYPE_STRING:
-    {
+        // TODO
         return false;
-    }
 
     // OK
     case yadiff::INST_TYPE_FLOAT:
-        for (auto i : instruction.detail->groups)
-        {
+        for (auto i : instruction.detail->groups) {
             if (i == ARM_GRP_VFP2
                 || i == ARM_GRP_VFP3
                 || i == ARM_GRP_VFP4)
@@ -98,8 +93,9 @@ bool ArmArch::IsInstructionType(const cs_insn& instruction, yadiff::InstructionT
 
     // OK: Use the conditional field (upper 4 bits)
     case yadiff::INST_TYPE_CONDITIONAL:
-        if (instruction.detail->arm.cc != ARM_CC_AL)
-                return true;
+        if (instruction.detail->arm.cc != ARM_CC_AL) {
+            return true;
+        }
         return false;
 
     // OK: Update flag details
@@ -109,27 +105,29 @@ bool ArmArch::IsInstructionType(const cs_insn& instruction, yadiff::InstructionT
 
     // NO
     case yadiff::INST_TYPE_ARITHMETIC:
+        // TODO
         return false;
 
     // NO
     case yadiff::INST_TYPE_LOGICAL:
+        // TODO
         return false;
 
     // NO
     case yadiff::INST_TYPE_SHIFT:
+        // TODO
         return false;
 
     // NO
     case yadiff::INST_TYPE_CLEAR:
+        // TODO
         return false;
 
     // NO: inc and dec
     case yadiff::INST_TYPE_INDEX:
         // ADDS Rx, Rx, #1; SUB Rx, Rx, #1
-        if (insn_id == ARM_INS_SUB || insn_id == ARM_INS_ADD)
-        {
-            if (instruction.detail->arm.op_count == 3)
-            {
+        if (insn_id == ARM_INS_SUB || insn_id == ARM_INS_ADD) {
+            if (instruction.detail->arm.op_count == 3) {
                 bool operand3 = instruction.detail->arm.operands[0].type == ARM_OP_REG
                     && instruction.detail->arm.operands[1].type == ARM_OP_REG
                     && instruction.detail->arm.operands[2].type == ARM_OP_IMM;
@@ -143,21 +141,21 @@ bool ArmArch::IsInstructionType(const cs_insn& instruction, yadiff::InstructionT
     // OK: if MOV
     case yadiff::INST_TYPE_REG_MOVE:
         // Is mov with 2 operand regs
-        if (!IsInstructionType(instruction, yadiff::INST_TYPE_MOV))
+        if (!IsInstructionType(instruction, yadiff::INST_TYPE_MOV)) {
             return false;
+        }
         return instruction.detail->arm.op_count == 2
             && instruction.detail->arm.operands[0].type == ARM_OP_REG
             && instruction.detail->arm.operands[1].type == ARM_OP_REG;
 
     case yadiff::INST_TYPE_COUNT:
-	break;
+    break;
     }
 
     return false;
 }
 
-std::shared_ptr<yadiff::IArch> yadiff::MakeArmArch()
-{
+std::shared_ptr<yadiff::IArch> yadiff::MakeArmArch() {
     return std::make_shared<ArmArch>();
 }
 

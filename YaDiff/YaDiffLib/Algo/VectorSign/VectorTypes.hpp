@@ -17,61 +17,84 @@
 namespace yadiff
 {
 
+typedef float vector_value;
+
 #define DEFAULT_DOUBLE -1
 
-typedef std::vector<double> Vector;
+typedef std::vector<vector_value> Vector;
 typedef std::vector<Vector> Matrix;
 
-
-//
-struct FunctionControlFlowGraphData_t
-{
+/*
+*/
+struct FunctionControlFlowGraphData_t {
     int bb_nb;                          // 1 Number of Basic Blocks -1 for undefined (do not forget to increase that)
     int edge_nb;                        // 2 Number of edges
     int ret_nb;                         // 3 Number of return BB (or exit points)
-    int inst_nb;                        // 4 TODO Number of instructions
+    int inst_nb;                        // 4 Number of instructions
     int jcc_nb;                         // 5 Number of BB with 2 BB Sons
     int back_edge_nb;                   // 6 Number of edges visiting a yet visited location in the horizontal walk
     int diamond_nb;                     // 7 Number of edges going to bb visited at this same horizontal level (distance to root). Like hybridization in bio.
     int size;                           // 8 Size of the function (in bytes)
-    double size_disp;                   // 9 Size dispersion = Variance of the size distribution of my BB in byte (it is a square)
+    vector_value size_disp;             // 9 Size dispersion = Variance of the size distribution of my BB in byte (it is a square)
     int height;                         // 10 Number (maximum without going back) of BB to cross from fct entry to fct ret.
-    double height_disp;                 // 11 Height dispersion, Variance of the distance to ret of my BB set (not a square)
+    vector_value height_disp;           // 11 Height dispersion, Variance of the distance to ret of my BB set (not a square)
     int width;                          // 12 Number (maximum) of BB at the same distance from the BB entry.
-    double width_disp;                  // 13 Variance of the graph width, average on all dist_to_root levels.*
-    int flat_len;                       // 14 TODO Len (in instruction number) of the flatten vector (~ Min inst number from top to bottom°)
+    vector_value width_disp;            // 13 Variance of the graph width, average on all dist_to_root levels.*
+    int flat_len;                       // 14 Len (in instruction number) of the flatten vector (~ Min inst number from top to bottom)
+    int first_bloc_size;                // 15 Size of first (entry) bloc
 };
-#define FunctionControlFlowGraphData_FIELD_COUNT 14
+#define FunctionControlFlowGraphData_FIELD_COUNT 15
 
-//
+
+/*
+TODO:
+* Get the longest distance ot leave
+* Get the graph diameter
+*/
 struct FunctionCallGraphData_t
 {
     int in_degree;                      // 1 The number of functions calling this one (if a function calls me twice, i count it twice)
     int out_degree;                     // 2 The number of functions called by me (one function can be counted twice also)
     int dist_to_root;                   // 3 The shortest distance from an entry point = a function without parents (a god function)
     int dist_to_leave;                  // 4 The shortest distance to the leave = a function without children
-                                        // TODO Get the longest ??
     int arg_nb;                         // 5 The number of arguments the function receives. Hopefully I get the from IDA.
     int lib_nb;                         // 6 Number of calls to a library
 };
 #define FunctionCallGraphData_FIELD_COUNT 6
 
 
+// Count number of letter
+struct CharacterHistogramData_t
+{
+    int alphabet[26];       // 1-26 a..z
+    int digit[10];          // 27-36 0..9
+    int slash;              // 37 /
+    int percent;            // 38 %
+    int plus;               // 39 +
+    int minus;              // 40 -
+    int equal;              // 41 =
+    int null;               // 42 \0
+    int space;              // 43 ' '
+    int dot;                // 44 .
+    int coma;               // 45 ,
+    int backslash;          // 46 backslash
+};
+#define CharacterHistogramData_FIELD_COUNT 46
+
+
 //
 struct InstructionData_t
 {
     // TODO get the main frequencies (fft) per inst.
-    int    total;                       // 1 Total number of inst
-    double mean_per_bb;                 // 2 The mean number of instruction
-    double variance_per_bb;             // 3 The dispersion around the mean number of instruction per bb
-    double offset_mean_per_inst;        // 4 The mean offset of inst
-    double offset_variance_per_inst;    // 5 The mean disp of inst
-    double offset_skew_per_inst;        // 6
-    double offset_kurt_per_inst;        // 7
+    int    total;                             // 1 Total number of inst
+    vector_value mean_per_bb;                 // 2 The mean number of instruction
+    vector_value variance_per_bb;             // 3 The dispersion around the mean number of instruction per bb
+    vector_value offset_mean_per_inst;        // 4 The mean offset of inst
+    vector_value offset_variance_per_inst;    // 5 The mean disp of inst
+    vector_value offset_skew_per_inst;        // 6
+    vector_value offset_kurt_per_inst;        // 7
 };
 #define InstructionData_FIELD_COUNT 7
-
-
 
 
 // 0: The function scalars
@@ -79,7 +102,34 @@ struct FunctionData_t
 {
     FunctionControlFlowGraphData_t      cfg;
     FunctionCallGraphData_t             cg;
+    CharacterHistogramData_t            char_hist;
     InstructionData_t                   insts[INST_TYPE_COUNT];
+};
+
+
+// 1: The statistics on neighbourgs on the call graph
+struct StatFunction_t
+{
+    FunctionData_t                      mean;
+    FunctionData_t                      median;
+    FunctionData_t                      disp;
+};
+
+
+// 2: The type of statistc makking
+struct TypeStat_t
+{
+    StatFunction_t                      not_ponderated;
+    StatFunction_t                      ponderated;
+};
+
+
+// ~: Full vector input
+struct Concatenated_t
+{
+    FunctionData_t                      me;
+    TypeStat_t                          father;
+    TypeStat_t                          child;
 };
 
 
@@ -104,8 +154,9 @@ public:
 
 
 
-std::vector<double> FunctionData2Vector(const FunctionData_t& function_data,
+yadiff::Vector FunctionData2Vector(const FunctionData_t& function_data,
     std::vector<std::string>* s_vector, std::string s_base);
 
+std::vector<uint8_t> GetBlob(size_t data_begin, size_t data_len, yadiff::BinaryInfo_t& binary_info, const IModel& db);
 
 } // End of namespace yadiff

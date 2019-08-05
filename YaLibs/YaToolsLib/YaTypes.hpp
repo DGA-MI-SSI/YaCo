@@ -48,6 +48,37 @@ const char*         get_object_type_string(YaToolObjectType_e object_type);
 extern const YaToolObjectType_e  ordered_types[OBJECT_TYPE_COUNT];
 extern const std::vector<size_t> indexed_types;
 
+
+
+// 1. Xref
+
+// Declare Xref structure
+typedef struct _Xref
+{
+    YaToolObjectId  id;
+    offset_t        offset;
+    operand_t       operand;
+    int             path_idx;
+} Xref, *PXref;
+
+// Overload <> compare with offset
+inline bool operator<(const Xref& a, const Xref& b)
+{
+    return std::make_tuple(a.offset, a.operand, a.path_idx, a.id) < std::make_tuple(b.offset, b.operand, b.path_idx, b.id);
+}
+// Overload ==
+inline bool operator==(const Xref& a, const Xref& b)
+{
+    return std::make_tuple(a.offset, a.operand, a.id, a.path_idx) == std::make_tuple(b.offset, b.operand, b.id, b.path_idx);
+}
+
+// Declare Xrefs as multiple Xrefs
+using Xrefs = std::vector<Xref>;
+
+
+
+// 2.
+
 namespace std
 {
     template<>
@@ -64,9 +95,11 @@ CommentType_e get_comment_type(const char* comment_type);
 
 const char* get_comment_type_string(CommentType_e comment_type);
 
-/*
- * light string reference
- */
+
+
+
+// 3. String Reference (ligth)
+
 struct const_string_ref
 {
     const char* value;

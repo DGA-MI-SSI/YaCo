@@ -23,12 +23,18 @@ DEFAULT_CONFIG = b"""
 <yadiff>
     <Matching>
         <option XRefOffsetMatch="true"/>
-        <option CallerXRefMatch="true"/>
-        <option CallerXRefMatch_TrustDiffingRelations="true"/>
+        <option XRefOffsetOrderMatch="true"/>
+        
+        <option XRefMatch="true"/>
+        <option XRefMatch_TrustDiffingRelations="true"/>
+        <option XRefMatch_XrefDirectionMode="both"/>
+        <option XRefMatch_StripBasicBlocksMode="both"/>
+        
         <option DoAnalyzeUntilAlgoReturn0="true"/>
         <option DoAnalyzeUntilAnalyzeReturn0="true"/>
     </Matching>
 </yadiff>
+
 """
 
 

@@ -15,12 +15,7 @@
 
 #pragma once
 
-enum ContinueWalking_e
-{
-    WALK_CONTINUE,
-    WALK_STOP,
-};
-
+// Object type from IDA
 enum YaToolObjectType_e
 {
     OBJECT_TYPE_UNKNOWN,
@@ -42,6 +37,7 @@ enum YaToolObjectType_e
     OBJECT_TYPE_COUNT,
 };
 
+// Signature type (different data selecter possible)
 enum SignatureMethod_e
 {
     SIGNATURE_UNKNOWN,
@@ -54,6 +50,7 @@ enum SignatureMethod_e
     SIGNATURE_METHOD_COUNT,
 };
 
+// Hash type
 enum SignatureAlgo_e
 {
     SIGNATURE_ALGORITHM_UNKNOWN,
@@ -63,6 +60,7 @@ enum SignatureAlgo_e
     SIGNATURE_ALGORITHM_COUNT,
 };
 
+// Comment type from IDA (insert, shift-insert, coma, dot-come)
 enum CommentType_e
 {
     COMMENT_UNKNOWN,
@@ -72,4 +70,19 @@ enum CommentType_e
     COMMENT_POSTERIOR,
     COMMENT_BOOKMARK,
     COMMENT_COUNT,
+};
+
+// Type of return value in visitor methods : continue or stop
+//     More explicit than 0 and 1 (except for autists maybe)
+enum ContinueWalking_e
+{
+    WALK_CONTINUE,
+    WALK_STOP,
+};
+
+// Used in FlatBufferVisitor.cpp
+enum VisitorMode_e
+{
+    STANDARD,
+    SKIP_START_END,
 };

@@ -15,8 +15,48 @@
 
 #pragma once
 
+#include "IModelVisitor.hpp"            // Interface I implement
+
 #include <memory>
 
+// Exported: the Ctor
 struct IModelVisitor;
-
 std::shared_ptr<IModelVisitor> MakeExporterValidatorVisitor();
+
+
+/*********************************************************************************
+*************************** NON EXPORTED STUFF ***********************************
+*********************************************************************************/
+
+const offset_t UNKNOWN_ADDR = ~static_cast<offset_t>(0);
+
+enum VisitorState_e
+{
+    VISIT_STARTED,
+    VISIT_OBJECT_VERSION,
+    VISIT_SIGNATURES,
+    VISIT_OFFSETS,
+    VISIT_XREFS,
+    VISIT_XREF,
+    VISIT_MATCHING_SYSTEMS,
+    VISIT_MATCHING_SYSTEM,
+};
+
+const int MAX_VISIT_DEPTH = 256;
+
+// Class to validate Exporter visitor
+class ExporterValidatorVisitor
+    : public IModelVisitor
+{
+public:
+    ExporterValidatorVisitor();
+    ~ExporterValidatorVisitor() override;
+
+    // Interface methods
+    DECLARE_VISITOR_INTERFACE_METHODS
+
+private:
+    VisitorState_e state[MAX_VISIT_DEPTH];
+    int current_state_depth;
+    offset_t last_offset_ea;
+};

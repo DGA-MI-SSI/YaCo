@@ -14,7 +14,6 @@
 
 using namespace std;
 
-#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("propagate", (FMT), ## __VA_ARGS__)
 
 namespace yadiff
 {
@@ -75,21 +74,11 @@ void Propagate::PropagateToDB(IModelVisitor& visitor_db, const IModel& ref_model
     /* Iterate throw relations */
     walk([&](const Relation& relation)
     {
-        if((relation.direction_ & RELATION_DIRECTION_LOCAL_TO_REMOTE) == 0)
-            return true;
-
-        // TODO check relation_confidence
-        switch(relation.confidence_)
-        {
-        case RELATION_CONFIDENCE_MAX:
-            break;
-        default:
-            return true;
-        }
 
         switch(relation.type_)
         {
         case RELATION_TYPE_EXACT_MATCH:
+        case RELATION_TYPE_STRONG_MATCH:
             break;
         case RELATION_TYPE_DIFF:
             // check conf

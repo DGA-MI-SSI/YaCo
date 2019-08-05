@@ -6,4 +6,10 @@ bin/
 gmon.out
 out/
 testdata/
+Testing/
 tmp*
+build/CMakeFiles/
+build/files/*.files.cmake
+
+# For doc
+*.png

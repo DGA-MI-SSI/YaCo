@@ -20,16 +20,10 @@
 
 #include <future>
 
-#if 1
-#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("async", (FMT), ## __VA_ARGS__)
-#else
-#define LOG(...) do {} while(0)
-#endif
 
 #include "Bench.h"
 
-namespace
-{
+namespace {
     template<typename T>
     struct command_queue
     {
@@ -190,7 +184,7 @@ namespace
             GitAsync& async;
         };
     }
-}
+} // End ::
 
 std::shared_ptr<IGit> MakeGitAsync(const std::string& path)
 {

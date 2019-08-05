@@ -79,15 +79,16 @@ target_link_libraries(yatools PUBLIC
     ssh2
 )
 
-# export yatools dependencies
+# Export/Copy yatools dependencies
 set(deploy_dir $<$<CONFIG:Debug>:${bin_d_dir}>$<$<CONFIG:RelWithDebInfo>:${bin_dir}>$<$<CONFIG:Release>:${bin_dir}>)
 make_deploy_dir(${bin_d_dir}/.. YaCo ${ya_dir}/YaCo)
 make_deploy_dir(${bin_dir}/.. YaCo ${ya_dir}/YaCo)
 add_custom_command(TARGET yatools POST_BUILD
     # make sure deploy_dir exists
     COMMAND ${CMAKE_COMMAND} -E make_directory ${deploy_dir}
-    # yaco library
+    # yadiff libraries
     COMMAND ${CMAKE_COMMAND} -E copy ${ya_dir}/YaDiff/merge_idb.py ${deploy_dir}
+    COMMAND ${CMAKE_COMMAND} -E copy ${ya_dir}/YaToolsUtils/YaToolsBinToVect/bintovect.py ${deploy_dir}
     # ida plugins
     COMMAND ${CMAKE_COMMAND} -E copy ${ya_dir}/YaCo/yaco_plugin.py ${deploy_dir}/../..
     # flatbuffers bindings
@@ -151,6 +152,9 @@ add_tool(yacachemerger YaToolsUtils/YaToolsCacheMerger)
 
 # yadbtovector
 add_tool(yadbtovector YaToolsUtils/YaToolsYaDBToVectors yadifflib)
+
+# basicblockstripper
+add_tool(basicblockstripper YaToolsUtils/YaToolsBasicBlockStripper)
 
 # swig modules
 function(add_swig_mod target name)
@@ -267,7 +271,8 @@ make_testdata(cmder           Cmder.exe   cmder    ida64)
 make_testdata(vim_0197        vim.basic   vim_0197 ida64)
 make_testdata(vim_1453        vim.basic   vim_1453 ida64)
 
-# integration_tests
+
+# Integration_tests
 add_target(integration_tests yatools/tests "${ya_dir}/YaLibs/tests/integration" OPTIONS test static_runtime)
 setup_yatools(integration_tests)
 target_include_directories(integration_tests PRIVATE
@@ -280,14 +285,21 @@ target_link_libraries(integration_tests PRIVATE
 set_property(TEST integration_tests APPEND PROPERTY DEPENDS make_testdata_qt54_svg)
 set_property(TEST integration_tests APPEND PROPERTY DEPENDS make_testdata_qt54_svg_no_pdb)
 
-# unit_tests
+
+# Unit_tests
+message("-- Executing runtests.py : getting test list")
 execute_process(COMMAND
     ${PYTHON_EXECUTABLE} "${ya_dir}/tests/runtests.py" --list
     WORKING_DIRECTORY "${ya_dir}/tests"
     OUTPUT_VARIABLE test_names
     OUTPUT_STRIP_TRAILING_WHITESPACE
 )
+
+# Get all test names
 string(REGEX MATCHALL "[a-zA-Z0-9._]+" test_names ${test_names})
+message("-- Test list is : ${test_names}")
+
+# For each test
 foreach(test ${test_names})
     string(REGEX REPLACE ".+Fixture\." "" shortname ${test})
     message("-- Configuring yatools/tests/${shortname}")

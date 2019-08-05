@@ -7,8 +7,7 @@ class Configuration;
 struct IModel;
 struct Relation;
 
-namespace yadiff
-{
+namespace yadiff {
 
 class IMatching
 {
@@ -18,9 +17,7 @@ public:
     virtual bool Prepare(const IModel& db1, const IModel& db2) = 0;
 
     virtual bool Analyse(std::vector<Relation>& output) = 0;
-
 };
 
-
 std::shared_ptr<IMatching> MakeMatching(const Configuration& config);
-} //end namespace
+} // End yadiff::

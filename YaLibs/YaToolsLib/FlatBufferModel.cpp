@@ -15,6 +15,7 @@
 
 #include "FlatBufferModel.hpp"
 
+#include "IModel.hpp"
 #include "HVersion.hpp"
 #include "IModelVisitor.hpp"
 #include "FileUtils.hpp"
@@ -32,12 +33,6 @@ namespace fb = flatbuffers;
 
 #include <chrono>
 
-#if 0
-#define HAS_FLATBUFFER_LOGGING
-#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("flatbuffer", (FMT), ## __VA_ARGS__)
-#else
-#define LOG(...) do {} while(0)
-#endif
 
 namespace
 {
@@ -109,33 +104,9 @@ struct ViewVersions : public IVersions
     {
     }
 
-    // IVersions methods
-    void                accept(VersionIndex version_id, IModelVisitor& visitor) const override;
+    // IVersion methods
+    DECLARE_OBJECT_VERSION_INTERFACE_METHODS
 
-    YaToolObjectId      id              (VersionIndex idx) const override;
-    YaToolObjectId      parent_id       (VersionIndex idx) const override;
-    offset_t            size            (VersionIndex idx) const override;
-    YaToolObjectType_e  type            (VersionIndex idx) const override;
-    offset_t            address         (VersionIndex idx) const override;
-    const_string_ref    username        (VersionIndex idx) const override;
-    int                 username_flags  (VersionIndex idx) const override;
-    const_string_ref    prototype       (VersionIndex idx) const override;
-    flags_t             flags           (VersionIndex idx) const override;
-    int                 string_type     (VersionIndex idx) const override;
-    const_string_ref    header_comment  (VersionIndex idx, bool repeatable) const override;
-    bool                has_signature   (VersionIndex idx) const override;
-
-    void                walk_signatures         (VersionIndex idx, const OnSignatureFn& fnWalk) const override;
-    void                walk_xrefs_from         (VersionIndex idx, const OnXrefFromFn& fnWalk) const override;
-    void                walk_xrefs_to           (VersionIndex idx, const OnVersionFn& fnWalk) const override;
-    void                walk_blobs              (VersionIndex idx, const OnBlobFn& fnWalk) const override;
-    void                walk_comments           (VersionIndex idx, const OnCommentFn& fnWalk) const override;
-    void                walk_value_views        (VersionIndex idx, const OnValueViewFn& fnWalk) const override;
-    void                walk_register_views     (VersionIndex idx, const OnRegisterViewFn& fnWalk) const override;
-    void                walk_hidden_areas       (VersionIndex idx, const OnHiddenAreaFn& fnWalk) const override;
-    void                walk_xrefs              (VersionIndex idx, const OnXrefFn& fnWalk) const override;
-    void                walk_xref_attributes    (VersionIndex idx, const XrefAttributes* hattr, const OnAttributeFn& fnWalk) const override;
-    void                walk_attributes         (VersionIndex idx, const OnAttributeFn& fnWalk) const override;
 
     FlatBufferModel&    db_;
 };
@@ -161,15 +132,7 @@ struct FlatBufferModel : public IModel
     void setup();
 
     // IModel methods
-    void                accept          (IModelVisitor& visitor) override;
-    void                walk            (const OnVersionFn& fnWalk) const override;
-    size_t              size            () const override;
-    size_t              size_matching   (const HSignature& hash) const override;
-    void                walk_matching   (const HSignature& hash, const OnVersionFn& fnWalk) const override;
-    HVersion            get             (YaToolObjectId id) const override;
-    bool                has             (YaToolObjectId id) const override;
-    void                walk_uniques    (const OnSignatureFn& fnWalk) const override;
-    void                walk_matching   (const HVersion& object, size_t min_size, const OnVersionFn& fnWalk) const override;
+    DECLARE_OBJECT_MODEL_INTERFACE_METHODS
 
     std::shared_ptr<Mmap_ABC>   buffer_;
     const yadb::Root*           root_;
@@ -189,7 +152,7 @@ const_string_ref make_string_ref_from(const fb::String* value)
         return gEmptyRef;
     return const_string_ref{value->data(), value->size()};
 }
-}
+} // End ::
 
 std::shared_ptr<IModel> MakeFlatBufferModel(const std::shared_ptr<Mmap_ABC>& mmap)
 {
@@ -580,6 +543,7 @@ ProgressLogger<T> MakeProgressLogger(size_t max, const T& now)
     return ProgressLogger<T>(max, now);
 }
 
+// MACRO: for logging
 #ifdef HAS_FLATBUFFER_LOGGING
 #define DECLARE_PROGRESS_LOGGER(SIZE) auto progress = MakeProgressLogger(SIZE, std::chrono::high_resolution_clock::now())
 #define UPDATE_PROGRESS_LOGGER(TYPE) progress.Update(TYPE)

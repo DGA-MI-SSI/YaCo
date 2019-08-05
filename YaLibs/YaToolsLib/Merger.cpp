@@ -75,8 +75,6 @@ MergeStatus_e Merger::merge_files(const std::string& local, const std::string& r
     relation.version1_ = get(*db1);
     relation.version2_ = get(*db2);
     relation.type_ = RELATION_TYPE_EXACT_MATCH;
-    relation.confidence_ = RELATION_CONFIDENCE_MAX;
-    relation.direction_ = RELATION_DIRECTION_BOTH;
     relation.flags_ = 0;
 
     /* Merge */

@@ -33,32 +33,27 @@ void SetUnityVector(const Vector& vectUnity)
 }
 
 
-void SetDichotomicBorder(const VectorSignatureSet_t& vectSet)
-{
+void SetDichotomicBorder(const VectorSignatureSet_t& vectSet) {
     // 0/ Allocate
     gVectorMean.resize(gUnityVector.size());
     gVectorMinHight.resize(gUnityVector.size());
     gVectorMaxLow.resize(gUnityVector.size());
 
     // 1/ Accumulate
-    for (const auto& it : vectSet)
-    {
+    for (const auto& it : vectSet) {
         const auto& crVect = it.second;
-        for (size_t i = 0; i < crVect.size(); i++)
-        {
+        for (size_t i = 0; i < crVect.size(); i++) {
             gVectorMean[i] += crVect[i];
         }
     }
 
     // 2/ Normalize
-    for (size_t i = 0; i < gVectorMean.size(); i++)
-    {
+    for (size_t i = 0; i < gVectorMean.size(); i++) {
         gVectorMean[i] /= vectSet.size();
     }
 
-    // 3/ MinLow MaxHIgh
-    for (size_t i = 0; i < gUnityVector.size(); i++)
-    {
+    // 3/ MinLow MaxHigh
+    for (size_t i = 0; i < gUnityVector.size(); i++) {
         gVectorMaxLow[i]   = gVectorMean[i] + gUnityVector[i] / 2;
         gVectorMinHight[i] = gVectorMean[i] - gUnityVector[i] / 2;
     }
@@ -123,13 +118,12 @@ void PutVectorInTree(VectorTree_t& vectorTree, VectorGroups_t& vectorGroups, con
 }
 
 
-double GetVectorDistance(const Vector& v1, const Vector& v2)
-{
+double GetVectorDistance(const Vector& v1, const Vector& v2) {
     double distance = 0;
 
-    for (size_t i = 0; i < v1.size(); i++)
-    {
-        distance += std::abs(v1[i] - v2[i]) / gUnityVector[i];
+    // Get Sum(abs(p2 - p1))
+    for (size_t i = 0; i < v1.size(); i++) {
+        distance += std::abs(v2[i] - v1[i]) / gUnityVector[i];
     }
 
     return distance;
@@ -137,15 +131,12 @@ double GetVectorDistance(const Vector& v1, const Vector& v2)
 
 
 // TODO return the distance too 
-void GetClosestVectorIdNaive(uint64_t& idOut, double& closestDistanceOut, const Vector& vectToLocalize, const std::vector<uint64_t>& idInGroup, VectorSignatureSet_t& vectSet)
-{
-    for (const uint64_t& id : idInGroup)
-    {
+void GetClosestVectorIdNaive(uint64_t& idOut, double& closestDistanceOut, const Vector& vectToLocalize, const std::vector<uint64_t>& idInGroup, VectorSignatureSet_t& vectSet) {
+    for (const uint64_t& id : idInGroup) {
         auto& crVect = vectSet[id];
 
         double fctDist = GetVectorDistance(crVect, vectToLocalize);
-        if (fctDist < closestDistanceOut)
-        {
+        if (fctDist < closestDistanceOut) {
             closestDistanceOut = fctDist;
             idOut = id;
         }

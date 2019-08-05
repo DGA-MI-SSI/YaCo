@@ -32,6 +32,9 @@ namespace globals
 
     bool InitIdbLogger (logger::ILogger& logger, const char* basename);
     bool InitFileLogger(logger::ILogger& logger, FILE* output);
+
+    // String of executable launching me (YaDiff, YaCo)
+    extern std::string s_command;
 };
 
 

@@ -31,7 +31,6 @@
 
 namespace fs = std::experimental::filesystem;
 
-#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("xref", (FMT), ## __VA_ARGS__)
 
 namespace
 {
@@ -110,7 +109,7 @@ std::string str(const HVersion& hver)
     return get_object_type_string(hver.type()) + std::string("_") + str(hver.id());
 }
 
-const char* get_relation_type(RelationType_e value)
+const std::string get_relation_type(RelationType_e value)
 {
     switch(value)
     {
@@ -124,7 +123,7 @@ const char* get_relation_type(RelationType_e value)
         default:                                return "invalid";
     }
 }
-
+/*
 const std::string get_confidence(RelationConfidence_T value)
 {
     switch(value)
@@ -137,7 +136,7 @@ const std::string get_confidence(RelationConfidence_T value)
     }
 }
 
-const char* get_direction(RelationDirection_e value)
+const std::string get_direction(RelationDirection_e value)
 {
     switch(value)
     {
@@ -148,7 +147,7 @@ const char* get_direction(RelationDirection_e value)
         default:                                    return "invalid";
     }
 }
-
+*/
 std::string get_flags(uint32_t value)
 {
     static const struct
@@ -193,9 +192,14 @@ std::string get_flags(uint32_t value)
 
 std::string str(const Relation& ydr)
 {
-    return get_confidence(ydr.confidence_) + "_"
-         + get_relation_type(ydr.type_) + "_"
-         + get_direction(ydr.direction_) + "_"
+//    return get_confidence(ydr.confidence_) + "_"
+//         + get_relation_type(ydr.type_) + "_"
+//         + get_direction(ydr.direction_) + "_"
+//         + str(ydr.version1_) + "_"
+//         + str(ydr.version2_)
+//         + get_flags(ydr.flags_);
+    return
+           get_relation_type(ydr.type_) + "_"
          + str(ydr.version1_) + "_"
          + str(ydr.version2_)
          + get_flags(ydr.flags_);
@@ -260,7 +264,7 @@ static void TestFirstAssociation_Impl(std::pair<std::shared_ptr<IModel>, std::sh
     auto differ = yadiff::YaDiff(config);
     differ.MergeDatabases(*db1, *db2, relations);
     expect_req(relations, {
-        "max_exact_match_both_function_0000000000000001_function_0000000000000002_all",
+        "exact_match_function_0000000000000001_function_0000000000000002_all",
     });
 }
 
@@ -291,8 +295,8 @@ static void TestBasicBlockAssociation_Impl(std::pair<std::shared_ptr<IModel>, st
     differ.MergeDatabases(*db1, *db2, relations);
 
     expect_req(relations, {
-        "max_exact_match_both_function_0000000000000001_function_0000000000000002_all",
-        "max_exact_match_both_basic_block_0000000000000010_basic_block_0000000000000020_all",
+        "exact_match_function_0000000000000001_function_0000000000000002_all",
+        "exact_match_basic_block_0000000000000010_basic_block_0000000000000020_all",
     });
 }
 
@@ -323,8 +327,8 @@ static void TestStructAssociation_Impl(std::pair<std::shared_ptr<IModel>, std::s
     differ.MergeDatabases(*db1, *db2, relations);
 
     expect_req(relations, {
-        "max_exact_match_both_function_0000000000000001_function_0000000000000002_all",
-        "max_exact_match_both_struc_0000000000000010_struc_0000000000000011_all",
+        "exact_match_function_0000000000000001_function_0000000000000002_all",
+        "exact_match_struc_0000000000000010_struc_0000000000000011_all",
     });
 }
 
@@ -355,9 +359,9 @@ static void TestXrefOfDataMatch_Impl(std::pair<std::shared_ptr<IModel>, std::sha
     differ.MergeDatabases(*db1, *db2, relations);
 
     expect_req(relations, {
-        "max_diff_both_basic_block_0000000000000001_basic_block_0000000000000002_caller_xref",
-        "max_diff_both_function_0000000000000040_function_0000000000000041_caller_xref",
-        "max_exact_match_both_data_0000000000000020_data_0000000000000021_all",
+        "diff_basic_block_0000000000000001_basic_block_0000000000000002_caller_xref",
+        "diff_function_0000000000000040_function_0000000000000041_caller_xref",
+        "exact_match_data_0000000000000020_data_0000000000000021_all",
     });
 }
 
@@ -388,11 +392,11 @@ static void TestParentXrefOfDataMatch_Impl(std::pair<std::shared_ptr<IModel>, st
     differ.MergeDatabases(*db1, *db2, relations);
 
     expect_req(relations, {
-        "max_diff_both_basic_block_0000000000000002_basic_block_0000000000000012_caller_xref",
-        "max_diff_both_basic_block_0000000000000004_basic_block_0000000000000014_caller_xref",
-        "max_diff_both_function_0000000000000001_function_0000000000000011_caller_xref",
-        "max_diff_both_function_0000000000000003_function_0000000000000013_caller_xref",
-        "max_exact_match_both_data_0000000000000005_data_0000000000000015_all",
+        "diff_basic_block_0000000000000002_basic_block_0000000000000012_caller_xref",
+        "diff_basic_block_0000000000000004_basic_block_0000000000000014_caller_xref",
+        "diff_function_0000000000000001_function_0000000000000011_caller_xref",
+        "diff_function_0000000000000003_function_0000000000000013_caller_xref",
+        "exact_match_data_0000000000000005_data_0000000000000015_all",
     });
 }
 
@@ -477,7 +481,7 @@ void TestMergeName_Impl(std::pair<std::shared_ptr<IModel>, std::shared_ptr<IMode
     propagate_to(propagater, *xml_exporter_repo2, *db1, *db2, relations);
 
     expect_req(relations, {
-        "max_exact_match_both_function_0000000000000001_function_0000000000000002_all",
+        "exact_match_function_0000000000000001_function_0000000000000002_all",
     });
 
     checkFilesContentEqual("../../YaDiff/tests/YaDiffLib_test/data/merge/TestMergeName2Result.xml", p.path / "function" / "0000000000000002.xml");
@@ -513,8 +517,8 @@ static void TestParentsExport_Impl(std::pair<std::shared_ptr<IModel>, std::share
     propagate_to(propagater, *xml_exporter_repo2, *db1, *db2, relations);
 
     expect_req(relations, {
-        "max_diff_both_function_0000000000000022_function_0000000000000011_caller_xref",
-        "max_exact_match_both_function_0000000000000001_function_0000000000000002_all",
+        "diff_function_0000000000000022_function_0000000000000011_caller_xref",
+        "exact_match_function_0000000000000001_function_0000000000000002_all",
     });
 
     checkFilesContentEqual("../../YaDiff/tests/YaDiffLib_test/data/merge/TestMergeParentExportFunction2Result2.xml", p.path / "function" / "0000000000000002.xml");
@@ -551,7 +555,7 @@ static void TestMergeComments_Impl(std::pair<std::shared_ptr<IModel>, std::share
     propagate_to(propagater, *xml_exporter_repo2, *db1, *db2, relations);
 
     expect_req(relations, {
-        "max_exact_match_both_function_0000000000000001_function_0000000000000002_all",
+        "exact_match_function_0000000000000001_function_0000000000000002_all",
     });
 
     relations.clear();
@@ -559,7 +563,7 @@ static void TestMergeComments_Impl(std::pair<std::shared_ptr<IModel>, std::share
     propagate_to(propagater, *xml_exporter_repo1, *db2, *db1, relations);
 
     expect_req(relations, {
-        "max_exact_match_both_function_0000000000000002_function_0000000000000001_all",
+        "exact_match_function_0000000000000002_function_0000000000000001_all",
     });
 
     checkFilesContentEqual("../../YaDiff/tests/YaDiffLib_test/data/merge/TestMergeCommentResult1.xml", p1.path / "function" / "0000000000000001.xml");
@@ -596,7 +600,7 @@ static void TestMergeAttributes_Impl(std::pair<std::shared_ptr<IModel>, std::sha
     propagate_to(propagater, *xml_exporter_repo2, *db1, *db2, relations);
 
     expect_req(relations, {
-        "max_exact_match_both_function_0000000000000001_function_0000000000000002_all",
+        "exact_match_function_0000000000000001_function_0000000000000002_all",
     });
 
     relations.clear();
@@ -604,7 +608,7 @@ static void TestMergeAttributes_Impl(std::pair<std::shared_ptr<IModel>, std::sha
     propagate_to(propagater, *xml_exporter_repo1, *db2, *db1, relations);
 
     expect_req(relations, {
-        "max_exact_match_both_function_0000000000000002_function_0000000000000001_all",
+        "exact_match_function_0000000000000002_function_0000000000000001_all",
     });
 
     checkFilesContentEqual("../../YaDiff/tests/YaDiffLib_test/data/merge/TestMergeAttributeResult1.xml", p1.path / "function" / "0000000000000001.xml");
@@ -641,7 +645,7 @@ static void TestMergeXrefs_Impl(std::pair<std::shared_ptr<IModel>, std::shared_p
     propagate_to(propagater, *xml_exporter_repo2, *db1, *db2, relations);
 
     expect_req(relations, {
-        "max_exact_match_both_function_0000000000000001_function_0000000000000002_all",
+        "exact_match_function_0000000000000001_function_0000000000000002_all",
     });
 
     relations.clear();
@@ -649,7 +653,7 @@ static void TestMergeXrefs_Impl(std::pair<std::shared_ptr<IModel>, std::shared_p
     propagate_to(propagater, *xml_exporter_repo1, *db2, *db1, relations);
 
     expect_req(relations, {
-        "max_exact_match_both_function_0000000000000002_function_0000000000000001_all",
+        "exact_match_function_0000000000000002_function_0000000000000001_all",
     });
 
     checkFilesContentEqual("../../YaDiff/tests/YaDiffLib_test/data/merge/TestMergeXrefsResult1.xml", p1.path / "function" / "0000000000000001.xml");
@@ -686,7 +690,7 @@ static void TestMergeLoopXrefs_Impl(std::pair<std::shared_ptr<IModel>, std::shar
     propagate_to(propagater, *xml_exporter_repo2, *db1, *db2, relations);
 
     expect_req(relations, {
-        "max_exact_match_both_function_0000000000000001_function_0000000000000002_all",
+        "exact_match_function_0000000000000001_function_0000000000000002_all",
     });
 
     checkFilesContentEqual("../../YaDiff/tests/YaDiffLib_test/data/merge/TestMergeXrefsLoopResult2.xml",   p2.path / "function" / "0000000000000002.xml");
@@ -726,7 +730,7 @@ static void TestMergeMissingXrefs_Impl(std::pair<std::shared_ptr<IModel>, std::s
     propagate_to(propagater, *xml_exporter_repo2, *db1, *db2, relations);
 
     expect_req(relations, {
-        "max_exact_match_both_function_0000000000000001_function_0000000000000002_all",
+        "exact_match_function_0000000000000001_function_0000000000000002_all",
     });
 
     relations.clear();
@@ -734,7 +738,7 @@ static void TestMergeMissingXrefs_Impl(std::pair<std::shared_ptr<IModel>, std::s
     propagate_to(propagater, *xml_exporter_repo1, *db2, *db1, relations);
 
     expect_req(relations, {
-        "max_exact_match_both_function_0000000000000002_function_0000000000000001_all",
+        "exact_match_function_0000000000000002_function_0000000000000001_all",
     });
 
     checkFilesContentEqual("../../YaDiff/tests/YaDiffLib_test/data/merge/TestMergeXrefsMissingResult1.xml",  p1.path / "function" / "0000000000000001.xml");
@@ -772,7 +776,7 @@ static void TestMergeMultiStrucXrefs_Impl(std::pair<std::shared_ptr<IModel>, std
     propagate_to(propagater, *xml_exporter_repo2, *db1, *db2, relations);
 
     expect_req(relations, {
-        "max_exact_match_both_function_0000000000000001_function_0000000000000002_all",
+        "exact_match_function_0000000000000001_function_0000000000000002_all",
     });
 
     relations.clear();
@@ -780,7 +784,7 @@ static void TestMergeMultiStrucXrefs_Impl(std::pair<std::shared_ptr<IModel>, std
     propagate_to(propagater, *xml_exporter_repo1, *db2, *db1, relations);
 
     expect_req(relations, {
-        "max_exact_match_both_function_0000000000000002_function_0000000000000001_all",
+        "exact_match_function_0000000000000002_function_0000000000000001_all",
     });
 
     checkFilesContentEqual("../../YaDiff/tests/YaDiffLib_test/data/merge/TestMergeMultiStrucXrefsResult1.xml",  p1.path / "function" / "0000000000000001.xml");
@@ -820,7 +824,7 @@ void LookupFunctionName(const_string_ref& name, const HVersion& fctVersion)
 
 
 int         giFunctionCounter = 0;
-bool TestOutput(const Relation& relation)
+bool TestOutput(const Relation& relation, bool /*update_flag_only*/)
 {
     // Get Names
     const_string_ref fctName1;
@@ -830,10 +834,10 @@ bool TestOutput(const Relation& relation)
 
 
     // LOG
-    LOG(INFO, "---> Function (%s, %jx) matches Function (%s, %jx) with confidence %d/4 \n",
+    LOG(INFO, "---> Function (%s, %jx) matches Function (%s, %jx)\n",
         fctName1.value, relation.version1_.address(),
-        fctName2.value, relation.version2_.address(),
-        relation.confidence_
+        fctName2.value, relation.version2_.address()
+//        relation.confidence_
         );
 
     // Inc counter
@@ -916,16 +920,16 @@ static void TestExternalMappingMatch_Impl(std::pair<std::shared_ptr<IModel>, std
     EXPECT_TRUE(algo->Prepare(*dbs.first, *dbs.second));
     
     const yadiff::RelationWalkerfn input;
-    const auto AddRelation = [&](const Relation& relation){
+    const auto AddRelation = [&](const Relation& relation, bool /*update_flag_only*/){
         relations.emplace_back(relation);
         return true;
     };
     EXPECT_TRUE(algo->Analyse(AddRelation, input));
     expect_req(relations, {
-        "good_diff_both_basic_block_0000000022345678_basic_block_0000000022345688",
-        "good_diff_both_basic_block_0000000032345678_basic_block_0000000032345688",
-        "good_diff_both_basic_block_0000000042345678_basic_block_0000000042345688",
-        "good_exact_match_both_basic_block_0000000012345678_basic_block_0000000012345688"
+        "diff_basic_block_0000000022345678_basic_block_0000000022345688",
+        "diff_basic_block_0000000032345678_basic_block_0000000032345688",
+        "diff_basic_block_0000000042345678_basic_block_0000000042345688",
+        "exact_match_basic_block_0000000012345678_basic_block_0000000012345688"
     });
 }
 
@@ -951,17 +955,17 @@ static void TestExternalMappingMatch2_Impl(std::pair<std::shared_ptr<IModel>, st
     std::vector<Relation> relations;
     EXPECT_TRUE(algo->Prepare(*db1, *db2));
     const yadiff::RelationWalkerfn  input;
-    const auto AddRelation = [&](const Relation& relation)
+    const auto AddRelation = [&](const Relation& relation, bool /*update_flag_only*/)
     {
         relations.emplace_back(relation);
         return true;
     };
     EXPECT_TRUE(algo->Analyse(AddRelation, input));
     expect_req(relations, {
-        "bad_diff_both_basic_block_0000000022345678_basic_block_0000000022345688",
-        "bad_diff_both_basic_block_0000000032345678_basic_block_0000000032345688",
-        "bad_diff_both_basic_block_0000000042345678_basic_block_0000000042345688",
-        "bad_exact_match_both_basic_block_0000000012345678_basic_block_0000000012345688"
+        "diff_basic_block_0000000022345678_basic_block_0000000022345688",
+        "diff_basic_block_0000000032345678_basic_block_0000000032345688",
+        "diff_basic_block_0000000042345678_basic_block_0000000042345688",
+        "exact_match_basic_block_0000000012345678_basic_block_0000000012345688"
     });
 }
 

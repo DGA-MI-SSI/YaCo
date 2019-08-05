@@ -28,7 +28,6 @@
 
 #include <unordered_map>
 
-#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("strucs", (FMT), ## __VA_ARGS__)
 
 namespace
 {
@@ -128,8 +127,9 @@ namespace
         ok = false;
         version.walk_attributes([&](const const_string_ref& key, const const_string_ref& value)
         {
-            if(key != ::make_string_ref("tag"))
+            if(key != ::make_string_ref("tag")) {
                 return WALK_CONTINUE;
+            }
 
             tag = make_string(value);
             ok = true;
@@ -141,8 +141,7 @@ namespace
     template<Reply (*hash)(const char*), std::string (*get_name)(const char*)>
     void rename_with(const char* oldname, const char* newname)
     {
-        if(!oldname)
-            return;
+        if(!oldname) { return; }
 
         auto node = hash(oldname).node;
         const auto newnodename = get_name(newname);
@@ -198,8 +197,9 @@ namespace strucs
     {
         bool found = false;
         const auto tag = get_tag_from_version(version, found);
-        if(found)
+        if(found) {
             set_tag_with(version.username().value, tag);
+        }
         return tag;
     }
 }
@@ -250,8 +250,9 @@ namespace enums
     {
         bool found = false;
         const auto tag = get_tag_from_version(version, found);
-        if(found)
+        if(found) {
             set_tag_with(version.username().value, tag);
+        }
         return tag;
     }
 }
@@ -263,29 +264,30 @@ namespace local_types
         type->tif.clear();
         type->name.qclear();
         auto ok = type->tif.get_numbered_type(nullptr, ord);
-        if(!ok)
-            return false;
+        if(!ok) { return false; }
 
+        // False if cannot get name
         ok = type->tif.print(&type->name);
-        if(!ok)
-            return false;
+        if(!ok) { return false; }
 
+        // True if can get enum ID
         const auto eid = get_enum(type->name.c_str());
         type->ghost = eid == BADADDR;
-        if(eid != BADADDR)
-            return true;
+        if(eid != BADADDR) { return true; }
 
+        // True if can get struct ID
         const auto sid = get_struc_id(type->name.c_str());
         type->ghost = sid == BADADDR;
-        if(sid == BADADDR)
-            return true;
+        if(sid == BADADDR) { return true; }
 
+        // True if not ghost
         const auto struc = get_struc(sid);
         type->ghost = !!struc;
-        if(!struc)
-            return true;
+        if(!struc) { return true; }
 
         type->ghost = struc->is_ghost();
+
+        // Return True
         return true;
     }
 
@@ -294,13 +296,16 @@ namespace local_types
         return hash_local(name).id;
     }
 
+
+    // Hash struct[ord]
     YaToolObjectId hash(uint32_t ord)
     {
+        // Identify (i.e. Get type)
         Type type;
         const auto ok = identify(&type, ord);
-        if(!ok)
-            return 0;
+        if(!ok) { return 0; }
 
+        // Hash: type.name -> ID
         return hash(type.name.c_str());
     }
 
@@ -336,8 +341,9 @@ namespace local_types
     {
         bool found = false;
         const auto tag = get_tag_from_version(version, found);
-        if(found)
+        if(found) {
             set_tag(make_string(version.username()).data(), tag);
+        }
         return tag;
     }
 }
@@ -364,8 +370,7 @@ namespace
         const auto old = version.id();
         bool found = false;
         const auto tag = get_tag_from_version(version, found);
-        if(!found)
-            return old;
+        if(!found) { return old; }
 
         const auto name = make_string(version.username());
         const auto it = tags.find(name);
@@ -376,8 +381,7 @@ namespace
         }
 
         const auto cur = hasher(::make_string_ref(it->second));
-        if(old == cur)
-            return old;
+        if(old == cur) { return old; }
 
         return cur;
     }
@@ -392,21 +396,26 @@ namespace
         return check_version<hash::hash_enum>(tags, version);
     }
 
+    // Try to add
     YaToolObjectId check_struc(Filter& f, const HVersion& version)
     {
         const auto old = version.id();
         const auto id = check_struc_version(f.strucs_, version);
-        if(old != id)
+
+        if(old != id) {
             f.members_.emplace(old, id);
+        }
         return id;
     }
 
+    // Try to add
     YaToolObjectId check_enum(Filter& f, const HVersion& version)
     {
         const auto old = version.id();
         const auto id = check_enum_version(f.enums_, version);
-        if(old != id)
+        if(old != id) {
             f.members_.emplace(old, id);
+        }
         return id;
     }
 
@@ -415,8 +424,9 @@ namespace
         const auto old = version.id();
         const auto parent = version.parent_id();
         const auto it = f.members_.find(parent);
-        if(it == f.members_.end())
+        if(it == f.members_.end()) {
             return old;
+        }
 
         return hash::hash_member(it->second, version.address());
     }
@@ -426,8 +436,9 @@ namespace
         const auto old = version.id();
         const auto parent = version.parent_id();
         const auto it = f.members_.find(parent);
-        if(it == f.members_.end())
+        if(it == f.members_.end()) {
             return old;
+        }
 
         return hash::hash_enum_member(it->second, version.username());
     }
@@ -446,6 +457,8 @@ namespace strucs
     }
 }
 
+
+// Check if hVersion is valid: dispatch accroding to type
 YaToolObjectId Filter::is_valid(const HVersion& version)
 {
     switch(version.type())

@@ -26,9 +26,31 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import runtests
+from textwrap import dedent
+
+
+# Globals
+#     YaTools path string
+current_dir = os.path.abspath(os.path.join(__file__, ".."))
+#     Mask for ea
+ea_defmask = "(~0 & ~(1 << ya.OBJECT_TYPE_STRUCT) & ~(1 << ya.OBJECT_TYPE_ENUM)) & ~(1 << ya.OBJECT_TYPE_SEGMENT_CHUNK)"
+#     Command at IDA start
+with open(os.path.join(current_dir, "inc_runtests_ida_start.py"), 'r') as f_in:
+    ida_start = f_in.read()
+#     Command at IDA end
+ida_end = "\nidc.save_database('') ; idc.qexit(0)"
+
+
+def dbgprint(*args):
+    """ Help : print if debug """
+    b_debug = True
+    if b_debug:
+        print(args)
 
 
 def get_ida_dir():
+    """ Get environment variable `IDA_DIR" """
     try:
         return os.path.abspath(os.environ['IDA_DIR'])
     except KeyError:
@@ -37,173 +59,36 @@ def get_ida_dir():
 
 
 def remove_dir(dirname):
-    # really remove read-only files
+    """ Remove directory, even read-only files """
+    # Define function to Chmod Writable
     def del_rw(action, name, exc):
         os.chmod(name, stat.S_IWRITE)
         os.remove(name)
-    shutil.rmtree(dirname, onerror=del_rw)
+
+    # Remove anyway TODO uncomment
+    # shutil.rmtree(dirname, onerror=del_rw)
 
 
 def sysexec(cwd, *args):
-    if False:
-        print cwd + ": " + " ".join(*args)
-    output = subprocess.check_output(*args, cwd=cwd, stderr=subprocess.STDOUT, shell=False)
-    if False:
-        print output
+    """ Execute args in cwd and return bytes_output """
+    # Log
+    dbgprint("-->[IN] " + cwd + ": " + " ".join(*args) + "---")
+
+    # Fork
+    output = subprocess.check_output(
+            *args, cwd=cwd, stderr=subprocess.STDOUT, shell=False)
+
+    # Log
+    dbgprint("<--[OUT] " + output.decode() + "---")
+
+    # Return
     return output
 
-ida_start = """
-import idaapi
-import idautils
-import idc
-import sys
 
-sys.path.append(idc.ARGV[1])
-sys.path.append(idc.ARGV[2])
-if idc.__EA64__:
-    import YaToolsPy64 as ya
-else:
-    import YaToolsPy32 as ya
-
-def dump_type(ea):
-    flags = idaapi.get_flags(ea)
-    if idc.is_code(flags):
-        return "block" if idaapi.get_func(ea) else "code"
-    if idc.is_data(flags):
-        return "data"
-    return "unexplored"
-
-# MS_CLS
-type_flags = {
-    ida_bytes.FF_CODE: "code",
-    ida_bytes.FF_DATA: "data",
-    ida_bytes.FF_TAIL: "tail",
-    ida_bytes.FF_UNK:  "unkn",
-}
-
-# MS_CODE
-code_flags = {
-    ida_bytes.FF_FUNC: "func",
-    ida_bytes.FF_IMMD: "immd",
-    ida_bytes.FF_JUMP: "jump",
-}
-
-# DT_TYPE
-data_flags = {
-    ida_bytes.FF_BYTE:     "byte",
-    ida_bytes.FF_WORD:     "word",
-    ida_bytes.FF_DWORD:    "dword",
-    ida_bytes.FF_QWORD:    "qword",
-    ida_bytes.FF_TBYTE:    "tbyte",
-    ida_bytes.FF_STRLIT:   "strlit",
-    ida_bytes.FF_STRUCT:   "struct",
-    ida_bytes.FF_OWORD:    "oword",
-    ida_bytes.FF_FLOAT:    "float",
-    ida_bytes.FF_DOUBLE:   "double",
-    ida_bytes.FF_PACKREAL: "packreal",
-    ida_bytes.FF_ALIGN:    "align",
-    ida_bytes.FF_CUSTOM:   "custom",
-    ida_bytes.FF_YWORD:    "yword",
-    ida_bytes.FF_ZWORD:    "zword",
-}
-
-# MS_COMM
-comm_flags = {
-    ida_bytes.FF_COMM:   "comm",
-    ida_bytes.FF_REF:    "ref",
-    ida_bytes.FF_LINE:   "line",
-    ida_bytes.FF_NAME:   "name",
-    ida_bytes.FF_LABL:   "labl",
-    ida_bytes.FF_FLOW:   "flow",
-    ida_bytes.FF_SIGN:   "sign",
-    ida_bytes.FF_BNOT:   "bnot",
-    ida_bytes.FF_UNUSED: "unused",
-}
-
-# MS_0TYPE
-op0_flags = {
-    ida_bytes.FF_0NUMH: "0:numh",
-    ida_bytes.FF_0NUMD: "0:numd",
-    ida_bytes.FF_0CHAR: "0:char",
-    ida_bytes.FF_0SEG:  "0:seg",
-    ida_bytes.FF_0OFF:  "0:off",
-    ida_bytes.FF_0NUMB: "0:numb",
-    ida_bytes.FF_0NUMO: "0:numo",
-    ida_bytes.FF_0ENUM: "0:enum",
-    ida_bytes.FF_0FOP:  "0:fop",
-    ida_bytes.FF_0STRO: "0:stro",
-    ida_bytes.FF_0STK:  "0:stk",
-    ida_bytes.FF_0FLT:  "0:flt",
-    ida_bytes.FF_0CUST: "0:cust",
-}
-
-# MS_1TYPE
-op1_flags = {
-    ida_bytes.FF_1NUMH: "1:numh",
-    ida_bytes.FF_1NUMD: "1:numd",
-    ida_bytes.FF_1CHAR: "1:char",
-    ida_bytes.FF_1SEG:  "1:seg",
-    ida_bytes.FF_1OFF:  "1:off",
-    ida_bytes.FF_1NUMB: "1:numb",
-    ida_bytes.FF_1NUMO: "1:numo",
-    ida_bytes.FF_1ENUM: "1:enum",
-    ida_bytes.FF_1FOP:  "1:fop",
-    ida_bytes.FF_1STRO: "1:stro",
-    ida_bytes.FF_1STK:  "1:stk",
-    ida_bytes.FF_1FLT:  "1:flt",
-    ida_bytes.FF_1CUST: "1:cust",
-}
-
-def dump_flags(ea):
-    flags = idaapi.get_flags(ea)
-    reply = []
-    for k in type_flags:
-        if (flags & ida_bytes.MS_CLS) == (k & 0xFFFFFFFF):
-            reply.append(type_flags[k])
-    if ida_bytes.is_code(flags):
-        for k in code_flags:
-            if (flags & ida_bytes.MS_CODE) & k:
-                reply.append(code_flags[k])
-    if ida_bytes.is_data(flags):
-        for k in data_flags:
-            if (flags & ida_bytes.DT_TYPE) == (k & 0xFFFFFFFF):
-                reply.append(data_flags[k])
-    for k in comm_flags:
-        if (flags & ida_bytes.MS_COMM) & k:
-            reply.append(comm_flags[k])
-    for k in op0_flags:
-        if (flags & ida_bytes.MS_0TYPE) == (k & 0xFFFFFFFF):
-            reply.append(op0_flags[k])
-    for k in op1_flags:
-        if (flags & ida_bytes.MS_1TYPE) == (k & 0xFFFFFFFF):
-            reply.append(op1_flags[k])
-    return " ".join(reply)
-
-def export_range(start, end):
-    data = ""
-    count = 0
-    for ea in ya.get_all_items(start, end):
-        type = idc.get_type(ea)
-        type = " " + type if type else ""
-        name = idaapi.get_name(ea)
-        name = " " + name if name else ""
-        data += "0x%x: %s: %s\\n" % (ea, dump_type(ea), dump_flags(ea))
-        count += 1
-    if count > 100:
-        data += "%d item(s)" % count
-    return data
-
-idc.Wait()
-"""
-
-ida_end = """
-# end
-idc.save_database("")
-idc.qexit(0)
-"""
 
 
 class Repo():
+    """ Repertory Git class """
 
     def __init__(self, ctx, path, target):
         self.ctx = ctx
@@ -211,48 +96,70 @@ class Repo():
         self.target = target
 
     def run_script(self, script, target):
+        # Load ida.exe
         import exec_ida
         args = ["-Oyaco:disable_plugin", "-A"]
         cmd = exec_ida.Exec(os.path.join(self.ctx.ida_dir, "ida64"), os.path.join(self.path, target), *args)
         cmd.set_idle(True)
+
+        # Write temporary test script
         fd, fname = tempfile.mkstemp(dir=self.path, prefix="exec_", suffix=".py")
-        os.write(fd, ida_start + script + ida_end)
+        b_generated = (ida_start + script + ida_end).encode()
+        os.write(fd, b_generated)
         os.close(fd)
+
+        # Run generated script
         cmd.with_script(fname, self.ctx.bin_dir, self.ctx.yaco_dir)
         err = cmd.run()
         self.ctx.assertEqual(err, None, "%s" % err)
 
     def run_with(self, use_yaco, sync_first, *args):
+        # Declare scritp in IDA
         scripts = ""
+
+        # Load YaCo in script if want
         if use_yaco:
-            scripts += """
-# start
-import yaco_plugin
-yaco_plugin.start()
-ya.enable_testing_mode()
-"""
+            scripts += dedent("""
+                # start
+                import yaco_plugin
+                yaco_plugin.start()
+                ya.enable_testing_mode() """)
+
+        # Synchronize db if want
         if sync_first:
-            scripts += """
-# sync first
-idc.save_database("")
-"""
+            scripts += dedent("""
+                # sync first
+                idc.save_database("")
+                """)
+
+        # Fill scirpt and call check(name)
         todo = []
         for (script, check) in args:
-            if check == None:
+            if check is None:
                 scripts += script
                 continue
             fd, fname = tempfile.mkstemp(dir=self.path, prefix="data_%02d_" % self.ctx.idx(), suffix=".xml")
             os.close(fd)
-            scripts += """
-with open("%s", "wb") as fh:
-    fh.write(%s)
-""" % (re.sub("\\\\", "/", fname), script)
+            template = dedent("""
+                with open("%s", "wb") as fh:
+                    fh.write(%s)
+                """)
+            scripts += template % (re.sub("\\\\", "/", fname), script)
             todo.append((check, fname))
 
         target = self.target + ("_local.i64" if use_yaco else ".i64")
         self.run_script(scripts, target)
+
+        # Call all check scripts
         for (check, name) in todo:
+            # TODO remove
+            from inspect import getsource
+            s_code = getsource(check)
+            dbgprint("CODE :\n", s_code)
+            dbgprint("Name :\n", name)
+            # Not remove
             check(name)
+
 
     def run(self, *args):
         return self.run_with(True, True, *args)
@@ -264,56 +171,76 @@ with open("%s", "wb") as fh:
         return self.run_with(False, False, *args)
 
     def check_git(self, added=None, modified=None, deleted=None):
+        """ Check YaGit file versus argument dictionnary """
+        # Fill default if needed
         if not added:
             added = []
         if not modified:
             modified = []
         if not deleted:
             deleted = []
-        want_state = {"added":added, "modified":modified, "deleted":deleted}
-        output = sysexec(self.path, ["git", "diff", "--name-status", "HEAD~1..HEAD"])
-        files = output.split("\n")
+        want_state = {"added": added, "modified": modified, "deleted": deleted}
         got_added, got_modified, got_deleted = [], [], []
+
+        # Git diff
+        output = sysexec(self.path, ["git", "diff", "--name-status", "HEAD~1..HEAD"])
+        files = output.split(b"\n")
+
+
         def add_simple(line):
+            # Closure: Get state (Append, Modified, Deleted) and path (otype/md5.xml)
             state, path = line.split()
-            _, otype, name = re.split("[\\\/]", path)
-            name = re.sub("\.xml$", "", name) # currently unused
-            if state == 'A':
+            otype = re.split(b"[\\\/]", path)[1].decode()
+            dbgprint('Git : Add simple:', state, ',', path, 'AND', otype)
+
+            # Discriminate Path
+            if state == b'A':
                 got_added.append(otype)
-            if state == 'M':
+            if state == b'M':
                 got_modified.append(otype)
-            if state == 'D':
+            if state == b'D':
                 got_deleted.append(otype)
+
+
         def add_moved(line):
+            # Closure: Get state
             _, path_a, path_b = line.split()
-            _, otype_a, _ = re.split("[\\\/]", path_a)
-            _, otype_b, _ = re.split("[\\\/]", path_b)
+            otype_a = re.split(b"[\\\/]", path_a)[1].decode()
+            otype_b = re.split(b"[\\\/]", path_b)[1].decode()
+            dbgprint('Git : Add moved:', otype_a, ',', otype_b)
+
+            # Append coreespondingly
             got_deleted.append(otype_a)
             got_added.append(otype_b)
+
+
+        # Parse git diff
         for line in files:
-            if not len(line):
-                continue
-            try:
-                add_simple(line)
-            except:
-                pass
-            try:
-                add_moved(line)
-            except:
-                pass
+            # Pass if empty
+            if not len(line): continue
+
+            # Add simple
+            try: add_simple(line)
+            except: pass
+
+            # Add moved
+            try: add_moved(line)
+            except: pass
+
+        # Sort result
         for x in [added, modified, deleted, got_added, got_modified, got_deleted]:
             x.sort()
-        got_state = {"added":got_added, "modified":got_modified, "deleted":got_deleted}
-        self.ctx.assertEqual(want_state, got_state)
 
-ea_defmask = "(~0 & ~(1 << ya.OBJECT_TYPE_STRUCT) & ~(1 << ya.OBJECT_TYPE_ENUM)) & ~(1 << ya.OBJECT_TYPE_SEGMENT_CHUNK)"
+        # Compare want_state and got_state
+        got_state = {"added": got_added, "modified": got_modified, "deleted": got_deleted}
+        self.ctx.assertEqual(want_state, got_state)
 
 
 class Fixture(unittest.TestCase):
     out_dir = "out"
 
     def setUp(self):
-        args, _ = get_args()
+        args = get_args()
         self.maxDiff = None
         self.dirs = []
         self.counter = 0
@@ -348,52 +275,73 @@ class Fixture(unittest.TestCase):
         return "", None
 
     def sync(self):
-        return self.script("""
-idc.save_database("")
-""")
+        return self.script("idc.save_database('')")
 
     def check_diff(self, want_filename, want, filter=None):
+        """ Return Closure checker """
         def check(name):
+            # Get in <- Closure and arg
             data = None
             with open(name, "rb") as fh:
                 data = fh.read()
                 if filter:
                     data = filter(data)
-            if data != want:
-                self.fail("\n" + "".join(difflib.unified_diff(want.splitlines(1), data.splitlines(1), want_filename, name)))
+
+            # Stringify
+            s_data = data.decode()
+            s_want = want.decode()
+
+            # Fail if differs
+            if s_data != s_want:
+                self.fail("\n" + "".join(
+                    difflib.unified_diff(s_want.splitlines(1),
+                                         s_data.splitlines(1), want_filename, name)))
         return check
 
+
     def save_types(self):
+        """ Export types : enums and Structs """
         script = "ya.export_xml_types()"
+
         def callback(filename):
             with open(filename, "rb") as fh:
                 self.types = [filename, fh.read()]
         return script, callback
+
 
     def check_types(self):
         script = "ya.export_xml_types()"
         filename, want = self.types
         return script, self.check_diff(filename, want)
 
+
     def save_ea(self, ea):
         script = "ya.export_xml(0x%x, %s)" % (ea, ea_defmask)
+
         def callback(filename):
             with open(filename, "rb") as fh:
                 self.eas[ea] = [filename, fh.read()]
         return script, callback
 
+
     def save_last_ea(self):
+        """ Save last value of ea (cursor) """
+        print("tin_save_last_ea:", "0x%x" % self.last_ea)
         self.assertIsNotNone(self.last_ea)
         return self.save_ea(self.last_ea)
 
+
     def check_last_ea(self):
+        """ Check xml ea is self.last_ea """
         self.assertIsNotNone(self.last_ea)
         return self.check_ea(self.last_ea)
+
 
     def check_ea(self, ea):
         script = "ya.export_xml(0x%x, %s)" % (ea, ea_defmask)
         filename, want = self.eas[ea]
         return script, self.check_diff(filename, want)
+
 
     def save_item_range(self, start, end):
         script = "export_range(0x%x, 0x%x)" % (start, end)
@@ -418,18 +366,21 @@ idc.save_database("")
         sysexec(repo, ["git", "remote", "add", "origin", master])
         sysexec(repo, ["git", "fetch", "origin"])
 
-    # set two linked repos
     def setup_repos_with(self, indir, target):
-        try:
-            os.makedirs(self.out_dir)
-        except:
-            pass
+        """ Set two linked repos """
+        # Create output directory if can
+        try: os.makedirs(self.out_dir)
+        except: pass
+
+        # Create temporary directories
         work_dir = tempfile.mkdtemp(prefix='repo_', dir=self.out_dir)
         self.dirs.append(work_dir)
         indir = os.path.join(self.tests_dir, "..", "testdata", indir)
         a = os.path.abspath(os.path.join(work_dir, "a"))
         b = os.path.abspath(os.path.join(work_dir, "b"))
         c = os.path.abspath(os.path.join(work_dir, "c"))
+
+        # Git init @a
         os.makedirs(a)
         shutil.copy(os.path.join(indir, target + ".i64"), a)
         sysexec(a, ["git", "init"])
@@ -438,15 +389,24 @@ idc.save_database("")
         sysexec(a, ["git", "add", "-A"])
         sysexec(a, ["git", "commit", "-m", "init"])
         sysexec(a, ["git", "clone", "--bare", ".", c])
+
         self.set_master(a, c)
         ra, rb = Repo(self, a, target), Repo(self, b, target)
-        ra.run_script("""
-import yaco_plugin
-yaco_plugin.start()
-""", target + ".i64")
+
+        # Start YaCo @a
+        print("tin_target: ", target)
+        ra.run_script(
+                "import yaco_plugin; yaco_plugin.start()",
+                target + ".i64")
+
+        # Copy @a -> @b
         shutil.copytree(a, b)
+
+        # Config @b
         sysexec(b, ["git", "config", "user.name", "User B"])
         sysexec(b, ["git", "config", "user.email", "user.b@mail.com"])
+
+        # Return ra, rb
         return ra, rb
 
     def setup_repos(self):
@@ -457,40 +417,63 @@ yaco_plugin.start()
 
 
 def get_args():
+    """ Get argument : argparse <- command line """
+
+    # Create parser object
     parser = argparse.ArgumentParser()
+
+    # Declare options
     parser.add_argument("--list", action="store_true", default=False, help="list test targets")
     parser.add_argument("-v", "--verbose", type=int, default=2, help="verbosity level")
     parser.add_argument("-f", "--filter", type=str, default="", help="filter tests")
-    current_dir = os.path.abspath(os.path.join(__file__, ".."))
     yatools_bin_dir = os.path.abspath(os.path.join(current_dir, "..", "bin", "yaco_x64", "YaTools", "bin"))
     parser.add_argument("-b", "--bindir", type=os.path.abspath, default=yatools_bin_dir, help="binary directory")
     parser.add_argument("-nc", "--no-cleanup", action="store_true", help="do not remove temp folders")
     parser.add_argument("-tf", "--temp_folder", default="out", help="temporary folder for test (default: out)")
-    return parser.parse_args(), current_dir
+
+    # Return object
+    return parser.parse_args()
 
 
-def get_tests(args, cur_dir):
+def get_tests(args):
+    """ Get tests list : from /tests/tests """
     tests = unittest.TestSuite()
-    for s in unittest.defaultTestLoader.discover(os.path.join(cur_dir, "tests")):
+    for s in unittest.defaultTestLoader.discover(os.path.join(current_dir, "tests")):
         for f in s:
+            # Check if ready to fight
+            if isinstance(f, unittest.loader._FailedTest): break
+
+            # Append test to list
             for test in f:
                 if args.list:
-                    print test.id()
+                    print(test.id())
                 if test.id().endswith(args.filter):
                     tests.addTest(test)
+    # Return list
     return tests
 
-if __name__ == '__main__':
-    args, cur_dir = get_args()
-    import runtests
+
+def main():
+    """ Main """
+    # Get argument
+    args = get_args()
     if args.no_cleanup:
         def nop(_):
             pass
         runtests.remove_dir = nop
     runtests.Fixture.out_dir = args.temp_folder
 
-    tests = get_tests(args, cur_dir)
+    # Get test list
+    tests = get_tests(args)
     if args.list:
         sys.exit(0)
+
+    # Run tests
     result = unittest.TextTestRunner(verbosity=args.verbose).run(tests)
-    sys.exit(0 if not result.errors and not result.failures else -1)
+
+    # Exit
+    res = 0 if not result.errors and not result.failures else -1
+    return res
+
+if __name__ == '__main__':
+    sys.exit(main())

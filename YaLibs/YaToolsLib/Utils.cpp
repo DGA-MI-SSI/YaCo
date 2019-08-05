@@ -1,9 +1,10 @@
-#include "Utils.hpp"
-
+#include "Helpers.h"
 #include "YaTypes.hpp"
 #include "git_version.h"
 
 #include <regex>
+
+#include "Utils.hpp"
 
 #ifdef _MSC_VER
 #   include <optional.hpp>
@@ -15,12 +16,14 @@ using namespace std::experimental;
 
 bool remove_substring(std::string& str, const std::string& substr)
 {
-    if (substr.empty())
+    if (substr.empty()) {
         return false;
+    }
 
     const size_t pos = str.rfind(substr);
-    if (pos == std::string::npos)
+    if (pos == std::string::npos) {
         return false;
+    }
 
     str.erase(pos, substr.size());
     return true;
@@ -28,9 +31,6 @@ bool remove_substring(std::string& str, const std::string& substr)
 
 namespace
 {
-#define DECLARE_REF(name, value)\
-    const char name ## _txt[] = value;\
-    const const_string_ref name = {name ## _txt, sizeof name ## _txt - 1};
     DECLARE_REF(g_loc_, "loc_")
     DECLARE_REF(g_locret_, "locret_")
     DECLARE_REF(g_sub_, "sub_")
@@ -43,7 +43,6 @@ namespace
     DECLARE_REF(g_stru_, "stru_")
     DECLARE_REF(g_unk_, "unk_")
     DECLARE_REF(g_def_, "def_")
-#undef DECLARE_REF
 
     const const_string_ref default_prefixes[] =
     {

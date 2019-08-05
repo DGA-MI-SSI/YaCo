@@ -16,32 +16,38 @@
 #!/bin/python
 
 import runtests
+from textwrap import dedent
 
 
 class Fixture(runtests.Fixture):
 
     def test_enums(self):
         a, b = self.setup_repos()
+
         a.run(
             self.script("idaapi.add_enum(idaapi.BADADDR, 'name_a', idaapi.hexflag())"),
             self.save_types(),
         )
         a.check_git(added=["enum"])
+
         b.run(
             self.check_types(),
             self.script("idaapi.set_enum_name(idaapi.get_enum('name_a'), 'name_b')"),
             self.save_types(),
         )
         b.check_git(modified=["enum"])
+
         a.run(
             self.check_types(),
             self.script("idaapi.del_enum(idaapi.get_enum('name_b'))"),
             self.save_types(),
         )
         a.check_git(deleted=["enum"])
+
         b.run(
             self.check_types(),
         )
+
 
     def test_enum_members(self):
         a, b = self.setup_repos()
@@ -72,96 +78,111 @@ class Fixture(runtests.Fixture):
             self.check_types(),
         )
 
+
     def test_enum_types(self):
+        # Init git repo
         a, b = self.setup_repos()
-        constants = """
-ea = 0x66045614
 
-# flags, bits, bitfield, ea, operand, fields
-enums = [
-    (idaapi.hexflag(),  0, False, ea+0x00, 0, [0, 0x40, 16]),
-    (idaapi.charflag(), 0, False, ea+0x19, 1, [ord('a'), ord('z'), ord('$')]),
-    (idaapi.decflag(),  1, False, ea+0x02, 0, [0, 10, 16]),
-    (idaapi.octflag(),  0, False, ea+0x06, 1, [0, 8, 13, 16]),
-    (idaapi.binflag(),  0, True,  ea+0x04, 0, [1, 2]),
-]
-"""
+        # Declare constants for reuse
+        constants = dedent("""
+            ea = 0x66045614
+
+            # flags, bits, bitfield, ea, operand, fields
+            enums = [
+                (idaapi.hexflag(),  0, False, ea+0x00, 0, [0, 0x40, 16]),
+                (idaapi.charflag(), 0, False, ea+0x19, 1, [ord('a'), ord('z'), ord('$')]),
+                (idaapi.decflag(),  1, False, ea+0x02, 0, [0, 10, 16]),
+                (idaapi.octflag(),  0, False, ea+0x06, 1, [0, 8, 13, 16]),
+                (idaapi.binflag(),  0, True,  ea+0x04, 0, [1, 2]),
+            ]
+            """)
+
+        # Work on a
         a.run(
-            self.script(constants + """
-idx = 0
-def get_cmt():
-    global idx
-    idx += 1
-    return "cmt_%02x" % idx
+            self.script(constants + dedent("""
+                idx = 0
+                def get_cmt():
+                    global idx
+                    idx += 1
+                    return "cmt_%02x" % idx
 
-eidx = 0
-for (flags, bits, bitfield, ea, operand, fields) in enums:
-    name = "enum_%x" % eidx
-    eidx += 1
-    eid = idaapi.add_enum(idaapi.BADADDR, name, flags)
-    if bits != 0:
-        idaapi.set_enum_width(eid, bits)
-    if bitfield:
-       idaapi.set_enum_bf(eid, True)
-    for rpt in [False, True]:
-        idaapi.set_enum_cmt(eid, get_cmt(), rpt)
-    fidx = 0
-    for f in fields:
-        field = "%s_%x" % (name, fidx)
-        fidx += 1
-        if bitfield:
-           idaapi.add_enum_member(eid, field, f, f)
-        else:
-            idaapi.add_enum_member(eid, field, f, -1)
-        cid = idaapi.get_enum_member_by_name(field)
-        for rpt in [False, True]:
-            set_enum_member_cmt(cid, get_cmt(), rpt)
-    idaapi.op_enum(ea, operand, eid, 0)
-"""),
+                eidx = 0
+                for (flags, bits, bitfield, ea, operand, fields) in enums:
+                    name = "enum_%x" % eidx
+                    eidx += 1
+                    eid = idaapi.add_enum(idaapi.BADADDR, name, flags)
+                    if bits != 0:
+                        idaapi.set_enum_width(eid, bits)
+                    if bitfield:
+                       idaapi.set_enum_bf(eid, True)
+                    for rpt in [False, True]:
+                        idaapi.set_enum_cmt(eid, get_cmt(), rpt)
+                    fidx = 0
+                    for f in fields:
+                        field = "%s_%x" % (name, fidx)
+                        fidx += 1
+                        if bitfield:
+                           idaapi.add_enum_member(eid, field, f, f)
+                        else:
+                            idaapi.add_enum_member(eid, field, f, -1)
+                        cid = idaapi.get_enum_member_by_name(field)
+                        for rpt in [False, True]:
+                            set_enum_member_cmt(cid, get_cmt(), rpt)
+                    idaapi.op_enum(ea, operand, eid, 0)
+                """)),
             self.save_types(),
             self.save_last_ea()
         )
+
+        # Work on b
         b.run(
             self.check_last_ea(),
             self.check_types(),
-            self.script(constants +  """
-for (flags, bits, bitfield, ea, operand, fields) in enums:
-    idaapi.clr_op_type(ea, operand)
-"""),
-            self.save_last_ea(),
+            self.script(constants +  dedent("""
+                for (flags, bits, bitfield, ea, operand, fields) in enums:
+                    idaapi.clr_op_type(ea, operand)
+                """)),
+            self.save_last_ea()
         )
         b.check_git(modified=["basic_block"])
+
+        # Work on a
         a.run(
             self.check_last_ea(),
-            self.script(constants + """
-eidx = 0
-for (flags, bits, bitfield, ea, operand, fields) in enums:
-    name = "enum_%x" % eidx
-    eidx += 1
-    eid = idaapi.get_enum(name)
-    idaapi.op_enum(ea, operand, eid, 0)
-"""),
+            self.script(constants + dedent("""
+                eidx = 0
+                for (flags, bits, bitfield, ea, operand, fields) in enums:
+                    name = "enum_%x" % eidx
+                    eidx += 1
+                    eid = idaapi.get_enum(name)
+                    idaapi.op_enum(ea, operand, eid, 0)
+                """)),
             self.save_last_ea(),
         )
         a.check_git(modified=["basic_block"])
+
+        # Work on b
         b.run(
             self.check_last_ea(),
-            self.script(constants + """
-eidx = 0
-for (flags, bits, bitfield, ea, operand, fields) in enums:
-    name = "enum_%x" % eidx
-    eidx += 1
-    eid = idaapi.get_enum(name)
-    idaapi.del_enum(eid)
-"""),
+            self.script(constants + dedent("""
+                eidx = 0
+                for (flags, bits, bitfield, ea, operand, fields) in enums:
+                    name = "enum_%x" % eidx
+                    eidx += 1
+                    eid = idaapi.get_enum(name)
+                    idaapi.del_enum(eid)
+                """)),
             self.save_types(),
             self.save_last_ea(),
         )
         b.check_git(deleted=["enum"] * 5 + ["enum_member"] * 15)
+
+        # Work on a
         a.run(
             self.check_last_ea(),
             self.check_types(),
         )
+
 
     def test_enum_bf(self):
         a, b = self.setup_repos()

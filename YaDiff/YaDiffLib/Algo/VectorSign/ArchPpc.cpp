@@ -10,31 +10,27 @@
 
 // Must init
 
-namespace
-{
-struct PpcArch : public yadiff::IArch
-{
+namespace {
+struct PpcArch : public yadiff::IArch {
     PpcArch();
     bool IsInstructionType(const cs_insn&, yadiff::InstructionType_e) const override;
-
 };
-}
+} // End of empty namespace
 
-PpcArch::PpcArch()
-{
+
+PpcArch::PpcArch() {
    
 }
 
-bool PpcArch::IsInstructionType(const cs_insn& instruction, yadiff::InstructionType_e type) const
-{
+
+bool PpcArch::IsInstructionType(const cs_insn& instruction, yadiff::InstructionType_e type) const {
     const cs_detail* detail = instruction.detail;
     const ppc_insn insn_id = static_cast<ppc_insn>(instruction.id);
     UNUSED(detail);
     UNUSED(insn_id);
 
 
-    switch (type)
-    { 
+    switch (type) { 
     // OK
     case yadiff::INST_TYPE_ANY:
         return true;
@@ -99,14 +95,13 @@ bool PpcArch::IsInstructionType(const cs_insn& instruction, yadiff::InstructionT
     case yadiff::INST_TYPE_COUNT:
         return true;
 
-	break;
+    break;
     }
 
     return false;
 }
 
-std::shared_ptr<yadiff::IArch> yadiff::MakePpcArch()
-{
+std::shared_ptr<yadiff::IArch> yadiff::MakePpcArch() {
     return std::make_shared<PpcArch>();
 }
 

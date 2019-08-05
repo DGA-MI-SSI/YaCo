@@ -23,12 +23,10 @@
 using namespace std;
 using namespace std::experimental;
 
-#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("external", (FMT), ## __VA_ARGS__)
 
 using json = nlohmann::json;
 
-namespace yadiff
-{
+namespace yadiff {
   struct ExternalMappingEntry
   {
       offset_t      src;
@@ -54,7 +52,7 @@ public:
      * uses previously registered signature databases and input version relations
      * to compute a new version relation vector
      */
-    virtual bool Analyse(const OnRelationFn& output, const RelationWalkerfn& input);
+    virtual bool Analyse(const OnAddRelationFn& output, const RelationWalkerfn& input);
 
     virtual const char* GetName() const;
 private:
@@ -89,13 +87,17 @@ bool ExternalMappingMatchAlgo::Prepare(const IModel& db1, const IModel& db2)
     pDb1_ = &db1;
     pDb2_ = &db2;
 
-
+    if(config_.ExternalMappingMatch.MappingFilePath.size() == 0)
+    {
+        LOG(ERROR, "json file not specified\n");
+        return false;
+    }
     // load JSON mapping
     if(!filesystem::exists(filesystem::path(config_.ExternalMappingMatch.MappingFilePath)))
-      {
-        LOG(ERROR, "json file %s does not exist\n", config_.ExternalMappingMatch.MappingFilePath);
+    {
+        LOG(ERROR, "json file %s does not exist\n", config_.ExternalMappingMatch.MappingFilePath.c_str());
         return false;
-      }
+    }
     std::ifstream file(config_.ExternalMappingMatch.MappingFilePath);
     json data = json::parse(file);
     for(auto it = data.begin(); it != data.end(); ++it)
@@ -126,7 +128,7 @@ bool ExternalMappingMatchAlgo::Prepare(const IModel& db1, const IModel& db2)
     return true;
 }
 
-bool ExternalMappingMatchAlgo::Analyse(const OnRelationFn& output, const RelationWalkerfn& input)
+bool ExternalMappingMatchAlgo::Analyse(const OnAddRelationFn& output, const RelationWalkerfn& input)
 {
     UNUSED(input);
 
@@ -145,12 +147,6 @@ bool ExternalMappingMatchAlgo::Analyse(const OnRelationFn& output, const Relatio
       }
 
     Relation relation;
-    memset(&relation, 0, sizeof relation);
-    if(config_.ExternalMappingMatch.CustomRelationConfidence)
-        relation.confidence_ = config_.ExternalMappingMatch.RelationConfidence;
-    else
-      relation.confidence_ = RELATION_CONFIDENCE_GOOD;
-    relation.direction_ = RELATION_DIRECTION_BOTH;
 
     pDb1_->walk([&](const HVersion& src_version)
     {
@@ -183,7 +179,7 @@ bool ExternalMappingMatchAlgo::Analyse(const OnRelationFn& output, const Relatio
             });
             relation.version1_ = src_version;
             relation.version2_ = dst_version;
-            output(relation);
+            output(relation, false);
             offset_to_treat.erase(match->first);
             return WALK_STOP;
         });
@@ -194,4 +190,4 @@ bool ExternalMappingMatchAlgo::Analyse(const OnRelationFn& output, const Relatio
 
     return true;
 }
-}
+} // End yadiff::

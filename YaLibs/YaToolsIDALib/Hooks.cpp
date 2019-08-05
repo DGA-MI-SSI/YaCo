@@ -24,7 +24,6 @@
 
 #include <math.h>
 
-#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("hooks", (FMT), ## __VA_ARGS__)
 
 // Log macro used for events logging
 #define LOG_IDP_EVENT(format, ...) do { if(LOG_IDP_EVENTS) LOG(INFO, "idp: " format "\n", ## __VA_ARGS__); } while(0)
@@ -38,6 +37,7 @@ namespace
     const bool LOG_DBG_EVENTS = false;
     const bool LOG_IDB_EVENTS = false;
 
+    // Array, convert boolean2string
     const char BOOL_STR[][6] = { "false", "true" };
 
     qstring get_func_name(ea_t ea)
@@ -270,16 +270,20 @@ namespace
     };
 }
 
+
+// Set hook
 void Hooks::hook()
 {
     enabled_ = true;
 }
 
+// Unset hook
 void Hooks::unhook()
 {
     enabled_ = false;
 }
 
+// Store
 void Hooks::save_and_update()
 {
     events_.save();
@@ -290,6 +294,7 @@ void Hooks::save_and_update()
 
 namespace
 {
+    // Stringify effective address
     qstring to_hex(uint64_t ea)
     {
         char dst[2 + sizeof ea * 2];
@@ -298,48 +303,65 @@ namespace
         return qstring(ref.value, ref.size);
     }
 
+
+    // Help : Get string i can from ea
     qstring get_name(ea_t ea)
     {
-        if(ea == BADADDR)
-            return "bad address";
+        // Check in
+        if(ea == BADADDR) { return "bad address"; }
 
+        // Get function current
         const auto func_ea = get_func_by_frame(ea);
-        if(func_ea != BADADDR)
+        if(func_ea != BADADDR) {
             return qstring("frame ") + get_func_name(func_ea);
-        
+        }
+
+        // Get struct current
         auto struc = get_struc(ea);
-        if(struc)
+        if(struc) {
             return qstring("struc ") + get_struc_name(struc->id);
+        }
 
+        // Get memebr current
         const auto member = get_member_by_id(ea, &struc);
-        if(member)
+        if(member) {
             return get_name(struc->id) + "::" + get_member_name(member->id);
+        }
 
+        // Get enum here
         const auto idx = get_enum_idx(ea);
-        if(idx != BADADDR)
+        if(idx != BADADDR) {
             return qstring("enum ") + get_enum_name(ea);
+        }
 
+        // Get ... WTF !!
         const auto eid = get_enum_member_enum(ea);
-        if(eid != BADADDR)
+        if(eid != BADADDR) {
             return get_name(eid) + "::" + get_enum_member_name(ea);
+        }
 
-        if(getseg(ea))
-            return to_hex(ea);
+        // Return hex(ea) if ea is in a memeory segment
+        if(getseg(ea)) { return to_hex(ea); }
 
+        // Try to get some info on ea (last shot)
         qstring buf;
         const auto n = getnode(ea).get_name(&buf);
-        if(n != -1)
+        if(n != -1) {
             return qstring("netnode ") + buf;
+        }
 
+        // Return empty string <- error
         return qstring();
     }
 
+    // Cb@Close : Unset hook + log
     void closebase(Hooks& hooks, va_list /*args*/)
     {
         LOG_IDB_EVENT("closebase");
         hooks.enabled_ = false;
     }
 
+    // Cb@Save : Save
     void savebase(Hooks& hooks, va_list /*args*/)
     {
         msg("\n");
@@ -347,33 +369,39 @@ namespace
         hooks.save_and_update();
     }
 
+    // Cb@Upgrade : void
     void upgraded(Hooks& /*hooks*/, va_list args)
     {
         const auto old = va_arg(args, int);
         LOG_IDB_EVENT("upgraded: old %d", old);
     }
 
+    // Cb@Emtpy : void
     void auto_empty(Hooks& /*hooks*/, va_list /*args*/)
     {
         LOG_IDB_EVENT("auto_empty");
     }
 
+    // Cb void
     void auto_empty_finally(Hooks& /*hooks*/, va_list /*args*/)
     {
         LOG_IDB_EVENT("auto_empty_finally");
     }
 
+    // Cb void
     void determined_main(Hooks& /*hooks*/, va_list args)
     {
         const auto ea = va_arg(args, ea_t);
         LOG_IDB_EVENT("determined_main: 0x%" PRIXEA, ea);
     }
 
+    // Cb void
     void local_types_changed(Hooks& /*hooks*/, va_list /*args*/)
     {
         LOG_IDB_EVENT("local_types_changed");
     }
 
+    // Cb void
     void extlang_changed(Hooks& /*hooks*/, va_list args)
     {
         const auto kind = va_arg(args, int);
@@ -383,17 +411,20 @@ namespace
         UNUSED(el);
     }
 
+    // Cb void
     void idasgn_loaded(Hooks& /*hooks*/, va_list args)
     {
         const auto name = va_arg(args, const char*);
         LOG_IDB_EVENT("idasgn_loaded: sort_sig_name %s", name);
     }
 
+    // Cb void
     void kernel_config_loaded(Hooks& /*hooks*/, va_list /*args*/)
     {
         LOG_IDB_EVENT("kernel_config_loaded");
     }
 
+    // Cb void
     void loader_finished(Hooks& /*hooks*/, va_list args)
     {
         const auto li           = va_arg(args, linput_t*);
@@ -403,6 +434,7 @@ namespace
         UNUSED(li);
     }
 
+    // Cb void
     void flow_chart_created(Hooks& /*hooks*/, va_list args)
     {
         const auto fc = va_arg(args, qflow_chart_t*);
@@ -410,11 +442,13 @@ namespace
         UNUSED(fc);
     }
 
+    // Cb void
     void compiler_changed(Hooks& /*hooks*/, va_list /*args*/)
     {
         LOG_IDB_EVENT("compiler_changed");
     }
 
+    // Cb change ea
     void changing_ti(Hooks& hooks, va_list args)
     {
         const auto ea           = va_arg(args, ea_t);
@@ -426,6 +460,7 @@ namespace
         hooks.events_.touch_ea(ea);
     }
 
+    // Cb void
     void ti_changed(Hooks& /*hooks*/, va_list args)
     {
         const auto ea       = va_arg(args, ea_t);
@@ -436,10 +471,10 @@ namespace
         UNUSED(fnames);
     }
 
+    // Helper : 42 -> '[42]'
     std::string to_operand(int n)
     {
-        if(n == -1)
-            return std::string();
+        if (n == -1) { return std::string(); }
         return " [" + std::to_string(n) + "]";
     }
 
@@ -1057,7 +1092,7 @@ namespace
         LOG_IDB_EVENT("changing_cmt: %s %scmt %s:%s", get_name(ea).c_str(), repeatable ? "repeatable " : "", cmt.c_str(), newcmt);
         if(cmt == newcmt)
             return;
-        
+
         hooks.events_.touch_ea(ea);
     }
 
@@ -1122,12 +1157,15 @@ namespace
         return 0;
     }
 
+
+    // Listen callback and dispatch
     ssize_t idb_event_handler(void* user_data, int notification_code, va_list args)
     {
+        // Get & Check in
         Hooks* hooks = static_cast<Hooks*>(user_data);
-        if(!hooks->enabled_)
-            return 0;
+        if (!hooks->enabled_) { return 0; }
 
+        // Get and discriminate event type
         hooks->events_.touch();
         idb_event::event_code_t event = static_cast<idb_event::event_code_t>(notification_code);
         switch (event)
@@ -1222,11 +1260,18 @@ namespace
             case idb_event::event_code_t::changing_range_cmt:       changing_range_cmt(*hooks, args); break;
             case idb_event::event_code_t::range_cmt_changed:        range_cmt_changed(*hooks, args); break;
             case idb_event::event_code_t::extra_cmt_changed:        extra_cmt_changed(*hooks, args); break;
+#if IDA_SDK_VERSION >= 720
+            case idb_event::event_code_t::item_color_changed:       LOG_IDB_EVENT("[YaTools/TODO] item_color_changed: not implemented"); break;
+            case idb_event::event_code_t::callee_addr_changed:      LOG_IDB_EVENT("[YaTools/TODO] callee_addr_changed: not implemented"); break;
+            case idb_event::event_code_t::bookmark_changed:         LOG_IDB_EVENT("[YaTools/TODO] bookmark_changed: not implemented"); break;
+            case idb_event::event_code_t::sgr_deleted:              LOG_IDB_EVENT("[YaTools/TODO] sgr_deleted: not implemented"); break;
+#endif
         }
         return 0;
     }
 }
 
+// Ctor : add hook
 Hooks::Hooks(IEvents& events)
     : events_(events)
     , enabled_(false)
@@ -1238,6 +1283,7 @@ Hooks::Hooks(IEvents& events)
     hook_to_notification_point(HT_IDB, &idb_event_handler, this);
 }
 
+// Dtor : remove all possible hooks
 Hooks::~Hooks()
 {
     unhook_from_notification_point(HT_IDP, &idp_event_handler, this);
@@ -1245,6 +1291,7 @@ Hooks::~Hooks()
     unhook_from_notification_point(HT_IDB, &idb_event_handler, this);
 }
 
+// Make hook shared object
 std::shared_ptr<IHooks> MakeHooks(IEvents& events)
 {
     return std::make_shared<Hooks>(events);

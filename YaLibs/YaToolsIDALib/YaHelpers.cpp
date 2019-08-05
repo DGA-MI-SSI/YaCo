@@ -23,7 +23,6 @@
 
 #include <algorithm>
 
-#define LOG(LEVEL, FMT, ...) CONCAT(YALOG_, LEVEL)("ya", (FMT), ## __VA_ARGS__)
 
 namespace
 {
@@ -34,17 +33,19 @@ namespace
 
     void to_string(qstring& buf, const tinfo_t& tif, const char* name, const char* cmt)
     {
+        // Get type info string & Check
         buf.qclear();
         const auto ok = tif.print(&buf, name, 0, 0, 0, nullptr, cmt);
-        if(!ok)
-            return;
-        while(!buf.empty() && back(buf) == ' ')
+        if(!ok) { return; }
+
+        // Chomp buffer
+        while(!buf.empty() && back(buf) == ' ') {
             buf.resize(buf.length() - 1);
+        }
     }
 
     const struct { cm_t cc; const_string_ref name; } cc_names[] =
     {
-#define DECL_CC_NAME(VALUE, NAME) {VALUE, {NAME, sizeof NAME - 1}},
         DECL_CC_NAME(CM_CC_CDECL,       "__cdecl")
         DECL_CC_NAME(CM_CC_STDCALL,     "__stdcall")
         DECL_CC_NAME(CM_CC_PASCAL,      "__pascal")
@@ -53,38 +54,47 @@ namespace
         DECL_CC_NAME(CM_CC_SPECIAL,     "__usercall")
         DECL_CC_NAME(CM_CC_SPECIALE,    "__usercall")
         DECL_CC_NAME(CM_CC_SPECIALP,    "__usercall")
-#undef DECL_CC_NAME
     };
     const const_string_ref empty_string = {nullptr, 0};
 
     const const_string_ref& get_calling_convention(cm_t cc)
     {
-        for(const auto& it : cc_names)
-            if(it.cc == cc)
-                return it.name;
+        // For all calling convention
+        for(const auto& it : cc_names) {
+            // If it is the good one : return its name
+            if(it.cc == cc) { return it.name; }
+        }
+        // 
         return empty_string;
     }
 
     void add_suffix(qstring& dst, const const_string_ref& suffix)
     {
-        if(!suffix.value || !*suffix.value)
-            return;
-        if(!dst.empty() && back(dst) != '*' && back(dst) != ' ' && back(dst) != '/')
+        // Check in: suffix
+        if(!suffix.value || !*suffix.value) { return; }
+
+        // Add ' ' to dst if necessary
+        if(!dst.empty() && back(dst) != '*' && back(dst) != ' ' && back(dst) != '/') {
             dst += ' ';
+        }
+
+        // Append suffix to dst
         dst.append(suffix.value, suffix.size);
     }
 
-    const qstring arglog_prefix = "@<";
 
     void append_location(qstring& dst, cm_t cc, char* buffer, size_t bufsize, const argloc_t& loc)
     {
-        if(cc != CM_CC_SPECIAL && cc != CM_CC_SPECIALE && cc != CM_CC_SPECIALP)
-            return;
-        if(loc.is_badloc())
-            return;
+        // Check in
+        if((cc != CM_CC_SPECIAL && cc != CM_CC_SPECIALE && cc != CM_CC_SPECIALP)
+            || loc.is_badloc()) { return; }
+
+        // Get argument location string && Check
         const auto size = print_argloc(buffer, bufsize, loc);
-        if(!size)
-            return;
+        if(!size) { return; }
+
+        // Append what it takes. But do you have what it takes ?
+        const qstring arglog_prefix = "@<";
         dst += arglog_prefix;
         dst.append(buffer, size);
         dst += '>';
@@ -93,84 +103,77 @@ namespace
     bool try_add_struc_enum(ya::Deps& deps, const qstring& name)
     {
         const auto subtid = node2ea(netnode(name.c_str()));
-        if(subtid == BADADDR)
-            return false;
+        if(subtid == BADADDR) { return false; }
 
         const auto struc = get_struc(subtid);
-        if(!struc)
+        if(!struc) {
             deps.emplace_back(OBJECT_TYPE_ENUM, enums::hash(subtid), subtid);
-        else if(!struc->is_ghost())
+        } else if(!struc->is_ghost()) {
             deps.emplace_back(OBJECT_TYPE_STRUCT, strucs::hash(subtid), subtid);
-        else
+        } else {
             return false;
+        }
         return true;
     }
 
     void simple_tif_to_string(qstring& dst, ya::TypeToStringMode_e mode, ya::Deps* deps, const tinfo_t& tif, const const_string_ref& name)
     {
         to_string(dst, tif, name.value, nullptr);
-        if(mode == ya::NO_HEURISTIC)
-            return;
+        if(mode == ya::NO_HEURISTIC || !deps) { return; }
 
-        if(!deps)
-            return;
-        
         auto subtif = tif;
-        while(subtif.remove_ptr_or_array())
-            continue;
+        while(subtif.remove_ptr_or_array()) { continue; }
 
         qstring subtype;
         auto ok = subtif.get_type_name(&subtype);
-        if(!ok)
-            return;
+        if(!ok) { return; }
 
         ok = try_add_struc_enum(*deps, subtype);
-        if(ok)
-            return;
+        if(ok) { return; }
 
         const auto ord = subtif.get_ordinal();
-        if(!ord)
-            return;
+        if(!ord) { return; }
 
         const auto id = local_types::hash(subtype.c_str());
         deps->emplace_back(OBJECT_TYPE_LOCAL_TYPE, id, ord);
     }
 
-    #define DECLARE_REF(name, value)\
-    const char name ## _txt[] = value;\
-    const const_string_ref name = {name ## _txt, sizeof name ## _txt - 1};
     DECLARE_REF(hidden_suffix, "__hidden");
     DECLARE_REF(return_ptr_suffix, "__return_ptr");
     DECLARE_REF(struct_ptr_suffix, "__struct_ptr");
     DECLARE_REF(default_function_name, "sub");
-#undef DECLARE_REF
 
     const qstring comma_separator = ", ";
     const qstring ellipsis_argument = ", ...";
 
     const_string_ref skip_leading_underscores(const const_string_ref& txt)
     {
-        if(!txt.size)
-            return txt;
+        // Check in
+        if(!txt.size) { return txt; }
+
+        // Skip space and underscore
         size_t skip = 0;
-        while(txt.value[skip] == ' ')
-            skip++;
-        while(txt.value[skip] == '_')
-            skip++;
+        while(txt.value[skip] == ' '
+            || txt.value[skip] == '_') {
+            skip++; }
+
         return {&txt.value[skip], txt.size - skip};
     }
 
     void tif_to_string(qstring& dst, ya::TypeToStringMode_e mode, ya::Deps* deps, const tinfo_t& tif, const const_string_ref& name)
     {
-        if(!tif.is_func())
+        if(!tif.is_func()) {
             return simple_tif_to_string(dst, mode, deps, tif, name);
+        }
 
         func_type_data_t fi;
         auto ok = tif.get_func_details(&fi);
-        if(!ok)
+        if(!ok) {
             ok = tif.get_func_details(&fi, GTD_NO_ARGLOCS);
-        if(!ok)
+        }
+        if(!ok) {
             return to_string(dst, tif, name.value, nullptr);
+        }
 
         // build type manually
         const auto rettype = tif.get_rettype();
@@ -191,26 +194,31 @@ namespace
         for(const auto& it : fi)
         {
             arg.qclear();
-            if(it.flags & FAI_HIDDEN)
+            if(it.flags & FAI_HIDDEN) {
                 add_suffix(arg, hidden_suffix);
-            if(it.flags & FAI_RETPTR)
+            }
+            if(it.flags & FAI_RETPTR) {
                 add_suffix(arg, return_ptr_suffix);
-            if(it.flags & FAI_STRUCT)
+            }
+            if(it.flags & FAI_STRUCT) {
                 add_suffix(arg, struct_ptr_suffix);
+            }
             // FIXME ida remove leading underscores on argument names...
             add_suffix(arg, skip_leading_underscores(ya::to_string_ref(it.name)));
             append_location(arg, cc, buffer, sizeof buffer, it.argloc);
-            if(i++)
+            if(i++) {
                 dst += comma_separator;
+            }
             argname.assign(arg.c_str(), arg.length());
             print_type(arg, mode, deps, it.type, make_string_ref(argname));
             dst += arg;
         }
-        if(cc == CM_CC_ELLIPSIS || cc == CM_CC_SPECIALE)
+        if(cc == CM_CC_ELLIPSIS || cc == CM_CC_SPECIALE) {
             dst += ellipsis_argument;
+        }
         dst += ')';
     }
-}
+} // End ::
 
 namespace ya
 {
@@ -228,8 +236,7 @@ namespace ya
 void ya::print_type(qstring& dst, TypeToStringMode_e mode, Deps* deps, const tinfo_t& tif, const const_string_ref& name)
 {
     tif_to_string(dst, mode, deps, tif, name);
-    if(deps)
-        ya::dedup(*deps);
+    if(deps) { ya::dedup(*deps); }
 }
 
 namespace
@@ -238,15 +245,12 @@ namespace
     {
         tinfo_t tif;
         const auto struc = get_struc(tid);
-        if(!struc)
-            return tif;
+        if(!struc) { return tif; }
 
-        if(struc->ordinal == -1)
-            return tif;
+        if(struc->ordinal == -1) { return tif; }
 
         const auto ok = tif.get_numbered_type(nullptr, struc->ordinal);
-        if(!ok)
-            tif.clear();
+        if(!ok) { tif.clear(); }
 
         return tif;
     }
@@ -255,8 +259,7 @@ namespace
     {
         tinfo_t tif;
         const auto guess = guess_tinfo(&tif, tid);
-        if(guess != GUESS_FUNC_OK)
-            tif.clear();
+        if(guess != GUESS_FUNC_OK) { tif.clear(); }
 
         return tif;
     }
@@ -356,45 +359,49 @@ std::string ya::dump_flags(flags_t flags)
     bool first = true;
     const auto add = [&](const char* value)
     {
-        if(!first)
-            reply += ", ";
+        if(!first) { reply += ", "; }
         reply += value;
         first = false;
     };
-    for(const auto it : g_types)
-        if((flags & it.mask) == it.value)
-            add(it.name);
-    if(is_code(flags))
-        for(const auto it : g_codeflags)
-            if(flags & it.mask & it.value)
-                add(it.name);
-    if(is_data(flags))
-        for(const auto it : g_dataflags)
-            if((flags & it.mask) == it.value)
-                add(it.name);
-    for(const auto it : g_commonflags)
-        if(flags & it.mask & it.value)
-            add(it.name);
-    for(const auto it : g_operandflags)
-        if((flags & it.mask) == it.value)
-            add(it.name);
-    for(const auto it : g_valueflags)
-        if((flags & it.mask) == it.value)
-            add(it.name);
+    for(const auto it : g_types) {
+        if((flags & it.mask) == it.value) { add(it.name); }
+    }
+
+    if(is_code(flags)) {
+        for(const auto it : g_codeflags) {
+            if(flags & it.mask & it.value) { add(it.name); }
+        }
+    }
+
+    if(is_data(flags)) {
+        for(const auto it : g_dataflags) {
+            if((flags & it.mask) == it.value) { add(it.name); }
+        }
+    }
+
+    for(const auto it : g_commonflags) {
+        if(flags & it.mask & it.value) { add(it.name); }
+    }
+
+    for(const auto it : g_operandflags) {
+        if((flags & it.mask) == it.value) { add(it.name); }
+    }
+
+    for(const auto it : g_valueflags) {
+        if((flags & it.mask) == it.value) { add(it.name); }
+    }
+
     return reply;
 }
 
 tinfo_t ya::get_tinfo_from_op(flags_t flags, const opinfo_t* op)
 {
     tinfo_t empty;
-    if(!op)
-        return empty;
+    if(!op) { return empty; }
 
-    if(is_struct(flags))
-        return get_tinfo_from_struct_tid(op->tid);
+    if(is_struct(flags)) { return get_tinfo_from_struct_tid(op->tid); }
 
-    if(is_enum0(flags))
-        return get_tinfo_from_enum_tid(op->ec.tid);
+    if(is_enum0(flags)) { return get_tinfo_from_enum_tid(op->ec.tid); }
 
     return empty;
 }
@@ -408,8 +415,7 @@ tinfo_t ya::get_tinfo(ea_t ea)
 
     tinfo_t tif;
     auto ok = get_tinfo(&tif, ea);
-    if(ok)
-        return tif;
+    if(ok) { return tif; }
 
     // try harder
     opinfo_t op;
@@ -422,8 +428,7 @@ std::string ya::get_type(ea_t ea)
 {
     // print_tinfo has bugs, instead we regenerate type ourselves
     const auto tif = get_tinfo(ea);
-    if(tif.empty())
-        return {};
+    if(tif.empty()) { return {}; }
 
     // do NOT include function name in prototype
     // - names are set elsewhere
@@ -451,12 +456,16 @@ namespace
 const_string_ref ya::get_default_name(qstring& buffer, ea_t offset, func_t* func)
 {
     buffer.resize(std::max(buffer.size(), static_cast<size_t>(32)));
-    if(!func)
+    if(!func) {
         return ya::read_string_from(buffer, TO_FMT("field_%" PRIXEA, offset));
-    if(offset <= func->frsize)
+    }
+    if(offset <= func->frsize) {
         return ya::read_string_from(buffer, TO_FMT("var_%" PRIXEA, func->frsize - offset));
-    if(offset < func->frsize + 4 + func->frregs)
+    }
+
+    if(offset < func->frsize + 4 + func->frregs) {
         return ya::read_string_from(buffer, TO_FMT("var_s%" PRIuEA, offset - func->frsize));
+    }
     return ya::read_string_from(buffer, TO_FMT("arg_%" PRIXEA, offset - func->frsize - 4 - func->frregs));
 }
 
@@ -470,8 +479,7 @@ namespace ya
     range_t get_range_code(ea_t ea, ea_t min, ea_t max)
     {
         const auto seg = getseg(ea);
-        if(!seg)
-            return range_t();
+        if(!seg) { return range_t(); }
 
         min = std::max(min, seg->start_ea);
         max = std::min(max, seg->end_ea);
@@ -482,18 +490,21 @@ namespace ya
         while(true)
         {
             const auto prev = get_range_item(start - 1);
-            if(!is_code(get_flags(prev.start_ea)) || get_func(prev.start_ea) != func)
+            if(!is_code(get_flags(prev.start_ea))
+                || get_func(prev.start_ea) != func
+                || prev.start_ea < min
+                ) {
                 break;
-            if(prev.start_ea < min)
-                break;
+            }
             start = prev.start_ea;
         }
         auto end = item.end_ea;
         while(end < max)
         {
             const auto next = get_range_item(end);
-            if(!is_code(get_flags(next.start_ea)) || get_func(next.start_ea) != func)
+            if(!is_code(get_flags(next.start_ea)) || get_func(next.start_ea) != func) {
                 break;
+            }
             end = next.end_ea;
         }
         return range_t{start, end};
@@ -506,16 +517,16 @@ namespace ya
         // add previous overlapped item
         auto ea = start;
         const auto curr = ya::get_range_item(ea);
-        if(curr.contains(ea))
-            ea = curr.start_ea;
+        if(curr.contains(ea)) { ea = curr.start_ea; }
 
         const auto allowed = range_t{start, end};
         const auto add_ea = [&](ea_t x)
         {
             const auto flags = get_flags(x);
-            if(is_code(flags) || ya::is_item(flags))
-                if(allowed.contains(x))
-                    items.emplace_back(x);
+            if((is_code(flags) || ya::is_item(flags))
+                && allowed.contains(x)) { 
+                items.emplace_back(x);
+            }
         };
 
         // find all interesting items
@@ -526,10 +537,11 @@ namespace ya
             {
                 const auto func = get_func(ea);
                 const auto code = ya::get_range_code(ea, start, end);
-                if(func)
+                if(func) {
                     add_ea(func->start_ea);
-                else if(code.contains(ea))
+                } else if(code.contains(ea)) {
                     add_ea(code.start_ea);
+                }
                 ea = code.end_ea;
                 continue;
             }
@@ -602,12 +614,14 @@ namespace ya
         for(auto it = wraps.rbegin(); it != wraps.rend(); ++it)
         {
             tinfo_t next = dst;
-            if(it->type < 0)
+            if(it->type < 0) {
                 next.create_ptr(dst);
-            else
+            } else {
                 next.create_array(it->type);
-            if(it->is_const)
+            }
+            if(it->is_const) {
                 next.set_const();
+            }
             dst = next;
         }
     }

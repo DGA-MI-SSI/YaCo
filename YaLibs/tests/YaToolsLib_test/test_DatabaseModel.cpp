@@ -19,9 +19,11 @@
 #   define YALIB_TEST
 #endif
 
-#include "test_common.hpp"
 #include "Helpers.h"
+#include "YaTypes.hpp"
+#include "test_common.hpp"
 
+#include "IModel.hpp"
 #include "HVersion.hpp"
 #include "ExporterValidatorVisitor.hpp"
 #include "MemoryModel.hpp"
@@ -42,6 +44,7 @@ using namespace nonstd;
 using namespace std::experimental;
 #endif
 
+
 using namespace std;
 
 class TestYaToolDatabaseModel
@@ -51,12 +54,6 @@ class TestYaToolDatabaseModel
 
 static const std::string gEmpty;
 
-struct Xref
-{
-    offset_t        offset;
-    operand_t       operand;
-    YaToolObjectId  id;
-};
 
 void create_object(IModelVisitor& v, YaToolObjectId id,
                    const char* crc,
@@ -102,8 +99,8 @@ void create_model(IModelVisitor& v)
 
     v.visit_end_version();
 
-    create_object(v, 0xBBBBBBBB, "11111111", {{{0x10, 0, 0xDDDDDDDD}}});
-    create_object(v, 0xDDDDDDDD, "22222222", {{{0x20, 1, 0xCCCCCCCC}, {0x20, 2, 0xBBBBBBBB}}});
+    create_object(v, 0xBBBBBBBB, "11111111", {{{0xDDDDDDDD, 0x10, 0, 0}}});
+    create_object(v, 0xDDDDDDDD, "22222222", {{{0xCCCCCCCC, 0x20, 1, 0}, {0xBBBBBBBB, 0x20, 2, 0}}});
     create_object(v, 0xCCCCCCCC, "22222222", {});
     v.visit_end();
 }
@@ -128,15 +125,16 @@ public:
     MockDatabase(){}
     virtual ~MockDatabase(){}
 
-    void        accept          (IModelVisitor&) override {};
-    void        walk            (const OnVersionFn&) const override {};
-    size_t      size            () const override { return 0; };
-    HVersion    get             (YaToolObjectId) const override { return HVersion{nullptr, 0}; };
-    bool        has             (YaToolObjectId) const override { return false; };
-    size_t      size_matching   (const HSignature&) const override { return 0; };
-    void        walk_matching   (const HSignature&, const OnVersionFn&) const override {};
-    void        walk_uniques    (const OnSignatureFn&) const override {};
-    void        walk_matching   (const HVersion&, size_t, const OnVersionFn&) const override {};
+    // Define empty acceptors/walkers
+    void        accept(IModelVisitor&) override {};
+    void        walk(const OnVersionFn&) const override {};
+    size_t      size() const override { return 0; };
+    HVersion    get(YaToolObjectId) const override { return HVersion{ nullptr, 0 }; };
+    bool        has(YaToolObjectId) const override { return false; };
+    size_t      size_matching(const HSignature&) const override { return 0; };
+    void        walk_matching(const HSignature&, const OnVersionFn&) const override {};
+    void        walk_uniques(const OnSignatureFn&) const override {};
+    void        walk_matching(const HVersion&, size_t, const OnVersionFn&) const override {};
 };
 }
 
